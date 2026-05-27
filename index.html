@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AM Weekly Command Centre · 18–24 May 2026</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --surface-2: #fafbfd;
+    --ink: #0f172a;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --line: #e2e8f0;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --red-ring: #fecaca;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --amber-ring: #fde68a;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --green-ring: #a7f3d0;
+    --indigo: #4f46e5;
+    --indigo-bg: #eef2ff;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 12px rgba(15,23,42,.06);
+    --shadow-lg: 0 4px 24px rgba(15,23,42,.08), 0 16px 40px rgba(15,23,42,.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%);
+    border-radius: 20px;
+    color: #fff;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 85% 20%, rgba(99,102,241,.35) 0, transparent 45%),
+      radial-gradient(circle at 15% 90%, rgba(220,38,38,.25) 0, transparent 45%);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c7d2fe;
+    margin-bottom: 8px;
+  }
+  .hero h1 {
+    margin: 0 0 6px;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  .hero-sub { color: #cbd5e1; font-size: 14px; }
+  .hero-stats {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .stat {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    padding: 14px 16px;
+    backdrop-filter: blur(6px);
+  }
+  .stat-num { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  .stat-label { font-size: 11px; color: #cbd5e1; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+  .stat.red .stat-num { color: #fca5a5; }
+  .stat.amber .stat-num { color: #fcd34d; }
+  .stat.green .stat-num { color: #6ee7b7; }
+
+  /* ALERT BAR */
+  .alert {
+    background: linear-gradient(90deg, #fef2f2 0%, #fff 100%);
+    border: 1px solid var(--red-ring);
+    border-left: 4px solid var(--red);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .alert-icon {
+    width: 32px; height: 32px;
+    background: var(--red); color: #fff;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .alert b { color: var(--red); }
+  .alert small { color: var(--ink-2); display: block; margin-top: 2px; }
+
+  /* SECTION HEADER */
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin: 28px 0 14px;
+  }
+  .section-head h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+  }
+  .section-head .hint { color: var(--ink-3); font-size: 12px; }
+
+  /* FILTERS */
+  .filters {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover { border-color: var(--ink-3); color: var(--ink); }
+  .chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .chip-dot.red { background: var(--red); }
+  .chip-dot.amber { background: var(--amber); }
+  .chip-dot.green { background: var(--green); }
+
+  /* HEAT MAP */
+  .heatmap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .tile {
+    border-radius: 14px;
+    padding: 14px 14px 12px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .tile.red { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-color: var(--red-ring); }
+  .tile.amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: var(--amber-ring); }
+  .tile.green { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: var(--green-ring); }
+  .tile.deep-red {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: #fff;
+    border-color: #991b1b;
+  }
+  .tile.deep-red .tile-name, .tile.deep-red .tile-meta { color: rgba(255,255,255,.85); }
+  .tile-code {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+  .tile-name { font-size: 11px; color: var(--ink-2); font-weight: 500; margin-top: 2px; }
+  .tile-delta {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 6px;
+    letter-spacing: -.01em;
+  }
+  .tile-delta.red { color: var(--red); }
+  .tile-delta.amber { color: var(--amber); }
+  .tile-delta.green { color: var(--green); }
+  .tile.deep-red .tile-delta { color: #fff; }
+  .tile-meta {
+    font-size: 10px;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-top: 2px;
+  }
+  .tile-issues-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(255,255,255,.7);
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 8px;
+  }
+  .tile.deep-red .tile-issues-badge { background: rgba(255,255,255,.2); color: #fff; }
+
+  /* CLUSTER COLUMNS */
+  .clusters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1000px) { .clusters { grid-template-columns: 1fr; } }
+  .cluster {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .cluster-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .cluster-title { font-weight: 700; font-size: 14px; letter-spacing: -.01em; }
+  .cluster-am { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .cluster-score {
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .cluster-list { display: flex; flex-direction: column; gap: 6px; }
+  .cluster-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    gap: 8px;
+    transition: background .12s;
+  }
+  .cluster-row:hover { background: var(--surface-2); }
+  .row-code { font-weight: 700; font-size: 13px; }
+  .row-name { font-size: 11px; color: var(--ink-2); }
+  .row-delta {
+    font-weight: 700; font-size: 13px;
+    padding: 3px 8px; border-radius: 6px;
+  }
+  .row-delta.red { background: var(--red-bg); color: var(--red); }
+  .row-delta.amber { background: var(--amber-bg); color: var(--amber); }
+  .row-delta.green { background: var(--green-bg); color: var(--green); }
+
+  /* THEMES */
+  .themes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 900px) { .themes { grid-template-columns: 1fr; } }
+  .theme-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 14px;
+  }
+  .theme-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--indigo-bg);
+    color: var(--indigo);
+    display: grid; place-items: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .theme-card.critical .theme-icon { background: var(--red-bg); color: var(--red); }
+  .theme-card.warn .theme-icon { background: var(--amber-bg); color: var(--amber); }
+  .theme-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; letter-spacing: -.005em; }
+  .theme-body { font-size: 12px; color: var(--ink-2); line-height: 1.55; }
+  .theme-sites { margin-top: 8px; }
+  .site-pill {
+    display: inline-block;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 6px;
+    margin-right: 4px;
+    margin-top: 4px;
+  }
+
+  /* MODAL */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 18px;
+    max-width: 720px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: slide-in .25s ease-out;
+  }
+  @keyframes slide-in {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  .modal-header {
+    padding: 22px 26px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .modal-title { font-size: 22px; font-weight: 700; letter-spacing: -.015em; }
+  .modal-sub { color: #cbd5e1; font-size: 12px; margin-top: 2px; }
+  .modal-close {
+    background: rgba(255,255,255,.12);
+    color: #fff; border: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.2); }
+  .modal-body { padding: 22px 26px; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .kpi {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .kpi-label { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+  .kpi-value { font-size: 18px; font-weight: 700; margin-top: 4px; letter-spacing: -.01em; }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.amber { color: var(--amber); }
+  .kpi-value.green { color: var(--green); }
+  .panel { margin-bottom: 20px; }
+  .panel-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 10px;
+  }
+  .panel-head.issues { color: var(--red); }
+  .panel-head.actions { color: var(--green); }
+  .panel-head .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .panel-head.issues .dot { background: var(--red); }
+  .panel-head.actions .dot { background: var(--green); }
+  .item {
+    background: var(--surface-2);
+    border-left: 3px solid var(--line);
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .item.issue { border-left-color: var(--red); }
+  .item.action { border-left-color: var(--green); }
+  .item-meta {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+  .modal-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 8px;
+    color: var(--indigo);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .modal-link:hover { text-decoration: underline; }
+  .empty {
+    background: var(--red-bg);
+    border: 1px solid var(--red-ring);
+    color: var(--red);
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 11px;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .footer a { color: var(--indigo); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">AM Weekly Command Centre</div>
+      <h1>Week of 18–24 May 2026</h1>
+      <div class="hero-sub">16 site KPI reports · 3 clusters · Filed by Francheska 25–27 May</div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num">16</div><div class="stat-label">Sites Reporting</div></div>
+        <div class="stat red"><div class="stat-num" id="stat-red">3</div><div class="stat-label">Red</div></div>
+        <div class="stat amber"><div class="stat-num" id="stat-amber">6</div><div class="stat-label">Amber</div></div>
+        <div class="stat green"><div class="stat-num" id="stat-green">7</div><div class="stat-label">Green</div></div>
+        <div class="stat"><div class="stat-num" id="stat-issues">52</div><div class="stat-label">Open Issues</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert">
+    <div class="alert-icon">!</div>
+    <div>
+      <b>M18 Soho documentation gap</b> — Sales –61.13% vs target but the qualitative recovery sections of the weekly KPI report are blank. Highest priority chase for Lincoln.
+      <small>Also flag: M15 Metrocentre misfiled by Francheska (belongs to Scotland & Newcastle, not North/Midlands).</small>
+    </div>
+  </div>
+
+  <!-- HEAT MAP -->
+  <div class="section-head">
+    <div>
+      <h2>Site Performance Heat Map</h2>
+      <div class="hint">Tile colour = sales vs target. Click any site for issues + solutions.</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="chip active" data-filter="all">All sites</div>
+    <div class="chip" data-filter="red"><span class="chip-dot red"></span>Red (target miss &gt;25%)</div>
+    <div class="chip" data-filter="amber"><span class="chip-dot amber"></span>Amber</div>
+    <div class="chip" data-filter="green"><span class="chip-dot green"></span>Green / on-track</div>
+    <div class="chip" data-filter="scotland">Scotland &amp; Newcastle</div>
+    <div class="chip" data-filter="north">North &amp; Midlands</div>
+    <div class="chip" data-filter="south">South England</div>
+  </div>
+
+  <div class="heatmap" id="heatmap"></div>
+
+  <!-- CLUSTERS -->
+  <div class="section-head">
+    <h2>Clusters at a Glance</h2>
+    <div class="hint">Ranked by sales vs target</div>
+  </div>
+
+  <div class="clusters" id="clusters"></div>
+
+  <!-- THEMES -->
+  <div class="section-head">
+    <h2>Cross-Cluster Themes</h2>
+    <div class="hint">Patterns the AM layer needs to act on this week</div>
+  </div>
+
+  <div class="themes" id="themes"></div>
+
+  <!-- HOT ACTIONS -->
+  <div class="section-head">
+    <h2>This Week's Hot Actions</h2>
+    <div class="hint">High-priority items pulled from the reports</div>
+  </div>
+
+  <div id="hot-actions"></div>
+
+  <div class="footer">
+    Source: <a href="https://drive.google.com/drive/folders/18zid54KrspVfveZhcWG_gGJEPn7ncs1B" target="_blank">May 18–24, 2026 KPI folder</a>
+    · Synthesised from 16 weekly GM/HC reports + Monday admin meeting notes
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this) closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const SITES = [
+  // SCOTLAND & NEWCASTLE
+  { code: 'M1/2', name: 'Edinburgh Omni', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Derrick Cheung',
+    rag: 'amber', vsTarget: -24.21,
+    docId: '11zEBMNSYX8r_lgq6WyKn5vc7a5z2fhQ4qWY1GmIHuGg',
+    kpis: { covers: '742 (+1.22%)', sph: '£19.69 (-2.81%)', vsTarget: '-£6,416 (-24.21%)', foodVar: '+2.0%' },
+    issues: [
+      'Sales -24% vs target & -14.75% YOY.',
+      'SPH -2.81% WOW.',
+      'Julio had only 37 days left on right-to-work.',
+      'Hanna sick 3 days.',
+      'Downstairs fan needs replacing.',
+      'Sushi upsell underperforming.'
+    ],
+    actions: [
+      'Julio RTW resolved.',
+      'New lunch menu launching as sales driver.',
+      'Focus on sushi upsell.',
+      'Replace downstairs fan.',
+      'Nanako & Stella FOH onboarding complete.'
+    ]
+  },
+  { code: 'M3', name: 'Edinburgh', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Rory Ferguson',
+    rag: 'green', vsTarget: 23.76,
+    docId: '1YECcLqu6kfR3B9gGvdphnDIOUm4a7WoNC2MaNpbQ51k',
+    kpis: { covers: '1,154 (+0.87%)', sph: '£22.42 (+2.33%)', vsTarget: '+£8,236 (+23.76%)', foodVar: '+2.0%' },
+    issues: [
+      'Deliveroo inaccurate orders.',
+      'Review volume low — "could still use some work".',
+      'FOH churn: Hailyn leaving 31/05; Jorja off until 18/06; Dylan transferring to M7.',
+      'Drinks variance -3.5%.',
+      'Open hiring: 1× FOH Supervisor, 1× FOH.'
+    ],
+    actions: [
+      '"Person on the pass ticking off all items as they pack them away and communicate to kitchen if anything is missing."',
+      'Continued review incentive in place.',
+      'Ruben trialling Saturday for FOH Supervisor; sourcing second FOH.',
+      'Jack back in BOH this week.',
+      'Sales pipeline: Tofoo partnership, Protein ramen, XOXO, lunch menu, Scotland women\'s cricket booking (25 covers Thu 6:30pm).'
+    ]
+  },
+  { code: 'M6', name: 'Fountainbridge', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Justyna Polak (RM)',
+    rag: 'green', vsTarget: 4.29,
+    docId: '1ysQ0mLM5UrWxJeBqnB3mKdjVlo1J3KpYYSUJLLv48S8',
+    kpis: { covers: '891 (-5.71% YOY)', sph: '£21.70 (+2.3%)', vsTarget: '+£1,137', foodVar: '+4.7%' },
+    issues: [
+      'Food variance high at +4.7% — F/R targets inaccurate, awaiting EC mitigation.',
+      'Drinks -3.3% (sides 16.19% partly missing — Kobas Cloud issue).',
+      'Reviews: team asking but not converting.',
+      'RM confidence in stock-counting execution low.',
+      'Split invoicing process too manual / labour-intensive.',
+      'BOH pipe leaking.'
+    ],
+    actions: [
+      'New par-level sheet in progress to fix F/R targets.',
+      'RM to convert review asks "and follow through to convert".',
+      'BOH pipe fixed by Rafal.',
+      'Split-invoice automation — Ross Ward (OM) looking into it.',
+      '£18 Lunch Deal launches 27/05 (COO-approved). £5 vouchers ended 24/05.',
+      '"Careful watch on the current budget to ensure alignment is met."'
+    ]
+  },
+  { code: 'M7', name: 'SJQ Edinburgh', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Calum Heriot',
+    rag: 'green', vsTarget: 1.52,
+    docId: '1_omkzW21jbNJG7NZyZYCdHBocBRf_q7hilMhy_REj_w',
+    kpis: { covers: '2,616 (-6.47% YOY)', sph: '£22.63 (+0.44%)', vsTarget: '+£888 (+1.52%)', foodVar: '+4.8%' },
+    issues: [
+      'Covers -181 YOY (-6.47%) and YOY sales -6.15%.',
+      'Food variance high at +4.8%.',
+      'Drinks variance -2.5%.',
+      'BOH: Joao P45\'d (leaver).',
+      'FOH: Izzy leaving.',
+      'Reviews flagged.',
+      'Ticket machine still broken / screens not installed (raised again in Monday admin).'
+    ],
+    actions: [
+      'New par-level sheet in progress.',
+      'Alitu started kitchen cover.',
+      'Dylan transferring in from M3.',
+      'Sales pipeline: lunch menu, Tofoo, Protein ramen.',
+      'Ross Ward — chase Chris on ticket machine today.'
+    ]
+  },
+  { code: 'M8', name: 'Bath St Glasgow', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Scott Renwick (NEW)',
+    rag: 'green', vsTarget: 7.36,
+    docId: '1RkEjiAQQWKKH0yApEKo0DnCJMp6wB44OxdPZS_cnbho',
+    kpis: { covers: '1,666 (-7.44% YOY)', sph: '£22.75', vsTarget: '+£3,148', foodVar: '+2.4%' },
+    issues: [
+      'YOY covers -134 and sales -£2,267.',
+      'F/R targets non-accurate.',
+      'Review volume too low — "needs an incentive".',
+      'Management team needs stabilising; possible extra hire.',
+      'AGM role tasks need clarifying.',
+      'Yordan flagged servicing due (aircon, ventilation, freezer/fridges) — needs Ka sign-off at KPI.'
+    ],
+    actions: [
+      'Scott (new GM, started 25/05) to design review incentive "that will really generate the volume".',
+      'New par-level sheet in progress.',
+      'Potential additional management hire.',
+      'Scott to hold meeting with AGM (date TBC).',
+      '£18 Lunch Deal launches 26/05. "Closely monitor Lunch Deal and reinforce to all FOH staff to ensure action is taken via upsell for every dine in customer."'
+    ]
+  },
+  { code: 'M12', name: 'Newcastle', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Matt Lee',
+    rag: 'amber', vsTarget: -8.49,
+    docId: '1Z4rAycLtk13oUIerTK4p8ZPqSgJsldFWLb_05BGNAKY',
+    kpis: { covers: '958 (-5.80%)', sph: '£23.26 (+1.17%)', vsTarget: '-£2,942 (-8.49%)', foodVar: '+4.5%' },
+    issues: [
+      'Sales -8.49% vs target; quiet Saturday biggest hit.',
+      'Late Deliveroo prep "up too much for my liking"; prep time +1 min.',
+      'Order #3725: "said the ramen was a solid lump."',
+      'Order #2327: "ramen was a solid lump and the vegan bacon wasn\'t cooked."',
+      'Frida (Yushan Cui) resigned immediate effect.',
+      'BOH staff Olsi and Melsior "showing big signs of struggling with communication and willingness to adapt/learn".',
+      'Labour cost up £13.10 even with fewer hours (sales drop made % worse).',
+      'Maintenance: aircon (Ultra High, Ross), toilets (Ultra High, Ross, logged), front door (Medium, Kris), BOH freezer (not yet logged).'
+    ],
+    actions: [
+      'Keep "ploughing away" at Deliveroo prep times.',
+      'Erin to decide on Olsi & Melsior.',
+      'Maintenance owners assigned (BOH freezer still to log).',
+      'New par-level sheet in progress.',
+      'Bottomless Brunch Fri/Sat/Sun lifting drinks +1.36% and sides +0.82% — first time all three targets hit since mid-Nov.',
+      'Lunch menu launches today; half-term tailwind.'
+    ]
+  },
+  { code: 'M13', name: 'Aberdeen', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Joe Herera',
+    rag: 'amber', vsTarget: -11.44,
+    docId: '1DJYmUBuDtv2ub9zrmIa6AixurAEosArdA6bS_PHUxIg',
+    kpis: { covers: '1,458 (-7.25%)', sph: '£23.33 (+5.18%)', vsTarget: '-£5,515 (-11.44%)', foodVar: '+4.8%' },
+    issues: [
+      'Sales miss -£5,515 vs target. Covers -7.25% WOW.',
+      'Food variance high at +4.8%.',
+      'All-in labour inflated by GM staff OBT error via Talent Funnel / Kobas.',
+      'Reviews volume too low.',
+      'SPH still needs lifting via upselling.',
+      'Maintenance backlog: 4× strip lights, tube lights out, ceiling tiles, covers light by stockroom, speaker fault, flickering toilet spotlight — all logged, no owner assigned.',
+      'Reuben transferring out to M3 (last shift 29/05).'
+    ],
+    actions: [
+      'Food stabilisation via par sheet.',
+      '"Reviews must increase the overall volume." "Upselling to increase SPH."',
+      'Meeting planned with Union Square to share best practice.',
+      'Chisholm Hunters takeaway 30 covers 28/05 (no alcohol).',
+      '£18 Lunch Deal launches 26/05.',
+      'Legionellas test confirmed 04/06 (Asana\'d).',
+      'All KPI actions recorded on Asana.'
+    ]
+  },
+  { code: 'IKI2', name: 'Ikigai 2', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Sujan (RM)',
+    rag: 'amber', vsTarget: -17.32,
+    docId: '12dq5KxC0P5-Ajo3gG839YG91IVpnNEuun-R1nWAtei8',
+    kpis: { covers: '-10.74% WOW', sph: 'WOW +£0.10', vsTarget: '-17.32%', foodVar: 'N/A' },
+    issues: [
+      'Sharp WOW drop: covers -10.74%, sales -9.02%, vs target -17.32%.',
+      'No Google review data on central sheet.',
+      'Labour, F/R%, food/drinks variance all blank — reporting gap.',
+      'Maintenance: extraction cleaning required.',
+      'Service due in 2 weeks.'
+    ],
+    actions: [
+      'Extraction cleaning assigned to RM.',
+      'Service to be scheduled within 2 weeks.',
+      'Staff stable BOH and FOH; intangibles "Completed".',
+      'No promos or improvements populated — "All from Above".'
+    ]
+  },
+
+  // NORTH & MIDLANDS
+  { code: 'M9', name: 'Manchester', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: 'Kai Chau Leung / Chan Zhi Quan',
+    rag: 'green', vsTarget: -0.51,
+    docId: '1c7Tldh-U9aaUwrTrN7L3LKkX1ITBnAVGq70XVbUf2pM',
+    kpis: { covers: '-66 (-2.71%)', sph: '+£0.64 WOW', vsTarget: '-£350 (-0.51%)', foodVar: '21.62% (target 23%)' },
+    issues: [
+      'Deliveroo Amber — 5× refunds in the week.',
+      'Deliveroo: 2× 1-star reviews.',
+      'Maintenance: Seafood Fryer — HIGH (Francheska).',
+      'Maintenance: Griddle — Medium (Wayne, internal).',
+      'Maintenance: Front Door — HIGH (Ross).'
+    ],
+    actions: [
+      'Tighten Deliveroo accuracy & reviews handling.',
+      'Push food cost down to 23% target.',
+      'Lunch set menu launches Tue 26/05 to lift covers.',
+      'Maintenance owners assigned per job above.'
+    ]
+  },
+  { code: 'M10', name: 'Leeds', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: 'Ninder Joshi',
+    rag: 'green', vsTarget: 3.69,
+    docId: '11-lGbe6Z8Bggs_nAmqHs416-Lc1qlMOpIdHU7nfzMB0',
+    kpis: { covers: '+99 (+9.47%)', sph: '+£0.21 (+0.91%)', vsTarget: '+£1,303 (+3.69%)', foodVar: 'N/A' },
+    issues: [
+      'Deliveroo timing slipping (sushi orders in particular).',
+      'Deliveroo mistakes / refunds need ongoing disputing.',
+      'Maintenance: Ice machine leaking — HIGH (no owner logged).',
+      'Maintenance: Urinal leaking — HIGH (no owner logged).'
+    ],
+    actions: [
+      '"Deliveroo\'s got priority over any other orders specially the ones that includes sushi."',
+      '"Keep disputing the deliveroo\'s refund as soon as they pop up."',
+      '3 June catering services to LasVegas offices.',
+      '£18 lunch menu running.'
+    ]
+  },
+  { code: 'M11', name: 'Leicester · RED LIGHT', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: 'Caroline / JJ',
+    rag: 'deep-red', vsTarget: -38.43,
+    docId: '1tTaEEzOwcHGGj_PtU375vK0CS3NQv6T3qEG_FZdUEbc',
+    kpis: { covers: '-144 (-15.66%)', sph: '-£0.27 (-1.26%)', vsTarget: '-£13,315 (-38.43%)', foodVar: 'LOOK INTO FURTHER' },
+    issues: [
+      'Massive miss: -38.43% vs target.',
+      '"Sunday Highcross closed early which negatively affected our potential sales. The weather has also picked up massively so people are opting more for pubs and beer gardens over restaurants. Also a slow week in general."',
+      'Deliveroo: "Ash struggling to find photos when disputing so we\'re struggling to win dispute cases".',
+      'Labour: "higher last week even though we used less labour… because our sales were worse from WOW our labour obviously was higher".',
+      'Margin annotation: "FOOD COSTS LOOK INTO FURTHER, IS HE ACCOUNTING FOR AA?"',
+      'Reviews: 3× 5★ but 1× 2★.',
+      'William last shift Sun — OFF BOARD.',
+      'FOH hiring active.'
+    ],
+    actions: [
+      '"Continue with B2B and collaborate with Highcross where possible to boost sales — will continue mitigating labour as much as possible."',
+      '"Manage BOH labour more."',
+      '"Deliveroo manage tighter and send photos immediately not at end of day."',
+      'B2B event scheduled Friday.',
+      '£18 lunch menu launched.',
+      '"Send photos to group chats of on street marking when doing."',
+      'GM/HC meeting Wed.',
+      'Inka — audit whether on-street marketing actually happened over weekend.'
+    ]
+  },
+  { code: 'M14', name: 'Meadowhall · RED LIGHT', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: '— (blank)',
+    rag: 'deep-red', vsTarget: -44.23,
+    docId: '1mFXbS0MYWbMRlZ1165lfjOVunEH1_eegHxhpbsAFojw',
+    kpis: { covers: '-253 (-15.86%)', sph: '-£0.55 (-2.37%)', vsTarget: '-£25,211 (-44.23%)', foodVar: '9 (drinks blank)' },
+    issues: [
+      'Worst target miss in cluster: -44.23%.',
+      '"3 FOH have left the business."',
+      'Maintenance: Glass wash — HIGH (Ross).',
+      'Maintenance: "No hot water (water still running)" — HIGH (Ross / Inka).',
+      'Deliveroo picture logging slipped "mainly due to being very busy and rushing deliveroo orders to be packed".',
+      'GAP: no promos / events listed for the week despite red-light status.'
+    ],
+    actions: [
+      '"Back to managers only packing deliveroo" — to fix accuracy / photo evidence.',
+      'Maintenance escalated to Ross / Inka for hot water and glass wash.',
+      'Inka — populate covers-recovery plan for next week\'s report.'
+    ]
+  },
+  { code: 'M16', name: 'Nottingham · AMBER', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: '— (blank)',
+    rag: 'red', vsTarget: -24.55,
+    docId: '1NaZcewuV3w69mzcVOjX_lF8WQUZA31F5p6xBzruY8Q0',
+    kpis: { covers: '+103 (+8.11%)', sph: '-£1.27 (-5.32%)', vsTarget: '-£11,832 (-24.55%)', foodVar: '"WHAT DOES THIS MEAN?"' },
+    issues: [
+      'Sustained -24.55% vs target despite WOW uptick.',
+      '"BUSY — I ended up in the kitchen, AGAIN. AS DID FARRES, WHO JUST HAPPENED TO BE PASSING BY AND SAW WE WERE GETTING SLAMMED — THIRD CHEF ON A WEDNESDAY NIGHT PLEASE!"',
+      'Deliveroo refunds not being challenged with photo evidence.',
+      'Recurring product complaint: "STEAK AGAIN!!!!"',
+      'James off sick; Hien flagged.',
+      'Maintenance: toilets, hot water, ice machine — none with owner / logged status.',
+      'Yakisoba quality (Mon admin) — chef left noodles in strainer with hot water, no timer.'
+    ],
+    actions: [
+      '"REFUNDS PICTURES — BEING IMPLEMENTED FROM TODAY."',
+      'Hire/schedule a third chef on Wednesday nights.',
+      'Rota fix needed for Sunday nights.',
+      '"HOTTER DAYS, MORE SUSHI DEMAND, ENSURE APPROPRIATE STAFFING AND GET ALL BOH TRAINED TO ASSIST IN HIGH DEMAND TIMES. [MAG TO PICK UP]"',
+      'Strong promo pipeline: Half Term, lunch menu, Strictly The Professionals (Tue 26), Cocktail Week Nottingham, Comedy/Theatre (Thu), Opera 26–30.',
+      'Sophie Wang — enforce mandatory timer + active supervision on Yakisoba for new staff.'
+    ]
+  },
+  { code: 'M15', name: 'Metrocentre · MISFILED', cluster: 'scotland', clusterName: 'Scotland & Newcastle (misfiled)', am: 'Óisín Darragh (Ka Ho cluster)', gm: 'Kieran Day',
+    rag: 'red', vsTarget: -24.77,
+    docId: '1JXF8QGUygCX1ZJ5LNlgNf3_fYowh2P4U6hIcfesOAv4',
+    kpis: { covers: '-524 (-21.53%)', sph: '-£0.37 (-1.56%)', vsTarget: '-£15,020 (-24.77%)', foodVar: '-2.7% (drinks +1.7%)' },
+    issues: [
+      '"Very poor week due to the sun, this absolutely killed footfall around metro."',
+      'Deliveroo 30% off working on sales but "no £5 off cards returned".',
+      'Labour cuts couldn\'t keep pace (126.5 hrs cut ≈ £1,607.82 saved).',
+      'HARD DEADLINE: sprinkler service must be done by 02/06/26 per Metrocentre — flagged to Ross.',
+      'Hamid training hours mis-routed to M15 (should be Shoreditch).',
+      'Filed in wrong cluster — admin issue for Francheska.'
+    ],
+    actions: [
+      '126.5 labour hours already cut (~£1,608 saved).',
+      '30% Deliveroo promo continuing.',
+      'Ross — book sprinkler service before 02/06/26.',
+      'Payroll correction: re-route Hamid\'s training hours to Shoreditch.',
+      'GM/HC meeting Wed (Kieran).'
+    ]
+  },
+
+  // SOUTH ENGLAND
+  { code: 'M17', name: 'Lakeside', cluster: 'south', clusterName: 'South England', am: 'Lincoln', gm: 'Kei Cannon',
+    rag: 'red', vsTarget: -25.96,
+    docId: '1EnA64PTKVC95ULWutnXCd8qaY7o3PpntU-3UHpTdbcs',
+    kpis: { covers: '-414 (-26.76%)', sph: '+£0.05 (+0.21%)', vsTarget: '-£9,865 (-25.96%)', foodVar: 'No data on KPI sheet' },
+    issues: [
+      'Heavy cover collapse WOW.',
+      'F/R% not populated — food cost invisible.',
+      'Every qualitative section (Deliveroo, reviews, GM/HC notes, staff, hygiene, maintenance, promos, areas of improvement, additional notes) left blank.',
+      'Owari → Kiban transition needs explicit close-out.'
+    ],
+    actions: [
+      'None recorded.',
+      'Lincoln — chase Kei Cannon: is silence "resolved" or "not reviewed"?'
+    ],
+    empty: true
+  },
+  { code: 'M18', name: 'Soho · RED LIGHT', cluster: 'south', clusterName: 'South England', am: 'Lincoln', gm: 'Imre Balogh',
+    rag: 'deep-red', vsTarget: -61.13,
+    docId: '1MwIrRvNFN2PWbhz0eRoysYzapzMS4U9nwr0rWDXzvr4',
+    kpis: { covers: '-330 (-19.65%)', sph: '-£1.56 (-7.07%)', vsTarget: '-£45,844 (-61.13%)', foodVar: 'No data on KPI sheet' },
+    issues: [
+      'Catastrophic miss: sales -£45,844 (-61.13%) below target.',
+      'Both covers AND SPH dropping same week.',
+      'Labour annotation: "Includes: Shoreditch Training Staff, Kitchen has to cut more".',
+      'Glide-down only: "-3.74% step by step going down".',
+      'F/R% missing for cluster\'s biggest underperformer.',
+      'ALL qualitative sections blank — no recovery plan, no owners, no marketing actions documented.',
+      'From Mon admin: KPI sheet showed 41.84% labour vs cash logs showing different revenue; sales figures conflict between sources.'
+    ],
+    actions: [
+      'Implicit only — labour glide-down already in motion (-3.74% step-by-step); kitchen earmarked for further cuts.',
+      'Separate Shoreditch training headcount from M18 wage line.',
+      'Ross — reallocate shortage staff out of Soho.',
+      'Ross — verify which revenue source is correct (cash log = source of truth).',
+      'Lunch menu + pre-theatre £88 launching this week (Teddy approved focus on two promos; third deferred a week).'
+    ],
+    empty: true
+  }
+];
+
+const THEMES = [
+  {
+    severity: 'critical',
+    icon: '!',
+    title: 'Sales-vs-target collapse Midlands/South',
+    body: 'M11 –38%, M14 –44%, M16 –25%, M15 –25%, M18 –61% — all in the same week, universally blamed on hot weather. Needs a marketing/operations response, not a weather note.',
+    sites: ['M11','M14','M15','M16','M18']
+  },
+  {
+    severity: 'warn',
+    icon: '◐',
+    title: 'Deliveroo dispute discipline',
+    body: 'Every site except M9 mentions photo-evidence failures driving avoidable refunds. M16 implementing today, M11 told photos go immediately, M14 reverting to managers-only packing.',
+    sites: ['M3','M10','M11','M12','M14','M16']
+  },
+  {
+    severity: 'critical',
+    icon: '∅',
+    title: 'F/R% missing across the estate',
+    body: 'Operational food cost % not populated for M10, M11, M14, M15, M16, M17 and M18. Food cost currently invisible at ~40% of sites. Pull Francheska on the sheet feed.',
+    sites: ['M10','M11','M14','M15','M16','M17','M18']
+  },
+  {
+    severity: 'warn',
+    icon: '⚒',
+    title: 'Maintenance ownership gaps',
+    body: '"Has the job been logged?" and "Ops Manager Responsible" columns blank on M10, M11, M13 and M16. Inka and Ka should chase logging discipline — jobs fall between cracks otherwise.',
+    sites: ['M10','M11','M13','M16']
+  },
+  {
+    severity: 'critical',
+    icon: '⌖',
+    title: 'M18 Soho documentation gap',
+    body: 'A –61% vs-target red-light site with NO written recovery plan in its weekly report. The most urgent single chase. Raise with Lincoln before tomorrow\'s red-light review.',
+    sites: ['M18']
+  },
+  {
+    severity: 'warn',
+    icon: '✎',
+    title: 'Reporting hygiene',
+    body: 'M15 filed in wrong cluster, IKI2 has large reporting gaps, M13 is reporting against the previous week (11–17 May). 5-minute fix with Francheska.',
+    sites: ['M13','M15','IKI2']
+  }
+];
+
+const HOT_ACTIONS = [
+  { priority: 'P0', owner: 'Lincoln', text: 'Chase Imre Balogh + Kei Cannon for full M18 + M17 written reports — both effectively empty.', due: 'Before red-light review' },
+  { priority: 'P0', owner: 'Ross Ward', text: 'Book M15 Metrocentre sprinkler service — hard deadline from Metrocentre.', due: '02/06/26' },
+  { priority: 'P0', owner: 'Ross Ward', text: 'Reallocate Shoreditch training staff off M18 wage line so true Soho labour % is visible.', due: 'This week' },
+  { priority: 'P1', owner: 'Sophie Wang', text: 'Enforce mandatory timer + active supervision on Yakisoba prep at M16 (soggy-noodle complaint).', due: 'Open' },
+  { priority: 'P1', owner: 'Inka Cheung', text: 'Verify on-street marketing actually happened at M11 over the weekend — Michael pushed back hard in Mon admin.', due: 'This week' },
+  { priority: 'P1', owner: 'Francheska', text: 'Fix sheet feed for Operational F/R% — missing for 7 sites. Re-file M15 in Scotland & Newcastle batch.', due: 'Before next Mon\'s report cycle' },
+  { priority: 'P2', owner: 'Ross Ward', text: 'Chase Chris on M7 ticket machine + screens — outstanding from previous week.', due: 'Today' },
+  { priority: 'P2', owner: 'Ka Ho', text: 'Sign off M8 servicing (aircon, ventilation, freezer/fridges) per Yordan\'s request at KPI.', due: 'Next KPI' }
+];
+
+// --- RENDER ---
+function colorClass(rag) { return rag; }
+function deltaClass(v) { if (v < -25) return 'red'; if (v < 0) return 'amber'; return 'green'; }
+
+function renderHeatmap(filter = 'all') {
+  const wrap = document.getElementById('heatmap');
+  const sites = SITES.filter(s => {
+    if (filter === 'all') return true;
+    if (['red','amber','green'].includes(filter)) {
+      const r = s.rag === 'deep-red' ? 'red' : s.rag;
+      return r === filter;
+    }
+    return s.cluster === filter;
+  }).sort((a,b) => a.vsTarget - b.vsTarget);
+
+  wrap.innerHTML = sites.map(s => {
+    const issuesCount = s.issues.length;
+    const arrow = s.vsTarget >= 0 ? '▲' : '▼';
+    const pct = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1) + '%';
+    return `
+      <div class="tile ${s.rag}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
+        <div class="tile-issues-badge">${issuesCount} flag${issuesCount===1?'':'s'}</div>
+        <div>
+          <div class="tile-code">${s.code}</div>
+          <div class="tile-name">${s.name}</div>
+        </div>
+        <div>
+          <div class="tile-delta ${s.rag === 'deep-red' ? 'red' : deltaClass(s.vsTarget)}">${arrow} ${pct}</div>
+          <div class="tile-meta">vs target</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderClusters() {
+  const wrap = document.getElementById('clusters');
+  const clusters = [
+    { id: 'scotland', name: 'Scotland & Newcastle', am: 'Ka Ho · DAM Óisín Patrick Darragh' },
+    { id: 'north', name: 'North England & Midlands', am: 'Inka Cheung · DAM Amy Tang' },
+    { id: 'south', name: 'South England', am: 'Lincoln (Ziang) · DAM Kaitlin Dorcherty' }
+  ];
+  wrap.innerHTML = clusters.map(c => {
+    const sites = SITES.filter(s => s.cluster === c.id).sort((a,b) => a.vsTarget - b.vsTarget);
+    const avg = sites.reduce((sum,s) => sum + s.vsTarget, 0) / sites.length;
+    const avgPct = (avg >= 0 ? '+' : '') + avg.toFixed(1) + '%';
+    return `
+      <div class="cluster">
+        <div class="cluster-head">
+          <div>
+            <div class="cluster-title">${c.name}</div>
+            <div class="cluster-am">${c.am}</div>
+          </div>
+          <div class="cluster-score">${avgPct} avg</div>
+        </div>
+        <div class="cluster-list">
+          ${sites.map(s => {
+            const arrow = s.vsTarget >= 0 ? '+' : '';
+            return `
+            <div class="cluster-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
+              <div class="row-code">${s.code}</div>
+              <div class="row-name">${s.name}</div>
+              <div class="row-delta ${s.rag === 'deep-red' ? 'red' : deltaClass(s.vsTarget)}">${arrow}${s.vsTarget.toFixed(1)}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderThemes() {
+  const wrap = document.getElementById('themes');
+  wrap.innerHTML = THEMES.map(t => `
+    <div class="theme-card ${t.severity}">
+      <div class="theme-icon">${t.icon}</div>
+      <div>
+        <div class="theme-title">${t.title}</div>
+        <div class="theme-body">${t.body}</div>
+        <div class="theme-sites">
+          ${t.sites.map(s => `<span class="site-pill">${s}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHotActions() {
+  const wrap = document.getElementById('hot-actions');
+  wrap.innerHTML = `
+    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);">
+      ${HOT_ACTIONS.map((a,i) => {
+        const colors = { 'P0': { bg: 'var(--red-bg)', fg: 'var(--red)' }, 'P1': { bg: 'var(--amber-bg)', fg: 'var(--amber)' }, 'P2': { bg: 'var(--indigo-bg)', fg: 'var(--indigo)' } };
+        const c = colors[a.priority];
+        return `
+          <div style="display:grid; grid-template-columns: 60px 130px 1fr 180px; gap: 16px; padding: 14px 18px; ${i < HOT_ACTIONS.length - 1 ? 'border-bottom: 1px solid var(--line);' : ''} align-items: center;">
+            <div style="background:${c.bg}; color:${c.fg}; font-weight:800; font-size:12px; padding:4px 10px; border-radius:6px; text-align:center;">${a.priority}</div>
+            <div style="font-weight:600; font-size:13px;">${a.owner}</div>
+            <div style="font-size:13px; color: var(--ink);">${a.text}</div>
+            <div style="font-size:11px; color: var(--ink-3); text-align:right;">${a.due}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function openSite(code) {
+  const s = SITES.find(x => x.code === code);
+  if (!s) return;
+  const modal = document.getElementById('modal');
+  const ragLabel = s.rag === 'deep-red' ? 'DEEP RED' : s.rag.toUpperCase();
+  const ragColor = s.rag === 'deep-red' ? 'red' : s.rag;
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${s.code} — ${s.name}</div>
+        <div class="modal-sub">${s.clusterName} · AM: ${s.am} · GM: ${s.gm}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Covers</div><div class="kpi-value">${s.kpis.covers}</div></div>
+        <div class="kpi"><div class="kpi-label">SPH</div><div class="kpi-value">${s.kpis.sph}</div></div>
+        <div class="kpi"><div class="kpi-label">vs Target</div><div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div></div>
+        <div class="kpi"><div class="kpi-label">Food Var</div><div class="kpi-value">${s.kpis.foodVar}</div></div>
+      </div>
+
+      ${s.empty ? '<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
+
+      <div class="panel">
+        <div class="panel-head issues"><span class="dot"></span>Issues raised (${s.issues.length})</div>
+        ${s.issues.map(i => `<div class="item issue">${i}</div>`).join('')}
+      </div>
+
+      <div class="panel">
+        <div class="panel-head actions"><span class="dot"></span>Solutions / actions (${s.actions.length})</div>
+        ${s.actions.map(a => `<div class="item action">${a}</div>`).join('')}
+      </div>
+
+      <a class="modal-link" href="https://docs.google.com/document/d/${s.docId}/edit" target="_blank">Open full KPI report in Drive →</a>
+    </div>`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+
+// Filter handlers
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', e => {
+    document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    renderHeatmap(c.dataset.filter);
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// Compute stats
+const stats = SITES.reduce((acc, s) => {
+  if (s.rag === 'deep-red' || s.vsTarget < -25) acc.red++;
+  else if (s.vsTarget < 0) acc.amber++;
+  else acc.green++;
+  acc.issues += s.issues.length;
+  return acc;
+}, { red: 0, amber: 0, green: 0, issues: 0 });
+document.getElementById('stat-red').textContent = stats.red;
+document.getElementById('stat-amber').textContent = stats.amber;
+document.getElementById('stat-green').textContent = stats.green;
+document.getElementById('stat-issues').textContent = stats.issues;
+
+renderHeatmap();
+renderClusters();
+renderThemes();
+renderHotActions();
+</script>
+</body>
+</html>
