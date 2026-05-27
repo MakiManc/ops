@@ -152,6 +152,130 @@
   .chip-dot.amber { background: var(--amber); }
   .chip-dot.green { background: var(--green); }
 
+  /* METRIC TOGGLE */
+  .metric-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .metric-toggle-label {
+    color: #cbd5e1;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .metric-chip {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.12);
+    color: #e2e8f0;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .metric-chip:hover { background: rgba(255,255,255,.14); }
+  .metric-chip.active {
+    background: #fff;
+    color: var(--ink);
+    border-color: #fff;
+  }
+  .metric-target {
+    font-weight: 400;
+    opacity: .7;
+    font-size: 11px;
+    margin-left: 4px;
+  }
+  .metric-chip.active .metric-target { opacity: .55; }
+
+  /* 3-KPI SCORECARD */
+  .scorecard {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .scorecard-row {
+    display: grid;
+    grid-template-columns: 64px 1fr 90px 90px 90px 70px;
+    gap: 10px;
+    padding: 11px 16px;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    transition: background .12s;
+    cursor: pointer;
+  }
+  .scorecard-row:hover { background: var(--surface-2); }
+  .scorecard-row.header {
+    background: var(--surface-2);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 700;
+    cursor: default;
+  }
+  .scorecard-row.header:hover { background: var(--surface-2); }
+  .scorecard-row:last-child { border-bottom: 0; }
+  .sc-code { font-weight: 700; font-size: 13px; }
+  .sc-name { font-size: 12px; color: var(--ink-2); }
+  .sc-chip {
+    text-align: center;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 5px 6px;
+    border-radius: 6px;
+  }
+  .sc-chip.green { background: var(--green-bg); color: var(--green); }
+  .sc-chip.amber { background: var(--amber-bg); color: var(--amber); }
+  .sc-chip.red { background: var(--red-bg); color: var(--red); }
+  .sc-chip.na { background: var(--surface-2); color: var(--ink-3); font-weight: 500; }
+  .sc-score {
+    text-align: center;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+  .sc-score.s3 { background: var(--green); color: #fff; }
+  .sc-score.s2 { background: var(--green-bg); color: var(--green); }
+  .sc-score.s1 { background: var(--amber-bg); color: var(--amber); }
+  .sc-score.s0 { background: var(--red-bg); color: var(--red); }
+
+  /* Per-tile metric chip row */
+  .tile-metrics {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .tile-metric {
+    flex: 1;
+    background: rgba(255,255,255,.55);
+    border-radius: 4px;
+    padding: 3px 4px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ink-2);
+    line-height: 1.2;
+  }
+  .tile.deep-red .tile-metric { background: rgba(255,255,255,.15); color: rgba(255,255,255,.85); }
+  .tile-metric.bad { color: var(--red); background: rgba(255,255,255,.7); }
+  .tile-metric.warn { color: var(--amber); background: rgba(255,255,255,.7); }
+  .tile-metric.good { color: var(--green); background: rgba(255,255,255,.7); }
+  .tile-metric.na { color: var(--ink-3); }
+
   /* HEAT MAP */
   .heatmap {
     display: grid;
@@ -471,21 +595,39 @@
   <div class="section-head">
     <div>
       <h2>Site Performance Heat Map</h2>
-      <div class="hint">Tile colour = sales vs target. Click any site for issues + solutions.</div>
+      <div class="hint">Toggle which KPI colours the tiles. Click any site for full detail.</div>
     </div>
+  </div>
+
+  <div class="metric-toggle">
+    <span class="metric-toggle-label">View tiles by:</span>
+    <div class="metric-chip active" data-metric="sales">Sales vs Target</div>
+    <div class="metric-chip" data-metric="wage">Wage % <span class="metric-target">(target ≤21%)</span></div>
+    <div class="metric-chip" data-metric="food">Food Variance <span class="metric-target">(target ±2%)</span></div>
+    <div class="metric-chip" data-metric="combined">3-KPI Combined</div>
   </div>
 
   <div class="filters">
     <div class="chip active" data-filter="all">All sites</div>
-    <div class="chip" data-filter="red"><span class="chip-dot red"></span>Red (target miss &gt;25%)</div>
+    <div class="chip" data-filter="red"><span class="chip-dot red"></span>Red</div>
     <div class="chip" data-filter="amber"><span class="chip-dot amber"></span>Amber</div>
-    <div class="chip" data-filter="green"><span class="chip-dot green"></span>Green / on-track</div>
+    <div class="chip" data-filter="green"><span class="chip-dot green"></span>Green</div>
     <div class="chip" data-filter="scotland">Scotland &amp; Newcastle</div>
     <div class="chip" data-filter="north">North &amp; Midlands</div>
     <div class="chip" data-filter="south">South England</div>
   </div>
 
   <div class="heatmap" id="heatmap"></div>
+
+  <!-- 3-KPI SCORECARD -->
+  <div class="section-head">
+    <div>
+      <h2>3-KPI Scorecard</h2>
+      <div class="hint">Every site graded against the three big targets: Sales · Wage ≤21% · Food Variance ±2%</div>
+    </div>
+  </div>
+
+  <div class="scorecard" id="scorecard"></div>
 
   <!-- CLUSTERS -->
   <div class="section-head">
@@ -910,38 +1052,170 @@ const HOT_ACTIONS = [
   { priority: 'P2', owner: 'Ka Ho', text: 'Sign off M8 servicing (aircon, ventilation, freezer/fridges) per Yordan\'s request at KPI.', due: 'Next KPI' }
 ];
 
+// --- METRICS (wage & food variance for week 18-24 May) ---
+// wage = labour as % of revenue (target ≤21%); null = not in source data
+// food = stocktake variance % (target ±2%, positive = unfavourable shrink); null = not reported this week
+const METRICS = {
+  'M1/2': { wage: null, food: 3.9 },
+  'M3':   { wage: null, food: 3.5 },
+  'M6':   { wage: 20.0, food: 4.7 },
+  'M7':   { wage: null, food: 4.8 },
+  'M8':   { wage: 21.9, food: 3.4 },
+  'M12':  { wage: null, food: 2.2 },
+  'M13':  { wage: 21.4, food: 4.9 },
+  'IKI2': { wage: null, food: null },
+  'M9':   { wage: 19.73, food: null },
+  'M10':  { wage: null, food: null },
+  'M11':  { wage: null, food: -1.8 },
+  'M14':  { wage: null, food: null },
+  'M16':  { wage: null, food: 4.5 },
+  'M15':  { wage: 24.96, food: -2.7 },
+  'M17':  { wage: null, food: 3.6 },
+  'M18':  { wage: 41.84, food: -1.2, wageNote: 'Contaminated by Shoreditch training staff' }
+};
+
+// Active metric for heat-map colouring
+let activeMetric = 'sales';
+
 // --- RENDER ---
 function colorClass(rag) { return rag; }
 function deltaClass(v) { if (v < -25) return 'red'; if (v < 0) return 'amber'; return 'green'; }
+
+// Per-metric RAG status
+function wageRag(w) {
+  if (w == null) return 'na';
+  if (w <= 21) return 'green';
+  if (w <= 23) return 'amber';
+  return 'red';
+}
+function foodRag(f) {
+  if (f == null) return 'na';
+  const a = Math.abs(f);
+  if (a <= 2) return 'green';
+  if (a <= 5) return 'amber';
+  return 'red';
+}
+function salesRag(v) {
+  if (v >= 0) return 'green';
+  if (v >= -25) return 'amber';
+  return 'red';
+}
+function combinedRag(s) {
+  const m = METRICS[s.code] || {};
+  const rags = [salesRag(s.vsTarget), wageRag(m.wage), foodRag(m.food)];
+  const real = rags.filter(r => r !== 'na');
+  if (real.some(r => r === 'red')) return 'red';
+  if (real.some(r => r === 'amber')) return 'amber';
+  if (real.length === 0) return 'na';
+  return 'green';
+}
+function metricRagFor(s, metric) {
+  const m = METRICS[s.code] || {};
+  if (metric === 'sales') return s.rag === 'deep-red' ? 'deep-red' : salesRag(s.vsTarget);
+  if (metric === 'wage')  return wageRag(m.wage);
+  if (metric === 'food')  return foodRag(m.food);
+  return combinedRag(s);
+}
+function metricValueFor(s, metric) {
+  const m = METRICS[s.code] || {};
+  if (metric === 'sales') return { value: (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1) + '%', label: 'vs target', arrow: s.vsTarget >= 0 ? '▲' : '▼' };
+  if (metric === 'wage')  return { value: m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%', label: 'wage / revenue', arrow: '' };
+  if (metric === 'food')  return { value: m.food == null ? 'N/A' : (m.food >= 0 ? '+' : '') + m.food.toFixed(1) + '%', label: 'food variance', arrow: '' };
+  // combined
+  const m2 = METRICS[s.code] || {};
+  const rags = [salesRag(s.vsTarget), wageRag(m2.wage), foodRag(m2.food)];
+  const green = rags.filter(r => r === 'green').length;
+  const real = rags.filter(r => r !== 'na').length;
+  return { value: green + '/' + real, label: 'KPIs on target', arrow: '' };
+}
 
 function renderHeatmap(filter = 'all') {
   const wrap = document.getElementById('heatmap');
   const sites = SITES.filter(s => {
     if (filter === 'all') return true;
     if (['red','amber','green'].includes(filter)) {
-      const r = s.rag === 'deep-red' ? 'red' : s.rag;
-      return r === filter;
+      const r = metricRagFor(s, activeMetric);
+      const norm = r === 'deep-red' ? 'red' : r;
+      return norm === filter;
     }
     return s.cluster === filter;
-  }).sort((a,b) => a.vsTarget - b.vsTarget);
+  });
+
+  // Sort by current metric (worst first)
+  sites.sort((a,b) => {
+    const ma = METRICS[a.code] || {};
+    const mb = METRICS[b.code] || {};
+    if (activeMetric === 'wage') return (mb.wage ?? -1) - (ma.wage ?? -1);
+    if (activeMetric === 'food') return Math.abs(mb.food ?? 0) - Math.abs(ma.food ?? 0);
+    if (activeMetric === 'combined') {
+      const order = { red: 0, amber: 1, green: 2, na: 3 };
+      return order[combinedRag(a)] - order[combinedRag(b)];
+    }
+    return a.vsTarget - b.vsTarget;
+  });
 
   wrap.innerHTML = sites.map(s => {
     const issuesCount = s.issues.length;
-    const arrow = s.vsTarget >= 0 ? '▲' : '▼';
-    const pct = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1) + '%';
+    const rag = metricRagFor(s, activeMetric);
+    const tileClass = rag === 'na' ? 'amber' : rag;
+    const v = metricValueFor(s, activeMetric);
+    const deltaCls = rag === 'deep-red' ? 'red' : (rag === 'na' ? '' : rag);
+    const m = METRICS[s.code] || {};
+    const wageTxt = m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%';
+    const foodTxt = m.food == null ? 'N/A' : (m.food >= 0 ? '+' : '') + m.food.toFixed(1) + '%';
+    const salesTxt = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(0) + '%';
     return `
-      <div class="tile ${s.rag}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
-        <div class="tile-issues-badge">${issuesCount} flag${issuesCount===1?'':'s'}</div>
+      <div class="tile ${tileClass}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
+        <div class="tile-issues-badge">${issuesCount}</div>
         <div>
           <div class="tile-code">${s.code}</div>
           <div class="tile-name">${s.name}</div>
         </div>
         <div>
-          <div class="tile-delta ${s.rag === 'deep-red' ? 'red' : deltaClass(s.vsTarget)}">${arrow} ${pct}</div>
-          <div class="tile-meta">vs target</div>
+          <div class="tile-delta ${deltaCls}">${v.arrow} ${v.value}</div>
+          <div class="tile-meta">${v.label}</div>
+        </div>
+        <div class="tile-metrics">
+          <div class="tile-metric ${salesRag(s.vsTarget) === 'green' ? 'good' : (salesRag(s.vsTarget) === 'amber' ? 'warn' : 'bad')}">S<br>${salesTxt}</div>
+          <div class="tile-metric ${wageRag(m.wage) === 'na' ? 'na' : (wageRag(m.wage) === 'green' ? 'good' : (wageRag(m.wage) === 'amber' ? 'warn' : 'bad'))}">W<br>${wageTxt}</div>
+          <div class="tile-metric ${foodRag(m.food) === 'na' ? 'na' : (foodRag(m.food) === 'green' ? 'good' : (foodRag(m.food) === 'amber' ? 'warn' : 'bad'))}">F<br>${foodTxt}</div>
         </div>
       </div>`;
   }).join('');
+}
+
+function renderScorecard() {
+  const wrap = document.getElementById('scorecard');
+  const sites = [...SITES].sort((a,b) => {
+    const order = { red: 0, amber: 1, green: 2, na: 3 };
+    const ra = combinedRag(a), rb = combinedRag(b);
+    if (ra !== rb) return order[ra] - order[rb];
+    return a.vsTarget - b.vsTarget;
+  });
+  const header = `
+    <div class="scorecard-row header">
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Var</div><div>Score</div>
+    </div>`;
+  const rows = sites.map(s => {
+    const m = METRICS[s.code] || {};
+    const sRag = salesRag(s.vsTarget);
+    const wRag = wageRag(m.wage);
+    const fRag = foodRag(m.food);
+    const rags = [sRag, wRag, fRag];
+    const real = rags.filter(r => r !== 'na').length;
+    const greens = rags.filter(r => r === 'green').length;
+    const scoreClass = greens === 3 ? 's3' : (greens === 2 ? 's2' : (greens === 1 ? 's1' : 's0'));
+    return `
+      <div class="scorecard-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
+        <div class="sc-code">${s.code}</div>
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}%</div>
+        <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'}</div>
+        <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : (m.food >= 0 ? '+' : '') + m.food.toFixed(1) + '%'}</div>
+        <div class="sc-score ${scoreClass}">${greens}/${real || 3}</div>
+      </div>`;
+  }).join('');
+  wrap.innerHTML = header + rows;
 }
 
 function renderClusters() {
@@ -1031,9 +1305,12 @@ function openSite(code) {
       <div class="kpi-grid">
         <div class="kpi"><div class="kpi-label">Covers</div><div class="kpi-value">${s.kpis.covers}</div></div>
         <div class="kpi"><div class="kpi-label">SPH</div><div class="kpi-value">${s.kpis.sph}</div></div>
-        <div class="kpi"><div class="kpi-label">vs Target</div><div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div></div>
-        <div class="kpi"><div class="kpi-label">Food Var</div><div class="kpi-value">${s.kpis.foodVar}</div></div>
+        <div class="kpi"><div class="kpi-label">Sales vs Target</div><div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div></div>
+        <div class="kpi"><div class="kpi-label">Wage % (tgt ≤21%)</div><div class="kpi-value ${wageRag((METRICS[s.code]||{}).wage)}">${(METRICS[s.code]||{}).wage == null ? 'N/A' : (METRICS[s.code]).wage.toFixed(2) + '%'}</div></div>
+        <div class="kpi"><div class="kpi-label">Food Var (tgt ±2%)</div><div class="kpi-value ${foodRag((METRICS[s.code]||{}).food)}">${(METRICS[s.code]||{}).food == null ? 'N/A' : ((METRICS[s.code]).food >= 0 ? '+' : '') + (METRICS[s.code]).food.toFixed(1) + '%'}</div></div>
+        <div class="kpi"><div class="kpi-label">Food Var (legacy)</div><div class="kpi-value">${s.kpis.foodVar}</div></div>
       </div>
+      ${(METRICS[s.code]||{}).wageNote ? `<div class="empty" style="background: var(--amber-bg); border-color: var(--amber-ring); color: var(--amber);">⚠ Wage note: ${(METRICS[s.code]).wageNote}</div><br>` : ''}
 
       ${s.empty ? '<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
 
@@ -1056,12 +1333,24 @@ function closeModal() {
   document.getElementById('modal-bg').classList.remove('show');
 }
 
-// Filter handlers
+// Filter handlers (RAG / cluster)
+let currentFilter = 'all';
 document.querySelectorAll('.chip').forEach(c => {
   c.addEventListener('click', e => {
     document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
     c.classList.add('active');
-    renderHeatmap(c.dataset.filter);
+    currentFilter = c.dataset.filter;
+    renderHeatmap(currentFilter);
+  });
+});
+
+// Metric toggle handlers
+document.querySelectorAll('.metric-chip').forEach(c => {
+  c.addEventListener('click', e => {
+    document.querySelectorAll('.metric-chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    activeMetric = c.dataset.metric;
+    renderHeatmap(currentFilter);
   });
 });
 
@@ -1083,6 +1372,7 @@ document.getElementById('stat-green').textContent = stats.green;
 document.getElementById('stat-issues').textContent = stats.issues;
 
 renderHeatmap();
+renderScorecard();
 renderClusters();
 renderThemes();
 renderHotActions();
