@@ -597,7 +597,7 @@
     <div class="alert-icon">!</div>
     <div>
       <b>Food cost crisis in 4 sites</b> — M11 Leicester 38.7%, M17 Lakeside 36.0%, M14 Meadowhall 35.4%, M18 Soho 32.6% (target 25%). All four also have wage % over 24%. Combined GP collapse: needs same-week intervention.
-      <small>Also flag: M3 Fountain Bridge KPI sheet has not been updated all month — Rory needs to start populating it. M18 Soho narrative still blank in weekly report.</small>
+      <small>Also flag: M18 Soho narrative still blank in weekly report. M3 food cost shown is a weekly purchases proxy — monthly MA runs ~10pp higher when stock movements settle.</small>
     </div>
   </div>
 
@@ -1068,7 +1068,7 @@ const HOT_ACTIONS = [
 // Source: per-site KPI Google Sheets, pulled w/e 24 May
 const METRICS = {
   'M1/2': { wage: 22.48, food: 29.54 },
-  'M3':   { wage: null,  food: null },  // KPI sheet not maintained
+  'M3':   { wage: 20.64, food: 23.75, foodNote: 'Purchases-based weekly proxy; April monthly MA showed 33.7% true cost-of-sales' },
   'M6':   { wage: 20.08, food: 19.03 },
   'M7':   { wage: 20.66, food: 23.26 },
   'M8':   { wage: 21.97, food: 22.70 },
@@ -1089,7 +1089,7 @@ const METRICS = {
 // Each: [w/e 3 May, 10 May, 17 May, 24 May]. Sales = vs target % (sheet uses revised targets — may differ from headline report number).
 const HISTORY = {
   'M1/2': { sales: [-14.73, -15.64, -4.67, -7.66],  wage: [19.95, 20.36, 21.62, 22.48], food: [26.12, 24.18, 20.98, 29.54] },
-  'M3':   { sales: [null, null, null, null],         wage: [null, null, null, null],     food: [null, null, null, null] },
+  'M3':   { sales: [16.10, 6.74, 25.08, 23.53],      wage: [21.10, 21.43, 20.10, 20.64], food: [24.99, 24.78, 26.75, 23.75] },
   'M6':   { sales: [-15.66, -9.39, -14.49, -2.84],   wage: [23.14, 21.24, 21.82, 20.08], food: [24.01, 17.94, 29.34, 19.03] },
   'M7':   { sales: [-3.35, 2.06, -0.26, 1.08],       wage: [21.02, 20.47, 21.15, 20.66], food: [21.88, 23.37, 22.80, 23.26] },
   'M8':   { sales: [8.27, 11.54, 2.19, 7.20],        wage: [22.52, 21.86, 24.65, 21.97], food: [26.64, 21.97, 23.98, 22.70] },
