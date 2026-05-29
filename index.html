@@ -1089,26 +1089,27 @@ const METRICS = {
   'IKI2': { wage: 25.21, food: 26.80, foodVar: null }
 };
 
-// --- REVIEWS (Google reviews — pulled from central tracker w/e 24 May) ---
-// rating = current Google rating (Maki target ≥4.7), weekCount = new reviews this week
-// stars = [5★, 4★, 3★, 2★, 1★] count for the week
+// --- REVIEWS (Google reviews) ---
+// rating + total = LIVE from Google Maps (pulled 29 May 2026)
+// weekCount + stars = from Becca-owned central tracker (Drive), w/e 24 May 2026
+// Maki target ≥4.7★. stars = [5★, 4★, 3★, 2★, 1★] count for the week
 const REVIEWS = {
-  'M1/2': { rating: null, total: 426,  weekCount: null, stars: [null,null,null,null,null] },
-  'M3':   { rating: 4.7,  total: 1312, weekCount: 6,    stars: [6,0,0,0,0] },
-  'M6':   { rating: null, total: 644,  weekCount: 14,   stars: [11,3,0,0,0] },
-  'M7':   { rating: 4.6,  total: 1528, weekCount: null, stars: [null,null,null,null,null] },
-  'M8':   { rating: null, total: 1658, weekCount: 8,    stars: [6,1,0,0,1] },
-  'M9':   { rating: 4.7,  total: 2396, weekCount: 15,   stars: [12,3,0,0,0] },
-  'M10':  { rating: 4.7,  total: 2110, weekCount: 23,   stars: [21,2,0,0,0] },
-  'M11':  { rating: null, total: null, weekCount: 20,   stars: [20,0,0,0,0] },
-  'M12':  { rating: null, total: null, weekCount: 14,   stars: [12,1,1,0,0] },
-  'M13':  { rating: null, total: null, weekCount: 30,   stars: [27,2,1,0,0] },
-  'M14':  { rating: null, total: null, weekCount: 6,    stars: [5,1,0,0,0] },
-  'M15':  { rating: null, total: null, weekCount: 4,    stars: [2,2,0,0,0] },
-  'M16':  { rating: null, total: null, weekCount: 13,   stars: [11,2,0,0,0] },
-  'M17':  { rating: null, total: null, weekCount: 12,   stars: [11,0,0,1,0] },
-  'M18':  { rating: null, total: null, weekCount: 73,   stars: [73,0,0,0,0] },
-  'IKI2': { rating: 4.6,  total: 411,  weekCount: null, stars: [null,null,null,null,null] }
+  'M1/2': { rating: 4.5, total: 2528, weekCount: null, stars: [null,null,null,null,null] },
+  'M3':   { rating: 4.7, total: 4972, weekCount: 6,    stars: [6,0,0,0,0] },
+  'M6':   { rating: 4.7, total: 2792, weekCount: 14,   stars: [11,3,0,0,0] },
+  'M7':   { rating: 4.7, total: 3191, weekCount: null, stars: [null,null,null,null,null] },
+  'M8':   { rating: 4.8, total: 3192, weekCount: 8,    stars: [6,1,0,0,1] },
+  'M9':   { rating: 4.8, total: 6255, weekCount: 15,   stars: [12,3,0,0,0] },
+  'M10':  { rating: 4.7, total: 4404, weekCount: 23,   stars: [21,2,0,0,0] },
+  'M11':  { rating: 4.7, total: 1042, weekCount: 20,   stars: [20,0,0,0,0] },
+  'M12':  { rating: 4.7, total: 1002, weekCount: 14,   stars: [12,1,1,0,0] },
+  'M13':  { rating: 4.7, total: 877,  weekCount: 30,   stars: [27,2,1,0,0] },
+  'M14':  { rating: 4.8, total: 794,  weekCount: 6,    stars: [5,1,0,0,0] },
+  'M15':  { rating: 4.8, total: 832,  weekCount: 4,    stars: [2,2,0,0,0] },
+  'M16':  { rating: 4.7, total: 1008, weekCount: 13,   stars: [11,2,0,0,0] },
+  'M17':  { rating: 4.8, total: 827,  weekCount: 12,   stars: [11,0,0,1,0] },
+  'M18':  { rating: 4.8, total: 761,  weekCount: 73,   stars: [73,0,0,0,0] },
+  'IKI2': { rating: 4.6, total: 371,  weekCount: null, stars: [null,null,null,null,null] }
 };
 
 // --- HISTORY (last 4 weeks for sparklines) ---
