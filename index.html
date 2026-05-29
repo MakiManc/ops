@@ -208,9 +208,9 @@
   }
   .scorecard-row {
     display: grid;
-    grid-template-columns: 56px 1fr 84px 84px 84px 84px 84px 64px;
-    gap: 8px;
-    padding: 11px 14px;
+    grid-template-columns: 48px 1fr 78px 78px 78px 78px 70px 70px 72px;
+    gap: 6px;
+    padding: 10px 12px;
     align-items: center;
     border-bottom: 1px solid var(--line);
     transition: background .12s;
@@ -597,8 +597,8 @@
   <div class="alert">
     <div class="alert-icon">!</div>
     <div>
-      <b>Food cost crisis in 4 sites</b> — M11 Leicester 38.7%, M17 Lakeside 36.0%, M14 Meadowhall 35.4%, M18 Soho 32.6% (target 25%). All four also have wage % over 24%. Combined GP collapse: needs same-week intervention.
-      <small>Also flag: M18 Soho narrative still blank in weekly report. M3 food cost shown is a weekly purchases proxy — monthly MA runs ~10pp higher when stock movements settle.</small>
+      <b>OKR insight</b> — The 4.7★ target is the <em>weekly</em> average of new reviews, not the lifetime rating. <b>M8 Renfield</b> tanks to 4.38★ this week (1×1★ review pulls the average), <b>M15 Metrocentre</b> 4.50★ (only 4 reviews this week). Meanwhile food cost crisis still in M11 Leicester 38.7%, M17 Lakeside 36.0%, M14 Meadowhall 35.4%, M18 Soho 32.6% (target ≤25%).
+      <small>Site Efficiency Score combines all 6 KPIs into a single 0-100 nominal figure. 100 = at target on everything. League Table below ranks all sites by it.</small>
     </div>
   </div>
 
@@ -616,7 +616,9 @@
     <div class="metric-chip" data-metric="wage">Wage % <span class="metric-target">(target ≤21%)</span></div>
     <div class="metric-chip" data-metric="food">Food Cost % <span class="metric-target">(target ≤25%)</span></div>
     <div class="metric-chip" data-metric="foodVar">Food Variance <span class="metric-target">(target ±5%)</span></div>
-    <div class="metric-chip" data-metric="rating">Star Rating <span class="metric-target">(target ≥4.7★)</span></div>
+    <div class="metric-chip" data-metric="rating">Lifetime Rating <span class="metric-target">(target ≥4.7★)</span></div>
+    <div class="metric-chip" data-metric="weeklyRating">Weekly ★ Avg <span class="metric-target">(OKR ≥4.7★)</span></div>
+    <div class="metric-chip" data-metric="efficiency">Site Efficiency Score</div>
     <div class="metric-chip" data-metric="combined">All KPIs Combined</div>
   </div>
 
@@ -635,8 +637,8 @@
   <!-- KPI SCORECARD -->
   <div class="section-head">
     <div>
-      <h2>5-KPI Scorecard</h2>
-      <div class="hint">Sales · Wage ≤21% · Food Cost ≤25% · Food Variance ±5% · Rating ≥4.7★. Score colour = worst metric.</div>
+      <h2>Site League Table — Efficiency Score</h2>
+      <div class="hint">Ranked best→worst by combined score (sales / wage / food cost / food var / weekly ★ avg / lifetime ★). 100 = at target. Click a row for full detail.</div>
     </div>
   </div>
 
@@ -1109,7 +1111,7 @@ const REVIEWS = {
   'M16':  { rating: 4.7, total: 1008, weekCount: 13,   stars: [11,2,0,0,0] },
   'M17':  { rating: 4.8, total: 827,  weekCount: 12,   stars: [11,0,0,1,0] },
   'M18':  { rating: 4.8, total: 761,  weekCount: 73,   stars: [73,0,0,0,0] },
-  'IKI2': { rating: 4.6, total: 371,  weekCount: null, stars: [null,null,null,null,null] }
+  'IKI2': { rating: 4.6, total: 1526, weekCount: null, stars: [null,null,null,null,null] }
 };
 
 // --- HISTORY (last 4 weeks for sparklines) ---
@@ -1163,10 +1165,59 @@ function foodVarRag(v) {
   return 'red';
 }
 function ratingRag(r) {
-  // Google star rating (Maki target ≥4.7)
+  // Lifetime Google star rating (information only)
   if (r == null) return 'na';
   if (r >= 4.7) return 'green';
   if (r >= 4.5) return 'amber';
+  return 'red';
+}
+
+// Weighted weekly rating from star breakdown [5★,4★,3★,2★,1★]
+function weeklyRating(reviews) {
+  if (!reviews || !reviews.stars) return null;
+  const s = reviews.stars;
+  if (s.some(x => x == null)) return null;
+  const total = s.reduce((a,b) => a+b, 0);
+  if (total === 0) return null;
+  const weighted = 5*s[0] + 4*s[1] + 3*s[2] + 2*s[3] + 1*s[4];
+  return weighted / total;
+}
+
+function weeklyRatingRag(wr) {
+  // OKR target: weekly average ≥4.7
+  if (wr == null) return 'na';
+  if (wr >= 4.7) return 'green';
+  if (wr >= 4.5) return 'amber';
+  return 'red';
+}
+
+// Site Efficiency Score — single 0-100 figure combining all KPIs
+// 100 = hitting every target exactly; higher = exceeding; lower = under
+function efficiencyScore(s) {
+  const m = METRICS[s.code] || {};
+  const r = REVIEWS[s.code] || {};
+  const wr = weeklyRating(r);
+  const parts = [];
+  // Sales vs target — anchored at 100 when at target, +1 per 1% above (cap 150)
+  if (s.vsTarget != null) parts.push(Math.max(0, Math.min(150, 100 + s.vsTarget)));
+  // Wage — 100 at 21% target, -5 per pp over, +5 per pp under (cap 130)
+  if (m.wage != null) parts.push(Math.max(0, Math.min(130, 100 + (21 - m.wage) * 5)));
+  // Food cost — 100 at 25% target, -4 per pp over (cap 130)
+  if (m.food != null) parts.push(Math.max(0, Math.min(130, 100 + (25 - m.food) * 4)));
+  // Food variance — 100 at 0%, -8 per 1% off zero
+  if (m.foodVar != null) parts.push(Math.max(0, 100 - Math.abs(m.foodVar) * 8));
+  // Weekly rating (the actual OKR) — 100 at 4.7★, +20 per 0.1 above, -25 per 0.1 below
+  if (wr != null) parts.push(Math.max(0, Math.min(120, 100 + (wr - 4.7) * (wr >= 4.7 ? 20 : 25))));
+  // Lifetime rating — small weight (information)
+  if (r.rating != null) parts.push(Math.max(0, Math.min(110, 100 + (r.rating - 4.7) * 30)));
+  if (parts.length === 0) return null;
+  return Math.round(parts.reduce((a,b) => a+b, 0) / parts.length);
+}
+
+function efficiencyRag(score) {
+  if (score == null) return 'na';
+  if (score >= 95) return 'green';
+  if (score >= 80) return 'amber';
   return 'red';
 }
 function salesRag(v) {
@@ -1191,6 +1242,8 @@ function metricRagFor(s, metric) {
   if (metric === 'food')    return foodRag(m.food);
   if (metric === 'foodVar') return foodVarRag(m.foodVar);
   if (metric === 'rating')  return ratingRag(r.rating);
+  if (metric === 'weeklyRating') return weeklyRatingRag(weeklyRating(r));
+  if (metric === 'efficiency')   return efficiencyRag(efficiencyScore(s));
   return combinedRag(s);
 }
 // SVG sparkline for an array of 4 numbers (or with nulls)
@@ -1236,7 +1289,9 @@ function metricValueFor(s, metric) {
   if (metric === 'wage')  return { value: m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%', label: 'wage / revenue', arrow: '' };
   if (metric === 'food')  return { value: m.food == null ? 'N/A' : m.food.toFixed(1) + '%', label: 'food cost / rev', arrow: '' };
   if (metric === 'foodVar') return { value: m.foodVar == null ? 'N/A' : (m.foodVar >= 0 ? '+' : '') + m.foodVar.toFixed(1) + '%', label: 'stocktake var', arrow: '' };
-  if (metric === 'rating')  { const r = (REVIEWS[s.code]||{}).rating; return { value: r == null ? 'N/A' : r.toFixed(1) + '★', label: 'Google rating', arrow: '' }; }
+  if (metric === 'rating')  { const r = (REVIEWS[s.code]||{}).rating; return { value: r == null ? 'N/A' : r.toFixed(1) + '★', label: 'lifetime rating', arrow: '' }; }
+  if (metric === 'weeklyRating') { const wr = weeklyRating(REVIEWS[s.code]); return { value: wr == null ? 'N/A' : wr.toFixed(2) + '★', label: 'weekly avg ★', arrow: '' }; }
+  if (metric === 'efficiency')   { const e = efficiencyScore(s); return { value: e == null ? 'N/A' : e.toString(), label: 'site efficiency', arrow: '' }; }
   // combined
   const m2 = METRICS[s.code] || {};
   const rags = [salesRag(s.vsTarget), wageRag(m2.wage), foodRag(m2.food), foodVarRag(m2.foodVar)];
@@ -1308,26 +1363,25 @@ function renderScorecard() {
     if (ra !== rb) return order[ra] - order[rb];
     return a.vsTarget - b.vsTarget;
   });
+  // Sort by efficiency score descending (league-table feel)
+  sites.sort((a, b) => (efficiencyScore(b) ?? -1) - (efficiencyScore(a) ?? -1));
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Rating</div><div>Score</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
     const r = REVIEWS[s.code] || {};
+    const wr = weeklyRating(r);
+    const eff = efficiencyScore(s);
     const sRag = salesRag(s.vsTarget);
     const wRag = wageRag(m.wage);
     const fRag = foodRag(m.food);
     const vRag = foodVarRag(m.foodVar);
-    const rRag = ratingRag(r.rating);
-    const rags = [sRag, wRag, fRag, vRag, rRag];
-    const real = rags.filter(x => x !== 'na').length;
-    const greens = rags.filter(x => x === 'green').length;
-    // Colour by SEVERITY (worst rag), not by count
-    const severity = rags.some(x => x === 'red') ? 'red' : (rags.some(x => x === 'amber') ? 'amber' : (real === 0 ? 'na' : 'green'));
-    const scoreClass = severity === 'red' ? 's0' : (severity === 'amber' ? 's1' : (greens === real ? 's3' : 's2'));
+    const wkRag = weeklyRatingRag(wr);
+    const ltRag = ratingRag(r.rating);
+    const effRag = efficiencyRag(eff);
     const h = HISTORY[s.code] || {};
-    const ratingTxt = r.rating == null ? (r.weekCount != null ? '+' + r.weekCount : 'N/A') : r.rating.toFixed(1) + '★';
     return `
       <div class="scorecard-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="sc-code">${s.code}</div>
@@ -1336,8 +1390,9 @@ function renderScorecard() {
         <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
         <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
         <div class="sc-chip ${vRag}">${m.foodVar == null ? 'N/A' : (m.foodVar >= 0 ? '+' : '') + m.foodVar.toFixed(1) + '%'}</div>
-        <div class="sc-chip ${rRag}">${ratingTxt}</div>
-        <div class="sc-score ${scoreClass}">${greens}/${real || 5}</div>
+        <div class="sc-chip ${wkRag}">${wr == null ? 'N/A' : wr.toFixed(2) + '★'}</div>
+        <div class="sc-chip ${ltRag}">${r.rating == null ? 'N/A' : r.rating.toFixed(1) + '★'}</div>
+        <div class="sc-score ${effRag === 'green' ? 's3' : (effRag === 'amber' ? 's1' : 's0')}">${eff == null ? 'N/A' : eff}</div>
       </div>`;
   }).join('');
   wrap.innerHTML = header + rows;
@@ -1452,9 +1507,19 @@ function openSite(code) {
           <div class="kpi-trend" style="margin-top:6px;">stocktake vs expected</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Google Rating (tgt ≥4.7★)</div>
+          <div class="kpi-label">Weekly ★ Avg (OKR ≥4.7)</div>
+          <div class="kpi-value ${weeklyRatingRag(weeklyRating(REVIEWS[s.code]))}">${weeklyRating(REVIEWS[s.code]) == null ? 'N/A' : weeklyRating(REVIEWS[s.code]).toFixed(2) + '★'}</div>
+          <div class="kpi-trend" style="margin-top:6px;">${(REVIEWS[s.code]||{}).weekCount == null ? '' : (REVIEWS[s.code]).weekCount + ' new reviews'}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Lifetime ★ (info)</div>
           <div class="kpi-value ${ratingRag((REVIEWS[s.code]||{}).rating)}">${(REVIEWS[s.code]||{}).rating == null ? 'N/A' : (REVIEWS[s.code]).rating.toFixed(1) + '★'}</div>
           <div class="kpi-trend" style="margin-top:6px;">${(REVIEWS[s.code]||{}).total == null ? '' : (REVIEWS[s.code]).total.toLocaleString() + ' total reviews'}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Site Efficiency Score</div>
+          <div class="kpi-value ${efficiencyRag(efficiencyScore(s))}" style="font-size: 26px;">${efficiencyScore(s) == null ? 'N/A' : efficiencyScore(s)}</div>
+          <div class="kpi-trend" style="margin-top:6px;">target = 100</div>
         </div>
         <div class="kpi" style="grid-column: 1 / -1;">
           <div class="kpi-label">This week's Google reviews · Covers · SPH</div>
