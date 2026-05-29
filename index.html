@@ -208,9 +208,9 @@
   }
   .scorecard-row {
     display: grid;
-    grid-template-columns: 56px 1fr 90px 90px 90px 90px 70px;
-    gap: 10px;
-    padding: 11px 16px;
+    grid-template-columns: 56px 1fr 84px 84px 84px 84px 84px 64px;
+    gap: 8px;
+    padding: 11px 14px;
     align-items: center;
     border-bottom: 1px solid var(--line);
     transition: background .12s;
@@ -616,6 +616,7 @@
     <div class="metric-chip" data-metric="wage">Wage % <span class="metric-target">(target ≤21%)</span></div>
     <div class="metric-chip" data-metric="food">Food Cost % <span class="metric-target">(target ≤25%)</span></div>
     <div class="metric-chip" data-metric="foodVar">Food Variance <span class="metric-target">(target ±5%)</span></div>
+    <div class="metric-chip" data-metric="rating">Star Rating <span class="metric-target">(target ≥4.7★)</span></div>
     <div class="metric-chip" data-metric="combined">All KPIs Combined</div>
   </div>
 
@@ -634,8 +635,8 @@
   <!-- KPI SCORECARD -->
   <div class="section-head">
     <div>
-      <h2>4-KPI Scorecard</h2>
-      <div class="hint">Sales vs Target · Wage ≤21% · Food Cost ≤25% · Food Variance ±5%. Score colour = worst metric, not the count.</div>
+      <h2>5-KPI Scorecard</h2>
+      <div class="hint">Sales · Wage ≤21% · Food Cost ≤25% · Food Variance ±5% · Rating ≥4.7★. Score colour = worst metric.</div>
     </div>
   </div>
 
@@ -1088,6 +1089,28 @@ const METRICS = {
   'IKI2': { wage: 25.21, food: 26.80, foodVar: null }
 };
 
+// --- REVIEWS (Google reviews — pulled from central tracker w/e 24 May) ---
+// rating = current Google rating (Maki target ≥4.7), weekCount = new reviews this week
+// stars = [5★, 4★, 3★, 2★, 1★] count for the week
+const REVIEWS = {
+  'M1/2': { rating: null, total: 426,  weekCount: null, stars: [null,null,null,null,null] },
+  'M3':   { rating: 4.7,  total: 1312, weekCount: 6,    stars: [6,0,0,0,0] },
+  'M6':   { rating: null, total: 644,  weekCount: 14,   stars: [11,3,0,0,0] },
+  'M7':   { rating: 4.6,  total: 1528, weekCount: null, stars: [null,null,null,null,null] },
+  'M8':   { rating: null, total: 1658, weekCount: 8,    stars: [6,1,0,0,1] },
+  'M9':   { rating: 4.7,  total: 2396, weekCount: 15,   stars: [12,3,0,0,0] },
+  'M10':  { rating: 4.7,  total: 2110, weekCount: 23,   stars: [21,2,0,0,0] },
+  'M11':  { rating: null, total: null, weekCount: 20,   stars: [20,0,0,0,0] },
+  'M12':  { rating: null, total: null, weekCount: 14,   stars: [12,1,1,0,0] },
+  'M13':  { rating: null, total: null, weekCount: 30,   stars: [27,2,1,0,0] },
+  'M14':  { rating: null, total: null, weekCount: 6,    stars: [5,1,0,0,0] },
+  'M15':  { rating: null, total: null, weekCount: 4,    stars: [2,2,0,0,0] },
+  'M16':  { rating: null, total: null, weekCount: 13,   stars: [11,2,0,0,0] },
+  'M17':  { rating: null, total: null, weekCount: 12,   stars: [11,0,0,1,0] },
+  'M18':  { rating: null, total: null, weekCount: 73,   stars: [73,0,0,0,0] },
+  'IKI2': { rating: 4.6,  total: 411,  weekCount: null, stars: [null,null,null,null,null] }
+};
+
 // --- HISTORY (last 4 weeks for sparklines) ---
 // Each: [w/e 3 May, 10 May, 17 May, 24 May]. Sales = vs target % (sheet uses revised targets — may differ from headline report number).
 const HISTORY = {
@@ -1138,6 +1161,13 @@ function foodVarRag(v) {
   if (a <= 8) return 'amber';
   return 'red';
 }
+function ratingRag(r) {
+  // Google star rating (Maki target ≥4.7)
+  if (r == null) return 'na';
+  if (r >= 4.7) return 'green';
+  if (r >= 4.5) return 'amber';
+  return 'red';
+}
 function salesRag(v) {
   if (v >= 0) return 'green';
   if (v >= -25) return 'amber';
@@ -1154,10 +1184,12 @@ function combinedRag(s) {
 }
 function metricRagFor(s, metric) {
   const m = METRICS[s.code] || {};
+  const r = REVIEWS[s.code] || {};
   if (metric === 'sales')   return s.rag === 'deep-red' ? 'deep-red' : salesRag(s.vsTarget);
   if (metric === 'wage')    return wageRag(m.wage);
   if (metric === 'food')    return foodRag(m.food);
   if (metric === 'foodVar') return foodVarRag(m.foodVar);
+  if (metric === 'rating')  return ratingRag(r.rating);
   return combinedRag(s);
 }
 // SVG sparkline for an array of 4 numbers (or with nulls)
@@ -1203,6 +1235,7 @@ function metricValueFor(s, metric) {
   if (metric === 'wage')  return { value: m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%', label: 'wage / revenue', arrow: '' };
   if (metric === 'food')  return { value: m.food == null ? 'N/A' : m.food.toFixed(1) + '%', label: 'food cost / rev', arrow: '' };
   if (metric === 'foodVar') return { value: m.foodVar == null ? 'N/A' : (m.foodVar >= 0 ? '+' : '') + m.foodVar.toFixed(1) + '%', label: 'stocktake var', arrow: '' };
+  if (metric === 'rating')  { const r = (REVIEWS[s.code]||{}).rating; return { value: r == null ? 'N/A' : r.toFixed(1) + '★', label: 'Google rating', arrow: '' }; }
   // combined
   const m2 = METRICS[s.code] || {};
   const rags = [salesRag(s.vsTarget), wageRag(m2.wage), foodRag(m2.food), foodVarRag(m2.foodVar)];
@@ -1276,21 +1309,24 @@ function renderScorecard() {
   });
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Score</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Rating</div><div>Score</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
+    const r = REVIEWS[s.code] || {};
     const sRag = salesRag(s.vsTarget);
     const wRag = wageRag(m.wage);
     const fRag = foodRag(m.food);
     const vRag = foodVarRag(m.foodVar);
-    const rags = [sRag, wRag, fRag, vRag];
-    const real = rags.filter(r => r !== 'na').length;
-    const greens = rags.filter(r => r === 'green').length;
-    // Colour by SEVERITY (worst rag) not by count
-    const severity = rags.some(r => r === 'red') ? 'red' : (rags.some(r => r === 'amber') ? 'amber' : (real === 0 ? 'na' : 'green'));
+    const rRag = ratingRag(r.rating);
+    const rags = [sRag, wRag, fRag, vRag, rRag];
+    const real = rags.filter(x => x !== 'na').length;
+    const greens = rags.filter(x => x === 'green').length;
+    // Colour by SEVERITY (worst rag), not by count
+    const severity = rags.some(x => x === 'red') ? 'red' : (rags.some(x => x === 'amber') ? 'amber' : (real === 0 ? 'na' : 'green'));
     const scoreClass = severity === 'red' ? 's0' : (severity === 'amber' ? 's1' : (greens === real ? 's3' : 's2'));
     const h = HISTORY[s.code] || {};
+    const ratingTxt = r.rating == null ? (r.weekCount != null ? '+' + r.weekCount : 'N/A') : r.rating.toFixed(1) + '★';
     return `
       <div class="scorecard-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="sc-code">${s.code}</div>
@@ -1299,7 +1335,8 @@ function renderScorecard() {
         <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
         <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
         <div class="sc-chip ${vRag}">${m.foodVar == null ? 'N/A' : (m.foodVar >= 0 ? '+' : '') + m.foodVar.toFixed(1) + '%'}</div>
-        <div class="sc-score ${scoreClass}">${greens}/${real || 4}</div>
+        <div class="sc-chip ${rRag}">${ratingTxt}</div>
+        <div class="sc-score ${scoreClass}">${greens}/${real || 5}</div>
       </div>`;
   }).join('');
   wrap.innerHTML = header + rows;
@@ -1413,9 +1450,20 @@ function openSite(code) {
           <div class="kpi-value ${foodVarRag((METRICS[s.code]||{}).foodVar)}">${(METRICS[s.code]||{}).foodVar == null ? 'N/A' : ((METRICS[s.code]).foodVar >= 0 ? '+' : '') + (METRICS[s.code]).foodVar.toFixed(1) + '%'}</div>
           <div class="kpi-trend" style="margin-top:6px;">stocktake vs expected</div>
         </div>
+        <div class="kpi">
+          <div class="kpi-label">Google Rating (tgt ≥4.7★)</div>
+          <div class="kpi-value ${ratingRag((REVIEWS[s.code]||{}).rating)}">${(REVIEWS[s.code]||{}).rating == null ? 'N/A' : (REVIEWS[s.code]).rating.toFixed(1) + '★'}</div>
+          <div class="kpi-trend" style="margin-top:6px;">${(REVIEWS[s.code]||{}).total == null ? '' : (REVIEWS[s.code]).total.toLocaleString() + ' total reviews'}</div>
+        </div>
         <div class="kpi" style="grid-column: 1 / -1;">
-          <div class="kpi-label">Covers · SPH</div>
-          <div class="kpi-value" style="font-size:14px;">${s.kpis.covers} · ${s.kpis.sph}</div>
+          <div class="kpi-label">This week's Google reviews · Covers · SPH</div>
+          <div class="kpi-value" style="font-size:13px;">
+            ${(REVIEWS[s.code]||{}).weekCount == null ? '<span style="color:var(--ink-3)">No review data this week</span>' :
+              `<span style="font-weight:700;">${(REVIEWS[s.code]).weekCount} reviews</span> &nbsp;
+              ${(REVIEWS[s.code]).stars.map((c,i) => c == null ? '' : `<span style="color:${i >= 3 ? 'var(--red)' : (i === 2 ? 'var(--amber)' : 'var(--ink-2)')}; font-size:12px; font-weight:600;">${5-i}★ ${c}</span>`).filter(Boolean).join(' &nbsp; ')}`
+            }
+          </div>
+          <div class="kpi-trend" style="margin-top:6px;">${s.kpis.covers} · ${s.kpis.sph}</div>
         </div>
       </div>
 
