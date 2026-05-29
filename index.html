@@ -208,7 +208,7 @@
   }
   .scorecard-row {
     display: grid;
-    grid-template-columns: 64px 1fr 90px 90px 90px 70px;
+    grid-template-columns: 56px 1fr 90px 90px 90px 90px 70px;
     gap: 10px;
     padding: 11px 16px;
     align-items: center;
@@ -490,6 +490,7 @@
     gap: 10px;
     margin-bottom: 22px;
   }
+  @media (max-width: 640px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
   .kpi {
     background: var(--surface-2);
     border: 1px solid var(--line);
@@ -614,7 +615,8 @@
     <div class="metric-chip active" data-metric="sales">Sales vs Target</div>
     <div class="metric-chip" data-metric="wage">Wage % <span class="metric-target">(target ≤21%)</span></div>
     <div class="metric-chip" data-metric="food">Food Cost % <span class="metric-target">(target ≤25%)</span></div>
-    <div class="metric-chip" data-metric="combined">3-KPI Combined</div>
+    <div class="metric-chip" data-metric="foodVar">Food Variance <span class="metric-target">(target ±5%)</span></div>
+    <div class="metric-chip" data-metric="combined">All KPIs Combined</div>
   </div>
 
   <div class="filters">
@@ -629,11 +631,11 @@
 
   <div class="heatmap" id="heatmap"></div>
 
-  <!-- 3-KPI SCORECARD -->
+  <!-- KPI SCORECARD -->
   <div class="section-head">
     <div>
-      <h2>3-KPI Scorecard</h2>
-      <div class="hint">Every site graded against the three big targets: Sales · Wage ≤21% · Food Variance ±2%</div>
+      <h2>4-KPI Scorecard</h2>
+      <div class="hint">Sales vs Target · Wage ≤21% · Food Cost ≤25% · Food Variance ±5%. Score colour = worst metric, not the count.</div>
     </div>
   </div>
 
@@ -1062,27 +1064,28 @@ const HOT_ACTIONS = [
   { priority: 'P2', owner: 'Ka Ho', text: 'Sign off M8 servicing (aircon, ventilation, freezer/fridges) per Yordan\'s request at KPI.', due: 'Next KPI' }
 ];
 
-// --- METRICS (wage % and food cost % for week ending 24 May 2026) ---
-// wage = labour as % of revenue (Maki target ≤21%); null = sheet incomplete
-// food = actual food cost as % of revenue (Maki target ≤25%); null = sheet incomplete
-// Source: per-site KPI Google Sheets, pulled w/e 24 May
+// --- METRICS (wage %, food cost %, food variance % for w/e 24 May 2026) ---
+// wage = labour as % of revenue (target ≤21%)
+// food = actual food cost % of revenue (target ≤25%)
+// foodVar = stocktake variance % vs expected (target ±5%; closer to 0 = better)
+// Sources: per-site KPI Sheets (primary), Ordering System fallback for food cost, Stocktake Variance Reports for foodVar
 const METRICS = {
-  'M1/2': { wage: 22.48, food: 29.54 },
-  'M3':   { wage: 20.64, food: 23.75, foodNote: 'Purchases-based weekly proxy; April monthly MA showed 33.7% true cost-of-sales' },
-  'M6':   { wage: 20.08, food: 19.03 },
-  'M7':   { wage: 20.66, food: 23.26 },
-  'M8':   { wage: 21.97, food: 22.70 },
-  'M9':   { wage: 19.73, food: 21.62 },
-  'M10':  { wage: 21.24, food: 25.05 },
-  'M11':  { wage: 26.88, food: 38.65 },
-  'M12':  { wage: 25.57, food: 18.89 },
-  'M13':  { wage: 21.48, food: 21.23 },
-  'M14':  { wage: 25.90, food: 35.42 },
-  'M15':  { wage: 24.96, food: 23.33 },
-  'M16':  { wage: 22.94, food: 28.14 },
-  'M17':  { wage: 24.37, food: 35.99 },
-  'M18':  { wage: 38.87, food: 32.59 },
-  'IKI2': { wage: 25.21, food: 26.80 }
+  'M1/2': { wage: 22.48, food: 29.54, foodVar:  3.9 },
+  'M3':   { wage: 20.64, food: 23.75, foodVar:  3.5, foodNote: 'Purchases-based weekly proxy (Ordering System fallback)' },
+  'M6':   { wage: 20.08, food: 19.03, foodVar:  4.7 },
+  'M7':   { wage: 20.66, food: 23.26, foodVar:  4.8 },
+  'M8':   { wage: 21.97, food: 22.70, foodVar:  3.4 },
+  'M9':   { wage: 19.73, food: 21.62, foodVar: null },
+  'M10':  { wage: 21.24, food: 25.05, foodVar: null },
+  'M11':  { wage: 26.88, food: 38.65, foodVar: -1.8 },
+  'M12':  { wage: 25.57, food: 18.89, foodVar:  2.2 },
+  'M13':  { wage: 21.48, food: 21.23, foodVar:  4.9 },
+  'M14':  { wage: 25.90, food: 35.42, foodVar: null },
+  'M15':  { wage: 24.96, food: 23.33, foodVar: -2.7 },
+  'M16':  { wage: 22.94, food: 28.14, foodVar:  4.5 },
+  'M17':  { wage: 24.37, food: 35.99, foodVar:  3.6 },
+  'M18':  { wage: 38.87, food: 32.59, foodVar: -1.2 },
+  'IKI2': { wage: 25.21, food: 26.80, foodVar: null }
 };
 
 // --- HISTORY (last 4 weeks for sparklines) ---
@@ -1127,6 +1130,14 @@ function foodRag(f) {
   if (f <= 28) return 'amber';
   return 'red';
 }
+function foodVarRag(v) {
+  // food variance = stocktake variance % (target ±5%, closer to 0 = better)
+  if (v == null) return 'na';
+  const a = Math.abs(v);
+  if (a <= 5) return 'green';
+  if (a <= 8) return 'amber';
+  return 'red';
+}
 function salesRag(v) {
   if (v >= 0) return 'green';
   if (v >= -25) return 'amber';
@@ -1134,7 +1145,7 @@ function salesRag(v) {
 }
 function combinedRag(s) {
   const m = METRICS[s.code] || {};
-  const rags = [salesRag(s.vsTarget), wageRag(m.wage), foodRag(m.food)];
+  const rags = [salesRag(s.vsTarget), wageRag(m.wage), foodRag(m.food), foodVarRag(m.foodVar)];
   const real = rags.filter(r => r !== 'na');
   if (real.some(r => r === 'red')) return 'red';
   if (real.some(r => r === 'amber')) return 'amber';
@@ -1143,9 +1154,10 @@ function combinedRag(s) {
 }
 function metricRagFor(s, metric) {
   const m = METRICS[s.code] || {};
-  if (metric === 'sales') return s.rag === 'deep-red' ? 'deep-red' : salesRag(s.vsTarget);
-  if (metric === 'wage')  return wageRag(m.wage);
-  if (metric === 'food')  return foodRag(m.food);
+  if (metric === 'sales')   return s.rag === 'deep-red' ? 'deep-red' : salesRag(s.vsTarget);
+  if (metric === 'wage')    return wageRag(m.wage);
+  if (metric === 'food')    return foodRag(m.food);
+  if (metric === 'foodVar') return foodVarRag(m.foodVar);
   return combinedRag(s);
 }
 // SVG sparkline for an array of 4 numbers (or with nulls)
@@ -1190,9 +1202,10 @@ function metricValueFor(s, metric) {
   if (metric === 'sales') return { value: (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1) + '%', label: 'vs target', arrow: s.vsTarget >= 0 ? '▲' : '▼' };
   if (metric === 'wage')  return { value: m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%', label: 'wage / revenue', arrow: '' };
   if (metric === 'food')  return { value: m.food == null ? 'N/A' : m.food.toFixed(1) + '%', label: 'food cost / rev', arrow: '' };
+  if (metric === 'foodVar') return { value: m.foodVar == null ? 'N/A' : (m.foodVar >= 0 ? '+' : '') + m.foodVar.toFixed(1) + '%', label: 'stocktake var', arrow: '' };
   // combined
   const m2 = METRICS[s.code] || {};
-  const rags = [salesRag(s.vsTarget), wageRag(m2.wage), foodRag(m2.food)];
+  const rags = [salesRag(s.vsTarget), wageRag(m2.wage), foodRag(m2.food), foodVarRag(m2.foodVar)];
   const green = rags.filter(r => r === 'green').length;
   const real = rags.filter(r => r !== 'na').length;
   return { value: green + '/' + real, label: 'KPIs on target', arrow: '' };
@@ -1263,17 +1276,20 @@ function renderScorecard() {
   });
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Score</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Score</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
     const sRag = salesRag(s.vsTarget);
     const wRag = wageRag(m.wage);
     const fRag = foodRag(m.food);
-    const rags = [sRag, wRag, fRag];
+    const vRag = foodVarRag(m.foodVar);
+    const rags = [sRag, wRag, fRag, vRag];
     const real = rags.filter(r => r !== 'na').length;
     const greens = rags.filter(r => r === 'green').length;
-    const scoreClass = greens === 3 ? 's3' : (greens === 2 ? 's2' : (greens === 1 ? 's1' : 's0'));
+    // Colour by SEVERITY (worst rag) not by count
+    const severity = rags.some(r => r === 'red') ? 'red' : (rags.some(r => r === 'amber') ? 'amber' : (real === 0 ? 'na' : 'green'));
+    const scoreClass = severity === 'red' ? 's0' : (severity === 'amber' ? 's1' : (greens === real ? 's3' : 's2'));
     const h = HISTORY[s.code] || {};
     return `
       <div class="scorecard-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
@@ -1282,7 +1298,8 @@ function renderScorecard() {
         <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}% <span class="sc-chip-wow">${trendArrow(h.sales, 'up-is-good')}</span></div>
         <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
         <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
-        <div class="sc-score ${scoreClass}">${greens}/${real || 3}</div>
+        <div class="sc-chip ${vRag}">${m.foodVar == null ? 'N/A' : (m.foodVar >= 0 ? '+' : '') + m.foodVar.toFixed(1) + '%'}</div>
+        <div class="sc-score ${scoreClass}">${greens}/${real || 4}</div>
       </div>`;
   }).join('');
   wrap.innerHTML = header + rows;
@@ -1392,9 +1409,13 @@ function openSite(code) {
           <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).food, 'down-is-good')}</div>
         </div>
         <div class="kpi">
+          <div class="kpi-label">Food Variance (tgt ±5%)</div>
+          <div class="kpi-value ${foodVarRag((METRICS[s.code]||{}).foodVar)}">${(METRICS[s.code]||{}).foodVar == null ? 'N/A' : ((METRICS[s.code]).foodVar >= 0 ? '+' : '') + (METRICS[s.code]).foodVar.toFixed(1) + '%'}</div>
+          <div class="kpi-trend" style="margin-top:6px;">stocktake vs expected</div>
+        </div>
+        <div class="kpi" style="grid-column: 1 / -1;">
           <div class="kpi-label">Covers · SPH</div>
-          <div class="kpi-value" style="font-size:14px;">${s.kpis.covers}</div>
-          <div class="kpi-trend" style="margin-top:6px;">${s.kpis.sph}</div>
+          <div class="kpi-value" style="font-size:14px;">${s.kpis.covers} · ${s.kpis.sph}</div>
         </div>
       </div>
 
