@@ -501,6 +501,16 @@
   .kpi-value.red { color: var(--red); }
   .kpi-value.amber { color: var(--amber); }
   .kpi-value.green { color: var(--green); }
+  .kpi-value.na { color: var(--ink-3); font-size: 14px; }
+  .kpi-spark { margin-top: 6px; }
+  .kpi-trend { font-size: 10px; color: var(--ink-3); margin-top: 2px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  .sc-chip-wow {
+    display: inline-block;
+    font-size: 10px;
+    margin-left: 4px;
+    font-weight: 600;
+    vertical-align: middle;
+  }
   .panel { margin-bottom: 20px; }
   .panel-head {
     display: flex; align-items: center; gap: 8px;
@@ -586,8 +596,8 @@
   <div class="alert">
     <div class="alert-icon">!</div>
     <div>
-      <b>M18 Soho documentation gap</b> — Sales –61.13% vs target but the qualitative recovery sections of the weekly KPI report are blank. Highest priority chase for Lincoln.
-      <small>Also flag: M15 Metrocentre misfiled by Francheska (belongs to Scotland & Newcastle, not North/Midlands).</small>
+      <b>Food cost crisis in 4 sites</b> — M11 Leicester 38.7%, M17 Lakeside 36.0%, M14 Meadowhall 35.4%, M18 Soho 32.6% (target 25%). All four also have wage % over 24%. Combined GP collapse: needs same-week intervention.
+      <small>Also flag: M3 Fountain Bridge KPI sheet has not been updated all month — Rory needs to start populating it. M18 Soho narrative still blank in weekly report.</small>
     </div>
   </div>
 
@@ -603,7 +613,7 @@
     <span class="metric-toggle-label">View tiles by:</span>
     <div class="metric-chip active" data-metric="sales">Sales vs Target</div>
     <div class="metric-chip" data-metric="wage">Wage % <span class="metric-target">(target ≤21%)</span></div>
-    <div class="metric-chip" data-metric="food">Food Variance <span class="metric-target">(target ±2%)</span></div>
+    <div class="metric-chip" data-metric="food">Food Cost % <span class="metric-target">(target ≤25%)</span></div>
     <div class="metric-chip" data-metric="combined">3-KPI Combined</div>
   </div>
 
@@ -1052,26 +1062,48 @@ const HOT_ACTIONS = [
   { priority: 'P2', owner: 'Ka Ho', text: 'Sign off M8 servicing (aircon, ventilation, freezer/fridges) per Yordan\'s request at KPI.', due: 'Next KPI' }
 ];
 
-// --- METRICS (wage & food variance for week 18-24 May) ---
-// wage = labour as % of revenue (target ≤21%); null = not in source data
-// food = stocktake variance % (target ±2%, positive = unfavourable shrink); null = not reported this week
+// --- METRICS (wage % and food cost % for week ending 24 May 2026) ---
+// wage = labour as % of revenue (Maki target ≤21%); null = sheet incomplete
+// food = actual food cost as % of revenue (Maki target ≤25%); null = sheet incomplete
+// Source: per-site KPI Google Sheets, pulled w/e 24 May
 const METRICS = {
-  'M1/2': { wage: null, food: 3.9 },
-  'M3':   { wage: null, food: 3.5 },
-  'M6':   { wage: 20.0, food: 4.7 },
-  'M7':   { wage: null, food: 4.8 },
-  'M8':   { wage: 21.9, food: 3.4 },
-  'M12':  { wage: null, food: 2.2 },
-  'M13':  { wage: 21.4, food: 4.9 },
-  'IKI2': { wage: null, food: null },
-  'M9':   { wage: 19.73, food: null },
-  'M10':  { wage: null, food: null },
-  'M11':  { wage: null, food: -1.8 },
-  'M14':  { wage: null, food: null },
-  'M16':  { wage: null, food: 4.5 },
-  'M15':  { wage: 24.96, food: -2.7 },
-  'M17':  { wage: null, food: 3.6 },
-  'M18':  { wage: 41.84, food: -1.2, wageNote: 'Contaminated by Shoreditch training staff' }
+  'M1/2': { wage: 22.48, food: 29.54 },
+  'M3':   { wage: null,  food: null },  // KPI sheet not maintained
+  'M6':   { wage: 20.08, food: 19.03 },
+  'M7':   { wage: 20.66, food: 23.26 },
+  'M8':   { wage: 21.97, food: 22.70 },
+  'M9':   { wage: 19.73, food: 21.62 },
+  'M10':  { wage: 21.24, food: 25.05 },
+  'M11':  { wage: 26.88, food: 38.65 },
+  'M12':  { wage: 25.57, food: 18.89 },
+  'M13':  { wage: 21.48, food: 21.23 },
+  'M14':  { wage: 25.90, food: 35.42 },
+  'M15':  { wage: 24.96, food: 23.33 },
+  'M16':  { wage: 22.94, food: 28.14 },
+  'M17':  { wage: 24.37, food: 35.99 },
+  'M18':  { wage: 38.87, food: 32.59 },
+  'IKI2': { wage: 25.21, food: 26.80 }
+};
+
+// --- HISTORY (last 4 weeks for sparklines) ---
+// Each: [w/e 3 May, 10 May, 17 May, 24 May]. Sales = vs target % (sheet uses revised targets — may differ from headline report number).
+const HISTORY = {
+  'M1/2': { sales: [-14.73, -15.64, -4.67, -7.66],  wage: [19.95, 20.36, 21.62, 22.48], food: [26.12, 24.18, 20.98, 29.54] },
+  'M3':   { sales: [null, null, null, null],         wage: [null, null, null, null],     food: [null, null, null, null] },
+  'M6':   { sales: [-15.66, -9.39, -14.49, -2.84],   wage: [23.14, 21.24, 21.82, 20.08], food: [24.01, 17.94, 29.34, 19.03] },
+  'M7':   { sales: [-3.35, 2.06, -0.26, 1.08],       wage: [21.02, 20.47, 21.15, 20.66], food: [21.88, 23.37, 22.80, 23.26] },
+  'M8':   { sales: [8.27, 11.54, 2.19, 7.20],        wage: [22.52, 21.86, 24.65, 21.97], food: [26.64, 21.97, 23.98, 22.70] },
+  'M9':   { sales: [12.52, 10.66, 0.23, -0.52],      wage: [18.43, 18.67, 19.20, 19.73], food: [21.01, 26.26, 25.85, 21.62] },
+  'M10':  { sales: [2.37, 0.34, 0.72, 3.69],         wage: [20.69, 20.70, 21.54, 21.24], food: [20.13, 38.03, 24.20, 25.05] },
+  'M11':  { sales: [-22.96, -31.86, -26.59, -38.43], wage: [26.62, 26.02, 24.11, 26.88], food: [22.64, 29.49, 27.79, 38.65] },
+  'M12':  { sales: [1.47, -15.75, -5.74, -9.13],     wage: [23.18, 25.35, 24.61, 25.57], food: [17.54, 29.02, 20.12, 18.89] },
+  'M13':  { sales: [-18.60, -10.37, -8.80, -12.38],  wage: [20.52, 21.19, 21.60, 21.48], food: [22.40, 27.68, 25.37, 21.23] },
+  'M14':  { sales: [-31.99, -30.97, -32.90, -44.23], wage: [21.33, 21.84, 23.02, 25.90], food: [21.21, 18.40, 24.18, 35.42] },
+  'M15':  { sales: [-3.08, 5.83, -2.23, -24.48],     wage: [21.39, 20.88, 21.25, 24.96], food: [17.33, 21.57, 25.31, 23.33] },
+  'M16':  { sales: [-14.45, -21.98, -26.46, -24.55], wage: [22.65, 24.48, 23.93, 22.94], food: [22.41, 25.94, 25.74, 28.14] },
+  'M17':  { sales: [-3.65, -11.54, 0.21, -25.96],    wage: [21.04, 21.77, 20.36, 24.37], food: [18.75, 21.14, 26.17, 35.99] },
+  'M18':  { sales: [-55.63, -54.69, -47.24, -61.13], wage: [35.98, 32.24, 28.83, 38.87], food: [19.86, 21.43, 16.24, 32.59] },
+  'IKI2': { sales: [-0.64, -3.09, -9.12, -17.32],    wage: [20.17, 20.90, 20.33, 25.21], food: [23.97, 31.40, 23.83, 26.80] }
 };
 
 // Active metric for heat-map colouring
@@ -1089,10 +1121,10 @@ function wageRag(w) {
   return 'red';
 }
 function foodRag(f) {
+  // food = actual food cost % (target ≤25%)
   if (f == null) return 'na';
-  const a = Math.abs(f);
-  if (a <= 2) return 'green';
-  if (a <= 5) return 'amber';
+  if (f <= 25) return 'green';
+  if (f <= 28) return 'amber';
   return 'red';
 }
 function salesRag(v) {
@@ -1116,11 +1148,48 @@ function metricRagFor(s, metric) {
   if (metric === 'food')  return foodRag(m.food);
   return combinedRag(s);
 }
+// SVG sparkline for an array of 4 numbers (or with nulls)
+// direction: 'down-is-good' (wage, food) or 'up-is-good' (sales)
+function sparkline(values, direction = 'up-is-good', color = '#4f46e5') {
+  const w = 90, h = 28, pad = 3;
+  const real = values.filter(v => v != null);
+  if (real.length < 2) return `<svg width="${w}" height="${h}"></svg>`;
+  const min = Math.min(...real), max = Math.max(...real);
+  const range = max - min || 1;
+  const points = values.map((v, i) => {
+    if (v == null) return null;
+    const x = pad + (i / (values.length - 1)) * (w - 2*pad);
+    const y = h - pad - ((v - min) / range) * (h - 2*pad);
+    return { x, y, v };
+  }).filter(p => p);
+  const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+  const last = real[real.length - 1];
+  const prev = real[real.length - 2];
+  const improving = direction === 'up-is-good' ? last > prev : last < prev;
+  const trendColor = improving ? '#059669' : '#dc2626';
+  const dots = points.map((p, i) => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${i === points.length - 1 ? 2.5 : 1.5}" fill="${i === points.length - 1 ? trendColor : color}"/>`).join('');
+  return `<svg width="${w}" height="${h}" style="display:block;"><path d="${path}" fill="none" stroke="${color}" stroke-width="1.5" opacity="0.65"/>${dots}</svg>`;
+}
+
+// Trend arrow comparing last vs prior
+function trendArrow(values, direction = 'up-is-good') {
+  const real = values.filter(v => v != null);
+  if (real.length < 2) return '<span style="color:var(--ink-3); font-size:11px;">—</span>';
+  const last = real[real.length - 1], prev = real[real.length - 2];
+  const delta = last - prev;
+  if (Math.abs(delta) < 0.01) return '<span style="color:var(--ink-3); font-size:11px;">→</span>';
+  const up = delta > 0;
+  const good = direction === 'up-is-good' ? up : !up;
+  const color = good ? 'var(--green)' : 'var(--red)';
+  const arrow = up ? '▲' : '▼';
+  return `<span style="color:${color}; font-size:11px; font-weight:700;">${arrow} ${Math.abs(delta).toFixed(1)}</span>`;
+}
+
 function metricValueFor(s, metric) {
   const m = METRICS[s.code] || {};
   if (metric === 'sales') return { value: (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1) + '%', label: 'vs target', arrow: s.vsTarget >= 0 ? '▲' : '▼' };
   if (metric === 'wage')  return { value: m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%', label: 'wage / revenue', arrow: '' };
-  if (metric === 'food')  return { value: m.food == null ? 'N/A' : (m.food >= 0 ? '+' : '') + m.food.toFixed(1) + '%', label: 'food variance', arrow: '' };
+  if (metric === 'food')  return { value: m.food == null ? 'N/A' : m.food.toFixed(1) + '%', label: 'food cost / rev', arrow: '' };
   // combined
   const m2 = METRICS[s.code] || {};
   const rags = [salesRag(s.vsTarget), wageRag(m2.wage), foodRag(m2.food)];
@@ -1162,7 +1231,7 @@ function renderHeatmap(filter = 'all') {
     const deltaCls = rag === 'deep-red' ? 'red' : (rag === 'na' ? '' : rag);
     const m = METRICS[s.code] || {};
     const wageTxt = m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%';
-    const foodTxt = m.food == null ? 'N/A' : (m.food >= 0 ? '+' : '') + m.food.toFixed(1) + '%';
+    const foodTxt = m.food == null ? 'N/A' : m.food.toFixed(1) + '%';
     const salesTxt = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(0) + '%';
     return `
       <div class="tile ${tileClass}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
@@ -1194,7 +1263,7 @@ function renderScorecard() {
   });
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Var</div><div>Score</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Score</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
@@ -1205,13 +1274,14 @@ function renderScorecard() {
     const real = rags.filter(r => r !== 'na').length;
     const greens = rags.filter(r => r === 'green').length;
     const scoreClass = greens === 3 ? 's3' : (greens === 2 ? 's2' : (greens === 1 ? 's1' : 's0'));
+    const h = HISTORY[s.code] || {};
     return `
       <div class="scorecard-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="sc-code">${s.code}</div>
         <div class="sc-name">${s.name}</div>
-        <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}%</div>
-        <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'}</div>
-        <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : (m.food >= 0 ? '+' : '') + m.food.toFixed(1) + '%'}</div>
+        <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}% <span class="sc-chip-wow">${trendArrow(h.sales, 'up-is-good')}</span></div>
+        <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
+        <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
         <div class="sc-score ${scoreClass}">${greens}/${real || 3}</div>
       </div>`;
   }).join('');
@@ -1303,14 +1373,30 @@ function openSite(code) {
     </div>
     <div class="modal-body">
       <div class="kpi-grid">
-        <div class="kpi"><div class="kpi-label">Covers</div><div class="kpi-value">${s.kpis.covers}</div></div>
-        <div class="kpi"><div class="kpi-label">SPH</div><div class="kpi-value">${s.kpis.sph}</div></div>
-        <div class="kpi"><div class="kpi-label">Sales vs Target</div><div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div></div>
-        <div class="kpi"><div class="kpi-label">Wage % (tgt ≤21%)</div><div class="kpi-value ${wageRag((METRICS[s.code]||{}).wage)}">${(METRICS[s.code]||{}).wage == null ? 'N/A' : (METRICS[s.code]).wage.toFixed(2) + '%'}</div></div>
-        <div class="kpi"><div class="kpi-label">Food Var (tgt ±2%)</div><div class="kpi-value ${foodRag((METRICS[s.code]||{}).food)}">${(METRICS[s.code]||{}).food == null ? 'N/A' : ((METRICS[s.code]).food >= 0 ? '+' : '') + (METRICS[s.code]).food.toFixed(1) + '%'}</div></div>
-        <div class="kpi"><div class="kpi-label">Food Var (legacy)</div><div class="kpi-value">${s.kpis.foodVar}</div></div>
+        <div class="kpi">
+          <div class="kpi-label">Sales vs Target</div>
+          <div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div>
+          <div class="kpi-spark">${sparkline((HISTORY[s.code]||{}).sales, 'up-is-good', '#4f46e5')}</div>
+          <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).sales, 'up-is-good')}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Wage % (tgt ≤21%)</div>
+          <div class="kpi-value ${wageRag((METRICS[s.code]||{}).wage)}">${(METRICS[s.code]||{}).wage == null ? 'N/A' : (METRICS[s.code]).wage.toFixed(2) + '%'}</div>
+          <div class="kpi-spark">${sparkline((HISTORY[s.code]||{}).wage, 'down-is-good', '#4f46e5')}</div>
+          <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).wage, 'down-is-good')}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Food Cost % (tgt ≤25%)</div>
+          <div class="kpi-value ${foodRag((METRICS[s.code]||{}).food)}">${(METRICS[s.code]||{}).food == null ? 'N/A' : (METRICS[s.code]).food.toFixed(2) + '%'}</div>
+          <div class="kpi-spark">${sparkline((HISTORY[s.code]||{}).food, 'down-is-good', '#4f46e5')}</div>
+          <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).food, 'down-is-good')}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Covers · SPH</div>
+          <div class="kpi-value" style="font-size:14px;">${s.kpis.covers}</div>
+          <div class="kpi-trend" style="margin-top:6px;">${s.kpis.sph}</div>
+        </div>
       </div>
-      ${(METRICS[s.code]||{}).wageNote ? `<div class="empty" style="background: var(--amber-bg); border-color: var(--amber-ring); color: var(--amber);">⚠ Wage note: ${(METRICS[s.code]).wageNote}</div><br>` : ''}
 
       ${s.empty ? '<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
 
