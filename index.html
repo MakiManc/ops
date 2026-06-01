@@ -638,6 +638,7 @@
     <button class="tabbtn" data-tab="raci">Governance</button>
     <button class="tabbtn" data-tab="risk">Risk Register</button>
     <button class="tabbtn" data-tab="roadmap">Roadmap</button>
+    <button class="tabbtn" data-tab="gmscore">GM Scorecard</button>
   </nav>
 
   <!-- ============ TAB: THIS WEEK ============ -->
@@ -792,6 +793,19 @@
     </div>
     <div id="rm-list"></div>
     <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Memory-based status pass — items tagged "verify" not yet re-checked in Asana / Drive.</p>
+  </div>
+
+  <!-- ============ TAB: GM SCORECARD ============ -->
+  <div class="tabpanel" id="tab-gmscore">
+    <div class="mini-hero">
+      <h2>GM Scorecard</h2>
+      <p>Composite 1–5 capability rating per GM across four weighted dimensions. Scored quarterly by AM + Operations Director (folder 04). Working file: AM_GM_Scorecard_v1.xlsx.</p>
+    </div>
+    <div class="section-head"><h2>How it scores</h2><div class="hint">Weighted 1–5 composite · bands: Strong ≥4 · Developing 3–3.9 · At risk &lt;3</div></div>
+    <div class="themes" id="gm-dims"></div>
+    <div class="section-head"><h2>GM roster</h2><div class="hint">Ratings populate from the Excel each quarter</div></div>
+    <div class="raci-wrap"><table class="raci" id="gm-table"></table></div>
+    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Read-only mirror — enter scores in AM_GM_Scorecard_v1.xlsx (folder 04); composite &amp; rating compute there and surface here.</p>
   </div>
 </div>
 
@@ -1890,6 +1904,32 @@ renderRedLight();
 renderRaci();
 renderRisk();
 renderRoadmap();
+
+// ---------- GM SCORECARD ----------
+const GM_DIMS = [
+  ['Financial','35%','Covers vs target · Wage % vs 21% · Food cost vs 25%'],
+  ['People','25%','Retention / W-R vs 21% · Training (Mapal) · HC/GM meetings'],
+  ['Standards','20%','Compliance (Log It) · Store-visit score · Reviews (4.7★ / Deliveroo)'],
+  ['Capability','20%','Leadership · AGM readiness · Initiative']
+];
+const GM_ROSTER = [
+  ['M1/2','Derrick Cheung','Ka Ho'],['M3','Rory Ferguson','Ka Ho'],['M6','Justyna Polak (RM)','Ka Ho'],
+  ['M7','Calum Heriot','Ka Ho'],['M8','Scott Renwick','Ka Ho'],['M12','Matt Lee','Ka Ho'],
+  ['M13','Joe Herera','Ka Ho'],['IKI2','Sujan (RM)','Ka Ho'],['M15','Kieran Day','Óisín / Ka Ho'],
+  ['M9','Kai Chau Leung / Chan Zhi Quan','Inka'],['M10','Ninder Joshi','Inka'],['M11','Caroline / JJ','Inka'],
+  ['M14','(vacant)','Inka'],['M16','(vacant)','Inka'],['M17','Kei Cannon','Lincoln'],['M18','Imre Balogh','Lincoln']
+];
+function renderGmScore(){
+  document.getElementById('gm-dims').innerHTML = GM_DIMS.map(d=>`
+    <div class="theme-card">
+      <div class="theme-icon">${d[1]}</div>
+      <div><div class="theme-title">${d[0]}</div><div class="theme-body">${d[2]}</div></div>
+    </div>`).join('');
+  let head = '<tr><th class="proc">Site</th><th class="proc">GM</th><th>AM</th><th>Composite</th><th>Rating</th></tr>';
+  let body = GM_ROSTER.map(g=>`<tr><td class="proc">${g[0]}</td><td class="proc">${g[1]}</td><td>${g[2]}</td><td>—</td><td><span class="rm-pill pending">Pending</span></td></tr>`).join('');
+  document.getElementById('gm-table').innerHTML = head + body;
+}
+renderGmScore();
 </script>
 </body>
 </html>
