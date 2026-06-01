@@ -572,10 +572,76 @@
     border-top: 1px solid var(--line);
   }
   .footer a { color: var(--indigo); text-decoration: none; }
+  /* ===== HUB ADDITIONS ===== */
+  .tabbar { display:flex; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:6px; margin-bottom:20px; box-shadow:var(--shadow); position:sticky; top:10px; z-index:60; flex-wrap:wrap; }
+  .tabbtn { flex:1; min-width:118px; border:0; background:transparent; color:var(--ink-2); font-weight:600; font-size:13px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .tabbtn:hover { background:var(--surface-2); color:var(--ink); }
+  .tabbtn.active { background:var(--ink); color:#fff; }
+  .tabbtn .tb-badge { background:var(--red); color:#fff; font-size:10px; font-weight:700; padding:1px 7px; border-radius:8px; }
+  .tabbtn.active .tb-badge { background:rgba(255,255,255,.25); }
+  .tabpanel { display:none; animation:fade .2s ease-out; }
+  .tabpanel.active { display:block; }
+  @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  .mini-hero { background:linear-gradient(135deg,#0f172a 0%,#1e293b 60%,#312e81 100%); border-radius:18px; color:#fff; padding:22px 26px; margin-bottom:20px; box-shadow:var(--shadow-lg); }
+  .mini-hero h2 { margin:0 0 4px; font-size:24px; font-weight:700; letter-spacing:-.02em; color:#fff; }
+  .mini-hero p { margin:0; color:#cbd5e1; font-size:13px; }
+  .raci-wrap { overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); }
+  table.raci { border-collapse:collapse; width:100%; font-size:12px; min-width:820px; }
+  table.raci th, table.raci td { border:1px solid var(--line); padding:8px 6px; text-align:center; }
+  table.raci th { background:var(--ink); color:#fff; font-weight:600; }
+  table.raci th.proc, table.raci td.proc { text-align:left; font-weight:600; color:var(--ink); white-space:nowrap; }
+  table.raci td.cA { background:var(--red-bg); color:var(--red); font-weight:800; }
+  table.raci td.cR { background:var(--green-bg); color:var(--green); font-weight:800; }
+  table.raci td.cC { color:var(--ink-2); font-weight:600; }
+  table.raci td.cI { color:var(--ink-3); }
+  table.raci .colhl { box-shadow: inset 0 0 0 2px var(--indigo); }
+  .raci-roles { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  .role-chip { background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:5px 12px; font-size:12px; cursor:pointer; }
+  .role-chip.active { background:var(--indigo); color:#fff; border-color:var(--indigo); }
+  .risk-controls { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+  .risk-table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; font-size:12.5px; box-shadow:var(--shadow); }
+  .risk-table th { background:var(--ink); color:#fff; text-align:left; padding:10px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .risk-table td { padding:10px; border-top:1px solid var(--line); vertical-align:top; }
+  .rag { font-weight:700; padding:2px 9px; border-radius:8px; font-size:11px; white-space:nowrap; }
+  .rag.High { background:var(--red-bg); color:var(--red); }
+  .rag.Medium { background:var(--amber-bg); color:var(--amber); }
+  .rag.Low { background:var(--green-bg); color:var(--green); }
+  .stepper { display:flex; flex-direction:column; gap:0; margin:8px 0 24px; }
+  .step { display:flex; gap:14px; }
+  .step-rail { display:flex; flex-direction:column; align-items:center; }
+  .step-dot { width:30px; height:30px; border-radius:50%; background:var(--red); color:#fff; display:grid; place-items:center; font-weight:700; font-size:11px; flex-shrink:0; }
+  .step-line { width:2px; flex:1; background:var(--red-ring); min-height:14px; }
+  .step-body { padding-bottom:18px; }
+  .step-body h4 { margin:0 0 2px; font-size:14px; }
+  .step-body p { margin:0; font-size:12.5px; color:var(--ink-2); }
+  .fields { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px; }
+  .field { background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12px; }
+  .crit-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; margin-bottom:8px; }
+  .rm-phase { background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:12px; box-shadow:var(--shadow); overflow:hidden; }
+  .rm-head { display:flex; align-items:center; gap:12px; padding:14px 18px; }
+  .rm-num { width:30px; height:30px; border-radius:50%; background:var(--ink); color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; flex-shrink:0; }
+  .rm-title { flex:1; font-weight:700; font-size:15px; }
+  .rm-title small { display:block; font-weight:400; color:var(--ink-3); font-size:12px; }
+  .rm-pill { font-size:11px; font-weight:600; padding:4px 11px; border-radius:999px; white-space:nowrap; }
+  .rm-pill.complete { background:var(--green-bg); color:var(--green); }
+  .rm-pill.inprogress { background:var(--amber-bg); color:var(--amber); }
+  .rm-pill.pending { background:var(--surface-2); color:var(--ink-3); }
+  .rm-body { padding:0 18px 16px 60px; font-size:12.5px; color:var(--ink-2); }
+  .rm-body li { margin-bottom:3px; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <nav class="tabbar">
+    <button class="tabbtn active" data-tab="week">This Week</button>
+    <button class="tabbtn" data-tab="redlight">Red Light <span class="tb-badge" id="tb-red">0</span></button>
+    <button class="tabbtn" data-tab="raci">Governance</button>
+    <button class="tabbtn" data-tab="risk">Risk Register</button>
+    <button class="tabbtn" data-tab="roadmap">Roadmap</button>
+  </nav>
+
+  <!-- ============ TAB: THIS WEEK ============ -->
+  <div class="tabpanel active" id="tab-week">
 
   <!-- HERO -->
   <div class="hero">
@@ -671,6 +737,61 @@
   <div class="footer">
     Source: <a href="https://drive.google.com/drive/folders/18zid54KrspVfveZhcWG_gGJEPn7ncs1B" target="_blank">May 18–24, 2026 KPI folder</a>
     · Synthesised from 16 weekly GM/HC reports + Monday admin meeting notes
+  </div>
+  </div><!-- /tab-week -->
+
+  <!-- ============ TAB: RED LIGHT ============ -->
+  <div class="tabpanel" id="tab-redlight">
+    <div class="mini-hero">
+      <h2>Red Light System</h2>
+      <p>48-hour protocol · live red &amp; amber sites · closure log. Source of truth = Cheska's weekly pull (AM Manual §6).</p>
+    </div>
+    <div class="section-head"><h2>Currently flagged</h2><div class="hint">From this week's pull — click a site for detail</div></div>
+    <div class="heatmap" id="rl-sites"></div>
+    <div class="section-head"><h2>The 48-hour protocol</h2><div class="hint">Every red site walks these seven stages</div></div>
+    <div class="stepper" id="rl-stepper"></div>
+    <div class="section-head"><h2>Trigger criteria</h2></div>
+    <div class="crit-list" id="rl-crit"></div>
+    <div class="section-head"><h2>Closure log — required fields</h2><div class="hint">The audit trail the weekly pull doesn't capture (register, folder 06)</div></div>
+    <div class="fields" id="rl-fields"></div>
+  </div>
+
+  <!-- ============ TAB: GOVERNANCE / RACI ============ -->
+  <div class="tabpanel" id="tab-raci">
+    <div class="mini-hero">
+      <h2>Role Ownership &amp; RACI</h2>
+      <p>Who owns what across the AM function. One Accountable per line. Click a role to highlight its column.</p>
+    </div>
+    <div class="raci-roles" id="raci-roles"></div>
+    <p style="font-size:12px;color:var(--ink-2);margin:0 0 12px;">
+      <b style="color:var(--red);">A</b> Accountable · <b style="color:var(--green);">R</b> Responsible · <b>C</b> Consulted · <span style="color:var(--ink-3);">I</span> Informed
+    </p>
+    <div class="raci-wrap"><table class="raci" id="raci-table"></table></div>
+    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">
+      Authority limits: AM signs rota / FOH / AGM hiring · Operations Director (Lincoln) signs GM hiring, Red Light recovery, GM disciplinary, Hajime kick-off · COO signs capex, franchise, new-site openings. Cheska owns the weekly Red Light data pull.
+    </p>
+  </div>
+
+  <!-- ============ TAB: RISK REGISTER ============ -->
+  <div class="tabpanel" id="tab-risk">
+    <div class="mini-hero">
+      <h2>AM Risk Register v1</h2>
+      <p>Live risks scored Likelihood × Impact. High ≥15 · Medium 8–14 · Low &lt;8.</p>
+    </div>
+    <div class="risk-controls" id="risk-stats"></div>
+    <div class="risk-controls" id="risk-filters"></div>
+    <table class="risk-table" id="risk-table"></table>
+    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Click a column header to sort. Canonical file: AM_Risk_Register_v1.xlsx. Red-site rows refresh from Cheska's weekly pull.</p>
+  </div>
+
+  <!-- ============ TAB: ROADMAP ============ -->
+  <div class="tabpanel" id="tab-roadmap">
+    <div class="mini-hero">
+      <h2>AM Operating-System Roadmap</h2>
+      <p>Phase 1–5 · v2.0 status pass (1 Jun 2026). Manual finalised, Command Centre live, Cheska's pull live.</p>
+    </div>
+    <div id="rm-list"></div>
+    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Memory-based status pass — items tagged "verify" not yet re-checked in Asana / Drive.</p>
   </div>
 </div>
 
@@ -1597,6 +1718,178 @@ renderScorecard();
 renderClusters();
 renderThemes();
 renderHotActions();
+// ===================== HUB TABS =====================
+document.querySelectorAll('.tabbtn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tabbtn').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tabpanel').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('tab-' + b.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ---------- RED LIGHT ----------
+const RL_STEPS = [
+  ['H0', 'Flag', 'Site goes red in the weekly pull. AM + Operations Director notified same day; logged in the Red Light register.'],
+  ['48h', 'On site', 'AM physically on site within 48 hours: floor walk, GM 1:1, root-cause analysis.'],
+  ['D5', 'Recovery plan', 'AM drafts plan: root cause, actions, owners, dates, target metric to recover.'],
+  ['D7', 'Sign-off', 'Plan signed off by Operations Director + COO. Recorded in the register.'],
+  ['W2', 'Checkpoint', 'AM reviews progress vs plan; actions updated; re-visit if needed.'],
+  ['W4', 'Review', 'Formal review of impact. Continue, escalate, or move to closure.'],
+  ['✓', '4 weeks green', 'Closed once the site holds four consecutive weeks back on target. Closure logged with evidence.']
+];
+const RL_CRIT = [
+  'Covers vs target down materially (guide: −15% or worse, or two weeks negative).',
+  'Wage % above the 21% target by a material margin (guide: ≥3 points over).',
+  'Food cost materially above the 25% target.',
+  'A serious compliance, food-safety or people event — AM/OD discretion, regardless of the numbers.'
+];
+const RL_FIELDS = ['Site code & name','Trigger KR(s) vs target','Date flagged (H0)','Date of 48-hour visit','Root cause (summary)','Recovery plan link','Plan sign-off date (OD + COO)','Week 2 / Week 4 status','Weeks green to date','Closure date','Outcome / recurrence flag'];
+
+function rlClass(s){ return s.rag === 'deep-red' ? 'red' : s.rag; }
+function renderRedLight(){
+  const reds = SITES.filter(s => s.rag === 'deep-red' || s.rag === 'red').sort((a,b)=>a.vsTarget-b.vsTarget);
+  const ambers = SITES.filter(s => s.rag === 'amber');
+  document.getElementById('tb-red').textContent = reds.length;
+  document.getElementById('rl-sites').innerHTML = reds.concat(ambers).map(s => {
+    const arrow = s.vsTarget >= 0 ? '▲' : '▼';
+    const pct = (s.vsTarget>=0?'+':'') + s.vsTarget.toFixed(1) + '%';
+    const badge = (s.rag==='amber') ? 'AMBER' : 'RED';
+    return `<div class="tile ${s.rag}" onclick="openSite('${s.code.replace(/'/g,"\\'")}')">
+      <div class="tile-issues-badge">${badge}</div>
+      <div><div class="tile-code">${s.code}</div><div class="tile-name">${s.name.replace(/ · .*/,'')}</div></div>
+      <div><div class="tile-delta ${s.rag==='deep-red'?'red':rlClass(s)}">${arrow} ${pct}</div>
+      <div class="tile-meta">${s.am}</div></div></div>`;
+  }).join('');
+  document.getElementById('rl-stepper').innerHTML = RL_STEPS.map((st,i)=>`
+    <div class="step"><div class="step-rail"><div class="step-dot">${st[0]}</div>${i<RL_STEPS.length-1?'<div class="step-line"></div>':''}</div>
+    <div class="step-body"><h4>${st[1]}</h4><p>${st[2]}</p></div></div>`).join('');
+  document.getElementById('rl-crit').innerHTML = RL_CRIT.map(c=>`<div class="field">${c}</div>`).join('');
+  document.getElementById('rl-fields').innerHTML = RL_FIELDS.map(f=>`<div class="field">${f}</div>`).join('');
+}
+
+// ---------- RACI ----------
+const RACI_ROLES = ['COO','OD','AM','DAM','GM','BDM','HR','FIN','MKT','OPS'];
+const RACI = [
+  ['Covers vs target (AMO1)','I','C','A','R','R','','','','',''],
+  ['Sales per head £ (SPH)','I','C','A','R','R','','','','C',''],
+  ['Wage % efficiency (21%)','I','C','A','R','R','','','C','',''],
+  ['Food cost 25% (site level)','I','C','A','R','R','','','C','','C'],
+  ['Weekly KPI report submission','I','I','A','R','C','','','','',''],
+  ['Red Light recovery plan','C','A','R','I','I','','','','',''],
+  ['Site visits & standards audits','I','C','A','R','C','','','','',''],
+  ['Rota approval','','I','A','C','R','','C','','',''],
+  ['FOH / AGM hiring','','I','A','C','R','','C','','',''],
+  ['GM hiring','C','A','R','I','','','C','','',''],
+  ['GM disciplinary','C','A','R','I','','','C','','',''],
+  ['Retention / W/R (21%)','I','C','A','R','R','','C','','',''],
+  ['Training completion (Mapal)','','I','A','R','R','','C','','',''],
+  ['Customer experience / reviews','I','C','A','R','R','','','','C',''],
+  ['Deliveroo performance / refunds','I','C','A','R','R','C','','','C',''],
+  ['H&S / compliance 100%','I','C','A','R','R','','','','','C'],
+  ['Hajime — opening kick-off','C','A','R','R','','','','','','R'],
+  ['Owari — stabilisation (4 wks green)','I','C','A','R','R','','','','',''],
+  ['Kiban — BAU site performance','I','C','A','R','R','','','','',''],
+  ['Asana action closure','I','I','A','R','C','','','','',''],
+  ['OKR / monthly reporting (AMO4)','I','C','A','R','','','','C','',''],
+  ['Franchise site support (MAF)','C','I','R','','','A','','','',''],
+  ['Capex / fit-out','A','C','I','','','','','C','','R'],
+  ['New-site opening approval','A','R','I','','','','','','','R']
+];
+let raciHighlight = -1;
+function renderRaci(){
+  const roleNames = {COO:'COO',OD:'Ops Dir',AM:'Area Mgr',DAM:'Deputy AM',GM:'GM',BDM:'BizDev',HR:'HR',FIN:'Finance',MKT:'Mktg',OPS:'Ops'};
+  document.getElementById('raci-roles').innerHTML = RACI_ROLES.map((r,i)=>
+    `<span class="role-chip ${raciHighlight===i?'active':''}" onclick="toggleRaci(${i})">${roleNames[r]}</span>`).join('');
+  let head = '<tr><th class="proc">Process / KPI</th>' + RACI_ROLES.map((r,i)=>`<th class="${raciHighlight===i?'colhl':''}">${r}</th>`).join('') + '</tr>';
+  let body = RACI.map(row=>{
+    let cells = `<td class="proc">${row[0]}</td>`;
+    for(let i=1;i<=10;i++){ const v=row[i]; const hl = raciHighlight===i-1?'colhl':''; cells += `<td class="c${v||'x'} ${hl}">${v||''}</td>`; }
+    return `<tr>${cells}</tr>`;
+  }).join('');
+  document.getElementById('raci-table').innerHTML = head + body;
+}
+function toggleRaci(i){ raciHighlight = (raciHighlight===i)?-1:i; renderRaci(); }
+
+// ---------- RISK REGISTER ----------
+const RISKS = [
+  ['R01','Site performance','M18 Soho sustained underperformance',5,5,'AM (Ziang) + OD','Red Light recovery plan; weekly on-site; covers + labour rebuild','Open — in recovery'],
+  ['R02','Site performance','Meadowhall covers −32%',4,4,'AM (Inka)','Recovery plan; formalise as exemplar template','Open — in recovery'],
+  ['R03','Site performance','Aberdeen covers −18.6%',4,3,'AM (Ka Ho)','Set fixed visit cadence; recovery plan','Open'],
+  ['R04','Site performance','Leicester covers −23%',4,3,'AM (Inka)','Red Light recovery plan','Open'],
+  ['R05','Labour / wage','Wage % drifting above 21% target',4,4,'AM + GM','Rota discipline; SPLH watch; tie to weekly pull','Open'],
+  ['R06','Financial','Food cost above 25% at site level',3,4,'AM + EC','Site-level food-cost row per week; RCA on outliers','Open'],
+  ['R07','People / retention','W/R below 21% target at weak sites',3,4,'AM + HR','Push monthly retention view into AM space','Open'],
+  ['R08','People / capability','GM capability gaps undetected',4,4,'OD + AM','Build GM Scorecard (Phase 3)','Open'],
+  ['R09','Customer experience','Google review score below 4.7★',3,3,'AM + MKT','CX weekly digest to AM; mystery shopper register','Open'],
+  ['R10','Delivery','Deliveroo refund value eroding margin',3,3,'AM','Auto-route Deliveroo data into folder 03','Open'],
+  ['R11','Food quality','Food-quality escalations (protein ramen / noodles)',2,4,'AM + HEC','Quality escalation feed from EC line','Watch'],
+  ['R12','Compliance / H&S','H&S / food-safety non-compliance',2,5,'AM + OPS','Build compliance audit calendar (folder 05)','Open'],
+  ['R13','Supplier / ops','Over-dependence on Lynas (primary distributor)',2,4,'OPS (Ross)','Monitor OTIF; maintain alternates','Watch'],
+  ['R14','Execution','Asana AM project dormant — no closure loop',4,4,'COO + AM','Rebuild project; weekly action rhythm','Open — verify'],
+  ['R15','Reporting / data','Inconsistent weekly AM reporting',3,3,'COO + Inka','Finalise + deploy weekly submission template','Open'],
+  ['R16','Reporting / data','Meeting-note transcription errors',2,2,'COO','Add custom vocab; manual review before storage','Open'],
+  ['R17','Lifecycle','Sites left in Owari indefinitely',3,3,'AM + OPS','Build Hajime/Owari/Kiban register','Open'],
+  ['R18','Opening','New-site opening readiness (Southampton, June)',3,4,'OPS + AM','Build Hajime checklist + sign-off register','Open'],
+  ['R19','Strategy','Dubai / UAE scope ambiguity',2,3,'COO + CEO','Clarify with CEO; formalise or archive','Open'],
+  ['R20','Coverage','AM rota / coverage gaps',2,3,'DAMs','Locate + publish canonical rota (folder 02)','Open']
+];
+function ragFor(score){ return score>=15?'High':(score>=8?'Medium':'Low'); }
+let riskFilter='all', riskSort={key:'score',dir:-1};
+function renderRisk(){
+  const cats=['all',...Array.from(new Set(RISKS.map(r=>r[1])))];
+  document.getElementById('risk-filters').innerHTML = ['all','High','Medium','Low'].map(f=>
+    `<span class="chip ${riskFilter===f?'active':''}" onclick="setRiskFilter('${f}')">${f==='all'?'All risks':f}</span>`).join('');
+  let rows = RISKS.map(r=>({id:r[0],cat:r[1],risk:r[2],L:r[3],I:r[4],score:r[3]*r[4],owner:r[5],mit:r[6],status:r[7]}));
+  rows.forEach(r=>r.rating=ragFor(r.score));
+  if(riskFilter!=='all') rows=rows.filter(r=>r.rating===riskFilter);
+  const k=riskSort.key, d=riskSort.dir;
+  rows.sort((a,b)=> (a[k]>b[k]?1:a[k]<b[k]?-1:0)*d);
+  const high=RISKS.filter(r=>ragFor(r[3]*r[4])==='High').length;
+  const med=RISKS.filter(r=>ragFor(r[3]*r[4])==='Medium').length;
+  const low=RISKS.filter(r=>ragFor(r[3]*r[4])==='Low').length;
+  document.getElementById('risk-stats').innerHTML =
+    `<span class="rag High">${high} High</span><span class="rag Medium">${med} Medium</span><span class="rag Low">${low} Low</span><span style="color:var(--ink-3);font-size:12px;">${RISKS.length} risks total</span>`;
+  const hdr = `<tr>
+    <th onclick="sortRisk('id')">ID</th><th onclick="sortRisk('cat')">Category</th>
+    <th onclick="sortRisk('risk')">Risk</th><th onclick="sortRisk('score')">L×I</th>
+    <th onclick="sortRisk('rating')">Rating</th><th onclick="sortRisk('owner')">Owner</th>
+    <th>Mitigation</th><th onclick="sortRisk('status')">Status</th></tr>`;
+  const body = rows.map(r=>`<tr>
+    <td><b>${r.id}</b></td><td>${r.cat}</td><td>${r.risk}</td>
+    <td><b>${r.score}</b> <span style="color:var(--ink-3)">(${r.L}×${r.I})</span></td>
+    <td><span class="rag ${r.rating}">${r.rating}</span></td>
+    <td>${r.owner}</td><td style="color:var(--ink-2)">${r.mit}</td><td>${r.status}</td></tr>`).join('');
+  document.getElementById('risk-table').innerHTML = hdr + body;
+}
+function setRiskFilter(f){ riskFilter=f; renderRisk(); }
+function sortRisk(k){ if(riskSort.key===k) riskSort.dir*=-1; else { riskSort.key=k; riskSort.dir=1; } renderRisk(); }
+
+// ---------- ROADMAP ----------
+const ROADMAP = [
+  ['1','Discovery & Audit','Understand what exists','complete','Complete','File map, gap analysis, KPI list, folder structure, v2 status pass (1 Jun).'],
+  ['2','System Design','Lock the operating model','inprogress','In progress','Manual finalised (dependency cleared). RACI + Red Light SOP + Risk Register done. Folders 00–12 pending.'],
+  ['3','Tracker Build','Convert design into live trackers','inprogress','In progress','Command Centre delivers dashboard + Red Light layer. GM Scorecard, store-visit log, Asana rebuild pending.'],
+  ['4','Operating Rhythm','Run weekly without being chased','inprogress','In progress','Wed AM call + live Red Light pull (Cheska) running. Agenda/decision-log templates pending.'],
+  ['5','Optimisation','Use data to improve, not just measure','pending','Not started','Per-site improvement plans. Begins once Phases 2–4 live.']
+];
+function renderRoadmap(){
+  document.getElementById('rm-list').innerHTML = ROADMAP.map(p=>`
+    <div class="rm-phase">
+      <div class="rm-head">
+        <div class="rm-num">${p[0]}</div>
+        <div class="rm-title">${p[1]}<small>${p[2]}</small></div>
+        <span class="rm-pill ${p[3]}">${p[4]}</span>
+      </div>
+      <div class="rm-body">${p[5]}</div>
+    </div>`).join('');
+}
+
+renderRedLight();
+renderRaci();
+renderRisk();
+renderRoadmap();
 </script>
 </body>
 </html>
