@@ -1225,6 +1225,7 @@ const SITES = [
   },
   {
     "code": "M19",
+    "isNew": true,
     "name": "Maki Nori",
     "cluster": "south",
     "clusterName": "South England",
@@ -2271,8 +2272,8 @@ function renderHeatmap(filter = 'all') {
       <div class="tile ${tileClass}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="tile-issues-badge">${issuesCount}</div>
         <div>
-          <div class="tile-code">${s.code}</div>
-          <div class="tile-name">${s.name}</div>
+          <div class="tile-code">${s.code}${s.isNew ? ' <span style="font-size:9px;font-weight:700;background:#4f46e5;color:#fff;padding:1px 5px;border-radius:6px;vertical-align:middle;letter-spacing:.3px;">NEW</span>' : ''}</div>
+          <div class="tile-name">${s.name}${s.isNew ? ' <span style="font-weight:600;color:var(--ink-3);font-size:10px;">· partial data</span>' : ''}</div>
         </div>
         <div>
           <div class="tile-delta ${deltaCls}">${v.arrow} ${v.value}</div>
