@@ -648,8 +648,8 @@
   <div class="hero">
     <div class="hero-inner">
       <div class="eyebrow">AM Weekly Command Centre</div>
-      <h1>Week of 18–24 May 2026</h1>
-      <div class="hero-sub">16 site KPI reports · 3 clusters · Filed by Francheska 25–27 May</div>
+      <h1>Week of 25–31 May 2026</h1>
+      <div class="hero-sub">16 site KPI reports · 3 clusters · Auto-refreshed 2 Jun 2026</div>
       <div class="hero-stats">
         <div class="stat"><div class="stat-num">16</div><div class="stat-label">Sites Reporting</div></div>
         <div class="stat red"><div class="stat-num" id="stat-red">3</div><div class="stat-label">Red</div></div>
@@ -664,8 +664,8 @@
   <div class="alert">
     <div class="alert-icon">!</div>
     <div>
-      <b>OKR insight</b> — The 4.7★ target is the <em>weekly</em> average of new reviews, not the lifetime rating. <b>M8 Renfield</b> tanks to 4.38★ this week (1×1★ review pulls the average), <b>M15 Metrocentre</b> 4.50★ (only 4 reviews this week). Meanwhile food cost crisis still in M11 Leicester 38.7%, M17 Lakeside 36.0%, M14 Meadowhall 35.4%, M18 Soho 32.6% (target ≤25%).
-      <small>Site Efficiency Score combines all 6 KPIs into a single 0-100 nominal figure. 100 = at target on everything. League Table below ranks all sites by it.</small>
+      <b>w/e 31 May:</b> 5 sites on/above sales target, 9 amber, 2 red. Worst miss <b>M18 Soho -50.3%</b> (5th deep-red week). Weekly ★ OKR (≥4.7) missed at M7 (4.33), M11 (4.25), M14 (4.50), M8 (4.62). Food cost % unavailable for 7 sites (KPI-sheet feed); stocktake variance within ±5% everywhere counted.
+      <small>Sales &amp; wage: live per-site KPI sheets (4-week trend). Food variance: central Stocktake Variance Reports. Lifetime ratings: live Google Maps (2 Jun). Weekly ★ breakdown: central Reviews tracker. Covers/SPH not in this run — see hot actions.</small>
     </div>
   </div>
 
@@ -816,390 +816,576 @@
 
 <script>
 const SITES = [
-  // SCOTLAND & NEWCASTLE
-  { code: 'M1/2', name: 'Nicolson', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Derrick Cheung',
-    rag: 'amber', vsTarget: -24.21,
-    docId: '11zEBMNSYX8r_lgq6WyKn5vc7a5z2fhQ4qWY1GmIHuGg',
-    kpis: { covers: '742 (+1.22%)', sph: '£19.69 (-2.81%)', vsTarget: '-£6,416 (-24.21%)', foodVar: '+2.0%' },
-    issues: [
-      'Sales -24% vs target & -14.75% YOY.',
-      'SPH -2.81% WOW.',
-      'Julio had only 37 days left on right-to-work.',
-      'Hanna sick 3 days.',
-      'Downstairs fan needs replacing.',
-      'Sushi upsell underperforming.'
+  {
+    "code": "M1/2",
+    "name": "Nicolson",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Derrick Cheung",
+    "rag": "amber",
+    "vsTarget": -21.05,
+    "docId": "11zEBMNSYX8r_lgq6WyKn5vc7a5z2fhQ4qWY1GmIHuGg",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-21.1% (w/e 31 May)",
+      "foodVar": "+4.9%"
+    },
+    "issues": [
+      "Sales -21.1% vs target (w/e 31 May).",
+      "Wage 21.1% — above 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A).",
+      "Lifetime rating 4.5★ below 4.7.",
+      "Low weekly review volume (2)."
     ],
-    actions: [
-      'Julio RTW resolved.',
-      'New lunch menu launching as sales driver.',
-      'Focus on sushi upsell.',
-      'Replace downstairs fan.',
-      'Nanako & Stella FOH onboarding complete.'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M3', name: 'Fountain Bridge', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Rory Ferguson',
-    rag: 'green', vsTarget: 23.76,
-    docId: '1YECcLqu6kfR3B9gGvdphnDIOUm4a7WoNC2MaNpbQ51k',
-    kpis: { covers: '1,154 (+0.87%)', sph: '£22.42 (+2.33%)', vsTarget: '+£8,236 (+23.76%)', foodVar: '+2.0%' },
-    issues: [
-      'Deliveroo inaccurate orders.',
-      'Review volume low — "could still use some work".',
-      'FOH churn: Hailyn leaving 31/05; Jorja off until 18/06; Dylan transferring to M7.',
-      'Drinks variance -3.5%.',
-      'Open hiring: 1× FOH Supervisor, 1× FOH.'
+  {
+    "code": "M3",
+    "name": "Fountain Bridge",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Rory Ferguson",
+    "rag": "green",
+    "vsTarget": 8.82,
+    "docId": "1YECcLqu6kfR3B9gGvdphnDIOUm4a7WoNC2MaNpbQ51k",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "+8.8% (w/e 31 May)",
+      "foodVar": "-4.6%"
+    },
+    "issues": [
+      "Sales +8.8% vs target (w/e 31 May) — on/above plan.",
+      "Wage 21.5% — above 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A)."
     ],
-    actions: [
-      '"Person on the pass ticking off all items as they pack them away and communicate to kitchen if anything is missing."',
-      'Continued review incentive in place.',
-      'Ruben trialling Saturday for FOH Supervisor; sourcing second FOH.',
-      'Jack back in BOH this week.',
-      'Sales pipeline: Tofoo partnership, Protein ramen, XOXO, lunch menu, Scotland women\'s cricket booking (25 covers Thu 6:30pm).'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M6', name: 'Bath Street', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Justyna Polak (RM)',
-    rag: 'green', vsTarget: 4.29,
-    docId: '1ysQ0mLM5UrWxJeBqnB3mKdjVlo1J3KpYYSUJLLv48S8',
-    kpis: { covers: '891 (-5.71% YOY)', sph: '£21.70 (+2.3%)', vsTarget: '+£1,137', foodVar: '+4.7%' },
-    issues: [
-      'Food variance high at +4.7% — F/R targets inaccurate, awaiting EC mitigation.',
-      'Drinks -3.3% (sides 16.19% partly missing — Kobas Cloud issue).',
-      'Reviews: team asking but not converting.',
-      'RM confidence in stock-counting execution low.',
-      'Split invoicing process too manual / labour-intensive.',
-      'BOH pipe leaking.'
+  {
+    "code": "M6",
+    "name": "Bath Street",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Justyna Polak (RM)",
+    "rag": "amber",
+    "vsTarget": -10.58,
+    "docId": "1ysQ0mLM5UrWxJeBqnB3mKdjVlo1J3KpYYSUJLLv48S8",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-10.6% (w/e 31 May)",
+      "foodVar": "-1.0%"
+    },
+    "issues": [
+      "Sales -10.6% vs target (w/e 31 May).",
+      "Wage 21.9% — above 21% target.",
+      "Low weekly review volume (4)."
     ],
-    actions: [
-      'New par-level sheet in progress to fix F/R targets.',
-      'RM to convert review asks "and follow through to convert".',
-      'BOH pipe fixed by Rafal.',
-      'Split-invoice automation — Ross Ward (OM) looking into it.',
-      '£18 Lunch Deal launches 27/05 (COO-approved). £5 vouchers ended 24/05.',
-      '"Careful watch on the current budget to ensure alignment is met."'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M7', name: 'SJQ Edinburgh', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Calum Heriot',
-    rag: 'green', vsTarget: 1.52,
-    docId: '1_omkzW21jbNJG7NZyZYCdHBocBRf_q7hilMhy_REj_w',
-    kpis: { covers: '2,616 (-6.47% YOY)', sph: '£22.63 (+0.44%)', vsTarget: '+£888 (+1.52%)', foodVar: '+4.8%' },
-    issues: [
-      'Covers -181 YOY (-6.47%) and YOY sales -6.15%.',
-      'Food variance high at +4.8%.',
-      'Drinks variance -2.5%.',
-      'BOH: Joao P45\'d (leaver).',
-      'FOH: Izzy leaving.',
-      'Reviews flagged.',
-      'Ticket machine still broken / screens not installed (raised again in Monday admin).'
+  {
+    "code": "M7",
+    "name": "SJQ Edinburgh",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Calum Heriot",
+    "rag": "green",
+    "vsTarget": 10.5,
+    "docId": "1_omkzW21jbNJG7NZyZYCdHBocBRf_q7hilMhy_REj_w",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "+10.5% (w/e 31 May)",
+      "foodVar": "-4.6%"
+    },
+    "issues": [
+      "Sales +10.5% vs target (w/e 31 May) — on/above plan.",
+      "Weekly ★ avg 4.33 below 4.7 OKR (12 reviews)."
     ],
-    actions: [
-      'New par-level sheet in progress.',
-      'Alitu started kitchen cover.',
-      'Dylan transferring in from M3.',
-      'Sales pipeline: lunch menu, Tofoo, Protein ramen.',
-      'Ross Ward — chase Chris on ticket machine today.'
+    "actions": [
+      "Drive review asks and follow through to convert; address low-star themes.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M8', name: 'Renfield', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Scott Renwick (NEW)',
-    rag: 'green', vsTarget: 7.36,
-    docId: '1RkEjiAQQWKKH0yApEKo0DnCJMp6wB44OxdPZS_cnbho',
-    kpis: { covers: '1,666 (-7.44% YOY)', sph: '£22.75', vsTarget: '+£3,148', foodVar: '+2.4%' },
-    issues: [
-      'YOY covers -134 and sales -£2,267.',
-      'F/R targets non-accurate.',
-      'Review volume too low — "needs an incentive".',
-      'Management team needs stabilising; possible extra hire.',
-      'AGM role tasks need clarifying.',
-      'Yordan flagged servicing due (aircon, ventilation, freezer/fridges) — needs Ka sign-off at KPI.'
+  {
+    "code": "M8",
+    "name": "Renfield",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Scott Renwick (NEW)",
+    "rag": "green",
+    "vsTarget": 8.43,
+    "docId": "1RkEjiAQQWKKH0yApEKo0DnCJMp6wB44OxdPZS_cnbho",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "+8.4% (w/e 31 May)",
+      "foodVar": "+4.4%"
+    },
+    "issues": [
+      "Sales +8.4% vs target (w/e 31 May) — on/above plan.",
+      "Wage 23.1% — well over 21% target.",
+      "Weekly ★ avg 4.62 below 4.7 OKR (13 reviews)."
     ],
-    actions: [
-      'Scott (new GM, started 25/05) to design review incentive "that will really generate the volume".',
-      'New par-level sheet in progress.',
-      'Potential additional management hire.',
-      'Scott to hold meeting with AGM (date TBC).',
-      '£18 Lunch Deal launches 26/05. "Closely monitor Lunch Deal and reinforce to all FOH staff to ensure action is taken via upsell for every dine in customer."'
+    "actions": [
+      "Tighten rota / cut over-cover to pull wage toward 21%.",
+      "Drive review asks and follow through to convert; address low-star themes.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M12', name: 'Newcastle', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Matt Lee',
-    rag: 'amber', vsTarget: -8.49,
-    docId: '1Z4rAycLtk13oUIerTK4p8ZPqSgJsldFWLb_05BGNAKY',
-    kpis: { covers: '958 (-5.80%)', sph: '£23.26 (+1.17%)', vsTarget: '-£2,942 (-8.49%)', foodVar: '+4.5%' },
-    issues: [
-      'Sales -8.49% vs target; quiet Saturday biggest hit.',
-      'Late Deliveroo prep "up too much for my liking"; prep time +1 min.',
-      'Order #3725: "said the ramen was a solid lump."',
-      'Order #2327: "ramen was a solid lump and the vegan bacon wasn\'t cooked."',
-      'Frida (Yushan Cui) resigned immediate effect.',
-      'BOH staff Olsi and Melsior "showing big signs of struggling with communication and willingness to adapt/learn".',
-      'Labour cost up £13.10 even with fewer hours (sales drop made % worse).',
-      'Maintenance: aircon (Ultra High, Ross), toilets (Ultra High, Ross, logged), front door (Medium, Kris), BOH freezer (not yet logged).'
+  {
+    "code": "M9",
+    "name": "Manchester",
+    "cluster": "north",
+    "clusterName": "North & Midlands",
+    "am": "Inka Cheung",
+    "gm": "Kai Chau Leung / Chan Zhi Quan",
+    "rag": "green",
+    "vsTarget": 8.72,
+    "docId": "1c7Tldh-U9aaUwrTrN7L3LKkX1ITBnAVGq70XVbUf2pM",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "+8.7% (w/e 31 May)",
+      "foodVar": "-0.4%"
+    },
+    "issues": [
+      "Sales +8.7% vs target (w/e 31 May) — on/above plan.",
+      "Food cost 25.2% — slightly over 25% target.",
+      "Stocktake variance -0.4% is last counted week (w/e 24 May)."
     ],
-    actions: [
-      'Keep "ploughing away" at Deliveroo prep times.',
-      'Erin to decide on Olsi & Melsior.',
-      'Maintenance owners assigned (BOH freezer still to log).',
-      'New par-level sheet in progress.',
-      'Bottomless Brunch Fri/Sat/Sun lifting drinks +1.36% and sides +0.82% — first time all three targets hit since mid-Nov.',
-      'Lunch menu launches today; half-term tailwind.'
+    "actions": [
+      "Hold standards; maintain trajectory.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M13', name: 'Aberdeen', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Joe Herera',
-    rag: 'amber', vsTarget: -11.44,
-    docId: '1DJYmUBuDtv2ub9zrmIa6AixurAEosArdA6bS_PHUxIg',
-    kpis: { covers: '1,458 (-7.25%)', sph: '£23.33 (+5.18%)', vsTarget: '-£5,515 (-11.44%)', foodVar: '+4.8%' },
-    issues: [
-      'Sales miss -£5,515 vs target. Covers -7.25% WOW.',
-      'Food variance high at +4.8%.',
-      'All-in labour inflated by GM staff OBT error via Talent Funnel / Kobas.',
-      'Reviews volume too low.',
-      'SPH still needs lifting via upselling.',
-      'Maintenance backlog: 4× strip lights, tube lights out, ceiling tiles, covers light by stockroom, speaker fault, flickering toilet spotlight — all logged, no owner assigned.',
-      'Reuben transferring out to M3 (last shift 29/05).'
+  {
+    "code": "M10",
+    "name": "Leeds",
+    "cluster": "north",
+    "clusterName": "North & Midlands",
+    "am": "Inka Cheung",
+    "gm": "Ninder Joshi",
+    "rag": "amber",
+    "vsTarget": -6.56,
+    "docId": "11-lGbe6Z8Bggs_nAmqHs416-Lc1qlMOpIdHU7nfzMB0",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-6.6% (w/e 31 May)",
+      "foodVar": "+4.8%"
+    },
+    "issues": [
+      "Sales -6.6% vs target (w/e 31 May).",
+      "Wage 22.4% — above 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A).",
+      "Stocktake variance +4.8% is last counted week (w/e 24 May)."
     ],
-    actions: [
-      'Food stabilisation via par sheet.',
-      '"Reviews must increase the overall volume." "Upselling to increase SPH."',
-      'Meeting planned with Union Square to share best practice.',
-      'Chisholm Hunters takeaway 30 covers 28/05 (no alcohol).',
-      '£18 Lunch Deal launches 26/05.',
-      'Legionellas test confirmed 04/06 (Asana\'d).',
-      'All KPI actions recorded on Asana.'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'IKI2', name: 'Ikigai 2', cluster: 'scotland', clusterName: 'Scotland & Newcastle', am: 'Ka Ho', gm: 'Sujan (RM)',
-    rag: 'amber', vsTarget: -17.32,
-    docId: '12dq5KxC0P5-Ajo3gG839YG91IVpnNEuun-R1nWAtei8',
-    kpis: { covers: '-10.74% WOW', sph: 'WOW +£0.10', vsTarget: '-17.32%', foodVar: 'N/A' },
-    issues: [
-      'Sharp WOW drop: covers -10.74%, sales -9.02%, vs target -17.32%.',
-      'No Google review data on central sheet.',
-      'Labour, F/R%, food/drinks variance all blank — reporting gap.',
-      'Maintenance: extraction cleaning required.',
-      'Service due in 2 weeks.'
+  {
+    "code": "M11",
+    "name": "Leicester",
+    "cluster": "north",
+    "clusterName": "North & Midlands",
+    "am": "Inka Cheung",
+    "gm": "Caroline / JJ",
+    "rag": "amber",
+    "vsTarget": -19.72,
+    "docId": "1tTaEEzOwcHGGj_PtU375vK0CS3NQv6T3qEG_FZdUEbc",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-19.7% (w/e 31 May)",
+      "foodVar": "+0.5%"
+    },
+    "issues": [
+      "Sales -19.7% vs target (w/e 31 May).",
+      "Wage 24.0% — well over 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A).",
+      "Weekly ★ avg 4.25 below 4.7 OKR (4 reviews, w/e 24 May).",
+      "Low weekly review volume (4).",
+      "Review log not updated past w/e 24 May — chase Becca."
     ],
-    actions: [
-      'Extraction cleaning assigned to RM.',
-      'Service to be scheduled within 2 weeks.',
-      'Staff stable BOH and FOH; intangibles "Completed".',
-      'No promos or improvements populated — "All from Above".'
+    "actions": [
+      "Tighten rota / cut over-cover to pull wage toward 21%.",
+      "Drive review asks and follow through to convert; address low-star themes.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-
-  // NORTH & MIDLANDS
-  { code: 'M9', name: 'Manchester', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: 'Kai Chau Leung / Chan Zhi Quan',
-    rag: 'green', vsTarget: -0.51,
-    docId: '1c7Tldh-U9aaUwrTrN7L3LKkX1ITBnAVGq70XVbUf2pM',
-    kpis: { covers: '-66 (-2.71%)', sph: '+£0.64 WOW', vsTarget: '-£350 (-0.51%)', foodVar: '21.62% (target 23%)' },
-    issues: [
-      'Deliveroo Amber — 5× refunds in the week.',
-      'Deliveroo: 2× 1-star reviews.',
-      'Maintenance: Seafood Fryer — HIGH (Francheska).',
-      'Maintenance: Griddle — Medium (Wayne, internal).',
-      'Maintenance: Front Door — HIGH (Ross).'
+  {
+    "code": "M12",
+    "name": "Newcastle",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Matt Lee",
+    "rag": "amber",
+    "vsTarget": -0.02,
+    "docId": "1Z4rAycLtk13oUIerTK4p8ZPqSgJsldFWLb_05BGNAKY",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-0.0% (w/e 31 May)",
+      "foodVar": "+4.4%"
+    },
+    "issues": [
+      "Sales -0.0% vs target (w/e 31 May).",
+      "Wage 22.6% — above 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A)."
     ],
-    actions: [
-      'Tighten Deliveroo accuracy & reviews handling.',
-      'Push food cost down to 23% target.',
-      'Lunch set menu launches Tue 26/05 to lift covers.',
-      'Maintenance owners assigned per job above.'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M10', name: 'Leeds', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: 'Ninder Joshi',
-    rag: 'green', vsTarget: 3.69,
-    docId: '11-lGbe6Z8Bggs_nAmqHs416-Lc1qlMOpIdHU7nfzMB0',
-    kpis: { covers: '+99 (+9.47%)', sph: '+£0.21 (+0.91%)', vsTarget: '+£1,303 (+3.69%)', foodVar: 'N/A' },
-    issues: [
-      'Deliveroo timing slipping (sushi orders in particular).',
-      'Deliveroo mistakes / refunds need ongoing disputing.',
-      'Maintenance: Ice machine leaking — HIGH (no owner logged).',
-      'Maintenance: Urinal leaking — HIGH (no owner logged).'
+  {
+    "code": "M13",
+    "name": "Aberdeen",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Joe Herera",
+    "rag": "amber",
+    "vsTarget": -15.78,
+    "docId": "1DJYmUBuDtv2ub9zrmIa6AixurAEosArdA6bS_PHUxIg",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-15.8% (w/e 31 May)",
+      "foodVar": "+0.2%"
+    },
+    "issues": [
+      "Sales -15.8% vs target (w/e 31 May).",
+      "Wage 22.4% — above 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A).",
+      "Low weekly review volume (2)."
     ],
-    actions: [
-      '"Deliveroo\'s got priority over any other orders specially the ones that includes sushi."',
-      '"Keep disputing the deliveroo\'s refund as soon as they pop up."',
-      '3 June catering services to LasVegas offices.',
-      '£18 lunch menu running.'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M11', name: 'Leicester · RED LIGHT', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: 'Caroline / JJ',
-    rag: 'deep-red', vsTarget: -38.43,
-    docId: '1tTaEEzOwcHGGj_PtU375vK0CS3NQv6T3qEG_FZdUEbc',
-    kpis: { covers: '-144 (-15.66%)', sph: '-£0.27 (-1.26%)', vsTarget: '-£13,315 (-38.43%)', foodVar: 'LOOK INTO FURTHER' },
-    issues: [
-      'Massive miss: -38.43% vs target.',
-      '"Sunday Highcross closed early which negatively affected our potential sales. The weather has also picked up massively so people are opting more for pubs and beer gardens over restaurants. Also a slow week in general."',
-      'Deliveroo: "Ash struggling to find photos when disputing so we\'re struggling to win dispute cases".',
-      'Labour: "higher last week even though we used less labour… because our sales were worse from WOW our labour obviously was higher".',
-      'Margin annotation: "FOOD COSTS LOOK INTO FURTHER, IS HE ACCOUNTING FOR AA?"',
-      'Reviews: 3× 5★ but 1× 2★.',
-      'William last shift Sun — OFF BOARD.',
-      'FOH hiring active.'
+  {
+    "code": "M14",
+    "name": "Meadowhall",
+    "cluster": "north",
+    "clusterName": "North & Midlands",
+    "am": "Inka Cheung",
+    "gm": "— (blank)",
+    "rag": "amber",
+    "vsTarget": -24.52,
+    "docId": "1mFXbS0MYWbMRlZ1165lfjOVunEH1_eegHxhpbsAFojw",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-24.5% (w/e 31 May)",
+      "foodVar": "+4.8%"
+    },
+    "issues": [
+      "Sales -24.5% vs target (w/e 31 May).",
+      "Stocktake variance +4.8% is last counted week (w/e 24 May).",
+      "Weekly ★ avg 4.50 below 4.7 OKR (4 reviews, w/e 24 May).",
+      "Low weekly review volume (4).",
+      "Review log not updated past w/e 24 May — chase Becca."
     ],
-    actions: [
-      '"Continue with B2B and collaborate with Highcross where possible to boost sales — will continue mitigating labour as much as possible."',
-      '"Manage BOH labour more."',
-      '"Deliveroo manage tighter and send photos immediately not at end of day."',
-      'B2B event scheduled Friday.',
-      '£18 lunch menu launched.',
-      '"Send photos to group chats of on street marking when doing."',
-      'GM/HC meeting Wed.',
-      'Inka — audit whether on-street marketing actually happened over weekend.'
+    "actions": [
+      "Drive review asks and follow through to convert; address low-star themes.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M14', name: 'Meadowhall · RED LIGHT', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: '— (blank)',
-    rag: 'deep-red', vsTarget: -44.23,
-    docId: '1mFXbS0MYWbMRlZ1165lfjOVunEH1_eegHxhpbsAFojw',
-    kpis: { covers: '-253 (-15.86%)', sph: '-£0.55 (-2.37%)', vsTarget: '-£25,211 (-44.23%)', foodVar: '9 (drinks blank)' },
-    issues: [
-      'Worst target miss in cluster: -44.23%.',
-      '"3 FOH have left the business."',
-      'Maintenance: Glass wash — HIGH (Ross).',
-      'Maintenance: "No hot water (water still running)" — HIGH (Ross / Inka).',
-      'Deliveroo picture logging slipped "mainly due to being very busy and rushing deliveroo orders to be packed".',
-      'GAP: no promos / events listed for the week despite red-light status.'
+  {
+    "code": "M15",
+    "name": "Metrocentre",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle (misfiled)",
+    "am": "Óisín Darragh (Ka Ho cluster)",
+    "gm": "Kieran Day",
+    "rag": "amber",
+    "vsTarget": -2.37,
+    "docId": "1JXF8QGUygCX1ZJ5LNlgNf3_fYowh2P4U6hIcfesOAv4",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-2.4% (w/e 31 May)",
+      "foodVar": "-2.7%"
+    },
+    "issues": [
+      "Sales -2.4% vs target (w/e 31 May).",
+      "Wage 22.0% — above 21% target.",
+      "Stocktake variance -2.7% is last counted week (w/e 24 May)."
     ],
-    actions: [
-      '"Back to managers only packing deliveroo" — to fix accuracy / photo evidence.',
-      'Maintenance escalated to Ross / Inka for hot water and glass wash.',
-      'Inka — populate covers-recovery plan for next week\'s report.'
+    "actions": [
+      "Trim rota to bring wage to 21% target.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M16', name: 'Nottingham', cluster: 'north', clusterName: 'North & Midlands', am: 'Inka Cheung', gm: '— (blank)',
-    rag: 'red', vsTarget: -24.55,
-    docId: '1NaZcewuV3w69mzcVOjX_lF8WQUZA31F5p6xBzruY8Q0',
-    kpis: { covers: '+103 (+8.11%)', sph: '-£1.27 (-5.32%)', vsTarget: '-£11,832 (-24.55%)', foodVar: '"WHAT DOES THIS MEAN?"' },
-    issues: [
-      'Sustained -24.55% vs target despite WOW uptick.',
-      '"BUSY — I ended up in the kitchen, AGAIN. AS DID FARRES, WHO JUST HAPPENED TO BE PASSING BY AND SAW WE WERE GETTING SLAMMED — THIRD CHEF ON A WEDNESDAY NIGHT PLEASE!"',
-      'Deliveroo refunds not being challenged with photo evidence.',
-      'Recurring product complaint: "STEAK AGAIN!!!!"',
-      'James off sick; Hien flagged.',
-      'Maintenance: toilets, hot water, ice machine — none with owner / logged status.',
-      'Yakisoba quality (Mon admin) — chef left noodles in strainer with hot water, no timer.'
+  {
+    "code": "M16",
+    "name": "Nottingham",
+    "cluster": "north",
+    "clusterName": "North & Midlands",
+    "am": "Inka Cheung",
+    "gm": "— (blank)",
+    "rag": "red",
+    "vsTarget": -25.58,
+    "docId": "1NaZcewuV3w69mzcVOjX_lF8WQUZA31F5p6xBzruY8Q0",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-25.6% (w/e 31 May)",
+      "foodVar": "+2.1%"
+    },
+    "issues": [
+      "Sales -25.6% vs target (w/e 31 May) — red.",
+      "Wage 23.3% — well over 21% target.",
+      "Review log not updated past w/e 24 May — chase Becca."
     ],
-    actions: [
-      '"REFUNDS PICTURES — BEING IMPLEMENTED FROM TODAY."',
-      'Hire/schedule a third chef on Wednesday nights.',
-      'Rota fix needed for Sunday nights.',
-      '"HOTTER DAYS, MORE SUSHI DEMAND, ENSURE APPROPRIATE STAFFING AND GET ALL BOH TRAINED TO ASSIST IN HIGH DEMAND TIMES. [MAG TO PICK UP]"',
-      'Strong promo pipeline: Half Term, lunch menu, Strictly The Professionals (Tue 26), Cocktail Week Nottingham, Comedy/Theatre (Thu), Opera 26–30.',
-      'Sophie Wang — enforce mandatory timer + active supervision on Yakisoba for new staff.'
+    "actions": [
+      "Red-light protocol: AM floor walk + GM 1:1 within 48h; recovery plan to Lincoln.",
+      "Tighten rota / cut over-cover to pull wage toward 21%.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-  { code: 'M15', name: 'Metrocentre · MISFILED', cluster: 'scotland', clusterName: 'Scotland & Newcastle (misfiled)', am: 'Óisín Darragh (Ka Ho cluster)', gm: 'Kieran Day',
-    rag: 'red', vsTarget: -24.77,
-    docId: '1JXF8QGUygCX1ZJ5LNlgNf3_fYowh2P4U6hIcfesOAv4',
-    kpis: { covers: '-524 (-21.53%)', sph: '-£0.37 (-1.56%)', vsTarget: '-£15,020 (-24.77%)', foodVar: '-2.7% (drinks +1.7%)' },
-    issues: [
-      '"Very poor week due to the sun, this absolutely killed footfall around metro."',
-      'Deliveroo 30% off working on sales but "no £5 off cards returned".',
-      'Labour cuts couldn\'t keep pace (126.5 hrs cut ≈ £1,607.82 saved).',
-      'HARD DEADLINE: sprinkler service must be done by 02/06/26 per Metrocentre — flagged to Ross.',
-      'Hamid training hours mis-routed to M15 (should be Shoreditch).',
-      'Filed in wrong cluster — admin issue for Francheska.'
+  {
+    "code": "M17",
+    "name": "Lakeside",
+    "cluster": "south",
+    "clusterName": "South England",
+    "am": "Lincoln",
+    "gm": "Kei Cannon",
+    "rag": "green",
+    "vsTarget": 8.34,
+    "docId": "1EnA64PTKVC95ULWutnXCd8qaY7o3PpntU-3UHpTdbcs",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "+8.3% (w/e 31 May)",
+      "foodVar": "+3.7%"
+    },
+    "issues": [
+      "Sales +8.3% vs target (w/e 31 May) — on/above plan."
     ],
-    actions: [
-      '126.5 labour hours already cut (~£1,608 saved).',
-      '30% Deliveroo promo continuing.',
-      'Ross — book sprinkler service before 02/06/26.',
-      'Payroll correction: re-route Hamid\'s training hours to Shoreditch.',
-      'GM/HC meeting Wed (Kieran).'
+    "actions": [
+      "Hold standards; maintain trajectory.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
     ]
   },
-
-  // SOUTH ENGLAND
-  { code: 'M17', name: 'Lakeside', cluster: 'south', clusterName: 'South England', am: 'Lincoln', gm: 'Kei Cannon',
-    rag: 'red', vsTarget: -25.96,
-    docId: '1EnA64PTKVC95ULWutnXCd8qaY7o3PpntU-3UHpTdbcs',
-    kpis: { covers: '-414 (-26.76%)', sph: '+£0.05 (+0.21%)', vsTarget: '-£9,865 (-25.96%)', foodVar: 'No data on KPI sheet' },
-    issues: [
-      'Heavy cover collapse WOW.',
-      'F/R% not populated — food cost invisible.',
-      'Every qualitative section (Deliveroo, reviews, GM/HC notes, staff, hygiene, maintenance, promos, areas of improvement, additional notes) left blank.',
-      'Owari → Kiban transition needs explicit close-out.'
+  {
+    "code": "M18",
+    "name": "Soho",
+    "cluster": "south",
+    "clusterName": "South England",
+    "am": "Lincoln",
+    "gm": "Imre Balogh",
+    "rag": "deep-red",
+    "vsTarget": -50.3,
+    "docId": "1MwIrRvNFN2PWbhz0eRoysYzapzMS4U9nwr0rWDXzvr4",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-50.3% (w/e 31 May)",
+      "foodVar": "+4.6%"
+    },
+    "issues": [
+      "Sales -50.3% vs target (w/e 31 May) — deep red.",
+      "Wage 25.6% — well over 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A).",
+      "Review log not updated past w/e 24 May — chase Becca."
     ],
-    actions: [
-      'None recorded.',
-      'Lincoln — chase Kei Cannon: is silence "resolved" or "not reviewed"?'
-    ],
-    empty: true
+    "actions": [
+      "Red-light protocol: AM floor walk + GM 1:1 within 48h; recovery plan to Lincoln.",
+      "Tighten rota / cut over-cover to pull wage toward 21%.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
+    ]
   },
-  { code: 'M18', name: 'Soho · RED LIGHT', cluster: 'south', clusterName: 'South England', am: 'Lincoln', gm: 'Imre Balogh',
-    rag: 'deep-red', vsTarget: -61.13,
-    docId: '1MwIrRvNFN2PWbhz0eRoysYzapzMS4U9nwr0rWDXzvr4',
-    kpis: { covers: '-330 (-19.65%)', sph: '-£1.56 (-7.07%)', vsTarget: '-£45,844 (-61.13%)', foodVar: 'No data on KPI sheet' },
-    issues: [
-      'Catastrophic miss: sales -£45,844 (-61.13%) below target.',
-      'Both covers AND SPH dropping same week.',
-      'Labour annotation: "Includes: Shoreditch Training Staff, Kitchen has to cut more".',
-      'Glide-down only: "-3.74% step by step going down".',
-      'F/R% missing for cluster\'s biggest underperformer.',
-      'ALL qualitative sections blank — no recovery plan, no owners, no marketing actions documented.',
-      'From Mon admin: KPI sheet showed 41.84% labour vs cash logs showing different revenue; sales figures conflict between sources.'
+  {
+    "code": "IKI2",
+    "name": "Ikigai Ramen",
+    "cluster": "scotland",
+    "clusterName": "Scotland & Newcastle",
+    "am": "Ka Ho",
+    "gm": "Sujan (RM)",
+    "rag": "amber",
+    "vsTarget": -18.55,
+    "docId": "12dq5KxC0P5-Ajo3gG839YG91IVpnNEuun-R1nWAtei8",
+    "kpis": {
+      "covers": "—",
+      "sph": "—",
+      "vsTarget": "-18.6% (w/e 31 May)",
+      "foodVar": "N/A"
+    },
+    "issues": [
+      "Sales -18.6% vs target (w/e 31 May).",
+      "Wage 24.0% — well over 21% target.",
+      "Food cost % not fed from KPI sheet this week (N/A).",
+      "Stocktake variance not recorded (chase count).",
+      "Lifetime rating 4.6★ below 4.7.",
+      "Low weekly review volume (4).",
+      "Review log not updated past w/e 22 Mar — chase Becca."
     ],
-    actions: [
-      'Implicit only — labour glide-down already in motion (-3.74% step-by-step); kitchen earmarked for further cuts.',
-      'Separate Shoreditch training headcount from M18 wage line.',
-      'Ross — reallocate shortage staff out of Soho.',
-      'Ross — verify which revenue source is correct (cash log = source of truth).',
-      'Lunch menu + pre-theatre £88 launching this week (Teddy approved focus on two promos; third deferred a week).'
-    ],
-    empty: true
+    "actions": [
+      "Tighten rota / cut over-cover to pull wage toward 21%.",
+      "Operational narrative (staffing, maintenance) not refreshed this run — see hot actions."
+    ]
   }
 ];
 
 const THEMES = [
   {
-    severity: 'critical',
-    icon: '!',
-    title: 'Sales-vs-target collapse Midlands/South',
-    body: 'M11 –38%, M14 –44%, M16 –25%, M15 –25%, M18 –61% — all in the same week, universally blamed on hot weather. Needs a marketing/operations response, not a weather note.',
-    sites: ['M11','M14','M15','M16','M18']
+    "severity": "critical",
+    "icon": "!",
+    "title": "Sales weakness persists across South & Midlands",
+    "body": "M18 Soho -50.3%, M16 Nottingham -25.6%, M14 Meadowhall -24.5%, M11 Leicester -19.7%, IKI2 -18.6%, M13 Aberdeen -15.8% vs target (w/e 31 May). Same cluster of sites under-trading week after week — needs a marketing/ops response.",
+    "sites": [
+      "M11",
+      "M13",
+      "M14",
+      "M16",
+      "M18",
+      "IKI2"
+    ]
   },
   {
-    severity: 'warn',
-    icon: '◐',
-    title: 'Deliveroo dispute discipline',
-    body: 'Every site except M9 mentions photo-evidence failures driving avoidable refunds. M16 implementing today, M11 told photos go immediately, M14 reverting to managers-only packing.',
-    sites: ['M3','M10','M11','M12','M14','M16']
+    "severity": "critical",
+    "icon": "⌖",
+    "title": "M18 Soho deep-red again",
+    "body": "Fifth consecutive deep-red week: sales -50.3% vs target, wage 25.6% of revenue. Escalate recovery with Lincoln before the red-light review.",
+    "sites": [
+      "M18"
+    ]
   },
   {
-    severity: 'critical',
-    icon: '∅',
-    title: 'F/R% missing across the estate',
-    body: 'Operational food cost % not populated for M10, M11, M14, M15, M16, M17 and M18. Food cost currently invisible at ~40% of sites. Pull Francheska on the sheet feed.',
-    sites: ['M10','M11','M14','M15','M16','M17','M18']
+    "severity": "warn",
+    "icon": "◐",
+    "title": "Wage discipline slipping at several sites",
+    "body": "Wage % over 23% at M18 (25.6%), IKI2 (24.0%), M11 (24.0%), M16 (23.3%), M8 (23.1%) — all above the 21% target. Rota tightening needed.",
+    "sites": [
+      "M8",
+      "M11",
+      "M16",
+      "M18",
+      "IKI2"
+    ]
   },
   {
-    severity: 'warn',
-    icon: '⚒',
-    title: 'Maintenance ownership gaps',
-    body: '"Has the job been logged?" and "Ops Manager Responsible" columns blank on M10, M11, M13 and M16. Inka and Ka should chase logging discipline — jobs fall between cracks otherwise.',
-    sites: ['M10','M11','M13','M16']
+    "severity": "warn",
+    "icon": "∅",
+    "title": "Food cost % feed missing for 7 sites",
+    "body": "No operational food cost % from the KPI sheets for M1/2, M3, M10, M11, M12, M13 and IKI2 — their food tabs are labour/sales sheets, not a food cost feed. Food cost invisible at ~44% of the estate.",
+    "sites": [
+      "M1/2",
+      "M3",
+      "M10",
+      "M11",
+      "M12",
+      "M13",
+      "IKI2"
+    ]
   },
   {
-    severity: 'critical',
-    icon: '⌖',
-    title: 'M18 Soho documentation gap',
-    body: 'A –61% vs-target red-light site with NO written recovery plan in its weekly report. The most urgent single chase. Raise with Lincoln before tomorrow\'s red-light review.',
-    sites: ['M18']
+    "severity": "warn",
+    "icon": "✎",
+    "title": "Reporting lag — variance & reviews",
+    "body": "w/e 31 May stocktake not yet counted for M9, M10, M14, M15 (variance shown is w/e 24 May). Weekly review log not updated past w/e 24 May for M11, M14, M16, M18; IKI2 stale since 22 Mar.",
+    "sites": [
+      "M9",
+      "M10",
+      "M11",
+      "M14",
+      "M15",
+      "M16",
+      "M18",
+      "IKI2"
+    ]
   },
   {
-    severity: 'warn',
-    icon: '✎',
-    title: 'Reporting hygiene',
-    body: 'M15 filed in wrong cluster, IKI2 has large reporting gaps, M13 is reporting against the previous week (11–17 May). 5-minute fix with Francheska.',
-    sites: ['M13','M15','IKI2']
+    "severity": "good",
+    "icon": "✓",
+    "title": "Stocktake variance healthy where counted",
+    "body": "Every site counted for w/e 31 May is within ±5% food variance (max 4.9% at M13). Variance discipline is holding even as food cost reporting lags.",
+    "sites": [
+      "M1/2",
+      "M6",
+      "M7",
+      "M8",
+      "M11",
+      "M12",
+      "M13",
+      "M16",
+      "M17",
+      "M18"
+    ]
   }
 ];
 
 const HOT_ACTIONS = [
-  { priority: 'P0', owner: 'Lincoln', text: 'Chase Imre Balogh + Kei Cannon for full M18 + M17 written reports — both effectively empty.', due: 'Before red-light review' },
-  { priority: 'P0', owner: 'Ross Ward', text: 'Book M15 Metrocentre sprinkler service — hard deadline from Metrocentre.', due: '02/06/26' },
-  { priority: 'P0', owner: 'Ross Ward', text: 'Reallocate Shoreditch training staff off M18 wage line so true Soho labour % is visible.', due: 'This week' },
-  { priority: 'P1', owner: 'Sophie Wang', text: 'Enforce mandatory timer + active supervision on Yakisoba prep at M16 (soggy-noodle complaint).', due: 'Open' },
-  { priority: 'P1', owner: 'Inka Cheung', text: 'Verify on-street marketing actually happened at M11 over the weekend — Michael pushed back hard in Mon admin.', due: 'This week' },
-  { priority: 'P1', owner: 'Francheska', text: 'Fix sheet feed for Operational F/R% — missing for 7 sites. Re-file M15 in Scotland & Newcastle batch.', due: 'Before next Mon\'s report cycle' },
-  { priority: 'P2', owner: 'Ross Ward', text: 'Chase Chris on M7 ticket machine + screens — outstanding from previous week.', due: 'Today' },
-  { priority: 'P2', owner: 'Ka Ho', text: 'Sign off M8 servicing (aircon, ventilation, freezer/fridges) per Yordan\'s request at KPI.', due: 'Next KPI' }
+  {
+    "priority": "P0",
+    "owner": "Lincoln",
+    "text": "M18 Soho 5th consecutive deep-red week (sales -50.3%, wage 25.6%). Sign off / refresh the recovery plan.",
+    "due": "Before red-light review"
+  },
+  {
+    "priority": "P0",
+    "owner": "Ka Ho / Inka",
+    "text": "Chase w/e 31 May food stocktake counts for M9, M10, M14, M15 — variance still on last week.",
+    "due": "This week"
+  },
+  {
+    "priority": "P1",
+    "owner": "Sophie Wang / EC",
+    "text": "Wire a real food cost % feed for M1/2, M3, M10, M11, M12, M13, IKI2 — current KPI-sheet food tabs are labour/sales sheets.",
+    "due": "Before next report cycle"
+  },
+  {
+    "priority": "P1",
+    "owner": "Becca",
+    "text": "Update weekly Google review log past w/e 24 May for M11, M14, M16, M18; IKI2 stale since 22 Mar.",
+    "due": "This week"
+  },
+  {
+    "priority": "P1",
+    "owner": "Inka Cheung",
+    "text": "M16 Nottingham sales -25.6% (red) — recovery plan; M11/M14 also chronically under target.",
+    "due": "This week"
+  },
+  {
+    "priority": "P2",
+    "owner": "Ka Ho",
+    "text": "M7 SJQ weekly ★ avg 4.33 (3×3★ this week) below the 4.7 OKR — review service/quality.",
+    "due": "Next KPI"
+  },
+  {
+    "priority": "P2",
+    "owner": "Matthew Jenner",
+    "text": "Add covers & SPH to the automated KPI feed — not currently pulled into the dashboard (showing —).",
+    "due": "Next run"
+  },
+  {
+    "priority": "P2",
+    "owner": "Becca / Ops",
+    "text": "Low-star review categorisation still not automatable from Maps UI. Recommend Google Places Details API or a structured weekly \"Issue Tracker\" tab (Quality/Service/Wait/Portions/Pricing/Order error/Hygiene/Allergen/Atmosphere/Deliveroo/Booking).",
+    "due": "Backlog"
+  }
 ];
 
 // --- METRICS (wage %, food cost %, food variance % for w/e 24 May 2026) ---
@@ -1208,22 +1394,90 @@ const HOT_ACTIONS = [
 // foodVar = stocktake variance % vs expected (target ±5%; closer to 0 = better)
 // Sources: per-site KPI Sheets (primary), Ordering System fallback for food cost, Stocktake Variance Reports for foodVar
 const METRICS = {
-  'M1/2': { wage: 22.48, food: 29.54, foodVar:  3.9 },
-  'M3':   { wage: 20.64, food: 23.75, foodVar:  3.5, foodNote: 'Purchases-based weekly proxy (Ordering System fallback)' },
-  'M6':   { wage: 20.08, food: 19.03, foodVar:  4.7 },
-  'M7':   { wage: 20.66, food: 23.26, foodVar:  4.8 },
-  'M8':   { wage: 21.97, food: 22.70, foodVar:  3.4 },
-  'M9':   { wage: 19.73, food: 21.62, foodVar: null },
-  'M10':  { wage: 21.24, food: 25.05, foodVar: null },
-  'M11':  { wage: 26.88, food: 38.65, foodVar: -1.8 },
-  'M12':  { wage: 25.57, food: 18.89, foodVar:  2.2 },
-  'M13':  { wage: 21.48, food: 21.23, foodVar:  4.9 },
-  'M14':  { wage: 25.90, food: 35.42, foodVar: null },
-  'M15':  { wage: 24.96, food: 23.33, foodVar: -2.7 },
-  'M16':  { wage: 22.94, food: 28.14, foodVar:  4.5 },
-  'M17':  { wage: 24.37, food: 35.99, foodVar:  3.6 },
-  'M18':  { wage: 38.87, food: 32.59, foodVar: -1.2 },
-  'IKI2': { wage: 25.21, food: 26.80, foodVar: null }
+  "M1/2": {
+    "wage": 21.11,
+    "food": null,
+    "foodVar": 4.9
+  },
+  "M3": {
+    "wage": 21.49,
+    "food": null,
+    "foodVar": -4.6
+  },
+  "M6": {
+    "wage": 21.95,
+    "food": 21.5,
+    "foodVar": -1
+  },
+  "M7": {
+    "wage": 20.76,
+    "food": 19.85,
+    "foodVar": -4.6
+  },
+  "M8": {
+    "wage": 23.12,
+    "food": 22.3,
+    "foodVar": 4.4
+  },
+  "M9": {
+    "wage": 19.02,
+    "food": 25.17,
+    "foodVar": -0.4,
+    "foodNote": "Variance is last counted week (w/e 24 May)"
+  },
+  "M10": {
+    "wage": 22.41,
+    "food": null,
+    "foodVar": 4.8,
+    "foodNote": "Variance is last counted week (w/e 24 May)"
+  },
+  "M11": {
+    "wage": 23.98,
+    "food": null,
+    "foodVar": 0.5
+  },
+  "M12": {
+    "wage": 22.55,
+    "food": null,
+    "foodVar": 4.4
+  },
+  "M13": {
+    "wage": 22.41,
+    "food": null,
+    "foodVar": 0.2
+  },
+  "M14": {
+    "wage": 19.9,
+    "food": 19.17,
+    "foodVar": 4.8,
+    "foodNote": "Variance is last counted week (w/e 24 May)"
+  },
+  "M15": {
+    "wage": 21.96,
+    "food": 19.26,
+    "foodVar": -2.7,
+    "foodNote": "Variance is last counted week (w/e 24 May)"
+  },
+  "M16": {
+    "wage": 23.3,
+    "food": 19.28,
+    "foodVar": 2.1
+  },
+  "M17": {
+    "wage": 20.94,
+    "food": 10.68,
+    "foodVar": 3.7
+  },
+  "M18": {
+    "wage": 25.6,
+    "food": null,
+    "foodVar": 4.6
+  },
+  "IKI2": {
+    "wage": 24.02,
+    "food": null,
+    "foodVar": null
+  }
 };
 
 // --- REVIEWS (Google reviews) ---
@@ -1231,43 +1485,523 @@ const METRICS = {
 // weekCount + stars = from Becca-owned central tracker (Drive), w/e 24 May 2026
 // Maki target ≥4.7★. stars = [5★, 4★, 3★, 2★, 1★] count for the week
 const REVIEWS = {
-  'M1/2': { rating: 4.5, total: 2528, weekCount: null, stars: [null,null,null,null,null] },
-  'M3':   { rating: 4.7, total: 4972, weekCount: 6,    stars: [6,0,0,0,0] },
-  'M6':   { rating: 4.7, total: 2792, weekCount: 14,   stars: [11,3,0,0,0] },
-  'M7':   { rating: 4.7, total: 3191, weekCount: null, stars: [null,null,null,null,null] },
-  'M8':   { rating: 4.8, total: 3192, weekCount: 8,    stars: [6,1,0,0,1] },
-  'M9':   { rating: 4.8, total: 6255, weekCount: 15,   stars: [12,3,0,0,0] },
-  'M10':  { rating: 4.7, total: 4404, weekCount: 23,   stars: [21,2,0,0,0] },
-  'M11':  { rating: 4.7, total: 1042, weekCount: 20,   stars: [20,0,0,0,0] },
-  'M12':  { rating: 4.7, total: 1002, weekCount: 14,   stars: [12,1,1,0,0] },
-  'M13':  { rating: 4.7, total: 877,  weekCount: 30,   stars: [27,2,1,0,0] },
-  'M14':  { rating: 4.8, total: 794,  weekCount: 6,    stars: [5,1,0,0,0] },
-  'M15':  { rating: 4.8, total: 832,  weekCount: 4,    stars: [2,2,0,0,0] },
-  'M16':  { rating: 4.7, total: 1008, weekCount: 13,   stars: [11,2,0,0,0] },
-  'M17':  { rating: 4.8, total: 827,  weekCount: 12,   stars: [11,0,0,1,0] },
-  'M18':  { rating: 4.8, total: 761,  weekCount: 73,   stars: [73,0,0,0,0] },
-  'IKI2': { rating: 4.6, total: 1526, weekCount: null, stars: [null,null,null,null,null] }
+  "M1/2": {
+    "rating": 4.5,
+    "total": 2529,
+    "weekCount": 2,
+    "stars": [
+      2,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "M3": {
+    "rating": 4.7,
+    "total": 4982,
+    "weekCount": 18,
+    "stars": [
+      15,
+      3,
+      0,
+      0,
+      0
+    ]
+  },
+  "M6": {
+    "rating": 4.7,
+    "total": 2793,
+    "weekCount": 4,
+    "stars": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "M7": {
+    "rating": 4.7,
+    "total": 3196,
+    "weekCount": 12,
+    "stars": [
+      7,
+      2,
+      3,
+      0,
+      0
+    ]
+  },
+  "M8": {
+    "rating": 4.8,
+    "total": 3202,
+    "weekCount": 13,
+    "stars": [
+      11,
+      1,
+      0,
+      0,
+      1
+    ]
+  },
+  "M9": {
+    "rating": 4.8,
+    "total": 6287,
+    "weekCount": 42,
+    "stars": [
+      37,
+      3,
+      1,
+      0,
+      1
+    ]
+  },
+  "M10": {
+    "rating": 4.7,
+    "total": 4405,
+    "weekCount": 12,
+    "stars": [
+      11,
+      1,
+      0,
+      0,
+      0
+    ]
+  },
+  "M11": {
+    "rating": 4.7,
+    "total": 1043,
+    "weekCount": 4,
+    "stars": [
+      3,
+      0,
+      0,
+      1,
+      0
+    ]
+  },
+  "M12": {
+    "rating": 4.7,
+    "total": 1016,
+    "weekCount": 26,
+    "stars": [
+      24,
+      1,
+      0,
+      0,
+      1
+    ]
+  },
+  "M13": {
+    "rating": 4.7,
+    "total": 877,
+    "weekCount": 2,
+    "stars": [
+      2,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "M14": {
+    "rating": 4.8,
+    "total": 802,
+    "weekCount": 4,
+    "stars": [
+      2,
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  "M15": {
+    "rating": 4.8,
+    "total": 837,
+    "weekCount": 11,
+    "stars": [
+      8,
+      3,
+      0,
+      0,
+      0
+    ]
+  },
+  "M16": {
+    "rating": 4.7,
+    "total": 1011,
+    "weekCount": 12,
+    "stars": [
+      11,
+      0,
+      0,
+      1,
+      0
+    ]
+  },
+  "M17": {
+    "rating": 4.8,
+    "total": 859,
+    "weekCount": 61,
+    "stars": [
+      53,
+      5,
+      2,
+      1,
+      0
+    ]
+  },
+  "M18": {
+    "rating": 4.8,
+    "total": 789,
+    "weekCount": 56,
+    "stars": [
+      55,
+      1,
+      0,
+      0,
+      0
+    ]
+  },
+  "IKI2": {
+    "rating": 4.6,
+    "total": 1530,
+    "weekCount": 4,
+    "stars": [
+      4,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
 };
 
 // --- HISTORY (last 4 weeks for sparklines) ---
 // Each: [w/e 3 May, 10 May, 17 May, 24 May]. Sales = vs target % (sheet uses revised targets — may differ from headline report number).
 const HISTORY = {
-  'M1/2': { sales: [-14.73, -15.64, -4.67, -7.66],  wage: [19.95, 20.36, 21.62, 22.48], food: [26.12, 24.18, 20.98, 29.54] },
-  'M3':   { sales: [16.10, 6.74, 25.08, 23.53],      wage: [21.10, 21.43, 20.10, 20.64], food: [24.99, 24.78, 26.75, 23.75] },
-  'M6':   { sales: [-15.66, -9.39, -14.49, -2.84],   wage: [23.14, 21.24, 21.82, 20.08], food: [24.01, 17.94, 29.34, 19.03] },
-  'M7':   { sales: [-3.35, 2.06, -0.26, 1.08],       wage: [21.02, 20.47, 21.15, 20.66], food: [21.88, 23.37, 22.80, 23.26] },
-  'M8':   { sales: [8.27, 11.54, 2.19, 7.20],        wage: [22.52, 21.86, 24.65, 21.97], food: [26.64, 21.97, 23.98, 22.70] },
-  'M9':   { sales: [12.52, 10.66, 0.23, -0.52],      wage: [18.43, 18.67, 19.20, 19.73], food: [21.01, 26.26, 25.85, 21.62] },
-  'M10':  { sales: [2.37, 0.34, 0.72, 3.69],         wage: [20.69, 20.70, 21.54, 21.24], food: [20.13, 38.03, 24.20, 25.05] },
-  'M11':  { sales: [-22.96, -31.86, -26.59, -38.43], wage: [26.62, 26.02, 24.11, 26.88], food: [22.64, 29.49, 27.79, 38.65] },
-  'M12':  { sales: [1.47, -15.75, -5.74, -9.13],     wage: [23.18, 25.35, 24.61, 25.57], food: [17.54, 29.02, 20.12, 18.89] },
-  'M13':  { sales: [-18.60, -10.37, -8.80, -12.38],  wage: [20.52, 21.19, 21.60, 21.48], food: [22.40, 27.68, 25.37, 21.23] },
-  'M14':  { sales: [-31.99, -30.97, -32.90, -44.23], wage: [21.33, 21.84, 23.02, 25.90], food: [21.21, 18.40, 24.18, 35.42] },
-  'M15':  { sales: [-3.08, 5.83, -2.23, -24.48],     wage: [21.39, 20.88, 21.25, 24.96], food: [17.33, 21.57, 25.31, 23.33] },
-  'M16':  { sales: [-14.45, -21.98, -26.46, -24.55], wage: [22.65, 24.48, 23.93, 22.94], food: [22.41, 25.94, 25.74, 28.14] },
-  'M17':  { sales: [-3.65, -11.54, 0.21, -25.96],    wage: [21.04, 21.77, 20.36, 24.37], food: [18.75, 21.14, 26.17, 35.99] },
-  'M18':  { sales: [-55.63, -54.69, -47.24, -61.13], wage: [35.98, 32.24, 28.83, 38.87], food: [19.86, 21.43, 16.24, 32.59] },
-  'IKI2': { sales: [-0.64, -3.09, -9.12, -17.32],    wage: [20.17, 20.90, 20.33, 25.21], food: [23.97, 31.40, 23.83, 26.80] }
+  "M1/2": {
+    "sales": [
+      -15.64,
+      -21.63,
+      -24.08,
+      -21.05
+    ],
+    "wage": [
+      20.36,
+      21.62,
+      22.48,
+      21.11
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "M3": {
+    "sales": [
+      6.74,
+      25.08,
+      23.53,
+      8.82
+    ],
+    "wage": [
+      21.43,
+      20.1,
+      20.64,
+      21.49
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "M6": {
+    "sales": [
+      -9.39,
+      -14.49,
+      -2.84,
+      -10.58
+    ],
+    "wage": [
+      21.24,
+      21.82,
+      20.08,
+      21.95
+    ],
+    "food": [
+      17.94,
+      29.34,
+      19.03,
+      21.5
+    ]
+  },
+  "M7": {
+    "sales": [
+      2.06,
+      -0.26,
+      1.08,
+      10.5
+    ],
+    "wage": [
+      20.47,
+      21.15,
+      20.66,
+      20.76
+    ],
+    "food": [
+      23.37,
+      22.8,
+      23.26,
+      19.85
+    ]
+  },
+  "M8": {
+    "sales": [
+      11.54,
+      2.19,
+      7.2,
+      8.43
+    ],
+    "wage": [
+      21.86,
+      24.65,
+      21.97,
+      23.12
+    ],
+    "food": [
+      21.97,
+      23.98,
+      22.7,
+      22.3
+    ]
+  },
+  "M9": {
+    "sales": [
+      10.66,
+      0.23,
+      -0.52,
+      8.72
+    ],
+    "wage": [
+      18.67,
+      19.2,
+      19.73,
+      19.02
+    ],
+    "food": [
+      22.64,
+      26.29,
+      21.59,
+      25.17
+    ]
+  },
+  "M10": {
+    "sales": [
+      0.34,
+      0.72,
+      3.69,
+      -6.56
+    ],
+    "wage": [
+      20.7,
+      21.54,
+      21.24,
+      22.41
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "M11": {
+    "sales": [
+      -31.86,
+      -26.59,
+      -38.43,
+      -19.72
+    ],
+    "wage": [
+      26.02,
+      24.11,
+      26.88,
+      23.98
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "M12": {
+    "sales": [
+      -15.75,
+      -5.74,
+      -9.13,
+      -0.02
+    ],
+    "wage": [
+      25.35,
+      24.61,
+      25.57,
+      22.55
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "M13": {
+    "sales": [
+      -10.37,
+      -8.8,
+      -12.38,
+      -15.78
+    ],
+    "wage": [
+      21.19,
+      21.6,
+      21.48,
+      22.41
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "M14": {
+    "sales": [
+      -30.97,
+      -32.9,
+      -44.23,
+      -24.52
+    ],
+    "wage": [
+      21.84,
+      23.02,
+      25.9,
+      19.9
+    ],
+    "food": [
+      21.13,
+      23.86,
+      28.62,
+      19.17
+    ]
+  },
+  "M15": {
+    "sales": [
+      5.83,
+      -2.23,
+      -24.48,
+      -2.37
+    ],
+    "wage": [
+      20.88,
+      21.25,
+      24.96,
+      21.96
+    ],
+    "food": [
+      23.55,
+      23.38,
+      18.02,
+      19.26
+    ]
+  },
+  "M16": {
+    "sales": [
+      -21.98,
+      -26.46,
+      -24.55,
+      -25.58
+    ],
+    "wage": [
+      24.48,
+      23.93,
+      22.94,
+      23.3
+    ],
+    "food": [
+      25.94,
+      25.74,
+      28.14,
+      19.28
+    ]
+  },
+  "M17": {
+    "sales": [
+      -11.54,
+      0.21,
+      -25.96,
+      8.34
+    ],
+    "wage": [
+      21.77,
+      20.36,
+      24.37,
+      20.94
+    ],
+    "food": [
+      21.14,
+      26.17,
+      35.99,
+      10.68
+    ]
+  },
+  "M18": {
+    "sales": [
+      -54.69,
+      -47.24,
+      -61.13,
+      -50.3
+    ],
+    "wage": [
+      33.11,
+      28.99,
+      37.99,
+      25.6
+    ],
+    "food": [
+      18.4,
+      22.04,
+      25.49,
+      null
+    ]
+  },
+  "IKI2": {
+    "sales": [
+      -3.09,
+      -9.12,
+      -17.32,
+      -18.55
+    ],
+    "wage": [
+      20.9,
+      20.33,
+      25.21,
+      24.02
+    ],
+    "food": [
+      null,
+      null,
+      null,
+      null
+    ]
+  }
 };
 
 // Active metric for heat-map colouring
