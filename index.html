@@ -669,7 +669,82 @@
     </div>
   </div>
 
-  <!-- HEAT MAP -->
+    <!-- WOW BANNER (what moved this week) -->
+  <div class="section-head" style="margin-top:24px;">
+    <div>
+      <h2>What moved this week</h2>
+      <div class="section-sub">Biggest WoW shifts in covers and SPH, w/e 31 May vs w/e 24 May (source: kpis.covers, kpis.sph in SITES)</div>
+    </div>
+  </div>
+  <div class="wow-grid" id="wow-grid">
+    <div class="wow-col">
+      <div class="wow-col-head">Covers WoW</div>
+      <div class="wow-section wow-up" id="wow-covers-up"></div>
+      <div class="wow-section wow-down" id="wow-covers-down"></div>
+    </div>
+    <div class="wow-col">
+      <div class="wow-col-head">SPH WoW</div>
+      <div class="wow-section wow-up" id="wow-sph-up"></div>
+      <div class="wow-section wow-down" id="wow-sph-down"></div>
+    </div>
+  </div>
+  <style>
+    .wow-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:8px 0 24px; }
+    .wow-col { background:var(--surface, #fff); border:1px solid var(--border, #e5e7eb); border-radius:10px; padding:14px 16px; }
+    .wow-col-head { font-size:11px; font-weight:700; color:var(--ink-3, #6b7280); text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px; }
+    .wow-section { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+    .wow-section:last-child { margin-bottom:0; }
+    .wow-section-label { font-size:10px; font-weight:600; color:var(--ink-3, #6b7280); text-transform:uppercase; letter-spacing:.4px; margin-bottom:4px; }
+    .wow-row { display:flex; align-items:center; justify-content:space-between; font-size:13px; cursor:pointer; padding:4px 6px; border-radius:6px; }
+    .wow-row:hover { background:var(--surface-2, #f3f4f6); }
+    .wow-code { font-weight:700; min-width:48px; }
+    .wow-name { flex:1; color:var(--ink-2, #374151); margin:0 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .wow-delta { font-weight:700; font-variant-numeric:tabular-nums; min-width:70px; text-align:right; }
+    .wow-up .wow-delta { color:#16a34a; }
+    .wow-down .wow-delta { color:#dc2626; }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof SITES === 'undefined') return;
+      function parsePct(s) {
+        if (!s) return null;
+        var str = String(s);
+        var a = str.lastIndexOf('(');
+        var b = str.lastIndexOf('%');
+        if (a < 0 || b < 0 || b < a) return null;
+        var v = parseFloat(str.substring(a + 1, b));
+        return isNaN(v) ? null : v;
+      }
+      function rank(metricKey, dir) {
+        var rows = SITES.map(function(s){
+          return { code: s.code, name: s.name, v: parsePct(s.kpis && s.kpis[metricKey]) };
+        }).filter(function(r){ return r.v !== null && !isNaN(r.v); });
+        rows.sort(function(a,b){ return dir === 'up' ? b.v - a.v : a.v - b.v; });
+        return rows.slice(0, 3);
+      }
+      function rowHTML(r, arrow) {
+        var sign = r.v > 0 ? '+' : '';
+        var safe = String(r.code).split("'").join('&apos;');
+        return '<div class="wow-row" onclick="openSite(&apos;' + safe + '&apos;)">'
+          + '<span class="wow-code">' + r.code + '</span>'
+          + '<span class="wow-name">' + r.name + '</span>'
+          + '<span class="wow-delta">' + arrow + ' ' + sign + r.v.toFixed(1) + '%</span>'
+          + '</div>';
+      }
+      function paint(id, label, rows, arrow) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '<div class="wow-section-label">' + label + '</div>'
+          + rows.map(function(r){ return rowHTML(r, arrow); }).join('');
+      }
+      paint('wow-covers-up',   'Top risers',  rank('covers','up'),   '▲');
+      paint('wow-covers-down', 'Top fallers', rank('covers','down'), '▼');
+      paint('wow-sph-up',      'Top risers',  rank('sph','up'),      '▲');
+      paint('wow-sph-down',    'Top fallers', rank('sph','down'),    '▼');
+    });
+  </script>
+
+<!-- HEAT MAP -->
   <div class="section-head">
     <div>
       <h2>Site Performance Heat Map</h2>
