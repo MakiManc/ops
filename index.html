@@ -2124,29 +2124,42 @@ function weeklyRatingRag(wr) {
   return 'red';
 }
 
-// Site Efficiency Score — single 0-100 figure combining all KPIs
-// 100 = hitting every target exactly; higher = exceeding; lower = under
+// Site Efficiency Score — weighted 5-component score, 0–100 nominal (100 = at target)
+// Components: Sales 30% (% + £ gap blend), Food cost 25%, Wage 20%, Weekly ★ 20%, Food variance 5% (±5% green band). Lifetime ★ shown for info only — NOT in score.
 function efficiencyScore(s) {
   const m = METRICS[s.code] || {};
   const r = REVIEWS[s.code] || {};
   const wr = weeklyRating(r);
+  // Parse £ gap from kpis.vsTarget string, e.g. '-£6,416 (-24.21%)' -> -6416
+  let gbpGap = 0;
+  if (s.kpis && s.kpis.vsTarget) {
+    const mt = s.kpis.vsTarget.match(/([+\-]?)\s*£\s*([\d,]+)/);
+    if (mt) gbpGap = (mt[1] === '-' ? -1 : 1) * parseInt(mt[2].replace(/,/g, ''), 10);
+  }
+  const groupMaxGap = 50000; // calibration: -£50k = 0, +£50k = 200 on £-component
   const parts = [];
-  // Sales vs target — anchored at 100 when at target, +1 per 1% above (cap 150)
-  if (s.vsTarget != null) parts.push(Math.max(0, Math.min(150, 100 + s.vsTarget)));
-  // Wage — 100 at 21% target, -5 per pp over, +5 per pp under (cap 130)
-  if (m.wage != null) parts.push(Math.max(0, Math.min(130, 100 + (21 - m.wage) * 5)));
-  // Food cost — 100 at 25% target, -4 per pp over (cap 130)
-  if (m.food != null) parts.push(Math.max(0, Math.min(130, 100 + (25 - m.food) * 4)));
-  // Food variance — 100 at 0%, -8 per 1% off zero
-  if (m.foodVar != null) parts.push(Math.max(0, 100 - Math.abs(m.foodVar) * 8));
-  // Weekly rating (the actual OKR) — 100 at 4.7★, +20 per 0.1 above, -25 per 0.1 below
-  if (wr != null) parts.push(Math.max(0, Math.min(120, 100 + (wr - 4.7) * (wr >= 4.7 ? 20 : 25))));
-  // Lifetime rating — small weight (information)
-  if (r.rating != null) parts.push(Math.max(0, Math.min(110, 100 + (r.rating - 4.7) * 30)));
+  // Sales 30% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
+  if (s.vsTarget != null) {
+    const pctPart = Math.max(0, Math.min(150, 100 + s.vsTarget));
+    const gbpPart = Math.max(0, Math.min(150, 100 + (gbpGap / groupMaxGap) * 100));
+    parts.push({ w: 30, v: 0.7 * pctPart + 0.3 * gbpPart });
+  }
+  // Food cost 25% — 100 at 25% target, -4 per pp over
+  if (m.food != null) parts.push({ w: 25, v: Math.max(0, Math.min(130, 100 + (25 - m.food) * 4)) });
+  // Wage 20% — 100 at 21%, ±5 per pp
+  if (m.wage != null) parts.push({ w: 20, v: Math.max(0, Math.min(130, 100 + (21 - m.wage) * 5)) });
+  // Weekly ★ 20% — 100 at 4.7★ (the actual OKR)
+  if (wr != null) parts.push({ w: 20, v: Math.max(0, Math.min(120, 100 + (wr - 4.7) * (wr >= 4.7 ? 20 : 25))) });
+  // Food variance 5% — flat 100 inside ±5% band, then -8 per pp outside
+  if (m.foodVar != null) {
+    const a = Math.abs(m.foodVar);
+    const v = a <= 5 ? 100 : Math.max(0, 100 - (a - 5) * 8);
+    parts.push({ w: 5, v });
+  }
   if (parts.length === 0) return null;
-  return Math.round(parts.reduce((a,b) => a+b, 0) / parts.length);
+  const totalW = parts.reduce((a, c) => a + c.w, 0);
+  return Math.round(parts.reduce((a, c) => a + c.v * c.w, 0) / totalW);
 }
-
 function efficiencyRag(score) {
   if (score == null) return 'na';
   if (score >= 95) return 'green';
