@@ -705,7 +705,7 @@
   <div class="section-head">
     <div>
       <h2>Site League Table — Efficiency Score</h2>
-      <div class="hint">Ranked best→worst by combined score (sales / wage / food cost / food var / weekly ★ avg / lifetime ★). 100 = at target. Click a row for full detail.</div>
+            <div class="hint">Weighted 5-component score (Sales 30%, Food 25%, Wage 20%, Weekly ★ 20%, Food Var 5%). 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
     </div>
   </div>
 
@@ -1411,107 +1411,91 @@ const HOT_ACTIONS = [
 const METRICS = {
   "M1/2": {
     "wage": 21.11,
-    "food": 29.54,
-    "foodVar": 2,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 22.08,
+    "foodVar": 2
   },
   "M3": {
     "wage": 21.49,
-    "food": 23.75,
-    "foodVar": -4.6,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 27.80,
+    "foodVar": -4.6
   },
   "M6": {
     "wage": 21.95,
-    "food": 19.03,
-    "foodVar": -3.8,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 21.50,
+    "foodVar": -3.8
   },
   "M7": {
     "wage": 20.76,
-    "food": 23.26,
-    "foodVar": 4.8,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 19.85,
+    "foodVar": 4.8
   },
   "M8": {
     "wage": 23.12,
-    "food": 22.70,
-    "foodVar": 4.4,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 22.30,
+    "foodVar": 4.4
   },
   "M9": {
     "wage": 19.02,
-    "food": 19.48,
+    "food": 23.84,
     "foodVar": -0.4
   },
   "M10": {
     "wage": 22.41,
-    "food": 25.05,
-    "foodVar": 4.8,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 17.42,
+    "foodVar": 4.8
   },
   "M11": {
     "wage": 23.98,
-    "food": 38.65,
-    "foodVar": 0.5,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 23.46,
+    "foodVar": 0.5
   },
   "M12": {
     "wage": 22.55,
-    "food": 18.89,
-    "foodVar": 4.5,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 23.63,
+    "foodVar": 4.5
   },
   "M13": {
     "wage": 22.41,
-    "food": 21.23,
-    "foodVar": -4.3,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 21.70,
+    "foodVar": -4.3
   },
   "M14": {
     "wage": 19.9,
-    "food": 35.42,
-    "foodVar": 9,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 21.04,
+    "foodVar": 9
   },
   "M15": {
     "wage": 21.96,
-    "food": 23.33,
-    "foodVar": 0.4,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 17.18,
+    "foodVar": 0.4
   },
   "M16": {
     "wage": 23.3,
-    "food": 28.14,
-    "foodVar": 2.1,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 21.04,
+    "foodVar": 2.1
   },
   "M17": {
     "wage": 20.94,
-    "food": 35.99,
-    "foodVar": 3.7,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 16.05,
+    "foodVar": 3.7
   },
   "M18": {
     "wage": 25.6,
-    "food": 32.59,
-    "foodVar": 4.6,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 31.11,
+    "foodVar": 4.6
   },
   "M19": {
     "wage": null,
-    "food": null,
-    "foodVar": 3.7,
-    "foodNote": "New site — no food cost data yet"
+    "food": 15.78,
+    "foodVar": 3.7
   },
   "IKI2": {
     "wage": 24.02,
-    "food": 26.80,
-    "foodVar": null,
-    "foodNote": "Food: W21 fallback (GM didn't report W22 F/R). Wage/Var: W22."
+    "food": 21.71,
+    "foodVar": null
   }
 };
-// --- REVIEWS (Google reviews) ---
+  // --- REVIEWS (Google reviews) ---
 // rating + total = LIVE from Google Maps (pulled 29 May 2026)
 // weekCount + stars = from Becca-owned central tracker (Drive), w/e 24 May 2026
 // Maki target ≥4.7★. stars = [5★, 4★, 3★, 2★, 1★] count for the week
