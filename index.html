@@ -719,6 +719,7 @@
         var rows = SITES.map(function(s){
           return { code: s.code, name: s.name, v: parsePct(s.kpis && s.kpis[metricKey]) };
         }).filter(function(r){ return r.v !== null && !isNaN(r.v); });
+                rows = rows.filter(function(r){ return dir === 'up' ? r.v > 0 : r.v < 0; });
         rows.sort(function(a,b){ return dir === 'up' ? b.v - a.v : a.v - b.v; });
         return rows.slice(0, 3);
       }
