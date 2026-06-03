@@ -701,7 +701,7 @@
         if (!s) return null;
         var str = String(s);
         if (key === 'sph') {
-          var idx = str.indexOf('');
+          var idx = str.indexOf('£');
           if (idx < 0) return null;
           var sign = 1;
           for (var i = idx - 1; i >= 0; i--) {
@@ -790,7 +790,7 @@
   <div class="section-head">
     <div>
       <h2>Site League Table — Efficiency Score</h2>
-            <div class="hint">Weighted 5-component score (Sales 30%, Food 25%, Wage 20%, Weekly ★ 20%, Food Var 5%). 100 = at target. Sales blends % vs target with absolute  gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
+            <div class="hint">Weighted 5-component score (Sales 30%, Food 25%, Wage 20%, Weekly ★ 20%, Food Var 5%). 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
     </div>
   </div>
 
@@ -913,13 +913,13 @@ const SITES = [
     "docId": "1jCOF5rUhXGc1jI99WC4lykbDOAsG9NhYhRO-JoLLFQ8",
     "kpis": {
       "covers": "-53 (-7.14%)",
-      "sph": "+1.00 (+5.08%)",
-      "vsTarget": "-5,618 (-21.19%)",
+      "sph": "+£1.00 (+5.08%)",
+      "vsTarget": "-£5,618 (-21.19%)",
       "foodVar": "+2.0%"
     },
     "issues": [
-      "Sales -21.19% vs target (-5,618 (-21.19%)), w/e 31 May.",
-      "WOW: covers -53 (-7.14%), SPH +1.00 (+5.08%).",
+      "Sales -21.19% vs target (-£5,618 (-21.19%)), w/e 31 May.",
+      "WOW: covers -53 (-7.14%), SPH +£1.00 (+5.08%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.11% — above 21% target."
     ],
@@ -939,13 +939,13 @@ const SITES = [
     "docId": "1ogixEIpaa2d1gyjfJto6Wjrl41Fvgv8Y6ICIRrUS48A",
     "kpis": {
       "covers": "+89 (+7.71%)",
-      "sph": "+0.19 (+0.85%)",
-      "vsTarget": "+3,190 (+9.20%)",
+      "sph": "+£0.19 (+0.85%)",
+      "vsTarget": "+£3,190 (+9.20%)",
       "foodVar": "-4.6%"
     },
     "issues": [
-      "Sales +9.20% vs target (+3,190 (+9.20%)), w/e 31 May.",
-      "WOW: covers +89 (+7.71%), SPH +0.19 (+0.85%).",
+      "Sales +9.20% vs target (+£3,190 (+9.20%)), w/e 31 May.",
+      "WOW: covers +89 (+7.71%), SPH +£0.19 (+0.85%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.49% — above 21% target.",
       "GM focus: Stabilise food cost; gain more (named) reviews; fix Deliveroo late-prepared orders."
@@ -966,12 +966,12 @@ const SITES = [
     "docId": "1T0e1f_aHPTp2ShoizaKw5yAPZpEce7x5V_CS8D-Rjvw",
     "kpis": {
       "covers": "-10 (-1.05%)",
-      "sph": "-0.07 (-0.3%)",
-      "vsTarget": "-2,796 (-10.58%)",
+      "sph": "-£0.07 (-0.3%)",
+      "vsTarget": "-£2,796 (-10.58%)",
       "foodVar": "-3.8%"
     },
     "issues": [
-      "Sales -10.58% vs target (-2,796 (-10.58%)), w/e 31 May.",
+      "Sales -10.58% vs target (-£2,796 (-10.58%)), w/e 31 May.",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.95% — above 21% target.",
       "GM focus: Lift review volume (very low here); upsell at every opportunity."
@@ -992,13 +992,13 @@ const SITES = [
     "docId": "1ADSWhgyY21r9XbiCQBfwgOovypV1EzVqcH6k65sDMEE",
     "kpis": {
       "covers": "+244 (+9.32%)",
-      "sph": "+0.00 (0.00%)",
-      "vsTarget": "+6,432 (+11.02%)",
+      "sph": "+£0.00 (0.00%)",
+      "vsTarget": "+£6,432 (+11.02%)",
       "foodVar": "+4.8%"
     },
     "issues": [
-      "Sales +11.02% vs target (+6,432 (+11.02%)), w/e 31 May.",
-      "WOW: covers +244 (+9.32%), SPH +0.00 (0.00%).",
+      "Sales +11.02% vs target (+£6,432 (+11.02%)), w/e 31 May.",
+      "WOW: covers +244 (+9.32%), SPH +£0.00 (0.00%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Weekly ★ avg 4.33 below 4.7 OKR.",
       "GM focus: Run reviews incentive."
@@ -1019,12 +1019,12 @@ const SITES = [
     "docId": "12T2BHwCda8-hKASEah84S6ONHBH3AX4hQoO1GsLyAR4",
     "kpis": {
       "covers": "+98 (+5.88%)",
-      "sph": "+0.78 (+3.5%)",
-      "vsTarget": "+3,689 (+8.43%)",
+      "sph": "+£0.78 (+3.5%)",
+      "vsTarget": "+£3,689 (+8.43%)",
       "foodVar": "+4.4%"
     },
     "issues": [
-      "Sales +8.43% vs target (+3,689 (+8.43%)), w/e 31 May.",
+      "Sales +8.43% vs target (+£3,689 (+8.43%)), w/e 31 May.",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.12% — well over 21% target.",
       "Weekly ★ avg 4.62 below 4.7 OKR.",
@@ -1047,13 +1047,13 @@ const SITES = [
     "docId": "1Btny-XYsT7XhzrLAAu4kpmxyPjjoobY9QCLgL_PQ8ec",
     "kpis": {
       "covers": "+464 (+19.64%)",
-      "sph": "+0.00",
-      "vsTarget": "+5,883 (+8.72%)",
+      "sph": "+£0.00",
+      "vsTarget": "+£5,883 (+8.72%)",
       "foodVar": "-0.4%"
     },
     "issues": [
-      "Sales +8.72% vs target (+5,883 (+8.72%)), w/e 31 May.",
-      "WOW: covers +464 (+19.64%), SPH +0.00.",
+      "Sales +8.72% vs target (+£5,883 (+8.72%)), w/e 31 May.",
+      "WOW: covers +464 (+19.64%), SPH +£0.00.",
       "Operational F/R (food) 19.48% vs 23% target.",
       "GM focus: Maintain all KPI metrics."
     ],
@@ -1073,13 +1073,13 @@ const SITES = [
     "docId": "1flKZ0DSbnlsbudeqjOzi2PuLCJHzGTY4qFBoFs7EjQs",
     "kpis": {
       "covers": "+70 (+6.11%)",
-      "sph": "-1.43 (-6.14%)",
-      "vsTarget": "-2,320 (-6.56%)",
+      "sph": "-£1.43 (-6.14%)",
+      "vsTarget": "-£2,320 (-6.56%)",
       "foodVar": "+4.8%"
     },
     "issues": [
-      "Sales -6.56% vs target (-2,320 (-6.56%)), w/e 31 May.",
-      "WOW: covers +70 (+6.11%), SPH -1.43 (-6.14%).",
+      "Sales -6.56% vs target (-£2,320 (-6.56%)), w/e 31 May.",
+      "WOW: covers +70 (+6.11%), SPH -£1.43 (-6.14%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.41% — above 21% target.",
       "GM focus: Lift SPH and sales."
@@ -1100,13 +1100,13 @@ const SITES = [
     "docId": "1fxxF92VXeBuJXqApnmxxFSRHGLbOQdjT_k4UZhC4lY4",
     "kpis": {
       "covers": "+387 (+49.93%)",
-      "sph": "-0.51 (-2.41%)",
-      "vsTarget": "-6,832 (-19.72%)",
+      "sph": "-£0.51 (-2.41%)",
+      "vsTarget": "-£6,832 (-19.72%)",
       "foodVar": "+0.5%"
     },
     "issues": [
-      "Sales -19.72% vs target (-6,832 (-19.72%)), w/e 31 May.",
-      "WOW: covers +387 (+49.93%), SPH -0.51 (-2.41%).",
+      "Sales -19.72% vs target (-£6,832 (-19.72%)), w/e 31 May.",
+      "WOW: covers +387 (+49.93%), SPH -£0.51 (-2.41%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.98% — well over 21% target.",
       "Weekly ★ avg 4.25 below 4.7 OKR.",
@@ -1129,13 +1129,13 @@ const SITES = [
     "docId": "1TyOqNcQkiaFtRoBmjIHGJHqrX7dL45pGekCTZGZIjmU",
     "kpis": {
       "covers": "+313 (+32.67%)",
-      "sph": "-1.20 (-5.16%)",
-      "vsTarget": "-7 (-0.01%)",
+      "sph": "-£1.20 (-5.16%)",
+      "vsTarget": "-£7 (-0.01%)",
       "foodVar": "+4.5%"
     },
     "issues": [
-      "Sales -0.01% vs target (-7 (-0.01%)), w/e 31 May.",
-      "WOW: covers +313 (+32.67%), SPH -1.20 (-5.16%).",
+      "Sales -0.01% vs target (-£7 (-0.01%)), w/e 31 May.",
+      "WOW: covers +313 (+32.67%), SPH -£1.20 (-5.16%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.55% — above 21% target.",
       "GM focus: All Deliveroo metrics; XOXO Watermelon OOS so range not yet live (re-ordered; escalate if repeats)."
@@ -1156,13 +1156,13 @@ const SITES = [
     "docId": "1q_qTv8EaJL0TioKawo1PADZsbo1cQbjmQTjwiEjiWDk",
     "kpis": {
       "covers": "+104 (+7.13%)",
-      "sph": "+0.37 (+1.58%)",
-      "vsTarget": "-7,559 (-15.68%)",
+      "sph": "+£0.37 (+1.58%)",
+      "vsTarget": "-£7,559 (-15.68%)",
       "foodVar": "-4.3%"
     },
     "issues": [
-      "Sales -15.68% vs target (-7,559 (-15.68%)), w/e 31 May.",
-      "WOW: covers +104 (+7.13%), SPH +0.37 (+1.58%).",
+      "Sales -15.68% vs target (-£7,559 (-15.68%)), w/e 31 May.",
+      "WOW: covers +104 (+7.13%), SPH +£0.37 (+1.58%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.41% — above 21% target.",
       "GM focus: Reviews lower this week — ask at every opportunity (incentive from 01.06.26); take all payments before customers leave."
@@ -1183,13 +1183,13 @@ const SITES = [
     "docId": "1JacKzcCq17x6oYbzZS3a0jSVpX7GG9U0QpVj0CEEr-U",
     "kpis": {
       "covers": "+591 (+44.03%)",
-      "sph": "-1.01 (-4.47%)",
-      "vsTarget": "-13,979 (-24.52%)",
+      "sph": "-£1.01 (-4.47%)",
+      "vsTarget": "-£13,979 (-24.52%)",
       "foodVar": "+9.0%"
     },
     "issues": [
-      "Sales -24.52% vs target (-13,979 (-24.52%)), w/e 31 May.",
-      "WOW: covers +591 (+44.03%), SPH -1.01 (-4.47%).",
+      "Sales -24.52% vs target (-£13,979 (-24.52%)), w/e 31 May.",
+      "WOW: covers +591 (+44.03%), SPH -£1.01 (-4.47%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Food variance +9.0% — outside ±5%.",
       "Weekly ★ avg 4.50 below 4.7 OKR.",
@@ -1212,13 +1212,13 @@ const SITES = [
     "docId": "11oL_S6MuoWpP9L93PIXverM1wV3ynA_kGjXs-EYwirA",
     "kpis": {
       "covers": "+677 (+34.51%)",
-      "sph": "-0.66 (+2.90%)",
-      "vsTarget": "-1,461 (-2.40%)",
+      "sph": "-£0.66 (+2.90%)",
+      "vsTarget": "-£1,461 (-2.40%)",
       "foodVar": "+0.4%"
     },
     "issues": [
-      "Sales -2.40% vs target (-1,461 (-2.40%)), w/e 31 May.",
-      "WOW: covers +677 (+34.51%), SPH -0.66 (+2.90%).",
+      "Sales -2.40% vs target (-£1,461 (-2.40%)), w/e 31 May.",
+      "WOW: covers +677 (+34.51%), SPH -£0.66 (+2.90%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.96% — above 21% target."
     ],
@@ -1238,13 +1238,13 @@ const SITES = [
     "docId": "1_NNcLrsLEHsj3gVkxnY2CMMW5xcRBlexBxjEMHdk-uk",
     "kpis": {
       "covers": "+85 (+6.19%)",
-      "sph": "-0.24 (-1.06%)",
-      "vsTarget": "-12,331 (-25.58%)",
+      "sph": "-£0.24 (-1.06%)",
+      "vsTarget": "-£12,331 (-25.58%)",
       "foodVar": "+2.1%"
     },
     "issues": [
-      "Sales -25.58% vs target (-12,331 (-25.58%)), w/e 31 May.",
-      "WOW: covers +85 (+6.19%), SPH -0.24 (-1.06%).",
+      "Sales -25.58% vs target (-£12,331 (-25.58%)), w/e 31 May.",
+      "WOW: covers +85 (+6.19%), SPH -£0.24 (-1.06%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.30% — well over 21% target.",
       "GM focus: Deep clean started; post-it wall → social drive."
@@ -1267,13 +1267,13 @@ const SITES = [
     "docId": "1WuIUqfm168ucKRTyV8mZPxDTvQRtC4RDc2bLjZkHCWs",
     "kpis": {
       "covers": "+598 (+52.78%)",
-      "sph": "-0.81 (-3.47%)",
-      "vsTarget": "+3,170 (+8.34%)",
+      "sph": "-£0.81 (-3.47%)",
+      "vsTarget": "+£3,170 (+8.34%)",
       "foodVar": "+3.7%"
     },
     "issues": [
-      "Sales +8.34% vs target (+3,170 (+8.34%)), w/e 31 May.",
-      "WOW: covers +598 (+52.78%), SPH -0.81 (-3.47%).",
+      "Sales +8.34% vs target (+£3,170 (+8.34%)), w/e 31 May.",
+      "WOW: covers +598 (+52.78%), SPH -£0.81 (-3.47%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "GM focus: Stabilise sushi section with staff."
     ],
@@ -1293,13 +1293,13 @@ const SITES = [
     "docId": "1Rgz_hA1DTQqk5JgnwFSPmuRlbfVmA3QA4Jt_Fe9AoLo",
     "kpis": {
       "covers": "+294 (+21.79%)",
-      "sph": "+0.86 (-7.07%)",
-      "vsTarget": "-37,722 (-50.30%)",
+      "sph": "+£0.86 (-7.07%)",
+      "vsTarget": "-£37,722 (-50.30%)",
       "foodVar": "+4.6%"
     },
     "issues": [
-      "Sales -50.30% vs target (-37,722 (-50.30%)), w/e 31 May.",
-      "WOW: covers +294 (+21.79%), SPH +0.86 (-7.07%).",
+      "Sales -50.30% vs target (-£37,722 (-50.30%)), w/e 31 May.",
+      "WOW: covers +294 (+21.79%), SPH +£0.86 (-7.07%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 25.60% — well over 21% target."
     ],
@@ -1321,13 +1321,13 @@ const SITES = [
     "docId": "1K22obJnkwsTQOUWaC6xDD_TIxdBkAt6RmEmTyECF4uk",
     "kpis": {
       "covers": "+62 (+8.69%)",
-      "sph": "+1.09 (+2.72%)",
-      "vsTarget": "+10,307 (+47.94%)",
+      "sph": "+£1.09 (+2.72%)",
+      "vsTarget": "+£10,307 (+47.94%)",
       "foodVar": "+3.7%"
     },
     "issues": [
-      "Sales +47.94% vs target (+10,307 (+47.94%)), w/e 31 May.",
-      "WOW: covers +62 (+8.69%), SPH +1.09 (+2.72%).",
+      "Sales +47.94% vs target (+£10,307 (+47.94%)), w/e 31 May.",
+      "WOW: covers +62 (+8.69%), SPH +£1.09 (+2.72%).",
       "Operational F/R (food cost %) not filled in this week’s report."
     ],
     "actions": [
@@ -1346,13 +1346,13 @@ const SITES = [
     "docId": "1MfZTCX1aLh9A4rdv0BX3UwU2sk2KAfinQSo2B-66YuU",
     "kpis": {
       "covers": "+13 (+1.71%)",
-      "sph": "-0.20 (-0.96%)",
-      "vsTarget": "-3,998 (-18.55%)",
+      "sph": "-£0.20 (-0.96%)",
+      "vsTarget": "-£3,998 (-18.55%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales -18.55% vs target (-3,998 (-18.55%)), w/e 31 May.",
-      "WOW: covers +13 (+1.71%), SPH -0.20 (-0.96%).",
+      "Sales -18.55% vs target (-£3,998 (-18.55%)), w/e 31 May.",
+      "WOW: covers +13 (+1.71%), SPH -£0.20 (-0.96%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 24.02% — well over 21% target."
     ],
@@ -1404,7 +1404,7 @@ const THEMES = [
     "severity": "good",
     "icon": "✦",
     "title": "Maki Nori (M19) added — strong start",
-    "body": "M19 Maki Nori joins the Command Centre at +47.9% vs target (+10.3k), covers +8.7% WOW. No 4-week trend, wage or review feed wired in yet.",
+    "body": "M19 Maki Nori joins the Command Centre at +47.9% vs target (+£10.3k), covers +8.7% WOW. No 4-week trend, wage or review feed wired in yet.",
     "sites": [
       "M19"
     ]
