@@ -2,10 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AM Weekly Command Centre · 18–24 May 2026</title>
+<title>AM Weekly Control Centre · 18–24 May 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light;
+    /* Maki & Ramen brand palette */
+    --maki-orange: #E94E1B;
+    --maki-orange-soft: #F47C24;
+    --maki-orange-bg: #FFF1EA;
+    --maki-orange-ring: #E94E1B33;
+    --maki-ink: #1A1410;
+    --maki-cream: #FFF8F0;
     --bg: #f4f5f9;
     --surface: #ffffff;
     --surface-2: #fafbfd;
@@ -30,7 +40,7 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "Noto Sans JP", system-ui, sans-serif;
     background: var(--bg);
     color: var(--ink);
     font-size: 14px;
@@ -38,6 +48,93 @@
     -webkit-font-smoothing: antialiased;
   }
   .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+  /* ============ MAKI BRAND HEADER ============ */
+  .maki-brand-bar {
+    background: var(--maki-cream);
+    border-bottom: 2px solid var(--maki-orange);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 1px 0 rgba(233,78,27,.06);
+  }
+  .maki-brand-bar .maki-logo {
+    height: 48px;
+    width: auto;
+    display: block;
+    flex-shrink: 0;
+  }
+  .maki-brand-bar .maki-logo-fallback {
+    display: none;
+    flex-shrink: 0;
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -.01em;
+    color: var(--maki-ink);
+    line-height: 1;
+    padding: 6px 14px;
+    background: var(--maki-ink);
+    color: #fff;
+    border-radius: 10px;
+    border: 2px solid var(--maki-orange);
+  }
+  .maki-brand-bar .maki-logo-fallback .accent { color: var(--maki-orange); }
+  .maki-brand-bar img.maki-logo[data-broken="true"] { display: none; }
+  .maki-brand-bar img.maki-logo[data-broken="true"] + .maki-logo-fallback { display: inline-block; }
+  .maki-brand-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+  .maki-brand-title .maki-brand-name {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--maki-ink);
+    line-height: 1;
+  }
+  .maki-brand-title .maki-brand-name .dot {
+    color: var(--maki-orange);
+    margin: 0 8px;
+  }
+  .maki-brand-title .maki-brand-sub {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--maki-orange);
+    letter-spacing: .01em;
+    line-height: 1.2;
+  }
+  .maki-brand-kanji {
+    font-family: "Noto Sans JP", "Plus Jakarta Sans", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--maki-orange);
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .maki-brand-chip {
+    background: var(--maki-orange-bg);
+    border: 1px solid var(--maki-orange-ring);
+    color: var(--maki-orange);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    transition: 0.15s ease;
+  }
+  @media (max-width: 720px) {
+    .maki-brand-bar { padding: 10px 16px; gap: 12px; flex-wrap: wrap; }
+    .maki-brand-bar .maki-logo { height: 38px; }
+    .maki-brand-kanji { display: none; }
+  }
 
   /* HERO */
   .hero {
@@ -628,13 +725,75 @@
   .rm-pill.pending { background:var(--surface-2); color:var(--ink-3); }
   .rm-body { padding:0 18px 16px 60px; font-size:12.5px; color:var(--ink-2); }
   .rm-body li { margin-bottom:3px; }
+
+  /* ============ MAKI BRAND ACCENTS ============ */
+  /* Active tab underline */
+  .tabbtn { transition: 0.15s ease; position: relative; }
+  .tabbtn.active {
+    background: transparent;
+    color: var(--maki-ink);
+    box-shadow: inset 0 -3px 0 var(--maki-orange);
+    border-radius: 6px;
+  }
+  .tabbtn.active .tb-badge { background: var(--maki-orange); color: #fff; }
+  .tabbtn:hover { background: var(--maki-orange-bg); color: var(--maki-ink); }
+
+  /* Section heading left border accent */
+  .section-head h2 {
+    padding-left: 10px;
+    border-left: 3px solid var(--maki-orange);
+    line-height: 1.1;
+  }
+
+  /* Brand chip for AM Function owners */
+  .chip.maki-brand,
+  .brand-chip {
+    background: var(--maki-orange-bg);
+    border: 1px solid var(--maki-orange-ring);
+    color: var(--maki-orange);
+    transition: 0.15s ease;
+  }
+  .chip.maki-brand:hover,
+  .brand-chip:hover {
+    background: var(--maki-orange);
+    color: #fff;
+    border-color: var(--maki-orange);
+  }
+
+  /* OKR header — orange underline divider */
+  .am-okr-head h2 {
+    position: relative;
+    padding-bottom: 6px;
+  }
+  .am-okr-head h2::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 56px; height: 3px;
+    background: var(--maki-orange);
+    border-radius: 2px;
+  }
 </style>
 </head>
 <body>
+<header class="maki-brand-bar" role="banner">
+  <img src="maki-logo1.png"
+       alt="Maki &amp; Ramen"
+       class="maki-logo"
+       onerror="this.setAttribute('data-broken','true');">
+  <span class="maki-logo-fallback" aria-hidden="true">MAKI <span class="accent">&amp; RAMEN</span></span>
+  <div class="maki-brand-title">
+    <div class="maki-brand-name">Maki <span class="dot">&bull;</span> Ramen</div>
+    <div class="maki-brand-sub">Area Management Control Centre</div>
+  </div>
+  <span class="maki-brand-kanji" aria-hidden="true">寿司とラーメン</span>
+  <span class="maki-brand-chip" id="maki-brand-chip">v1.0 &middot; AM</span>
+</header>
 <div class="wrap">
   <nav class="tabbar">
     <button class="tabbtn active" data-tab="week">This Week</button>
     <button class="tabbtn" data-tab="redlight">Red Light <span class="tb-badge" id="tb-red">0</span></button>
+    <button class="tabbtn" data-tab="okrs">OKRs</button>
     <button class="tabbtn" data-tab="raci">Governance</button>
     <button class="tabbtn" data-tab="risk">Risk Register</button>
     <button class="tabbtn" data-tab="roadmap">Roadmap</button>
@@ -647,7 +806,7 @@
   <!-- HERO -->
   <div class="hero">
     <div class="hero-inner">
-      <div class="eyebrow">AM Weekly Command Centre</div>
+      <div class="eyebrow">AM Weekly Control Centre</div>
       <h1>Week of 25–31 May 2026</h1>
       <div class="hero-sub">17 site KPI Report docs · 3 clusters · Sourced from the weekly KPI Report folder · refreshed 2 Jun 2026</div>
       <div class="hero-stats">
@@ -738,7 +897,7 @@
         return '<div class="wow-row" onclick="openSite(&apos;' + safe + '&apos;)">'
           + '<span class="wow-code">' + r.code + '</span>'
           + '<span class="wow-name">' + r.name + '</span>'
-          + '<span class="wow-delta">' + arrow + ' ' + (r.isMoney ? (r.v >= 0 ? '+' : '-') + Math.abs(r.v).toFixed(2) : sign + r.v.toFixed(1) + '%') + '</span>'
+          + '<span class="wow-delta">' + arrow + ' ' + (r.isMoney ? (r.v >= 0 ? '+£' : '-£') + Math.abs(r.v).toFixed(2) : sign + r.v.toFixed(1) + '%') + '</span>'
           + '</div>';
       }
       function paint(id, label, rows, arrow) {
@@ -840,7 +999,421 @@
     <div class="crit-list" id="rl-crit"></div>
     <div class="section-head"><h2>Closure log — required fields</h2><div class="hint">The audit trail the weekly pull doesn't capture (register, folder 06)</div></div>
     <div class="fields" id="rl-fields"></div>
-  </div>
+  </div><!-- /tab-redlight -->
+
+  <!-- ============ TAB: OKRS ============ -->
+  <div class="tabpanel" id="tab-okrs">
+  <!-- =================== AM OKRs 2026 — NORTH STAR =================== -->
+  <style>
+    .am-okr-wrap {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 24px 18px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow);
+    }
+    .am-okr-head {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .am-okr-head .am-okr-eyebrow {
+      text-transform: uppercase; letter-spacing: .14em;
+      font-size: 10px; font-weight: 700; color: var(--indigo);
+      margin-bottom: 4px;
+    }
+    .am-okr-head h2 {
+      margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+    }
+    .am-okr-head .am-okr-sub {
+      color: var(--ink-3); font-size: 12px; margin-top: 4px;
+    }
+    .am-okr-head .am-okr-meta {
+      display: flex; gap: 14px; align-items: center;
+      font-size: 12px; color: var(--ink-2);
+    }
+    .am-okr-head .am-okr-meta a {
+      color: var(--indigo); text-decoration: none; font-weight: 600;
+    }
+    .am-okr-head .am-okr-meta a:hover { text-decoration: underline; }
+    .am-okr-caption {
+      font-size: 11px; color: var(--ink-3);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      padding: 3px 9px; border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .am-okr-objective { margin-top: 18px; }
+    .am-okr-obj-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--line);
+    }
+    .am-okr-obj-title {
+      font-size: 13px; font-weight: 700; color: var(--ink);
+      letter-spacing: -.005em;
+    }
+    .am-okr-obj-title .am-okr-obj-id {
+      display: inline-block;
+      background: var(--indigo-bg); color: var(--indigo);
+      padding: 2px 8px; border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      margin-right: 8px; letter-spacing: .03em;
+    }
+    .am-okr-obj-score {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: var(--ink-2);
+    }
+    .am-okr-obj-score .am-okr-score-pill {
+      font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 999px;
+    }
+
+    .am-okr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .am-okr-grid.compact {
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+    .am-okr-card {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 13px 11px;
+      display: flex; flex-direction: column; gap: 8px;
+      position: relative;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .am-okr-card:hover { border-color: var(--ink-3); box-shadow: var(--shadow); }
+
+    .am-okr-card .am-okr-kr-id {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em;
+      color: var(--ink-3); text-transform: uppercase;
+    }
+    .am-okr-card .am-okr-kr-label {
+      font-size: 12.5px; font-weight: 600; color: var(--ink);
+      line-height: 1.35;
+      min-height: 32px;
+      overflow: hidden;
+    }
+
+    .am-okr-card .am-okr-tc-row {
+      display: flex; gap: 10px;
+      font-size: 11px; color: var(--ink-2);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 7px 0;
+    }
+    .am-okr-card .am-okr-tc-cell { flex: 1; }
+    .am-okr-card .am-okr-tc-cell .am-okr-tc-lbl {
+      font-size: 9.5px; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--ink-3);
+      font-weight: 600;
+    }
+    .am-okr-card .am-okr-tc-cell .am-okr-tc-val {
+      font-size: 13px; font-weight: 700; color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      margin-top: 1px;
+    }
+
+    .am-okr-card .am-okr-bottom-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 8px;
+    }
+    .am-okr-eff-block { display: flex; flex-direction: column; }
+    .am-okr-eff-lbl {
+      font-size: 9.5px; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--ink-3); font-weight: 600;
+    }
+    .am-okr-eff-num {
+      font-size: 22px; font-weight: 800; letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .am-okr-eff-num.green { color: var(--green); }
+    .am-okr-eff-num.amber { color: var(--amber); }
+    .am-okr-eff-num.red   { color: var(--red); }
+    .am-okr-eff-num.na    { color: var(--ink-3); }
+
+    .am-okr-spark { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+    .am-okr-spark-lbl {
+      font-size: 9px; color: var(--ink-3);
+      letter-spacing: .06em; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .am-okr-spark svg { display: block; }
+
+    .am-okr-owner {
+      display: inline-block;
+      background: var(--indigo-bg); color: var(--indigo);
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 999px;
+      align-self: flex-start;
+    }
+
+    .am-okr-score-pill.green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-ring); }
+    .am-okr-score-pill.amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-ring); }
+    .am-okr-score-pill.red   { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-ring); }
+    .am-okr-score-pill.na    { background: var(--surface-2);color: var(--ink-3); border: 1px solid var(--line); }
+
+    .am-okr-details {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+      overflow: hidden;
+    }
+    .am-okr-details summary {
+      cursor: pointer;
+      padding: 8px 14px;
+      font-size: 12px; font-weight: 600;
+      color: var(--ink-2);
+      list-style: none;
+      user-select: none;
+    }
+    .am-okr-details summary::-webkit-details-marker { display: none; }
+    .am-okr-details summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: 8px;
+      transition: transform .15s;
+      color: var(--ink-3);
+    }
+    .am-okr-details[open] summary::before { transform: rotate(90deg); }
+    .am-okr-details summary:hover { color: var(--ink); }
+
+    .am-okr-regional {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: var(--surface);
+    }
+    .am-okr-regional th, .am-okr-regional td {
+      padding: 7px 12px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+    }
+    .am-okr-regional th {
+      background: var(--surface-2);
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--ink-3);
+      font-weight: 700;
+    }
+    .am-okr-regional td.am-okr-kr-col {
+      font-weight: 600; color: var(--ink);
+      max-width: 280px;
+    }
+    .am-okr-regional td.am-okr-region-col {
+      text-align: center; min-width: 90px;
+    }
+    .am-okr-regional .am-okr-region-pill {
+      display: inline-block;
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px;
+      min-width: 42px;
+    }
+    .am-okr-regional .am-okr-region-pill.green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-ring); }
+    .am-okr-regional .am-okr-region-pill.amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-ring); }
+    .am-okr-regional .am-okr-region-pill.red   { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-ring); }
+    .am-okr-regional .am-okr-region-pill.na    { background: var(--surface-2);color: var(--ink-3); border: 1px solid var(--line); }
+    .am-okr-regional .am-okr-region-actual {
+      display: block; font-size: 10.5px; color: var(--ink-3);
+      margin-top: 2px; font-weight: 500;
+    }
+  </style>
+
+  <section class="am-okr-wrap" id="am-okr-2026">
+    <div class="am-okr-head">
+      <div>
+        <div class="am-okr-eyebrow">North Star</div>
+        <h2>Area Management OKRs 2026</h2>
+        <div class="am-okr-sub">Group-level KRs across AMO1 / AMO2 / AMO4 · Regional split: SC · NE · SE</div>
+      </div>
+      <div class="am-okr-meta">
+        <span class="am-okr-caption" id="am-okr-caption">data through May 2026</span>
+        <a href="https://docs.google.com/spreadsheets/d/1LeIPlwiATl4U_asmxNxmVb9SG-6gB3U21JIsa0xcpnQ" target="_blank" rel="noopener">Source sheet ↗</a>
+      </div>
+    </div>
+    <div id="am-okr-objectives"><!-- objectives rendered by script --></div>
+  </section>
+
+  <script>
+    (function () {
+      const AM_OKR_DATA = {"objectives":[{"id":"AMO1","text":"AMO1: Group Level Footfall and Customer Satisfaction","function_score":{"mar":94.24,"apr":86.67,"may":93.33},"showRegional":true,"krs":[{"id":"AMO1-KR1","text":"KR1: Hit Target Footfall (HIT TARGET FOOTFALL COVERS)","unit":"covers","direction":"higher-is-better","levels":{"group":{"target":111425,"mar":94426,"apr":92807,"may":94458,"eff_mar":85.45,"eff_apr":80.00,"eff_may":80.00},"sc":{"target":50732,"may":49321,"eff_may":80.00},"ne":{"target":38421,"may":30819,"eff_may":50.00},"se":{"target":22272,"may":14318,"eff_may":50.00}}},{"id":"AMO1-KR2","text":"KR2: 4.7* aggregated average Google Reviews (WoW)","unit":"score","direction":"higher-is-better","levels":{"group":{"target":4.70,"mar":4.75,"apr":4.69,"may":4.73,"eff_mar":100.00,"eff_apr":80.00,"eff_may":100.00},"sc":{"target":4.70,"may":4.73,"eff_may":100.00},"ne":{"target":4.70,"may":4.73,"eff_may":100.00},"se":{"target":4.70,"may":4.73,"eff_may":100.00}}},{"id":"AMO1-KR3","text":"KR3: 95% MYSTERY SHOPPER","unit":"%","direction":"higher-is-better","levels":{"group":{"target":95.00,"mar":null,"apr":null,"may":null,"eff_mar":100.00,"eff_apr":80.00,"eff_may":100.00},"sc":{"target":95.00,"may":null,"eff_may":100.00},"ne":{"target":95.00,"may":null,"eff_may":100.00},"se":{"target":95.00,"may":null,"eff_may":100.00}}},{"id":"AMO1-KR4","text":"KR4: 21% OPERATION WAGE REVENUE AS A GROUP","unit":"%","direction":"lower-is-better","levels":{"group":{"target":21.00,"mar":21.97,"apr":21.77,"may":22.52,"eff_mar":80.00,"eff_apr":80.00,"eff_may":80.00},"sc":{"target":21.00,"may":21.56,"eff_may":80.00},"ne":{"target":21.00,"may":21.45,"eff_may":80.00},"se":{"target":21.00,"may":28.24,"eff_may":0.00}}},{"id":"AMO1-KR5","text":"KR5: 100% HC/GM MEETING","unit":"%","direction":"higher-is-better","levels":{"group":{"target":100.00,"mar":null,"apr":null,"may":null,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00},"sc":{"target":100.00,"may":100,"eff_may":100.00},"ne":{"target":100.00,"may":100,"eff_may":100.00},"se":{"target":100.00,"may":100,"eff_may":0.00}}},{"id":"AMO1-KR6","text":"K6: 25% Food Revenue","unit":"%","direction":"lower-is-better","levels":{"group":{"target":25.00,"mar":20.80,"apr":null,"may":22.32,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00},"sc":{"target":25.00,"may":21.87,"eff_may":100.00},"ne":{"target":25.00,"may":23.79,"eff_may":100.00},"se":{"target":25.00,"may":20.60,"eff_may":100.00}}}]},{"id":"AMO2","text":"AMO2: Group Level Operational Efficiency and Compliance","function_score":{"mar":100.00,"apr":100.00,"may":100.00},"showRegional":true,"krs":[{"id":"AMO2-KR1","text":"KR1: 1% total Deliveroo refund value","unit":"%","direction":"lower-is-better","levels":{"group":{"target":1.00,"mar":0.78,"apr":0.71,"may":0.65,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00},"sc":{"target":1.00,"may":0.00,"eff_may":100.00},"ne":{"target":1.00,"may":0.00,"eff_may":100.00},"se":{"target":1.00,"may":0.00,"eff_may":100.00}}},{"id":"AMO2-KR2","text":"KR2: 100% Compliant with Health, Fire and Safety Standards","unit":"%","direction":"higher-is-better","levels":{"group":{"target":100.00,"mar":100.00,"apr":100.00,"may":100.00,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00},"sc":{"target":100.00,"may":100.00,"eff_may":100.00},"ne":{"target":100.00,"may":100.00,"eff_may":100.00},"se":{"target":100.00,"may":100.00,"eff_may":100.00}}},{"id":"AMO2-KR3","text":"KR3: Drinks stocktake variance +/- 5%","unit":"% variance","direction":"lower-is-better","levels":{"group":{"target":"+/- 5%","mar":1.24,"apr":0.71,"may":1.34,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00},"sc":{"target":"+/- 5%","may":-0.73,"eff_may":100.00},"ne":{"target":"+/- 5%","may":null,"eff_may":100.00},"se":{"target":"+/- 5%","may":4.97,"eff_may":100.00}}},{"id":"AMO2-KR4","text":"KR4: Management Structures","unit":"%","direction":"higher-is-better","levels":{"group":{"target":100.00,"mar":null,"apr":null,"may":null,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00},"sc":{"target":100.00,"may":null,"eff_may":100.00},"ne":{"target":100.00,"may":80.00,"eff_may":80.00},"se":{"target":100.00,"may":100.00,"eff_may":100.00}}}]},{"id":"AMO4","text":"AMO4: Monthly Reporting","function_score":{"mar":100.00,"apr":100.00,"may":100.00},"showRegional":false,"krs":[{"id":"AMO4-KR1","text":"KR1: 100% reporting completion","unit":"%","direction":"higher-is-better","levels":{"group":{"target":100,"mar":100,"apr":100,"may":100,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00}}},{"id":"AMO4-KR2","text":"KR2: Results of intangible measures","unit":"%","direction":"higher-is-better","levels":{"group":{"target":100,"mar":100,"apr":100,"may":100,"eff_mar":100.00,"eff_apr":100.00,"eff_may":100.00}}}]}]};
+
+      function ragOf(v) {
+        if (v == null || isNaN(v)) return 'na';
+        if (v >= 95) return 'green';
+        if (v >= 80) return 'amber';
+        return 'red';
+      }
+
+      function fmtVal(v, unit) {
+        if (v == null || v === '' || (typeof v === 'number' && isNaN(v))) return '—';
+        if (typeof v === 'string') return v; // e.g. "+/- 5%"
+        if (unit === 'covers') return Math.round(v).toLocaleString('en-GB');
+        if (unit === 'score')  return v.toFixed(2) + '★';
+        if (unit === '%' || unit === '% variance') {
+          const d = (Math.abs(v) >= 10) ? 1 : 2;
+          // For variance, preserve sign
+          if (unit === '% variance') return (v > 0 ? '+' : '') + v.toFixed(d) + '%';
+          return v.toFixed(d).replace(/\.0+$/,'') + '%';
+        }
+        return String(v);
+      }
+
+      function truncate(s, n) {
+        if (s.length <= n) return s;
+        return s.slice(0, n - 1).trimEnd() + '…';
+      }
+
+      function colorForRag(rag) {
+        switch (rag) {
+          case 'green': return getComputedStyle(document.documentElement).getPropertyValue('--green').trim() || '#059669';
+          case 'amber': return getComputedStyle(document.documentElement).getPropertyValue('--amber').trim() || '#d97706';
+          case 'red':   return getComputedStyle(document.documentElement).getPropertyValue('--red').trim()   || '#dc2626';
+          default:      return getComputedStyle(document.documentElement).getPropertyValue('--ink-3').trim() || '#94a3b8';
+        }
+      }
+
+      function sparkSVG(values, mayRag) {
+        const w = 80, h = 24, pad = 2;
+        const valid = values.map(v => (v == null || isNaN(v)) ? null : Math.max(0, Math.min(100, v)));
+        // Always plot against 0-100 (efficiency scale)
+        const xs = [pad, w/2, w - pad];
+        const pts = valid.map((v, i) => v == null ? null : [xs[i], h - pad - ((v / 100) * (h - 2*pad))]);
+        const stroke = colorForRag(mayRag);
+        const linePts = pts.filter(p => p !== null);
+        let path = '';
+        if (linePts.length >= 2) {
+          path = 'M' + linePts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+        }
+        let dots = pts.map(p => p == null ? '' :
+          `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="1.8" fill="${stroke}"/>`).join('');
+        return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+          <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="var(--line)" stroke-width="1"/>
+          ${path ? `<path d="${path}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+          ${dots}
+        </svg>`;
+      }
+
+      function renderKRCard(kr) {
+        const g = kr.levels.group || {};
+        const effMay = g.eff_may;
+        const rag = ragOf(effMay);
+        const target = fmtVal(g.target, kr.unit);
+        const current = fmtVal(g.may, kr.unit);
+        const shortId = kr.id.split('-')[1] || kr.id;
+        const truncated = truncate(kr.text, 60);
+        const fullText = kr.text.replace(/"/g, '&quot;');
+        const effDisplay = (effMay == null || isNaN(effMay)) ? '—' : Math.round(effMay) + '%';
+        const spark = sparkSVG([g.eff_mar, g.eff_apr, g.eff_may], rag);
+        // Over-target cue for lower-is-better KRs where May actual exceeds the numeric target
+        let overCue = '';
+        if (kr.direction === 'lower-is-better'
+            && typeof g.target === 'number'
+            && typeof g.may === 'number'
+            && !isNaN(g.may) && g.may > g.target) {
+          const gap = (g.may - g.target).toFixed(2).replace(/\.?0+$/,'');
+          overCue = `<span style="font-size:10.5px;font-weight:600;color:var(--amber);margin-left:6px;">↑ +${gap}pp over target</span>`;
+        }
+        return `
+          <div class="am-okr-card" title="${fullText}">
+            <div class="am-okr-kr-id">${shortId}</div>
+            <div class="am-okr-kr-label">${truncated}</div>
+            <div class="am-okr-tc-row">
+              <div class="am-okr-tc-cell">
+                <div class="am-okr-tc-lbl">Target</div>
+                <div class="am-okr-tc-val">${target}</div>
+              </div>
+              <div class="am-okr-tc-cell">
+                <div class="am-okr-tc-lbl">May actual</div>
+                <div class="am-okr-tc-val">${current}${overCue}</div>
+              </div>
+            </div>
+            <div class="am-okr-bottom-row">
+              <div class="am-okr-eff-block">
+                <span class="am-okr-eff-lbl">Efficiency</span>
+                <span class="am-okr-eff-num ${rag}">${effDisplay}</span>
+              </div>
+              <div class="am-okr-spark">
+                <span class="am-okr-spark-lbl">Mar–May</span>
+                ${spark}
+              </div>
+            </div>
+            <span class="am-okr-owner">AM Function</span>
+          </div>`;
+      }
+
+      function renderRegionalTable(obj) {
+        const regions = [['sc','SC'],['ne','NE'],['se','SE']];
+        const rows = obj.krs.map(kr => {
+          const cells = regions.map(([k]) => {
+            const r = kr.levels[k] || {};
+            const eff = r.eff_may;
+            const rag = ragOf(eff);
+            const pill = (eff == null || isNaN(eff)) ? '—' : Math.round(eff) + '%';
+            const actual = fmtVal(r.may, kr.unit);
+            return `<td class="am-okr-region-col">
+              <span class="am-okr-region-pill ${rag}">${pill}</span>
+              <span class="am-okr-region-actual">${actual}</span>
+            </td>`;
+          }).join('');
+          const shortId = kr.id.split('-')[1] || kr.id;
+          const label = truncate(kr.text, 70).replace(/"/g, '&quot;');
+          return `<tr>
+            <td class="am-okr-kr-col" title="${kr.text.replace(/"/g,'&quot;')}">
+              <strong>${shortId}</strong> · ${label}
+            </td>${cells}
+          </tr>`;
+        }).join('');
+        return `<details class="am-okr-details">
+          <summary>Show regional breakdown (May Eff% · actual)</summary>
+          <table class="am-okr-regional">
+            <thead><tr><th>KR</th><th style="text-align:center">SC</th><th style="text-align:center">NE</th><th style="text-align:center">SE</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </details>`;
+      }
+
+      function renderObjective(obj) {
+        const fs = obj.function_score || {};
+        const fsRag = ragOf(fs.may);
+        const fsDisplay = (fs.may == null || isNaN(fs.may)) ? '—' : Math.round(fs.may) + '%';
+        const cards = obj.krs.map(renderKRCard).join('');
+        const gridClass = obj.id === 'AMO4' ? 'am-okr-grid compact' : 'am-okr-grid';
+        const regional = obj.showRegional ? renderRegionalTable(obj) : '';
+        return `
+          <div class="am-okr-objective">
+            <div class="am-okr-obj-head">
+              <div class="am-okr-obj-title">
+                <span class="am-okr-obj-id">${obj.id}</span>${obj.text.replace(/^AMO\d+:\s*/, '')}
+              </div>
+              <div class="am-okr-obj-score">
+                <span>Function Score (May)</span>
+                <span class="am-okr-score-pill ${fsRag}">${fsDisplay}</span>
+              </div>
+            </div>
+            <div class="${gridClass}">${cards}</div>
+            ${regional}
+          </div>`;
+      }
+
+      const mount = document.getElementById('am-okr-objectives');
+      if (mount) {
+        mount.innerHTML = AM_OKR_DATA.objectives.map(renderObjective).join('');
+      }
+    })();
+  </script>
+  <!-- =================== /AM OKRs 2026 =================== -->
+  </div><!-- /tab-okrs -->
 
   <!-- ============ TAB: GOVERNANCE / RACI ============ -->
   <div class="tabpanel" id="tab-raci">
@@ -874,7 +1447,7 @@
   <div class="tabpanel" id="tab-roadmap">
     <div class="mini-hero">
       <h2>AM Operating-System Roadmap</h2>
-      <p>Phase 1–5 · v2.0 status pass (1 Jun 2026). Manual finalised, Command Centre live, Cheska's pull live.</p>
+      <p>Phase 1–5 · v2.0 status pass (1 Jun 2026). Manual finalised, Control Centre live, Cheska's pull live.</p>
     </div>
     <div id="rm-list"></div>
     <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Memory-based status pass — items tagged "verify" not yet re-checked in Asana / Drive.</p>
@@ -918,7 +1491,7 @@ const SITES = [
       "foodVar": "+2.0%"
     },
     "issues": [
-      "Sales -21.19% vs target (-£5,618 (-21.19%)), w/e 31 May.",
+      "BOH 3 Jun: M1 layout audit post-20 Jun (Mateusz); sharing JFC orders w/ M3 to push spend 29→22%; ventilation install pricing.", "Sales -21.19% vs target (-£5,618 (-21.19%)), w/e 31 May.",
       "WOW: covers -53 (-7.14%), SPH +£1.00 (+5.08%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.11% — above 21% target."
@@ -944,7 +1517,7 @@ const SITES = [
       "foodVar": "-4.6%"
     },
     "issues": [
-      "Sales +9.20% vs target (+£3,190 (+9.20%)), w/e 31 May.",
+      "BOH 3 Jun: food cost spike from JFC double-ordering error; team addressing; sharing orders w/ M1.", "Sales +9.20% vs target (+£3,190 (+9.20%)), w/e 31 May.",
       "WOW: covers +89 (+7.71%), SPH +£0.19 (+0.85%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.49% — above 21% target.",
@@ -997,7 +1570,7 @@ const SITES = [
       "foodVar": "+4.8%"
     },
     "issues": [
-      "Sales +11.02% vs target (+£6,432 (+11.02%)), w/e 31 May.",
+      "BOH 3 Jun: +4 hrs/day kitchen approved; wage % inflated by wrong site allocation (being corrected); 19% spend last wk — best in estate.", "Sales +11.02% vs target (+£6,432 (+11.02%)), w/e 31 May.",
       "WOW: covers +244 (+9.32%), SPH +£0.00 (0.00%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Weekly ★ avg 4.33 below 4.7 OKR.",
@@ -1024,7 +1597,7 @@ const SITES = [
       "foodVar": "+4.4%"
     },
     "issues": [
-      "Sales +8.43% vs target (+£3,689 (+8.43%)), w/e 31 May.",
+      "BOH 3 Jun: added Mon/Tue lunch labour, still <22%; 1★ no-comment review — Scott emailed customer.", "Sales +8.43% vs target (+£3,689 (+8.43%)), w/e 31 May.",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.12% — well over 21% target.",
       "Weekly ★ avg 4.62 below 4.7 OKR.",
@@ -1052,7 +1625,7 @@ const SITES = [
       "foodVar": "-0.4%"
     },
     "issues": [
-      "Sales +8.72% vs target (+£5,883 (+8.72%)), w/e 31 May.",
+      "BOH 3 Jun: performing well, positive reviews (Artur).", "Sales +8.72% vs target (+£5,883 (+8.72%)), w/e 31 May.",
       "WOW: covers +464 (+19.64%), SPH +£0.00.",
       "Operational F/R (food) 19.48% vs 23% target.",
       "GM focus: Maintain all KPI metrics."
@@ -1078,7 +1651,7 @@ const SITES = [
       "foodVar": "+4.8%"
     },
     "issues": [
-      "Sales -6.56% vs target (-£2,320 (-6.56%)), w/e 31 May.",
+      "BOH 3 Jun: stock/spend clean, no issues (Artur).", "Sales -6.56% vs target (-£2,320 (-6.56%)), w/e 31 May.",
       "WOW: covers +70 (+6.11%), SPH -£1.43 (-6.14%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.41% — above 21% target.",
@@ -1114,7 +1687,7 @@ const SITES = [
     ],
     "actions": [
       "Tighten rota to pull wage toward 21%.",
-      "World Cup cocktails/mocktails to lift sales; regional upselling comp (+1.00–1.50 SPH); B2B leads (Hilife, Glassworks); monthly Google review hit on low volume."
+      "World Cup cocktails/mocktails to lift sales; regional upselling comp (+£1.00–1.50 SPH); B2B leads (Hilife, Glassworks); monthly Google review hit on low volume."
     ]
   },
   {
@@ -1134,7 +1707,7 @@ const SITES = [
       "foodVar": "+4.5%"
     },
     "issues": [
-      "Sales -0.01% vs target (-£7 (-0.01%)), w/e 31 May.",
+      "BOH 3 Jun: wage 22.5% well-managed; broken fridge to be replaced by spare from M15.", "Sales -0.01% vs target (-£7 (-0.01%)), w/e 31 May.",
       "WOW: covers +313 (+32.67%), SPH -£1.20 (-5.16%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.55% — above 21% target.",
@@ -1161,7 +1734,7 @@ const SITES = [
       "foodVar": "-4.3%"
     },
     "issues": [
-      "Sales -15.68% vs target (-£7,559 (-15.68%)), w/e 31 May.",
+      "BOH 3 Jun: performing well, costs manageable.", "Sales -15.68% vs target (-£7,559 (-15.68%)), w/e 31 May.",
       "WOW: covers +104 (+7.13%), SPH +£0.37 (+1.58%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.41% — above 21% target.",
@@ -1188,7 +1761,7 @@ const SITES = [
       "foodVar": "+9.0%"
     },
     "issues": [
-      "Sales -24.52% vs target (-£13,979 (-24.52%)), w/e 31 May.",
+      "BOH 3 Jun: 21% spend, stable (Artur).", "Sales -24.52% vs target (-£13,979 (-24.52%)), w/e 31 May.",
       "WOW: covers +591 (+44.03%), SPH -£1.01 (-4.47%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Food variance +9.0% — outside ±5%.",
@@ -1217,7 +1790,7 @@ const SITES = [
       "foodVar": "+0.4%"
     },
     "issues": [
-      "Sales -2.40% vs target (-£1,461 (-2.40%)), w/e 31 May.",
+      "BOH 3 Jun: spare fridge transferring to M12.", "Sales -2.40% vs target (-£1,461 (-2.40%)), w/e 31 May.",
       "WOW: covers +677 (+34.51%), SPH -£0.66 (+2.90%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.96% — above 21% target."
@@ -1243,7 +1816,7 @@ const SITES = [
       "foodVar": "+2.1%"
     },
     "issues": [
-      "Sales -25.58% vs target (-£12,331 (-25.58%)), w/e 31 May.",
+      "BOH 3 Jun: kitchen strong but FOH→pass delay (food prepared, not picked up); CCTV + FOH/BOH ratio review (Sophie).", "Sales -25.58% vs target (-£12,331 (-25.58%)), w/e 31 May.",
       "WOW: covers +85 (+6.19%), SPH -£0.24 (-1.06%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.30% — well over 21% target.",
@@ -1272,7 +1845,7 @@ const SITES = [
       "foodVar": "+3.7%"
     },
     "issues": [
-      "Sales +8.34% vs target (+£3,170 (+8.34%)), w/e 31 May.",
+      "BOH 3 Jun: sushi manager vacant (decision Fri), cross-training to cover; delivery issues continuing.", "Sales +8.34% vs target (+£3,170 (+8.34%)), w/e 31 May.",
       "WOW: covers +598 (+52.78%), SPH -£0.81 (-3.47%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "GM focus: Stabilise sushi section with staff."
@@ -1298,7 +1871,7 @@ const SITES = [
       "foodVar": "+4.6%"
     },
     "issues": [
-      "Sales -50.30% vs target (-£37,722 (-50.30%)), w/e 31 May.",
+      "BOH 3 Jun: food variance spike — Sophie investigating; hours cut, sushi chef covering bar; Victoria transferring to Nori next wk.", "Sales -50.30% vs target (-£37,722 (-50.30%)), w/e 31 May.",
       "WOW: covers +294 (+21.79%), SPH +£0.86 (-7.07%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 25.60% — well over 21% target."
@@ -1326,12 +1899,12 @@ const SITES = [
       "foodVar": "+3.7%"
     },
     "issues": [
-      "Sales +47.94% vs target (+£10,307 (+47.94%)), w/e 31 May.",
+      "BOH 3 Jun: system not yet complete — wage data not pulling, food cost showing 100% (no revenue recorded); Victoria incoming from Soho next wk; Teddy wants candidates seen in person.", "Sales +47.94% vs target (+£10,307 (+47.94%)), w/e 31 May.",
       "WOW: covers +62 (+8.69%), SPH +£1.09 (+2.72%).",
       "Operational F/R (food cost %) not filled in this week’s report."
     ],
     "actions": [
-      "New site added to the Command Centre this week. No 4-week trend or review feed yet."
+      "New site added to the Control Centre this week. No 4-week trend or review feed yet."
     ]
   },
   {
@@ -1381,7 +1954,7 @@ const THEMES = [
     "severity": "critical",
     "icon": "⌖",
     "title": "M18 Soho deep-red again",
-    "body": "Sales -50.3% vs target on +37.7k miss; wage 25.6%. Fifth deep-red week — escalate the recovery plan with Lincoln.",
+    "body": "Sales -50.3% vs target on +£37.7k miss; wage 25.6%. Fifth deep-red week — escalate the recovery plan with Lincoln.",
     "sites": [
       "M18"
     ]
@@ -1404,7 +1977,7 @@ const THEMES = [
     "severity": "good",
     "icon": "✦",
     "title": "Maki Nori (M19) added — strong start",
-    "body": "M19 Maki Nori joins the Command Centre at +47.9% vs target (+£10.3k), covers +8.7% WOW. No 4-week trend, wage or review feed wired in yet.",
+    "body": "M19 Maki Nori joins the Control Centre at +47.9% vs target (+£10.3k), covers +8.7% WOW. No 4-week trend, wage or review feed wired in yet.",
     "sites": [
       "M19"
     ]
@@ -1447,7 +2020,7 @@ const HOT_ACTIONS = [
   {
     "priority": "P0",
     "owner": "Lincoln",
-    "text": "M18 Soho 5th deep-red week (sales -50.3% / +37.7k miss). Sign off / refresh the recovery plan.",
+    "text": "M18 Soho 5th deep-red week (sales -50.3% / +£37.7k miss). Sign off / refresh the recovery plan.",
     "due": "Before red-light review"
   },
   {
@@ -2114,20 +2687,20 @@ function weeklyRatingRag(wr) {
 }
 
 // Site Efficiency Score — weighted 5-component score, 0–100 nominal (100 = at target)
-// Components: Sales 30% (% +  gap blend), Food cost 25%, Wage 20%, Weekly ★ 20%, Food variance 5% (±5% green band). Lifetime ★ shown for info only — NOT in score.
+// Components: Sales 30% (% + £ gap blend), Food cost 25%, Wage 20%, Weekly ★ 20%, Food variance 5% (±5% green band). Lifetime ★ shown for info only — NOT in score.
 function efficiencyScore(s) {
   const m = METRICS[s.code] || {};
   const r = REVIEWS[s.code] || {};
   const wr = weeklyRating(r);
-  // Parse  gap from kpis.vsTarget string, e.g. '-6,416 (-24.21%)' -> -6416
+  // Parse £ gap from kpis.vsTarget string, e.g. '-£6,416 (-24.21%)' -> -6416
   let gbpGap = 0;
   if (s.kpis && s.kpis.vsTarget) {
-    const mt = s.kpis.vsTarget.match(/([+\-]?)\s*\s*([\d,]+)/);
+    const mt = s.kpis.vsTarget.match(/([+\-]?)\s*£\s*([\d,]+)/);
     if (mt) gbpGap = (mt[1] === '-' ? -1 : 1) * parseInt(mt[2].replace(/,/g, ''), 10);
   }
-  const groupMaxGap = 50000; // calibration: -50k = 0, +50k = 200 on -component
+  const groupMaxGap = 50000; // calibration: -£50k = 0, +£50k = 200 on £-component
   const parts = [];
-  // Sales 30% — blend 70% % vs target, 30%  gap (big sites carry more weight in the league)
+  // Sales 30% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
   if (s.vsTarget != null) {
     const pctPart = Math.max(0, Math.min(100, 100 + s.vsTarget));
     const gbpPart = Math.max(0, Math.min(100, 100 + (gbpGap / groupMaxGap) * 100));
@@ -2684,7 +3257,7 @@ function sortRisk(k){ if(riskSort.key===k) riskSort.dir*=-1; else { riskSort.key
 const ROADMAP = [
   ['1','Discovery & Audit','Understand what exists','complete','Complete','File map, gap analysis, KPI list, folder structure, v2 status pass (1 Jun).'],
   ['2','System Design','Lock the operating model','inprogress','In progress','Manual finalised (dependency cleared). RACI + Red Light SOP + Risk Register done. Folders 00–12 pending.'],
-  ['3','Tracker Build','Convert design into live trackers','inprogress','In progress','Command Centre delivers dashboard + Red Light layer. GM Scorecard, store-visit log, Asana rebuild pending.'],
+  ['3','Tracker Build','Convert design into live trackers','inprogress','In progress','Control Centre delivers dashboard + Red Light layer. GM Scorecard, store-visit log, Asana rebuild pending.'],
   ['4','Operating Rhythm','Run weekly without being chased','inprogress','In progress','Wed AM call + live Red Light pull (Cheska) running. Agenda/decision-log templates pending.'],
   ['5','Optimisation','Use data to improve, not just measure','pending','Not started','Per-site improvement plans. Begins once Phases 2–4 live.']
 ];
