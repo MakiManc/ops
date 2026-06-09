@@ -136,6 +136,73 @@
     .maki-brand-kanji { display: none; }
   }
 
+  /* ============ WEEK TOGGLE BAR ============ */
+  .week-toggle-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .week-toggle-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-right: 4px;
+  }
+  .week-chip {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .week-chip:hover { border-color: var(--maki-orange-ring); color: var(--ink); }
+  .week-chip.active {
+    background: var(--maki-orange);
+    border-color: var(--maki-orange);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(233,78,27,.25);
+  }
+  .week-past-badge {
+    display: inline-block;
+    margin-left: 10px;
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid var(--amber-ring);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    vertical-align: middle;
+  }
+  .frozen-caption {
+    display: block;
+    color: var(--ink-3);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin: 4px 0 8px;
+  }
+  .wow-dim { opacity: 0.45; filter: grayscale(.3); }
+  @media (max-width: 720px) {
+    .week-toggle-bar { padding: 8px 16px; gap: 6px; }
+    .week-chip { padding: 5px 10px; font-size: 11px; }
+  }
+
   /* HERO */
   .hero {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%);
@@ -789,6 +856,14 @@
   <span class="maki-brand-kanji" aria-hidden="true">寿司とラーメン</span>
   <span class="maki-brand-chip" id="maki-brand-chip">v1.0 &middot; AM</span>
 </header>
+<div class="week-toggle-bar" role="tablist" aria-label="Week selector">
+  <span class="week-toggle-label">Week:</span>
+  <button class="week-chip" data-week="2026-05-10" type="button">4–10 May 2026</button>
+  <button class="week-chip" data-week="2026-05-17" type="button">11–17 May 2026</button>
+  <button class="week-chip" data-week="2026-05-24" type="button">18–24 May 2026</button>
+  <button class="week-chip active" data-week="2026-05-25" type="button">25–31 May 2026</button>
+  <span id="week-past-badge" class="week-past-badge" style="display:none;">Past week</span>
+</div>
 <div class="wrap">
   <nav class="tabbar">
     <button class="tabbtn active" data-tab="week">This Week</button>
@@ -807,7 +882,7 @@
   <div class="hero">
     <div class="hero-inner">
       <div class="eyebrow">AM Weekly Control Centre</div>
-      <h1>Week of 25–31 May 2026</h1>
+      <h1 id="hero-week-h1">Week of 25–31 May 2026</h1>
       <div class="hero-sub">17 site KPI Report docs · 3 clusters · Sourced from the weekly KPI Report folder · refreshed 2 Jun 2026</div>
       <div class="hero-stats">
         <div class="stat"><div class="stat-num">17</div><div class="stat-label">Sites Reporting</div></div>
@@ -826,6 +901,7 @@
       <div class="section-sub">Biggest WoW shifts in covers and SPH, w/e 31 May vs w/e 24 May (source: kpis.covers, kpis.sph in SITES)</div>
     </div>
   </div>
+  <span class="frozen-caption freeze-target" data-freeze="wow" style="display:none;">Frozen — weekly archive starts 2026-06-12. Showing current week.</span>
   <div class="wow-grid" id="wow-grid">
     <div class="wow-col">
       <div class="wow-col-head">Covers WoW</div>
@@ -906,10 +982,14 @@
         el.innerHTML = '<div class="wow-section-label">' + label + '</div>'
           + rows.map(function(r){ return rowHTML(r, arrow); }).join('');
       }
-      paint('wow-covers-up',   'Top risers',  rank('covers','up'),   '▲');
-      paint('wow-covers-down', 'Top fallers', rank('covers','down'), '▼');
-      paint('wow-sph-up',      'Top risers',  rank('sph','up'),      '▲');
-      paint('wow-sph-down',    'Top fallers', rank('sph','down'),    '▼');
+      function paintAll(){
+        paint('wow-covers-up',   'Top risers',  rank('covers','up'),   '▲');
+        paint('wow-covers-down', 'Top fallers', rank('covers','down'), '▼');
+        paint('wow-sph-up',      'Top risers',  rank('sph','up'),      '▲');
+        paint('wow-sph-down',    'Top fallers', rank('sph','down'),    '▼');
+      }
+      paintAll();
+      document.addEventListener('week-changed', paintAll);
     });
   </script>
 
@@ -918,6 +998,7 @@
     <div>
       <h2>Site Performance Heat Map</h2>
       <div class="hint">Toggle which KPI colours the tiles. Click any site for full detail.</div>
+      <span class="frozen-caption freeze-target" data-freeze="heatmap" style="display:none;">Food cost, food variance, ratings frozen — weekly archive starts 2026-06-12. Showing current week.</span>
     </div>
   </div>
 
@@ -950,6 +1031,7 @@
     <div>
       <h2>Site League Table — Efficiency Score</h2>
             <div class="hint">Weighted 5-component score (Sales 30%, Food 25%, Wage 20%, Weekly ★ 20%, Food Var 5%). 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
+      <span class="frozen-caption freeze-target" data-freeze="scorecard" style="display:none;">Food, Food Var, Wk★ and Lifetime ★ frozen — weekly archive starts 2026-06-12. Showing current week.</span>
     </div>
   </div>
 
@@ -965,16 +1047,22 @@
 
   <!-- THEMES -->
   <div class="section-head">
-    <h2>Cross-Cluster Themes</h2>
-    <div class="hint">Patterns the AM layer needs to act on this week</div>
+    <div>
+      <h2>Cross-Cluster Themes</h2>
+      <div class="hint">Patterns the AM layer needs to act on this week</div>
+      <span class="frozen-caption freeze-target" data-freeze="themes" style="display:none;">Frozen — weekly archive starts 2026-06-12. Showing current week.</span>
+    </div>
   </div>
 
   <div class="themes" id="themes"></div>
 
   <!-- HOT ACTIONS -->
   <div class="section-head">
-    <h2>This Week's Hot Actions</h2>
-    <div class="hint">High-priority items pulled from the reports</div>
+    <div>
+      <h2>This Week's Hot Actions</h2>
+      <div class="hint">High-priority items pulled from the reports</div>
+      <span class="frozen-caption freeze-target" data-freeze="hotactions" style="display:none;">Issues / Actions narrative frozen — weekly archive starts 2026-06-12. Showing current week.</span>
+    </div>
   </div>
 
   <div id="hot-actions"></div>
@@ -1235,6 +1323,7 @@
         <div class="am-okr-eyebrow">North Star</div>
         <h2>Area Management OKRs 2026</h2>
         <div class="am-okr-sub">Group-level KRs across AMO1 / AMO2 / AMO4 · Regional split: SC · NE · SE</div>
+        <span class="frozen-caption freeze-target" data-freeze="okr" style="display:none;">Frozen — weekly archive starts 2026-06-12. Showing current week.</span>
       </div>
       <div class="am-okr-meta">
         <span class="am-okr-caption" id="am-okr-caption">data through May 2026</span>
@@ -3303,6 +3392,134 @@ function renderGmScore(){
   document.getElementById('gm-table').innerHTML = head + body;
 }
 renderGmScore();
+
+// ===================== WEEK TOGGLE =====================
+// Swap sales% vs target + wage% across the dashboard when a past week is selected.
+// Food, reviews, narrative and OKRs are frozen (no weekly history yet).
+(function setupWeekToggle(){
+  const WEEK_KEYS   = ['2026-05-10','2026-05-17','2026-05-24','2026-05-25'];
+  const WEEK_LABELS = {
+    '2026-05-10': { h1: 'Week of 4–10 May 2026',  title: '4–10 May 2026' },
+    '2026-05-17': { h1: 'Week of 11–17 May 2026', title: '11–17 May 2026' },
+    '2026-05-24': { h1: 'Week of 18–24 May 2026', title: '18–24 May 2026' },
+    '2026-05-25': { h1: 'Week of 25–31 May 2026', title: '25–31 May 2026' }
+  };
+  const CURRENT_KEY = '2026-05-25';
+  let currentWeekKey = CURRENT_KEY;
+
+  // Snapshot live values so we can restore when returning to current week.
+  const LIVE_SITES = SITES.map(s => ({
+    code: s.code,
+    vsTarget: s.vsTarget,
+    kpisVsTarget: s.kpis && s.kpis.vsTarget
+  }));
+  const LIVE_METRICS = {};
+  Object.keys(METRICS).forEach(k => { LIVE_METRICS[k] = { wage: METRICS[k].wage }; });
+
+  function applyWeek(weekKey){
+    const idx = WEEK_KEYS.indexOf(weekKey);
+    if (idx < 0) return;
+    const isCurrent = weekKey === CURRENT_KEY;
+
+    SITES.forEach(s => {
+      const live = LIVE_SITES.find(x => x.code === s.code);
+      const hist = HISTORY[s.code];
+      if (isCurrent || !hist) {
+        // Restore live snapshot (or keep as-is when no history for site, e.g. M4/M5)
+        if (live) {
+          s.vsTarget = live.vsTarget;
+          if (s.kpis) s.kpis.vsTarget = live.kpisVsTarget;
+        }
+      } else {
+        const v = hist.sales ? hist.sales[idx] : null;
+        if (v != null) {
+          s.vsTarget = v;
+          // Keep s.kpis.vsTarget readable for WoW grid parsing — only the % matters there.
+          if (s.kpis) s.kpis.vsTarget = (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+        }
+      }
+    });
+
+    Object.keys(METRICS).forEach(code => {
+      const hist = HISTORY[code];
+      const liveM = LIVE_METRICS[code];
+      if (isCurrent || !hist || !hist.wage) {
+        if (liveM) METRICS[code].wage = liveM.wage;
+      } else {
+        const w = hist.wage[idx];
+        if (w != null) METRICS[code].wage = w;
+        else if (liveM) METRICS[code].wage = liveM.wage;
+      }
+    });
+
+    // Update header / title
+    const h1 = document.getElementById('hero-week-h1');
+    if (h1) h1.textContent = WEEK_LABELS[weekKey].h1;
+    document.title = 'AM Weekly Control Centre · ' + WEEK_LABELS[weekKey].title;
+
+    // Re-render the dashboard surfaces that consume the swapped data
+    try { if (typeof renderHeatmap === 'function') renderHeatmap(typeof currentFilter !== 'undefined' ? currentFilter : 'all'); } catch(e){}
+    try { if (typeof renderScorecard === 'function') renderScorecard(); } catch(e){}
+    try { if (typeof renderClusters  === 'function') renderClusters(); } catch(e){}
+    try { if (typeof renderRedLight  === 'function') renderRedLight(); } catch(e){}
+
+    // Update header stats (red/amber/green/issues)
+    try {
+      const stats = SITES.reduce((acc, s) => {
+        if (s.rag === 'deep-red' || s.vsTarget < -25) acc.red++;
+        else if (s.vsTarget < 0) acc.amber++;
+        else acc.green++;
+        acc.issues += (s.issues || []).length;
+        return acc;
+      }, { red:0, amber:0, green:0, issues:0 });
+      const elR = document.getElementById('stat-red');     if (elR) elR.textContent = stats.red;
+      const elA = document.getElementById('stat-amber');   if (elA) elA.textContent = stats.amber;
+      const elG = document.getElementById('stat-green');   if (elG) elG.textContent = stats.green;
+      const elI = document.getElementById('stat-issues');  if (elI) elI.textContent = stats.issues;
+    } catch(e){}
+
+    // WoW grid: when viewing week N, compare N vs N-1 (else current vs prior live SPH/covers parsed from kpis).
+    // Past-week WoW is dimmed because covers / SPH are not in HISTORY — sales% in kpis.vsTarget has been swapped,
+    // so the sales-vs-target rank still works against the selected week, but covers/SPH stay live.
+    const wowGrid = document.getElementById('wow-grid');
+    if (wowGrid) {
+      if (isCurrent) wowGrid.classList.remove('wow-dim');
+      else wowGrid.classList.add('wow-dim');
+    }
+
+    // Past-week badge in the brand header
+    const badge = document.getElementById('week-past-badge');
+    if (badge) badge.style.display = isCurrent ? 'none' : 'inline-block';
+
+    // Freeze captions: show on past weeks only
+    document.querySelectorAll('.freeze-target').forEach(el => {
+      el.style.display = isCurrent ? 'none' : 'block';
+    });
+
+    // Update active chip
+    document.querySelectorAll('.week-chip').forEach(b => {
+      b.classList.toggle('active', b.dataset.week === weekKey);
+    });
+
+    currentWeekKey = weekKey;
+    window.currentWeekKey = weekKey;
+  }
+
+  document.querySelectorAll('.week-chip').forEach(btn => {
+    btn.addEventListener('click', function(){
+      applyWeek(this.dataset.week);
+      // Re-fire the WoW grid's DOMContentLoaded paint by re-dispatching its dependency:
+      // its painter reads SITES.kpis directly — re-run by calling its paint helpers if exposed.
+      // Simpler: rebuild WoW columns from the inline script by triggering a fresh paint event.
+      const ev = new Event('week-changed');
+      document.dispatchEvent(ev);
+    });
+  });
+
+  // Expose for debugging / external use
+  window.applyWeek = applyWeek;
+  window.currentWeekKey = currentWeekKey;
+})();
 </script>
 </body>
 </html>
