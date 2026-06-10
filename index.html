@@ -1089,7 +1089,9 @@
       <h2>Red Light System</h2>
       <p>48-hour protocol · live red &amp; amber sites · closure log. Source of truth = Cheska's weekly pull (AM Manual §6).</p>
     </div>
-    <div class="section-head"><h2>Currently flagged</h2><div class="hint">From this week's pull — click a site for detail</div></div>
+    <div class="section-head"><h2>Deliveroo RAG — w/c 01/06 (PROVISIONAL)</h2><div class="hint">Derived from the raw Deliveroo ops report using Cheska's thresholds; official compile pending</div></div>
+    <div id="rl-deliveroo"></div>
+    <div class="section-head"><h2>Currently flagged — official pull w/c 25/05 (prior week)</h2><div class="hint">Last official Cheska pull — click a site for detail</div></div>
     <div class="heatmap" id="rl-sites"></div>
     <div class="section-head"><h2>The 48-hour protocol</h2><div class="hint">Every red site walks these seven stages</div></div>
     <div class="stepper" id="rl-stepper"></div>
@@ -2085,7 +2087,7 @@ const THEMES = [
     "severity": "warn",
     "icon": "ℹ",
     "title": "BH base-week effect in covers WoW",
-    "body": "W22 base week included BH Monday 25/05 — covers WoW drops at M17/M9/M12/M10/M11 are largely base effect. Red-light pull for w/c 01/06 pending (Cheska).",
+    "body": "W22 base week included BH Monday 25/05 — covers WoW drops at M17/M9/M12/M10/M11 are largely base effect. Deliveroo RAG w/c 01/06 shown provisional (derived from raw report); Cheska's official compile pending.",
     "sites": [
       "M9",
       "M10",
@@ -2223,25 +2225,26 @@ const HOT_ACTIONS = [
 // food = actual food cost % of revenue (target ≤25%)
 // foodVar = stocktake variance % vs expected (target ±5%; closer to 0 = better)
 // Sources: per-site KPI Sheets (primary), Ordering System fallback for food cost, Stocktake Variance Reports for foodVar
-// foodVar w/c 01/06: only M6 + M8 stocktakes received (GM reports) — avg of food + drinks variance; all other sites null/varIncomplete "both" so the score skips them.
+// foodVar w/c 01/06: from the central Stocktake Variance sheet. Complete (food+drinks counted) = avg of the two: M1/2, M3, M6, M7, M8, M12, M13, M15, IKI2.
+// Food-only (drinks count missing — varIncomplete "drinks", foodVar = food value): M9, M10, M11, M14, M16, M17, M18. Maki Nori: no stocktake found — null/"both", score skips it.
 const METRICS = {
-  "M1/2": { wage: 21.26, food: 25.97, foodVar: null, varIncomplete: "both" },
-  "M3": { wage: 21.44, food: 20.22, foodVar: null, varIncomplete: "both" },
-  "M6": { wage: 23.41, food: 25.28, foodVar: -0.95 },
-  "M7": { wage: 21.75, food: 26.33, foodVar: null, varIncomplete: "both" },
+  "M1/2": { wage: 21.26, food: 25.97, foodVar: 0.65 },
+  "M3": { wage: 21.44, food: 20.22, foodVar: -0.80 },
+  "M6": { wage: 23.41, food: 25.28, foodVar: 3.75 },
+  "M7": { wage: 21.75, food: 26.33, foodVar: -0.30 },
   "M8": { wage: 23.26, food: 27.50, foodVar: 4.75 },
-  "M9": { wage: 20.02, food: 25.88, foodVar: null, varIncomplete: "both" },
-  "M10": { wage: 22.40, food: 29.41, foodVar: null, varIncomplete: "both" },
-  "M11": { wage: 22.07, food: 18.87, foodVar: null, varIncomplete: "both" },
-  "M12": { wage: 26.67, food: 28.42, foodVar: null, varIncomplete: "both" },
-  "M13": { wage: 22.27, food: 25.08, foodVar: null, varIncomplete: "both" },
-  "M14": { wage: 19.26, food: 21.49, foodVar: null, varIncomplete: "both" },
-  "M15": { wage: 21.00, food: 20.83, foodVar: null, varIncomplete: "both" },
-  "M16": { wage: 22.28, food: 21.49, foodVar: null, varIncomplete: "both" },
-  "M17": { wage: 21.65, food: 23.47, foodVar: null, varIncomplete: "both" },
-  "M18": { wage: 28.10, food: 23.41, foodVar: null, varIncomplete: "both" },
+  "M9": { wage: 20.02, food: 25.88, foodVar: -0.1, varIncomplete: "drinks" },
+  "M10": { wage: 22.40, food: 29.41, foodVar: -2.5, varIncomplete: "drinks" },
+  "M11": { wage: 22.07, food: 18.87, foodVar: 1.7, varIncomplete: "drinks" },
+  "M12": { wage: 26.67, food: 28.42, foodVar: 0.50 },
+  "M13": { wage: 22.27, food: 25.08, foodVar: 2.55 },
+  "M14": { wage: 19.26, food: 21.49, foodVar: 2.8, varIncomplete: "drinks" },
+  "M15": { wage: 21.00, food: 20.83, foodVar: -2.85 },
+  "M16": { wage: 22.28, food: 21.49, foodVar: 4.9, varIncomplete: "drinks" },
+  "M17": { wage: 21.65, food: 23.47, foodVar: 4.7, varIncomplete: "drinks" },
+  "M18": { wage: 28.10, food: 23.41, foodVar: -3.4, varIncomplete: "drinks" },
   "Maki Nori": { wage: 30.85, food: 19.64, foodVar: null, varIncomplete: "both" },
-  "IKI2": { wage: 22.00, food: 23.72, foodVar: null, varIncomplete: "both" }
+  "IKI2": { wage: 22.00, food: 23.72, foodVar: 0.95 }
 };
   // --- REVIEWS (Google reviews) ---
 // rating + total = LIVE from Google Maps (pulled 29 May 2026)
@@ -3482,7 +3485,61 @@ function renderRoadmap(){
     </div>`).join('');
 }
 
+// ---------- DELIVEROO RAG — w/c 01/06 (PROVISIONAL) ----------
+/* Derived from the raw Deliveroo ops report using Cheska's thresholds; official compile pending.
+   INFORMATIONAL ONLY — does not drive any site's stored rag / deep-red field or the M18 Red Light
+   protocol status. Status decisions stay with Lincoln/Cheska. Weekly refresh: replace this object. */
+const DELIVEROO_RAG = {
+  "week": "w/c 01/06",
+  "label": "PROVISIONAL — derived from raw Deliveroo ops report using Cheska's thresholds; official compile pending",
+  "red": [
+    { "code": "M11", "name": "Leicester",  "drivers": "rating 4.33 · missing 2.0% · prep 16.3" },
+    { "code": "M12", "name": "Newcastle",  "drivers": "open 97.1% · missing 2.8%" },
+    { "code": "M10", "name": "Leeds",      "drivers": "rating 4.36 · missing 2.0%" },
+    { "code": "MAF3","name": "O2",         "drivers": "rating 4.20 · wait 17.2% · missing 3.4% · open 96.0%" }
+  ],
+  "amber": [
+    { "code": "M13", "name": "Aberdeen",      "drivers": "rating 4.00" },
+    { "code": "M17", "name": "Lakeside",      "drivers": "rating 4.00 · wait 5.4%" },
+    { "code": "M18", "name": "Soho",          "drivers": "missing 5.5% · rating 4.17" },
+    { "code": "M14", "name": "Meadowhall",    "drivers": "missing 2.4%" },
+    { "code": "M16", "name": "Nottingham",    "drivers": "missing 2.9%" },
+    { "code": "M15", "name": "Metro",         "drivers": "rating 4.67" },
+    { "code": "M1",  "name": "West Richmond", "drivers": "rating 4.33 · missing 1.9%" },
+    { "code": "M8",  "name": "Renfield",      "drivers": "open 98.7%" },
+    { "code": "M2",  "name": "Leith St",      "drivers": "rating 4.67" },
+    { "code": "MAF1","name": "West End",      "drivers": "missing 1.1%" },
+    { "code": "NQ",  "name": "Maki Northern Quarter", "drivers": "missing 3.8% · rating 4.20" }
+  ],
+  "green": [
+    { "code": "M9", "name": "Manchester",     "drivers": "4.97★ — recovery from red" },
+    { "code": "M3", "name": "Fountainbridge", "drivers": "4.90★ — recovery from red" },
+    { "code": "M6", "name": "Bath St",        "drivers": "5.00★" }
+  ],
+  "movement": "vs w/c 25/05 official: Manchester, Fountainbridge, Leeds, Leicester, Lakeside, Aberdeen, Nottingham & NQ were RED. Manchester & Fountainbridge now green; Lakeside, Aberdeen, Nottingham & NQ now amber; O2 & Newcastle worsened to red."
+};
+
+function renderDeliverooRag(){
+  const host = document.getElementById('rl-deliveroo');
+  if (!host) return;
+  const tile = (s, cls, badge) => `<div class="tile ${cls}">
+    <div class="tile-issues-badge">${badge}</div>
+    <div><div class="tile-code">${s.code}</div><div class="tile-name">${s.name}</div></div>
+    <div><div class="tile-meta">${s.drivers}</div></div></div>`;
+  host.innerHTML = `
+    <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
+      ⚠ Deliveroo RAG — ${DELIVEROO_RAG.week} (${DELIVEROO_RAG.label}). Informational only — site rag / Red Light status decisions stay with Lincoln/Cheska.
+    </div>
+    <div class="heatmap" style="margin-bottom:12px;">
+      ${DELIVEROO_RAG.red.map(s => tile(s,'red','RED')).join('')}
+      ${DELIVEROO_RAG.amber.map(s => tile(s,'amber','AMBER')).join('')}
+      ${DELIVEROO_RAG.green.map(s => tile(s,'green','GREEN')).join('')}
+    </div>
+    <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;"><strong>Movement:</strong> ${DELIVEROO_RAG.movement}</div>`;
+}
+
 renderRedLight();
+renderDeliverooRag();
 renderRaci();
 renderRisk();
 renderRoadmap();
@@ -3672,7 +3729,10 @@ const MEETING_RISK = {
     { "site": "Leicester", "q": "iPad not syncing out-of-stock — orders disputed; fix unowned." },
     { "site": "Cluster-wide", "q": "Red Light protocol steps still undefined — no owner." },
     { "site": "Cluster-wide", "q": "England labour budget calc inconsistency — group standardising, confirm method." },
-    { "site": "Cluster-wide", "q": "Cover-count fluctuations beyond ASPH incentive — what else moves covers?" }
+    { "site": "Cluster-wide", "q": "Cover-count fluctuations beyond ASPH incentive — what else moves covers?" },
+    { "site": "M6 Bath St", "q": "M6 food variance discrepancy — central sheet +4.6% vs GM email −4.8% (drinks matches): reconcile (Cheska)" },
+    { "site": "Cluster-wide", "q": "Drinks stocktake counts missing for M9/M10/M11/M14/M16/M17/M18 — enter in central sheet" },
+    { "site": "Maki Nori", "q": "Maki Nori W23 stocktake entirely missing — chase" }
   ],
   "clusterActions": [
     "ASPH +£1 incentive live — shift-level till tracking from next wk; monthly staff winner; quarterly site cash prize.",
