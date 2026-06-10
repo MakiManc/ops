@@ -1,0 +1,1288 @@
+<!doctype html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Ec Command Centre",
+  "schemaVersion": 1,
+  "description": "EC Control Centre — Maki & Ramen Executive Chef Function. One-stop dashboard: Daily / Weekly / Monthly / League Table / RACI / Risk Register. Auto-refresh via GitHub Actions cron (daily 09:00 GST, weekly Mon/Tue/Wed, monthly on OKR close). Replaces the original food quality/EHO heat-map view with a full operating dashboard for all 16 sites grouped by 3 AM clusters.",
+  "mcpTools": [
+    "mcp__96e3130d-1b02-408f-8f8c-ca750ca4708b__read_file_content",
+    "mcp__96e3130d-1b02-408f-8f8c-ca750ca4708b__get_file_metadata",
+    "mcp__96e3130d-1b02-408f-8f8c-ca750ca4708b__search_files"
+  ],
+  "mcpServerNames": [
+    "Google Drive",
+    "Google Drive",
+    "Google Drive"
+  ]
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EC Control Centre — Maki &amp; Ramen</title>
+<style>
+:root{
+  color-scheme: light;
+  --maki-red:#E8730C; --maki-red-deep:#B5470B;
+  --maki-black:#171717; --maki-ink:#262626; --maki-muted:#6B7280;
+  --maki-cream:#FBF7F0; --maki-paper:#FFFFFF; --maki-line:#E7E1D6; --maki-soft:#F5EEE0;
+  --rag-green:#1F8A4C; --rag-amber:#E2A813; --rag-red:#C2410C; --rag-grey:#9CA3AF;
+  --green-bg:#E5F4EC; --green-ink:#0E5A30;
+  --amber-bg:#FBF1D6; --amber-ink:#7A5A04;
+  --red-bg:#FBE4D5;   --red-ink:#9A3412;
+  --grey-bg:#EEEEF0;  --grey-ink:#4B5563;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -12px rgba(23,23,23,.08);
+  --shadow-lg: 0 12px 32px -10px rgba(23,23,23,.20);
+  --radius: 12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--maki-cream);color:var(--maki-ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:"SF Pro Display","Segoe UI",Roboto,sans-serif;font-weight:600;letter-spacing:-0.01em;color:var(--maki-black);margin:0}
+h1{font-size:22px} h2{font-size:17px;margin:24px 0 10px}
+h3{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--maki-red-deep);margin:18px 0 8px}
+a{color:var(--maki-red);text-decoration:none} a:hover{text-decoration:underline}
+.app-header{background:linear-gradient(180deg,#fff 0%,#FCF6EC 100%);border-bottom:1px solid var(--maki-line);padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:50%;background:var(--maki-red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;letter-spacing:-0.02em;box-shadow:0 2px 8px rgba(232,115,12,.30);font-family:"SF Pro Display",sans-serif}
+.logo span{display:block;line-height:1;text-align:center}
+.brand-text h1{font-size:18px}
+.brand-text .sub{font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.12em}
+.header-controls{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.control{background:#fff;border:1px solid var(--maki-line);border-radius:8px;padding:7px 10px;font-size:12.5px;color:var(--maki-ink);display:inline-flex;align-items:center;gap:6px;font-family:inherit;cursor:pointer}
+.control:hover{border-color:#d8cdb8}
+.control select{border:none;background:transparent;font:inherit;color:inherit;outline:none}
+.live-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid var(--maki-line);font-size:11.5px;color:var(--maki-muted)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--rag-green);box-shadow:0 0 0 3px rgba(31,138,76,.18)}
+.live-dot.stale{background:var(--rag-amber)} .live-dot.offline{background:var(--rag-grey)}
+.refresh-btn{cursor:pointer;background:none;border:none;color:var(--maki-muted);font-size:14px;padding:4px}
+.refresh-btn:hover{color:var(--maki-red)}
+.tabs{background:#fff;border-bottom:1px solid var(--maki-line);padding:0 22px;display:flex;gap:2px;overflow-x:auto}
+.tab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--maki-muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit;white-space:nowrap}
+.tab:hover{color:var(--maki-ink)}
+.tab.active{color:var(--maki-red-deep);border-bottom-color:var(--maki-red);font-weight:600}
+main{padding:18px 22px 80px;max-width:1400px;margin:0 auto}
+.tab-section{display:none}
+.tab-section.active{display:block;animation:fade .2s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hero{background:linear-gradient(135deg,#B5470B 0%,#E8730C 55%,#D9620A 100%);border-radius:18px;color:#fff;padding:22px 26px;margin:4px 0 16px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.07)}
+.hero .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.78);font-weight:600}
+.hero h2{color:#fff;font-size:24px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}
+.hero .hero-sub{color:rgba(255,255,255,.88);font-size:12.5px;max-width:800px}
+.hero-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.hstat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.20);border-radius:12px;padding:10px 16px;min-width:84px}
+.hstat .n{font-size:26px;font-weight:700;font-family:"SF Pro Display",sans-serif;line-height:1}
+.hstat .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.85);margin-top:3px}
+.hstat.red .n{color:#FFE0CE} .hstat.amber .n{color:#FCE9B8} .hstat.green .n{color:#C7F0D8} .hstat.grey .n{color:#E8EAEE}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin:6px 0 14px}
+.chip{background:#fff;border:1px solid var(--maki-line);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--maki-ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.chip:hover{border-color:#d8cdb8}
+.chip.active{background:var(--maki-black);color:#fff;border-color:var(--maki-black)}
+.chip-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip-dot.green{background:var(--rag-green)} .chip-dot.amber{background:var(--rag-amber)} .chip-dot.red{background:var(--rag-red)} .chip-dot.grey{background:var(--rag-grey)}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+.kpi-card{background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--maki-red)}
+.kpi-card.amber::before{background:var(--rag-amber)} .kpi-card.green::before{background:var(--rag-green)} .kpi-card.red::before{background:var(--rag-red)} .kpi-card.muted::before{background:var(--rag-grey)}
+.kpi-label{font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.kpi-value{font-size:28px;font-weight:700;color:var(--maki-black);margin-top:4px;font-family:"SF Pro Display",sans-serif;letter-spacing:-0.02em}
+.kpi-sub{font-size:12px;color:var(--maki-muted);margin-top:2px}
+.kpi-trend{font-size:11.5px;margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-weight:500}
+.kpi-trend.up{color:var(--rag-red)} .kpi-trend.down{color:var(--rag-green)} .kpi-trend.flat{color:var(--maki-muted)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);font-size:13px}
+.tbl th{text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--maki-muted);background:var(--maki-soft);padding:10px 12px;border-bottom:1px solid var(--maki-line)}
+.tbl td{padding:10px 12px;border-bottom:1px solid #F4F0E8;vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#FCF7EF}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.tbl .site-code{font-weight:600;font-family:"SF Mono","SF Pro Mono",Menlo,Consolas,monospace;color:var(--maki-black)}
+.tbl .delta{font-size:11px;font-weight:500}
+.tbl .delta.up{color:var(--rag-red)} .tbl .delta.down{color:var(--rag-green)} .tbl .delta.flat{color:var(--maki-muted)}
+.tbl tr.nodata td{color:var(--maki-muted);background:#FCFBF7}
+.rag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.rag-green{background:var(--green-bg);color:var(--green-ink)} .rag-amber{background:var(--amber-bg);color:var(--amber-ink)} .rag-red{background:var(--red-bg);color:var(--red-ink)} .rag-grey{background:var(--grey-bg);color:var(--grey-ink)}
+.rag-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.rag-dot.green{background:var(--rag-green)} .rag-dot.amber{background:var(--rag-amber)} .rag-dot.red{background:var(--rag-red)} .rag-dot.grey{background:var(--rag-grey)}
+.cluster-block{background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.cluster-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.cluster-head h3{margin:0;color:var(--maki-black);text-transform:none;letter-spacing:0;font-size:15px}
+.cluster-meta{font-size:11.5px;color:var(--maki-muted)}
+.cluster-rags{display:inline-flex;gap:5px;align-items:center;margin-left:10px}
+.cluster-rags .mini{font-size:11px;font-weight:700;padding:1px 7px;border-radius:7px}
+.cluster-rags .mini.red{background:var(--red-bg);color:var(--red-ink)} .cluster-rags .mini.amber{background:var(--amber-bg);color:var(--amber-ink)} .cluster-rags .mini.green{background:var(--green-bg);color:var(--green-ink)} .cluster-rags .mini.grey{background:var(--grey-bg);color:var(--grey-ink)}
+.tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(192px,1fr));gap:10px}
+.tile{border-radius:12px;padding:13px 14px;cursor:pointer;position:relative;border:1px solid var(--maki-line);background:#fff;transition:transform .12s, box-shadow .12s;box-shadow:var(--shadow);overflow:hidden}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+.tile.green{background:linear-gradient(180deg,#F4FBF7,#fff)} .tile.green::before{background:var(--rag-green)}
+.tile.amber{background:linear-gradient(180deg,#FEFAEF,#fff)} .tile.amber::before{background:var(--rag-amber)}
+.tile.red{background:linear-gradient(180deg,#FEF3EB,#fff)} .tile.red::before{background:var(--rag-red)}
+.tile.grey{background:linear-gradient(180deg,#FAFAFB,#fff)} .tile.grey::before{background:var(--rag-grey)}
+.tile-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tile-code{font-weight:700;font-family:"SF Mono",Menlo,monospace;font-size:15px;color:var(--maki-black)}
+.tile-badge{font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:7px;text-transform:uppercase}
+.tile-badge.green{background:var(--rag-green);color:#fff} .tile-badge.amber{background:var(--rag-amber);color:#3A2A00} .tile-badge.red{background:var(--rag-red);color:#fff} .tile-badge.grey{background:var(--rag-grey);color:#fff}
+.tile-name{font-size:11px;color:var(--maki-muted);margin:2px 0 9px;line-height:1.3;min-height:14px}
+.tile-headline{display:flex;align-items:baseline;gap:6px}
+.tile-headline .big{font-size:23px;font-weight:700;font-family:"SF Pro Display",sans-serif;letter-spacing:-.02em;color:var(--maki-black);font-variant-numeric:tabular-nums}
+.tile-headline .cap{font-size:10px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.06em}
+.tile-headline .d{font-size:11px;font-weight:600;margin-left:auto}
+.tile-headline .d.up{color:var(--rag-red)} .tile-headline .d.down{color:var(--rag-green)} .tile-headline .d.flat{color:var(--maki-muted)}
+.tile-mini{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(0,0,0,.05)}
+.tile-mini .m{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tile-mini .m .mk{font-size:9.5px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.04em}
+.tile-mini .m .mv{font-size:12px;font-weight:600;color:var(--maki-ink);font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:4px}
+.tile-detail{display:none;margin-top:10px;padding-top:9px;border-top:1px solid rgba(0,0,0,.06);font-size:11.5px;color:var(--maki-ink);line-height:1.45}
+.tile.open .tile-detail{display:block}
+.tile-detail .lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--maki-muted);font-weight:600;margin-top:6px}
+.section-intro{font-size:12.5px;color:var(--maki-muted);margin-bottom:10px;max-width:840px}
+.note{background:#FFF8E1;border-left:3px solid var(--rag-amber);padding:10px 14px;border-radius:6px;font-size:12.5px;color:#5A4400;margin:12px 0}
+.note.red{background:#FCEFE7;border-left-color:var(--rag-red);color:#7A2E0C}
+.note.info{background:#EAF2FB;border-left-color:#2B6CB0;color:#1A365D}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.source-chip{display:inline-flex;align-items:center;gap:4px;background:#F5EEE0;padding:2px 8px;border-radius:6px;font-size:10.5px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+.source-chip::before{content:"📊";font-size:10px} .source-chip.drive::before{content:"📁"} .source-chip.manual::before{content:"✏️"}
+.okr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.okr-card{background:#fff;border:1px solid var(--maki-line);border-left:4px solid var(--rag-grey);border-radius:8px;padding:12px 14px;box-shadow:var(--shadow)}
+.okr-card.green{border-left-color:var(--rag-green)} .okr-card.amber{border-left-color:var(--rag-amber)} .okr-card.red{border-left-color:var(--rag-red)}
+.okr-id{font-weight:700;font-size:13px;color:var(--maki-red-deep);letter-spacing:.04em}
+.okr-title{font-size:12.5px;color:var(--maki-ink);margin:2px 0 6px;font-weight:500}
+.okr-value{font-size:22px;font-weight:700;color:var(--maki-black);font-family:"SF Pro Display",sans-serif}
+.okr-target{font-size:11px;color:var(--maki-muted)} .okr-source{margin-top:6px}
+footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;font-size:11px;color:var(--maki-muted);background:#fff;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.pill-row{display:inline-flex;gap:4px;background:#F5EEE0;padding:3px;border-radius:8px;margin-bottom:12px}
+.pill{padding:6px 12px;font-size:12px;font-weight:500;color:var(--maki-muted);background:none;border:none;border-radius:6px;cursor:pointer;font-family:inherit}
+.pill:hover{color:var(--maki-ink)}
+.pill.active{background:#fff;color:var(--maki-red-deep);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
+.placeholder{border:2px dashed var(--maki-line);border-radius:8px;padding:24px;text-align:center;color:var(--maki-muted);font-size:12.5px;background:#FBF9F4}
+.raci-tbl .role-r{background:#FBE4D5;color:#9A3412;font-weight:700;padding:2px 6px;border-radius:4px;font-size:11px}
+.raci-tbl .role-a{background:#FBF1D6;color:#7A5A04;font-weight:700;padding:2px 6px;border-radius:4px;font-size:11px}
+.raci-tbl .role-c{background:#E0F2FE;color:#0C4A6E;font-weight:600;padding:2px 6px;border-radius:4px;font-size:11px}
+.raci-tbl .role-i{background:#F3F4F6;color:#374151;font-weight:500;padding:2px 6px;border-radius:4px;font-size:11px}
+.risk-score{display:inline-block;width:28px;height:28px;border-radius:6px;line-height:28px;text-align:center;font-weight:700;color:#fff;font-size:12px}
+.risk-score.s25{background:#7A2E0C} .risk-score.s20{background:var(--rag-red)} .risk-score.s15{background:var(--rag-amber);color:#3A2A00} .risk-score.s10{background:#9CA3AF}
+.rank{font-weight:700;font-size:14px;font-family:"SF Pro Display",sans-serif;color:var(--maki-black);width:24px;display:inline-block}
+.rank.gold{color:#B8860B} .rank.silver{color:#737373} .rank.bronze{color:#92400E}
+.gap-note{background:#FDF4EC;border:1px dashed #E8B98C;border-radius:8px;padding:10px 14px;font-size:12px;color:#6E3A12;margin:10px 0}
+.gap-note strong{color:#9A3412}
+.delivery-tile{background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin:6px 0 10px;border-top:3px solid var(--maki-red)}
+.delivery-tile h2{margin:0 0 4px;font-size:16px}
+.delivery-tile .tile-sub{font-size:11.5px;color:var(--maki-muted);margin-bottom:10px}
+.delivery-tile .tile-stats{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 12px;padding:8px 12px;background:#FCF7EF;border-radius:6px}
+.delivery-tile .tile-stat{display:flex;flex-direction:column;font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.06em}
+.delivery-tile .tile-stat strong{font-size:16px;color:var(--maki-black);font-family:"SF Pro Display",sans-serif;letter-spacing:-0.01em;text-transform:none}
+.delivery-tile table.tbl{margin-top:6px}
+.delivery-tile .spark{display:inline-flex;align-items:flex-end;gap:1.5px;height:22px}
+.delivery-tile .spark .bar{width:5px;background:var(--maki-red);opacity:.55;border-radius:1px 1px 0 0}
+.delivery-tile .spark .bar.empty{background:var(--maki-line);opacity:.8;height:2px !important}
+.delivery-tile .spark .bar.latest{opacity:1;background:var(--maki-red-deep)}
+.delivery-tile .venue-name{font-weight:500;color:var(--maki-ink)}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="logo"><span>M&amp;R</span></div>
+    <div class="brand-text">
+      <h1>EC Control Centre</h1>
+      <div class="sub">Maki &amp; Ramen · Executive Chef Function</div>
+    </div>
+  </div>
+  <div class="header-controls">
+    <label class="control"><span style="font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.08em">Week</span><select id="weekPicker"></select></label>
+    <label class="control"><span style="font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.08em">Cluster</span>
+      <select id="clusterFilter">
+        <option value="all">All clusters</option>
+        <option value="scotland_newcastle">Scotland &amp; Newcastle</option>
+        <option value="north_midlands">North England &amp; Midlands</option>
+        <option value="south">South England</option>
+      </select>
+    </label>
+    <span class="live-badge" id="liveBadge"><span class="live-dot offline" id="liveDot"></span><span id="liveText">Snapshot · loading…</span></span>
+    <button class="refresh-btn" id="refreshBtn" title="Refresh data">↻</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="daily">Heat-map</button>
+  <button class="tab" data-tab="weekly">Weekly</button>
+  <button class="tab" data-tab="budget">Budget</button>
+  <button class="tab" data-tab="monthly">Monthly</button>
+  <button class="tab" data-tab="league">League Table</button>
+  <button class="tab" data-tab="raci">RACI</button>
+  <button class="tab" data-tab="risk">Risk Register</button>
+</nav>
+
+<main>
+<section id="tab-daily" class="tab-section active">
+  <div class="hero">
+    <div class="eyebrow">Executive Chef Function · live status</div>
+    <h2 id="heroTitle">Site RAG status</h2>
+    <div class="hero-sub">Weighted composite RAG per site — food cost, wage:revenue, food variance, compliance (pending) and Deliveroo ops. Scrub the Week selector to see history.</div>
+    <div class="hero-stats" id="heroStats"></div>
+  </div>
+  <div id="staleBanner" class="note red" style="display:none"></div>
+  <div class="chips" id="ragChips">
+    <button class="chip active" data-filter="all">All RAG</button>
+    <button class="chip" data-filter="red"><span class="chip-dot red"></span>Red</button>
+    <button class="chip" data-filter="amber"><span class="chip-dot amber"></span>Amber</button>
+    <button class="chip" data-filter="green"><span class="chip-dot green"></span>Green</button>
+    <button class="chip" data-filter="grey"><span class="chip-dot grey"></span>Not filed</button>
+  </div>
+  <div class="kpi-row" id="dailyKpis"></div>
+  <h2 id="heatTitle">Site heat-map</h2>
+  <div id="dailyHeatmap"></div>
+  <div class="section-intro" id="filedNote" style="margin-top:14px"></div>
+  <div class="split" style="margin-top:14px">
+    <div>
+      <h2>Outstanding maintenance</h2>
+      <table class="tbl" id="maintTbl"><thead><tr><th>Site</th><th>Issue</th><th>Solution</th><th>Owner</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div>
+      <h2>Deliveroo · worst (this week)</h2>
+      <table class="tbl" id="deliveryTbl"><thead><tr><th>Site</th><th class="num">★</th><th>Ops RAG</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</section>
+
+<section id="tab-weekly" class="tab-section">
+  <div class="delivery-tile" id="weeklyBudgetTile" style="border-top-color:#B5470B">
+    <h2>Sales vs Budget · w/c 01 Jun 2026</h2>
+    <div class="tile-sub">Per-site target vs actual sales (sit-in / delivery split), covers, average spend, RPH, food cost % and wage:rev % — from the <strong>Soph KPI</strong> weekly sheet (Matthew-owned, refreshed weekly). This is the newest week, one ahead of the 02 Jun BOH cadence below, and uses the reconciled cost basis — which <strong>resolves the held South/Midlands food-cost conflict (R18)</strong>. <span class="source-chip drive">Soph KPI sheet</span></div>
+    <div class="tile-stats" id="weeklyBudgetStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="weeklyBudgetTbl">
+      <thead><tr>
+        <th>Site</th><th>Cluster</th>
+        <th class="num">Target £</th><th class="num">Actual £</th><th class="num">% to budget</th>
+        <th class="num">Sit-in (act/%)</th><th class="num">Delivery (act/%)</th>
+        <th class="num">Covers</th><th class="num">Avg £</th>
+        <th class="num">Food %</th><th class="num">Wage %</th><th class="num">RPH £</th>
+      </tr></thead><tbody></tbody></table></div>
+    <div id="weeklyBudgetNote" style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"></div>
+  </div>
+  <div class="delivery-tile" id="deliverooRagTile" style="border-top-color:#00CCBC">
+    <h2 id="deliverooRagTitle">Deliveroo RAG</h2>
+    <div class="tile-sub">The full Deliveroo performance grid, grouped by region, with every metric carrying the sheet's own RAG threshold. Ops RAG = worst of prep / rider wait / missing / open % (★ shown but excluded). Busy % and Reject % are reference columns (no RAG). Corporate sites only. <span class="source-chip drive">Deliveroo RAG workbook</span></div>
+    <div class="tile-stats" id="deliverooRagStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="deliverooRagTbl">
+      <thead><tr><th>Site</th><th class="num">Prep mins</th><th class="num">Rider wait %</th><th class="num">Missing %</th><th class="num">★ Rating</th><th class="num">Open %</th><th class="num">Busy %</th><th class="num">Reject %</th><th>Ops RAG</th></tr></thead><tbody></tbody></table></div>
+    <div id="deliverooRagNote" style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"></div>
+  </div>
+  <p class="section-intro">Weekly RAG view per site, on the BOH KPI meeting cadence (05/12/19/26 May + 02 Jun). Δ compares the selected week vs the one before. ★ shown for context only — not in the RAG.</p>
+  <table class="tbl" id="weeklyTbl">
+    <thead>
+      <tr>
+        <th>Site</th><th>Cluster</th>
+        <th class="num">Food cost %</th><th class="num">Δ</th>
+        <th class="num">Wage:Rev %</th>
+        <th class="num">Food var %</th>
+        <th>Deliveroo</th>
+        <th class="num">★</th>
+        <th>Compliance</th>
+        <th>RAG</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div style="display:flex;gap:8px;margin:8px 0 0;font-size:11px;color:var(--maki-muted);flex-wrap:wrap">
+    <span class="source-chip drive">BOH KPI meetings</span>
+    <span class="source-chip">Deliveroo perf sheet (★)</span>
+    <span class="source-chip manual">Mapal (compliance — pending)</span>
+  </div>
+  <h2>BOH issues &amp; solutions · latest</h2>
+  <div class="section-intro">Issue → solution → owner, from the most recent BOH meeting. <span class="source-chip drive">BOH KPI folder</span></div>
+  <table class="tbl" id="bohTbl"><thead><tr><th>Site</th><th>Issue</th><th>Solution</th><th>Owner</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section id="tab-budget" class="tab-section">
+  <div class="hero" style="background:linear-gradient(135deg,#0E5A30 0%,#1F8A4C 60%,#27A35C 100%)">
+    <div class="eyebrow">BOH food spend · budget control</div>
+    <h2 id="budgetHeroTitle">Budget burn</h2>
+    <div class="hero-sub">Scrub the slider through the daily ledger (auto-extends each morning from the 07:30 skim). Bars show cumulative week-to-date burn vs the 23% weekly budget and month-to-date vs the interim June cap.</div>
+    <div class="hero-stats" id="budgetHeroStats"></div>
+  </div>
+  <div style="background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Day</span>
+      <input type="range" id="budgetSlider" min="0" max="0" value="0" step="1" style="flex:1;min-width:200px;accent-color:var(--rag-green)">
+      <strong id="budgetSliderLabel" style="font-size:14px;min-width:170px;font-variant-numeric:tabular-nums"></strong>
+    </div>
+  </div>
+  <div style="overflow-x:auto"><table class="tbl" id="budgetBurnTbl">
+    <thead><tr><th>Site</th><th class="num">Spend this day £</th><th class="num">WTD £</th><th class="num">Weekly budget £</th><th style="min-width:130px">Week burn</th><th class="num">MTD £</th><th class="num">June cap £</th><th style="min-width:130px">Month pace</th></tr></thead><tbody></tbody></table></div>
+  <div class="section-intro" style="margin-top:10px">Week burn = recomputed spend Sun→selected day vs 23% weekly budget (red &gt;100% · amber &gt;85%). Month pace compares MTD vs the cap pro-rated to the selected day (red &gt;110% of pace · amber &gt;100%). Recomputed figures count only filed reports — the Mapal form went live 9 Jun, so earlier days show zero.</div>
+  <div class="delivery-tile" id="dailySpendTile" style="border-top-color:#1F8A4C">
+    <h2>Daily Spend Skim · BOH food spend vs budget</h2>
+    <div class="tile-sub">From the Mapal <strong>Head Chef Daily Report</strong> emails, parsed every morning at 07:30. Weekly budget = 23% × Soph KPI sales target; June caps interim at 23% × Mar–May avg revenue. <span class="source-chip manual">Mapal Compliance emails</span></div>
+    <div class="tile-stats" id="dailySpendStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="dailySpendTbl">
+      <thead><tr><th>Site</th><th class="num">Spend (last filed) £</th><th class="num">HC WTD £</th><th class="num">HC left £</th><th class="num">Weekly budget £</th><th class="num">MTD £</th><th class="num">June cap £</th><th>Notes</th></tr></thead><tbody></tbody></table></div>
+    <div id="dailySpendNote" style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"></div>
+  </div>
+</section>
+
+<section id="tab-monthly" class="tab-section">
+  <p class="section-intro">Monthly OKRs and cost tiles. Corporate trading sites only.</p>
+  <div class="delivery-tile" id="mtdFoodCostTile" style="border-top-color:#16A34A">
+    <h2 id="mtdFoodCostTitle">Food Cost · month-to-date</h2>
+    <div class="tile-sub">Total June food cost so far. Headline = <strong>Soph KPI</strong> reported food cost % × actual sales (the adopted single weekly food-cost source), shown <strong>side-by-side</strong> with the <strong>Mona Lisa</strong> goods/delivery invoice ledger as a reconciliation. Per-site table responds to the cluster filter. <span class="source-chip drive">Soph KPI</span> <span class="source-chip">Mona Lisa ledger</span></div>
+    <div class="tile-stats" id="mtdFoodCostStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="mtdFoodCostTbl"><thead><tr><th>Site</th><th>Cluster</th><th class="num">Sales £</th><th class="num">Food cost £</th><th class="num">Food %</th><th>RAG</th></tr></thead><tbody></tbody></table></div>
+    <div id="mtdFoodCostNote" style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"></div>
+  </div>
+  <div class="delivery-tile" id="deliverySpendTile">
+    <h2>Delivery Spend · per venue · monthly</h2>
+    <div class="tile-sub">Gross GBP from delivery invoice ledger (Mona Lisa · gid=279092091). Corporate sites + AAHQ factory; franchises stripped. <span class="source-chip">Delivery ledger</span></div>
+    <div class="tile-stats" id="deliverySpendStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="deliverySpendTbl"><thead><tr><th>Venue</th><th class="num">Latest month £</th><th>Latest</th><th class="num">12-mo total £</th><th>12-mo trend</th></tr></thead><tbody></tbody></table></div>
+    <div id="deliverySpendMappingNote"></div>
+  </div>
+  <div class="delivery-tile" id="labourCostTile" style="border-top-color:#B5470B">
+    <h2>Labour Cost · wage : revenue · monthly</h2>
+    <div class="tile-sub">Wage £ &amp; Revenue £ from the MA monthly P&amp;L (2026 - Summary.xlsx). Corporate sites only. <span class="source-chip">MA Summary</span></div>
+    <div class="tile-stats" id="labourCostStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="labourCostTbl"><thead><tr><th>Venue</th><th class="num">Latest Rev £</th><th class="num">Latest Wage £</th><th class="num">Wage %</th><th>RAG</th><th>5-mo trend</th></tr></thead><tbody></tbody></table></div>
+    <div id="labourCostMappingNote"></div>
+  </div>
+  <h2>EC OKRs · May 2026</h2>
+  <div class="okr-grid" id="okrGrid"></div>
+  <div class="split">
+    <div>
+      <h2>Hygiene Check · monthly score / 49</h2>
+      <div class="section-intro">EHO/safety lens. Owner: Lincoln (Ziang Lin) + Sophie Wang. <span class="source-chip drive">Hygiene Check folder</span></div>
+      <table class="tbl" id="hygTbl"><thead><tr><th>Site</th><th class="num">Score</th><th>RAG</th><th>Top deviation</th><th>Owner</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div>
+      <h2>Food Quality Audit · monthly /46</h2>
+      <div class="section-intro">Craft / standards lens. Owner: Sophie Wang + DECs. <span class="source-chip drive">Food Quality Check folder</span></div>
+      <table class="tbl" id="fqTbl"><thead><tr><th>Site</th><th class="num">%</th><th>RAG</th><th>Top deviation</th><th>Owner</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+  <h2>Monthly issues, variations &amp; solutions</h2>
+  <table class="tbl" id="monthlyIssuesTbl"><thead><tr><th>Area</th><th>Issue / variation</th><th>Root cause</th><th>Solution</th><th>Owner</th><th>Status</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section id="tab-league" class="tab-section">
+  <p class="section-intro">Composite EC score per site for the selected week, ranked. Composite = Food cost (25%) · Wage:Rev (20%) · Food variance (20%) · Compliance (15%, pending) · Deliveroo (20%). ★ excluded. Sites with no data that week are listed at the bottom.</p>
+  <div class="pill-row" id="leagueViewPills">
+    <button class="pill active" data-view="all">All sites</button>
+    <button class="pill" data-view="cluster">Split by cluster</button>
+  </div>
+  <div id="leagueAll">
+    <table class="tbl" id="leagueTbl">
+      <thead><tr><th>#</th><th>Site</th><th>Cluster</th><th class="num">Composite</th><th class="num">Food</th><th class="num">Wage</th><th class="num">Var</th><th class="num">Compl</th><th class="num">Deliv</th><th>Δ vs last wk</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="leagueByCluster" style="display:none"></div>
+  <h3 style="margin-top:24px">Cluster efficiency summary</h3>
+  <table class="tbl" id="clusterSummaryTbl"><thead><tr><th>Cluster</th><th class="num">Sites</th><th class="num">Avg composite</th><th class="num">Best site</th><th class="num">Worst site</th><th>Trend</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section id="tab-raci" class="tab-section">
+  <p class="section-intro">Who owns what across the EC function. <span class="rag rag-red">R</span> Responsible · <span class="rag rag-amber">A</span> Accountable · <span class="rag" style="background:#E0F2FE;color:#0C4A6E">C</span> Consulted · <span class="rag rag-grey">I</span> Informed.</p>
+  <table class="tbl raci-tbl">
+    <thead><tr><th>Process</th><th>R</th><th>A</th><th>C</th><th>I</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Food quality audit · closure</strong></td><td><span class="role-r">DEC (Artur / Matt)</span></td><td><span class="role-a">HEC Sophie</span></td><td><span class="role-c">AM, Site GM</span></td><td><span class="role-i">COO</span></td></tr>
+      <tr><td><strong>Hygiene / HACCP · closure</strong></td><td><span class="role-r">Site GM</span></td><td><span class="role-a">HEC Sophie</span></td><td><span class="role-c">Lincoln (Ziang Lin), Sophie</span></td><td><span class="role-i">COO</span></td></tr>
+      <tr><td><strong>Recipe spec / new dish</strong></td><td><span class="role-r">Matt Polak</span></td><td><span class="role-a">HEC Sophie</span></td><td><span class="role-c">CEO Teddy, Ops</span></td><td><span class="role-i">Kiban, Marketing</span></td></tr>
+      <tr><td><strong>Food cost variance &gt;5%</strong></td><td><span class="role-r">Site Head Chef</span></td><td><span class="role-a">DEC</span></td><td><span class="role-c">AM, Finance</span></td><td><span class="role-i">HEC</span></td></tr>
+      <tr><td><strong>Wage : revenue overshoot</strong></td><td><span class="role-r">Site GM</span></td><td><span class="role-a">AM</span></td><td><span class="role-c">DEC, Finance</span></td><td><span class="role-i">HEC, COO</span></td></tr>
+      <tr><td><strong>Mapal compliance ≤95%</strong></td><td><span class="role-r">Site GM</span></td><td><span class="role-a">AM</span></td><td><span class="role-c">L&amp;D, HEC</span></td><td><span class="role-i">COO</span></td></tr>
+      <tr><td><strong>Deliveroo performance / refunds</strong></td><td><span class="role-r">Site GM</span></td><td><span class="role-a">AM</span></td><td><span class="role-c">DEC, Marketing</span></td><td><span class="role-i">HEC, COO</span></td></tr>
+      <tr><td><strong>Weekly BOH KPI filing</strong></td><td><span class="role-r">Site Head Chef</span></td><td><span class="role-a">DEC</span></td><td><span class="role-c">AM</span></td><td><span class="role-i">HEC, COO</span></td></tr>
+      <tr><td><strong>Supplier quality failure</strong></td><td><span class="role-r">Ross Ward (Ops)</span></td><td><span class="role-a">HEC Sophie</span></td><td><span class="role-c">DEC, AM</span></td><td><span class="role-i">CEO</span></td></tr>
+      <tr><td><strong>Ramen Bible · version control</strong></td><td><span class="role-r">HEC Sophie</span></td><td><span class="role-a">CEO Teddy</span></td><td><span class="role-c">Matt Polak, DECs</span></td><td><span class="role-i">All BOH</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="tab-risk" class="tab-section">
+  <p class="section-intro">EC function risk register — only risks scoring ≥10 are shown. Score = Likelihood × Impact (1–5 each).</p>
+  <table class="tbl" id="riskTbl"><thead><tr><th>ID</th><th>Risk</th><th>Score</th><th>Owner</th><th>Mitigation</th><th>Status</th></tr></thead><tbody></tbody></table>
+  <h3 style="margin-top:24px">Risk heat-map</h3>
+  <div style="background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);overflow-x:auto">
+    <table class="tbl" style="border:none;box-shadow:none;min-width:540px">
+      <thead><tr><th style="background:#fff;border:none"></th><th class="num" style="background:#fff;border:none">Impact 1</th><th class="num" style="background:#fff;border:none">2</th><th class="num" style="background:#fff;border:none">3</th><th class="num" style="background:#fff;border:none">4</th><th class="num" style="background:#fff;border:none">5</th></tr></thead>
+      <tbody id="riskHeatBody"></tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.6.4 · 10 Jun 2026 · Budget MTD = pre-Mapal June baseline (Mona Lisa 1–7 Jun) + Mapal daily; group MTD ≈ £145.3k · Food Cost MTD tile (Soph KPI £147k / 24.1% w/c 01 Jun) · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+</footer>
+
+<script>
+const FALLBACK_DATA = {
+  meta: {
+    version: "1.6.1",
+    generated_at: "2026-06-10T11:30:00Z",
+    food_cost_target_pct: 25, food_cost_warn_pct: 27, food_cost_critical_pct: 30,
+    wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
+    foodvar_warn_pct: 3.0, foodvar_critical_pct: 5.0,
+    hygiene_target_pct: 98, food_quality_target_pct: 92, star_target: 4.6,
+    band_green: 85, band_amber: 65,
+    /* index 0..4 = BOH meetings 02 Jun, 26 May, 19 May, 12 May, 05 May */
+    weeks: ["02 Jun · BOH","26 May · BOH","19 May · BOH","12 May · BOH","05 May · BOH"],
+    latest_week: "02 Jun · BOH",
+    deliveroo_week: "w/c 25 May 26",
+    data_as_at: "2026-06-01",
+    boh_meeting: "02 Jun 2026",
+    not_filed: ["M11","M16","M17","M18","MN"],
+    sources: {
+      boh_kpi: "https://drive.google.com/drive/folders/1em34lo35VlMswmM6cVNAw2UIsUTF2TdU",
+      deliveroo: "https://docs.google.com/spreadsheets/d/1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI",
+      soph_kpi: "https://docs.google.com/spreadsheets/d/15wb6jz58T59FHAdU-GGf7jOk2HTNYEz58Ir7gJVrvc4",
+      mapal_compliance: "MANUAL — Mapal export pending automation"
+    }
+  },
+
+  clusters: {
+    scotland_newcastle: { name: "Scotland & Newcastle", am_owner: "Ka Ho", dam: "Óisín Patrick Darragh", ec: "Matt Polak", dec: "Penny", sites: ["M1","M3","M6","M7","M8","M12","M13","M15"] },
+    north_midlands:     { name: "North England & Midlands", am_owner: "Inka Cheung", dam: "Amy Tang", dec: "Artur Mroczkowski", sites: ["M9","M10","M11","M14","M16"] },
+    south:              { name: "South England", am_owner: "Lincoln / Ziang", dam: "Kaitlin Dorcherty", dec: "Srawut \"O\" Chairipu", sites: ["M17","M18","MN"] }
+  },
+
+  /* Per-week arrays, index 0..4 = 02 Jun, 26 May, 19 May, 12 May, 05 May (BOH meeting dates).
+     food_cost_pct / wage_pct / foodvar_pct / del_rag from the weekly BOH KPI meetings.
+     Scotland: full. England M9/M10/M14: food cost (FR) + some variance (ST); no labour reported.
+     South+Midlands M11/M16/M17/M18: labour where reported. M11/M16 index-0 food cost BACKFILLED
+       from the Soph KPI sheet WP column (== the 02 Jun BOH week); M17/M18 BOH food cost still HELD
+       (33-39% conflicts with tracker — pending Soph KPI backfill sign-off); no variance/delivery.
+     del_rag = operational delivery RAG (prep/rider/missing/open%), EXCLUDING the ★ rating — best-effort
+       from BOH green-light notes. star = w/c 11 May Deliveroo perf (display only). */
+  sites: [
+    /* SCOTLAND & NEWCASTLE */
+    { code:"M1", name:"Edinburgh · Nicholson St", cluster:"scotland_newcastle",
+      food_cost_pct:[22.08,29.54,20.98,24.18,26.12], wage_pct:[21.11,22.48,21.62,20.36,19.95], foodvar_pct:[4.9,3.9,2.5,3.4,-0.6],
+      del_rag:["red","red","green","green","amber"], compliance_pct:null, star:4.93,
+      hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Holes above raw-meat prep", hyg_owner:"Chin Wa Cheung", fq_dev:"Kimchi taste 4/5", fq_owner:"Chin Wa Cheung",
+      boh_issue:"Food cost up to 22.08% (stock ordered ahead of payday; was 29.5% wk before). Food variance +4.9%. Fridge compressor fault. Deliveroo missing items RED.",
+      boh_solution:"Michael approved new fridge. Combine Edinburgh JFC orders. Tighten Deliveroo packing.", boh_owner:"Site GM + Michael" },
+
+    { code:"M3", name:"Fountainbridge · Edinburgh", cluster:"scotland_newcastle",
+      food_cost_pct:[27.80,20.70,23.15,23.86,22.13], wage_pct:[21.49,20.64,20.10,21.43,21.10], foodvar_pct:[-4.6,3.5,2.3,1.9,0.5],
+      del_rag:["amber","red","amber","green","green"], compliance_pct:null, star:4.50,
+      hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Food cost spiked to 27.8% (duplicate JFC soy-sauce order; surplus to transfer to M8). Highest in group, over the 25% target.",
+      boh_solution:"DEC Matt RCA; Benny arranging surplus transfer to M8; reset food budget.", boh_owner:"Matt Polak + Ka Ho" },
+
+    { code:"M6", name:"Bath Street · Glasgow", cluster:"scotland_newcastle",
+      food_cost_pct:[21.50,17.15,29.34,18.25,24.09], wage_pct:[21.95,20.08,21.82,21.24,23.14], foodvar_pct:[-1.0,4.7,4.7,-4.8,4.0],
+      del_rag:["green","green","green","red","green"], compliance_pct:null, star:4.86,
+      hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Volatile food cost (17–29% across 5 weeks; 29.3% spike on 19 May). Separate Glasgow venue from M8 Renfield.",
+      boh_solution:"Investigate the food-cost swings; tighten ordering.", boh_owner:"DEC Matt + Ka Ho" },
+
+    { code:"M7", name:"St James Quarter (SJQ)", cluster:"scotland_newcastle",
+      food_cost_pct:[19.85,23.26,22.80,23.37,21.88], wage_pct:[20.76,20.66,21.15,20.47,21.02], foodvar_pct:[-4.6,3.5,2.0,1.8,3.2],
+      del_rag:["amber",null,null,null,null], compliance_pct:null, star:4.88,
+      hygiene_pct:98, food_quality_pct:100, hyg_dev:"RAW-OVER-RTE cross-contamination", hyg_owner:"Pui Shan Ho", fq_dev:"None", fq_owner:"-",
+      boh_issue:"Strong sales. Ongoing JFC misroute — stock for SJQ sent elsewhere. Food budget set too high. Deliveroo not reported at BOH (N/A every week).",
+      boh_solution:"Ross to chase JFC. Review food budget down. Start reporting Deliveroo.", boh_owner:"Ross Ward + Ka Ho" },
+
+    { code:"M8", name:"Renfield Street, Glasgow", cluster:"scotland_newcastle",
+      food_cost_pct:[22.30,22.31,23.98,18.51,26.64], wage_pct:[23.12,21.97,24.65,21.86,22.52], foodvar_pct:[4.4,3.4,3.1,3.3,3.0],
+      del_rag:["amber","green","red","amber","red"], compliance_pct:null, star:4.69,
+      hygiene_pct:93.9, food_quality_pct:97.8, hyg_dev:"Hygiene 93.9% — lowest in group", hyg_owner:"Site GM", fq_dev:"Plating consistency", fq_owner:"DEC Matt",
+      boh_issue:"Food cost 22.3%, variance persistently +3-4%. Cardboard collection missed — AM Ka stepped in. Hygiene 93.9% (lowest in group).",
+      boh_solution:"Hygiene action plan + weekly re-check. Tighten Deliveroo packing.", boh_owner:"Ka Ho (AM)" },
+
+    { code:"M12", name:"Newcastle · Eldon Sq", cluster:"scotland_newcastle",
+      food_cost_pct:[23.63,24.97,16.03,10.99,17.54], wage_pct:[22.55,25.57,24.61,25.35,23.18], foodvar_pct:[4.4,2.2,4.5,5.0,3.4],
+      del_rag:["red","green","green","green","red"], compliance_pct:null, star:4.80,
+      hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Labour persistently high (22.5–25.6%) — sales below target at min staffing. Food cost jumped to 23.6% (freezer breakdown wasted stock). Dishwasher down.",
+      boh_solution:"Freezer + dishwasher reported. Wage/rota review with AM.", boh_owner:"Site GM + Maintenance" },
+
+    { code:"M13", name:"Aberdeen", cluster:"scotland_newcastle",
+      food_cost_pct:[21.70,15.59,21.52,22.40,22.40], wage_pct:[22.41,21.48,21.60,21.52,21.83], foodvar_pct:[0.2,4.9,1.8,4.7,4.6],
+      del_rag:["amber","red","red","green","amber"], compliance_pct:null, star:5.00,
+      hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wall/ceiling damage REPEAT", hyg_owner:"Elliot Spalding", fq_dev:"1 of 3 whisks OVERDUE", fq_owner:"Elliot Spalding",
+      boh_issue:"Worst sales variance in cluster (-7.7K). Food variance frequently high (~4-5%). Ongoing Lynas delivery issue. Deliveroo missing items recurring.",
+      boh_solution:"Matt has followed up with Lynas. Tighten Deliveroo packing + stock control.", boh_owner:"Matt Polak" },
+
+    { code:"M15", name:"Metrocentre", cluster:"scotland_newcastle",
+      food_cost_pct:[17.18,23.33,21.71,17.37,17.33], wage_pct:[21.96,24.96,21.25,20.88,21.39], foodvar_pct:[-2.4,-2.7,-1.7,-0.7,-3.4],
+      del_rag:["red","green","green","red","green"], compliance_pct:null, star:5.00,
+      hygiene_pct:96, food_quality_pct:97.8, hyg_dev:"Walk-in vegetable fridge broken", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Best cost control in cluster most weeks, but rider wait 15.4% RED on 02 Jun. JFC curry paste frequently missing.",
+      boh_solution:"Engineer contacted for fridge. JFC follow-up. Address rider-wait.", boh_owner:"Site GM + Ross" },
+
+    /* NORTH ENGLAND & MIDLANDS — M9/M10/M14 filed (food cost only); M11/M16 02-Jun food cost backfilled from Soph KPI (WP col) */
+    { code:"M9", name:"Manchester", cluster:"north_midlands",
+      food_cost_pct:[23.84,null,null,20.69,21.01], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,1.0,1.0],
+      del_rag:["amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
+      hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Insectocutors", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Food cost ~21-24%. Griddle broken for ~1 month + deep fryer failing. England BOH reports food cost only (no labour).",
+      boh_solution:"Engineer due within 4 working days. Start reporting labour at BOH.", boh_owner:"Site HC + Maintenance" },
+
+    { code:"M10", name:"Leeds", cluster:"north_midlands",
+      food_cost_pct:[17.00,null,null,24.00,20.13], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,-2.9,-0.9],
+      del_rag:["red",null,null,null,"amber"], compliance_pct:null, star:4.88,
+      hygiene_pct:95.9, food_quality_pct:100, hyg_dev:"Sushi mgr L2 cert lapsed", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Clean weeks — spending 17-24%, few issues. 3 bad reviews early May (fish freshness); new supervisor checking quality.",
+      boh_solution:"Maintain; Artur stock-count audits.", boh_owner:"Site HC" },
+
+    { code:"M11", name:"Leicester", cluster:"north_midlands",
+      food_cost_pct:[23.46,null,null,null,null], wage_pct:[null,26.88,null,null,null], foodvar_pct:[null,null,null,null,null],
+      del_rag:["red",null,null,null,null], compliance_pct:null, star:4.00,
+      hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wash basin blocked", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Did NOT file 02 Jun — food cost for that week backfilled from Soph KPI (WP col): 23.46%. May reports mostly narrative ('in red', 'needs improvement'); only 26 May had numbers (labour 26.88%; food cost 38.65% — conflicts with tracker ~16%, HELD). Soph KPI w/c 01 Jun: 18.87% food cost / 22.07% wage. Deliveroo never reported.",
+      boh_solution:"Chase HC to file numeric weekly KPI; adopt Soph KPI as the food-cost basis.", boh_owner:"Inka Cheung + Site GM" },
+
+    { code:"M14", name:"Meadowhall · Sheffield", cluster:"north_midlands",
+      food_cost_pct:[21.04,35.00,24.00,18.40,21.21], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,1.4,3.0],
+      del_rag:["green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
+      hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"Kimchi taste 4/5", fq_owner:"DEC",
+      boh_issue:"Food cost spiked to 35% on 26 May (a ~£7k-low sales weekend inflated the ratio, not overspend). ★3.25 lowest in group; missing-items recurring. Ruiqi leaving 20 Jun.",
+      boh_solution:"Watch cost ratio on quiet weeks; cover handover; fix Deliveroo accuracy.", boh_owner:"Site HC + Inka Cheung" },
+
+    { code:"M16", name:"Nottingham", cluster:"north_midlands",
+      food_cost_pct:[21.04,null,null,null,null], wage_pct:[null,22.94,null,null,22.65], foodvar_pct:[null,null,null,null,null],
+      del_rag:["red",null,null,null,null], compliance_pct:null, star:3.50,
+      hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Did NOT file 02 Jun — food cost for that week backfilled from Soph KPI (WP col): 21.04%. May labour ~22.6-22.9%. 26 May food cost 35.42% — conflicts with tracker ~20%, HELD. Soph KPI w/c 01 Jun: 21.49% food cost / 22.28% wage. 'KPI vs actual' food-cost discrepancy under investigation.",
+      boh_solution:"Chase HC to file; adopt Soph KPI as the food-cost basis.", boh_owner:"Inka Cheung + Site GM" },
+
+    /* SOUTH ENGLAND — no South BOH meeting since 26 May; M17/M18 not filed 02 Jun */
+    { code:"M17", name:"Lakeside", cluster:"south",
+      food_cost_pct:[16.05,null,null,null,null], wage_pct:[null,24.37,null,null,null], foodvar_pct:[null,null,null,null,null],
+      del_rag:["amber",null,null,null,null], compliance_pct:null, star:3.80,
+      hygiene_pct:null, food_quality_pct:97.8, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
+      boh_issue:"No South BOH meeting after 26 May — 02 Jun week food cost backfilled from Soph KPI (WP col): 16.05%. Labour 'around 24-27%'; 26 May BOH food cost 35.99% HELD (conflicts with tracker). Soph KPI w/c 01 Jun: 23.47% food cost / 21.65% wage. ★3.60 (2nd-lowest, 11 May).",
+      boh_solution:"Stand up a South BOH weekly; reconcile food-cost basis; AM intervention.", boh_owner:"Lincoln / Ziang" },
+
+    { code:"M18", name:"Soho", cluster:"south",
+      food_cost_pct:[26.65,null,null,null,null], wage_pct:[null,41.27,28.00,32.00,35.00], foodvar_pct:[null,null,null,null,null],
+      del_rag:["red",null,null,null,null], compliance_pct:null, star:4.50,
+      hygiene_pct:null, food_quality_pct:93.5, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"2 deviations — 2nd-lowest", fq_owner:"DEC Jack",
+      boh_issue:"02 Jun week food cost backfilled from Soph KPI (WP col): 26.65% — over the 25% target. Labour persistently very high (28-41%; 26 May 41.27% inflated by Shoreditch staff clocking in). Soph KPI w/c 01 Jun: 23.41% food cost / wage 28.10%. No South BOH after 26 May.",
+      boh_solution:"Stand up a South BOH weekly; fix Shoreditch clock-in contamination; reconcile food cost.", boh_owner:"Lincoln (Ziang Lin)" },
+
+    { code:"MN", name:"Maki Nori · London", cluster:"south",
+      food_cost_pct:[null,null,null,null,null], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,null,null],
+      del_rag:[null,null,null,null,null], compliance_pct:null, star:null,
+      hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
+      boh_issue:"Not on any EC feed (no Food Cost Tracker, no Deliveroo perf, no BOH meeting, not on Soph KPI sheet). Wage 24.9% in May (MA only).",
+      boh_solution:"Add Maki Nori to the Food Cost Tracker, Deliveroo perf sheet, Soph KPI sheet and a BOH meeting.", boh_owner:"HEC Sophie + Jack Zhang" }
+  ],
+
+  data_caveats: [
+    "5-week history on the BOH KPI meeting cadence: index 0..4 = 02 Jun, 26 May, 19 May, 12 May, 05 May 2026 meetings. Use the Week selector to scrub.",
+    "Scotland & Newcastle (8 sites): full per-week labour, food cost, food variance for all 5 weeks. Delivery RAG derived best-effort from each meeting's green-light notes (operational, ★ excluded).",
+    "England M9/M10/M14: food cost only (no labour ever reported at England BOH); food variance present 05/12 May; food cost tails off 19/26 May. M14's 35% on 26 May was a low-sales weekend inflating the ratio, not overspend.",
+    "South+Midlands (M11/M16/M17/M18): BOH minutes were narrative-only except 26 May, whose food cost (33-39%) conflicts with the tracker — HELD from the BOH RAG. All four sites' 02-Jun food cost is now backfilled from the Soph KPI WP column: M11 23.46%, M16 21.04%, M17 16.05%, M18 26.65%.",
+    "Food variance RAG uses the ECO2 ±5% tolerance: <3% green, 3-5% amber, >5% red.",
+    "★ ratings and the 02-Jun-week Deliveroo ops RAG (del_rag index 0) are from the Deliveroo RAG workbook, w/c 25 May tab (the 01 Jun tab exists but is unpopulated). ★ remains EXCLUDED from the composite RAG.",
+    "Compliance (Mapal %) not wired — scored as no-data and skipped from the composite.",
+    "Sales-vs-Budget tile is a single newest week (w/c 01 Jun) from the Soph KPI sheet; it includes Ikigai 2 (not yet in the BOH RAG) and excludes Maki Nori (not on that sheet)."
+  ],
+
+  okrs: [
+    { id:"ECO1", title:"Hygiene compliance", target:"≥98%", current:100, unit:"%", status:"green", source:"Hygiene Check folder · Drive", note:"May 2026 — all sites ≥95.9" },
+    { id:"ECO2", title:"Recipe standardisation", target:"100%", current:93.33, unit:"%", status:"amber", source:"Ramen Bible v1 audit · Drive", note:"Broth density spec mismatch open" },
+    { id:"ECO3", title:"BOH training completion", target:"100%", current:100, unit:"%", status:"green", source:"Mapal training matrix · MANUAL", note:"Mapal export not yet automated" },
+    { id:"ECO4", title:"Food quality audit", target:"≥92%", current:100, unit:"%", status:"green", source:"Food Quality Audit folder · Drive", note:"Recovered from April 66.67% crash" },
+    { id:"ECO5", title:"Food cost discipline", target:"≤25%", current:96, unit:"% on-target", status:"green", source:"Food Cost Tracker · Sheets", note:"Target confirmed 25%" }
+  ],
+
+  monthly_issues: [
+    { area:"Reporting", issue:"South+Midlands BOH food cost 33-39% vs tracker 9-16%", root:"Different reporting basis / unreliable entry", solution:"Soph KPI weekly sheet now gives reconciled basis (M11 18.9%, M16 21.5%, M17 23.5%, M18 23.4%); M11/M16 02-Jun backfilled; standardise BOH onto it", owner:"HEC Sophie + Finance", status:"In progress" },
+    { area:"Reporting", issue:"5/16 sites did not file 02 Jun (M11/M16/M17/M18/MN)", root:"No South BOH meeting; England no-shows", solution:"Stand up South BOH weekly; chase M11/M16 HCs", owner:"HEC Sophie + AMs", status:"Open" },
+    { area:"Food cost", issue:"M3 Fountainbridge 27.8% (highest, over target)", root:"Duplicate JFC soy-sauce order; budget high", solution:"Transfer surplus to M8; RCA; reset budget", owner:"Matt Polak", status:"Open" },
+    { area:"Wage", issue:"M12 labour persistently 22-26%; M18 28-41%", root:"Sales below target at min staffing; Shoreditch clock-in at M18", solution:"Wage/rota review; fix M18 clock-in contamination", owner:"AMs + Finance", status:"Open" },
+    { area:"Hygiene", issue:"M8 Renfield 93.9% (lowest)", root:"Multiple low-severity deviations", solution:"Action plan + weekly re-check", owner:"Site GM + Lincoln", status:"In progress" },
+    { area:"Supplier", issue:"JFC misroutes + £200 min order (M1/M7/M15)", root:"Order routing + threshold", solution:"Combine Edinburgh orders; Ross to renegotiate", owner:"Ross Ward", status:"In progress" },
+    { area:"Compliance", issue:"Mapal % not in dashboard", root:"No API export", solution:"Manual weekly until automated", owner:"Michael", status:"Open" }
+  ],
+
+  risks: [
+    { id:"R18", risk:"Food-cost reporting basis inconsistent (South BOH 33-39% vs tracker)", likelihood:3, impact:4, owner:"HEC Sophie + Finance", mitigation:"Soph KPI weekly sheet now supplies a clean reconciled basis (M11/M16/M17/M18 ~19-23%) — M11/M16 02-Jun backfilled from it; adopt as the single weekly source and retire the divergent BOH food-cost entry", status:"In progress" },
+    { id:"R17", risk:"5/16 sites not filing weekly BOH KPI (no South meeting post-26 May)", likelihood:5, impact:4, owner:"HEC Sophie + AMs", mitigation:"Stand up South BOH weekly; chase England no-shows; filing in RACI", status:"Open" },
+    { id:"R02", risk:"ECO4 food quality crash unrooted (Apr 66.67%)", likelihood:5, impact:5, owner:"HEC Sophie", mitigation:"RCA complete; May recovered to 100; sustain 3-month review", status:"Mitigated" },
+    { id:"R01", risk:"EHO failure due to dual HACCP systems", likelihood:4, impact:5, owner:"Lincoln (Ziang Lin)", mitigation:"Consolidate to MR HACCP framework", status:"In progress" },
+    { id:"R03", risk:"DEC rota fragility (Matt alone Scotland, Artur alone England, Jack absent)", likelihood:4, impact:5, owner:"HEC Sophie", mitigation:"Backfill Jack; DEC apprentice pipeline", status:"Open" },
+    { id:"R04", risk:"Sophie Wang single point of failure", likelihood:4, impact:5, owner:"COO", mitigation:"Codify Ramen Bible v1; cross-train DECs", status:"In progress" },
+    { id:"R15", risk:"Deliveroo ops RED recurring (M8/M13/M15/M1/M12)", likelihood:4, impact:4, owner:"AMs + GMs", mitigation:"Deliveroo ops in EC RAG; weekly review of missing/rider/open%", status:"Open" },
+    { id:"R05", risk:"Supplier failures (Lynas, JFC misroutes)", likelihood:5, impact:4, owner:"Ross Ward", mitigation:"Supplier scorecard; weekly cadence", status:"In progress" },
+    { id:"R09", risk:"Site HACCPs 4 years stale", likelihood:3, impact:5, owner:"Lincoln + HEC", mitigation:"Migrate all sites to MR HACCP by Q3", status:"In progress" },
+    { id:"R16", risk:"Compliance (Mapal) not yet in RAG", likelihood:4, impact:3, owner:"Michael", mitigation:"Skipped until feed wired; manual interim", status:"Open" },
+    { id:"R11", risk:"Hygiene scans unreadable (M17/M18)", likelihood:3, impact:4, owner:"IT + Lincoln", mitigation:"Digitise audit form or compress server-side", status:"Open" }
+  ],
+
+  weekly_budget: {
+    week: "w/c 01 Jun 2026",
+    source: "Soph KPI weekly sheet (Drive · Matthew-owned)",
+    sheet_id: "15wb6jz58T59FHAdU-GGf7jOk2HTNYEz58Ir7gJVrvc4",
+    ingested_at: "2026-06-10",
+    sites: [
+      { code:"M1",  name:"Edinburgh · Nicholson St", cluster:"scotland_newcastle", tgt:23400, act:20155.79, sitTgt:16380, sitAct:14664.66, delTgt:7020, delAct:5491.13, covers:703, avg:20.86, fc:25.97, wage:21.26, rph:67.71 },
+      { code:"M3",  name:"Fountainbridge · Edinburgh", cluster:"scotland_newcastle", tgt:34650, act:37621.38, sitTgt:25987.50, sitAct:27768.54, delTgt:8662.50, delAct:9852.84, covers:1236, avg:22.47, fc:20.22, wage:21.44, rph:67.19 },
+      { code:"M6",  name:"Bath Street · Glasgow", cluster:"scotland_newcastle", tgt:24900, act:22522.93, sitTgt:21538.50, sitAct:19609.24, delTgt:3361.50, delAct:2913.70, covers:910, avg:21.55, fc:25.28, wage:23.41, rph:62.74 },
+      { code:"M7",  name:"St James Quarter (SJQ)", cluster:"scotland_newcastle", tgt:60000, act:60021.66, sitTgt:60000, sitAct:60021.66, delTgt:0, delAct:0, covers:2752, avg:21.81, fc:26.33, wage:21.75, rph:67.80 },
+      { code:"M8",  name:"Renfield Street, Glasgow", cluster:"scotland_newcastle", tgt:42750, act:43970.27, sitTgt:38475, sitAct:39943.45, delTgt:4275, delAct:4026.82, covers:1709, avg:23.37, fc:27.50, wage:23.26, rph:63.04 },
+      { code:"M9",  name:"Manchester", cluster:"north_midlands", tgt:67500, act:65145.04, sitTgt:59400, sitAct:56047.18, delTgt:8100, delAct:9097.86, covers:2476, avg:22.64, fc:25.88, wage:20.02, rph:72.56 },
+      { code:"M10", name:"Leeds", cluster:"north_midlands", tgt:35343, act:30076.90, sitTgt:31101.84, sitAct:22996.74, delTgt:4241.16, delAct:7080.16, covers:995, avg:23.11, fc:29.41, wage:22.40, rph:67.11 },
+      { code:"IK2", name:"Ikigai 2", cluster:"scotland_newcastle", tgt:21550, act:20307.14, sitTgt:19826, sitAct:18214.63, delTgt:1724, delAct:2092.51, covers:873, avg:20.86, fc:23.72, wage:22.00, rph:68.10 },
+      { code:"M11", name:"Leicester", cluster:"north_midlands", tgt:27000, act:26626.18, sitTgt:24300, sitAct:21481.76, delTgt:2700, delAct:5144.41, covers:999, avg:21.49, fc:18.87, wage:22.07, rph:65.13 },
+      { code:"M12", name:"Newcastle · Eldon Sq", cluster:"scotland_newcastle", tgt:34650, act:27831.94, sitTgt:31185, sitAct:22721.02, delTgt:3465, delAct:5110.92, covers:1039, avg:21.87, fc:28.42, wage:26.67, rph:54.64 },
+      { code:"M13", name:"Aberdeen", cluster:"scotland_newcastle", tgt:43000, act:41747.34, sitTgt:35045, sitAct:36615.86, delTgt:7955, delAct:5131.48, covers:1661, avg:22.04, fc:25.08, wage:22.27, rph:65.58 },
+      { code:"M14", name:"Meadowhall · Sheffield", cluster:"north_midlands", tgt:43000, act:44795.02, sitTgt:40850, sitAct:43220.12, delTgt:2150, delAct:1574.89, covers:2036, avg:21.22, fc:21.49, wage:19.26, rph:76.30 },
+      { code:"M15", name:"Metrocentre", cluster:"scotland_newcastle", tgt:60637.50, act:62770.12, sitTgt:49419.56, sitAct:61841.32, delTgt:11217.94, delAct:928.80, covers:2794, avg:22.13, fc:20.83, wage:21.00, rph:70.22 },
+      { code:"M16", name:"Nottingham", cluster:"north_midlands", tgt:38000, act:37310.57, sitTgt:36100, sitAct:32396.26, delTgt:1900, delAct:4914.31, covers:1441, avg:22.49, fc:21.49, wage:22.28, rph:64.82 },
+      { code:"M17", name:"Lakeside", cluster:"south", tgt:38000, act:31350.53, sitTgt:38000, sitAct:29409.89, delTgt:0, delAct:1940.64, covers:1220, avg:24.11, fc:23.47, wage:21.65, rph:65.22 },
+      { code:"M18", name:"Soho", cluster:"south", tgt:32000, act:37397.27, sitTgt:27200, sitAct:35678.23, delTgt:4800, delAct:1719.04, covers:1731, avg:20.61, fc:23.41, wage:28.10, rph:50.41 }
+    ]
+  },
+
+  deliveroo_rag: {
+    week: "w/c 25 May 2026",
+    source: "Deliveroo RAG workbook (1RCucNd…) · tab 25052026",
+    note: "The 01 Jun tab exists but is unpopulated — refresh when filled. ops = worst of prep/rider/missing/open (★ excluded). Sheet thresholds: prep G≤16.0/A≤17.5; rider G<5%/A≤10%; missing G<1%/A≤2%; ★ G≥4.70/A≥4.59; open G≥99%/A≥98%.",
+    ingested_at: "2026-06-10",
+    sites: [
+      { code:"M1",  name:"West Richmond",   prep:11.8, rider:4.0,  missing:3.4, rating:4.93, open:99.9, r:{prep:"green",rider:"green",missing:"red",rating:"green",open:"green"},  ops:"red" },
+      { code:"M3",  name:"Fountainbridge",  prep:14.0, rider:1.2,  missing:0.8, rating:4.50, open:98.3, r:{prep:"green",rider:"green",missing:"green",rating:"red",open:"amber"},  ops:"amber" },
+      { code:"M6",  name:"Bath Street",     prep:11.4, rider:0.9,  missing:0.9, rating:4.86, open:99.8, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"green"},ops:"green" },
+      { code:"M7",  name:"SJQ (Leith St)",  prep:5.4,  rider:1.3,  missing:1.3, rating:4.88, open:99.9, r:{prep:"green",rider:"green",missing:"amber",rating:"green",open:"green"},ops:"amber" },
+      { code:"M8",  name:"Renfield",        prep:12.2, rider:0.7,  missing:2.0, rating:4.69, open:99.5, r:{prep:"green",rider:"green",missing:"amber",rating:"amber",open:"green"},ops:"amber" },
+      { code:"M9",  name:"Manchester",      prep:12.4, rider:1.5,  missing:1.0, rating:4.90, open:99.9, r:{prep:"green",rider:"green",missing:"amber",rating:"green",open:"green"},ops:"amber" },
+      { code:"M10", name:"Leeds",           prep:14.0, rider:2.0,  missing:2.4, rating:4.88, open:97.9, r:{prep:"green",rider:"green",missing:"red",rating:"green",open:"red"},    ops:"red" },
+      { code:"M11", name:"Leicester",       prep:15.0, rider:3.5,  missing:3.3, rating:4.00, open:97.7, r:{prep:"green",rider:"green",missing:"red",rating:"red",open:"red"},      ops:"red" },
+      { code:"M12", name:"Newcastle",       prep:15.5, rider:3.0,  missing:3.0, rating:4.80, open:97.8, r:{prep:"green",rider:"green",missing:"red",rating:"green",open:"red"},    ops:"red" },
+      { code:"M13", name:"Aberdeen",        prep:13.1, rider:1.7,  missing:1.1, rating:5.00, open:99.9, r:{prep:"green",rider:"green",missing:"amber",rating:"green",open:"green"},ops:"amber" },
+      { code:"M14", name:"Meadowhall",      prep:14.8, rider:2.8,  missing:0.0, rating:3.00, open:99.9, r:{prep:"green",rider:"green",missing:"green",rating:"red",open:"green"},  ops:"green" },
+      { code:"M15", name:"Metrocentre",     prep:10.0, rider:15.4, missing:0.0, rating:5.00, open:98.4, r:{prep:"green",rider:"red",missing:"green",rating:"green",open:"amber"},  ops:"red" },
+      { code:"M16", name:"Nottingham",      prep:13.7, rider:1.0,  missing:2.8, rating:3.50, open:90.6, r:{prep:"green",rider:"green",missing:"red",rating:"red",open:"red"},      ops:"red" },
+      { code:"M17", name:"Lakeside",        prep:9.3,  rider:5.0,  missing:1.5, rating:3.80, open:99.9, r:{prep:"green",rider:"amber",missing:"amber",rating:"red",open:"green"},  ops:"amber" },
+      { code:"M18", name:"Soho",            prep:12.5, rider:5.6,  missing:0.0, rating:4.50, open:91.3, r:{prep:"green",rider:"amber",missing:"green",rating:"red",open:"red"},    ops:"red" }
+    ]
+  },
+
+  daily_spend: {
+    as_at: "2026-06-10",
+    data_note: "Mapal Head Chef Daily Report went live 9 Jun 2026, so the daily ledger starts 9 Jun. MTD = pre-Mapal June baseline (Mona Lisa goods ledger, 1–7 Jun) + Mapal daily from 9 Jun onward; 8 Jun has no data (gap); IK2 has no Mona Lisa baseline. WTD is Mapal-only (Sun→selected day). Recomputed-vs-HC checks start from 10 Jun.",
+    weekly_budget_basis: "23% × Soph KPI weekly Target Sales (w/c 01 Jun)",
+    june_cap_basis: "Interim June caps = 23% × Mar–May avg MA revenue (until Matthew issues official June caps)",
+    sites: [
+      { code:"M1",  yday:967.90,  hc_wtd:2975.59, hc_left:2035.41, wk_budget:5382.00,  mtd:6202.71,  cap:20404, note:"" },
+      { code:"M3",  yday:286.85,  hc_wtd:4775.59, hc_left:3886.91, wk_budget:7969.50,  mtd:7894.21,  cap:36345, note:"" },
+      { code:"M6",  yday:285.40,  hc_wtd:2823.24, hc_left:2558.60, wk_budget:5727.00,  mtd:5978.81,  cap:21944, note:"HC filed 282324/255860 — missing decimals, corrected; confirm with site" },
+      { code:"M7",  yday:1600.08, hc_wtd:5105.46, hc_left:8694.54, wk_budget:13800.00, mtd:17404.65, cap:58683, note:"" },
+      { code:"M8",  yday:2820.11, hc_wtd:6408.44, hc_left:4135.56, wk_budget:9832.50,  mtd:14913.84, cap:42923, note:"" },
+      { code:"M9",  yday:null,    hc_wtd:8852.68, hc_left:8022.32, wk_budget:15525.00, mtd:13401.91, cap:72018, note:"Daily Spend filed as n/a 9 Jun; MTD = Mona Lisa 1–7 Jun only. HC base £16,875 exceeds 23% budget by £1,350" },
+      { code:"M10", yday:1251.11, hc_wtd:4382.79, hc_left:2855.73, wk_budget:8128.89,  mtd:8303.64,  cap:31466, note:"" },
+      { code:"M11", yday:349.98,  hc_wtd:4876.54, hc_left:906.46,  wk_budget:6210.00,  mtd:4431.98,  cap:23525, note:"Only £906 left for Fri/Sat — watch" },
+      { code:"M12", yday:null,    hc_wtd:null,    hc_left:null,    wk_budget:7969.50,  mtd:6396.19,  cap:29010, note:"NEVER FILED Mapal — chase HC; MTD = Mona Lisa 1–7 Jun only" },
+      { code:"M13", yday:null,    hc_wtd:null,    hc_left:null,    wk_budget:9890.00,  mtd:9060.77,  cap:37180, note:"NEVER FILED Mapal — chase HC; MTD = Mona Lisa 1–7 Jun only" },
+      { code:"M14", yday:2054.69, hc_wtd:8270.48, hc_left:1264.52, wk_budget:9890.00,  mtd:9869.47,  cap:38027, note:"£1,265 left with 4 trading days to go" },
+      { code:"M15", yday:null,    hc_wtd:null,    hc_left:null,    wk_budget:13946.63, mtd:10150.07, cap:56721, note:"NEVER FILED Mapal — chase HC; MTD = Mona Lisa 1–7 Jun only" },
+      { code:"M16", yday:3889.49, hc_wtd:7110.02, hc_left:2177.61, wk_budget:8740.00,  mtd:11594.04, cap:38501, note:"HC base £9,288 vs 23% budget £8,740 — base mismatch" },
+      { code:"M17", yday:550.20,  hc_wtd:6829.97, hc_left:1338.52, wk_budget:8740.00,  mtd:6067.48,  cap:34336, note:"" },
+      { code:"M18", yday:121.97,  hc_wtd:5174.91, hc_left:1834.09, wk_budget:7360.00,  mtd:7398.41,  cap:30451, note:"" },
+      { code:"IK2", yday:400.00,  hc_wtd:2300.00, hc_left:2600.00, wk_budget:4956.50,  mtd:400.00,   cap:17547, note:"No Mona Lisa baseline; MTD = Mapal 9 Jun only. Spend filed as bare \"400\" — no supplier named" },
+      { code:"MN",  yday:119.11,  hc_wtd:2516.36, hc_left:2.50,    wk_budget:null,     mtd:5795.12,  cap:null,  note:"NO BUDGET SET — and HC reports £2.50 left" }
+    ],
+    june_baseline: {
+      through: "2026-06-07",
+      source: "Mona Lisa goods/delivery ledger (gid 279092091) · 1–7 Jun",
+      note: "Pre-Mapal June spend (1–7 Jun). Added to Mapal daily (9 Jun onward) to give true month-to-date. 8 Jun has no data (gap). IK2 absent from Mona Lisa.",
+      by_code: { "M1":5234.81,"M3":7607.36,"M6":5693.41,"M7":15804.57,"M8":12093.73,"M9":13401.91,"M10":7052.53,"M11":4082.00,"M12":6396.19,"M13":9060.77,"M14":7814.78,"M15":10150.07,"M16":7704.55,"M17":5517.28,"M18":7276.44,"MN":5676.01 }
+    },
+    ledger: {
+      "2026-06-09": { "M1":967.90,"M3":286.85,"M6":285.40,"M7":1600.08,"M8":2820.11,"M9":null,"M10":1251.11,"M11":349.98,"M14":2054.69,"M16":3889.49,"M17":550.20,"M18":121.97,"MN":119.11,"IK2":400.00 }
+    }
+  },
+
+  delivery_spend: {
+    months: ["2025-02","2025-03","2025-04","2025-05","2025-06","2025-07","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"],
+    latest_month: "2026-06", latest_month_partial: true, latest_month_through: "2026-06-07", currency: "GBP",
+    source: "Mona Lisa · Delivery Cost Ledger · gid=279092091", ingested_at: "2026-06-09T07:21:11Z",
+    franchise_stripped: ["Maki West End (MAF1)","Maki O2 Arena (MAF3)","Maki Manchester NQ (MAF2)"], franchise_stripped_entries: 26, franchise_stripped_total_gbp: 648776.37,
+    venues: [
+      { venue:"M7 SJQ", latest:15804.57, latest_month:"2026-06", series:[51941.95,53112.34,62707.81,64306.93,59161.59,78100.79,48154.35,54531.39,54525.08,63896.97,59084.78,15804.57] },
+      { venue:"M9 Manchester", latest:13401.91, latest_month:"2026-06", series:[69206.73,78082.47,68909.43,67277.38,61295.02,73107.05,56402.98,74888.18,68799.31,68322.95,72488.06,13401.91] },
+      { venue:"M8 Renfield", latest:12093.73, latest_month:"2026-06", series:[50451.66,57524.76,44209.76,51908.86,48059.36,46466.9,39426.31,54425.15,50454.25,48086.42,46568.97,12093.73] },
+      { venue:"M15 Metrocentre", latest:10150.07, latest_month:"2026-06", series:[null,null,null,null,null,null,48587.45,62587.48,46033.4,51652.32,53719.8,10150.07] },
+      { venue:"AAHQ Factory", latest:9358.52, latest_month:"2026-06", series:[25757.85,29119.13,29116.95,31343.31,32743.74,35427.51,41673.3,57736.68,51064.41,46788.79,45745.92,9358.52] },
+      { venue:"M13 Aberdeen", latest:9060.77, latest_month:"2026-06", series:[null,null,null,null,null,null,31837.95,42726.93,34576.41,37922.43,45165.6,9060.77] },
+      { venue:"M14 Meadowhall (Sheffield)", latest:7814.78, latest_month:"2026-06", series:[null,null,null,null,null,null,35051.34,43775.67,32950.72,33686.82,41737.82,7814.78] },
+      { venue:"M16 Nottingham", latest:7704.55, latest_month:"2026-06", series:[null,null,null,null,null,null,29984.13,47148.66,44071.21,36271.27,41095.16,7704.55] },
+      { venue:"M3 Fountainbridge", latest:7607.36, latest_month:"2026-06", series:[36820.12,42514.34,43837.59,44097.1,40833.46,43013.98,34628.03,37377.97,40165.64,43595.05,41575.65,7607.36] },
+      { venue:"M18 Soho", latest:7276.44, latest_month:"2026-06", series:[null,null,null,null,null,null,null,7448.31,34373.61,33148.0,34672.69,7276.44] },
+      { venue:"M10 Leeds", latest:7052.53, latest_month:"2026-06", series:[39765.78,43505.44,31292.49,39571.64,37334.3,34336.16,37696.15,40061.67,41023.89,32660.48,39040.68,7052.53] },
+      { venue:"M12 Newcastle", latest:6396.19, latest_month:"2026-06", series:[null,null,null,null,58168.23,48538.36,29963.61,34354.96,37010.22,32365.98,32320.52,6396.19] },
+      { venue:"M6 Bath Street", latest:5693.41, latest_month:"2026-06", series:[29047.58,33906.64,26590.66,25484.82,23604.54,25667.36,20767.5,25334.13,25242.68,25083.6,22117.57,5693.41] },
+      { venue:"Maki Nori · London", latest:5676.01, latest_month:"2026-06", series:[null,null,null,null,null,null,null,null,123.15,1984.67,18789.06,5676.01] },
+      { venue:"M17 Lakeside", latest:5517.28, latest_month:"2026-06", series:[null,null,null,null,null,null,8520.26,51344.75,27972.98,32952.19,36122.69,5517.28] },
+      { venue:"M1 Nicolson St", latest:5234.81, latest_month:"2026-06", series:[22166.44,24227.56,23007.93,25453.96,24138.56,21717.96,19675.73,23554.45,26729.54,25592.35,21836.54,5234.81] },
+      { venue:"M11 Leicester", latest:4082.0, latest_month:"2026-06", series:[null,null,null,19539.25,47067.45,45004.01,28218.98,26347.6,33165.48,23136.51,30670.44,4082.0] }
+    ]
+  },
+
+  labour_cost: {
+    months: ["2026-01","2026-02","2026-03","2026-04","2026-05"], latest_month: "2026-05", currency: "GBP",
+    source: "Management Accounts · 2026 - Summary.xlsx · monthly P&L blocks", ingested_at: "2026-06-09T07:55:00Z",
+    wage_target_pct: 22, wage_warn_pct: 24, wage_critical_pct: 26,
+    wage_target_note: "Using meta target (22%). Finance OKR FO5 lists W/R 27%; industry ~30%. Target TBC from COO.",
+    excluded: { M2:"Closed", M4:"Closed", M5:"Closed", Shoreditch:"Opened 17 May 2026 — #DIV/0! so far", Ikigai_1:"No row in 2026 Summary" },
+    venues: [
+      { venue:"M1 Edinburgh · Nicholson St", revenue:[85916,80648,89912,90885,85342], wage:[20720,28319,26038,18223,18179], wage_pct:[24.12,35.12,28.96,20.05,21.30] },
+      { venue:"M3 Fountainbridge", revenue:[152687,137321,154578,156992,162500], wage:[52155,55450,52283,47280,43480], wage_pct:[34.16,40.38,33.82,30.12,26.76] },
+      { venue:"M6 Bath Street", revenue:[91236,93947,93791,93022,99413], wage:[24233,23282,20965,22488,20738], wage_pct:[26.56,24.78,22.35,24.18,20.86] },
+      { venue:"M7 St James Quarter", revenue:[243643,221201,232585,259553,273296], wage:[73077,71799,66424,68639,55224], wage_pct:[29.99,32.46,28.56,26.45,20.21] },
+      { venue:"M8 Renfield Street", revenue:[182914,187534,179919,182656,197285], wage:[62658,64147,64282,63423,58999], wage_pct:[34.26,34.21,35.73,34.72,29.91] },
+      { venue:"M9 Manchester", revenue:[289494,298508,316093,322590,300677], wage:[93256,96990,83142,80297,78328], wage_pct:[32.21,32.49,26.30,24.89,26.05] },
+      { venue:"M10 Leeds", revenue:[140699,132115,141136,127690,141604], wage:[38399,41755,39671,33419,28720], wage_pct:[27.29,31.60,28.11,26.17,20.28] },
+      { venue:"M11 Leicester", revenue:[116363,97981,101986,101730,103132], wage:[37612,36729,38874,36273,28694], wage_pct:[32.32,37.49,38.12,35.66,27.82] },
+      { venue:"M12 Newcastle Eldon Sq", revenue:[149152,132066,123108,126707,128577], wage:[49411,45186,41584,38681,35077], wage_pct:[33.13,34.21,33.78,30.53,27.28] },
+      { venue:"M13 Aberdeen", revenue:[157669,161509,151138,153039,180779], wage:[57838,51265,48492,41428,37441], wage_pct:[36.68,31.74,32.08,27.07,20.71] },
+      { venue:"M14 Meadowhall Sheffield", revenue:[207044,176340,162895,158261,174853], wage:[53185,60994,70606,49155,35120], wage_pct:[25.69,34.59,43.34,31.06,20.09] },
+      { venue:"M15 Metrocentre", revenue:[296191,250755,225542,249792,264507], wage:[108279,68631,59379,58284,53618], wage_pct:[36.56,27.37,26.33,23.33,20.27] },
+      { venue:"M16 Nottingham", revenue:[178611,172677,180430,159549,162207], wage:[57794,58285,54270,47736,46175], wage_pct:[32.36,33.75,30.08,29.92,28.47] },
+      { venue:"M17 Lakeside", revenue:[null,115519,144244,142815,160808], wage:[null,12730,36329,40933,32307], wage_pct:[null,11.02,25.18,28.66,20.09] },
+      { venue:"M18 Soho", revenue:[null,null,106764,137042,153386], wage:[null,null,38740,58110,46540], wage_pct:[null,null,36.29,42.40,30.34] },
+      { venue:"MN Maki Nori London", revenue:[null,null,null,29644,96949], wage:[null,null,null,28830,24155], wage_pct:[null,null,null,97.25,24.92] }
+    ]
+  }
+};
+
+let DATA = FALLBACK_DATA;
+
+let STATE = { weekIdx: 0, cluster: "all", leagueView: "all", ragFilter: "all", budgetIdx: null };
+
+function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.food_cost_critical_pct) return "red"; if(v>=m.food_cost_warn_pct) return "amber"; return "green"; }
+function ragWage(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.wage_revenue_critical_pct) return "red"; if(v>=m.wage_revenue_warn_pct) return "amber"; return "green"; }
+function ragFoodVar(v){ if(v==null) return "grey"; const a=Math.abs(v); const m=DATA.meta; if(a>=m.foodvar_critical_pct) return "red"; if(a>=m.foodvar_warn_pct) return "amber"; return "green"; }
+function ragCompliance(v){ if(v==null) return "grey"; if(v<95) return "red"; if(v<98) return "amber"; return "green"; }
+function ragDeliveroo(s,i){ const r = s.del_rag ? s.del_rag[i] : null; return r || "grey"; }
+function ragHygiene(v){ if(v==null) return "grey"; if(v<95) return "red"; if(v<DATA.meta.hygiene_target_pct) return "amber"; return "green"; }
+function ragFoodQuality(v){ if(v==null) return "grey"; if(v<90) return "red"; if(v<DATA.meta.food_quality_target_pct) return "amber"; return "green"; }
+function ragStar(v){ if(v==null) return "grey"; if(v<=4.50) return "red"; if(v<4.70) return "amber"; return "green"; }
+function dimScore(rag){ return {green:100, amber:70, red:30, grey:null}[rag]; }
+
+function compositeScore(s, i){
+  const dims = [
+    {rag: ragFoodCost(s.food_cost_pct[i]), w: 0.25},
+    {rag: ragWage(s.wage_pct[i]),          w: 0.20},
+    {rag: ragFoodVar(s.foodvar_pct[i]),    w: 0.20},
+    {rag: ragCompliance(s.compliance_pct), w: 0.15},
+    {rag: ragDeliveroo(s, i),              w: 0.20}
+  ];
+  let tot = 0, wsum = 0;
+  dims.forEach(d => { const sc = dimScore(d.rag); if(sc != null){ tot += sc * d.w; wsum += d.w; } });
+  return wsum ? Math.round(tot / wsum) : null;
+}
+function bandRag(score){ if(score==null) return "grey"; if(score>=DATA.meta.band_green) return "green"; if(score>=DATA.meta.band_amber) return "amber"; return "red"; }
+function siteRag(s, i){ return bandRag(compositeScore(s, i)); }
+
+function fmtPct(v, dp){ if(v==null) return "—"; return v.toFixed(dp??1) + "%"; }
+function fmtNum(v, dp){ if(v==null) return "—"; return v.toFixed(dp??2); }
+function fmtDelta(curr, prev, suffix){
+  if(curr==null||prev==null) return "<span class='delta flat'>—</span>";
+  const d = curr - prev; if(Math.abs(d) < 0.05) return "<span class='delta flat'>·</span>";
+  const dir = d>0?"up":"down", sign = d>0?"+":"";
+  return `<span class='delta ${dir}'>${sign}${d.toFixed(2)}${suffix||""}</span>`;
+}
+function esc(t){ return (t==null?"":String(t)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function starHTML(v){ if(v==null) return "<span style='color:var(--maki-muted)'>—</span>"; const r=ragStar(v); const c={green:'var(--rag-green)',amber:'var(--rag-amber)',red:'var(--rag-red)'}[r]; return `<span style="color:${c};font-weight:600">${v.toFixed(2)}★</span>`; }
+function weeksBetween(fromISO){ const from=new Date(fromISO+"T00:00:00"); const now=new Date(); return Math.max(0, Math.floor((now-from)/(7*24*60*60*1000))); }
+
+function renderStaleBanner(){
+  const el = document.getElementById("staleBanner"); if(!el || !DATA.meta.data_as_at) return;
+  const wk = weeksBetween(DATA.meta.data_as_at);
+  const nf = DATA.meta.not_filed || [];
+  el.style.display = "";
+  el.innerHTML = `<strong>BOH RAG latest = ${esc(DATA.meta.boh_meeting)} meeting (w/e ~01 Jun)${wk>=2?` · ~${wk} wks old`:""}.</strong> ${nf.length} of ${DATA.sites.length} sites did not file that week (${nf.join(", ")}) — M11/M16 food cost backfilled from Soph KPI. The <strong>Weekly tab → Sales-vs-Budget (w/c 01 Jun)</strong> now carries a cleaner, fuller read for all 16 sites. <strong>Action:</strong> stand up a South BOH weekly + chase M11/M16; adopt the Soph KPI sheet as the single weekly food-cost source (R18).`;
+}
+
+function renderDaily(){
+  const sites = filteredSites();
+  const i = STATE.weekIdx;
+  renderStaleBanner();
+  document.getElementById("heatTitle").textContent = `Site heat-map · ${DATA.meta.weeks[i]}`;
+
+  const counts = {red:0, amber:0, green:0, grey:0};
+  sites.forEach(s => { counts[siteRag(s,i)]++; });
+  document.getElementById("heroTitle").textContent = `${sites.length} sites · ${DATA.meta.weeks[i]}${i===0?" (latest)":""}`;
+  const heroStats = [
+    { l:"Sites", n: sites.length, cls:"" },
+    { l:"Red", n: counts.red, cls:"red" },
+    { l:"Amber", n: counts.amber, cls:"amber" },
+    { l:"Green", n: counts.green, cls:"green" },
+    { l:"Not filed", n: counts.grey, cls:"grey" }
+  ];
+  document.getElementById("heroStats").innerHTML = heroStats.map(h => `<div class="hstat ${h.cls}"><div class="n">${h.n}</div><div class="l">${h.l}</div></div>`).join("");
+
+  const wageValues = sites.map(s => s.wage_pct[i]).filter(v=>v!=null);
+  const wageAvg = wageValues.length ? wageValues.reduce((a,b)=>a+b,0)/wageValues.length : null;
+  const fcCurrent = sites.map(s=>s.food_cost_pct[i]).filter(v=>v!=null);
+  const onTarget = fcCurrent.filter(v => v <= DATA.meta.food_cost_target_pct).length;
+  const budgetPct = fcCurrent.length ? Math.round((onTarget/fcCurrent.length)*100) : null;
+  const reporting = sites.filter(s=>compositeScore(s,i)!=null).length;
+
+  const kpis = [
+    { label:"Wage : Revenue (avg)", value: wageAvg==null?"—":wageAvg.toFixed(1)+"%", sub:`Target ≤${DATA.meta.wage_revenue_target_pct}% · sites reporting wage`, trend:"", rag: ragWage(wageAvg) },
+    { label:"Food cost · sites on target", value: budgetPct==null?"—":budgetPct+"%", sub:`${onTarget}/${fcCurrent.length} reporting ≤${DATA.meta.food_cost_target_pct}%`, trend:"", rag: budgetPct>=80?"green":budgetPct>=60?"amber":"red" },
+    { label:"Sites reporting this week", value: `${reporting}/${sites.length}`, sub:DATA.meta.weeks[i], trend:"", rag: reporting>=sites.length-2?"green":reporting>=sites.length-5?"amber":"red" }
+  ];
+  document.getElementById("dailyKpis").innerHTML = kpis.map(k => `<div class="kpi-card ${k.rag}"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-sub">${k.sub}</div><div class="kpi-trend">${k.trend}</div></div>`).join("");
+
+  const clusterKeys = STATE.cluster === "all" ? Object.keys(DATA.clusters) : [STATE.cluster];
+  const heatHTML = clusterKeys.map(ck => {
+    const cl = DATA.clusters[ck];
+    let cSites = DATA.sites.filter(s => s.cluster === ck);
+    if(STATE.ragFilter !== "all") cSites = cSites.filter(s => siteRag(s,i) === STATE.ragFilter);
+    if(!cSites.length) return "";
+    const cCounts = {red:0,amber:0,green:0,grey:0};
+    DATA.sites.filter(s=>s.cluster===ck).forEach(s=>cCounts[siteRag(s,i)]++);
+    const cards = cSites.map(s => {
+      const fc = s.food_cost_pct[i], fcP = s.food_cost_pct[i+1];
+      const rag = siteRag(s, i);
+      const dRag = ragDeliveroo(s, i);
+      const dLabel = {green:"Green",amber:"Amber",red:"Red",grey:"—"}[dRag];
+      const fv = s.foodvar_pct[i];
+      const detailBits = [];
+      if(siteRag(s,i)==="grey") detailBits.push(`<div class="lbl">Filing</div><span style="color:var(--rag-red);font-weight:600">No data for ${esc(DATA.meta.weeks[i])}</span>`);
+      if(s.boh_issue && s.boh_issue!=="-") detailBits.push(`<div class="lbl">BOH issue (latest)</div>${esc(s.boh_issue)}`);
+      if(s.boh_owner && s.boh_owner!=="-") detailBits.push(`<div class="lbl">Owner</div>${esc(s.boh_owner)}`);
+      return `
+        <div class="tile ${rag}" onclick="this.classList.toggle('open')">
+          <div class="tile-top"><span class="tile-code">${s.code}</span><span class="tile-badge ${rag}">${rag==="grey"?"NOT FILED":rag.toUpperCase()}</span></div>
+          <div class="tile-name">${esc(s.name)}</div>
+          <div class="tile-headline"><span class="big">${fmtPct(fc)}</span><span class="cap">food cost</span>${fc!=null&&fcP!=null?fmtDelta(fc,fcP,"").replace("class='delta","class='d"):""}</div>
+          <div class="tile-mini">
+            <div class="m"><span class="mk">Wage</span><span class="mv">${fmtPct(s.wage_pct[i])}</span></div>
+            <div class="m"><span class="mk">Food var</span><span class="mv">${fv==null?"—":(fv>0?"+":"")+fv.toFixed(1)+"%"}</span></div>
+            <div class="m"><span class="mk">Deliveroo</span><span class="mv"><span class="rag-dot ${dRag}"></span>${dLabel}</span></div>
+            <div class="m"><span class="mk">★ (info)</span><span class="mv">${s.star==null?"—":s.star.toFixed(2)}</span></div>
+          </div>
+          ${detailBits.length?`<div class="tile-detail">${detailBits.join("")}</div>`:""}
+        </div>`;
+    }).join("");
+    return `
+      <div class="cluster-block">
+        <div class="cluster-head">
+          <h3>${cl.name}<span class="cluster-rags">
+            ${cCounts.red?`<span class="mini red">${cCounts.red} R</span>`:""}
+            ${cCounts.amber?`<span class="mini amber">${cCounts.amber} A</span>`:""}
+            ${cCounts.green?`<span class="mini green">${cCounts.green} G</span>`:""}
+            ${cCounts.grey?`<span class="mini grey">${cCounts.grey} —</span>`:""}
+          </span></h3>
+          <span class="cluster-meta">AM: ${cl.am_owner}${cl.ec?` · EC: ${cl.ec}`:""} · DEC: ${cl.dec}</span>
+        </div>
+        <div class="tile-grid">${cards}</div>
+      </div>`;
+  }).join("");
+  document.getElementById("dailyHeatmap").innerHTML = heatHTML || `<div class="placeholder">No sites match this filter.</div>`;
+
+  const maint = DATA.sites.filter(s => s.boh_issue && s.boh_issue !== "-" && /fridge|freezer|griddle|fryer|dishwasher|maintenance|engineer|broken|compressor/i.test(s.boh_issue)).filter(s => STATE.cluster==="all" || s.cluster===STATE.cluster);
+  document.querySelector("#maintTbl tbody").innerHTML = maint.length ? maint.map(s => `<tr><td class="site-code">${s.code}</td><td>${esc(s.boh_issue)}</td><td>${esc(s.boh_solution)}</td><td>${esc(s.boh_owner)}</td></tr>`).join("") : `<tr><td colspan="4" style="text-align:center;color:var(--maki-muted)">No maintenance issues open</td></tr>`;
+
+  const deliv = DATA.sites.filter(s => ragDeliveroo(s,i)!=="grey").filter(s => STATE.cluster==="all" || s.cluster===STATE.cluster).sort((a,b)=> dimScore(ragDeliveroo(a,i))-dimScore(ragDeliveroo(b,i)));
+  document.querySelector("#deliveryTbl tbody").innerHTML = deliv.length ? deliv.map(s => `<tr><td class="site-code">${s.code}</td><td>${starHTML(s.star)}</td><td><span class="rag rag-${ragDeliveroo(s,i)}">${ragDeliveroo(s,i).toUpperCase()}</span></td></tr>`).join("") : `<tr><td colspan="3" style="text-align:center;color:var(--maki-muted)">No Deliveroo reads this week</td></tr>`;
+
+  const fn = document.getElementById("filedNote");
+  if(fn){ fn.innerHTML = `<strong>Reading the history:</strong> Scotland has full per-week food cost / wage / food variance for all 5 BOH weeks. England (M9/M10/M14) reports food cost only. <strong>South+Midlands (M11/M16/M17/M18)</strong> BOH food cost (33-39%) conflicted with the tracker — M11/M16's 02-Jun food cost is backfilled from the Soph KPI WP column; the rest reconciled via the <strong>Sales-vs-Budget tile (w/c 01 Jun)</strong> in the Weekly tab. Maki Nori isn't on any EC feed.`; }
+}
+
+function renderWeekly(){
+  const sites = filteredSites();
+  const i = STATE.weekIdx;
+  const rows = sites.map(s => {
+    const fc=s.food_cost_pct[i], fcP=s.food_cost_pct[i+1];
+    const overall = siteRag(s, i);
+    const dRag = ragDeliveroo(s,i);
+    const fv = s.foodvar_pct[i];
+    return `
+      <tr${overall==="grey"?' class="nodata"':''}>
+        <td class="site-code">${s.code}<div style="font-size:11px;color:var(--maki-muted);font-family:inherit;font-weight:400">${esc(s.name)}</div></td>
+        <td style="font-size:11.5px">${DATA.clusters[s.cluster].name}</td>
+        <td class="num">${fmtPct(fc)}</td><td class="num">${fmtDelta(fc,fcP,"pp")}</td>
+        <td class="num">${fmtPct(s.wage_pct[i])}</td>
+        <td class="num">${fv==null?"—":(fv>0?"+":"")+fv.toFixed(1)+"%"}</td>
+        <td>${dRag==="grey"?'<span class="rag rag-grey">—</span>':`<span class="rag rag-${dRag}">${dRag.toUpperCase()}</span>`}</td>
+        <td class="num">${starHTML(s.star)}</td>
+        <td><span class="rag rag-grey" title="Mapal feed pending">pending</span></td>
+        <td><span class="rag rag-${overall}">${overall==="grey"?"NOT FILED":overall.toUpperCase()}</span></td>
+      </tr>`;
+  }).join("");
+  document.querySelector("#weeklyTbl tbody").innerHTML = rows;
+  const boh = sites.filter(s => s.boh_issue && s.boh_issue !== "-");
+  document.querySelector("#bohTbl tbody").innerHTML = boh.length ? boh.map(s => `<tr><td class="site-code">${s.code}</td><td>${esc(s.boh_issue)}</td><td>${esc(s.boh_solution)}</td><td>${esc(s.boh_owner)}</td></tr>`).join("") : `<tr><td colspan="4" style="text-align:center;color:var(--maki-muted)">No BOH issues filed</td></tr>`;
+  renderWeeklyBudget();
+  renderDeliverooRag();
+}
+
+function renderWeeklyBudget(){
+  const wb = DATA.weekly_budget; if(!wb) return;
+  const all = wb.sites || [];
+  const clNames = DATA.clusters;
+  const totTgt = all.reduce((a,r)=>a+(r.tgt||0),0);
+  const totAct = all.reduce((a,r)=>a+(r.act||0),0);
+  const totCov = all.reduce((a,r)=>a+(r.covers||0),0);
+  const pctBudget = totTgt>0 ? (totAct/totTgt*100) : null;
+  const over = all.filter(r=>r.act>=r.tgt).length;
+  const fcVals = all.map(r=>r.fc).filter(v=>v!=null);
+  const fcOn = fcVals.filter(v=>v<=DATA.meta.food_cost_target_pct).length;
+  const stats = [
+    {label:"Week", value: wb.week},
+    {label:"Target sales", value: fmtGBP(totTgt)},
+    {label:"Actual sales", value: fmtGBP(totAct)},
+    {label:"% to budget", value: pctBudget==null?"—":pctBudget.toFixed(1)+"%"},
+    {label:"Sites ≥ budget", value: `${over} / ${all.length}`},
+    {label:`Food ≤ ${DATA.meta.food_cost_target_pct}%`, value: `${fcOn} / ${fcVals.length}`},
+    {label:"Covers", value: totCov.toLocaleString("en-GB")}
+  ];
+  document.getElementById("weeklyBudgetStats").innerHTML = stats.map(s=>`<div class="tile-stat"><span>${s.label}</span><strong>${s.value}</strong></div>`).join("");
+  const ragBudget = (p)=> p==null?"grey": p>=100?"green": p>=92?"amber":"red";
+  const ragBadge = (rag,txt)=>{const c={green:"var(--rag-green)",amber:"var(--rag-amber)",red:"var(--rag-red)",grey:"var(--rag-grey)"}[rag];return `<span style="display:inline-block;padding:1px 7px;border-radius:9px;background:${c};color:#fff;font-size:10.5px;font-weight:600">${txt}</span>`;};
+  const inkFor = (rag)=> rag==="red"?"var(--rag-red)":rag==="amber"?"var(--amber-ink)":rag==="green"?"var(--rag-green)":"var(--maki-muted)";
+  const pctOf = (a,t)=> t>0?Math.round(a/t*100):null;
+  let view = all;
+  if(STATE.cluster!=="all") view = all.filter(r=>r.cluster===STATE.cluster);
+  document.querySelector("#weeklyBudgetTbl tbody").innerHTML = view.length ? view.map(r=>{
+    const p = pctOf(r.act,r.tgt);
+    const sitP = pctOf(r.sitAct,r.sitTgt);
+    const delP = r.delTgt>0?pctOf(r.delAct,r.delTgt):null;
+    const fcRag = ragFoodCost(r.fc), wgRag = ragWage(r.wage);
+    return `<tr>
+      <td class="site-code">${r.code}<div style="font-size:11px;color:var(--maki-muted);font-family:inherit;font-weight:400">${esc(r.name)}</div></td>
+      <td style="font-size:11.5px">${clNames[r.cluster]?clNames[r.cluster].name:"—"}</td>
+      <td class="num">${fmtGBP(r.tgt)}</td>
+      <td class="num">${fmtGBP(r.act)}</td>
+      <td class="num">${ragBadge(ragBudget(p), p==null?"—":p+"%")}</td>
+      <td class="num">${fmtGBP(r.sitAct)} <span style="color:var(--maki-muted);font-size:11px">${sitP==null?"":"· "+sitP+"%"}</span></td>
+      <td class="num">${(r.delTgt>0||r.delAct>0)?fmtGBP(r.delAct):"—"} <span style="color:var(--maki-muted);font-size:11px">${delP==null?"":"· "+delP+"%"}</span></td>
+      <td class="num">${r.covers?r.covers.toLocaleString("en-GB"):"—"}</td>
+      <td class="num">£${r.avg==null?"—":r.avg.toFixed(2)}</td>
+      <td class="num"><span style="color:${inkFor(fcRag)};font-weight:600">${r.fc==null?"—":r.fc.toFixed(2)+"%"}</span></td>
+      <td class="num"><span style="color:${inkFor(wgRag)};font-weight:600">${r.wage==null?"—":r.wage.toFixed(2)+"%"}</span></td>
+      <td class="num">£${r.rph==null?"—":r.rph.toFixed(2)}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="12" style="text-align:center;color:var(--maki-muted)">No sites for this cluster on the Soph KPI sheet</td></tr>`;
+  document.getElementById("weeklyBudgetNote").innerHTML = `Source: <strong>${esc(wb.source)}</strong> · refreshed ${esc(wb.ingested_at)}. Budget RAG: ≥100% green · 92–99% amber · &lt;92% red. Food cost / wage use the group thresholds (food 25/27/30%, wage 22/24/26%). Ikigai 2 is included here but not yet in the BOH RAG heat-map; Maki Nori is not on this sheet. The clean food-cost basis reconciles the previously-held South/Midlands BOH figures — see risk R18.`;
+}
+
+function renderDailySpend(){
+  const d = DATA.daily_spend; if(!d) return;
+  let view = d.sites;
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
+  if(STATE.cluster!=="all") view = view.filter(r=>codeCluster[r.code]===STATE.cluster);
+  const filed = d.sites.filter(r=>r.hc_wtd!=null).length;
+  const ydaySum = d.sites.reduce((a,r)=>a+(r.yday||0),0);
+  const dot = rag => `<span class="rag-dot ${rag}"></span>`;
+  const ragWk = r => { if(r.hc_wtd==null) return "grey"; if(r.wk_budget==null) return "amber"; const used=r.hc_wtd/r.wk_budget; if(used>1) return "red"; if(used>0.85) return "amber"; return "green"; };
+  const stats = [
+    {label:"Data as at", value: d.as_at},
+    {label:"Spend · last filed day", value: fmtGBP(ydaySum)},
+    {label:"Sites filed", value: `${filed} / ${d.sites.length}`},
+    {label:"Non-filers", value: d.sites.filter(r=>r.hc_wtd==null).map(r=>r.code).join(", ")||"—"}
+  ];
+  document.getElementById("dailySpendStats").innerHTML = stats.map(x=>`<div class="tile-stat"><span>${x.label}</span><strong>${x.value}</strong></div>`).join("");
+  document.querySelector("#dailySpendTbl tbody").innerHTML = view.map(r=>{
+    const rag = ragWk(r);
+    return `<tr${r.hc_wtd==null?' class="nodata"':''}>
+      <td class="site-code">${dot(rag)} ${r.code}</td>
+      <td class="num">${r.yday==null?"—":fmtGBP(r.yday)}</td>
+      <td class="num">${r.hc_wtd==null?"—":fmtGBP(r.hc_wtd)}</td>
+      <td class="num">${r.hc_left==null?"—":fmtGBP(r.hc_left)}</td>
+      <td class="num">${r.wk_budget==null?"—":fmtGBP(r.wk_budget)}</td>
+      <td class="num">${fmtGBP(r.mtd)}</td>
+      <td class="num">${r.cap==null?"—":fmtGBP(r.cap)}</td>
+      <td style="font-size:11.5px;color:${/NEVER|NO BUDGET|mismatch|decimal/i.test(r.note)?"var(--rag-red)":"var(--maki-muted)"}">${esc(r.note)||"—"}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("dailySpendNote").innerHTML = `<strong>${esc(d.data_note)}</strong> Weekly budget basis: ${esc(d.weekly_budget_basis)}. June cap basis: ${esc(d.june_cap_basis)}. Row RAG = HC week-to-date vs weekly budget (red &gt;100% · amber &gt;85%).`;
+}
+
+function renderDeliverooRag(){
+  const dr = DATA.deliveroo_rag; if(!dr) return;
+  document.getElementById("deliverooRagTitle").textContent = `Deliveroo RAG · ${dr.week}`;
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster);
+  const counts={green:0,amber:0,red:0}; dr.sites.forEach(r=>{ if(counts[r.ops]!=null) counts[r.ops]++; });
+  const stats=[{label:"Week",value:dr.week},{label:"Ops Green",value:counts.green},{label:"Ops Amber",value:counts.amber},{label:"Ops Red",value:counts.red}];
+  document.getElementById("deliverooRagStats").innerHTML = stats.map(x=>`<div class="tile-stat"><span>${x.label}</span><strong>${x.value}</strong></div>`).join("");
+  const ragColor = rag => rag==="red"?"var(--rag-red)":rag==="amber"?"var(--amber-ink)":rag==="green"?"var(--rag-green)":"var(--maki-muted)";
+  const cell=(v,rag,suffix)=> (v==null)?`<span style="color:var(--maki-muted)">—</span>`:`<span style="font-weight:600;color:${ragColor(rag)}">${v}${suffix||""}</span>`;
+  const ref=(v,suffix)=> (v==null)?`<span style="color:var(--maki-muted)" title="Reference metric (no RAG) — not captured in the w/c 25 May pull">—</span>`:`<span style="font-weight:600">${v}${suffix||""}</span>`;
+  const order=["scotland_newcastle","north_midlands","south"];
+  let view = dr.sites;
+  if(STATE.cluster!=="all") view = view.filter(r=>codeCluster[r.code]===STATE.cluster);
+  const rankOps={red:0,amber:1,green:2};
+  const groups = STATE.cluster!=="all" ? [STATE.cluster] : order;
+  let html="";
+  groups.forEach(cl=>{
+    const grp = view.filter(r=>codeCluster[r.code]===cl).sort((a,b)=>((rankOps[a.ops]??9)-(rankOps[b.ops]??9)));
+    if(!grp.length) return;
+    const cname = DATA.clusters[cl] ? DATA.clusters[cl].name : cl;
+    html += `<tr><td colspan="9" style="background:var(--maki-soft);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--maki-red-deep);text-transform:uppercase">${esc(cname)}</td></tr>`;
+    html += grp.map(r=>`<tr>
+      <td class="site-code">${r.code}<div style="font-size:11px;color:var(--maki-muted);font-weight:400">${esc(r.name)}</div></td>
+      <td class="num">${cell(r.prep!=null?r.prep.toFixed(1):null,r.r.prep)}</td>
+      <td class="num">${cell(r.rider!=null?r.rider.toFixed(1):null,r.r.rider,"%")}</td>
+      <td class="num">${cell(r.missing!=null?r.missing.toFixed(1):null,r.r.missing,"%")}</td>
+      <td class="num">${cell(r.rating!=null?r.rating.toFixed(2):null,r.r.rating,"★")}</td>
+      <td class="num">${cell(r.open!=null?r.open.toFixed(1):null,r.r.open,"%")}</td>
+      <td class="num">${ref(r.busy!=null?r.busy.toFixed(1):null,"%")}</td>
+      <td class="num">${ref(r.rejection!=null?r.rejection.toFixed(1):null,"%")}</td>
+      <td><span class="rag rag-${r.ops||"grey"}">${(r.ops||"—").toUpperCase()}</span></td>
+    </tr>`).join("");
+  });
+  document.querySelector("#deliverooRagTbl tbody").innerHTML = html;
+  const legend = `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11px;line-height:1.6">
+     <span style="font-weight:700;color:var(--maki-ink)">Thresholds (sheet's own):</span>
+     <span>Prep <span style="color:var(--rag-green)">G ≤16</span> · <span style="color:var(--amber-ink)">A ≤17.5</span> · <span style="color:var(--rag-red)">R &gt;17.5</span></span>
+     <span>Rider wait <span style="color:var(--rag-green)">G &lt;5%</span> · <span style="color:var(--amber-ink)">A ≤10%</span> · <span style="color:var(--rag-red)">R &gt;10%</span></span>
+     <span>Missing <span style="color:var(--rag-green)">G &lt;1%</span> · <span style="color:var(--amber-ink)">A ≤2%</span> · <span style="color:var(--rag-red)">R &gt;2%</span></span>
+     <span>★ <span style="color:var(--rag-green)">G ≥4.70</span> · <span style="color:var(--amber-ink)">A ≥4.59</span> · <span style="color:var(--rag-red)">R ≤4.50</span></span>
+     <span>Open <span style="color:var(--rag-green)">G ≥99%</span> · <span style="color:var(--amber-ink)">A ≥98%</span> · <span style="color:var(--rag-red)">R &lt;98%</span></span>
+   </div>`;
+  document.getElementById("deliverooRagNote").innerHTML = esc(dr.note) + ` Ingested ${esc(dr.ingested_at)}.`
+    + ` <strong>Busy %</strong> (Core Busy Mode) and <strong>Reject %</strong> (B10 order rejection) are reference columns from the workbook's right-hand block — no RAG thresholds; they were not captured in the truncated w/c 25 May pull and will populate on the next complete refresh.`
+    + legend;
+}
+
+function fmtGBP(n){ if(n==null) return "—"; return "£" + Math.round(n).toLocaleString("en-GB"); }
+function fmtMonthShort(ym){ if(!ym) return ""; const [y,m]=ym.split("-"); const names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return `${names[parseInt(m,10)-1]} ${y.slice(2)}`; }
+
+function renderDeliverySpend(){
+  const ds = DATA.delivery_spend; if(!ds) return;
+  const venues = ds.venues || [];
+  const latestTotal = venues.reduce((a,v) => a + (v.latest_month===ds.latest_month ? (v.latest||0) : 0), 0);
+  const last12Total = venues.reduce((a,v) => a + v.series.reduce((x,y)=>x+(y||0),0), 0);
+  const stats = [
+    { label:"Latest month", value: fmtMonthShort(ds.latest_month) + (ds.latest_month_partial ? ` (partial · through ${ds.latest_month_through.slice(-5)})` : "") },
+    { label:`Spend · ${fmtMonthShort(ds.latest_month)}`, value: fmtGBP(latestTotal) },
+    { label:"Venues shown", value: venues.length },
+    { label:"12-month total spend", value: fmtGBP(last12Total) }
+  ];
+  document.getElementById("deliverySpendStats").innerHTML = stats.map(s => `<div class="tile-stat"><span>${s.label}</span><strong>${s.value}</strong></div>`).join("");
+  const peak = venues.reduce((mx, v) => { const m=Math.max(...v.series.map(x=>x||0)); return m>mx?m:mx; }, 0) || 1;
+  document.querySelector("#deliverySpendTbl tbody").innerHTML = venues.map(v => {
+    const last12Sum = v.series.reduce((a,b)=>a+(b||0), 0);
+    const spark = v.series.map((val, idx) => { const isLatest=(idx===v.series.length-1); if(val==null) return `<span class="bar empty" style="height:2px"></span>`; const h=Math.max(2,Math.round((val/peak)*22)); return `<span class="bar ${isLatest?'latest':''}" style="height:${h}px" title="${ds.months[idx]} · ${fmtGBP(val)}"></span>`; }).join("");
+    return `<tr><td><span class="venue-name">${v.venue}</span></td><td class="num">${fmtGBP(v.latest)}</td><td style="font-size:11.5px;color:var(--maki-muted)">${fmtMonthShort(v.latest_month)}</td><td class="num">${fmtGBP(last12Sum)}</td><td><div class="spark">${spark}</div></td></tr>`;
+  }).join("");
+  document.getElementById("deliverySpendMappingNote").innerHTML = `<div style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5">Franchise venues stripped: ${(ds.franchise_stripped||[]).join(", ")} (${ds.franchise_stripped_entries} entries · ${fmtGBP(ds.franchise_stripped_total_gbp)}). Source: ${ds.source}.</div>`;
+}
+
+function renderLabourCost(){
+  const lc = DATA.labour_cost; if(!lc) return;
+  const venues = lc.venues || [];
+  const lastIdx = (lc.months||[]).length - 1;
+  const target=lc.wage_target_pct, warn=lc.wage_warn_pct, crit=lc.wage_critical_pct;
+  const ragFor = (v) => { if(v==null) return "grey"; if(v>=crit) return "red"; if(v>=warn) return "amber"; return "green"; };
+  const latestRev = venues.reduce((a,v) => a + (v.revenue[lastIdx]||0), 0);
+  const latestWage = venues.reduce((a,v) => a + (v.wage[lastIdx]||0), 0);
+  const groupPct = latestRev>0 ? (latestWage/latestRev)*100 : null;
+  const onTarget = venues.filter(v => v.wage_pct[lastIdx]!=null && v.wage_pct[lastIdx]<=target).length;
+  const venuesWithData = venues.filter(v => v.wage_pct[lastIdx]!=null).length;
+  const stats = [
+    { label:"Latest month", value: fmtMonthShort(lc.latest_month) },
+    { label:"Group wage : revenue", value: groupPct==null?"—":groupPct.toFixed(1)+"%" },
+    { label:`Revenue · ${fmtMonthShort(lc.latest_month)}`, value: fmtGBP(latestRev) },
+    { label:`Wage · ${fmtMonthShort(lc.latest_month)}`, value: fmtGBP(latestWage) },
+    { label:`Sites ≤ ${target}% target`, value: `${onTarget} / ${venuesWithData}` },
+    { label:"Target / Warn / Crit", value: `${target}% · ${warn}% · ${crit}%` }
+  ];
+  document.getElementById("labourCostStats").innerHTML = stats.map(s => `<div class="tile-stat"><span>${s.label}</span><strong>${s.value}</strong></div>`).join("");
+  const peakPct = venues.reduce((mx, v) => { const m=Math.max(...v.wage_pct.map(x=>x||0)); return m>mx?m:mx; }, 0) || 1;
+  const ragBadge = (rag) => { const colors={green:"var(--rag-green)",amber:"var(--rag-amber)",red:"var(--rag-red)",grey:"var(--rag-grey)"}; const labels={green:"GREEN",amber:"AMBER",red:"RED",grey:"—"}; return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${colors[rag]};color:#fff;font-size:10.5px;font-weight:600;letter-spacing:.04em">${labels[rag]}</span>`; };
+  document.querySelector("#labourCostTbl tbody").innerHTML = venues.map(v => {
+    const rev=v.revenue[lastIdx], wage=v.wage[lastIdx], pct=v.wage_pct[lastIdx], rag=ragFor(pct);
+    const spark = v.wage_pct.map((val, idx) => { const isLatest=(idx===v.wage_pct.length-1); if(val==null) return `<span class="bar empty" style="height:2px"></span>`; const h=Math.max(2,Math.round((val/peakPct)*22)); return `<span class="bar ${isLatest?'latest':''}" style="height:${h}px" title="${lc.months[idx]} · ${val.toFixed(1)}%"></span>`; }).join("");
+    return `<tr><td><span class="venue-name">${v.venue}</span></td><td class="num">${fmtGBP(rev)}</td><td class="num">${fmtGBP(wage)}</td><td class="num">${pct==null?"—":pct.toFixed(1)+"%"}</td><td>${ragBadge(rag)}</td><td><div class="spark">${spark}</div></td></tr>`;
+  }).join("");
+  const excluded = lc.excluded || {};
+  const excludedList = Object.entries(excluded).map(([k,note]) => `<li><strong>${k}</strong> — ${note}</li>`).join("");
+  document.getElementById("labourCostMappingNote").innerHTML = `<div style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"><strong>Target benchmark · TBC.</strong> ${lc.wage_target_note||""}<ul style="margin:4px 0 0;padding-left:18px">${excludedList}</ul>Source: ${lc.source}.</div>`;
+}
+
+function renderMtdFoodCost(){
+  const wb = DATA.weekly_budget; if(!wb){ return; }
+  let rows = wb.sites.filter(s => s.fc!=null && s.act!=null);
+  if(STATE.cluster!=="all") rows = rows.filter(s => s.cluster===STATE.cluster);
+  const sumSales = rows.reduce((a,s)=>a+(s.act||0),0);
+  const sumFc = rows.reduce((a,s)=>a+(s.act*s.fc/100),0);
+  const blended = sumSales>0 ? sumFc/sumSales*100 : null;
+  const tgt = DATA.meta.food_cost_target_pct || 25;
+  const ds = DATA.delivery_spend; let monAll=null, monExAAHQ=null;
+  if(ds){ const v=ds.venues||[]; monAll=v.reduce((a,x)=>a+(x.latest_month===ds.latest_month?(x.latest||0):0),0); monExAAHQ=v.reduce((a,x)=>a+((x.latest_month===ds.latest_month && !/AAHQ/i.test(x.venue))?(x.latest||0):0),0); }
+  const blStr = blended==null?"—":blended.toFixed(1)+"%";
+  const stats = [
+    { label:"Period (Soph KPI)", value: wb.week },
+    { label:"Food cost · Soph KPI", value: fmtGBP(sumFc) },
+    { label:"on sales", value: fmtGBP(sumSales) },
+    { label:"Blended food %", value: blStr },
+    { label:"vs "+tgt+"% target", value: blended==null?"—":((blended-tgt>=0?"+":"")+(blended-tgt).toFixed(1)+" pts") },
+    { label:"Mona Lisa · 1–7 Jun", value: monAll==null?"—":fmtGBP(monAll) }
+  ];
+  document.getElementById("mtdFoodCostStats").innerHTML = stats.map(s=>`<div class="tile-stat"><span>${s.label}</span><strong>${s.value}</strong></div>`).join("");
+  const ragBadge = (rag) => { const c={green:"var(--rag-green)",amber:"var(--rag-amber)",red:"var(--rag-red)",grey:"var(--rag-grey)"}; const l={green:"GREEN",amber:"AMBER",red:"RED",grey:"—"}; return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${c[rag]};color:#fff;font-size:10.5px;font-weight:600">${l[rag]}</span>`; };
+  const sorted=[...rows].sort((a,b)=>(b.fc||0)-(a.fc||0));
+  document.querySelector("#mtdFoodCostTbl tbody").innerHTML = sorted.map(s=>{ const fcGbp=s.act*s.fc/100; const rag=ragFoodCost(s.fc); const cl=DATA.clusters[s.cluster]; return `<tr><td class="site-code">${s.code}<div style="font-size:11px;color:var(--maki-muted);font-weight:400">${esc(s.name)}</div></td><td style="font-size:11.5px">${cl?cl.name:"—"}</td><td class="num">${fmtGBP(s.act)}</td><td class="num">${fmtGBP(fcGbp)}</td><td class="num">${s.fc.toFixed(1)}%</td><td>${ragBadge(rag)}</td></tr>`; }).join("");
+  document.getElementById("mtdFoodCostNote").innerHTML =
+    "<strong>June has one complete week in the canonical Soph KPI feed so far ("+esc(wb.week)+")</strong>, so month-to-date = that week: "+fmtGBP(sumFc)+" on "+fmtGBP(sumSales)+" = <strong>"+blStr+"</strong> blended (target "+tgt+"%). "
+    + "Reconciliation — Mona Lisa goods/delivery ledger 1–7 Jun: "+(monAll==null?"—":fmtGBP(monAll))+" all venues incl AAHQ factory · "+(monExAAHQ==null?"—":fmtGBP(monExAAHQ))+" excl factory. The two methods agree to within ~5% at group level. MTD accumulates as further June weeks land in Soph KPI."
+    + (STATE.cluster!=="all" ? " <em>Per-site table is cluster-filtered; Mona Lisa reconciliation is group-level.</em>" : "");
+}
+
+function renderMonthly(){
+  renderMtdFoodCost(); renderDeliverySpend(); renderLabourCost();
+  document.getElementById("okrGrid").innerHTML = DATA.okrs.map(o => `<div class="okr-card ${o.status}"><div class="okr-id">${o.id}</div><div class="okr-title">${o.title}</div><div class="okr-value">${o.current}${o.unit}</div><div class="okr-target">Target ${o.target}</div><div class="okr-source"><span class="source-chip ${o.source.includes('MANUAL')?'manual':o.source.includes('Drive')?'drive':''}">${o.source}</span></div><div style="font-size:11px;color:var(--maki-muted);margin-top:6px">${o.note}</div></div>`).join("");
+  const sites = filteredSites();
+  document.querySelector("#hygTbl tbody").innerHTML = sites.map(s => { const rag=ragHygiene(s.hygiene_pct); return `<tr><td class="site-code">${s.code}</td><td class="num">${s.hygiene_pct==null?"—":s.hygiene_pct.toFixed(1)+"%"}</td><td><span class="rag rag-${rag}">${rag==="grey"?"—":rag.toUpperCase()}</span></td><td style="font-size:12px">${esc(s.hyg_dev)||"—"}</td><td style="font-size:12px">${esc(s.hyg_owner)||"—"}</td></tr>`; }).join("");
+  document.querySelector("#fqTbl tbody").innerHTML = sites.map(s => { const rag=ragFoodQuality(s.food_quality_pct); return `<tr><td class="site-code">${s.code}</td><td class="num">${s.food_quality_pct==null?"—":s.food_quality_pct.toFixed(1)+"%"}</td><td><span class="rag rag-${rag}">${rag==="grey"?"—":rag.toUpperCase()}</span></td><td style="font-size:12px">${esc(s.fq_dev)||"—"}</td><td style="font-size:12px">${esc(s.fq_owner)||"—"}</td></tr>`; }).join("");
+  document.querySelector("#monthlyIssuesTbl tbody").innerHTML = DATA.monthly_issues.map(it => `<tr><td><strong>${it.area}</strong></td><td>${esc(it.issue)}</td><td style="font-size:12px;color:var(--maki-muted)">${esc(it.root)}</td><td>${esc(it.solution)}</td><td>${esc(it.owner)}</td><td><span class="rag rag-${it.status==='Closed'?'green':it.status==='In progress'?'amber':'red'}">${it.status}</span></td></tr>`).join("");
+}
+
+function renderLeague(){
+  const i = STATE.weekIdx;
+  const scored = DATA.sites.map(s => ({ s, score: compositeScore(s, i), prevScore: compositeScore(s, i+1) }));
+  const ranked = scored.filter(x => x.score != null).sort((a,b) => b.score - a.score);
+  const awaiting = scored.filter(x => x.score == null);
+  const dotCell = rag => `<span class="rag-dot ${rag}"></span>`;
+  if(STATE.leagueView === "all"){
+    document.getElementById("leagueAll").style.display = ""; document.getElementById("leagueByCluster").style.display = "none";
+    const rows = ranked.map((x, idx) => {
+      const rank = idx+1; const rankCls = rank===1?"gold":rank===2?"silver":rank===3?"bronze":"";
+      const d = x.prevScore!=null ? x.score-x.prevScore : null;
+      const deltaHTML = d==null ? "<span class='delta flat'>—</span>" : d>0 ? `<span class='delta down'>+${d}</span>` : d<0 ? `<span class='delta up'>${d}</span>` : `<span class='delta flat'>·</span>`;
+      return `<tr><td><span class="rank ${rankCls}">${rank}</span></td><td class="site-code">${x.s.code}<div style="font-size:11px;color:var(--maki-muted);font-family:inherit;font-weight:400">${esc(x.s.name)}</div></td><td style="font-size:11.5px">${DATA.clusters[x.s.cluster].name}</td><td class="num"><strong style="font-size:15px;color:var(--maki-red-deep)">${x.score}</strong></td><td class="num">${dotCell(ragFoodCost(x.s.food_cost_pct[i]))}</td><td class="num">${dotCell(ragWage(x.s.wage_pct[i]))}</td><td class="num">${dotCell(ragFoodVar(x.s.foodvar_pct[i]))}</td><td class="num">${dotCell(ragCompliance(x.s.compliance_pct))}</td><td class="num">${dotCell(ragDeliveroo(x.s,i))}</td><td>${deltaHTML}</td></tr>`;
+    }).join("");
+    const awaitingRows = awaiting.map(x => `<tr class="nodata"><td><span class="rank">—</span></td><td class="site-code">${x.s.code}<div style="font-size:11px;color:var(--maki-muted);font-family:inherit;font-weight:400">${esc(x.s.name)}</div></td><td style="font-size:11.5px">${DATA.clusters[x.s.cluster].name}</td><td class="num" colspan="6" style="text-align:left;color:var(--maki-muted);font-style:italic">No data this week</td><td>—</td></tr>`).join("");
+    document.querySelector("#leagueTbl tbody").innerHTML = rows + awaitingRows;
+  } else {
+    document.getElementById("leagueAll").style.display = "none"; document.getElementById("leagueByCluster").style.display = "";
+    const byCluster = {}, awaitingByCluster = {};
+    ranked.forEach(x => { (byCluster[x.s.cluster] ||= []).push(x); });
+    awaiting.forEach(x => { (awaitingByCluster[x.s.cluster] ||= []).push(x); });
+    document.getElementById("leagueByCluster").innerHTML = Object.entries(DATA.clusters).map(([ck, cl]) => {
+      const arr = (byCluster[ck]||[]).sort((a,b)=>b.score-a.score); const aw = awaitingByCluster[ck]||[];
+      if(!arr.length && !aw.length) return "";
+      const avg = arr.length ? Math.round(arr.reduce((a,b)=>a+b.score,0)/arr.length) : "—";
+      const rows = arr.map((x, idx) => `<tr><td><span class="rank">${idx+1}</span></td><td class="site-code">${x.s.code}</td><td class="num"><strong>${x.score}</strong></td></tr>`).join("");
+      const awRows = aw.map(x => `<tr class="nodata"><td><span class="rank">—</span></td><td class="site-code">${x.s.code}</td><td class="num" style="color:var(--maki-muted)">—</td></tr>`).join("");
+      return `<div class="cluster-block" style="display:inline-block;width:32%;min-width:280px;margin-right:1%;vertical-align:top"><div class="cluster-head"><h3>${cl.name}</h3><span style="font-weight:700;font-size:18px;color:var(--maki-red-deep)">${avg}<span style="font-size:11px;color:var(--maki-muted)">/100</span></span></div><table class="tbl" style="border:none;box-shadow:none"><thead><tr><th>#</th><th>Site</th><th class="num">Score</th></tr></thead><tbody>${rows}${awRows}</tbody></table></div>`;
+    }).join("");
+  }
+  document.querySelector("#clusterSummaryTbl tbody").innerHTML = Object.entries(DATA.clusters).map(([ck, cl]) => {
+    const arr = ranked.filter(x => x.s.cluster === ck);
+    if(!arr.length) return `<tr><td><strong>${cl.name}</strong></td><td class="num">0</td><td class="num">—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    arr.sort((a,b)=>b.score-a.score);
+    const avg = Math.round(arr.reduce((a,b)=>a+b.score,0)/arr.length);
+    const prev = arr.map(x=>x.prevScore).filter(v=>v!=null);
+    const prevAvg = prev.length ? Math.round(prev.reduce((a,b)=>a+b,0)/prev.length) : null;
+    const delta = prevAvg!=null ? avg-prevAvg : null;
+    const trendHTML = delta==null ? "<span class='delta flat'>—</span>" : delta>0 ? `<span class='delta down'>+${delta}</span>` : delta<0 ? `<span class='delta up'>${delta}</span>` : `<span class='delta flat'>flat</span>`;
+    return `<tr><td><strong>${cl.name}</strong><div style="font-size:11px;color:var(--maki-muted)">AM ${cl.am_owner} · DEC ${cl.dec}</div></td><td class="num">${arr.length}</td><td class="num"><strong style="color:var(--maki-red-deep)">${avg}</strong></td><td><strong class="site-code">${arr[0].s.code}</strong> · ${arr[0].score}</td><td><strong class="site-code">${arr[arr.length-1].s.code}</strong> · ${arr[arr.length-1].score}</td><td>${trendHTML}</td></tr>`;
+  }).join("");
+}
+
+function renderRisk(){
+  const sorted = [...DATA.risks].sort((a,b) => (b.likelihood*b.impact)-(a.likelihood*a.impact));
+  document.querySelector("#riskTbl tbody").innerHTML = sorted.map(r => { const score=r.likelihood*r.impact; const cls=score>=25?"s25":score>=20?"s20":score>=15?"s15":"s10"; return `<tr><td><strong>${r.id}</strong></td><td>${esc(r.risk)}</td><td><span class="risk-score ${cls}">${score}</span></td><td>${esc(r.owner)}</td><td style="font-size:12px">${esc(r.mitigation)}</td><td><span class="rag rag-${r.status==='Closed'?'green':r.status==='In progress'||r.status==='Mitigated'?'amber':'red'}">${r.status}</span></td></tr>`; }).join("");
+  const grid = {};
+  DATA.risks.forEach(r => { const key=`${r.likelihood}-${r.impact}`; (grid[key] ||= []).push(r); });
+  let body = "";
+  for(let L=5; L>=1; L--){
+    let row = `<tr><th style="background:#fff;border:none;text-align:right">Likelihood ${L}</th>`;
+    for(let I=1; I<=5; I++){ const cell=grid[`${L}-${I}`]||[]; const score=L*I; const bg=score>=20?"#FBE4D5":score>=15?"#FBF1D6":score>=10?"#FFF8E1":"#E5F4EC"; row += `<td style="background:${bg};text-align:center;font-weight:600;font-size:12px;border:1px solid #fff">${cell.map(r=>r.id).join(" · ")||"·"}</td>`; }
+    row += "</tr>"; body += row;
+  }
+  document.getElementById("riskHeatBody").innerHTML = body;
+}
+
+function filteredSites(){ if(STATE.cluster==="all") return DATA.sites; return DATA.sites.filter(s => s.cluster===STATE.cluster); }
+function setActive(tab){
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab===tab));
+  document.querySelectorAll(".tab-section").forEach(s => s.classList.toggle("active", s.id===`tab-${tab}`));
+  switch(tab){ case "daily": renderDaily(); break; case "weekly": renderWeekly(); break; case "budget": renderBudget(); break; case "monthly": renderMonthly(); break; case "league": renderLeague(); break; case "risk": renderRisk(); break; }
+}
+function renderAll(){ renderDaily(); renderWeekly(); renderBudget(); renderMonthly(); renderLeague(); renderRisk(); }
+function renderBudget(){
+  const d = DATA.daily_spend; if(!d || !d.ledger) return;
+  const dates = Object.keys(d.ledger).sort();
+  if(!dates.length) return;
+  if(STATE.budgetIdx==null || STATE.budgetIdx > dates.length-1) STATE.budgetIdx = dates.length-1;
+  const slider = document.getElementById("budgetSlider");
+  slider.max = dates.length-1; slider.value = STATE.budgetIdx;
+  const date = dates[STATE.budgetIdx];
+  const dObj = new Date(date+"T12:00:00");
+  document.getElementById("budgetSliderLabel").textContent = dObj.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+  document.getElementById("budgetHeroTitle").textContent = `Budget burn · ${dObj.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}${STATE.budgetIdx===dates.length-1?" (latest)":""}`;
+  // Sunday of selected date
+  const sun = new Date(dObj); sun.setDate(sun.getDate() - sun.getDay());
+  const sunISO = sun.toISOString().slice(0,10);
+  const month = date.slice(0,7);
+  const dayOfMonth = parseInt(date.slice(8,10),10);
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
+  const sumRange = (code, fromISO, toISO) => dates.filter(dt=>dt>=fromISO&&dt<=toISO).reduce((a,dt)=>a+((d.ledger[dt]||{})[code]||0),0);
+  const bar = (pct, warn, crit) => {
+    if(pct==null) return '<span style="color:var(--maki-muted)">—</span>';
+    const col = pct>crit?"var(--rag-red)":pct>warn?"var(--rag-amber)":"var(--rag-green)";
+    return `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--maki-soft);border-radius:4px;overflow:hidden"><div style="width:${Math.min(100,pct).toFixed(0)}%;height:100%;background:${col}"></div></div><span style="font-size:11px;font-weight:600;min-width:38px;text-align:right;color:${col}">${pct.toFixed(0)}%</span></div>`;
+  };
+  let view = d.sites;
+  if(STATE.cluster!=="all") view = view.filter(r=>codeCluster[r.code]===STATE.cluster);
+  let gDay=0,gWtd=0,gMtd=0,gWkB=0,gCap=0;
+  const rows = view.map(r=>{
+    const day = (d.ledger[date]||{})[r.code];
+    const wtd = sumRange(r.code, sunISO, date);
+    const jb = d.june_baseline;
+    const baseAmt = (jb && month===jb.through.slice(0,7) && date>=jb.through) ? (jb.by_code[r.code]||0) : 0;
+    const mtd = baseAmt + dates.filter(dt=>dt.slice(0,7)===month&&dt<=date&&(!jb||dt>jb.through)).reduce((a,dt)=>a+((d.ledger[dt]||{})[r.code]||0),0);
+    gDay+=day||0; gWtd+=wtd; gMtd+=mtd; gWkB+=r.wk_budget||0; gCap+=r.cap||0;
+    const wkPct = r.wk_budget? wtd/r.wk_budget*100 : null;
+    const paceBase = r.cap? r.cap*dayOfMonth/30 : null;
+    const pacePct = paceBase? mtd/paceBase*100 : null;
+    return `<tr>
+      <td class="site-code">${r.code}</td>
+      <td class="num">${day==null?"—":fmtGBP(day)}</td>
+      <td class="num">${fmtGBP(wtd)}</td>
+      <td class="num">${r.wk_budget==null?"—":fmtGBP(r.wk_budget)}</td>
+      <td>${bar(wkPct,85,100)}</td>
+      <td class="num">${fmtGBP(mtd)}</td>
+      <td class="num">${r.cap==null?"—":fmtGBP(r.cap)}</td>
+      <td>${bar(pacePct,100,110)}</td>
+    </tr>`;
+  }).join("");
+  document.querySelector("#budgetBurnTbl tbody").innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--maki-muted)">No sites for this cluster</td></tr>';
+  const hero = [
+    { l:"Spend this day", n: fmtGBP(gDay), cls:"" },
+    { l:"WTD", n: fmtGBP(gWtd), cls:"" },
+    { l:"Weekly budget", n: fmtGBP(gWkB), cls:"green" },
+    { l:"MTD", n: fmtGBP(gMtd), cls:"" },
+    { l:"June caps", n: fmtGBP(gCap), cls:"green" }
+  ];
+  document.getElementById("budgetHeroStats").innerHTML = hero.map(h=>`<div class="hstat ${h.cls}"><div class="n" style="font-size:19px">${h.n}</div><div class="l">${h.l}</div></div>`).join("");
+  renderDailySpend();
+}
+function initBudgetSlider(){ const el=document.getElementById("budgetSlider"); if(el) el.addEventListener("input", e => { STATE.budgetIdx=parseInt(e.target.value,10); renderBudget(); }); }
+
+function initWeekPicker(){ const sel=document.getElementById("weekPicker"); sel.innerHTML = DATA.meta.weeks.map((w,i) => `<option value="${i}">${w}${i===0?" (latest)":""}</option>`).join(""); sel.value=STATE.weekIdx; sel.addEventListener("change", e => { STATE.weekIdx=parseInt(e.target.value,10); renderAll(); }); }
+function initClusterFilter(){ document.getElementById("clusterFilter").addEventListener("change", e => { STATE.cluster=e.target.value; renderAll(); }); }
+function initTabs(){ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setActive(t.dataset.tab))); }
+function initChips(){ document.querySelectorAll("#ragChips .chip").forEach(c => { c.addEventListener("click", () => { document.querySelectorAll("#ragChips .chip").forEach(x=>x.classList.remove("active")); c.classList.add("active"); STATE.ragFilter=c.dataset.filter; renderDaily(); }); }); }
+function initPills(){ document.querySelectorAll("#leagueViewPills .pill").forEach(p => { p.addEventListener("click", () => { document.querySelectorAll("#leagueViewPills .pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); STATE.leagueView=p.dataset.view; renderLeague(); }); }); }
+async function refresh(){
+  setLive("loading","Refreshing…"); let loaded=false;
+  try{ const r=await fetch("./data/snapshot.json",{cache:"no-store"}); if(r.ok){ const j=await r.json(); if(j&&j.meta&&j.sites){ DATA=j; loaded=true; setLive("live", `Live · GitHub · ${new Date(j.meta.generated_at).toLocaleString()}`);} } } catch(_){}
+  if(!loaded){ const wk = DATA.meta.data_as_at ? weeksBetween(DATA.meta.data_as_at) : 0; setLive("stale", `Snapshot · BOH 02 Jun + budget w/c 01 Jun`); }
+  renderAll();
+}
+function setLive(state, txt){ const dot=document.getElementById("liveDot"); const txtEl=document.getElementById("liveText"); dot.classList.remove("offline","stale"); if(state==="stale"){ dot.classList.add("stale"); } else if(state!=="live"){ dot.classList.add("offline"); } txtEl.textContent=txt; }
+document.addEventListener("DOMContentLoaded", () => { initWeekPicker(); initClusterFilter(); initTabs(); initChips(); initPills(); initBudgetSlider(); document.getElementById("refreshBtn").addEventListener("click", refresh); renderAll(); refresh(); });
+</script>
+
+</body>
+</html>
