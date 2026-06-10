@@ -1067,6 +1067,15 @@
 
   <div id="hot-actions"></div>
 
+  <!-- MEETING RISK BOARD (rendered from MEETING_RISK — replace that one object on weekly refresh) -->
+  <div class="section-head" style="margin-top:28px;">
+    <div>
+      <h2>Meeting Risk Board — w/c 09/06</h2>
+      <div class="hint">Per-site resolved vs open from this week's AM meeting notes · open items carry to next meetings</div>
+    </div>
+  </div>
+  <div id="meeting-risk-board"></div>
+
   <div class="footer">
     Source: <a href="https://drive.google.com/drive/folders/18zid54KrspVfveZhcWG_gGJEPn7ncs1B" target="_blank">May 18–24, 2026 KPI folder</a>
     · Synthesised from 16 weekly GM/HC reports + Monday admin meeting notes
@@ -1583,7 +1592,10 @@ const SITES = [
       "BOH 3 Jun: M1 layout audit post-20 Jun (Mateusz); sharing JFC orders w/ M3 to push spend 29→22%; ventilation install pricing.", "Sales -21.19% vs target (-£5,618 (-21.19%)), w/e 31 May.",
       "WOW: covers -53 (-7.14%), SPH +£1.00 (+5.08%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
-      "Wage 21.11% — above 21% target."
+      "Wage 21.11% — above 21% target.",
+      "[09/06] Deliveroo orders 600 vs usual 1,000 — Wi-Fi shows signal but no internet → Óisín checking connectivity.",
+      "[09/06] Food cost up to 25.97% from 22% → OPEN.",
+      "[09/06] Fridge no.3 dead → Chris installing new unit, removing old."
     ],
     "actions": [
       "Maintain standards; hold trajectory."
@@ -1610,7 +1622,12 @@ const SITES = [
       "WOW: covers +89 (+7.71%), SPH +£0.19 (+0.85%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 21.49% — above 21% target.",
-      "GM focus: Stabilise food cost; gain more (named) reviews; fix Deliveroo late-prepared orders."
+      "GM focus: Stabilise food cost; gain more (named) reviews; fix Deliveroo late-prepared orders.",
+      "[09/06] Covers -7 WoW, SPH -37p, sales -£98 → target £23 SPH via upselling in quiet periods.",
+      "[09/06] Deliveroo new layout misrepresents weekly figures → OPEN.",
+      "[09/06] Food cost spike expected next week (now 20.22%) → continue ordering optimisation.",
+      "[09/06] Fruit & veg fridge fan broken → repair pending.",
+      "[09/06] Tofu menu limited to one item → OPEN."
     ],
     "actions": [
       "Maintain standards; hold trajectory."
@@ -1663,7 +1680,10 @@ const SITES = [
       "WOW: covers +244 (+9.32%), SPH +£0.00 (0.00%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Weekly ★ avg 4.33 below 4.7 OKR.",
-      "GM focus: Run reviews incentive."
+      "GM focus: Run reviews incentive.",
+      "[09/06] Covers down WoW & YoY; food cost jumped to 26.33% → OPEN.",
+      "[09/06] Alita/Toby/Jose need allergen training access → Óisín creating Mapal accounts.",
+      "[09/06] FT recruitment needed, labour tight → on hold; Dylan joined."
     ],
     "actions": [
       "Maintain standards; hold trajectory."
@@ -1717,7 +1737,11 @@ const SITES = [
       "BOH 3 Jun: performing well, positive reviews (Artur).", "Sales +8.72% vs target (+£5,883 (+8.72%)), w/e 31 May.",
       "WOW: covers +464 (+19.64%), SPH +£0.00.",
       "Operational F/R (food) 19.48% vs 23% target.",
-      "GM focus: Maintain all KPI metrics."
+      "GM focus: Maintain all KPI metrics.",
+      "[09/06] Sales under target; GM asked to lower targets → declined, targets fixed; flex labour instead.",
+      "[09/06] Labour slightly high → cut kitchen hours, manage breaks.",
+      "[09/06] Reviews: black spot on char siu, friendliness, space → training + follow-ups.",
+      "[09/06] Fryer ignition switch faulty → engineers consulting supplier; monitor."
     ],
     "actions": [
       "Upselling competition ongoing."
@@ -1744,7 +1768,11 @@ const SITES = [
       "WOW: covers +70 (+6.11%), SPH -£1.43 (-6.14%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.41% — above 21% target.",
-      "GM focus: Lift SPH and sales."
+      "GM focus: Lift SPH and sales.",
+      "[09/06] Covers/sales -15%; late prep 5.45% → Friday audit of prep times; manage \"order ready\" button timing.",
+      "[09/06] Par level confusion → get Arthur's par sheet to Inka.",
+      "[09/06] Food cost risk → £30k sales target to hold 23% FC; one-order-per-week rule.",
+      "[09/06] Street marketing unmeasured → weekend activation with trackable vouchers (Inka)."
     ],
     "actions": [
       "Mapal account for Kin."
@@ -1772,7 +1800,12 @@ const SITES = [
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.98% — well over 21% target.",
       "Weekly ★ avg 4.25 below 4.7 OKR.",
-      "GM focus: Keep labour & food cost stable; grow Google review volume."
+      "GM focus: Keep labour & food cost stable; grow Google review volume.",
+      "[09/06] Food/drink variance wrong — missing Harrow invoice → input invoice.",
+      "[09/06] Sushi complaints (rice ratio) → credit customers; Amy feeding back to kitchen.",
+      "[09/06] iPad not syncing out-of-stock → OPEN (orders disputed).",
+      "[09/06] High Cross food banks depress sales → Amy meeting Thu re event discounts.",
+      "[09/06] Father's Day pop-up 21 Jun needs promo → draft beer promo; Amy watching prep."
     ],
     "actions": [
       "Tighten rota to pull wage toward 21%.",
@@ -1800,7 +1833,12 @@ const SITES = [
       "WOW: covers +313 (+32.67%), SPH -£1.20 (-5.16%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 22.55% — above 21% target.",
-      "GM focus: All Deliveroo metrics; XOXO Watermelon OOS so range not yet live (re-ordered; escalate if repeats)."
+      "GM focus: All Deliveroo metrics; XOXO Watermelon OOS so range not yet live (re-ordered; escalate if repeats).",
+      "[09/06] Sales -£7k WoW; quiet Saturday; missed sushi target → OPEN.",
+      "[09/06] Labour cut 25hrs but sales fell further → confirm Erin's extra 20–30 hrs; Ben +3 shifts.",
+      "[09/06] Joe resigned → OPEN.",
+      "[09/06] Maintenance technician no-show → site chasing status.",
+      "[09/06] Mystery shopper service flags (Georgia, Emma, Matt) → review report with staff."
     ],
     "actions": [
       "Maintain standards; hold trajectory."
@@ -1855,7 +1893,12 @@ const SITES = [
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Food variance +9.0% — outside ±5%.",
       "Weekly ★ avg 4.50 below 4.7 OKR.",
-      "GM focus: Reviews."
+      "GM focus: Reviews.",
+      "[09/06] Soft drinks variance, suspected unchecked LWC delivery → photo all LWC orders to group chat; verify week's invoices.",
+      "[09/06] Stock count accuracy (Stuart wk 2) → Dave assists; Sunday reconcile call with Amy.",
+      "[09/06] Two 1-star reviews → extra Sunday server approved; Stuart 25×5★ incentive; orange slips.",
+      "[09/06] Wobbly C2 table recurring → Inka chasing permanent fix.",
+      "[09/06] Council visit re food-poisoning report → awaiting council contact."
     ],
     "actions": [
       "Recount stock; investigate variance driver.",
@@ -1882,7 +1925,13 @@ const SITES = [
       "BOH 3 Jun: spare fridge transferring to M12.", "Sales -2.40% vs target (-£1,461 (-2.40%)), w/e 31 May.",
       "WOW: covers +677 (+34.51%), SPH -£0.66 (+2.90%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
-      "Wage 21.96% — above 21% target."
+      "Wage 21.96% — above 21% target.",
+      "[09/06] Food cost data missing this week → submit when staff member returns.",
+      "[09/06] Alt-supplier ingredients not linked to recipes (FC 22.08%) → OPEN.",
+      "[09/06] Late prep orders — sold-out items not marked on tablet → OPEN.",
+      "[09/06] Bar cellar 25°C, drinks unpourable; veg fridge awaiting repair → maintenance pending.",
+      "[09/06] Staff morale low → management encouragement push.",
+      "[09/06] Lunch menu inconsistent (+£2 SPH when offered) → consistency push."
     ],
     "actions": [
       "Maintain standards; hold trajectory."
@@ -1909,7 +1958,13 @@ const SITES = [
       "WOW: covers +85 (+6.19%), SPH -£0.24 (-1.06%).",
       "Operational F/R (food cost %) not filled in this week’s report.",
       "Wage 23.30% — well over 21% target.",
-      "GM focus: Deep clean started; post-it wall → social drive."
+      "GM focus: Deep clean started; post-it wall → social drive.",
+      "[09/06] Labour budget mismatch 23.31% vs 22.34% → group standardising weekly labour calc.",
+      "[09/06] Recurring Dinjo sake stock adjustment → weekly tracking (Amy).",
+      "[09/06] Toilets blocked incl. disabled → Ross + building mgmt investigating main pipe.",
+      "[09/06] Old ice machine homeless → Tyrone checking KP space; Inka getting ops approval.",
+      "[09/06] KP left, 2 kitchen staff pre-summer → GM revisiting recruitment.",
+      "[09/06] Fire inspection 12 Jul → Inka prepping compliance docs."
     ],
     "actions": [
       "Red-light protocol: AM floor walk + GM 1:1 within 48h; recovery plan to Lincoln.",
@@ -3519,6 +3574,90 @@ renderGmScore();
   // Expose for debugging / external use
   window.applyWeek = applyWeek;
   window.currentWeekKey = currentWeekKey;
+})();
+</script>
+
+<script>
+/* ============ MEETING RISK BOARD — w/c 09/06 ============
+   Weekly refresh: replace the MEETING_RISK object only. */
+const MEETING_RISK = {
+  "week": "w/c 09/06",
+  "sites": [
+    { "name": "Fountain Bridge", "label": "Fountainbridge",      "open": 2, "total": 5 },
+    { "name": "Newcastle",       "label": "Newcastle",           "open": 2, "total": 5 },
+    { "name": "Metrocentre",     "label": "Metrocentre",         "open": 2, "total": 6 },
+    { "name": "Nicolson",        "label": "Edinburgh (Nicolson)","open": 1, "total": 3 },
+    { "name": "SJQ Edinburgh",   "label": "SJQ",                 "open": 1, "total": 3 },
+    { "name": "Leicester",       "label": "Leicester",           "open": 1, "total": 5 },
+    { "name": "Nottingham",      "label": "Nottingham",          "open": 0, "total": 6 },
+    { "name": "Meadowhall",      "label": "Meadowhall",          "open": 0, "total": 5 },
+    { "name": "Manchester",      "label": "Manchester",          "open": 0, "total": 4 },
+    { "name": "Leeds",           "label": "Leeds",               "open": 0, "total": 4 }
+  ],
+  "openQuestions": [
+    { "site": "Edinburgh (Nicolson)", "q": "Food cost up to 25.97% from 22% — driver unidentified, no owner." },
+    { "site": "Fountainbridge", "q": "Deliveroo new layout misrepresents weekly figures — how do we read them reliably?" },
+    { "site": "Fountainbridge", "q": "Tofu menu limited to one item — expand or accept?" },
+    { "site": "SJQ", "q": "Covers down WoW & YoY and food cost jumped to 26.33% — cause unknown." },
+    { "site": "Newcastle", "q": "Sales -£7k WoW, quiet Saturday, missed sushi target — recovery plan needed." },
+    { "site": "Newcastle", "q": "Joe resigned — backfill plan undefined." },
+    { "site": "Metrocentre", "q": "Alt-supplier ingredients not linked to recipes (FC 22.08%) — who wires them in?" },
+    { "site": "Metrocentre", "q": "Late prep orders — sold-out items not marked on tablet; process fix unowned." },
+    { "site": "Leicester", "q": "iPad not syncing out-of-stock — orders disputed; fix unowned." },
+    { "site": "Cluster-wide", "q": "Red Light protocol steps still undefined — no owner." },
+    { "site": "Cluster-wide", "q": "England labour budget calc inconsistency — group standardising, confirm method." },
+    { "site": "Cluster-wide", "q": "Cover-count fluctuations beyond ASPH incentive — what else moves covers?" }
+  ],
+  "clusterActions": [
+    "ASPH +£1 incentive live — shift-level till tracking from next wk; monthly staff winner; quarterly site cash prize.",
+    "LWC photo-verification — photograph every LWC delivery to the group chat.",
+    "One-order-per-week procurement rule across sites.",
+    "AMs send meeting notes to Michael on Mondays."
+  ]
+};
+
+(function renderMeetingRisk(){
+  const host = document.getElementById('meeting-risk-board');
+  if (!host) return;
+  const orange = 'var(--maki-orange, #E94E1B)';
+  const sites = [...MEETING_RISK.sites].sort((a,b) => b.open - a.open || b.total - a.total || a.label.localeCompare(b.label));
+
+  const chips = sites.map(s => {
+    const resolved = s.total - s.open;
+    const openPct = s.total ? (s.open / s.total) * 100 : 0;
+    const tone = s.open >= 2 ? 'var(--red, #c0392b)' : (s.open === 1 ? orange : 'var(--green, #1e8e5a)');
+    return `
+      <div style="background:var(--surface,#fff); border:1px solid var(--line,#e5e0d8); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow,none);">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+          <div style="font-weight:700; font-size:12.5px; color:var(--ink,#222);">${s.label}</div>
+          <div style="font-size:11.5px; font-weight:700; color:${tone}; white-space:nowrap;">${s.open} open / ${s.total} total</div>
+        </div>
+        <div style="margin-top:7px; height:6px; border-radius:3px; background:var(--surface-2,#f1ede6); overflow:hidden; display:flex;">
+          <div style="width:${100 - openPct}%; background:var(--green, #1e8e5a); opacity:.55;" title="${resolved} resolved"></div>
+          <div style="width:${openPct}%; background:${tone};" title="${s.open} open"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const questions = MEETING_RISK.openQuestions.map(o => `
+    <div class="item issue" style="display:flex; gap:8px; align-items:baseline;">
+      <span style="flex:0 0 auto; font-size:10.5px; font-weight:800; letter-spacing:.3px; text-transform:uppercase; color:${orange}; min-width:118px;">${o.site}</span>
+      <span>${o.q}</span>
+    </div>`).join('');
+
+  const actions = MEETING_RISK.clusterActions.map(a => `
+    <span style="display:inline-flex; align-items:center; gap:6px; background:var(--surface,#fff); border:1px solid var(--line,#e5e0d8); border-left:3px solid ${orange}; border-radius:10px; padding:7px 11px; font-size:12px; color:var(--ink,#222);">${a}</span>`).join('');
+
+  host.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(195px, 1fr)); gap:10px; margin-bottom:18px;">${chips}</div>
+    <div style="background:var(--surface,#fff); border:1px solid var(--line,#e5e0d8); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow,none); margin-bottom:14px;">
+      <div class="panel-head issues" style="margin-bottom:8px;"><span class="dot"></span>Open questions for next meetings (${MEETING_RISK.openQuestions.length})</div>
+      ${questions}
+    </div>
+    <div style="background:var(--surface,#fff); border:1px solid var(--line,#e5e0d8); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow,none);">
+      <div style="font-weight:800; font-size:12px; letter-spacing:.4px; text-transform:uppercase; color:${orange}; margin-bottom:9px;">Cluster-wide actions — ${MEETING_RISK.week}</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">${actions}</div>
+    </div>`;
 })();
 </script>
 </body>
