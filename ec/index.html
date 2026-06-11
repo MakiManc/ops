@@ -416,7 +416,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.6.5 · 10 Jun 2026 · Front-page latest-week food cost now sourced from Soph KPI (canonical) not BOH — fixes M10 17%→29.4% & other BOH/Soph divergences · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily (≈£145.3k) · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.6.6 · 11 Jun 2026 · Front-page latest-week food cost now sourced from Soph KPI (canonical) not BOH — fixes M10 17%→29.4% & other BOH/Soph divergences · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily (≈£156.0k) · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
 </footer>
 
 <script>
@@ -668,28 +668,28 @@ const FALLBACK_DATA = {
   },
 
   daily_spend: {
-    as_at: "2026-06-10",
+    as_at: "2026-06-11",
     data_note: "Mapal Head Chef Daily Report went live 9 Jun 2026, so the daily ledger starts 9 Jun. MTD = pre-Mapal June baseline (Mona Lisa goods ledger, 1–7 Jun) + Mapal daily from 9 Jun onward; 8 Jun has no data (gap); IK2 has no Mona Lisa baseline. WTD is Mapal-only (Sun→selected day). Recomputed-vs-HC checks start from 10 Jun.",
     weekly_budget_basis: "23% × Soph KPI weekly Target Sales (w/c 01 Jun)",
     june_cap_basis: "Interim June caps = 23% × Mar–May avg MA revenue (until Matthew issues official June caps)",
     sites: [
-      { code:"M1",  yday:967.90,  hc_wtd:2975.59, hc_left:2035.41, wk_budget:5382.00,  mtd:6202.71,  cap:20404, note:"" },
-      { code:"M3",  yday:286.85,  hc_wtd:4775.59, hc_left:3886.91, wk_budget:7969.50,  mtd:7894.21,  cap:36345, note:"" },
-      { code:"M6",  yday:285.40,  hc_wtd:2823.24, hc_left:2558.60, wk_budget:5727.00,  mtd:5978.81,  cap:21944, note:"HC filed 282324/255860 — missing decimals, corrected; confirm with site" },
-      { code:"M7",  yday:1600.08, hc_wtd:5105.46, hc_left:8694.54, wk_budget:13800.00, mtd:17404.65, cap:58683, note:"" },
-      { code:"M8",  yday:2820.11, hc_wtd:6408.44, hc_left:4135.56, wk_budget:9832.50,  mtd:14913.84, cap:42923, note:"" },
-      { code:"M9",  yday:null,    hc_wtd:8852.68, hc_left:8022.32, wk_budget:15525.00, mtd:13401.91, cap:72018, note:"Daily Spend filed as n/a 9 Jun; MTD = Mona Lisa 1–7 Jun only. HC base £16,875 exceeds 23% budget by £1,350" },
-      { code:"M10", yday:1251.11, hc_wtd:4382.79, hc_left:2855.73, wk_budget:8128.89,  mtd:8303.64,  cap:31466, note:"" },
-      { code:"M11", yday:349.98,  hc_wtd:4876.54, hc_left:906.46,  wk_budget:6210.00,  mtd:4431.98,  cap:23525, note:"Only £906 left for Fri/Sat — watch" },
-      { code:"M12", yday:null,    hc_wtd:null,    hc_left:null,    wk_budget:7969.50,  mtd:6396.19,  cap:29010, note:"NEVER FILED Mapal — chase HC; MTD = Mona Lisa 1–7 Jun only" },
-      { code:"M13", yday:null,    hc_wtd:null,    hc_left:null,    wk_budget:9890.00,  mtd:9060.77,  cap:37180, note:"NEVER FILED Mapal — chase HC; MTD = Mona Lisa 1–7 Jun only" },
-      { code:"M14", yday:2054.69, hc_wtd:8270.48, hc_left:1264.52, wk_budget:9890.00,  mtd:9869.47,  cap:38027, note:"£1,265 left with 4 trading days to go" },
-      { code:"M15", yday:null,    hc_wtd:null,    hc_left:null,    wk_budget:13946.63, mtd:10150.07, cap:56721, note:"NEVER FILED Mapal — chase HC; MTD = Mona Lisa 1–7 Jun only" },
-      { code:"M16", yday:3889.49, hc_wtd:7110.02, hc_left:2177.61, wk_budget:8740.00,  mtd:11594.04, cap:38501, note:"HC base £9,288 vs 23% budget £8,740 — base mismatch" },
-      { code:"M17", yday:550.20,  hc_wtd:6829.97, hc_left:1338.52, wk_budget:8740.00,  mtd:6067.48,  cap:34336, note:"" },
-      { code:"M18", yday:121.97,  hc_wtd:5174.91, hc_left:1834.09, wk_budget:7360.00,  mtd:7398.41,  cap:30451, note:"" },
-      { code:"IK2", yday:400.00,  hc_wtd:2300.00, hc_left:2600.00, wk_budget:4956.50,  mtd:400.00,   cap:17547, note:"No Mona Lisa baseline; MTD = Mapal 9 Jun only. Spend filed as bare \"400\" — no supplier named" },
-      { code:"MN",  yday:119.11,  hc_wtd:2516.36, hc_left:2.50,    wk_budget:null,     mtd:5795.12,  cap:null,  note:"NO BUDGET SET — and HC reports £2.50 left" }
+      { code:"M1",  yday:249.01,  hc_wtd:2256.70, hc_left:2754.30,  wk_budget:5382.00,  mtd:6451.72,  cap:20404, note:"" },
+      { code:"M3",  yday:2206.05, hc_wtd:2206.05, hc_left:6081.45,  wk_budget:7969.50,  mtd:10100.26, cap:36345, note:"HC WTD = yday's spend exactly — WTD likely entered as today only; ledger WTD 9–10 Jun = £2,492.90" },
+      { code:"M6",  yday:0,       hc_wtd:null,    hc_left:null,     wk_budget:5727.00,  mtd:5978.81,  cap:21944, note:"Zero spend day. HC WTD/left filed as '2.53536'/'2.84564' — broken decimals (likely 2535.36/2845.64), not guessed; confirm with site" },
+      { code:"M7",  yday:1713.68, hc_wtd:3849.83, hc_left:9950.17,  wk_budget:13800.00, mtd:19118.33, cap:58683, note:"" },
+      { code:"M8",  yday:569.27,  hc_wtd:6977.71, hc_left:3566.29,  wk_budget:9832.50,  mtd:15483.11, cap:42923, note:"" },
+      { code:"M9",  yday:441.71,  hc_wtd:9294.39, hc_left:-7580.61, wk_budget:15525.00, mtd:13843.62, cap:72018, note:"hc_left NEGATIVE (-£7,580.61) yet over-budget answered No — contradiction, chase HC. Both 10 Jun invoices dated 11/6/26. HC base £16,875 exceeds 23% budget by £1,350" },
+      { code:"M10", yday:143.10,  hc_wtd:4525.89, hc_left:2712.63,  wk_budget:8128.89,  mtd:8446.74,  cap:31466, note:"" },
+      { code:"M11", yday:0,       hc_wtd:4876.54, hc_left:906.46,   wk_budget:6210.00,  mtd:4431.98,  cap:23525, note:"Daily spend 'none'; HC WTD/left identical to 9 Jun filing — only £906 left for Fri/Sat, watch" },
+      { code:"M12", yday:null,    hc_wtd:3808.01, hc_left:3510.99,  wk_budget:7969.50,  mtd:6396.19,  cap:29010, note:"FIRST Mapal filing 10 Jun (daily spend n/a); MTD = Mona Lisa 1–7 Jun only" },
+      { code:"M13", yday:2623.07, hc_wtd:7494.97, hc_left:1431.03,  wk_budget:9890.00,  mtd:11683.84, cap:37180, note:"First Mapal filing 10 Jun; Lynas entered as round £2334 — possibly truncated" },
+      { code:"M14", yday:0,       hc_wtd:8270.48, hc_left:1264.52,  wk_budget:9890.00,  mtd:9869.47,  cap:38027, note:"Zero spend day; WTD/left identical to 9 Jun filing; £1,265 left with 3 trading days to go" },
+      { code:"M15", yday:153.93,  hc_wtd:7002.29, hc_left:6914.73,  wk_budget:13946.63, mtd:10304.00, cap:56721, note:"First Mapal filing 10 Jun" },
+      { code:"M16", yday:null,    hc_wtd:7110.02, hc_left:2177.61,  wk_budget:8740.00,  mtd:11594.04, cap:38501, note:"Daily spend N/A. HC base £9,288 vs 23% budget £8,740 — base mismatch" },
+      { code:"M17", yday:788.78,  hc_wtd:7618.75, hc_left:549.74,   wk_budget:8740.00,  mtd:6856.26,  cap:34336, note:"£550 left for rest of week — watch" },
+      { code:"M18", yday:1660.36, hc_wtd:6835.27, hc_left:173.73,   wk_budget:7360.00,  mtd:9058.77,  cap:30451, note:"£174 left — effectively at weekly limit with 3 trading days to go" },
+      { code:"IK2", yday:210.00,  hc_wtd:2900.00, hc_left:1800.00,  wk_budget:4956.50,  mtd:610.00,   cap:17547, note:"No Mona Lisa baseline; spend filed as combined 'lynas and gf' £210; WTD/left round numbers — likely estimates" },
+      { code:"MN",  yday:null,    hc_wtd:121.51,  hc_left:null,     wk_budget:null,     mtd:5795.12,  cap:null,  note:"NO BUDGET SET. HC not in — filed by K. Middler; left filed as '2 £' (unparseable); WTD £121.51 vs £2,516.36 on 9 Jun — implausible" }
     ],
     june_baseline: {
       through: "2026-06-07",
@@ -698,7 +698,8 @@ const FALLBACK_DATA = {
       by_code: { "M1":5234.81,"M3":7607.36,"M6":5693.41,"M7":15804.57,"M8":12093.73,"M9":13401.91,"M10":7052.53,"M11":4082.00,"M12":6396.19,"M13":9060.77,"M14":7814.78,"M15":10150.07,"M16":7704.55,"M17":5517.28,"M18":7276.44,"MN":5676.01 }
     },
     ledger: {
-      "2026-06-09": { "M1":967.90,"M3":286.85,"M6":285.40,"M7":1600.08,"M8":2820.11,"M9":null,"M10":1251.11,"M11":349.98,"M14":2054.69,"M16":3889.49,"M17":550.20,"M18":121.97,"MN":119.11,"IK2":400.00 }
+      "2026-06-09": { "M1":967.90,"M3":286.85,"M6":285.40,"M7":1600.08,"M8":2820.11,"M9":null,"M10":1251.11,"M11":349.98,"M14":2054.69,"M16":3889.49,"M17":550.20,"M18":121.97,"MN":119.11,"IK2":400.00 },
+      "2026-06-10": { "M1":249.01,"M3":2206.05,"M6":0,"M7":1713.68,"M8":569.27,"M9":441.71,"M10":143.10,"M11":0,"M12":null,"M13":2623.07,"M14":0,"M15":153.93,"M16":null,"M17":788.78,"M18":1660.36,"MN":null,"IK2":210.00 }
     }
   },
 
