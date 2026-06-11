@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.7.0 · 11 Jun 2026 · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.7.3 · 11 Jun 2026 · M6 10-Jun daily spend corrected 0→£2,535.36 (Michael-confirmed; ledger+MTD recomputed £8,514.17) · Budget cluster headers credit EC/DEC (not AM) · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
 </footer>
 
 <script>
@@ -616,7 +616,6 @@ const FALLBACK_DATA = {
     { id:"R02", risk:"ECO4 food quality crash unrooted (Apr 66.67%)", likelihood:5, impact:5, owner:"HEC Sophie", mitigation:"RCA complete; May recovered to 100; sustain 3-month review", status:"Mitigated" },
     { id:"R01", risk:"EHO failure due to dual HACCP systems", likelihood:4, impact:5, owner:"Lincoln (Ziang Lin)", mitigation:"Consolidate to MR HACCP framework", status:"In progress" },
     { id:"R03", risk:"DEC rota fragility (Matt alone Scotland, Artur alone England, Jack absent)", likelihood:4, impact:5, owner:"HEC Sophie", mitigation:"Backfill Jack; DEC apprentice pipeline", status:"Open" },
-    { id:"R04", risk:"Sophie Wang single point of failure", likelihood:4, impact:5, owner:"COO", mitigation:"Codify Ramen Bible v1; cross-train DECs", status:"In progress" },
     { id:"R15", risk:"Deliveroo ops RED recurring (M8/M13/M15/M1/M12)", likelihood:4, impact:4, owner:"AMs + GMs", mitigation:"Deliveroo ops in EC RAG; weekly review of missing/rider/open%", status:"Open" },
     { id:"R05", risk:"Supplier failures (Lynas, JFC misroutes)", likelihood:5, impact:4, owner:"Ross Ward", mitigation:"Supplier scorecard; weekly cadence", status:"In progress" },
     { id:"R09", risk:"Site HACCPs 4 years stale", likelihood:3, impact:5, owner:"Lincoln + HEC", mitigation:"Migrate all sites to MR HACCP by Q3", status:"In progress" },
@@ -681,7 +680,7 @@ const FALLBACK_DATA = {
     sites: [
       { code:"M1",  yday:249.01,  hc_wtd:2256.70, hc_left:2754.30,  wk_budget:5382.00,  mtd:6451.72,  cap:20404, note:"" },
       { code:"M3",  yday:2206.05, hc_wtd:2206.05, hc_left:6081.45,  wk_budget:7969.50,  mtd:10100.26, cap:36345, note:"HC WTD = yday's spend exactly — WTD likely entered as today only; ledger WTD 9–10 Jun = £2,492.90" },
-      { code:"M6",  yday:0,       hc_wtd:2535.36, hc_left:2845.64,  wk_budget:5727.00,  mtd:5978.81,  cap:21944, note:"Zero spend day. HC typed continental decimals ('2.53536'/'2.84564') — corrected to £2,535.36/£2,845.64; they sum to exactly £5,381.00, the HC's weekly budget figure. NB HC budget base £5,381 vs our 23% basis £5,727 (£346 gap)" },
+      { code:"M6",  yday:2535.36, hc_wtd:2535.36, hc_left:2845.64,  wk_budget:5727.00,  mtd:8514.17,  cap:21944, note:"HC typed continental decimals ('2.53536'/'2.84564') = £2,535.36/£2,845.64 (sum = HC weekly budget £5,381.00). Michael confirmed 11 Jun: £2,535.36 is ALSO the 10 Jun daily spend (form said 0). HC WTD = yday only — excludes 9 Jun £285.40 (ledger WTD £2,820.76). HC budget base £5,381 vs our 23% basis £5,727 (£346 gap)" },
       { code:"M7",  yday:1713.68, hc_wtd:3849.83, hc_left:9950.17,  wk_budget:13800.00, mtd:19118.33, cap:58683, note:"" },
       { code:"M8",  yday:569.27,  hc_wtd:6977.71, hc_left:3566.29,  wk_budget:9832.50,  mtd:15483.11, cap:42923, note:"" },
       { code:"M9",  yday:441.71,  hc_wtd:9294.39, hc_left:-7580.61, wk_budget:15525.00, mtd:13843.62, cap:72018, note:"hc_left NEGATIVE (-£7,580.61) yet over-budget answered No — contradiction, chase HC. Both 10 Jun invoices dated 11/6/26. HC base £16,875 exceeds 23% budget by £1,350" },
@@ -705,7 +704,7 @@ const FALLBACK_DATA = {
     },
     ledger: {
       "2026-06-09": { "M1":967.90,"M3":286.85,"M6":285.40,"M7":1600.08,"M8":2820.11,"M9":null,"M10":1251.11,"M11":349.98,"M14":2054.69,"M16":3889.49,"M17":550.20,"M18":121.97,"MN":119.11,"IK2":400.00 },
-      "2026-06-10": { "M1":249.01,"M3":2206.05,"M6":0,"M7":1713.68,"M8":569.27,"M9":441.71,"M10":143.10,"M11":0,"M12":null,"M13":2623.07,"M14":0,"M15":153.93,"M16":null,"M17":788.78,"M18":1660.36,"MN":null,"IK2":210.00 }
+      "2026-06-10": { "M1":249.01,"M3":2206.05,"M6":2535.36,"M7":1713.68,"M8":569.27,"M9":441.71,"M10":143.10,"M11":0,"M12":null,"M13":2623.07,"M14":0,"M15":153.93,"M16":null,"M17":788.78,"M18":1660.36,"MN":null,"IK2":210.00 }
     }
   },
 
@@ -1289,7 +1288,7 @@ function renderBudget(){
       const grp = view.filter(r=>codeCluster[r.code]===ck);
       if(!grp.length) return;
       const cl = DATA.clusters[ck];
-      rows += `<tr><td colspan="8" style="background:var(--maki-soft);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--maki-red-deep);text-transform:uppercase">${cl?cl.name:ck}${cl&&cl.am_owner?` · AM ${cl.am_owner}`:""}</td></tr>`;
+      rows += `<tr><td colspan="8" style="background:var(--maki-soft);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--maki-red-deep);text-transform:uppercase">${cl?cl.name:ck}${cl&&cl.ec?` · EC ${cl.ec}`:""}${cl&&cl.dec?` · DEC ${cl.dec}`:""}</td></tr>`;
       const t={day:0,wtd:0,mtd:0,wkB:0,cap:0};
       grp.forEach(r=>{
         const c=calc(r);
