@@ -310,6 +310,12 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
       <strong id="budgetSliderLabel" style="font-size:14px;min-width:170px;font-variant-numeric:tabular-nums"></strong>
     </div>
   </div>
+  <div class="pill-row" id="budgetClusterPills">
+    <button class="pill active" data-cluster="all">All clusters</button>
+    <button class="pill" data-cluster="scotland_newcastle">Scotland &amp; Newcastle</button>
+    <button class="pill" data-cluster="north_midlands">North England &amp; Midlands</button>
+    <button class="pill" data-cluster="south">South England</button>
+  </div>
   <div style="overflow-x:auto"><table class="tbl" id="budgetBurnTbl">
     <thead><tr><th>Site</th><th class="num">Spend this day £</th><th class="num">WTD £</th><th class="num">Weekly budget £</th><th style="min-width:130px">Week burn</th><th class="num">MTD £</th><th class="num">June cap £</th><th style="min-width:130px">Month pace</th></tr></thead><tbody></tbody></table></div>
   <div class="section-intro" style="margin-top:10px">Week burn = recomputed spend Sun→selected day vs 23% weekly budget (red &gt;100% · amber &gt;85%). Month pace compares MTD vs the cap pro-rated to the selected day (red &gt;110% of pace · amber &gt;100%). Recomputed figures count only filed reports — the Mapal form went live 9 Jun, so earlier days show zero.</div>
@@ -416,7 +422,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.6.7 · 11 Jun 2026 · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.7.0 · 11 Jun 2026 · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
 </footer>
 
 <script>
@@ -758,7 +764,7 @@ const FALLBACK_DATA = {
 
 let DATA = FALLBACK_DATA;
 
-let STATE = { weekIdx: 0, cluster: "all", leagueView: "all", ragFilter: "all", budgetIdx: null };
+let STATE = { weekIdx: 0, cluster: "all", leagueView: "all", ragFilter: "all", budgetIdx: null, budgetCluster: "all" };
 
 function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.food_cost_critical_pct) return "red"; if(v>=m.food_cost_warn_pct) return "amber"; return "green"; }
 function ragWage(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.wage_revenue_critical_pct) return "red"; if(v>=m.wage_revenue_warn_pct) return "amber"; return "green"; }
@@ -977,7 +983,8 @@ function renderDailySpend(){
   const d = DATA.daily_spend; if(!d) return;
   let view = d.sites;
   const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
-  if(STATE.cluster!=="all") view = view.filter(r=>codeCluster[r.code]===STATE.cluster);
+  const effC = budgetEffCluster();
+  if(effC!=="all") view = view.filter(r=>codeCluster[r.code]===effC);
   const filed = d.sites.filter(r=>r.hc_wtd!=null).length;
   const ydaySum = d.sites.reduce((a,r)=>a+(r.yday||0),0);
   const dot = rag => `<span class="rag-dot ${rag}"></span>`;
@@ -1234,29 +1241,77 @@ function renderBudget(){
     return `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--maki-soft);border-radius:4px;overflow:hidden"><div style="width:${Math.min(100,pct).toFixed(0)}%;height:100%;background:${col}"></div></div><span style="font-size:11px;font-weight:600;min-width:38px;text-align:right;color:${col}">${pct.toFixed(0)}%</span></div>`;
   };
   let view = d.sites;
-  if(STATE.cluster!=="all") view = view.filter(r=>codeCluster[r.code]===STATE.cluster);
+  const effCluster = budgetEffCluster();
+  if(effCluster!=="all") view = view.filter(r=>codeCluster[r.code]===effCluster);
   let gDay=0,gWtd=0,gMtd=0,gWkB=0,gCap=0;
-  const rows = view.map(r=>{
+  const calc = r => {
     const day = (d.ledger[date]||{})[r.code];
     const wtd = sumRange(r.code, sunISO, date);
     const jb = d.june_baseline;
     const baseAmt = (jb && month===jb.through.slice(0,7) && date>=jb.through) ? (jb.by_code[r.code]||0) : 0;
     const mtd = baseAmt + dates.filter(dt=>dt.slice(0,7)===month&&dt<=date&&(!jb||dt>jb.through)).reduce((a,dt)=>a+((d.ledger[dt]||{})[r.code]||0),0);
-    gDay+=day||0; gWtd+=wtd; gMtd+=mtd; gWkB+=r.wk_budget||0; gCap+=r.cap||0;
-    const wkPct = r.wk_budget? wtd/r.wk_budget*100 : null;
+    return { day, wtd, mtd };
+  };
+  const siteRow = (r,c) => {
+    const wkPct = r.wk_budget? c.wtd/r.wk_budget*100 : null;
     const paceBase = r.cap? r.cap*dayOfMonth/30 : null;
-    const pacePct = paceBase? mtd/paceBase*100 : null;
+    const pacePct = paceBase? c.mtd/paceBase*100 : null;
     return `<tr>
       <td class="site-code">${r.code}</td>
-      <td class="num">${day==null?"—":fmtGBP(day)}</td>
-      <td class="num">${fmtGBP(wtd)}</td>
+      <td class="num">${c.day==null?"—":fmtGBP(c.day)}</td>
+      <td class="num">${fmtGBP(c.wtd)}</td>
       <td class="num">${r.wk_budget==null?"—":fmtGBP(r.wk_budget)}</td>
       <td>${bar(wkPct,85,100)}</td>
-      <td class="num">${fmtGBP(mtd)}</td>
+      <td class="num">${fmtGBP(c.mtd)}</td>
       <td class="num">${r.cap==null?"—":fmtGBP(r.cap)}</td>
       <td>${bar(pacePct,100,110)}</td>
     </tr>`;
-  }).join("");
+  };
+  const subRow = (label,t) => {
+    const wkPct = t.wkB? t.wtd/t.wkB*100 : null;
+    const paceBase = t.cap? t.cap*dayOfMonth/30 : null;
+    const pacePct = paceBase? t.mtd/paceBase*100 : null;
+    return `<tr style="background:var(--maki-soft);font-weight:700">
+      <td style="font-size:11px;letter-spacing:.04em">${label} · TOTAL</td>
+      <td class="num">${fmtGBP(t.day)}</td>
+      <td class="num">${fmtGBP(t.wtd)}</td>
+      <td class="num">${fmtGBP(t.wkB)}</td>
+      <td>${bar(wkPct,85,100)}</td>
+      <td class="num">${fmtGBP(t.mtd)}</td>
+      <td class="num">${fmtGBP(t.cap)}</td>
+      <td>${bar(pacePct,100,110)}</td>
+    </tr>`;
+  };
+  const CLUSTER_ORDER = ["scotland_newcastle","north_midlands","south"];
+  let rows = "";
+  if(effCluster==="all"){
+    CLUSTER_ORDER.forEach(ck=>{
+      const grp = view.filter(r=>codeCluster[r.code]===ck);
+      if(!grp.length) return;
+      const cl = DATA.clusters[ck];
+      rows += `<tr><td colspan="8" style="background:var(--maki-soft);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--maki-red-deep);text-transform:uppercase">${cl?cl.name:ck}${cl&&cl.am_owner?` · AM ${cl.am_owner}`:""}</td></tr>`;
+      const t={day:0,wtd:0,mtd:0,wkB:0,cap:0};
+      grp.forEach(r=>{
+        const c=calc(r);
+        t.day+=c.day||0; t.wtd+=c.wtd; t.mtd+=c.mtd; t.wkB+=r.wk_budget||0; t.cap+=r.cap||0;
+        gDay+=c.day||0; gWtd+=c.wtd; gMtd+=c.mtd; gWkB+=r.wk_budget||0; gCap+=r.cap||0;
+        rows += siteRow(r,c);
+      });
+      rows += subRow(cl?cl.name:ck, t);
+    });
+    view.filter(r=>!CLUSTER_ORDER.includes(codeCluster[r.code])).forEach(r=>{
+      const c=calc(r); gDay+=c.day||0; gWtd+=c.wtd; gMtd+=c.mtd; gWkB+=r.wk_budget||0; gCap+=r.cap||0; rows += siteRow(r,c);
+    });
+  } else {
+    const t={day:0,wtd:0,mtd:0,wkB:0,cap:0};
+    view.forEach(r=>{
+      const c=calc(r);
+      t.day+=c.day||0; t.wtd+=c.wtd; t.mtd+=c.mtd; t.wkB+=r.wk_budget||0; t.cap+=r.cap||0;
+      gDay+=c.day||0; gWtd+=c.wtd; gMtd+=c.mtd; gWkB+=r.wk_budget||0; gCap+=r.cap||0;
+      rows += siteRow(r,c);
+    });
+    if(rows) rows += subRow(DATA.clusters[effCluster]?DATA.clusters[effCluster].name:effCluster, t);
+  }
   document.querySelector("#budgetBurnTbl tbody").innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--maki-muted)">No sites for this cluster</td></tr>';
   const hero = [
     { l:"Spend this day", n: fmtGBP(gDay), cls:"" },
@@ -1268,6 +1323,8 @@ function renderBudget(){
   document.getElementById("budgetHeroStats").innerHTML = hero.map(h=>`<div class="hstat ${h.cls}"><div class="n" style="font-size:19px">${h.n}</div><div class="l">${h.l}</div></div>`).join("");
   renderDailySpend();
 }
+function budgetEffCluster(){ return (STATE.budgetCluster && STATE.budgetCluster!=="all") ? STATE.budgetCluster : STATE.cluster; }
+function initBudgetClusterPills(){ document.querySelectorAll("#budgetClusterPills .pill").forEach(p => { p.addEventListener("click", () => { document.querySelectorAll("#budgetClusterPills .pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); STATE.budgetCluster=p.dataset.cluster; renderBudget(); }); }); }
 function initBudgetSlider(){ const el=document.getElementById("budgetSlider"); if(el) el.addEventListener("input", e => { STATE.budgetIdx=parseInt(e.target.value,10); renderBudget(); }); }
 
 function initWeekPicker(){ const sel=document.getElementById("weekPicker"); sel.innerHTML = DATA.meta.weeks.map((w,i) => `<option value="${i}">${w}${i===0?" (latest)":""}</option>`).join(""); sel.value=STATE.weekIdx; sel.addEventListener("change", e => { STATE.weekIdx=parseInt(e.target.value,10); renderAll(); }); }
@@ -1282,7 +1339,7 @@ async function refresh(){
   renderAll();
 }
 function setLive(state, txt){ const dot=document.getElementById("liveDot"); const txtEl=document.getElementById("liveText"); dot.classList.remove("offline","stale"); if(state==="stale"){ dot.classList.add("stale"); } else if(state!=="live"){ dot.classList.add("offline"); } txtEl.textContent=txt; }
-document.addEventListener("DOMContentLoaded", () => { initWeekPicker(); initClusterFilter(); initTabs(); initChips(); initPills(); initBudgetSlider(); document.getElementById("refreshBtn").addEventListener("click", refresh); renderAll(); refresh(); });
+document.addEventListener("DOMContentLoaded", () => { initWeekPicker(); initClusterFilter(); initTabs(); initChips(); initPills(); initBudgetSlider(); initBudgetClusterPills(); document.getElementById("refreshBtn").addEventListener("click", refresh); renderAll(); refresh(); });
 </script>
 
 </body>
