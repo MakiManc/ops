@@ -416,7 +416,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.6.6 · 11 Jun 2026 · Front-page latest-week food cost now sourced from Soph KPI (canonical) not BOH — fixes M10 17%→29.4% & other BOH/Soph divergences · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily (≈£156.0k) · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.6.7 · 11 Jun 2026 · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
 </footer>
 
 <script>
@@ -675,7 +675,7 @@ const FALLBACK_DATA = {
     sites: [
       { code:"M1",  yday:249.01,  hc_wtd:2256.70, hc_left:2754.30,  wk_budget:5382.00,  mtd:6451.72,  cap:20404, note:"" },
       { code:"M3",  yday:2206.05, hc_wtd:2206.05, hc_left:6081.45,  wk_budget:7969.50,  mtd:10100.26, cap:36345, note:"HC WTD = yday's spend exactly — WTD likely entered as today only; ledger WTD 9–10 Jun = £2,492.90" },
-      { code:"M6",  yday:0,       hc_wtd:null,    hc_left:null,     wk_budget:5727.00,  mtd:5978.81,  cap:21944, note:"Zero spend day. HC WTD/left filed as '2.53536'/'2.84564' — broken decimals (likely 2535.36/2845.64), not guessed; confirm with site" },
+      { code:"M6",  yday:0,       hc_wtd:2535.36, hc_left:2845.64,  wk_budget:5727.00,  mtd:5978.81,  cap:21944, note:"Zero spend day. HC typed continental decimals ('2.53536'/'2.84564') — corrected to £2,535.36/£2,845.64; they sum to exactly £5,381.00, the HC's weekly budget figure. NB HC budget base £5,381 vs our 23% basis £5,727 (£346 gap)" },
       { code:"M7",  yday:1713.68, hc_wtd:3849.83, hc_left:9950.17,  wk_budget:13800.00, mtd:19118.33, cap:58683, note:"" },
       { code:"M8",  yday:569.27,  hc_wtd:6977.71, hc_left:3566.29,  wk_budget:9832.50,  mtd:15483.11, cap:42923, note:"" },
       { code:"M9",  yday:441.71,  hc_wtd:9294.39, hc_left:-7580.61, wk_budget:15525.00, mtd:13843.62, cap:72018, note:"hc_left NEGATIVE (-£7,580.61) yet over-budget answered No — contradiction, chase HC. Both 10 Jun invoices dated 11/6/26. HC base £16,875 exceeds 23% budget by £1,350" },
