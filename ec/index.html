@@ -422,7 +422,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.7.5 · 12 Jun 2026 · Budget tab headers relabelled for chefs (Spent Yesterday / Weekly Spend / Weekly Budget / Week Usage / Monthly Spend / June Budget / Month Pace) · 11 Jun BOH spend filed (13/17 sites; group ~£15,641). Manual catch-up after the 09:16 auto-run silently failed on 11 + 12 Jun. M16 Nottingham + M18 Soho OVER weekly budget (£0 left); M10/M13/M14/IK2 not filed — chase. M6 10-Jun daily spend corrected 0→£2,535.36 (Michael-confirmed; ledger+MTD recomputed £8,514.17) · Budget cluster headers credit EC/DEC (not AM) · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.7.6 · 12 Jun 2026 · Budget tab: column headers now repeat under each cluster band (cluster title first, then Site / Spent Yesterday / …) · v1.7.5 headers relabelled for chefs (Spent Yesterday / Weekly Spend / Weekly Budget / Week Usage / Monthly Spend / June Budget / Month Pace) · 11 Jun BOH spend filed (13/17 sites; group ~£15,641). Manual catch-up after the 09:16 auto-run silently failed on 11 + 12 Jun. M16 Nottingham + M18 Soho OVER weekly budget (£0 left); M10/M13/M14/IK2 not filed — chase. M6 10-Jun daily spend corrected 0→£2,535.36 (Michael-confirmed; ledger+MTD recomputed £8,514.17) · Budget cluster headers credit EC/DEC (not AM) · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
 </footer>
 
 <script>
@@ -1284,12 +1284,15 @@ function renderBudget(){
   };
   const CLUSTER_ORDER = ["scotland_newcastle","north_midlands","south"];
   let rows = "";
+  const _bh="font-weight:700;font-size:10px;letter-spacing:.04em;color:var(--maki-muted);text-transform:uppercase;border-bottom:1px solid var(--maki-line);padding:6px 10px;background:#fff";
+  const colHeaderRow=`<tr><td style="${_bh}">Site</td><td class="num" style="${_bh}">Spent Yesterday £</td><td class="num" style="${_bh}">Weekly Spend £</td><td class="num" style="${_bh}">Weekly Budget £</td><td style="${_bh};min-width:130px">Week Usage</td><td class="num" style="${_bh}">Monthly Spend £</td><td class="num" style="${_bh}">June Budget £</td><td style="${_bh};min-width:130px">Month Pace</td></tr>`;
   if(effCluster==="all"){
     CLUSTER_ORDER.forEach(ck=>{
       const grp = view.filter(r=>codeCluster[r.code]===ck);
       if(!grp.length) return;
       const cl = DATA.clusters[ck];
       rows += `<tr><td colspan="8" style="background:var(--maki-soft);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--maki-red-deep);text-transform:uppercase">${cl?cl.name:ck}${cl&&cl.ec?` · EC ${cl.ec}`:""}${cl&&cl.dec?` · DEC ${cl.dec}`:""}</td></tr>`;
+      rows += colHeaderRow;
       const t={day:0,wtd:0,mtd:0,wkB:0,cap:0};
       grp.forEach(r=>{
         const c=calc(r);
@@ -1313,6 +1316,7 @@ function renderBudget(){
     if(rows) rows += subRow(DATA.clusters[effCluster]?DATA.clusters[effCluster].name:effCluster, t);
   }
   document.querySelector("#budgetBurnTbl tbody").innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--maki-muted)">No sites for this cluster</td></tr>';
+  { const _bt=document.querySelector("#budgetBurnTbl thead"); if(_bt) _bt.style.display=(effCluster==="all")?"none":""; }
   const hero = [
     { l:"Spend this day", n: fmtGBP(gDay), cls:"" },
     { l:"WTD", n: fmtGBP(gWtd), cls:"" },
