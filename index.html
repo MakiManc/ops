@@ -858,9 +858,9 @@
 </header>
 <div class="week-toggle-bar" role="tablist" aria-label="Week selector">
   <span class="week-toggle-label">Week:</span>
-  <button class="week-chip" data-week="2026-05-10" type="button">4–10 May 2026</button>
-  <button class="week-chip" data-week="2026-05-17" type="button">11–17 May 2026</button>
-  <button class="week-chip" data-week="2026-05-24" type="button">18–24 May 2026</button>
+  <button class="week-chip" data-week="2026-05-04" type="button">4–10 May 2026</button>
+  <button class="week-chip" data-week="2026-05-11" type="button">11–17 May 2026</button>
+  <button class="week-chip" data-week="2026-05-18" type="button">18–24 May 2026</button>
   <button class="week-chip" data-week="2026-05-25" type="button">25–31 May 2026</button>
   <button class="week-chip active" data-week="2026-06-01" type="button">1–7 June 2026</button>
   <span id="week-past-badge" class="week-past-badge" style="display:none;">Past week</span>
@@ -1031,7 +1031,7 @@
   <div class="section-head">
     <div>
       <h2>Site League Table — Efficiency Score</h2>
-            <div class="hint">Weighted 5-component score (Sales 30%, Food 25%, Wage 20%, Weekly ★ 20%, Food Var 5%). 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
+            <div class="hint">Weighted 5-component score (Wage 30%, Food 30%, Sales 20%, Weekly ★ 10%, Food Var 10%), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
       <span class="frozen-caption freeze-target" data-freeze="scorecard" style="display:none;">Food, Food Var, Wk★ and Lifetime ★ frozen — weekly archive starts 2026-06-12. Showing current week.</span>
     </div>
   </div>
@@ -2938,7 +2938,7 @@ function weeklyRatingRag(wr) {
 }
 
 // Site Efficiency Score — weighted 5-component score, 0–100 nominal (100 = at target)
-// Components: Sales 30% (% + £ gap blend), Food cost 25%, Wage 20%, Weekly ★ 20%, Food variance 5% (±5% green band). Lifetime ★ shown for info only — NOT in score.
+// Components: Wage 30%, Food cost 30%, Sales 20% (% + £ gap blend), Weekly ★ 10%, Food variance 10% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
 function efficiencyScore(s) {
   const m = METRICS[s.code] || {};
   const r = REVIEWS[s.code] || {};
@@ -2949,21 +2949,21 @@ function efficiencyScore(s) {
     const mt = s.kpis.vsTarget.match(/([+\-]?)\s*£\s*([\d,]+)/);
     if (mt) gbpGap = (mt[1] === '-' ? -1 : 1) * parseInt(mt[2].replace(/,/g, ''), 10);
   }
-  const groupMaxGap = 50000; // calibration: -£50k = 0, +£50k = 200 on £-component
+  const groupMaxGap = 50000; // calibration: -£50k = 0 on £-component, +£50k capped at 100
   const parts = [];
-  // Sales 30% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
+  // Sales 20% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
   if (s.vsTarget != null) {
     const pctPart = Math.max(0, Math.min(100, 100 + s.vsTarget));
     const gbpPart = Math.max(0, Math.min(100, 100 + (gbpGap / groupMaxGap) * 100));
     parts.push({ w: 20, v: 0.7 * pctPart + 0.3 * gbpPart });
   }
-  // Food cost 25% — 100 at 25% target, -4 per pp over
+  // Food cost 30% — 100 at 25% target, -8 per pp over
   if (m.food != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.food - 25) * 8)) });
-  // Wage 20% — 100 at 21%, ±5 per pp
+  // Wage 30% — 100 at 21% target, -15 per pp over
   if (m.wage != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.wage - 21) * 15)) });
-  // Weekly ★ 20% — 100 at 4.7★ (the actual OKR)
+  // Weekly ★ 10% — 100 at 4.7★ (the actual OKR), 0 at 4.0★
   if (wr != null) parts.push({ w: 10, v: Math.max(0, Math.min(100, ((wr - 4.0) / 0.7) * 100)) });
-  // Food variance 5% — flat 100 inside ±5% band, then -8 per pp outside
+  // Food variance 10% — flat 100 inside ±5% band, then -8 per pp outside
   if (m.foodVar != null) {
     const a = Math.abs(m.foodVar);
     const v = a <= 5 ? 100 : Math.max(0, 100 - (a - 5) * 8);
@@ -3619,11 +3619,11 @@ renderGmScore();
 // Swap sales% vs target + wage% across the dashboard when a past week is selected.
 // Food, reviews, narrative and OKRs are frozen (no weekly history yet).
 (function setupWeekToggle(){
-  const WEEK_KEYS   = ['2026-05-10','2026-05-17','2026-05-24','2026-05-25','2026-06-01'];
+  const WEEK_KEYS   = ['2026-05-04','2026-05-11','2026-05-18','2026-05-25','2026-06-01'];
   const WEEK_LABELS = {
-    '2026-05-10': { h1: 'Week of 4–10 May 2026',  title: '4–10 May 2026' },
-    '2026-05-17': { h1: 'Week of 11–17 May 2026', title: '11–17 May 2026' },
-    '2026-05-24': { h1: 'Week of 18–24 May 2026', title: '18–24 May 2026' },
+    '2026-05-04': { h1: 'Week of 4–10 May 2026',  title: '4–10 May 2026' },
+    '2026-05-11': { h1: 'Week of 11–17 May 2026', title: '11–17 May 2026' },
+    '2026-05-18': { h1: 'Week of 18–24 May 2026', title: '18–24 May 2026' },
     '2026-05-25': { h1: 'Week of 25–31 May 2026', title: '25–31 May 2026' },
     '2026-06-01': { h1: 'Week of 1–7 June 2026',  title: '1–7 June 2026' }
   };
