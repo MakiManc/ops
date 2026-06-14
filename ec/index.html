@@ -213,7 +213,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
   <button class="tab" data-tab="league">League Table</button>
   <button class="tab" data-tab="raci">RACI</button>
   <button class="tab" data-tab="risk">Risk Register</button>
-</nav>
+</nav></nav>
 
 <main>
 <section id="tab-daily" class="tab-section active">
@@ -386,7 +386,6 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
   <h3 style="margin-top:24px">Cluster efficiency summary</h3>
   <table class="tbl" id="clusterSummaryTbl"><thead><tr><th>Cluster</th><th class="num">Sites</th><th class="num">Avg composite</th><th class="num">Best site</th><th class="num">Worst site</th><th>Trend</th></tr></thead><tbody></tbody></table>
 </section>
-
 <section id="tab-raci" class="tab-section">
   <p class="section-intro">Who owns what across the EC function. <span class="rag rag-red">R</span> Responsible · <span class="rag rag-amber">A</span> Accountable · <span class="rag" style="background:#E0F2FE;color:#0C4A6E">C</span> Consulted · <span class="rag rag-grey">I</span> Informed.</p>
   <table class="tbl raci-tbl">
@@ -422,7 +421,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 01 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.7.7 · 13 Jun 2026 · 12 Jun BOH spend filed (17/17 sites; group £12,492.35; M13 OVER −£416 / M14 / M16 / M18 at £0 left; MN £2.50 left). Manual catch-up after the 09:16 auto-run silently failed again (3rd consecutive day) AND the 10:31 watchdog also failed silently — both being fixed. · v1.7.6 · 12 Jun 2026 · Budget tab: column headers now repeat under each cluster band (cluster title first, then Site / Spent Yesterday / …) · v1.7.5 headers relabelled for chefs (Spent Yesterday / Weekly Spend / Weekly Budget / Week Usage / Monthly Spend / June Budget / Month Pace) · 11 Jun BOH spend filed (13/17 sites; group ~£15,641). Manual catch-up after the 09:16 auto-run silently failed on 11 + 12 Jun. M16 Nottingham + M18 Soho OVER weekly budget (£0 left); M10/M13/M14/IK2 not filed — chase. M6 10-Jun daily spend corrected 0→£2,535.36 (Michael-confirmed; ledger+MTD recomputed £8,514.17) · Budget cluster headers credit EC/DEC (not AM) · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.5.6 · 14 Jun 2026 · 13 Jun daily spend filed (12/17 sites; 4 OVER budget: M13 Aberdeen, M14 Meadowhall, M16 Nottingham, M18 Soho; M17 Lakeside NOT FILED — chase; M3 HC config still showing implied base £-7962, escalate; major WTD discrepancies (>£200) flagged on 16 sites where our Mapal-only ledger lags HC reported WTD) · v1.7.7 · 13 Jun 2026 · 12 Jun daily spend filed (17/17 sites; 4 OVER budget: M13 Aberdeen −£416, M14 Meadowhall £0, M16 Nottingham £0, M18 Soho £0; critical near-limit: MN £2.50 left, M17 £133, M3 £110; Maki Property Ltd 'Maki Dub' Dubai test filing in Mapal — skipped per run protocol) · v1.7.6 · 12 Jun 2026 · Budget tab: column headers now repeat under each cluster band (cluster title first, then Site / Spent Yesterday / …) · v1.7.5 headers relabelled for chefs (Spent Yesterday / Weekly Spend / Weekly Budget / Week Usage / Monthly Spend / June Budget / Month Pace) · 11 Jun BOH spend filed (13/17 sites; group ~£15,641). Manual catch-up after the 09:16 auto-run silently failed on 11 + 12 Jun. M16 Nottingham + M18 Soho OVER weekly budget (£0 left); M10/M13/M14/IK2 not filed — chase. M6 10-Jun daily spend corrected 0→£2,535.36 (Michael-confirmed; ledger+MTD recomputed £8,514.17) · Budget cluster headers credit EC/DEC (not AM) · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
 </footer>
 
 <script>
@@ -585,8 +584,7 @@ const FALLBACK_DATA = {
     "5-week history on the BOH KPI meeting cadence: index 0..4 = 02 Jun, 26 May, 19 May, 12 May, 05 May 2026 meetings. Use the Week selector to scrub.",
     "Scotland & Newcastle (8 sites): full per-week labour, food cost, food variance for all 5 weeks. Delivery RAG derived best-effort from each meeting's green-light notes (operational, ★ excluded).",
     "England M9/M10/M14: food cost only (no labour ever reported at England BOH); food variance present 05/12 May; food cost tails off 19/26 May. M14's 35% on 26 May was a low-sales weekend inflating the ratio, not overspend.",
-    "South+Midlands (M11/M16/M17/M18): BOH minutes were narrative-only except 26 May, whose food cost (33-39%) conflicts with the tracker — HELD from the BOH RAG. All four sites' 02-Jun food cost is now backfilled from the Soph KPI WP column: M11 23.46%, M16 21.04%, M17 16.05%, M18 26.65%.",
-    "Food variance RAG uses the ECO2 ±5% tolerance: <3% green, 3-5% amber, >5% red.",
+    "South+Midlands (M11/M16/M17/M18): BOH minutes were narrative-only except 26 May, whose food cost (33-39%) conflicts with the tracker — HELD from the BOH RAG. All four sites' 02-Jun food cost is now backfilled from the Soph KPI WP column: M11 23.46%, M16 21.04%, M17 16.05%, M18 26.65%.",    "Food variance RAG uses the ECO2 ±5% tolerance: <3% green, 3-5% amber, >5% red.",
     "★ ratings and the 02-Jun-week Deliveroo ops RAG (del_rag index 0) are from the Deliveroo RAG workbook, w/c 25 May tab (the 01 Jun tab exists but is unpopulated). ★ remains EXCLUDED from the composite RAG.",
     "Compliance (Mapal %) not wired — scored as no-data and skipped from the composite.",
     "Sales-vs-Budget tile is a single newest week (w/c 01 Jun) from the Soph KPI sheet; it includes Ikigai 2 (not yet in the BOH RAG) and excludes Maki Nori (not on that sheet)."
@@ -673,28 +671,28 @@ const FALLBACK_DATA = {
   },
 
   daily_spend: {
-    as_at: "2026-06-13",
+    as_at: "2026-06-14",
     data_note: "Mapal Head Chef Daily Report went live 9 Jun 2026, so the daily ledger starts 9 Jun. MTD = pre-Mapal June baseline (Mona Lisa goods ledger, 1–7 Jun) + Mapal daily from 9 Jun onward; 8 Jun has no data (gap); IK2 has no Mona Lisa baseline. WTD is Mapal-only (Sun→selected day). Recomputed-vs-HC checks start from 10 Jun.",
     weekly_budget_basis: "23% × Soph KPI weekly Target Sales (w/c 01 Jun)",
     june_cap_basis: "Interim June caps = 23% × Mar–May avg MA revenue (until Matthew issues official June caps)",
     sites: [
-      { code:"M1",  yday:376.85,  hc_wtd:3004.73, hc_left:2006.27, wk_budget:5382.00,  mtd:7199.75,  cap:20404, note:"" },
-      { code:"M3",  yday:187.50,  hc_wtd:8551.96, hc_left:110.54,  wk_budget:7969.50,  mtd:11782.36, cap:36345, note:"£111 left — at the weekly limit. WTD + left filled by Oi Lan Poon (different user from form starter)." },
-      { code:"M6",  yday:679.70,  hc_wtd:4371.70, hc_left:1009.30, wk_budget:5727.00,  mtd:10350.33, cap:21944, note:"Continental decimal check OK: 4371.70 + 1009.30 = 5381.00 matches HC weekly base £5,381." },
-      { code:"M7",  yday:1843.02, hc_wtd:8849.90, hc_left:4950.10, wk_budget:13800.00, mtd:23327.49, cap:58683, note:"" },
-      { code:"M8",  yday:1439.03, hc_wtd:9085.18, hc_left:746.97,  wk_budget:9832.50,  mtd:17407.93, cap:42923, note:"" },
-      { code:"M9",  yday:2692.54, hc_wtd:12469.46, hc_left:4405.54, wk_budget:15525.00, mtd:17018.69, cap:72018, note:"" },
-      { code:"M10", yday:161.10,  hc_wtd:6917.32, hc_left:321.20,  wk_budget:8128.89,  mtd:8607.84,  cap:31466, note:"£321 left — watch with rest of week to go" },
-      { code:"M11", yday:null,    hc_wtd:5274.87, hc_left:508.13,  wk_budget:6210.00,  mtd:4830.31,  cap:23525, note:"£508 left — watch with rest of week to go. Daily Spend filed as \"none\"." },
-      { code:"M12", yday:202.08,  hc_wtd:7030.68, hc_left:288.32,  wk_budget:7969.50,  mtd:7626.64,  cap:29010, note:"£288 left — at the weekly limit" },
-      { code:"M13", yday:1260.95, hc_wtd:10306.14, hc_left:-416.14, wk_budget:9890.00, mtd:12944.79, cap:37180, note:"OVER WEEKLY BUDGET — £416 over (HC: Yes). 14:20 BST submission with deviation flag." },
-      { code:"M14", yday:123.38,  hc_wtd:10506.08, hc_left:0,       wk_budget:9890.00,  mtd:9992.85,  cap:38027, note:"OVER WEEKLY BUDGET — £0 left. Already at budget cap." },
-      { code:"M15", yday:453.02,  hc_wtd:12338.95, hc_left:1578.05, wk_budget:13946.63, mtd:15640.66, cap:56721, note:"" },
-      { code:"M16", yday:201.34,  hc_wtd:9563.49, hc_left:0,       wk_budget:8740.00,  mtd:14047.51, cap:38501, note:"OVER WEEKLY BUDGET — £0 left. Deviation logged." },
-      { code:"M17", yday:null,    hc_wtd:8035.37, hc_left:133.10,  wk_budget:8740.00,  mtd:7272.88,  cap:34336, note:"£133 left — at the weekly limit. Daily Spend filed as \"n/a\"." },
-      { code:"M18", yday:1275.25, hc_wtd:8136.12, hc_left:0,       wk_budget:7360.00,  mtd:10441.40, cap:30451, note:"OVER WEEKLY BUDGET — £0 left. Deviation logged. Form started by Roger Arellano but filed by Ho Fung Wong." },
-      { code:"IK2", yday:1267.38, hc_wtd:4101.18, hc_left:285.82,  wk_budget:4956.50,  mtd:1877.38,  cap:17547, note:"£286 left — at the weekly limit" },
-      { code:"MN",  yday:329.21,  hc_wtd:4500.00, hc_left:2.50,    wk_budget:null,     mtd:6322.48,  cap:null,  note:"Implied weekly base £4,500 (HC self-set); supplier unspecified — chase." }
+      { code:"M1",  yday:null,    hc_wtd:3004.73,  hc_left:2006.27, wk_budget:5382.00,  mtd:7199.75,  cap:20404, note:"N/A | WTD discrepancy: our £1964.94 vs HC £3004.73 (Δ £1039.79) | HC base £5011.00 vs our wk_budget £5382.00 (Δ £371.00)" },
+      { code:"M3",  yday:350.04,  hc_wtd:350.04,   hc_left:-8312.46, wk_budget:7969.50,  mtd:12132.40, cap:36345, note:"factory £262.34 + global fruit £87.70 = £350.04. HC implied base £-7962 — Mapal config issue, escalate. | WTD discrepancy: our £4525.04 vs HC £350.04 (Δ £4175.00) | HC base £-7962.42 vs our wk_budget £7969.50 (Δ £15931.92)" },
+      { code:"M6",  yday:450.97,  hc_wtd:4768.67,  hc_left:558.33,  wk_budget:5727.00,  mtd:10801.30, cap:21944, note:"Lynas £199.27 + factory £251.70 = £450.97. | WTD discrepancy: our £5107.89 vs HC £4768.67 (Δ £339.22) | HC base £5327.00 vs our wk_budget £5727.00 (Δ £400.00)" },
+      { code:"M7",  yday:3003.21, hc_wtd:12384.6,  hc_left:1415.4,  wk_budget:13800.00, mtd:26330.70, cap:58683, note:"Harro frozen £1435.87 + Harro dry £897.76 + Factory £536.09 + GF £85.25 + Lynas £48.24 = £3003.21. | WTD discrepancy: our £10526.13 vs HC £12384.60 (Δ £1858.47)" },
+      { code:"M8",  yday:248.83,  hc_wtd:9334.01,  hc_left:498.14,  wk_budget:9832.50,  mtd:17656.76, cap:42923, note:"F&J food £248.83. | WTD discrepancy: our £5563.03 vs HC £9334.01 (Δ £3770.98)" },
+      { code:"M9",  yday:null,    hc_wtd:12469.46, hc_left:4405.54, wk_budget:15525.00, mtd:17018.69, cap:72018, note:"nil — verify with Avinash. | WTD discrepancy: our £3616.78 vs HC £12469.46 (Δ £8852.68) | HC base £16875.00 vs our wk_budget £15525.00 (Δ £1350.00)" },
+      { code:"M10", yday:0,       hc_wtd:6917.32,  hc_left:321.2,   wk_budget:8128.89,  mtd:8607.84,  cap:31466, note:"Zero spend filed. | WTD discrepancy: our £1555.31 vs HC £6917.32 (Δ £5362.01) | HC base £7238.52 vs our wk_budget £8128.89 (Δ £890.37)" },
+      { code:"M11", yday:null,    hc_wtd:5274.87,  hc_left:508.13,  wk_budget:6210.00,  mtd:4830.31,  cap:23525, note:"N/A — verify. | WTD discrepancy: our £748.31 vs HC £5274.87 (Δ £4526.56) | HC base £5783.00 vs our wk_budget £6210.00 (Δ £427.00)" },
+      { code:"M12", yday:10.03,   hc_wtd:7040.71,  hc_left:278.29,  wk_budget:7969.50,  mtd:7636.67,  cap:29010, note:"lth £10.03. | WTD discrepancy: our £1240.48 vs HC £7040.71 (Δ £5800.23) | HC base £7319.00 vs our wk_budget £7969.50 (Δ £650.50)" },
+      { code:"M13", yday:null,    hc_wtd:10306.14, hc_left:-416.14, wk_budget:9890.00,  mtd:12944.79, cap:37180, note:"OVER BUDGET — n/a recorded for day, but WTD exceeds weekly cap by £416. | WTD discrepancy: our £3884.02 vs HC £10306.14 (Δ £6422.12)" },
+      { code:"M14", yday:0,       hc_wtd:10382.7,  hc_left:0,       wk_budget:9890.00,  mtd:9992.85,  cap:38027, note:"AT BUDGET — zero left. HC base = £10,382.70 (likely under our 23% wk_budget; verify Soph KPI base). | WTD discrepancy: our £2178.07 vs HC £10382.70 (Δ £8204.63) | HC base £10382.70 vs our wk_budget £9890.00 (Δ £492.70)" },
+      { code:"M15", yday:14.50,   hc_wtd:12353.45, hc_left:1563.55, wk_budget:13946.63, mtd:15655.16, cap:56721, note:"Aldi tender brockioli £14.50. | WTD discrepancy: our £5505.09 vs HC £12353.45 (Δ £6848.36)" },
+      { code:"M16", yday:null,    hc_wtd:9563.49,  hc_left:0,       wk_budget:8740.00,  mtd:14047.51, cap:38501, note:"AT BUDGET — zero left. HC base = £9,563.49. | WTD discrepancy: our £6342.96 vs HC £9563.49 (Δ £3220.53) | HC base £9563.49 vs our wk_budget £8740.00 (Δ £823.49)" },
+      { code:"M17", yday:null,    hc_wtd:null,     hc_left:null,    wk_budget:8740.00,  mtd:7272.88,  cap:34336, note:"NOT FILED — chase HC" },
+      { code:"M18", yday:null,    hc_wtd:0,        hc_left:0,       wk_budget:7360.00,  mtd:10441.40, cap:30451, note:"NA — Soho Mapal config empty / no budget loaded. Escalate to set base. | WTD discrepancy: our £3164.96 vs HC £0.00 (Δ £3164.96) | HC base £0.00 vs our wk_budget £7360.00 (Δ £7360.00)" },
+      { code:"IK2", yday:570.47,  hc_wtd:4671.65,  hc_left:4387,    wk_budget:4956.50,  mtd:2447.85,  cap:17547, note:"Lynas + Global Fruits £570.47. | WTD discrepancy: our £2447.85 vs HC £4671.65 (Δ £2223.80) | HC base £9058.65 vs our wk_budget £4956.50 (Δ £4102.15)" },
+      { code:"MN",  yday:491,     hc_wtd:2,        hc_left:2000,    wk_budget:null,     mtd:6813.48,  cap:null,  note:"Daily £491 logged but WTD shows £2 (typo / config). HC base implied £2,002 — verify. | WTD discrepancy: our £1137.47 vs HC £2.00 (Δ £1135.47)" }
     ],
     june_baseline: {
       through: "2026-06-07",
@@ -706,7 +704,8 @@ const FALLBACK_DATA = {
       "2026-06-09": { "M1":967.90,"M3":286.85,"M6":285.40,"M7":1600.08,"M8":2820.11,"M9":null,"M10":1251.11,"M11":349.98,"M14":2054.69,"M16":3889.49,"M17":550.20,"M18":121.97,"MN":119.11,"IK2":400.00 },
       "2026-06-10": { "M1":249.01,"M3":2206.05,"M6":2535.36,"M7":1713.68,"M8":569.27,"M9":441.71,"M10":143.10,"M11":0,"M12":null,"M13":2623.07,"M14":0,"M15":153.93,"M16":null,"M17":788.78,"M18":1660.36,"MN":null,"IK2":210.00 },
       "2026-06-11": { "M1":371.18,"M3":1494.60,"M6":1156.46,"M7":2366.14,"M8":485.79,"M9":482.53,"M11":398.33,"M12":1028.37,"M15":4883.64,"M16":2252.13,"M17":416.62,"M18":107.38,"MN":198.15 },
-      "2026-06-12": { "M1":376.85,"M3":187.50,"M6":679.70,"M7":1843.02,"M8":1439.03,"M9":2692.54,"M10":161.10,"M11":null,"M12":202.08,"M13":1260.95,"M14":123.38,"M15":453.02,"M16":201.34,"M17":null,"M18":1275.25,"MN":329.21,"IK2":1267.38 }
+      "2026-06-12": { "M1":376.85,"M3":187.50,"M6":679.70,"M7":1843.02,"M8":1439.03,"M9":2692.54,"M10":161.10,"M11":null,"M12":202.08,"M13":1260.95,"M14":123.38,"M15":453.02,"M16":201.34,"M17":null,"M18":1275.25,"MN":329.21,"IK2":1267.38 },
+      "2026-06-13": { "M1":null,"M3":350.04,"M6":450.97,"M7":3003.21,"M8":248.83,"M9":null,"M10":0,"M11":null,"M12":10.03,"M13":null,"M14":0,"M15":14.50,"M16":null,"M18":null,"MN":491,"IK2":570.47 }
     }
   },
 
@@ -785,8 +784,7 @@ function compositeScore(s, i){
     {rag: ragCompliance(s.compliance_pct), w: 0.15},
     {rag: ragDeliveroo(s, i),              w: 0.20}
   ];
-  let tot = 0, wsum = 0;
-  dims.forEach(d => { const sc = dimScore(d.rag); if(sc != null){ tot += sc * d.w; wsum += d.w; } });
+  let tot = 0, wsum = 0;  dims.forEach(d => { const sc = dimScore(d.rag); if(sc != null){ tot += sc * d.w; wsum += d.w; } });
   return wsum ? Math.round(tot / wsum) : null;
 }
 function bandRag(score){ if(score==null) return "grey"; if(score>=DATA.meta.band_green) return "green"; if(score>=DATA.meta.band_amber) return "amber"; return "red"; }
@@ -985,8 +983,7 @@ function renderDailySpend(){
   let view = d.sites;
   const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
   const effC = budgetEffCluster();
-  if(effC!=="all") view = view.filter(r=>codeCluster[r.code]===effC);
-  const filed = d.sites.filter(r=>r.hc_wtd!=null).length;
+  if(effC!=="all") view = view.filter(r=>codeCluster[r.code]===effC);  const filed = d.sites.filter(r=>r.hc_wtd!=null).length;
   const ydaySum = d.sites.reduce((a,r)=>a+(r.yday||0),0);
   const dot = rag => `<span class="rag-dot ${rag}"></span>`;
   const ragWk = r => { if(r.hc_wtd==null) return "grey"; if(r.wk_budget==null) return "amber"; const used=r.hc_wtd/r.wk_budget; if(used>1) return "red"; if(used>0.85) return "amber"; return "green"; };
@@ -1185,8 +1182,7 @@ function renderLeague(){
     }).join("");
   }
   document.querySelector("#clusterSummaryTbl tbody").innerHTML = Object.entries(DATA.clusters).map(([ck, cl]) => {
-    const arr = ranked.filter(x => x.s.cluster === ck);
-    if(!arr.length) return `<tr><td><strong>${cl.name}</strong></td><td class="num">0</td><td class="num">—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    const arr = ranked.filter(x => x.s.cluster === ck);    if(!arr.length) return `<tr><td><strong>${cl.name}</strong></td><td class="num">0</td><td class="num">—</td><td>—</td><td>—</td><td>—</td></tr>`;
     arr.sort((a,b)=>b.score-a.score);
     const avg = Math.round(arr.reduce((a,b)=>a+b.score,0)/arr.length);
     const prev = arr.map(x=>x.prevScore).filter(v=>v!=null);
