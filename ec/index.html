@@ -765,6 +765,78 @@ const FALLBACK_DATA = {
 
 let DATA = FALLBACK_DATA;
 
+// ---- LIVE SHEET WIRING (added 2026-06-15) ----
+// Daily Spend Ledger is now sourced from a Google Sheet published as CSV.
+// The skim task appends rows to the Sheet; this page fetches them on load + refresh.
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRC4SJ8J2YEB0FML2jxQV5W2D8QoKiqiBUIVUTTUbJ4z4n38yoYMpMl-NSE9NfzeocIrBD3ddBVkBeb/pub?output=csv";
+
+function parseCSVLine(line){
+  const out=[]; let cur="", inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else inQ=!inQ; }
+    else if(c===',' && !inQ){ out.push(cur); cur=""; }
+    else cur+=c;
+  }
+  out.push(cur); return out;
+}
+function parseSheetCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.length>0);
+  if(lines.length<2) return [];
+  const header=parseCSVLine(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(line=>{
+    const v=parseCSVLine(line); const o={};
+    header.forEach((h,i)=>o[h]=v[i]!=null?v[i].trim():"");
+    return o;
+  });
+}
+function applySheetRows(rows){
+  const ds=DATA.daily_spend; if(!ds) return;
+  const newLedger={}; const newBaseline={};
+  let latestDate=null;
+  for(const r of rows){
+    if(!r.date||!r.site_code) continue;
+    const val=(r.daily_total===""||r.daily_total==null)?null:parseFloat(r.daily_total);
+    if(r.source==="mona_lisa_baseline"){
+      newBaseline[r.site_code]=val;
+    } else {
+      if(!newLedger[r.date]) newLedger[r.date]={};
+      newLedger[r.date][r.site_code]=val;
+      if(!latestDate || r.date>latestDate) latestDate=r.date;
+    }
+  }
+  if(Object.keys(newLedger).length) ds.ledger=newLedger;
+  if(Object.keys(newBaseline).length && ds.june_baseline) ds.june_baseline.by_code=newBaseline;
+  if(latestDate){ ds.as_at=latestDate; ds.through=latestDate; }
+  // Refresh sites[] yday/hc_wtd/hc_left for the latest date
+  if(latestDate && Array.isArray(ds.sites)){
+    for(const site of ds.sites){
+      const r=rows.find(x=>x.date===latestDate && x.site_code===site.code);
+      if(r){
+        site.yday=(r.daily_total===""||r.daily_total==null)?null:parseFloat(r.daily_total);
+        site.hc_wtd=(r.wtd_actual===""||r.wtd_actual==null)?null:parseFloat(r.wtd_actual);
+        site.hc_left=(r.wtd_left===""||r.wtd_left==null)?null:parseFloat(r.wtd_left);
+      }
+    }
+  }
+}
+async function loadSheetData(){
+  try{
+    const r=await fetch(SHEET_CSV_URL+"&_cb="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const csv=await r.text();
+    const rows=parseSheetCSV(csv);
+    if(rows.length===0) throw new Error("Empty CSV");
+    applySheetRows(rows);
+    console.log("[EC] Loaded "+rows.length+" rows from Sheet · latest="+DATA.daily_spend.as_at);
+    return true;
+  } catch(e){
+    console.warn("[EC] Sheet fetch failed, using baked fallback:",e);
+    return false;
+  }
+}
+// ---- /LIVE SHEET WIRING ----
+
 let STATE = { weekIdx: 0, cluster: "all", leagueView: "all", ragFilter: "all", budgetIdx: null, budgetCluster: "all" };
 
 function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.food_cost_critical_pct) return "red"; if(v>=m.food_cost_warn_pct) return "amber"; return "green"; }
@@ -1335,9 +1407,18 @@ function initTabs(){ document.querySelectorAll(".tab").forEach(t => t.addEventLi
 function initChips(){ document.querySelectorAll("#ragChips .chip").forEach(c => { c.addEventListener("click", () => { document.querySelectorAll("#ragChips .chip").forEach(x=>x.classList.remove("active")); c.classList.add("active"); STATE.ragFilter=c.dataset.filter; renderDaily(); }); }); }
 function initPills(){ document.querySelectorAll("#leagueViewPills .pill").forEach(p => { p.addEventListener("click", () => { document.querySelectorAll("#leagueViewPills .pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); STATE.leagueView=p.dataset.view; renderLeague(); }); }); }
 async function refresh(){
-  setLive("loading","Refreshing…"); let loaded=false;
-  try{ const r=await fetch("./data/snapshot.json",{cache:"no-store"}); if(r.ok){ const j=await r.json(); if(j&&j.meta&&j.sites){ DATA=j; loaded=true; setLive("live", `Live · GitHub · ${new Date(j.meta.generated_at).toLocaleString()}`);} } } catch(_){}
-  if(!loaded){ const wk = DATA.meta.data_as_at ? weeksBetween(DATA.meta.data_as_at) : 0; setLive("stale", `Snapshot · BOH 02 Jun + budget w/c 01 Jun`); }
+  setLive("loading","Refreshing…");
+  let snapshotLoaded=false, sheetLoaded=false;
+  try{ const r=await fetch("./data/snapshot.json",{cache:"no-store"}); if(r.ok){ const j=await r.json(); if(j&&j.meta&&j.sites){ DATA=j; snapshotLoaded=true; } } } catch(_){}
+  sheetLoaded = await loadSheetData();
+  if(sheetLoaded){
+    const stamp = new Date().toLocaleString();
+    setLive("live", `Live · Sheet · ${DATA.daily_spend.as_at} · refreshed ${stamp}`);
+  } else if(snapshotLoaded){
+    setLive("live", `Live · GitHub snapshot · ${new Date(DATA.meta.generated_at).toLocaleString()}`);
+  } else {
+    setLive("stale", `Baked fallback · daily spend through ${DATA.daily_spend?.as_at||"?"}`);
+  }
   renderAll();
 }
 function setLive(state, txt){ const dot=document.getElementById("liveDot"); const txtEl=document.getElementById("liveText"); dot.classList.remove("offline","stale"); if(state==="stale"){ dot.classList.add("stale"); } else if(state!=="live"){ dot.classList.add("offline"); } txtEl.textContent=txt; }
