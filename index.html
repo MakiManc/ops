@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AM Weekly Control Centre · 1–7 June 2026</title>
+<title>AM Weekly Control Centre · 8–14 June 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
@@ -862,7 +862,8 @@
   <button class="week-chip" data-week="2026-05-11" type="button">11–17 May 2026</button>
   <button class="week-chip" data-week="2026-05-18" type="button">18–24 May 2026</button>
   <button class="week-chip" data-week="2026-05-25" type="button">25–31 May 2026</button>
-  <button class="week-chip active" data-week="2026-06-01" type="button">1–7 June 2026</button>
+  <button class="week-chip" data-week="2026-06-01" type="button">1–7 June 2026</button>
+  <button class="week-chip active" data-week="2026-06-08" type="button">8–14 June 2026</button>
   <span id="week-past-badge" class="week-past-badge" style="display:none;">Past week</span>
 </div>
 <div class="wrap">
@@ -921,7 +922,7 @@
   <div class="hero">
     <div class="hero-inner">
       <div class="eyebrow">AM Weekly Control Centre</div>
-      <h1 id="hero-week-h1">Week of 1–7 June 2026</h1>
+      <h1 id="hero-week-h1">Week of 8–14 June 2026</h1>
       <div class="hero-sub">17 site KPI Report docs · 3 clusters · Sourced from the weekly KPI Report folder · refreshed 10 Jun 2026</div>
       <div class="hero-stats">
         <div class="stat"><div class="stat-num">17</div><div class="stat-label">Sites Reporting</div></div>
@@ -937,7 +938,7 @@
   <div class="section-head" style="margin-top:24px;">
     <div>
       <h2>What moved this week</h2>
-      <div class="section-sub">Biggest WoW shifts in covers and SPH, w/e 7 Jun vs w/e 31 May (source: kpis.covers, kpis.sph in SITES)</div>
+      <div class="section-sub">Biggest WoW shifts in covers and SPH, w/e 14 Jun vs w/e 7 Jun — NOTE: covers/SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated); board shows no rows this week.</div>
     </div>
   </div>
   <span class="frozen-caption freeze-target" data-freeze="wow" style="display:none;">Frozen — weekly archive starts 2026-06-12. Showing current week.</span>
@@ -1127,7 +1128,7 @@
       <h2>Red Light System</h2>
       <p>48-hour protocol · live red &amp; amber sites · closure log. Source of truth = Cheska's weekly pull (AM Manual §6).</p>
     </div>
-    <div class="section-head"><h2>Deliveroo RAG — w/c 01/06 (PROVISIONAL)</h2><div class="hint">Derived from the raw Deliveroo ops report using Cheska's thresholds; official compile pending</div></div>
+    <div class="section-head"><h2>Deliveroo RAG — w/c 08/06 (PROVISIONAL)</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report; no official Cheska compile this week</div></div>
     <div id="rl-deliveroo"></div>
     <div class="section-head"><h2>Currently flagged — official pull w/c 25/05 (prior week)</h2><div class="hint">Last official Cheska pull — click a site for detail</div></div>
     <div class="heatmap" id="rl-sites"></div>
@@ -1967,27 +1968,27 @@ const SITES = [
     "clusterName": "Scotland & Newcastle",
     "am": "Óisín Patrick Darragh",
     "gm": "Kieran Day",
-    "rag": "green",
-    "vsTarget": 3.5,
+    "rag": "amber",
+    "vsTarget": -19.6,
     "docId": "11oL_S6MuoWpP9L93PIXverM1wV3ynA_kGjXs-EYwirA",
     "kpis": {
-      "covers": "+155 (+5.87%)",
-      "sph": "+£0.05 (+0.23%)",
-      "vsTarget": "+£2,133 (+3.50%)",
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "-£11,878.88 (-19.60%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales +3.50% vs target (+£2,133 (+3.50%)), w/e 7 Jun.",
-      "[09/06] Food cost data missing this week → submit when staff member returns.",
-      "[09/06] Alt-supplier ingredients not linked to recipes (FC 22.08%) → OPEN.",
-      "[09/06] Late prep orders — sold-out items not marked on tablet → OPEN.",
-      "[09/06] Bar cellar 25°C, drinks unpourable; veg fridge awaiting repair → maintenance pending.",
-      "[09/06] Staff morale low → management encouragement push.",
-      "[09/06] Lunch menu inconsistent (+£2 SPH when offered) → consistency push."
+      "Sales -19.60% vs target (-£11,878.88 (-19.60%)), w/e 14 Jun.",
+      "[09/06] Missing food-cost data → submit once staff member back.",
+      "Covers / SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated) — WoW shown n/a."
     ],
     "carryover": [
+      "Confirm: Alt-supplier ingredients not linked to recipes (FC 22.08%) [09/06] — wired in?",
+      "Confirm: Late prep orders — sold-out items not marked on tablet [09/06] — fixed?",
+      "Confirm: Bar cellar 25°C, drinks unpourable; veg fridge repair [09/06] — resolved?",
+      "Confirm: Staff morale low — management encouragement push [09/06] — improved?",
+      "Confirm: Lunch menu inconsistent (+£2 SPH when offered) [09/06] — consistent?",
       "Confirm: BOH — spare fridge transfer to M12 (03/06) — completed?",
-      "Confirm: WOW covers +677 (+34.51%), SPH -£0.66 (+2.90%) — still the trend?",
       "Confirm: Wage 21.96% — above 21% target — still live?"
     ],
     "actions": [
@@ -2001,29 +2002,30 @@ const SITES = [
     "clusterName": "North England & Midlands",
     "am": "Inka Cheung",
     "gm": "—",
-    "rag": "amber",
-    "vsTarget": -1.8,
+    "rag": "red",
+    "vsTarget": -37.9,
     "docId": "1_NNcLrsLEHsj3gVkxnY2CMMW5xcRBlexBxjEMHdk-uk",
     "kpis": {
-      "covers": "-16 (-1.10%)",
-      "sph": "+£0.16 (+0.72%)",
-      "vsTarget": "-£689 (-1.80%)",
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "-£18,285.23 (-37.90%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales -1.80% vs target (-£689 (-1.80%)), w/e 7 Jun.",
-      "[09/06] Labour budget mismatch 23.31% vs 22.34% → group standardising weekly labour calc.",
-      "[09/06] Recurring Dinjo sake stock adjustment → weekly tracking (Amy).",
-      "[09/06] Toilets blocked incl. disabled → Ross + building mgmt investigating main pipe.",
-      "[09/06] Old ice machine homeless → Tyrone checking KP space; Inka getting ops approval.",
-      "[09/06] KP left, 2 kitchen staff pre-summer → GM revisiting recruitment.",
-      "[09/06] Fire inspection 12 Jul → Inka prepping compliance docs."
+      "Sales -37.90% vs target (-£18,285.23 (-37.90%)), w/e 14 Jun.",
+      "[09/06] Spare ice machine storage → Inka getting ops approval.",
+      "[09/06] Wobbly C2 table → permanent fix.",
+      "[09/06] Fire inspection 12 Jul → prep / submit fire docs.",
+      "[09/06] BOH underperforming → retrain BOH.",
+      "Covers / SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated) — WoW shown n/a."
     ],
     "carryover": [
-      "Confirm: BOH — kitchen strong but FOH→pass delay (food prepared, not picked up); CCTV + FOH/BOH ratio review (Sophie) (03/06) — resolved?",
-      "Confirm: WOW covers +85 (+6.19%), SPH -£0.24 (-1.06%) — still the trend?",
-      "Confirm: Operational F/R (food cost %) not filled in w/e 7 Jun report — now filled?",
-      "Confirm: GM focus — deep clean started; post-it wall → social drive — actioned?"
+      "Confirm: Labour budget mismatch 23.31% vs 22.34% — group standardising calc [09/06] — resolved?",
+      "Confirm: Recurring Dinjo sake stock adjustment — weekly tracking (Amy) [09/06] — stable?",
+      "Confirm: Toilets blocked incl. disabled — Ross + building mgmt on main pipe [09/06] — fixed?",
+      "Confirm: KP left, 2 kitchen staff pre-summer — GM recruitment [09/06] — resolved?",
+      "Confirm: BOH — FOH→pass delay; CCTV + FOH/BOH ratio review (Sophie) (03/06) — resolved?",
+      "Confirm: GM focus — deep clean; post-it wall → social drive — actioned?"
     ],
     "actions": [
       "Red-light protocol: AM floor walk + GM 1:1 within 48h; recovery plan to Lincoln.",
@@ -2038,22 +2040,23 @@ const SITES = [
     "clusterName": "South England",
     "am": "Lincoln",
     "gm": "Kei Cannon",
-    "rag": "amber",
-    "vsTarget": -17.5,
+    "rag": "red",
+    "vsTarget": -40.9,
     "docId": "1WuIUqfm168ucKRTyV8mZPxDTvQRtC4RDc2bLjZkHCWs",
     "kpis": {
-      "covers": "-513 (-29.64%)",
-      "sph": "+£1.64 (+7.29%)",
-      "vsTarget": "-£6,649 (-17.50%)",
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "-£15,554.12 (-40.90%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales -17.50% vs target (-£6,649 (-17.50%)), w/e 7 Jun."
+      "Sales -40.90% vs target (-£15,554.12 (-40.90%)), w/e 14 Jun.",
+      "[10/06] No bar glass storage → quotes for glass rail.",
+      "[10/06] EHO push → schedule EHO visit.",
+      "Covers / SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated) — WoW shown n/a."
     ],
     "carryover": [
-      "Confirm: BOH — sushi manager vacancy (decision Fri), cross-training to cover; delivery issues continuing (03/06) — resolved?",
-      "Confirm: WOW covers +598 (+52.78%), SPH -£0.81 (-3.47%) — still the trend?",
-      "Confirm: Operational F/R (food cost %) not filled in w/e 7 Jun report — now filled?",
+      "Confirm: BOH — sushi manager vacancy; cross-training to cover; delivery issues (03/06) — resolved?",
       "Confirm: GM focus — stabilise sushi section with staff — actioned?"
     ],
     "actions": [
@@ -2068,21 +2071,21 @@ const SITES = [
     "am": "Lincoln Z.",
     "gm": "Imre Balogh",
     "rag": "deep-red",
-    "vsTarget": 16.9,
+    "vsTarget": -58.4,
     "docId": "1Rgz_hA1DTQqk5JgnwFSPmuRlbfVmA3QA4Jt_Fe9AoLo",
     "kpis": {
-      "covers": "+88 (+5.36%)",
-      "sph": "-£0.74 (-3.47%)",
-      "vsTarget": "+£5,397 (+16.90%)",
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "-£43,814.85 (-58.40%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales +16.90% vs target (+£5,397 (+16.90%)), w/e 7 Jun."
+      "Sales -58.40% vs target (-£43,814.85 (-58.40%)), w/e 14 Jun.",
+      "Covers / SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated) — WoW shown n/a.",
+      "Red Light status retained (Lincoln override) — rag unchanged."
     ],
     "carryover": [
       "Confirm: BOH — food variance spike (Sophie investigating); hours cut, sushi chef covering bar; Victoria transferring to Nori (03/06) — resolved?",
-      "Confirm: WOW covers +294 (+21.79%), SPH +£0.86 (-7.07%) — still the trend?",
-      "Confirm: Operational F/R (food cost %) not filled in w/e 7 Jun report — now filled?",
       "Confirm: Wage 25.60% — well over 21% target — still live?"
     ],
     "actions": [
@@ -2098,22 +2101,22 @@ const SITES = [
     "clusterName": "South England",
     "am": "Lincoln Z.",
     "gm": "—",
-    "rag": "green",
-    "vsTarget": 3.2,
+    "rag": "amber",
+    "vsTarget": -0.2,
     "docId": "1K22obJnkwsTQOUWaC6xDD_TIxdBkAt6RmEmTyECF4uk",
     "kpis": {
-      "covers": "-27 (-3.48%)",
-      "sph": "-£2.41 (-5.87%)",
-      "vsTarget": "+£896 (+3.20%)",
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "-£47.95 (-0.20%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales +3.20% vs target (+£896 (+3.20%)), w/e 7 Jun."
+      "Sales -0.20% vs target (-£47.95 (-0.20%)), w/e 14 Jun.",
+      "Covers / SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated) — WoW shown n/a.",
+      "Food cost: 6.48% pulled this week implausible (partial entry) — previous 19.64% retained; resubmit."
     ],
     "carryover": [
-      "Confirm: BOH — system incomplete: wage data not pulling, food cost showing 100% (no revenue recorded); Victoria incoming from Soho; Teddy wants candidates seen in person (03/06) — resolved?",
-      "Confirm: WOW covers +62 (+8.69%), SPH +£1.09 (+2.72%) — still the trend?",
-      "Confirm: Operational F/R (food cost %) not filled in w/e 7 Jun report — now filled?"
+      "Confirm: BOH — system incomplete: wage data not pulling, food cost showing 100% (no revenue recorded); Victoria incoming from Soho (03/06) — resolved?"
     ],
     "actions": [
       "New site added to the Control Centre this week. No 4-week trend or review feed yet."
@@ -2126,22 +2129,21 @@ const SITES = [
     "clusterName": "Scotland & Newcastle",
     "am": "Óisín Patrick Darragh",
     "gm": "Sujan (RM)",
-    "rag": "amber",
-    "vsTarget": -5.8,
+    "rag": "red",
+    "vsTarget": -28.2,
     "docId": "1MfZTCX1aLh9A4rdv0BX3UwU2sk2KAfinQSo2B-66YuU",
     "kpis": {
-      "covers": "+104 (+13.52%)",
-      "sph": "+£0.33 (+1.61%)",
-      "vsTarget": "-£1,243 (-5.80%)",
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "-£6,081.53 (-28.20%)",
       "foodVar": "N/A"
     },
     "issues": [
-      "Sales -5.80% vs target (-£1,243 (-5.80%)), w/e 7 Jun."
+      "Sales -28.20% vs target (-£6,081.53 (-28.20%)), w/e 14 Jun.",
+      "Covers / SPH not sourced w/e 14 Jun (KPI Raw Data not aggregated) — WoW shown n/a."
     ],
     "carryover": [
-      "Confirm: WOW covers +13 (+1.71%), SPH -£0.20 (-0.96%) — still the trend?",
-      "Confirm: Operational F/R (food cost %) not filled in w/e 7 Jun report — now filled?",
-      "Confirm: Wage 24.02% — well over 21% target — still live?"
+      "Confirm: Wage 28.60% — well over 21% target — still live?"
     ],
     "actions": [
       "Tighten rota to pull wage toward 21%."
@@ -2153,66 +2155,60 @@ const THEMES = [
   {
     "severity": "warn",
     "icon": "ℹ",
-    "title": "BH base-week effect in covers WoW",
-    "body": "W22 base week included BH Monday 25/05 — covers WoW drops at M17/M9/M12/M10/M11 are largely base effect. Deliveroo RAG w/c 01/06 shown provisional (derived from raw report); Cheska's official compile pending.",
+    "title": "Input gaps this week — read sales with care",
+    "body": "w/e 14 Jun: Covers/SPH not sourced (KPI Raw Data not aggregated) — WoW board blank. Food variance unavailable for all sites (2026 stocktake sheet not updated). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept. Deliveroo RAG w/c 08/06 provisional — no official Cheska compile.",
     "sites": [
-      "M9",
-      "M10",
-      "M11",
-      "M12",
-      "M17"
+      "M1/2",
+      "M6",
+      "M13",
+      "Maki Nori",
+      "IKI2"
     ]
   },
   {
     "severity": "critical",
     "icon": "!",
-    "title": "Five sites still well under sales target",
-    "body": "M12 Newcastle -19.7%, M17 Lakeside -17.5%, M6 Bath Street -15.0%, M10 Leeds -14.9%, M1/2 Nicolson -13.9% vs target (w/e 7 Jun). Last week's worst — M18 Soho, M16 Nottingham, M14 Meadowhall — all recovered to +16.9% / -1.8% / +4.2%.",
+    "title": "Sales collapse vs target — 7 sites red, M18 worst",
+    "body": "w/e 14 Jun (sites with targets): M18 Soho -58.4%, M11 Leicester -43.9%, M14 Meadowhall -42.2%, M17 Lakeside -40.9%, M16 Nottingham -37.9%, M12 Newcastle -36.4% all below -25% (red). M8 -22.5%, M10 -21.5%, M15 -19.6%, M7 -18.6%, M3 -16.4%, M9 -14.3% amber. Maki Nori -0.2% near target. Much weaker week than w/e 7 Jun — verify target sheet revisions before escalating.",
     "sites": [
-      "M1/2",
-      "M6",
-      "M10",
+      "M11",
       "M12",
-      "M17"
+      "M14",
+      "M16",
+      "M17",
+      "M18"
     ]
   },
   {
     "severity": "critical",
     "icon": "⌖",
-    "title": "M18 Soho still on Red Light — sales recovering",
-    "body": "Sales +16.9% vs target (+£5,397) w/e 7 Jun, but wage 28.1% and Red Light status holds until the weekly red-light pull (Cheska) confirms exit. Keep the recovery plan with Lincoln on track.",
+    "title": "M18 Soho on Red Light — sales fell back hard",
+    "body": "Sales -58.4% vs target (-£43,814.85) w/e 14 Jun, a sharp reversal from last week's +16.9%; wage 31.9%. Red Light status retained (Lincoln override — rag unchanged) until the weekly red-light pull (Cheska) confirms. Hold the recovery plan; confirm the -58% is real and not a target-sheet artefact.",
     "sites": [
       "M18"
     ]
   },
   {
-    "severity": "good",
+    "severity": "warn",
     "icon": "▲",
-    "title": "Covers up sharply WOW — but SPH softening",
-    "body": "Big week-on-week covers gains: M17 +52.8%, M11 +49.9%, M14 +44.0%, M15 +34.5%, M12 +32.7%, M9 +19.6%. Yet SPH fell at most of these — volume is up, spend-per-head is the lever now.",
-    "sites": [
-      "M9",
-      "M11",
-      "M12",
-      "M14",
-      "M15",
-      "M17"
-    ]
+    "title": "Covers / SPH not available w/e 14 Jun",
+    "body": "Weekly covers and SPH could not be sourced this week (KPI Raw Data sheet not aggregated; only partial daily files on disk). The WoW board is intentionally blank rather than carrying last week's figures. Aggregate the raw sheet to restore covers/SPH and the +£1 spend-per-head tracking.",
+    "sites": []
   },
   {
-    "severity": "good",
+    "severity": "warn",
     "icon": "✦",
-    "title": "Maki Nori (M19) added — strong start",
-    "body": "M19 Maki Nori joins the Control Centre at +47.9% vs target (+£10.3k), covers +8.7% WOW. No 4-week trend, wage or review feed wired in yet.",
+    "title": "Maki Nori — at target, but wage 41.8% and FC suspect",
+    "body": "Maki Nori sales -0.2% vs target (-£47.95) w/e 14 Jun — essentially on plan. But wage is 41.8% (target ≤21%) and the food cost pulled at an implausible 6.48% (partial entry) so prior 19.64% is retained. Chase a clean stocktake + labour review.",
     "sites": [
-      "M19"
+      "Maki Nori"
     ]
   },
   {
     "severity": "critical",
     "icon": "∅",
-    "title": "Operational F/R (food cost %) missing from 16 of 17 reports",
-    "body": "Only M9 filled in Labour AND Operational F/R this week (F/R 19.48% vs 23%). Every other GM left the food-cost-% cell blank, so the dashboard can only show food variance, not F/R. Reporting-discipline fix.",
+    "title": "Food variance unavailable for all sites w/e 14 Jun",
+    "body": "The central Stocktake Variance sheet has not been updated for 2026, so foodVar is null for every site this week (score skips foodVar). Food-cost % itself did pull for 16/17 (Maki Nori 6.48% rejected as a partial entry; IKI2 food % not tracked — prior 23.72% retained). Restore the 2026 stocktake sheet to reinstate variance scoring.",
     "sites": [
       "M1/2",
       "M3",
@@ -2293,7 +2289,7 @@ const HOT_ACTIONS = [
 // foodVar = stocktake variance % vs expected (target ±5%; closer to 0 = better)
 // Sources: per-site KPI Sheets (primary), Ordering System fallback for food cost, Stocktake Variance Reports for foodVar
 // foodVar w/c 08/06: stocktake Variance sheet NOT updated for 2026 — foodVar unavailable for ALL sites this week → null + varIncomplete "both" everywhere (score skips foodVar). Restore once the 2026 stocktake sheet is populated.
-// Food cost notes w/c 08/06: NQ not tracked (no NQ key on this dashboard). Maki Nori pulled 6.48% — implausible partial entry, NOT written; previous 19.64% retained. IKI2 had no fresh pull in this week's data set — prior values carried (flagged).
+// Food cost notes w/c 08/06: NQ not tracked (no NQ key on this dashboard). Maki Nori pulled 6.48% — implausible partial entry, NOT written; previous 19.64% retained. IKI2 refreshed to current week (wage 28.6, sales current) — food % not tracked for IKI2, previous 23.72% retained.
 const METRICS = {
   "M1/2": { wage: 23.0, food: 21.32, foodVar: null, varIncomplete: "both" },
   "M3": { wage: 27.4, food: 25.89, foodVar: null, varIncomplete: "both" },
@@ -2311,7 +2307,7 @@ const METRICS = {
   "M17": { wage: 33.7, food: 20.64, foodVar: null, varIncomplete: "both" },
   "M18": { wage: 31.9, food: 25.43, foodVar: null, varIncomplete: "both" },
   "Maki Nori": { wage: 41.8, food: 19.64, foodVar: null, varIncomplete: "both" },
-  "IKI2": { wage: 22.00, food: 23.72, foodVar: 0.95 }
+  "IKI2": { wage: 28.6, food: 23.72, foodVar: null, varIncomplete: "both" }
 };
   // --- REVIEWS (Google reviews) ---
 // rating + total = LIVE from Google Maps (pulled 29 May 2026)
@@ -2529,9 +2525,11 @@ const HISTORY = {
       21.62,
       22.48,
       21.11,
-      21.26
+      21.26,
+      23.0
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2545,16 +2543,19 @@ const HISTORY = {
       25.08,
       23.53,
       9.2,
-      8.6
+      8.6,
+      -16.4
     ],
     "wage": [
       21.43,
       20.1,
       20.64,
       21.49,
-      21.44
+      21.44,
+      27.4
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2568,6 +2569,7 @@ const HISTORY = {
       -14.49,
       -2.84,
       -10.58,
+      -15.0,
       -15.0
     ],
     "wage": [
@@ -2575,9 +2577,11 @@ const HISTORY = {
       21.82,
       20.08,
       21.95,
-      23.41
+      23.41,
+      28.5
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2591,16 +2595,19 @@ const HISTORY = {
       -0.26,
       1.08,
       11.02,
-      2.9
+      2.9,
+      -18.6
     ],
     "wage": [
       20.47,
       21.15,
       20.66,
       20.76,
-      21.75
+      21.75,
+      26.7
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2614,16 +2621,19 @@ const HISTORY = {
       2.19,
       7.2,
       8.43,
-      2.9
+      2.9,
+      -22.5
     ],
     "wage": [
       21.86,
       24.65,
       21.97,
       23.12,
-      23.26
+      23.26,
+      29.1
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2637,16 +2647,19 @@ const HISTORY = {
       0.23,
       -0.52,
       8.72,
-      -3.5
+      -3.5,
+      -14.3
     ],
     "wage": [
       18.67,
       19.2,
       19.73,
       19.02,
-      20.02
+      20.02,
+      22.7
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2660,16 +2673,19 @@ const HISTORY = {
       0.72,
       3.69,
       -6.56,
-      -14.9
+      -14.9,
+      -21.5
     ],
     "wage": [
       20.7,
       21.54,
       21.24,
       22.41,
-      22.40
+      22.40,
+      26.0
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2683,16 +2699,19 @@ const HISTORY = {
       -26.59,
       -38.43,
       -19.72,
-      -1.4
+      -1.4,
+      -43.9
     ],
     "wage": [
       26.02,
       24.11,
       26.88,
       23.98,
-      22.07
+      22.07,
+      26.6
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2706,16 +2725,19 @@ const HISTORY = {
       -5.74,
       -9.13,
       -0.01,
-      -19.7
+      -19.7,
+      -36.4
     ],
     "wage": [
       25.35,
       24.61,
       25.57,
       22.55,
-      26.67
+      26.67,
+      32.5
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2729,6 +2751,7 @@ const HISTORY = {
       -8.8,
       -12.38,
       -15.68,
+      -2.9,
       -2.9
     ],
     "wage": [
@@ -2736,9 +2759,11 @@ const HISTORY = {
       21.6,
       21.48,
       22.41,
-      22.27
+      22.27,
+      29.1
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2752,16 +2777,19 @@ const HISTORY = {
       -32.9,
       -44.23,
       -24.52,
-      4.2
+      4.2,
+      -42.2
     ],
     "wage": [
       21.84,
       23.02,
       25.9,
       19.9,
-      19.26
+      19.26,
+      25.7
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2775,16 +2803,19 @@ const HISTORY = {
       -2.23,
       -24.48,
       -2.4,
-      3.5
+      3.5,
+      -19.6
     ],
     "wage": [
       20.88,
       21.25,
       24.96,
       21.96,
-      21.00
+      21.00,
+      25.2
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2798,16 +2829,19 @@ const HISTORY = {
       -26.46,
       -24.55,
       -25.58,
-      -1.8
+      -1.8,
+      -37.9
     ],
     "wage": [
       24.48,
       23.93,
       22.94,
       23.3,
-      22.28
+      22.28,
+      27.0
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2821,16 +2855,19 @@ const HISTORY = {
       0.21,
       -25.96,
       8.34,
-      -17.5
+      -17.5,
+      -40.9
     ],
     "wage": [
       21.77,
       20.36,
       24.37,
       20.94,
-      21.65
+      21.65,
+      33.7
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2844,16 +2881,19 @@ const HISTORY = {
       -47.24,
       -61.13,
       -50.3,
-      16.9
+      16.9,
+      -58.4
     ],
     "wage": [
       33.11,
       28.99,
       37.99,
       25.6,
-      28.10
+      28.10,
+      31.9
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2867,16 +2907,19 @@ const HISTORY = {
       null,
       null,
       47.94,
-      3.2
+      3.2,
+      -0.2
     ],
     "wage": [
       null,
       null,
       null,
       null,
-      30.85
+      30.85,
+      41.8
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -2890,16 +2933,19 @@ const HISTORY = {
       -9.12,
       -17.32,
       -18.55,
-      -5.8
+      -5.8,
+      -28.2
     ],
     "wage": [
       20.9,
       20.33,
       25.21,
       24.02,
-      22.00
+      22.00,
+      28.6
     ],
     "food": [
+      null,
       null,
       null,
       null,
@@ -3563,33 +3609,31 @@ function renderRoadmap(){
    INFORMATIONAL ONLY — does not drive any site's stored rag / deep-red field or the M18 Red Light
    protocol status. Status decisions stay with Lincoln/Cheska. Weekly refresh: replace this object. */
 const DELIVEROO_RAG = {
-  "week": "w/c 01/06",
-  "label": "PROVISIONAL — derived from raw Deliveroo ops report using Cheska's thresholds; official compile pending",
+  "week": "w/c 08/06",
+  "label": "PROVISIONAL — 5-metric greens roll-up from raw Deliveroo ops report; NO official Cheska compile exists for this week",
   "red": [
-    { "code": "M11", "name": "Leicester",  "drivers": "rating 4.33 · missing 2.0% · prep 16.3" },
-    { "code": "M12", "name": "Newcastle",  "drivers": "open 97.1% · missing 2.8%" },
-    { "code": "M10", "name": "Leeds",      "drivers": "rating 4.36 · missing 2.0%" },
-    { "code": "MAF3","name": "O2",         "drivers": "rating 4.20 · wait 17.2% · missing 3.4% · open 96.0%" }
+    { "code": "M3",  "name": "Fountain Bridge", "drivers": "red: open" },
+    { "code": "M14", "name": "Meadowhall",      "drivers": "red: prep · missing" },
+    { "code": "M17", "name": "Lakeside",        "drivers": "red: missing · rating · open" }
   ],
   "amber": [
-    { "code": "M13", "name": "Aberdeen",      "drivers": "rating 4.00" },
-    { "code": "M17", "name": "Lakeside",      "drivers": "rating 4.00 · wait 5.4%" },
-    { "code": "M18", "name": "Soho",          "drivers": "missing 5.5% · rating 4.17" },
-    { "code": "M14", "name": "Meadowhall",    "drivers": "missing 2.4%" },
-    { "code": "M16", "name": "Nottingham",    "drivers": "missing 2.9%" },
-    { "code": "M15", "name": "Metro",         "drivers": "rating 4.67" },
-    { "code": "M1",  "name": "West Richmond", "drivers": "rating 4.33 · missing 1.9%" },
-    { "code": "M8",  "name": "Renfield",      "drivers": "open 98.7%" },
-    { "code": "M2",  "name": "Leith St",      "drivers": "rating 4.67" },
-    { "code": "MAF1","name": "West End",      "drivers": "missing 1.1%" },
-    { "code": "NQ",  "name": "Maki Northern Quarter", "drivers": "missing 3.8% · rating 4.20" }
+    { "code": "M1/2","name": "Nicolson",        "drivers": "red: missing" },
+    { "code": "M6",  "name": "Bath St",         "drivers": "amber roll-up" },
+    { "code": "M9",  "name": "Manchester",      "drivers": "amber roll-up" },
+    { "code": "NQ",  "name": "Maki Northern Quarter", "drivers": "red: rating" },
+    { "code": "M10", "name": "Leeds",           "drivers": "red: missing · rating" },
+    { "code": "M12", "name": "Newcastle",       "drivers": "red: open" },
+    { "code": "M13", "name": "Aberdeen",        "drivers": "amber roll-up" },
+    { "code": "M15", "name": "Metrocentre",     "drivers": "red: missing" },
+    { "code": "M16", "name": "Nottingham",      "drivers": "red: missing" },
+    { "code": "M18", "name": "Soho",            "drivers": "amber roll-up" }
   ],
   "green": [
-    { "code": "M9", "name": "Manchester",     "drivers": "4.97★ — recovery from red" },
-    { "code": "M3", "name": "Fountainbridge", "drivers": "4.90★ — recovery from red" },
-    { "code": "M6", "name": "Bath St",        "drivers": "5.00★" }
+    { "code": "M8",  "name": "Renfield",        "drivers": "5-metric greens" },
+    { "code": "M11", "name": "Leicester",       "drivers": "5-metric greens" }
   ],
-  "movement": "vs w/c 25/05 official: Manchester, Fountainbridge, Leeds, Leicester, Lakeside, Aberdeen, Nottingham & NQ were RED. Manchester & Fountainbridge now green; Lakeside, Aberdeen, Nottingham & NQ now amber; O2 & Newcastle worsened to red."
+  "naNote": "Not on Deliveroo this week: M7 (SJQ), Maki Nori.",
+  "movement": "PROVISIONAL w/c 08/06 — derived from the raw ops report (no official Cheska compile this week). Statuses reflect the 5-metric greens roll-up; treat as indicative only. Franchise (MAF1/MAF3/O2) not included in this AM-only compile."
 };
 
 function renderDeliverooRag(){
@@ -3647,15 +3691,16 @@ renderGmScore();
 // Swap sales% vs target + wage% across the dashboard when a past week is selected.
 // Food, reviews, narrative and OKRs are frozen (no weekly history yet).
 (function setupWeekToggle(){
-  const WEEK_KEYS   = ['2026-05-04','2026-05-11','2026-05-18','2026-05-25','2026-06-01'];
+  const WEEK_KEYS   = ['2026-05-04','2026-05-11','2026-05-18','2026-05-25','2026-06-01','2026-06-08'];
   const WEEK_LABELS = {
     '2026-05-04': { h1: 'Week of 4–10 May 2026',  title: '4–10 May 2026' },
     '2026-05-11': { h1: 'Week of 11–17 May 2026', title: '11–17 May 2026' },
     '2026-05-18': { h1: 'Week of 18–24 May 2026', title: '18–24 May 2026' },
     '2026-05-25': { h1: 'Week of 25–31 May 2026', title: '25–31 May 2026' },
-    '2026-06-01': { h1: 'Week of 1–7 June 2026',  title: '1–7 June 2026' }
+    '2026-06-01': { h1: 'Week of 1–7 June 2026',  title: '1–7 June 2026' },
+    '2026-06-08': { h1: 'Week of 8–14 June 2026', title: '8–14 June 2026' }
   };
-  const CURRENT_KEY = '2026-06-01';
+  const CURRENT_KEY = '2026-06-08';
   let currentWeekKey = CURRENT_KEY;
 
   // Snapshot live values so we can restore when returning to current week.
@@ -3779,39 +3824,39 @@ renderGmScore();
 const MEETING_RISK = {
   "week": "w/c 09/06",
   "sites": [
-    { "name": "Fountain Bridge", "label": "Fountainbridge",      "open": 2, "total": 5 },
-    { "name": "Newcastle",       "label": "Newcastle",           "open": 2, "total": 5 },
-    { "name": "Metrocentre",     "label": "Metrocentre",         "open": 2, "total": 6 },
-    { "name": "Nicolson",        "label": "Edinburgh (Nicolson)","open": 1, "total": 3 },
-    { "name": "SJQ Edinburgh",   "label": "SJQ",                 "open": 1, "total": 3 },
-    { "name": "Leicester",       "label": "Leicester",           "open": 1, "total": 5 },
-    { "name": "Nottingham",      "label": "Nottingham",          "open": 0, "total": 6 },
-    { "name": "Meadowhall",      "label": "Meadowhall",          "open": 0, "total": 5 },
-    { "name": "Manchester",      "label": "Manchester",          "open": 0, "total": 4 },
-    { "name": "Leeds",           "label": "Leeds",               "open": 0, "total": 4 }
+    { "name": "Newcastle (M12)",   "label": "Newcastle (M12)",       "open": 3, "total": 5 },
+    { "name": "Meadowhall (M14)",  "label": "Meadowhall (M14)",      "open": 1, "total": 4 },
+    { "name": "Leeds (M10)",       "label": "Leeds (M10)",           "open": 2, "total": 5 },
+    { "name": "Leicester (M11)",   "label": "Leicester/High Cross (M11)", "open": 2, "total": 5 },
+    { "name": "Nottingham (M16)",  "label": "Nottingham (M16)",      "open": 4, "total": 6 },
+    { "name": "Metrocentre (M15)", "label": "Metrocentre (M15)",     "open": 5, "total": 6 },
+    { "name": "Lakeside (M17)",    "label": "Lakeside (M17)",        "open": 2, "total": 3 },
+    { "name": "Shoreditch",        "label": "Shoreditch (unmapped — not on AM dashboard)", "open": 4, "total": 4 },
+    { "name": "Soho (M3?)",        "label": "Soho/Deliveroo dip (site unconfirmed)",        "open": 3, "total": 3 },
+    { "name": "Southampton",       "label": "Southampton (new opening — not yet on dashboard)", "open": 2, "total": 2 }
   ],
   "openQuestions": [
-    { "site": "Edinburgh (Nicolson)", "q": "Food cost up to 25.97% from 22% — driver unidentified, no owner." },
-    { "site": "Fountainbridge", "q": "Deliveroo new layout misrepresents weekly figures — how do we read them reliably?" },
-    { "site": "Fountainbridge", "q": "Tofu menu limited to one item — expand or accept?" },
-    { "site": "SJQ", "q": "Covers down WoW & YoY and food cost jumped to 26.33% — cause unknown." },
-    { "site": "Newcastle", "q": "Sales -£7k WoW, quiet Saturday, missed sushi target — recovery plan needed." },
-    { "site": "Newcastle", "q": "Joe resigned — backfill plan undefined." },
-    { "site": "Metrocentre", "q": "Alt-supplier ingredients not linked to recipes (FC 22.08%) — who wires them in?" },
-    { "site": "Metrocentre", "q": "Late prep orders — sold-out items not marked on tablet; process fix unowned." },
-    { "site": "Leicester", "q": "iPad not syncing out-of-stock — orders disputed; fix unowned." },
-    { "site": "Cluster-wide", "q": "Red Light protocol steps still undefined — no owner." },
-    { "site": "Cluster-wide", "q": "England labour budget calc inconsistency — group standardising, confirm method." },
-    { "site": "Cluster-wide", "q": "Cover-count fluctuations beyond ASPH incentive — what else moves covers?" },
-    { "site": "M6 Bath St", "q": "M6 food variance discrepancy — central sheet +4.6% vs GM email −4.8% (drinks matches): reconcile (Cheska)" },
-    { "site": "Cluster-wide", "q": "Drinks stocktake counts missing for M9/M10/M11/M14/M16/M17/M18 — enter in central sheet" },
-    { "site": "Maki Nori", "q": "Maki Nori W23 stocktake entirely missing — chase" }
+    { "site": "Newcastle (M12)", "q": "Maintenance technician no-show — who owns chasing the contractor?" },
+    { "site": "Newcastle (M12)", "q": "Mystery-diner service issues — review report with staff; Erin extra-hours uncertain — confirm." },
+    { "site": "Metrocentre (M15)", "q": "Missing food-cost data — submit once staff member back." },
+    { "site": "Meadowhall (M14)", "q": "Soft-drinks/stock variance + LWC delivery accuracy — photo LWC orders; reconcile after count." },
+    { "site": "Leeds (M10)", "q": "Delivery prep-time/audit discrepancies; par sheet not shared — get par sheet from Arthur." },
+    { "site": "Leicester/High Cross (M11)", "q": "Missing Harrow invoice distorts variance; incorrect sushi orders — input invoice + kitchen fix." },
+    { "site": "Nottingham (M16)", "q": "Spare ice-machine storage (ops approval); fire inspection 12 Jul (docs); BOH underperforming (retrain)." },
+    { "site": "Shoreditch (unmapped)", "q": "GM Hamid exited, AGM Eryk onboarding; RIDDOR + return-to-work Lorenzo; soft weekend; Spin-the-Wheel ROI marginal (+54 covers/£549 for £356). NOTE: not mappable to an AM dashboard key (M18=Soho, GM Imre) — route to correct site once confirmed." },
+    { "site": "Soho/Deliveroo (site TBC)", "q": "Deliveroo dip — prep delays & inaccurate delivery orders; photo before sealing. Site label ambiguous (notes say 'M3 Soho'; M3=Fountain Bridge, M18=Soho) — confirm which site before assigning." },
+    { "site": "Lakeside (M17)", "q": "No bar glass storage (quotes for glass rail); EHO push — schedule EHO." },
+    { "site": "Southampton (new opening)", "q": "Needs short-term AM support (Amy Tang); secondary hygiene audit 21/22." },
+    { "site": "Cluster-wide", "q": "New +£1 spend-per-head incentive (GM upsell autonomy) — start tracking." },
+    { "site": "Cluster-wide", "q": "Year-end targets held fixed (not lowered) despite tough sales — confirm to GMs." },
+    { "site": "Cross-cluster", "q": "Ross (AL 10–15 Jun) to fix Mapal access + KP roof on return; Ziang rolling out AI auto-notes." }
   ],
   "clusterActions": [
-    "ASPH +£1 incentive live — shift-level till tracking from next wk; monthly staff winner; quarterly site cash prize.",
-    "LWC photo-verification — photograph every LWC delivery to the group chat.",
-    "One-order-per-week procurement rule across sites.",
-    "AMs send meeting notes to Michael on Mondays."
+    "Scotland & Newcastle: launch +£1 spend-per-head incentive (GM upsell autonomy) with till tracking; resolve Newcastle maintenance no-show + mystery-diner.",
+    "North & Midlands: year-end targets stay fixed; reconcile Meadowhall variance; Nottingham fire prep (12 Jul) + ice-machine approval; Leeds audit investigation.",
+    "South England: cover M18 GM vacancy / coach AGM Eryk; Southampton AM coverage via Amy Tang; fix Soho Deliveroo dip + accuracy.",
+    "Group decisions: £50/head influencer cap; facility-wide pest control; mandatory GM fire-safety/first-aid certification.",
+    "Cross-cluster: Ross (AL 10–15 Jun) to fix Mapal access + KP roof on return; Ziang rolling out AI auto-notes."
   ]
 };
 
