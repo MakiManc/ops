@@ -220,7 +220,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
   <div class="hero">
     <div class="eyebrow">Executive Chef Function · live status</div>
     <h2 id="heroTitle">Site RAG status</h2>
-    <div class="hero-sub">Weighted composite RAG per site — food cost, wage:revenue, food variance, compliance (pending) and Deliveroo ops. Scrub the Week selector to see history. <strong>Latest-week food cost is sourced from the Soph KPI sheet (canonical)</strong>; earlier weeks and the per-site BOH notes come from the BOH meetings, so a card's headline % can differ from its narrative.</div>
+    <div class="hero-sub">Weighted composite RAG per site — food cost, wage:revenue, food variance and Deliveroo ops (Mapal compliance shown on the Weekly tab). The Week selector runs Monday→Sunday and opens on the current week; BOH site RAG lands ~1–3 weeks in arrears. <strong>Latest-week food cost is sourced from the Soph KPI sheet (canonical)</strong>; earlier weeks and the per-site BOH notes come from the BOH meetings, so a card's headline % can differ from its narrative.</div>
     <div class="hero-stats" id="heroStats"></div>
   </div>
   <div id="staleBanner" class="note red" style="display:none"></div>
@@ -280,7 +280,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
         <th class="num">Food var %</th>
         <th>Deliveroo</th>
         <th class="num">★</th>
-        <th>Compliance</th>
+        <th title="Mapal task-completion compliance · red-light below 99%">Mapal %</th>
         <th>RAG</th>
       </tr>
     </thead>
@@ -289,7 +289,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
   <div style="display:flex;gap:8px;margin:8px 0 0;font-size:11px;color:var(--maki-muted);flex-wrap:wrap">
     <span class="source-chip drive">BOH KPI meetings</span>
     <span class="source-chip">Deliveroo perf sheet (★)</span>
-    <span class="source-chip manual">Mapal (compliance — pending)</span>
+    <span class="source-chip drive">Mapal compliance (w/c 1 & 8 Jun · red &lt;99%)</span>
   </div>
   <h2>BOH issues &amp; solutions · latest</h2>
   <div class="section-intro">Issue → solution → owner, from the most recent BOH meeting. <span class="source-chip drive">BOH KPI folder</span></div>
@@ -303,6 +303,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
     <div class="hero-sub">Pick a <strong>week</strong> from the dropdown (defaults to the current live week), then scrub the day slider through that week. Bars show cumulative week-to-date burn vs the HC weekly budget and month-to-date vs the interim June cap. The delta line compares this week against the same point last week.</div>
     <div class="hero-stats" id="budgetHeroStats"></div>
   </div>
+  <div id="budgetMissed" style="margin-bottom:12px"></div>
   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:12px 18px;box-shadow:var(--shadow);margin-bottom:12px">
     <span style="font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Week</span>
     <select id="budgetWeekSelect" style="min-width:240px;font-size:14px;font-weight:600;padding:7px 12px;border:1px solid var(--maki-line);border-radius:8px;background:#fff;color:var(--maki-ink);cursor:pointer"></select>
@@ -437,32 +438,45 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div>⚠️ 17 Jun: 16 Jun daily spend pull FAILED — data only current to 15 Jun; run the EC daily spend catch-up. · <strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 08 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.8.2 · 17 Jun 2026 · Weekly Sales-vs-Budget tile refreshed to w/c 08 Jun 2026 from the Soph KPI sheet (modified 16 Jun); group 93.1% to budget; 10/16 sites over the 25% food-cost target, 9/16 over the 22% wage target; worst on budget M17 Lakeside 71%, M12 Newcastle 76% · v1.8.1 · 16 Jun 2026 · Weekly budget basis switched to the HC weekly base (WTD + Budget-Left from the daily report) per Michael — no longer 23%×Soph-KPI; the artefact derives each week's locked basis straight from wtd_actual+wtd_left already in every daily ledger row (source=weekly_budget_lock rows still honoured as an override), so weeks self-lock with no skim / Apps-Script change · v1.8.0 · 16 Jun 2026 · Budget tab now splits week-on-week — live week (overview + two-stage Budget→Issues status) on top, Closed-weeks history below; per-week LOCKED budget basis (sheet rows: source=weekly_budget_lock, date=w/c Sunday) replaces the single global weekly budget so the Monday pull no longer shifts closed weeks; optional source=week_close sets the Wed issues stage · v1.7.8 · 15 Jun 2026 · 14 Jun (Sun, day 1 w/c 14 Jun) daily spend filed (15/17 sites; M10 Leeds + M17 Lakeside NOT FILED — chase; day-1 RED-ALERT high-burn: M11 Leicester 85% of wk budget, M6 Bath St 83%, M18 Soho 59%, M1 Edinburgh 52%; HC config improvements vs last week: M3/M7/M8/M11/M12/M13/M15/M16 bases now match ours; M11 + M16 daily reports back to filing; Deliveroo RAG block unchanged from 10 Jun ingestion — 21-day stale, refresh next run) · v1.5.6 · 14 Jun 2026 · 13 Jun daily spend filed (12/17 sites; 4 OVER budget: M13 Aberdeen, M14 Meadowhall, M16 Nottingham, M18 Soho; M17 Lakeside NOT FILED — chase; M3 HC config still showing implied base £-7962, escalate; major WTD discrepancies (>£200) flagged on 16 sites where our Mapal-only ledger lags HC reported WTD) · v1.7.7 · 13 Jun 2026 · 12 Jun daily spend filed (17/17 sites; 4 OVER budget: M13 Aberdeen −£416, M14 Meadowhall £0, M16 Nottingham £0, M18 Soho £0; critical near-limit: MN £2.50 left, M17 £133, M3 £110; Maki Property Ltd 'Maki Dub' Dubai test filing in Mapal — skipped per run protocol) · v1.7.6 · 12 Jun 2026 · Budget tab: column headers now repeat under each cluster band (cluster title first, then Site / Spent Yesterday / …) · v1.7.5 headers relabelled for chefs (Spent Yesterday / Weekly Spend / Weekly Budget / Week Usage / Monthly Spend / June Budget / Month Pace) · 11 Jun BOH spend filed (13/17 sites; group ~£15,641). Manual catch-up after the 09:16 auto-run silently failed on 11 + 12 Jun. M16 Nottingham + M18 Soho OVER weekly budget (£0 left); M10/M13/M14/IK2 not filed — chase. M6 10-Jun daily spend corrected 0→£2,535.36 (Michael-confirmed; ledger+MTD recomputed £8,514.17) · Budget cluster headers credit EC/DEC (not AM) · Budget tab: burn table grouped by cluster with per-cluster totals + cluster pills (also filter the Daily Spend tile) · M6 10-Jun HC WTD/left backfilled (European decimal entry '2.53536'/'2.84564' = £2,535.36/£2,845.64; sums to HC weekly budget £5,381) · Front-page latest-week food cost sourced from Soph KPI (canonical) not BOH · Budget MTD = Mona Lisa 1–7 Jun + Mapal daily · Food Cost MTD tile · Deliveroo RAG full grid · DEC roster (Penny / Artur / O; Matt Polak = EC).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.10.0 · 17 Jun 2026 · Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green ≤25% (target 23%) · amber 25–27% · red &gt;27%. Mapal compliance live (red-light &lt;99%).</div>
 </footer>
 
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.6.1",
-    generated_at: "2026-06-10T11:30:00Z",
-    food_cost_target_pct: 25, food_cost_warn_pct: 27, food_cost_critical_pct: 30,
+    version: "1.11.0",
+    generated_at: "2026-06-17T08:40:00Z",
+    food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27,
     wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
     foodvar_warn_pct: 3.0, foodvar_critical_pct: 5.0,
     hygiene_target_pct: 98, food_quality_target_pct: 92, star_target: 4.6,
     band_green: 85, band_amber: 65,
-    /* index 0..4 = BOH meetings 02 Jun, 26 May, 19 May, 12 May, 05 May */
-    weeks: ["02 Jun · BOH","26 May · BOH","19 May · BOH","12 May · BOH","05 May · BOH"],
-    latest_week: "02 Jun · BOH",
+    /* index 0..1 = w/c 08 Jun & w/c 01 Jun (Soph KPI: food cost + wage). index 2..6 = BOH meetings w/c 25 May,18 May,11 May,04 May,27 Apr */
+    weeks: ["08 Jun · Soph","01 Jun · Soph","25 May · BOH","18 May · BOH","11 May · BOH","04 May · BOH","27 Apr · BOH"],
+    latest_week: "08 Jun · Soph KPI",
     deliveroo_week: "w/c 25 May 26",
-    data_as_at: "2026-06-01",
-    boh_meeting: "02 Jun 2026",
+    data_as_at: "2026-06-08",
+    boh_meeting: "08 Jun 2026 (Soph KPI)",
     not_filed: ["M11","M16","M17","M18","MN"],
+    /* BOH KPI meetings run on a Tuesday in arrears; each reviews the Mon–Sun trading week that just ended. Map each BOH array index to that week's MONDAY (week-commencing). */
+    boh_week_mon: { "2026-06-08":0, "2026-06-01":1, "2026-05-25":2, "2026-05-18":3, "2026-05-11":4, "2026-05-04":5, "2026-04-27":6 },
+    soph_weeks: ["2026-06-08","2026-06-01"],
+    week_earliest_mon: "2026-04-27",
     sources: {
       boh_kpi: "https://drive.google.com/drive/folders/1em34lo35VlMswmM6cVNAw2UIsUTF2TdU",
       deliveroo: "https://docs.google.com/spreadsheets/d/1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI",
       soph_kpi: "https://docs.google.com/spreadsheets/d/15wb6jz58T59FHAdU-GGf7jOk2HTNYEz58Ir7gJVrvc4",
-      mapal_compliance: "MANUAL — Mapal export pending automation"
+      mapal_compliance: "https://docs.google.com/spreadsheets/d/1JgM5881gtBvjYeb_AgfQVuAi4hlJqqSWwbTyiLGdgQU"
     }
+  },
+
+  /* Per-site Mapal compliance % (task-completion score) by Mon–Sun week start (Monday ISO).
+     Source: Mapal Weekly Compliance Tracker + E–H fill (w/c 1 & 8 Jun 2026). Red-light <99%.
+     Only weeks with a per-site Compliance_% fill are listed; older weeks captured on-time% only. */
+  mapal: {
+    "2026-06-08": { M1:100, M3:100, M6:99.9, M7:99.9, M8:99, M9:99.9, M10:100, M11:100, M12:100, M13:98.8, M14:97.9, M15:98.9, M16:99.9, M17:99.9, M18:99.8, MN:97.4 },
+    "2026-06-01": { M1:100, M3:99.9, M6:99.6, M7:98.3, M8:97.7, M9:98.2, M10:99.9, M11:99.9, M12:100, M13:93.9, M14:99.9, M15:98.4, M16:99.8, M17:100, M18:100, MN:87.4 },
+    _chain: { "2026-06-08":94.3, "2026-06-01":95 }
   },
 
   clusters: {
@@ -482,126 +496,126 @@ const FALLBACK_DATA = {
   sites: [
     /* SCOTLAND & NEWCASTLE */
     { code:"M1", name:"Edinburgh · Nicholson St", cluster:"scotland_newcastle",
-      food_cost_pct:[25.97,29.54,20.98,24.18,26.12], wage_pct:[21.11,22.48,21.62,20.36,19.95], foodvar_pct:[4.9,3.9,2.5,3.4,-0.6],
-      del_rag:["red","red","green","green","amber"], compliance_pct:null, star:4.93,
+      food_cost_pct:[18.33,25.97,25.97,29.54,20.98,24.18,26.12], wage_pct:[19.15,21.26,21.11,22.48,21.62,20.36,19.95], foodvar_pct:[null,null,4.9,3.9,2.5,3.4,-0.6],
+      del_rag:[null,null,"red","red","green","green","amber"], compliance_pct:null, star:4.93,
       hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Holes above raw-meat prep", hyg_owner:"Chin Wa Cheung", fq_dev:"Kimchi taste 4/5", fq_owner:"Chin Wa Cheung",
       boh_issue:"Food cost up to 22.08% (stock ordered ahead of payday; was 29.5% wk before). Food variance +4.9%. Fridge compressor fault. Deliveroo missing items RED.",
       boh_solution:"Michael approved new fridge. Combine Edinburgh JFC orders. Tighten Deliveroo packing.", boh_owner:"Site GM + Michael" },
 
     { code:"M3", name:"Fountainbridge · Edinburgh", cluster:"scotland_newcastle",
-      food_cost_pct:[20.22,20.70,23.15,23.86,22.13], wage_pct:[21.49,20.64,20.10,21.43,21.10], foodvar_pct:[-4.6,3.5,2.3,1.9,0.5],
-      del_rag:["amber","red","amber","green","green"], compliance_pct:null, star:4.50,
+      food_cost_pct:[26.19,20.22,20.22,20.70,23.15,23.86,22.13], wage_pct:[23,21.44,21.49,20.64,20.10,21.43,21.10], foodvar_pct:[null,null,-4.6,3.5,2.3,1.9,0.5],
+      del_rag:[null,null,"amber","red","amber","green","green"], compliance_pct:null, star:4.50,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Food cost spiked to 27.8% (duplicate JFC soy-sauce order; surplus to transfer to M8). Highest in group, over the 25% target.",
       boh_solution:"DEC Matt RCA; Benny arranging surplus transfer to M8; reset food budget.", boh_owner:"Matt Polak + Ka Ho" },
 
     { code:"M6", name:"Bath Street · Glasgow", cluster:"scotland_newcastle",
-      food_cost_pct:[25.28,17.15,29.34,18.25,24.09], wage_pct:[21.95,20.08,21.82,21.24,23.14], foodvar_pct:[-1.0,4.7,4.7,-4.8,4.0],
-      del_rag:["green","green","green","red","green"], compliance_pct:null, star:4.86,
+      food_cost_pct:[22.95,25.28,25.28,17.15,29.34,18.25,24.09], wage_pct:[23.99,23.41,21.95,20.08,21.82,21.24,23.14], foodvar_pct:[null,null,-1.0,4.7,4.7,-4.8,4.0],
+      del_rag:[null,null,"green","green","green","red","green"], compliance_pct:null, star:4.86,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Volatile food cost (17–29% across 5 weeks; 29.3% spike on 19 May). Separate Glasgow venue from M8 Renfield.",
       boh_solution:"Investigate the food-cost swings; tighten ordering.", boh_owner:"DEC Matt + Ka Ho" },
 
     { code:"M7", name:"St James Quarter (SJQ)", cluster:"scotland_newcastle",
-      food_cost_pct:[26.33,23.26,22.80,23.37,21.88], wage_pct:[20.76,20.66,21.15,20.47,21.02], foodvar_pct:[-4.6,3.5,2.0,1.8,3.2],
-      del_rag:["amber",null,null,null,null], compliance_pct:null, star:4.88,
+      food_cost_pct:[24.26,26.33,26.33,23.26,22.80,23.37,21.88], wage_pct:[22.23,21.75,20.76,20.66,21.15,20.47,21.02], foodvar_pct:[null,null,-4.6,3.5,2.0,1.8,3.2],
+      del_rag:[null,null,"amber",null,null,null,null], compliance_pct:null, star:4.88,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"RAW-OVER-RTE cross-contamination", hyg_owner:"Pui Shan Ho", fq_dev:"None", fq_owner:"-",
       boh_issue:"Strong sales. Ongoing JFC misroute — stock for SJQ sent elsewhere. Food budget set too high. Deliveroo not reported at BOH (N/A every week).",
       boh_solution:"Ross to chase JFC. Review food budget down. Start reporting Deliveroo.", boh_owner:"Ross Ward + Ka Ho" },
 
     { code:"M8", name:"Renfield Street, Glasgow", cluster:"scotland_newcastle",
-      food_cost_pct:[27.5,22.31,23.98,18.51,26.64], wage_pct:[23.12,21.97,24.65,21.86,22.52], foodvar_pct:[4.4,3.4,3.1,3.3,3.0],
-      del_rag:["amber","green","red","amber","red"], compliance_pct:null, star:4.69,
+      food_cost_pct:[25.71,27.5,27.5,22.31,23.98,18.51,26.64], wage_pct:[24.44,23.26,23.12,21.97,24.65,21.86,22.52], foodvar_pct:[null,null,4.4,3.4,3.1,3.3,3.0],
+      del_rag:[null,null,"amber","green","red","amber","red"], compliance_pct:null, star:4.69,
       hygiene_pct:93.9, food_quality_pct:97.8, hyg_dev:"Hygiene 93.9% — lowest in group", hyg_owner:"Site GM", fq_dev:"Plating consistency", fq_owner:"DEC Matt",
       boh_issue:"Food cost 22.3%, variance persistently +3-4%. Cardboard collection missed — AM Ka stepped in. Hygiene 93.9% (lowest in group).",
       boh_solution:"Hygiene action plan + weekly re-check. Tighten Deliveroo packing.", boh_owner:"Ka Ho (AM)" },
 
     { code:"M12", name:"Newcastle · Eldon Sq", cluster:"scotland_newcastle",
-      food_cost_pct:[28.42,24.97,16.03,10.99,17.54], wage_pct:[22.55,25.57,24.61,25.35,23.18], foodvar_pct:[4.4,2.2,4.5,5.0,3.4],
-      del_rag:["red","green","green","green","red"], compliance_pct:null, star:4.80,
+      food_cost_pct:[28.29,28.42,28.42,24.97,16.03,10.99,17.54], wage_pct:[27.11,26.67,22.55,25.57,24.61,25.35,23.18], foodvar_pct:[null,null,4.4,2.2,4.5,5.0,3.4],
+      del_rag:[null,null,"red","green","green","green","red"], compliance_pct:null, star:4.80,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Labour persistently high (22.5–25.6%) — sales below target at min staffing. Food cost jumped to 23.6% (freezer breakdown wasted stock). Dishwasher down.",
       boh_solution:"Freezer + dishwasher reported. Wage/rota review with AM.", boh_owner:"Site GM + Maintenance" },
 
     { code:"M13", name:"Aberdeen", cluster:"scotland_newcastle",
-      food_cost_pct:[25.08,15.59,21.52,22.40,22.40], wage_pct:[22.41,21.48,21.60,21.52,21.83], foodvar_pct:[0.2,4.9,1.8,4.7,4.6],
-      del_rag:["amber","red","red","green","amber"], compliance_pct:null, star:5.00,
+      food_cost_pct:[28.38,25.08,25.08,15.59,21.52,22.40,22.40], wage_pct:[24.07,22.27,22.41,21.48,21.60,21.52,21.83], foodvar_pct:[null,null,0.2,4.9,1.8,4.7,4.6],
+      del_rag:[null,null,"amber","red","red","green","amber"], compliance_pct:null, star:5.00,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wall/ceiling damage REPEAT", hyg_owner:"Elliot Spalding", fq_dev:"1 of 3 whisks OVERDUE", fq_owner:"Elliot Spalding",
       boh_issue:"Worst sales variance in cluster (-7.7K). Food variance frequently high (~4-5%). Ongoing Lynas delivery issue. Deliveroo missing items recurring.",
       boh_solution:"Matt has followed up with Lynas. Tighten Deliveroo packing + stock control.", boh_owner:"Matt Polak" },
 
     { code:"M15", name:"Metrocentre", cluster:"scotland_newcastle",
-      food_cost_pct:[20.83,23.33,21.71,17.37,17.33], wage_pct:[21.96,24.96,21.25,20.88,21.39], foodvar_pct:[-2.4,-2.7,-1.7,-0.7,-3.4],
-      del_rag:["red","green","green","red","green"], compliance_pct:null, star:5.00,
+      food_cost_pct:[25.16,20.83,20.83,23.33,21.71,17.37,17.33], wage_pct:[20.97,21,21.96,24.96,21.25,20.88,21.39], foodvar_pct:[null,null,-2.4,-2.7,-1.7,-0.7,-3.4],
+      del_rag:[null,null,"red","green","green","red","green"], compliance_pct:null, star:5.00,
       hygiene_pct:96, food_quality_pct:97.8, hyg_dev:"Walk-in vegetable fridge broken", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
       boh_issue:"Best cost control in cluster most weeks, but rider wait 15.4% RED on 02 Jun. JFC curry paste frequently missing.",
       boh_solution:"Engineer contacted for fridge. JFC follow-up. Address rider-wait.", boh_owner:"Site GM + Ross" },
 
     /* NORTH ENGLAND & MIDLANDS — M9/M10/M14 filed (food cost only); M11/M16 02-Jun food cost backfilled from Soph KPI (WP col) */
     { code:"M9", name:"Manchester", cluster:"north_midlands",
-      food_cost_pct:[25.88,null,null,20.69,21.01], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,1.0,1.0],
-      del_rag:["amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
+      food_cost_pct:[22.85,25.88,25.88,null,null,20.69,21.01], wage_pct:[18.93,20.02,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,1.0,1.0],
+      del_rag:[null,null,"amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
       hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Insectocutors", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
       boh_issue:"Food cost ~21-24%. Griddle broken for ~1 month + deep fryer failing. England BOH reports food cost only (no labour).",
       boh_solution:"Engineer due within 4 working days. Start reporting labour at BOH.", boh_owner:"Site HC + Maintenance" },
 
     { code:"M10", name:"Leeds", cluster:"north_midlands",
-      food_cost_pct:[29.41,null,null,24.00,20.13], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,-2.9,-0.9],
-      del_rag:["red",null,null,null,"amber"], compliance_pct:null, star:4.88,
+      food_cost_pct:[21.46,29.41,29.41,null,null,24.00,20.13], wage_pct:[21.66,22.4,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,-2.9,-0.9],
+      del_rag:[null,null,"red",null,null,null,"amber"], compliance_pct:null, star:4.88,
       hygiene_pct:95.9, food_quality_pct:100, hyg_dev:"Sushi mgr L2 cert lapsed", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
       boh_issue:"Clean weeks — spending 17-24%, few issues. 3 bad reviews early May (fish freshness); new supervisor checking quality.",
       boh_solution:"Maintain; Artur stock-count audits.", boh_owner:"Site HC" },
 
     { code:"M11", name:"Leicester", cluster:"north_midlands",
-      food_cost_pct:[18.87,null,null,null,null], wage_pct:[null,26.88,null,null,null], foodvar_pct:[null,null,null,null,null],
-      del_rag:["red",null,null,null,null], compliance_pct:null, star:4.00,
+      food_cost_pct:[26.87,21.79,18.87,null,null,null,null], wage_pct:[21.82,22.07,null,26.88,null,null,null], foodvar_pct:[null,null,null,null,null,null,null],
+      del_rag:[null,null,"red",null,null,null,null], compliance_pct:null, star:4.00,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wash basin blocked", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
       boh_issue:"Did NOT file 02 Jun — food cost for that week backfilled from Soph KPI (WP col): 23.46%. May reports mostly narrative ('in red', 'needs improvement'); only 26 May had numbers (labour 26.88%; food cost 38.65% — conflicts with tracker ~16%, HELD). Soph KPI w/c 01 Jun: 18.87% food cost / 22.07% wage. Deliveroo never reported.",
       boh_solution:"Chase HC to file numeric weekly KPI; adopt Soph KPI as the food-cost basis.", boh_owner:"Inka Cheung + Site GM" },
 
     { code:"M14", name:"Meadowhall · Sheffield", cluster:"north_midlands",
-      food_cost_pct:[21.49,35.00,24.00,18.40,21.21], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,1.4,3.0],
-      del_rag:["green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
+      food_cost_pct:[28.01,21.49,21.49,35.00,24.00,18.40,21.21], wage_pct:[21.36,19.26,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,1.4,3.0],
+      del_rag:[null,null,"green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
       hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"Kimchi taste 4/5", fq_owner:"DEC",
       boh_issue:"Food cost spiked to 35% on 26 May (a ~£7k-low sales weekend inflated the ratio, not overspend). ★3.25 lowest in group; missing-items recurring. Ruiqi leaving 20 Jun.",
       boh_solution:"Watch cost ratio on quiet weeks; cover handover; fix Deliveroo accuracy.", boh_owner:"Site HC + Inka Cheung" },
 
     { code:"M16", name:"Nottingham", cluster:"north_midlands",
-      food_cost_pct:[21.49,null,null,null,null], wage_pct:[null,22.94,null,null,22.65], foodvar_pct:[null,null,null,null,null],
-      del_rag:["red",null,null,null,null], compliance_pct:null, star:3.50,
+      food_cost_pct:[28.01,21.49,21.49,null,null,null,null], wage_pct:[22.9,22.28,null,22.94,null,null,22.65], foodvar_pct:[null,null,null,null,null,null,null],
+      del_rag:[null,null,"red",null,null,null,null], compliance_pct:null, star:3.50,
       hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Did NOT file 02 Jun — food cost for that week backfilled from Soph KPI (WP col): 21.04%. May labour ~22.6-22.9%. 26 May food cost 35.42% — conflicts with tracker ~20%, HELD. Soph KPI w/c 01 Jun: 21.49% food cost / 22.28% wage. 'KPI vs actual' food-cost discrepancy under investigation.",
       boh_solution:"Chase HC to file; adopt Soph KPI as the food-cost basis.", boh_owner:"Inka Cheung + Site GM" },
 
     /* SOUTH ENGLAND — no South BOH meeting since 26 May; M17/M18 not filed 02 Jun */
     { code:"M17", name:"Lakeside", cluster:"south",
-      food_cost_pct:[23.47,null,null,null,null], wage_pct:[null,24.37,null,null,null], foodvar_pct:[null,null,null,null,null],
-      del_rag:["amber",null,null,null,null], compliance_pct:null, star:3.80,
+      food_cost_pct:[25.75,23.47,23.47,null,null,null,null], wage_pct:[21.92,21.65,null,24.37,null,null,null], foodvar_pct:[null,null,null,null,null,null,null],
+      del_rag:[null,null,"amber",null,null,null,null], compliance_pct:null, star:3.80,
       hygiene_pct:null, food_quality_pct:97.8, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"No South BOH meeting after 26 May — 02 Jun week food cost backfilled from Soph KPI (WP col): 16.05%. Labour 'around 24-27%'; 26 May BOH food cost 35.99% HELD (conflicts with tracker). Soph KPI w/c 01 Jun: 23.47% food cost / 21.65% wage. ★3.60 (2nd-lowest, 11 May).",
       boh_solution:"Stand up a South BOH weekly; reconcile food-cost basis; AM intervention.", boh_owner:"Lincoln / Ziang" },
 
     { code:"M18", name:"Soho", cluster:"south",
-      food_cost_pct:[23.41,null,null,null,null], wage_pct:[null,41.27,28.00,32.00,35.00], foodvar_pct:[null,null,null,null,null],
-      del_rag:["red",null,null,null,null], compliance_pct:null, star:4.50,
+      food_cost_pct:[24.69,23.41,23.41,null,null,null,null], wage_pct:[25.2,28.1,null,41.27,28.00,32.00,35.00], foodvar_pct:[null,null,null,null,null,null,null],
+      del_rag:[null,null,"red",null,null,null,null], compliance_pct:null, star:4.50,
       hygiene_pct:null, food_quality_pct:93.5, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"2 deviations — 2nd-lowest", fq_owner:"DEC Jack",
       boh_issue:"02 Jun week food cost backfilled from Soph KPI (WP col): 26.65% — over the 25% target. Labour persistently very high (28-41%; 26 May 41.27% inflated by Shoreditch staff clocking in). Soph KPI w/c 01 Jun: 23.41% food cost / wage 28.10%. No South BOH after 26 May.",
       boh_solution:"Stand up a South BOH weekly; fix Shoreditch clock-in contamination; reconcile food cost.", boh_owner:"Lincoln (Ziang Lin)" },
 
     { code:"MN", name:"Maki Nori · London", cluster:"south",
-      food_cost_pct:[null,null,null,null,null], wage_pct:[null,null,null,null,null], foodvar_pct:[null,null,null,null,null],
-      del_rag:[null,null,null,null,null], compliance_pct:null, star:null,
+      food_cost_pct:[null,null,null,null,null,null,null], wage_pct:[null,null,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,null,null],
+      del_rag:[null,null,null,null,null,null,null], compliance_pct:null, star:null,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Not on any EC feed (no Food Cost Tracker, no Deliveroo perf, no BOH meeting, not on Soph KPI sheet). Wage 24.9% in May (MA only).",
       boh_solution:"Add Maki Nori to the Food Cost Tracker, Deliveroo perf sheet, Soph KPI sheet and a BOH meeting.", boh_owner:"HEC Sophie + Jack Zhang" }
   ],
 
   data_caveats: [
-    "5-week history on the BOH KPI meeting cadence: index 0..4 = 02 Jun, 26 May, 19 May, 12 May, 05 May 2026 meetings. Use the Week selector to scrub.",
+    "7-week history: index 0..1 = w/c 08 Jun & w/c 01 Jun — food cost + wage from the Soph KPI weekly sheet (food variance & Deliveroo ops not yet filed for these weeks). index 2..6 = the BOH KPI meetings w/c 25 May, 18 May, 11 May, 04 May, 27 Apr. Use the Week selector to scrub.",
     "Scotland & Newcastle (8 sites): full per-week labour, food cost, food variance for all 5 weeks. Delivery RAG derived best-effort from each meeting's green-light notes (operational, ★ excluded).",
     "England M9/M10/M14: food cost only (no labour ever reported at England BOH); food variance present 05/12 May; food cost tails off 19/26 May. M14's 35% on 26 May was a low-sales weekend inflating the ratio, not overspend.",
     "South+Midlands (M11/M16/M17/M18): BOH minutes were narrative-only except 26 May, whose food cost (33-39%) conflicts with the tracker — HELD from the BOH RAG. All four sites' 02-Jun food cost is now backfilled from the Soph KPI WP column: M11 23.46%, M16 21.04%, M17 16.05%, M18 26.65%.",    "Food variance RAG uses the ECO2 ±5% tolerance: <3% green, 3-5% amber, >5% red.",
-    "★ ratings and the 02-Jun-week Deliveroo ops RAG (del_rag index 0) are from the Deliveroo RAG workbook, w/c 25 May tab (the 01 Jun tab exists but is unpopulated). ★ remains EXCLUDED from the composite RAG.",
+    "★ ratings and the 02-Jun-week Deliveroo ops RAG (del_rag index 2) are from the Deliveroo RAG workbook, w/c 25 May tab (the 01 Jun tab exists but is unpopulated). ★ remains EXCLUDED from the composite RAG.",
     "Compliance (Mapal %) not wired — scored as no-data and skipped from the composite.",
     "Sales-vs-Budget tile is a single newest week (w/c 01 Jun) from the Soph KPI sheet; it includes Ikigai 2 (not yet in the BOH RAG) and excludes Maki Nori (not on that sheet)."
   ],
@@ -887,9 +901,11 @@ async function loadSheetData(){
 }
 // ---- /LIVE SHEET WIRING ----
 
-let STATE = { weekIdx: 0, cluster: "all", leagueView: "all", ragFilter: "all", budgetIdx: null, budgetCluster: "all", budgetWeek: null, budgetDayTouched: false };
+let STATE = { weekIdx: null, cluster: "all", leagueView: "all", ragFilter: "all", budgetIdx: null, budgetCluster: "all", budgetWeek: null, budgetDayTouched: false };
+// weekIdx null = use the newest week that actually has BOH data (so the heat-map opens populated, not on the empty current week). User selection overrides.
+function effWeekIdx(){ const m=DATA.meta; if(STATE.weekIdx!=null) return STATE.weekIdx; return (m.default_week_idx!=null?m.default_week_idx:0); }
 
-function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.food_cost_critical_pct) return "red"; if(v>=m.food_cost_warn_pct) return "amber"; return "green"; }
+function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>m.food_cost_critical_pct) return "red"; if(v>m.food_cost_warn_pct) return "amber"; return "green"; }
 function ragWage(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.wage_revenue_critical_pct) return "red"; if(v>=m.wage_revenue_warn_pct) return "amber"; return "green"; }
 function ragFoodVar(v){ if(v==null) return "grey"; const a=Math.abs(v); const m=DATA.meta; if(a>=m.foodvar_critical_pct) return "red"; if(a>=m.foodvar_warn_pct) return "amber"; return "green"; }
 function ragCompliance(v){ if(v==null) return "grey"; if(v<95) return "red"; if(v<98) return "amber"; return "green"; }
@@ -925,23 +941,59 @@ function esc(t){ return (t==null?"":String(t)).replace(/&/g,"&amp;").replace(/</
 function starHTML(v){ if(v==null) return "<span style='color:var(--maki-muted)'>—</span>"; const r=ragStar(v); const c={green:'var(--rag-green)',amber:'var(--rag-amber)',red:'var(--rag-red)'}[r]; return `<span style="color:${c};font-weight:600">${v.toFixed(2)}★</span>`; }
 function weeksBetween(fromISO){ const from=new Date(fromISO+"T00:00:00"); const now=new Date(); return Math.max(0, Math.floor((now-from)/(7*24*60*60*1000))); }
 
+// ---- WEEK AXIS: always Monday→Sunday, current week auto-derived from today ----
+function weekMonISO(dateISO){ const x=new Date(dateISO+"T12:00:00"); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x.toISOString().slice(0,10); }
+function addDaysISO(iso,n){ const x=new Date(iso+"T12:00:00"); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
+function wkLabelMon(mon){ return "w/c "+new Date(mon+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
+function mapalForWeek(mon, code){ const m=(DATA.mapal||{})[mon]; if(!m) return null; return (m[code]==null?null:m[code]); }
+function ragMapal(v){ if(v==null) return "grey"; return v<99 ? "red" : "green"; }
+function ensureWeekAxis(){
+  const m=DATA.meta; const bmap=m.boh_week_mon||{}; const mapal=DATA.mapal||{};
+  const todayMon=weekMonISO(new Date().toISOString().slice(0,10));
+  const keys=Object.keys(bmap).concat(Object.keys(mapal).filter(k=>/^\d{4}-\d\d-\d\d$/.test(k)));
+  const earliest=m.week_earliest_mon || (keys.length?keys.slice().sort()[0]:addDaysISO(todayMon,-49));
+  const axis=[]; let mon=todayMon, guard=0;
+  while(mon>=earliest && guard<60){
+    axis.push({ mon, sun:addDaysISO(mon,6), boh:(bmap[mon]!=null?bmap[mon]:null), mapal:(mapal[mon]?mon:null), current:(mon===todayMon) });
+    mon=addDaysISO(mon,-7); guard++;
+  }
+  m.week_axis=axis; m.today_mon=todayMon; m.newest_boh=axis.find(a=>a.boh!=null)||null;
+  const di=axis.findIndex(a=>a.boh!=null); m.default_week_idx = di>=0?di:0;
+  return axis;
+}
+function curAx(){ const ax=DATA.meta.week_axis; if(!ax||!ax.length) return null; return ax[effWeekIdx()]||ax[0]; }
+function curBohIdx(){ const a=curAx(); return (a&&a.boh!=null)?a.boh:-1; }
+
 function renderStaleBanner(){
-  const el = document.getElementById("staleBanner"); if(!el || !DATA.meta.data_as_at) return;
-  const wk = weeksBetween(DATA.meta.data_as_at);
-  const nf = DATA.meta.not_filed || [];
+  const el = document.getElementById("staleBanner"); if(!el) return;
+  const ax = curAx(); const nb = DATA.meta.newest_boh;
   el.style.display = "";
-  el.innerHTML = `<strong>BOH RAG latest = ${esc(DATA.meta.boh_meeting)} meeting (w/e ~01 Jun)${wk>=2?` · ~${wk} wks old`:""}.</strong> ${nf.length} of ${DATA.sites.length} sites did not file that week (${nf.join(", ")}) — M11/M16 food cost backfilled from Soph KPI. The <strong>Weekly tab → Sales-vs-Budget (w/c 01 Jun)</strong> now carries a cleaner, fuller read for all 16 sites. <strong>Action:</strong> stand up a South BOH weekly + chase M11/M16; adopt the Soph KPI sheet as the single weekly food-cost source (R18).`;
+  if(ax && ax.boh==null){
+    const nbLbl = nb?wkLabelMon(nb.mon):"—"; const nbIdx = nb?DATA.meta.week_axis.indexOf(nb):0;
+    const mapalNote = ax.mapal?` Mapal compliance <strong>is</strong> filed for this week — see the Weekly tab.`:"";
+    el.className = "note"; // amber, not red — this is expected lag, not a failure
+    el.innerHTML = `<strong>${wkLabelMon(ax.mon)}${ax.current?" (current week)":""} — BOH site RAG not filed yet.</strong> The BOH KPI meeting runs on a Tuesday in arrears, so site food-cost/wage RAG lands ~1–3 weeks behind the live week. Newest filed BOH week is <strong>${nbLbl}</strong> — choose it in the Week selector (top-right) for the full site heat-map.${mapalNote} <strong>Action:</strong> stand up a South BOH weekly and hold the Tuesday cadence so the heat-map stays current.`;
+  } else if(ax && (DATA.meta.soph_weeks||[]).indexOf(ax.mon)>=0){
+    el.className = "note";
+    el.innerHTML = `<strong>Viewing ${wkLabelMon(ax.mon)} — food cost &amp; wage from the Soph KPI weekly sheet.</strong> Food variance and Deliveroo ops RAG are not filed for this week yet (the BOH KPI meeting runs on a Tuesday in arrears). Mapal compliance for this week is on the Weekly tab. <strong>Action:</strong> hold the BOH cadence so variance &amp; delivery RAG land for the recent weeks too.`;
+  } else {
+    const nf = DATA.meta.not_filed || [];
+    el.className = "note red";
+    el.innerHTML = `<strong>Viewing ${ax?wkLabelMon(ax.mon):""} — a historic BOH week.</strong> ${nf.length} of ${DATA.sites.length} sites did not file the 25 May week (${nf.join(", ")}) — M11/M16 food cost backfilled from Soph KPI. <strong>Action:</strong> adopt the Soph KPI sheet as the single weekly food-cost source (R18).`;
+  }
 }
 
 function renderDaily(){
+  ensureWeekAxis();
   const sites = filteredSites();
-  const i = STATE.weekIdx;
+  const ax = curAx();
+  const i = curBohIdx();
   renderStaleBanner();
-  document.getElementById("heatTitle").textContent = `Site heat-map · ${DATA.meta.weeks[i]}`;
+  document.getElementById("heatTitle").textContent = `Site heat-map · ${ax?wkLabelMon(ax.mon):""}${ax&&ax.boh==null?" · awaiting BOH":""}`;
 
   const counts = {red:0, amber:0, green:0, grey:0};
   sites.forEach(s => { counts[siteRag(s,i)]++; });
-  document.getElementById("heroTitle").textContent = `${sites.length} sites · ${DATA.meta.weeks[i]}${i===0?" (latest)":""}`;
+  document.getElementById("heroTitle").textContent = `${sites.length} sites · ${ax?wkLabelMon(ax.mon):""}${ax&&ax.current?" (current)":""}${ax&&ax.boh==null?" · awaiting BOH":""}`;
   const heroStats = [
     { l:"Sites", n: sites.length, cls:"" },
     { l:"Red", n: counts.red, cls:"red" },
@@ -961,7 +1013,7 @@ function renderDaily(){
   const kpis = [
     { label:"Wage : Revenue (avg)", value: wageAvg==null?"—":wageAvg.toFixed(1)+"%", sub:`Target ≤${DATA.meta.wage_revenue_target_pct}% · sites reporting wage`, trend:"", rag: ragWage(wageAvg) },
     { label:"Food cost · sites on target", value: budgetPct==null?"—":budgetPct+"%", sub:`${onTarget}/${fcCurrent.length} reporting ≤${DATA.meta.food_cost_target_pct}%`, trend:"", rag: budgetPct>=80?"green":budgetPct>=60?"amber":"red" },
-    { label:"Sites reporting this week", value: `${reporting}/${sites.length}`, sub:DATA.meta.weeks[i], trend:"", rag: reporting>=sites.length-2?"green":reporting>=sites.length-5?"amber":"red" }
+    { label:"Sites reporting this week", value: `${reporting}/${sites.length}`, sub:(ax?wkLabelMon(ax.mon):""), trend:"", rag: reporting>=sites.length-2?"green":reporting>=sites.length-5?"amber":"red" }
   ];
   document.getElementById("dailyKpis").innerHTML = kpis.map(k => `<div class="kpi-card ${k.rag}"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-sub">${k.sub}</div><div class="kpi-trend">${k.trend}</div></div>`).join("");
 
@@ -980,7 +1032,7 @@ function renderDaily(){
       const dLabel = {green:"Green",amber:"Amber",red:"Red",grey:"—"}[dRag];
       const fv = s.foodvar_pct[i];
       const detailBits = [];
-      if(siteRag(s,i)==="grey") detailBits.push(`<div class="lbl">Filing</div><span style="color:var(--rag-red);font-weight:600">No data for ${esc(DATA.meta.weeks[i])}</span>`);
+      if(siteRag(s,i)==="grey") detailBits.push(`<div class="lbl">Filing</div><span style="color:var(--rag-red);font-weight:600">No BOH data for ${esc(ax?wkLabelMon(ax.mon):"")}</span>`);
       if(s.boh_issue && s.boh_issue!=="-") detailBits.push(`<div class="lbl">BOH issue (latest)</div>${esc(s.boh_issue)}`);
       if(s.boh_owner && s.boh_owner!=="-") detailBits.push(`<div class="lbl">Owner</div>${esc(s.boh_owner)}`);
       return `
@@ -1024,8 +1076,10 @@ function renderDaily(){
 }
 
 function renderWeekly(){
+  ensureWeekAxis();
   const sites = filteredSites();
-  const i = STATE.weekIdx;
+  const ax = curAx();
+  const i = curBohIdx();
   const rows = sites.map(s => {
     const fc=s.food_cost_pct[i], fcP=s.food_cost_pct[i+1];
     const overall = siteRag(s, i);
@@ -1040,7 +1094,7 @@ function renderWeekly(){
         <td class="num">${fv==null?"—":(fv>0?"+":"")+fv.toFixed(1)+"%"}</td>
         <td>${dRag==="grey"?'<span class="rag rag-grey">—</span>':`<span class="rag rag-${dRag}">${dRag.toUpperCase()}</span>`}</td>
         <td class="num">${starHTML(s.star)}</td>
-        <td><span class="rag rag-grey" title="Mapal feed pending">pending</span></td>
+        <td>${(()=>{ const mp = ax&&ax.mapal?mapalForWeek(ax.mapal,s.code):null; if(mp==null) return '<span class="rag rag-grey" title="Mapal per-site compliance not filed for this week">—</span>'; const r=ragMapal(mp); return `<span class="rag rag-${r}" title="Mapal task-completion compliance · red-light below 99%">${mp}%</span>`; })()}</td>
         <td><span class="rag rag-${overall}">${overall==="grey"?"NOT FILED":overall.toUpperCase()}</span></td>
       </tr>`;
   }).join("");
@@ -1275,7 +1329,8 @@ function renderMonthly(){
 }
 
 function renderLeague(){
-  const i = STATE.weekIdx;
+  ensureWeekAxis();
+  const i = curBohIdx();
   const scored = DATA.sites.map(s => ({ s, score: compositeScore(s, i), prevScore: compositeScore(s, i+1) }));
   const ranked = scored.filter(x => x.score != null).sort((a,b) => b.score - a.score);
   const awaiting = scored.filter(x => x.score == null);
@@ -1560,16 +1615,57 @@ function renderBudget(){
       wkDelEl.innerHTML = `<span style="color:var(--maki-muted)">no prior-week data to compare</span>`;
     }
   }
+  renderMissedFilings(d, dates);
   renderBudgetStatusAndOverview(d, dates, view, sunISO, date);
   renderClosedWeeks(d, dates);
   renderDailySpend();
+}
+function renderMissedFilings(d, dates){
+  const el=document.getElementById("budgetMissed"); if(!el) return;
+  if(!d || !d.ledger || !dates || !dates.length){ el.innerHTML=""; return; }
+  const latest = dates[dates.length-1];
+  const roster = (d.sites||[]).map(s=>s.code);
+  if(!roster.length){ el.innerHTML=""; return; }
+  // first day each site ever filed — so we don't count pre-onboarding days as misses
+  const firstFiled={};
+  roster.forEach(code=>{ for(const dt of dates){ const v=(d.ledger[dt]||{})[code]; if(v!=null && isFinite(v)){ firstFiled[code]=dt; break; } } });
+  const missCount={};
+  roster.forEach(code=>{ const start=firstFiled[code]||dates[0]; missCount[code]=dates.filter(dt=>dt>=start && ((d.ledger[dt]||{})[code]==null)).length; });
+  const missedLatest = roster.filter(code=>((d.ledger[latest]||{})[code]==null));
+  const dLabel = new Date(latest+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  if(!missedLatest.length){
+    el.innerHTML = `<div class="note" style="background:#E9F8EF;border:1px solid #B7E4C7;color:#0E5A30;padding:10px 14px;border-radius:var(--radius);font-size:12.5px">&#10003; <strong>All ${roster.length} sites filed</strong> the daily input for ${dLabel}.</div>`;
+    return;
+  }
+  missedLatest.sort((a,b)=>(missCount[b]||0)-(missCount[a]||0));
+  const chips = missedLatest.map(code=>{
+    const n=missCount[code]||0;
+    const sev = n>=3?"var(--rag-red)":n>=1?"var(--rag-amber)":"var(--maki-muted)";
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--maki-line);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--maki-ink)">${code}<span style="background:${sev};color:#fff;border-radius:999px;padding:1px 7px;font-size:10.5px;font-variant-numeric:tabular-nums">missed ${n}&times;</span></span>`;
+  }).join(" ");
+  el.innerHTML = `<div class="note red" style="padding:12px 14px;border-radius:var(--radius)">
+    <div style="font-weight:700;font-size:13px;margin-bottom:7px">&#9888; ${missedLatest.length} site${missedLatest.length>1?"s":""} missed the ${dLabel} daily input</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px">${chips}</div>
+    <div style="margin-top:7px;font-size:11px;opacity:.85">Tally = total missed daily reports per site since it started filing. Chase the chefs above; red badge = 3+ misses.</div>
+  </div>`;
 }
 function budgetEffCluster(){ return (STATE.budgetCluster && STATE.budgetCluster!=="all") ? STATE.budgetCluster : STATE.cluster; }
 function initBudgetClusterPills(){ document.querySelectorAll("#budgetClusterPills .pill").forEach(p => { p.addEventListener("click", () => { document.querySelectorAll("#budgetClusterPills .pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); STATE.budgetCluster=p.dataset.cluster; renderBudget(); }); }); }
 function initBudgetSlider(){ const el=document.getElementById("budgetSlider"); if(el) el.addEventListener("input", e => { STATE.budgetIdx=parseInt(e.target.value,10); STATE.budgetDayTouched=true; renderBudget(); }); }
 function initBudgetWeekSelect(){ const el=document.getElementById("budgetWeekSelect"); if(el) el.addEventListener("change", e => { STATE.budgetWeek=e.target.value; STATE.budgetIdx=null; STATE.budgetDayTouched=false; renderBudget(); }); }
 
-function initWeekPicker(){ const sel=document.getElementById("weekPicker"); sel.innerHTML = DATA.meta.weeks.map((w,i) => `<option value="${i}">${w}${i===0?" (latest)":""}</option>`).join(""); sel.value=STATE.weekIdx; sel.addEventListener("change", e => { STATE.weekIdx=parseInt(e.target.value,10); renderAll(); }); }
+function initWeekPicker(){
+  const sel=document.getElementById("weekPicker"); if(!sel) return;
+  ensureWeekAxis();
+  const axis=DATA.meta.week_axis||[];
+  sel.innerHTML = axis.map((a,idx)=>{
+    const tag = a.boh!=null ? " · BOH filed" : (a.current ? " · current (BOH pending)" : (a.mapal ? " · compliance only (BOH pending)" : " · BOH pending"));
+    return `<option value="${idx}">${wkLabelMon(a.mon)}${tag}</option>`;
+  }).join("");
+  if(STATE.weekIdx!=null && STATE.weekIdx>=axis.length) STATE.weekIdx=null;
+  sel.value=effWeekIdx();
+  sel.addEventListener("change", e => { STATE.weekIdx=parseInt(e.target.value,10); renderAll(); });
+}
 function initClusterFilter(){ document.getElementById("clusterFilter").addEventListener("change", e => { STATE.cluster=e.target.value; renderAll(); }); }
 function initTabs(){ document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setActive(t.dataset.tab))); }
 function initChips(){ document.querySelectorAll("#ragChips .chip").forEach(c => { c.addEventListener("click", () => { document.querySelectorAll("#ragChips .chip").forEach(x=>x.classList.remove("active")); c.classList.add("active"); STATE.ragFilter=c.dataset.filter; renderDaily(); }); }); }
