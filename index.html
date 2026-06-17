@@ -1135,11 +1135,11 @@
   <div class="tabpanel" id="tab-redlight">
     <div class="mini-hero">
       <h2>Red Light System</h2>
-      <p>48-hour protocol · live red &amp; amber sites · closure log. Source of truth = Cheska's weekly pull (AM Manual §6).</p>
+      <p>48-hour protocol · live red &amp; amber sites · closure log. Source of truth = the dashboard's own site KPIs (AM Manual §6).</p>
     </div>
-    <div class="section-head"><h2>Deliveroo RAG — w/c 08/06 (PROVISIONAL)</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report; no official Cheska compile this week</div></div>
+    <div class="section-head"><h2>Deliveroo RAG — w/c 08/06 (PROVISIONAL)</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report</div></div>
     <div id="rl-deliveroo"></div>
-    <div class="section-head"><h2>Currently flagged — official pull w/c 25/05 (prior week)</h2><div class="hint">Last official Cheska pull — click a site for detail</div></div>
+    <div class="section-head"><h2>Currently flagged — w/c 25/05 (prior week)</h2><div class="hint">Computed from site KPIs — click a site for detail</div></div>
     <div class="heatmap" id="rl-sites"></div>
     <div class="section-head"><h2>The 48-hour protocol</h2><div class="hint">Every red site walks these seven stages</div></div>
     <div class="stepper" id="rl-stepper"></div>
@@ -1576,7 +1576,7 @@
     </p>
     <div class="raci-wrap"><table class="raci" id="raci-table"></table></div>
     <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">
-      Authority limits: AM signs rota / FOH / AGM hiring · Operations Director (Lincoln) signs GM hiring, Red Light recovery, GM disciplinary, Hajime kick-off · COO signs capex, franchise, new-site openings. Cheska owns the weekly Red Light data pull.
+      Authority limits: AM signs rota / FOH / AGM hiring · Operations Director (Lincoln) signs GM hiring, Red Light recovery, GM disciplinary, Hajime kick-off · COO signs capex, franchise, new-site openings. Red Light status is computed from the dashboard's own site KPIs.
     </p>
   </div>
 
@@ -1589,14 +1589,14 @@
     <div class="risk-controls" id="risk-stats"></div>
     <div class="risk-controls" id="risk-filters"></div>
     <table class="risk-table" id="risk-table"></table>
-    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Click a column header to sort. Canonical file: AM_Risk_Register_v1.xlsx. Red-site rows refresh from Cheska's weekly pull.</p>
+    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Click a column header to sort. Canonical file: AM_Risk_Register_v1.xlsx. Red-site rows refresh from the dashboard's site KPIs.</p>
   </div>
 
   <!-- ============ TAB: ROADMAP ============ -->
   <div class="tabpanel" id="tab-roadmap">
     <div class="mini-hero">
       <h2>AM Operating-System Roadmap</h2>
-      <p>Phase 1–5 · v2.0 status pass (1 Jun 2026). Manual finalised, Control Centre live, Cheska's pull live.</p>
+      <p>Phase 1–5 · v2.0 status pass (1 Jun 2026). Manual finalised, Control Centre live, Red Light computed from site KPIs.</p>
     </div>
     <div id="rm-list"></div>
     <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Memory-based status pass — items tagged "verify" not yet re-checked in Asana / Drive.</p>
@@ -1723,7 +1723,7 @@ const SITES = [
       "Lynas delivery accuracy/missed items; review volume low."
     ],
     "carryover": [
-      "Confirm: M6 food variance discrepancy — central sheet vs GM email (drinks matched), Cheska reconciling — resolved?",
+      "Confirm: M6 food variance discrepancy — central sheet vs GM email (drinks matched) — resolved?",
       "Confirm: Wage 21.95% — above 21% target — still live?",
       "Confirm: GM focus — lift review volume (very low here); upsell at every opportunity — actioned?"
     ],
@@ -2187,7 +2187,7 @@ const THEMES = [
     "severity": "warn",
     "icon": "ℹ",
     "title": "Input gaps this week — read sales with care",
-    "body": "w/e 14 Jun: Covers/SPH WoW now sourced from this week's site KPI reports (some sites n/a). Food variance unavailable for all sites (2026 stocktake sheet not updated). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept. Deliveroo RAG w/c 08/06 provisional — no official Cheska compile.",
+    "body": "w/e 14 Jun: Covers/SPH WoW now sourced from this week's site KPI reports (some sites n/a). Food variance unavailable for all sites (2026 stocktake sheet not updated). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept. Deliveroo RAG w/c 08/06 provisional.",
     "sites": [
       "M1/2",
       "M6",
@@ -2214,7 +2214,7 @@ const THEMES = [
     "severity": "critical",
     "icon": "⌖",
     "title": "M18 Soho on Red Light — sales fell back hard",
-    "body": "Sales -58.4% vs target (-£43,814.85) w/e 14 Jun, a sharp reversal from last week's +16.9%; wage 31.9%. Red Light status retained (Lincoln override — rag unchanged) until the weekly red-light pull (Cheska) confirms. Hold the recovery plan; confirm the -58% is real and not a target-sheet artefact.",
+    "body": "Sales -58.4% vs target (-£43,814.85) w/e 14 Jun, a sharp reversal from last week's +16.9%; wage 31.9%. Red Light status retained (Lincoln override — rag unchanged). Hold the recovery plan; confirm the -58% is real and not a target-sheet artefact.",
     "sites": [
       "M18"
     ]
@@ -3620,7 +3620,7 @@ const ROADMAP = [
   ['1','Discovery & Audit','Understand what exists','complete','Complete','File map, gap analysis, KPI list, folder structure, v2 status pass (1 Jun).'],
   ['2','System Design','Lock the operating model','inprogress','In progress','Manual finalised (dependency cleared). RACI + Red Light SOP + Risk Register done. Folders 00–12 pending.'],
   ['3','Tracker Build','Convert design into live trackers','inprogress','In progress','Control Centre delivers dashboard + Red Light layer. GM Scorecard, store-visit log, Asana rebuild pending.'],
-  ['4','Operating Rhythm','Run weekly without being chased','inprogress','In progress','Wed AM call + live Red Light pull (Cheska) running. Agenda/decision-log templates pending.'],
+  ['4','Operating Rhythm','Run weekly without being chased','inprogress','In progress','Wed AM call running; Red Light computed from site KPIs. Agenda/decision-log templates pending.'],
   ['5','Optimisation','Use data to improve, not just measure','pending','Not started','Per-site improvement plans. Begins once Phases 2–4 live.']
 ];
 function renderRoadmap(){
@@ -3636,12 +3636,12 @@ function renderRoadmap(){
 }
 
 // ---------- DELIVEROO RAG — w/c 01/06 (PROVISIONAL) ----------
-/* Derived from the raw Deliveroo ops report using Cheska's thresholds; official compile pending.
+/* Derived from the raw Deliveroo ops report using the agreed RAG thresholds.
    INFORMATIONAL ONLY — does not drive any site's stored rag / deep-red field or the M18 Red Light
-   protocol status. Status decisions stay with Lincoln/Cheska. Weekly refresh: replace this object. */
+   protocol status. Status decisions stay with Lincoln. Weekly refresh: replace this object. */
 const DELIVEROO_RAG = {
   "week": "w/c 08/06",
-  "label": "PROVISIONAL — 5-metric greens roll-up from raw Deliveroo ops report; NO official Cheska compile exists for this week",
+  "label": "PROVISIONAL — 5-metric greens roll-up from raw Deliveroo ops report",
   "red": [
     { "code": "M3",  "name": "Fountain Bridge", "drivers": "red: open" },
     { "code": "M14", "name": "Meadowhall",      "drivers": "red: prep · missing" },
@@ -3664,7 +3664,7 @@ const DELIVEROO_RAG = {
     { "code": "M11", "name": "Leicester",       "drivers": "5-metric greens" }
   ],
   "naNote": "Not on Deliveroo this week: M7 (SJQ), Maki Nori.",
-  "movement": "PROVISIONAL w/c 08/06 — derived from the raw ops report (no official Cheska compile this week). Statuses reflect the 5-metric greens roll-up; treat as indicative only. Franchise (MAF1/MAF3/O2) not included in this AM-only compile."
+  "movement": "PROVISIONAL w/c 08/06 — derived from the raw ops report. Statuses reflect the 5-metric greens roll-up; treat as indicative only. Franchise (MAF1/MAF3/O2) not included in this AM-only compile."
 };
 
 function renderDeliverooRag(){
@@ -3676,7 +3676,7 @@ function renderDeliverooRag(){
     <div><div class="tile-meta">${s.drivers}</div></div></div>`;
   host.innerHTML = `
     <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
-      ⚠ Deliveroo RAG — ${DELIVEROO_RAG.week} (${DELIVEROO_RAG.label}). Informational only — site rag / Red Light status decisions stay with Lincoln/Cheska.
+      ⚠ Deliveroo RAG — ${DELIVEROO_RAG.week} (${DELIVEROO_RAG.label}). Informational only — site rag / Red Light status decisions stay with Lincoln.
     </div>
     <div class="heatmap" style="margin-bottom:12px;">
       ${DELIVEROO_RAG.red.map(s => tile(s,'red','RED')).join('')}
