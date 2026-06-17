@@ -26,7 +26,8 @@
   --maki-red:#E8730C; --maki-red-deep:#B5470B;
   --maki-black:#171717; --maki-ink:#262626; --maki-muted:#6B7280;
   --maki-cream:#FBF7F0; --maki-paper:#FFFFFF; --maki-line:#E7E1D6; --maki-soft:#F5EEE0;
-  --rag-green:#1F8A4C; --rag-amber:#E2A813; --rag-red:#C2410C; --rag-grey:#9CA3AF;
+  --rag-green:#1F8A4C; --rag-amber:#E2A813; --rag-red:#C2410C; --rag-grey:#9CA3AF; --rag-low:#2563EB;
+  --low-bg:#E0ECFF; --low-ink:#1E40AF;
   --green-bg:#E5F4EC; --green-ink:#0E5A30;
   --amber-bg:#FBF1D6; --amber-ink:#7A5A04;
   --red-bg:#FBE4D5;   --red-ink:#9A3412;
@@ -100,9 +101,10 @@ main{padding:18px 22px 80px;max-width:1400px;margin:0 auto}
 .tbl .delta.up{color:var(--rag-red)} .tbl .delta.down{color:var(--rag-green)} .tbl .delta.flat{color:var(--maki-muted)}
 .tbl tr.nodata td{color:var(--maki-muted);background:#FCFBF7}
 .rag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
-.rag-green{background:var(--green-bg);color:var(--green-ink)} .rag-amber{background:var(--amber-bg);color:var(--amber-ink)} .rag-red{background:var(--red-bg);color:var(--red-ink)} .rag-grey{background:var(--grey-bg);color:var(--grey-ink)}
+.rag-green{background:var(--green-bg);color:var(--green-ink)} .rag-amber{background:var(--amber-bg);color:var(--amber-ink)} .rag-red{background:var(--red-bg);color:var(--red-ink)} .rag-grey{background:var(--grey-bg);color:var(--grey-ink)} .rag-low{background:var(--low-bg);color:var(--low-ink)}
 .rag-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.rag-dot.green{background:var(--rag-green)} .rag-dot.amber{background:var(--rag-amber)} .rag-dot.red{background:var(--rag-red)} .rag-dot.grey{background:var(--rag-grey)}
+.rag-dot.green{background:var(--rag-green)} .rag-dot.amber{background:var(--rag-amber)} .rag-dot.red{background:var(--rag-red)} .rag-dot.grey{background:var(--rag-grey)} .rag-dot.low{background:var(--rag-low)}
+.fc-low{display:inline-block;margin-left:5px;padding:0 6px;border-radius:7px;background:var(--low-bg);color:var(--low-ink);font-size:9.5px;font-weight:700;letter-spacing:.04em;vertical-align:middle}
 .cluster-block{background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
 .cluster-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
 .cluster-head h3{margin:0;color:var(--maki-black);text-transform:none;letter-spacing:0;font-size:15px}
@@ -438,15 +440,15 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div>⚠️ 17 Jun: 16 Jun daily spend pull FAILED — data only current to 15 Jun; run the EC daily spend catch-up. · <strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 08 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.10.0 · 17 Jun 2026 · Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green ≤25% (target 23%) · amber 25–27% · red &gt;27%. Mapal compliance live (red-light &lt;99%).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.12.0 · 17 Jun 2026 · Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%).</div>
 </footer>
 
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.11.0",
+    version: "1.12.0",
     generated_at: "2026-06-17T08:40:00Z",
-    food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27,
+    food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27, food_cost_low_pct: 23,
     wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
     foodvar_warn_pct: 3.0, foodvar_critical_pct: 5.0,
     hygiene_target_pct: 98, food_quality_target_pct: 92, star_target: 4.6,
@@ -905,7 +907,9 @@ let STATE = { weekIdx: null, cluster: "all", leagueView: "all", ragFilter: "all"
 // weekIdx null = use the newest week that actually has BOH data (so the heat-map opens populated, not on the empty current week). User selection overrides.
 function effWeekIdx(){ const m=DATA.meta; if(STATE.weekIdx!=null) return STATE.weekIdx; return (m.default_week_idx!=null?m.default_week_idx:0); }
 
-function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>m.food_cost_critical_pct) return "red"; if(v>m.food_cost_warn_pct) return "amber"; return "green"; }
+function ragFoodCost(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>m.food_cost_critical_pct) return "red"; if(v>m.food_cost_warn_pct) return "amber"; if(v<m.food_cost_low_pct) return "low"; return "green"; }
+function fcLow(v){ return v!=null && v < DATA.meta.food_cost_low_pct; }
+function fcLowPill(v){ return fcLow(v) ? '<span class="fc-low" title="Food cost below 23% — verify stock counts, waste recording and portioning. A low ratio can also be a quiet-week sales spike inflating the denominator. Worth a check, not necessarily a problem.">LOW</span>' : ""; }
 function ragWage(v){ if(v==null) return "grey"; const m=DATA.meta; if(v>=m.wage_revenue_critical_pct) return "red"; if(v>=m.wage_revenue_warn_pct) return "amber"; return "green"; }
 function ragFoodVar(v){ if(v==null) return "grey"; const a=Math.abs(v); const m=DATA.meta; if(a>=m.foodvar_critical_pct) return "red"; if(a>=m.foodvar_warn_pct) return "amber"; return "green"; }
 function ragCompliance(v){ if(v==null) return "grey"; if(v<95) return "red"; if(v<98) return "amber"; return "green"; }
@@ -913,7 +917,7 @@ function ragDeliveroo(s,i){ const r = s.del_rag ? s.del_rag[i] : null; return r 
 function ragHygiene(v){ if(v==null) return "grey"; if(v<95) return "red"; if(v<DATA.meta.hygiene_target_pct) return "amber"; return "green"; }
 function ragFoodQuality(v){ if(v==null) return "grey"; if(v<90) return "red"; if(v<DATA.meta.food_quality_target_pct) return "amber"; return "green"; }
 function ragStar(v){ if(v==null) return "grey"; if(v<=4.50) return "red"; if(v<4.70) return "amber"; return "green"; }
-function dimScore(rag){ return {green:100, amber:70, red:30, grey:null}[rag]; }
+function dimScore(rag){ return {green:100, low:100, amber:70, red:30, grey:null}[rag]; }
 
 function compositeScore(s, i){
   const dims = [
@@ -1039,7 +1043,7 @@ function renderDaily(){
         <div class="tile ${rag}" onclick="this.classList.toggle('open')">
           <div class="tile-top"><span class="tile-code">${s.code}</span><span class="tile-badge ${rag}">${rag==="grey"?"NOT FILED":rag.toUpperCase()}</span></div>
           <div class="tile-name">${esc(s.name)}</div>
-          <div class="tile-headline"><span class="big">${fmtPct(fc)}</span><span class="cap">food cost</span>${fc!=null&&fcP!=null?fmtDelta(fc,fcP,"").replace("class='delta","class='d"):""}</div>
+          <div class="tile-headline"><span class="big">${fmtPct(fc)}</span>${fcLowPill(fc)}<span class="cap">food cost</span>${fc!=null&&fcP!=null?fmtDelta(fc,fcP,"").replace("class='delta","class='d"):""}</div>
           <div class="tile-mini">
             <div class="m"><span class="mk">Wage</span><span class="mv">${fmtPct(s.wage_pct[i])}</span></div>
             <div class="m"><span class="mk">Food var</span><span class="mv">${fv==null?"—":(fv>0?"+":"")+fv.toFixed(1)+"%"}</span></div>
@@ -1089,7 +1093,7 @@ function renderWeekly(){
       <tr${overall==="grey"?' class="nodata"':''}>
         <td class="site-code">${s.code}<div style="font-size:11px;color:var(--maki-muted);font-family:inherit;font-weight:400">${esc(s.name)}</div></td>
         <td style="font-size:11.5px">${DATA.clusters[s.cluster].name}</td>
-        <td class="num">${fmtPct(fc)}</td><td class="num">${fmtDelta(fc,fcP,"pp")}</td>
+        <td class="num"><span style="color:${({red:'var(--rag-red)',amber:'var(--amber-ink)',green:'var(--rag-green)',low:'var(--rag-low)'}[ragFoodCost(fc)])||'var(--maki-ink)'};font-weight:600">${fmtPct(fc)}</span>${fcLowPill(fc)}</td><td class="num">${fmtDelta(fc,fcP,"pp")}</td>
         <td class="num">${fmtPct(s.wage_pct[i])}</td>
         <td class="num">${fv==null?"—":(fv>0?"+":"")+fv.toFixed(1)+"%"}</td>
         <td>${dRag==="grey"?'<span class="rag rag-grey">—</span>':`<span class="rag rag-${dRag}">${dRag.toUpperCase()}</span>`}</td>
@@ -1128,7 +1132,7 @@ function renderWeeklyBudget(){
   document.getElementById("weeklyBudgetStats").innerHTML = stats.map(s=>`<div class="tile-stat"><span>${s.label}</span><strong>${s.value}</strong></div>`).join("");
   const ragBudget = (p)=> p==null?"grey": p>=100?"green": p>=92?"amber":"red";
   const ragBadge = (rag,txt)=>{const c={green:"var(--rag-green)",amber:"var(--rag-amber)",red:"var(--rag-red)",grey:"var(--rag-grey)"}[rag];return `<span style="display:inline-block;padding:1px 7px;border-radius:9px;background:${c};color:#fff;font-size:10.5px;font-weight:600">${txt}</span>`;};
-  const inkFor = (rag)=> rag==="red"?"var(--rag-red)":rag==="amber"?"var(--amber-ink)":rag==="green"?"var(--rag-green)":"var(--maki-muted)";
+  const inkFor = (rag)=> rag==="red"?"var(--rag-red)":rag==="amber"?"var(--amber-ink)":rag==="green"?"var(--rag-green)":rag==="low"?"var(--rag-low)":"var(--maki-muted)";
   const pctOf = (a,t)=> t>0?Math.round(a/t*100):null;
   let view = all;
   if(STATE.cluster!=="all") view = all.filter(r=>r.cluster===STATE.cluster);
@@ -1147,12 +1151,12 @@ function renderWeeklyBudget(){
       <td class="num">${(r.delTgt>0||r.delAct>0)?fmtGBP(r.delAct):"—"} <span style="color:var(--maki-muted);font-size:11px">${delP==null?"":"· "+delP+"%"}</span></td>
       <td class="num">${r.covers?r.covers.toLocaleString("en-GB"):"—"}</td>
       <td class="num">£${r.avg==null?"—":r.avg.toFixed(2)}</td>
-      <td class="num"><span style="color:${inkFor(fcRag)};font-weight:600">${r.fc==null?"—":r.fc.toFixed(2)+"%"}</span></td>
+      <td class="num"><span style="color:${inkFor(fcRag)};font-weight:600">${r.fc==null?"—":r.fc.toFixed(2)+"%"}</span>${fcLowPill(r.fc)}</td>
       <td class="num"><span style="color:${inkFor(wgRag)};font-weight:600">${r.wage==null?"—":r.wage.toFixed(2)+"%"}</span></td>
       <td class="num">£${r.rph==null?"—":r.rph.toFixed(2)}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="12" style="text-align:center;color:var(--maki-muted)">No sites for this cluster on the Soph KPI sheet</td></tr>`;
-  document.getElementById("weeklyBudgetNote").innerHTML = `Source: <strong>${esc(wb.source)}</strong> · refreshed ${esc(wb.ingested_at)}. Budget RAG: ≥100% green · 92–99% amber · &lt;92% red. Food cost / wage use the group thresholds (food 25/27/30%, wage 22/24/26%). Ikigai 2 is included here but not yet in the BOH RAG heat-map; Maki Nori is not on this sheet. The clean food-cost basis reconciles the previously-held South/Midlands BOH figures — see risk R18.`;
+  document.getElementById("weeklyBudgetNote").innerHTML = `Source: <strong>${esc(wb.source)}</strong> · refreshed ${esc(wb.ingested_at)}. Budget RAG: ≥100% green · 92–99% amber · &lt;92% red. Food cost RAG: 23–25% green · 25–27% amber · &gt;27% red · <strong>below 23% flagged LOW</strong> (verify stock/waste recording — or a quiet-week sales spike); wage 22/24/26%. Ikigai 2 is included here but not yet in the BOH RAG heat-map; Maki Nori is not on this sheet. The clean food-cost basis reconciles the previously-held South/Midlands BOH figures — see risk R18.`;
 }
 
 function renderDailySpend(){
