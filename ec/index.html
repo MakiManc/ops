@@ -688,7 +688,7 @@ const FALLBACK_DATA = {
 
   daily_spend: {
     as_at: "2026-06-15",
-    data_pull_alert: "⚠️ 2026-06-16 pull failed — data only current to 2026-06-15; ask Claude to run the EC daily spend catch-up.",
+    data_pull_alert: "",
     data_note: "Mapal Head Chef Daily Report went live 9 Jun 2026, so the daily ledger starts 9 Jun. MTD = pre-Mapal June baseline (Mona Lisa goods ledger, 1–7 Jun) + Mapal daily from 9 Jun onward; 8 Jun has no data (gap); IK2 has no Mona Lisa baseline. WTD is Mapal-only (Sun→selected day). Recomputed-vs-HC checks start from 10 Jun.",
     weekly_budget_basis: "HC weekly base (Total Spend From Sunday + Budget Left This Week)",
     june_cap_basis: "Interim June caps = 23% × Mar–May avg MA revenue (until Matthew issues official June caps)",
@@ -872,6 +872,12 @@ async function loadSheetData(){
     const rows=parseSheetCSV(csv);
     if(rows.length===0) throw new Error("Empty CSV");
     applySheetRows(rows);
+    // Live sheet loaded fresh — clear any stale "pull failed" banner (baked or prior).
+    try{
+      if(DATA.daily_spend) DATA.daily_spend.data_pull_alert="";
+      if(typeof FALLBACK_DATA!=="undefined" && FALLBACK_DATA.daily_spend) FALLBACK_DATA.daily_spend.data_pull_alert="";
+      var _b=document.getElementById("ecPullAlert"); if(_b) _b.remove();
+    }catch(_e){}
     console.log("[EC] Loaded "+rows.length+" rows from Sheet · latest="+DATA.daily_spend.as_at);
     return true;
   } catch(e){
