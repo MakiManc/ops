@@ -68,6 +68,23 @@
   .blank{color:var(--muted);font-size:13.5px;font-style:italic}
   ul.gaps{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:13px}
   ul.gaps li{margin:2px 0}
+  .score{margin-left:auto;font-weight:800;font-size:20px;padding:4px 12px;border-radius:999px}
+  .score small{font-size:11px;font-weight:600;opacity:.7}
+  .score.green{background:#e7f4ec;color:var(--green)}
+  .score.amber{background:#fbf1dc;color:var(--amber)}
+  .score.red{background:#fbe4e4;color:var(--red)}
+  .scorewrap{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .scorebig{font-size:40px;font-weight:800;letter-spacing:-1px;line-height:1;display:flex;align-items:baseline;gap:8px}
+  .scorebig span{font-size:12px;font-weight:700;letter-spacing:.4px;color:var(--muted)}
+  .scorebig.green{color:var(--green)} .scorebig.amber{color:var(--amber)} .scorebig.red{color:var(--red)}
+  .comps{flex:1;min-width:260px}
+  .crow{display:flex;align-items:center;gap:8px;font-size:12px;margin:4px 0;color:var(--muted)}
+  .crow .cn{width:92px;color:var(--ink);font-weight:600}
+  .crow .cw{width:30px;font-size:11px}
+  .crow .cbar{flex:1;height:7px;background:#eee;border-radius:5px;overflow:hidden}
+  .crow .cbar i{display:block;height:100%;background:var(--maki);border-radius:5px}
+  .crow .cv{width:34px;text-align:right;color:var(--ink);font-weight:600}
+  .scorenote{color:var(--muted);font-size:11px;margin-top:8px}
   footer{max-width:980px;margin:8px auto 40px;padding:0 18px;color:var(--muted);font-size:11.5px}
   .err{background:#fbe4e4;color:var(--red);padding:12px 14px;border-radius:10px;font-size:13px}
 </style>
@@ -92,8 +109,10 @@
 <footer id="footer"></footer>
 
 <script>
-// ── Clean JSON-driven shell. No baked data, no Kobas. Reads one data file. ──
-const DATA_URL = "./data/maki1_wc_2026-06-08.json";
+// ── Clean JSON-driven shell. No baked data, no Kobas. ──
+// Reads a manifest, then fetches ONE file per site (per-site fault isolation:
+// one site's missing/bad file → that tile shows an error, the rest still render).
+const MANIFEST_URL = "./data/manifest_wc_2026-06-08.json";
 
 // RAG thresholds (locked 16 Jun 2026; food retargeted to 23%)
 function ragSales(v){ if(v==null) return "grey"; if(v>=0) return "green"; if(v>=-5) return "amber"; return "red"; }
@@ -104,6 +123,8 @@ function worst(...rags){ return rags.reduce((a,b)=> RANK[b]>RANK[a]?b:a, "green"
 
 const gbp = n => "£"+Number(n).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+// signed delta — money=true → "−£0.09", money=false → "+13"
+const signed = (n,money) => (n>=0?"+":"−") + (money ? "£"+Math.abs(n).toFixed(2) : Math.abs(n));
 
 function tile(k,v,d,rag){
   return `<div class="kpi">${rag?`<span class="dot ${rag}"></span>`:""}
@@ -120,13 +141,18 @@ function renderSite(code, s){
   const salesDelta = kp.sales?.var_pct!=null
     ? `<span class="delta ${kp.sales.var_pct>=0?'pos':'neg'}">${kp.sales.var_pct>=0?'+':''}${kp.sales.var_pct}%</span> vs target ${gbp(kp.sales.target)}`
     : "";
-  const coversD = kp.covers?.var_pct!=null ? `${kp.covers.var_pct>=0?'+':''}${kp.covers.var_pct}% WoW` : "no WoW baseline";
+  const coversD = kp.covers?.wow_abs!=null
+    ? `<span class="delta ${kp.covers.wow_abs>=0?'pos':'neg'}">${signed(kp.covers.wow_abs,false)} (${signed(kp.covers.wow_pct,false)}%)</span> WoW`
+    : "no WoW baseline";
   const sphLbl  = kp.sph?.label || "Spend Per Head";
+  const sphD = kp.sph?.wow_abs!=null
+    ? `<span class="delta ${kp.sph.wow_abs>=0?'pos':'neg'}">${signed(kp.sph.wow_abs,true)} (${signed(kp.sph.wow_pct,false)}%)</span> WoW`
+    : sphLbl;
 
   let tiles = "";
   tiles += tile("Sales", gbp(kp.sales.actual), salesDelta, rSales);
   tiles += tile("Covers", Number(kp.covers.actual).toLocaleString("en-GB"), coversD, null);
-  tiles += tile("SPH", gbp(kp.sph.actual), sphLbl, null);
+  tiles += tile("SPH", gbp(kp.sph.actual), sphD, null);
   tiles += tile("Wage %", kp.wage_pct.actual+"%", kp.wage_pct.target?("target "+kp.wage_pct.target+"%"):"target n/a", rWage);
   tiles += tile("Food %", kp.food_pct.actual+"%", "target "+(kp.food_pct.target??23)+"%", rFood);
   tiles += tile("Labour", kp.labour_hours.actual+" h", "scheduled hours", null);
@@ -172,14 +198,81 @@ function renderSite(code, s){
   }
 
   // Deliveroo
-  const delHtml = s.deliveroo
-    ? `<div class="rev"><div class="b"><strong>${gbp(s.deliveroo.sales)}</strong>Deliveroo sales</div></div>`
-    : `<div class="blank">Awaiting data — Deliveroo feed being rebuilt for this site.</div>`;
+  let delHtml;
+  if(s.deliveroo){
+    const d = s.deliveroo, w = d.wow||{};
+    const gmvDelta = w.gmv_pct!=null
+      ? `<span class="delta ${w.gmv_pct>=0?"pos":"neg"}">${w.gmv_pct>=0?"▲":"▼"} ${Math.abs(w.gmv_pct)}% WoW</span>`
+      : "GMV";
+    let dTiles = "";
+    dTiles += tile("Deliveroo GMV", gbp(d.sales), gmvDelta, null);
+    if(d.orders!=null) dTiles += tile("Orders", Number(d.orders).toLocaleString("en-GB"), w.orders_abs!=null?`<span class="delta ${w.orders_abs>=0?"pos":"neg"}">${w.orders_abs>=0?"+":""}${w.orders_abs} WoW</span>`:"this week", null);
+    if(d.aov!=null) dTiles += tile("AOV", gbp(d.aov), "avg order value", null);
+    if(d.rating!=null) dTiles += tile("Deliveroo rating", d.rating+"★", "this week", d.rating>=4.7?"green":(d.rating>=4.4?"amber":"red"));
+    if(d.conversion_pct!=null) dTiles += tile("Conversion", d.conversion_pct+"%", "new to site", null);
+    if(d.rejection_pct!=null) dTiles += tile("Rejection", d.rejection_pct+"%", "orders rejected", d.rejection_pct<=1?"green":"amber");
+    delHtml = `<div class="grid">${dTiles}</div>`;
+  } else {
+    delHtml = `<div class="blank">Awaiting data — Deliveroo feed being rebuilt for this site.</div>`;
+  }
 
   // Gaps
   const gapsHtml = (s.gaps&&s.gaps.length)
     ? `<ul class="gaps">${s.gaps.map(g=>`<li>${esc(g)}</li>`).join("")}</ul>`
     : `<div class="blank">No open data gaps.</div>`;
+
+  // Site Efficiency Score (composite)
+  const es = s.efficiency_score;
+  let scoreBadge = "", scoreSection = "";
+  if(es){
+    scoreBadge = `<span class="score ${es.rag}">${es.score}<small>/100</small></span>`;
+    const comps = es.components||{};
+    const names = {wage:"Wage",food:"Food",sales:"Sales",weekly_star:"Weekly ★",food_var:"Food variance"};
+    const compRows = ["wage","food","sales","weekly_star","food_var"]
+      .filter(k=>comps[k]).map(k=>{
+        const c=comps[k];
+        return `<div class="crow"><span class="cn">${names[k]||k}</span>
+          <span class="cw">w${c.weight}</span>
+          <span class="cbar"><i style="width:${Math.min(100,c.value)}%"></i></span>
+          <span class="cv">${c.value}</span></div>`;
+      }).join("");
+    scoreSection = `<h3 class="sec">Site Efficiency Score</h3>
+      <div class="scorewrap">
+        <div class="scorebig ${es.rag}">${es.score}<span>/100 · ${esc((es.rag||"").toUpperCase())}</span></div>
+        <div class="comps">${compRows}</div>
+      </div>
+      <div class="scorenote">${esc(es.scale||"")}${es.formula_ref?` · ${esc(es.formula_ref)}`:""}${
+        (es.components_dropped&&es.components_dropped.length)
+          ? `<br><b style="color:var(--amber)">⚠ Low confidence</b> — computed on ${Object.keys(es.components||{}).length} of 5 components; ${es.components_dropped.length} dropped (${es.components_dropped.map(esc).join(", ")}).`
+          : ""}</div>`;
+  }
+
+  // Stock-take variance (±5% band)
+  const st = s.stock_take;
+  let stockSection = "";
+  if(st){
+    const stTile = (lab,o)=>{
+      if(!o) return "";
+      const rag = o.within_band ? "green" : "red";
+      const note = "target "+esc(o.target)+(o.within_band?" · within band":" · OUT OF BAND");
+      return tile(lab, o.variance_pct+"%", note, rag);
+    };
+    stockSection = `<h3 class="sec">Stock-take variance</h3>
+      <div class="grid">${stTile("Drinks variance",st.drinks)}${stTile("Food variance",st.food)}</div>`;
+  }
+
+  // Review response rate — open placeholder
+  const rrHtml = (rv.response_rate==null)
+    ? `<div class="blank">Response rate — open placeholder (no automated source yet).</div>`
+    : `<div class="b"><strong>${rv.response_rate}%</strong>response rate</div>`;
+
+  // Issues & solutions — open placeholder
+  const iss = s.issues_solutions;
+  const issHtml = (iss && iss.items && iss.items.length)
+    ? `<div class="negbox">${iss.items.map(it=>`
+        <div class="negitem"><div class="h"><b>Problem</b> ${esc(it.problem||"")}</div>
+        <div>Solution — ${esc(it.solution||"")}</div></div>`).join("")}</div>`
+    : `<div class="blank">Open placeholder — pending GM KPI meeting pull (PROBLEM + SOLUTION).</div>`;
 
   const label = {green:"On track",amber:"Watch",red:"Red light",grey:"No data"}[overall];
 
@@ -187,6 +280,7 @@ function renderSite(code, s){
     <div class="sitehead">
       <h2>${esc(s.name)}</h2>
       <span class="pill ${overall}">${label}</span>
+      ${scoreBadge}
     </div>
     <div class="who">
       <span>Code <b>${esc(code)}</b></span>
@@ -195,29 +289,70 @@ function renderSite(code, s){
       <span>Cluster ${esc(s.cluster)}</span>
     </div>
     <div class="grid">${tiles}</div>
-    <h3 class="sec">Customer experience</h3>${revHtml}
+    ${scoreSection}
+    ${stockSection}
+    <h3 class="sec">Customer experience</h3>${revHtml}${rrHtml}
     <h3 class="sec">Negative reviews this week (3/2/1★)</h3>${negHtml}
+    <h3 class="sec">Issues &amp; solutions</h3>${issHtml}
     <h3 class="sec">Deliveroo</h3>${delHtml}
     <h3 class="sec">Known data gaps</h3>${gapsHtml}
   </div>`;
 }
 
-fetch(DATA_URL,{cache:"no-store"})
+const here = MANIFEST_URL.slice(0, MANIFEST_URL.lastIndexOf("/")+1);
+
+function errorCard(code, name, msg){
+  return `<div class="card"><div class="sitehead"><h2>${esc(name||code)}</h2>
+    <span class="pill grey">No data</span></div>
+    <div class="who"><span>Code <b>${esc(code)}</b></span></div>
+    <div class="err">Could not load this site (${esc(msg)}). Its pull may have failed — every other site still renders.</div></div>`;
+}
+
+fetch(MANIFEST_URL,{cache:"no-store"})
   .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-  .then(data=>{
-    const codes = Object.keys(data.sites||{});
+  .then(async manifest=>{
+    const list = manifest.sites||[];
     document.getElementById("week").innerHTML =
-      `<b>${esc(data.week.label)}</b><span class="pill grey">${codes.length} site${codes.length>1?"s":""}</span>`;
+      `<b>${esc(manifest.week.label)}</b><span class="pill grey">${list.length} site${list.length>1?"s":""}</span>`;
     document.getElementById("meta").innerHTML =
-      `Generated ${esc((data.generated_at||"").replace("T"," ").slice(0,16))}<br>Source: per-site KPI sheet`;
-    document.getElementById("sites").innerHTML =
-      codes.map(c=>renderSite(c,data.sites[c])).join("");
+      `Generated ${esc((manifest.generated_at||"").replace("T"," ").slice(0,16))}<br>Per-site KPI / Raw Data / stock-take / reviews / Deliveroo`;
+
+    // Fetch every site file independently — one failure can't take down the others.
+    const settled = await Promise.allSettled(list.map(si =>
+      fetch(here+si.file,{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    ));
+
+    // Group by cluster, preserving manifest order.
+    const clusters = (manifest.clusters||[]).map(c=>c.name);
+    const order = clusters.length ? clusters : [...new Set(list.map(s=>s.cluster))];
+    const byCluster = {}; order.forEach(c=>byCluster[c]=[]);
+    list.forEach((si,i)=>{
+      const res = settled[i];
+      let html;
+      if(res.status==="fulfilled"){
+        const data = res.value; const s = (data.sites||{})[si.code];
+        html = s ? renderSite(si.code, s) : errorCard(si.code, si.name, "site missing in file");
+      } else {
+        html = errorCard(si.code, si.name, res.reason && res.reason.message || "fetch failed");
+      }
+      (byCluster[si.cluster] || (byCluster[si.cluster]=[])).push(html);
+    });
+
+    document.getElementById("sites").innerHTML = order.map(cl=>{
+      const cards = byCluster[cl]||[]; if(!cards.length) return "";
+      const am = (manifest.clusters||[]).find(c=>c.name===cl)?.am;
+      return `<div class="week" style="margin:26px 0 12px">
+          <b>${esc(cl)}</b><span class="pill grey">${cards.length} site${cards.length>1?"s":""}${am?` · AM ${esc(am)}`:""}</span>
+        </div>${cards.join("")}`;
+    }).join("");
+
+    const failed = settled.filter(s=>s.status==="rejected").length;
     document.getElementById("footer").innerHTML =
-      `Data-driven shell · reads <code>${esc(DATA_URL)}</code> · no values baked into this page.`;
+      `Data-driven shell · manifest <code>${esc(MANIFEST_URL)}</code> · one file per site, fetched independently · no values baked into this page.${failed?` · ${failed} site file(s) failed to load.`:""}`;
   })
   .catch(e=>{
     document.getElementById("error").innerHTML =
-      `<div class="err">Could not load data (${esc(e.message)}). Serve this file over HTTP — <code>fetch</code> is blocked on <code>file://</code>.</div>`;
+      `<div class="err">Could not load the manifest (${esc(e.message)}). Serve over HTTP — <code>fetch</code> is blocked on <code>file://</code>.</div>`;
   });
 </script>
 </body>
