@@ -26,15 +26,15 @@
         },
         "covers": {
           "actual": 2604,
-          "prev": 2476,
-          "wow_abs": 128,
-          "wow_pct": 5.17
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "sph": {
-          "actual": 22.63,
-          "prev": 22.64,
-          "wow_abs": -0.01,
-          "wow_pct": -0.04,
+          "actual": null,
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -113,7 +113,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.83,
+        "week_avg_rating": 4.833333333,
         "new_reviews": 60,
         "star_breakdown": {
           "5": 54,

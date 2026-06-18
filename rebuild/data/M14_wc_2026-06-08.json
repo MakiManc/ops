@@ -25,16 +25,16 @@
           "wow_pct": -11.72
         },
         "covers": {
-          "actual": 1817,
-          "prev": 2036,
+          "actual": 1818,
+          "prev": 2037,
           "wow_abs": -219,
-          "wow_pct": -10.76
+          "wow_pct": -10.75
         },
         "sph": {
           "actual": 20.98,
-          "prev": 21.22,
-          "wow_abs": -0.24,
-          "wow_pct": -1.13,
+          "prev": 21.23,
+          "wow_abs": -0.25,
+          "wow_pct": -1.18,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -60,7 +60,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 4.0,
+          "variance_pct": 3.3,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -96,7 +96,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "4.00% inside \u00b15% band"
+            "basis": "3.30% inside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -129,17 +129,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
-        "tasks": [
-          {
-            "task": "Round table C2 needs new legs - the screws won\u2019t tighten, they only turn. Simfit have",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "\u2014",
-            "status": "open"
-          }
-        ],
-        "note": "1 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",

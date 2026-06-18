@@ -25,10 +25,10 @@
           "wow_pct": -5.01
         },
         "covers": {
-          "actual": 943,
-          "prev": 1039,
+          "actual": 942,
+          "prev": 1038,
           "wow_abs": -96,
-          "wow_pct": -9.24
+          "wow_pct": -9.25
         },
         "sph": {
           "actual": 22.44,
@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 4.0,
@@ -95,8 +95,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 90.0,
-            "basis": "4.63\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 89.29,
+            "basis": "4.62\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 10,
@@ -116,7 +116,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.63,
+        "week_avg_rating": 4.625,
         "new_reviews": 8,
         "star_breakdown": {
           "5": 6,
@@ -135,7 +135,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 4,
+        "outstanding_count": 2,
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
@@ -145,28 +145,14 @@
             "status": "open"
           },
           {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between",
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring",
             "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
-          },
-          {
-            "task": "Toilets - had Metrorod out last night, he cleared the blocked toilets, but showed me",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "Kris",
-            "status": "open"
-          },
-          {
-            "task": "1 undercounter fridged stopped working, 1 fridge low temperature, 1 dishwasher",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "\u2014",
-            "status": "open"
           }
         ],
-        "note": "4 open item(s)"
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",

@@ -26,15 +26,15 @@
         },
         "covers": {
           "actual": 1495,
-          "prev": 1709,
-          "wow_abs": -214,
-          "wow_pct": -12.52
+          "prev": 1711,
+          "wow_abs": -216,
+          "wow_pct": -12.62
         },
         "sph": {
           "actual": 23.53,
-          "prev": 23.37,
-          "wow_abs": 0.16,
-          "wow_pct": 0.68,
+          "prev": 23.36,
+          "wow_abs": 0.17,
+          "wow_pct": 0.73,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -95,7 +95,7 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 54.29,
+            "value": 54.95,
             "basis": "4.38\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
@@ -110,7 +110,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.38,
+        "week_avg_rating": 4.384615385,
         "new_reviews": 13,
         "star_breakdown": {
           "5": 10,
@@ -129,7 +129,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 5,
+        "outstanding_count": 3,
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
@@ -146,28 +146,14 @@
             "status": "open"
           },
           {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between",
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring",
             "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
-          },
-          {
-            "task": "Disabled toilet blocked",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "Kris",
-            "status": "open"
-          },
-          {
-            "task": "Main area tables are wobbly",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "\u2014",
-            "status": "open"
           }
         ],
-        "note": "5 open item(s)"
+        "note": "3 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",

@@ -25,10 +25,10 @@
           "wow_pct": -3.75
         },
         "covers": {
-          "actual": 1423,
+          "actual": 1422,
           "prev": 1441,
-          "wow_abs": -18,
-          "wow_pct": -1.25
+          "wow_abs": -19,
+          "wow_pct": -1.32
         },
         "sph": {
           "actual": 22.02,
@@ -90,7 +90,7 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 95.71,
+            "value": 95.24,
             "basis": "4.67\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
@@ -110,7 +110,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.67,
+        "week_avg_rating": 4.666666667,
         "new_reviews": 15,
         "star_breakdown": {
           "5": 13,
@@ -129,24 +129,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
-        "tasks": [
-          {
-            "task": "Disabled Toilet - blocked",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "Ross",
-            "status": "open"
-          },
-          {
-            "task": "Glass washer wont drain and will not clean, have went through basic maintenance tasks",
-            "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "\u2014",
-            "status": "open"
-          }
-        ],
-        "note": "2 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",

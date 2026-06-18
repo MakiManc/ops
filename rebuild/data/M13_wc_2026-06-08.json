@@ -26,9 +26,9 @@
         },
         "covers": {
           "actual": 1453,
-          "prev": 1661,
-          "wow_abs": -208,
-          "wow_pct": -12.52
+          "prev": 1662,
+          "wow_abs": -209,
+          "wow_pct": -12.58
         },
         "sph": {
           "actual": 21.48,
@@ -112,7 +112,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.93,
+        "week_avg_rating": 4.931034483,
         "new_reviews": 29,
         "star_breakdown": {
           "5": 27,
@@ -131,31 +131,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 3,
+        "outstanding_count": 2,
         "tasks": [
           {
             "task": "Roof tiles needing replaced.",
             "priority": "\u2014",
-            "logged_week": "Open",
+            "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           },
           {
             "task": "Cracked wall tiles need replacing.",
             "priority": "\u2014",
-            "logged_week": "Open",
-            "owner": "Kris",
-            "status": "open"
-          },
-          {
-            "task": "Toilet constantly flushing leading to overflowing and flooding",
-            "priority": "\u2014",
-            "logged_week": "Open",
+            "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           }
         ],
-        "note": "3 open item(s)"
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",

@@ -25,10 +25,10 @@
           "wow_pct": -14.08
         },
         "covers": {
-          "actual": 1073,
-          "prev": 1220,
-          "wow_abs": -147,
-          "wow_pct": -12.05
+          "actual": 1074,
+          "prev": 1218,
+          "wow_abs": -144,
+          "wow_pct": -11.82
         },
         "sph": {
           "actual": 23.32,
@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": -0.1,
@@ -112,7 +112,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.93,
+        "week_avg_rating": 4.930379747,
         "new_reviews": 158,
         "star_breakdown": {
           "5": 155,
