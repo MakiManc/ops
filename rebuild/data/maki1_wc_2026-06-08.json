@@ -1,7 +1,11 @@
 {
-  "schema_version": "1.0",
-  "generated_at": "2026-06-18T06:52:00+00:00",
-  "source": "Per-site Target/KPI Sheet (Google Drive, authenticated Drive MCP). No Kobas.",
+  "schema_version": "1.1",
+  "generated_at": "2026-06-18T08:10:00+00:00",
+  "source": "Per-site Target/KPI Sheet + KPI Raw Data sheet (covers/SPH) + Stock-take sheet (drinks/food variance). Google Drive, authenticated Drive MCP. No Kobas.",
+  "sources": {
+    "kpi_raw_data": { "id": "1d1ETFuxVuUMshD0ww1OT-0fPKUQrwoQR3im4gbxI488", "tab": "Sheet1", "use": "Daily covers (col Y 'No. Of Customers Kobas') + SPH (col Z 'Average Spend', covers-weighted). Validated: current week aggregates to 716 covers / 20.77 SPH / £22,530.89." },
+    "stock_take": { "id": "1VhI1xowWARXNZQMXCoI0iHYbONgx49ImZRhpTJiPydM", "drinks_tab": "Drinks (gid 1653696379)", "food_tab": "Food (gid 1317908962)", "use": "Weekly variance % matrix; row = week commencing, column = site. Variance % only (no £)." }
+  },
   "week": {
     "label": "Week of 8–14 June 2026",
     "commencing": "2026-06-08",
@@ -16,13 +20,33 @@
       "am": "Ka Ho",
       "cluster": "Scotland & Newcastle",
       "kpis": {
-        "sales":        { "actual": 22530.89, "target": 23400, "var_pct": -3.71 },
-        "covers":       { "actual": 716, "prev": null, "var_pct": null },
-        "sph":          { "actual": 20.77, "prev": null, "label": "Spend Per Head" },
+        "sales":        { "actual": 22530.89, "target": 23400, "var_pct": -3.71, "prev": 20155.79, "wow_abs": 2375.10, "wow_pct": 11.78 },
+        "covers":       { "actual": 716, "prev": 703, "wow_abs": 13, "wow_pct": 1.85 },
+        "sph":          { "actual": 20.77, "prev": 20.86, "wow_abs": -0.09, "wow_pct": -0.43, "label": "Spend Per Head (covers-weighted Avg Spend)" },
         "wage_pct":     { "actual": 19.15, "target": null },
         "food_pct":     { "actual": 18.33, "target": 23.0 },
         "labour_hours": { "actual": 300.7 },
         "waste":        { "actual": 5.75 }
+      },
+      "stock_take": {
+        "drinks": { "variance_pct": 0.90, "target": "±5%", "within_band": true, "sign_note": "signed value as stored; positive this week" },
+        "food":   { "variance_pct": 4.60, "target": "±5%", "within_band": true, "sign_note": "feeds the Food-variance component of the Site Efficiency Score" },
+        "week_commencing": "2026-06-08",
+        "units_note": "Sheet stores variance % only — no expected/actual £ in this source."
+      },
+      "efficiency_score": {
+        "score": 99,
+        "rag": "green",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "weights": { "wage": 30, "food": 30, "sales": 20, "weekly_star": 10, "food_var": 10 },
+        "components": {
+          "sales":       { "weight": 20, "value": 96.9, "basis": "70% (100 + vsTarget% −3.71) + 30% (£ gap −£869 vs ±£50k cal)" },
+          "food":        { "weight": 30, "value": 100, "basis": "18.33% vs 25% target — at/under target" },
+          "wage":        { "weight": 30, "value": 100, "basis": "19.15% vs 21% target — at/under target" },
+          "weekly_star": { "weight": 10, "value": 100, "basis": "4.75★ vs 4.7★ — capped at 100" },
+          "food_var":    { "weight": 10, "value": 100, "basis": "4.60% inside ±5% band" }
+        },
+        "formula_ref": "control_centre efficiencyScore() v2 — Lifetime ★ excluded; each component hard-capped at 100"
       },
       "reviews": {
         "week_avg_rating": 4.75,
@@ -36,14 +60,23 @@
         "google_pulled_at": "2026-06-18",
         "lifetime_count": 216,
         "lifetime_pct_4_5_star": 90.74,
-        "response_rate": null
+        "response_rate": null,
+        "response_rate_note": "No automated source — Google Business Profile does not expose a response-rate metric via the current pull. Would require manual GBP check or a different data source. Left open."
+      },
+      "issues_solutions": {
+        "items": [],
+        "note": "Populated from GM KPI meeting records found in email (manual pull, deferred). PROBLEM + SOLUTION format. Not yet completed for this week."
       },
       "deliveroo": null,
       "_deliveroo_note": "Deliberately blank — Deliveroo data being rebuilt (site = 'Ikigai Ramen - Nicolson St', ID 245574; MERGED file mislabelled).",
       "gaps": [
-        "Stock-take variance",
-        "Review response rate",
-        "Covers variation (WoW — no prior-week covers/SPH yet)"
+        "Review response rate — no automated source (see reviews.response_rate_note)",
+        "Issues & solutions — pending GM KPI meeting email pull (manual)"
+      ],
+      "gaps_closed_2026-06-18": [
+        "Stock-take variance — drinks 0.90% / food 4.60% (both within ±5%)",
+        "WoW covers baseline — prev 703 → +13 (+1.85%); SPH prev £20.86 → −£0.09 (−0.43%)",
+        "Site Efficiency Score — 99 (green)"
       ]
     }
   }
