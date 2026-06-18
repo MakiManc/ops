@@ -194,7 +194,7 @@ function renderSite(code, s){
         <div class="meta">${esc(n.date||"")}${n.url?` · <a href="${esc(n.url)}" target="_blank" rel="noopener">view ↗</a>`:""}</div>
       </div>`).join("")}</div>`;
   } else {
-    negHtml = `<div class="todo">⚠ ${negCount} negative review${negCount>1?"s":""} (3/2/1★) this week — pull text from Maki 1's Google listing.</div>`;
+    negHtml = `<div class="todo">⚠ ${negCount} negative review${negCount>1?"s":""} (3/2/1★) this week — pull text from ${esc(s.name)}'s Google listing.</div>`;
   }
 
   // Deliveroo
