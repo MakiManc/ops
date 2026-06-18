@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-06-18",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-05-11 \u2013 2026-05-17",
+    "commencing": "2026-05-11",
+    "ending": "2026-05-17"
+  },
+  "sites": {
+    "IKI2": {
+      "code": "IKI2",
+      "name": "Ikigai 2",
+      "gm": "Sujan (RM)",
+      "gm_confirm": true,
+      "am": "Ka Ho",
+      "cluster": "Scotland & Newcastle",
+      "kpis": {
+        "sales": {
+          "actual": null,
+          "target": null,
+          "var_pct": null,
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
+        },
+        "covers": {
+          "actual": 847,
+          "prev": 889,
+          "wow_abs": -42,
+          "wow_pct": -4.72
+        },
+        "sph": {
+          "actual": 20.64,
+          "prev": 20.85,
+          "wow_abs": -0.21,
+          "wow_pct": -1.01,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": null,
+          "target": null
+        },
+        "food_pct": {
+          "actual": null,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": null
+        },
+        "waste": {
+          "actual": null
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": null
+        },
+        "food": {
+          "variance_pct": null
+        },
+        "week_commencing": "2026-05-11"
+      },
+      "efficiency_score": null,
+      "red_light": {
+        "status": "green",
+        "triggers": [],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": null,
+        "new_reviews": 0,
+        "star_breakdown": null,
+        "negatives": null,
+        "negative_reviews": [],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-05-11.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": null,
+      "gaps": [
+        "Mona Lisa has no row for this week (sales/wage/food/labour/waste blank)",
+        "Stock-take \u2014 no variance entered this week",
+        "Reviews \u2014 no week rating in source",
+        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+      ]
+    }
+  }
+}

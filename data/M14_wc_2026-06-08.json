@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-06-18",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-06-08 \u2013 2026-06-14",
+    "commencing": "2026-06-08",
+    "ending": "2026-06-14"
+  },
+  "sites": {
+    "M14": {
+      "code": "M14",
+      "name": "Maki 14",
+      "gm": "(vacant)",
+      "gm_confirm": false,
+      "am": "Inka Cheung",
+      "cluster": "North England & Midlands",
+      "kpis": {
+        "sales": {
+          "actual": 39544.62,
+          "target": 43000,
+          "var_pct": -8.04,
+          "prev": 44795.01,
+          "wow_abs": -5250.39,
+          "wow_pct": -11.72
+        },
+        "covers": {
+          "actual": 1818,
+          "prev": 2037,
+          "wow_abs": -219,
+          "wow_pct": -10.75
+        },
+        "sph": {
+          "actual": 20.98,
+          "prev": 21.23,
+          "wow_abs": -0.25,
+          "wow_pct": -1.18,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 21.36,
+          "target": null
+        },
+        "food_pct": {
+          "actual": null,
+          "target": 23.0,
+          "gated": true
+        },
+        "labour_hours": {
+          "actual": 582.3
+        },
+        "waste": {
+          "actual": 9.7
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": 3.1,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "food": {
+          "variance_pct": 3.3,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "week_commencing": "2026-06-08"
+      },
+      "efficiency_score": {
+        "score": 95,
+        "rag": "green",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sales": 20,
+          "weekly_star": 10,
+          "food_var": 10
+        },
+        "components": {
+          "sales": {
+            "weight": 20,
+            "value": 92.3,
+            "basis": "70% (100-8.04) + 30% (\u00a3gap -3455 vs \u00b1\u00a350k cal)"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 94.6,
+            "basis": "21.36% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 10,
+            "value": 100,
+            "basis": "3.30% inside \u00b15% band"
+          }
+        },
+        "components_dropped": [
+          "food"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "green",
+        "triggers": [],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": 4.8,
+        "new_reviews": 42,
+        "star_breakdown": {
+          "5": 40,
+          "4": 2,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
+        "negatives": null,
+        "negative_reviews": [],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": null,
+      "gaps": [
+        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+      ]
+    }
+  }
+}
