@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-06-18",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-06-01 \u2013 2026-06-07",
+    "commencing": "2026-06-01",
+    "ending": "2026-06-07"
+  },
+  "sites": {
+    "M6": {
+      "code": "M6",
+      "name": "Maki 6",
+      "gm": "Justyna Polak (RM)",
+      "gm_confirm": true,
+      "am": "Ka Ho",
+      "cluster": "Scotland & Newcastle",
+      "kpis": {
+        "sales": {
+          "actual": 22522.93,
+          "target": 24900,
+          "var_pct": -9.55,
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
+        },
+        "covers": {
+          "actual": 910,
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
+        },
+        "sph": {
+          "actual": null,
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 23.41,
+          "target": null
+        },
+        "food_pct": {
+          "actual": 25.28,
+          "target": 23.0,
+          "gated": true
+        },
+        "labour_hours": {
+          "actual": 359
+        },
+        "waste": {
+          "actual": 66.95
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": null
+        },
+        "food": {
+          "variance_pct": null
+        },
+        "week_commencing": "2026-06-01"
+      },
+      "efficiency_score": {
+        "score": 85,
+        "rag": "amber",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sales": 20,
+          "weekly_star": 10,
+          "food_var": 10
+        },
+        "components": {
+          "sales": {
+            "weight": 20,
+            "value": 91.89,
+            "basis": "70% (100-9.55) + 30% (\u00a3gap -2377 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 97.76,
+            "basis": "25.28% vs 25% baseline, -8/pp over"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 63.85,
+            "basis": "23.41% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.70\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          }
+        },
+        "components_dropped": [
+          "food_var"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "red",
+        "triggers": [
+          "food 25.3%"
+        ],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": 4.7,
+        "new_reviews": 0,
+        "star_breakdown": null,
+        "negatives": null,
+        "negative_reviews": [],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-06-01.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-07",
+        "sales": 2862.51,
+        "orders": 86,
+        "aov": 33.29,
+        "new_customers": 26,
+        "rating": 5,
+        "open_hours_pct": 99.8,
+        "avg_prep_min": 12,
+        "rejection_pct": 0,
+        "inaccuracy_pct": 0,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": 9.3,
+        "wow": {
+          "gmv_pct": -23.8,
+          "orders_abs": -30,
+          "prev_gmv": 3757.05,
+          "prev_orders": 116
+        },
+        "gmv_vs_4wk_pct": -18.3,
+        "gmv_vs_ly_pct": -26.9,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+      },
+      "gaps": [
+        "Food % from 6/7 days reported \u2014 treat as provisional",
+        "Stock-take \u2014 no variance entered this week"
+      ]
+    }
+  }
+}
