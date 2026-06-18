@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-06-18T06:52:00+00:00",
+  "source": "Per-site Target/KPI Sheet (Google Drive, authenticated Drive MCP). No Kobas.",
+  "week": {
+    "label": "Week of 8–14 June 2026",
+    "commencing": "2026-06-08",
+    "ending": "2026-06-14",
+    "prev_commencing": "2026-06-01"
+  },
+  "sites": {
+    "M1": {
+      "code": "M1",
+      "name": "Maki 1 — Nicolson St",
+      "gm": "Derrick Cheung",
+      "am": "Ka Ho",
+      "cluster": "Scotland & Newcastle",
+      "kpis": {
+        "sales":        { "actual": 22530.89, "target": 23400, "var_pct": -3.71 },
+        "covers":       { "actual": 716, "prev": null, "var_pct": null },
+        "sph":          { "actual": 20.77, "prev": null, "label": "Spend Per Head" },
+        "wage_pct":     { "actual": 19.15, "target": null },
+        "food_pct":     { "actual": 18.33, "target": 23.0 },
+        "labour_hours": { "actual": 300.7 },
+        "waste":        { "actual": 5.75 }
+      },
+      "reviews": {
+        "week_avg_rating": 4.75,
+        "new_reviews": 4,
+        "star_breakdown": { "5": 3, "4": 1, "3": 0, "2": 0, "1": 0 },
+        "negatives": 0,
+        "negative_reviews": [],
+        "venue_rating": 4.5,
+        "venue_review_count": 2538,
+        "google_url": "https://www.google.com/maps/search/Maki+%26+Ramen+Nicolson+Street+Edinburgh",
+        "google_pulled_at": "2026-06-18",
+        "lifetime_count": 216,
+        "lifetime_pct_4_5_star": 90.74,
+        "response_rate": null
+      },
+      "deliveroo": null,
+      "_deliveroo_note": "Deliberately blank — Deliveroo data being rebuilt (site = 'Ikigai Ramen - Nicolson St', ID 245574; MERGED file mislabelled).",
+      "gaps": [
+        "Stock-take variance",
+        "Review response rate",
+        "Covers variation (WoW — no prior-week covers/SPH yet)"
+      ]
+    }
+  }
+}
