@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-18",
+  "generated_at": "2026-06-19",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-05-25 \u2013 2026-05-31",
@@ -25,16 +25,16 @@
           "wow_pct": null
         },
         "covers": {
-          "actual": null,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "actual": 942,
+          "prev": 951,
+          "wow_abs": -9,
+          "wow_pct": -0.95
         },
         "sph": {
-          "actual": null,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null,
+          "actual": 21.08,
+          "prev": 21.89,
+          "wow_abs": -0.81,
+          "wow_pct": -3.7,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -150,7 +150,6 @@
       },
       "gaps": [
         "Mona Lisa has no row for this week (sales/wage/food/labour/waste blank)",
-        "Covers/SPH \u2014 no KPI Raw Data row this week",
         "Stock-take \u2014 no variance entered this week"
       ]
     }
