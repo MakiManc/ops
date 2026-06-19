@@ -111,8 +111,23 @@
           "2": 0,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Gajathri Jeyarajah",
+            "text": "Sarah K was great",
+            "date": "2026-05-23",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "Eden Parkin",
+            "text": "This is the first matcha I\u2019ve tried so I don\u2019t have good judgement, I thought it was alright, but friend said it wasn\u2019t very good (she\u2019s tried a lot). The tonkatsu was just alright, I think the chili one would have more flavoured. However, the  spicy chicken teriyaki was so good, would 100% recommend that one. Props to whoever did the soundtrack, love a bit of Pitball",
+            "date": "2026-05-21",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

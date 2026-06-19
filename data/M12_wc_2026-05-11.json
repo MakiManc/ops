@@ -111,8 +111,16 @@
           "2": 0,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Steve Smith",
+            "text": "Service was very friendly and as helpful as possible, but I got seriously put off when I poured soy sauces into the dish on the table, which revealed that there was a hair in it. I didn't say anything. Once you're put off, you're put off. No changing of dishes or anything else can help that.",
+            "date": "2026-05-16",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
