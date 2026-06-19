@@ -60,7 +60,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 1.7,
+          "variance_pct": 5.0,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -101,7 +101,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "1.70% inside \u00b15% band"
+            "basis": "5.00% inside \u00b15% band"
           }
         },
         "components_dropped": [],

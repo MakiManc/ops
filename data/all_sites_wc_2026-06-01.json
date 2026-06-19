@@ -848,7 +848,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 4.0,
+          "variance_pct": 1.7,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -884,7 +884,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "4.00% inside \u00b15% band"
+            "basis": "1.70% inside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -1002,7 +1002,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 5.0,
+          "variance_pct": 3.1,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -1043,7 +1043,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "5.00% inside \u00b15% band"
+            "basis": "3.10% inside \u00b15% band"
           }
         },
         "components_dropped": [],
@@ -1146,7 +1146,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 3.1,
+          "variance_pct": 2.8,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -1182,7 +1182,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "3.10% inside \u00b15% band"
+            "basis": "2.80% inside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -1283,14 +1283,14 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": -5.5,
+          "variance_pct": 4.9,
           "target": "\u00b15%",
-          "within_band": false
+          "within_band": true
         },
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 99,
+        "score": 100,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1318,8 +1318,8 @@
           },
           "food_var": {
             "weight": 10,
-            "value": 96.0,
-            "basis": "-5.50% outside \u00b15% band"
+            "value": 100,
+            "basis": "4.90% inside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -1751,7 +1751,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 1.7,
+          "variance_pct": 5.0,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -1792,7 +1792,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "1.70% inside \u00b15% band"
+            "basis": "5.00% inside \u00b15% band"
           }
         },
         "components_dropped": [],
@@ -1892,14 +1892,14 @@
           "within_band": false
         },
         "food": {
-          "variance_pct": 2.8,
+          "variance_pct": -5.5,
           "target": "\u00b15%",
-          "within_band": true
+          "within_band": false
         },
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 100,
+        "score": 99,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1927,8 +1927,8 @@
           },
           "food_var": {
             "weight": 10,
-            "value": 100,
-            "basis": "2.80% inside \u00b15% band"
+            "value": 96.0,
+            "basis": "-5.50% outside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -2029,7 +2029,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 4.9,
+          "variance_pct": 4.7,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -2065,7 +2065,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "4.90% inside \u00b15% band"
+            "basis": "4.70% inside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -2166,7 +2166,7 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": 4.7,
+          "variance_pct": -3.4,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -2202,7 +2202,7 @@
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "4.70% inside \u00b15% band"
+            "basis": "-3.40% inside \u00b15% band"
           }
         },
         "components_dropped": [
@@ -2305,14 +2305,14 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": -3.4,
+          "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": true
+          "within_band": null
         },
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 43,
+        "score": 33,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2337,15 +2337,11 @@
             "weight": 10,
             "value": 0.0,
             "basis": "3.89\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
-          },
-          "food_var": {
-            "weight": 10,
-            "value": 100,
-            "basis": "-3.40% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food"
+          "food",
+          "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -2389,7 +2385,8 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)",
+        "Stock-take \u2014 no variance entered this week"
       ]
     },
     "MakiNori": {

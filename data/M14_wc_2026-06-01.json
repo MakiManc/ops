@@ -60,14 +60,14 @@
           "within_band": false
         },
         "food": {
-          "variance_pct": 2.8,
+          "variance_pct": -5.5,
           "target": "\u00b15%",
-          "within_band": true
+          "within_band": false
         },
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 100,
+        "score": 99,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -95,8 +95,8 @@
           },
           "food_var": {
             "weight": 10,
-            "value": 100,
-            "basis": "2.80% inside \u00b15% band"
+            "value": 96.0,
+            "basis": "-5.50% outside \u00b15% band"
           }
         },
         "components_dropped": [
