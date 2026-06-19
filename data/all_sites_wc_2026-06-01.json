@@ -922,10 +922,32 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-07",
+        "sales": 1725.28,
+        "orders": 58,
+        "aov": 29.75,
+        "new_customers": 31,
+        "rating": 5,
+        "open_hours_pct": 91.4,
+        "avg_prep_min": 9.3,
+        "rejection_pct": 0,
+        "inaccuracy_pct": 1.7,
+        "rider_wait_5min_pct": 3.4,
+        "conversion_pct": 9.7,
+        "wow": {
+          "gmv_pct": 15.9,
+          "orders_abs": 5,
+          "prev_gmv": 1489.05,
+          "prev_orders": 53
+        },
+        "gmv_vs_4wk_pct": 6.2,
+        "gmv_vs_ly_pct": 12.4,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+      },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Reviews \u2014 no week rating in source"
       ]
     },
     "M12": {

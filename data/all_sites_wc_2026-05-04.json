@@ -833,12 +833,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-05-10",
+        "sales": 1816.32,
+        "orders": 70,
+        "aov": 25.95,
+        "new_customers": 28,
+        "rating": 5,
+        "open_hours_pct": 97,
+        "avg_prep_min": 9.9,
+        "rejection_pct": 0,
+        "inaccuracy_pct": 1.9,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": 8.7,
+        "wow": {
+          "gmv_pct": 37.1,
+          "orders_abs": 22,
+          "prev_gmv": 1325.05,
+          "prev_orders": 48
+        },
+        "gmv_vs_4wk_pct": 31.4,
+        "gmv_vs_ly_pct": 22,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+      },
       "gaps": [
         "Mona Lisa has no row for this week (sales/wage/food/labour/waste blank)",
         "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Reviews \u2014 no week rating in source"
       ]
     },
     "M12": {
