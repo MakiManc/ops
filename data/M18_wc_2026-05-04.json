@@ -55,10 +55,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null
+          "variance_pct": -7.7,
+          "target": "\u00b15%",
+          "within_band": false
         },
         "food": {
-          "variance_pct": null
+          "variance_pct": -4.4,
+          "target": "\u00b15%",
+          "within_band": true
         },
         "week_commencing": "2026-05-04"
       },
@@ -78,13 +82,17 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.95\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 10,
+            "value": 100,
+            "basis": "-4.40% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "sales",
           "food",
-          "wage",
-          "food_var"
+          "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -127,7 +135,6 @@
       "deliveroo": null,
       "gaps": [
         "Mona Lisa has no row for this week (sales/wage/food/labour/waste blank)",
-        "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
       ]
     }

@@ -55,10 +55,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
         },
         "food": {
-          "variance_pct": null
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
         },
         "week_commencing": "2026-05-04"
       },

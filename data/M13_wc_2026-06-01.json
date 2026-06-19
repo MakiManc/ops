@@ -55,15 +55,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null
+          "variance_pct": 2.0,
+          "target": "\u00b15%",
+          "within_band": true
         },
         "food": {
-          "variance_pct": null
+          "variance_pct": 3.1,
+          "target": "\u00b15%",
+          "within_band": true
         },
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 90,
+        "score": 91,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -88,11 +92,15 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.93\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 10,
+            "value": 100,
+            "basis": "3.10% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -134,7 +142,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
       ]
     }
