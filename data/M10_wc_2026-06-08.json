@@ -122,8 +122,23 @@
           "2": 2,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Sandra Castillo",
+            "text": "I got diarrhea after eating there, but it can be that my gut is not used to it.",
+            "date": "2026-06-14",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Sandra Castillo",
+            "text": "I got diarrhea after eating there, but it can be that my gut is not used to it.",
+            "date": "2026-06-14",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

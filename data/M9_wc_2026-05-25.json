@@ -111,8 +111,16 @@
           "2": 0,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Ploy Nutchanat",
+            "text": "Not friendly, food was meh",
+            "date": "2026-05-26",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
