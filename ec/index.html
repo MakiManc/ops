@@ -291,7 +291,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
   <div style="display:flex;gap:8px;margin:8px 0 0;font-size:11px;color:var(--maki-muted);flex-wrap:wrap">
     <span class="source-chip drive">BOH KPI meetings</span>
     <span class="source-chip">Deliveroo perf sheet (★)</span>
-    <span class="source-chip drive">Mapal compliance (w/c 1 & 8 Jun · red &lt;99%)</span>
+    <span class="source-chip drive">Mapal compliance (w/c 1 & 8 Jun · 15 Jun M6 partial · red &lt;99%)</span>
   </div>
   <h2>BOH issues &amp; solutions · latest</h2>
   <div class="section-intro">Issue → solution → owner, from the most recent BOH meeting. <span class="source-chip drive">BOH KPI folder</span></div>
@@ -439,14 +439,14 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 </main>
 
 <footer>
-  <div>⚠️ 17 Jun: 16 Jun daily spend pull FAILED — data only current to 15 Jun; run the EC daily spend catch-up. · <strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 08 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.12.0 · 17 Jun 2026 · Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%).</div>
+  <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · 5-week BOH history (05 May–02 Jun) + Sales-vs-Budget w/c 08 Jun.</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.12.2 · 22 Jun 2026 · Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%).</div>
 </footer>
 
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.12.0",
+    version: "1.12.2",
     generated_at: "2026-06-17T08:40:00Z",
     food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27, food_cost_low_pct: 23,
     wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
@@ -474,11 +474,13 @@ const FALLBACK_DATA = {
 
   /* Per-site Mapal compliance % (task-completion score) by Mon–Sun week start (Monday ISO).
      Source: Mapal Weekly Compliance Tracker + E–H fill (w/c 1 & 8 Jun 2026). Red-light <99%.
+     w/c 15 Jun = M6 (Bath St) ONLY, partial week Mon 15–Thu 18 Jun, re-pulled 19 Jun 2026; other sites not yet filed.
      Only weeks with a per-site Compliance_% fill are listed; older weeks captured on-time% only. */
   mapal: {
+    "2026-06-15": { M6:100 },
     "2026-06-08": { M1:100, M3:100, M6:99.9, M7:99.9, M8:99, M9:99.9, M10:100, M11:100, M12:100, M13:98.8, M14:97.9, M15:98.9, M16:99.9, M17:99.9, M18:99.8, MN:97.4 },
     "2026-06-01": { M1:100, M3:99.9, M6:99.6, M7:98.3, M8:97.7, M9:98.2, M10:99.9, M11:99.9, M12:100, M13:93.9, M14:99.9, M15:98.4, M16:99.8, M17:100, M18:100, MN:87.4 },
-    _chain: { "2026-06-08":94.3, "2026-06-01":95 }
+    _chain: { "2026-06-15":93.6, "2026-06-08":94.3, "2026-06-01":95 }
   },
 
   clusters: {
