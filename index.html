@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AM Weekly Control Centre · 8–14 June 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -136,23 +137,21 @@
     .maki-brand-kanji { display: none; }
   }
 
-  /* ============ WEEK TOGGLE BAR ============ */
+  /* ============ WEEK TOGGLE BAR (in header, right-aligned) ============ */
   .week-toggle-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--line);
-    padding: 10px 32px;
+    margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .week-toggle-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--ink-3);
     text-transform: uppercase;
     letter-spacing: .08em;
-    margin-right: 4px;
+    margin-right: 2px;
   }
   .week-chip {
     background: #fff;
@@ -172,13 +171,14 @@
     background: #fff;
     border: 1px solid var(--line);
     color: var(--ink);
-    padding: 6px 30px 6px 14px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 7px 30px 7px 12px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     transition: 0.15s ease;
+    box-shadow: var(--shadow);
     -webkit-appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23E94E1B' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
@@ -222,59 +222,56 @@
     .week-chip { padding: 5px 10px; font-size: 11px; }
   }
 
-  /* HERO */
+  /* HERO — slim orange gradient band (restyle v2) */
   .hero {
-    background: linear-gradient(135deg, #7a1f08 0%, #c63d12 55%, #E94E1B 100%);
-    border-radius: 20px;
+    background: linear-gradient(120deg, var(--maki-orange), var(--maki-orange-soft));
     color: #fff;
-    padding: 28px 32px;
+    border-radius: 14px;
+    padding: 16px 18px;
     margin-bottom: 24px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
   }
-  .hero::before {
-    content: "";
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(circle at 85% 20%, rgba(255,150,80,.38) 0, transparent 45%),
-      radial-gradient(circle at 15% 90%, rgba(120,30,10,.30) 0, transparent 45%);
-    pointer-events: none;
-  }
-  .hero-inner { position: relative; }
-  .eyebrow {
+  .hero-inner { min-width: 0; }
+  .hero .eyebrow {
     text-transform: uppercase;
-    letter-spacing: .14em;
-    font-size: 11px;
-    font-weight: 600;
-    color: #c7d2fe;
-    margin-bottom: 8px;
+    letter-spacing: .12em;
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    opacity: .85;
+    margin-bottom: 0;
   }
   .hero h1 {
-    margin: 0 0 6px;
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -.02em;
+    margin: 2px 0 0;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+    color: #fff;
   }
-  .hero-sub { color: #cbd5e1; font-size: 14px; }
+  .hero-sub { color: #fff; opacity: .9; font-size: 11.5px; margin-top: 3px; max-width: 540px; }
   .hero-stats {
-    margin-top: 22px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
+    margin: 0 0 0 auto;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
   }
   .stat {
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 12px;
-    padding: 14px 16px;
-    backdrop-filter: blur(6px);
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 11px;
+    padding: 8px 13px;
+    text-align: center;
+    min-width: 62px;
   }
-  .stat-num { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
-  .stat-label { font-size: 11px; color: #cbd5e1; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
-  .stat.red .stat-num { color: #fca5a5; }
-  .stat.amber .stat-num { color: #fcd34d; }
-  .stat.green .stat-num { color: #6ee7b7; }
+  .stat-num { font-size: 20px; font-weight: 800; line-height: 1; letter-spacing: -.01em; }
+  .stat-label { font-size: 9.5px; color: #fff; opacity: .9; text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; font-weight: 700; }
+  .stat.red .stat-num { color: #ffd9d2; }
+  .stat.amber .stat-num { color: #ffe9c2; }
+  .stat.green .stat-num { color: #c9f7e2; }
 
   /* ALERT BAR */
   .alert {
@@ -439,11 +436,17 @@
   /* Per-tile metric chip row */
   .tile-metrics {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 4px;
-    margin-top: 6px;
+    margin-top: 0;
+    margin-left: auto;
+    flex: 0 1 auto;
+    max-width: 132px;
   }
   .tile-metric {
-    flex: 1;
+    flex: 0 0 auto;
+    min-width: 38px;
     background: rgba(255,255,255,.55);
     border-radius: 4px;
     padding: 3px 4px;
@@ -453,7 +456,11 @@
     color: var(--ink-2);
     line-height: 1.2;
   }
-  .tile.deep-red .tile-metric { background: rgba(255,255,255,.15); color: rgba(255,255,255,.85); }
+  /* deep-red wash only on chips with NO RAG class (so good/warn/bad colours show through) */
+  .tile.deep-red .tile-metric:not(.good):not(.warn):not(.bad) { background: rgba(255,255,255,.15); color: rgba(255,255,255,.85); }
+  .tile.deep-red .tile-metric.good,
+  .tile.deep-red .tile-metric.warn,
+  .tile.deep-red .tile-metric.bad { background: #fff; }
   .tile-metric.bad { color: var(--red); background: rgba(255,255,255,.7); }
   .tile-metric.warn { color: var(--amber); background: rgba(255,255,255,.7); }
   .tile-metric.good { color: var(--green); background: rgba(255,255,255,.7); }
@@ -462,33 +469,43 @@
   /* HEAT MAP */
   .heatmap {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 10px;
     margin-bottom: 28px;
   }
   .tile {
-    border-radius: 14px;
-    padding: 14px 14px 12px;
+    border-radius: 13px;
+    padding: 10px 14px;
     cursor: pointer;
     transition: transform .15s, box-shadow .15s;
-    border: 1px solid transparent;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--ink-3);
+    box-shadow: var(--shadow);
     position: relative;
     overflow: hidden;
-    min-height: 110px;
+    min-height: 0;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
   }
+  /* code/name block stays left, fixed-ish width so values line up */
+  .tile > div:not([class]):first-of-type { flex: 0 0 auto; min-width: 92px; }
   .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-  .tile.red { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-color: var(--red-ring); }
-  .tile.amber { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: var(--amber-ring); }
-  .tile.green { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: var(--green-ring); }
+  .tile.red { background: linear-gradient(180deg, var(--red-bg), #fff 60%); border-left-color: var(--red); }
+  .tile.amber { background: linear-gradient(180deg, var(--amber-bg), #fff 60%); border-left-color: var(--amber); }
+  .tile.green { background: linear-gradient(180deg, var(--green-bg), #fff 60%); border-left-color: var(--green); }
   .tile.deep-red {
     background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
     color: #fff;
     border-color: #991b1b;
+    border-left: 4px solid #7f1d1d;
   }
   .tile.deep-red .tile-name, .tile.deep-red .tile-meta { color: rgba(255,255,255,.85); }
+  .tile.red .tile-delta { color: var(--red); }
+  .tile.amber .tile-delta { color: var(--amber); }
+  .tile.green .tile-delta { color: var(--green); }
   .tile-code {
     font-size: 20px;
     font-weight: 800;
@@ -498,7 +515,7 @@
   .tile-delta {
     font-size: 18px;
     font-weight: 700;
-    margin-top: 6px;
+    margin-top: 0;
     letter-spacing: -.01em;
   }
   .tile-delta.red { color: var(--red); }
@@ -513,8 +530,9 @@
     margin-top: 2px;
   }
   .tile-issues-badge {
-    position: absolute;
-    top: 10px; right: 10px;
+    order: 9;
+    flex: 0 0 auto;
+    margin-left: 2px;
     background: rgba(255,255,255,.7);
     color: var(--ink);
     font-size: 10px;
@@ -756,12 +774,13 @@
   }
   .footer a { color: var(--indigo); text-decoration: none; }
   /* ===== HUB ADDITIONS ===== */
-  .tabbar { display:flex; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:6px; margin-bottom:20px; box-shadow:var(--shadow); position:sticky; top:10px; z-index:60; flex-wrap:wrap; }
-  .tabbtn { flex:1; min-width:118px; border:0; background:transparent; color:var(--ink-2); font-weight:600; font-size:13px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .tabbar { display:flex; gap:2px; background:rgba(255,255,255,.86); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid var(--line); border-radius:12px; padding:7px; margin-bottom:20px; box-shadow:var(--shadow); position:sticky; top:10px; z-index:60; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+  .tabbar::-webkit-scrollbar { display:none; }
+  .tabbtn { flex:none; border:0; background:transparent; color:var(--ink-2); font-weight:600; font-size:13px; padding:8px 14px; border-radius:9px; cursor:pointer; transition:all .12s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; white-space:nowrap; }
   .tabbtn:hover { background:var(--surface-2); color:var(--ink); }
-  .tabbtn.active { background:var(--ink); color:#fff; }
-  .tabbtn .tb-badge { background:var(--red); color:#fff; font-size:10px; font-weight:700; padding:1px 7px; border-radius:8px; }
-  .tabbtn.active .tb-badge { background:rgba(255,255,255,.25); }
+  .tabbtn.active { background:var(--maki-orange-bg); color:var(--maki-orange); }
+  .tabbtn .tb-badge { background:var(--red); color:#fff; font-size:10.5px; font-weight:800; min-width:18px; padding:1px 5px; border-radius:999px; display:grid; place-items:center; }
+  .tabbtn.active .tb-badge { background:var(--maki-orange); color:#fff; }
   .tabpanel { display:none; animation:fade .2s ease-out; }
   .tabpanel.active { display:block; }
   @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
@@ -821,13 +840,13 @@
   .rm-body li { margin-bottom:3px; }
 
   /* ============ MAKI BRAND ACCENTS ============ */
-  /* Active tab underline */
-  .tabbtn { transition: 0.15s ease; position: relative; }
+  /* Segmented-pill tab bar (restyle v2): active = orange tint pill */
+  .tabbtn { transition: 0.12s ease; position: relative; }
   .tabbtn.active {
-    background: transparent;
-    color: var(--maki-ink);
-    box-shadow: inset 0 -3px 0 var(--maki-orange);
-    border-radius: 6px;
+    background: var(--maki-orange-bg);
+    color: var(--maki-orange);
+    box-shadow: none;
+    border-radius: 9px;
   }
   .tabbtn.active .tb-badge { background: var(--maki-orange); color: #fff; }
   .tabbtn:hover { background: var(--maki-orange-bg); color: var(--maki-ink); }
@@ -867,6 +886,93 @@
     background: var(--maki-orange);
     border-radius: 2px;
   }
+
+  /* ===== CLUSTER QUICK-NAV (restyle v2) — sticky under the tab bar ===== */
+  .cluster-nav {
+    position: sticky;
+    top: 64px;
+    z-index: 55;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cluster-nav::-webkit-scrollbar { display: none; }
+  .cluster-nav .cn-label {
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink-3); white-space: nowrap; flex: none;
+  }
+  .cn-pill {
+    flex: none; display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 6px 11px; cursor: pointer; transition: .12s;
+  }
+  .cn-pill:hover { border-color: var(--ink-3); }
+  .cn-pill.active { background: var(--maki-ink); border-color: var(--maki-ink); }
+  .cn-pill.active .cn-name, .cn-pill.active .cn-count { color: #fff; }
+  .cn-name { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .cn-count { font-size: 11px; font-weight: 700; color: var(--ink-3); }
+  .cn-rag { display: flex; gap: 3px; align-items: center; }
+  .cn-rag b { font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 6px; line-height: 1.4; }
+  .cn-rag .r { color: var(--red); background: var(--red-bg); }
+  .cn-rag .a { color: var(--amber); background: var(--amber-bg); }
+  .cn-rag .g { color: var(--green); background: var(--green-bg); }
+
+  /* ===== CLUSTER GROUP BLOCK (grouped heat map) ===== */
+  .cluster-group { margin-top: 16px; scroll-margin-top: 130px; }
+  .cluster-group:first-child { margin-top: 0; }
+  .cg-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 11px; margin-bottom: 10px;
+  }
+  .cg-accent { width: 4px; height: 26px; border-radius: 2px; background: var(--maki-orange); flex: none; }
+  .cg-name { font-weight: 800; font-size: 13.5px; }
+  .cg-am { font-size: 11px; color: var(--ink-3); font-weight: 600; }
+  .cg-summary { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+  .cg-summary b { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 7px; }
+  .cg-summary .r { color: var(--red); background: var(--red-bg); }
+  .cg-summary .a { color: var(--amber); background: var(--amber-bg); }
+  .cg-summary .g { color: var(--green); background: var(--green-bg); }
+  .cg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  /* ===== MOBILE RESPONSIVE (restyle v2) ===== */
+  @media (max-width: 720px) {
+    .wrap { padding: 16px; }
+    .cluster-nav { top: 60px; }
+    .cluster-group { scroll-margin-top: 124px; }
+    .wow-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero { flex-direction: column; align-items: stretch; gap: 13px; }
+    .hero-stats { margin: 0; justify-content: space-between; }
+    .hero-stats .stat { flex: 1; min-width: 0; }
+    .heatmap, .cg-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .maki-brand-bar { padding: 10px 14px; }
+    .week-toggle-bar { width: 100%; margin-left: 0; }
+    .week-select { flex: 1; }
+    .hero h1 { font-size: 17px; }
+    .hero-stats .stat .stat-label { font-size: 8.5px; }
+  }
+  @media (max-width: 400px) {
+    .heatmap, .cg-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -882,19 +988,19 @@
   </div>
   <span class="maki-brand-kanji" aria-hidden="true">寿司とラーメン</span>
   <span class="maki-brand-chip" id="maki-brand-chip">v1.0 &middot; AM</span>
+  <div class="week-toggle-bar" role="tablist" aria-label="Week selector">
+    <label class="week-toggle-label" for="week-select">Week</label>
+    <select id="week-select" class="week-select">
+      <option value="2026-06-08" selected>8–14 June 2026</option>
+      <option value="2026-06-01">1–7 June 2026</option>
+      <option value="2026-05-25">25–31 May 2026</option>
+      <option value="2026-05-18">18–24 May 2026</option>
+      <option value="2026-05-11">11–17 May 2026</option>
+      <option value="2026-05-04">4–10 May 2026</option>
+    </select>
+    <span id="week-past-badge" class="week-past-badge" style="display:none;">Past week</span>
+  </div>
 </header>
-<div class="week-toggle-bar" role="tablist" aria-label="Week selector">
-  <label class="week-toggle-label" for="week-select">Week:</label>
-  <select id="week-select" class="week-select">
-    <option value="2026-06-08" selected>8–14 June 2026</option>
-    <option value="2026-06-01">1–7 June 2026</option>
-    <option value="2026-05-25">25–31 May 2026</option>
-    <option value="2026-05-18">18–24 May 2026</option>
-    <option value="2026-05-11">11–17 May 2026</option>
-    <option value="2026-05-04">4–10 May 2026</option>
-  </select>
-  <span id="week-past-badge" class="week-past-badge" style="display:none;">Past week</span>
-</div>
 <div class="wrap">
   <nav class="tabbar">
     <button class="tabbtn" data-tab="daily">Daily</button>
@@ -952,19 +1058,22 @@
   <!-- ============ TAB: THIS WEEK ============ -->
   <div class="tabpanel active" id="tab-week">
 
+  <!-- CLUSTER QUICK-NAV (sticky under tab bar; built dynamically from SITES) -->
+  <div class="cluster-nav" id="cluster-nav" aria-label="Cluster quick-navigation"></div>
+
   <!-- HERO -->
   <div class="hero">
     <div class="hero-inner">
       <div class="eyebrow">AM Weekly Control Centre</div>
       <h1 id="hero-week-h1">Week of 8–14 June 2026</h1>
       <div class="hero-sub">17 site KPI Report docs + England & EDI/NEW KPI meetings (16 Jun) · 3 clusters · Sourced from the weekly KPI Report folder · refreshed 17 Jun 2026</div>
-      <div class="hero-stats">
-        <div class="stat"><div class="stat-num">17</div><div class="stat-label">Sites Reporting</div></div>
-        <div class="stat red"><div class="stat-num" id="stat-red">1</div><div class="stat-label">Red</div></div>
-        <div class="stat amber"><div class="stat-num" id="stat-amber">10</div><div class="stat-label">Amber</div></div>
-        <div class="stat green"><div class="stat-num" id="stat-green">6</div><div class="stat-label">Green</div></div>
-        <div class="stat"><div class="stat-num" id="stat-issues">52</div><div class="stat-label">Open Issues</div></div>
-      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">17</div><div class="stat-label">Sites</div></div>
+      <div class="stat red"><div class="stat-num" id="stat-red">1</div><div class="stat-label">Red</div></div>
+      <div class="stat amber"><div class="stat-num" id="stat-amber">10</div><div class="stat-label">Amber</div></div>
+      <div class="stat green"><div class="stat-num" id="stat-green">6</div><div class="stat-label">Green</div></div>
+      <div class="stat"><div class="stat-num" id="stat-issues">52</div><div class="stat-label">Open</div></div>
     </div>
   </div>
 
@@ -990,6 +1099,7 @@
   </div>
   <style>
     .wow-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:8px 0 24px; }
+    @media (max-width:720px){ .wow-grid { grid-template-columns:1fr; } }
     .wow-col { background:var(--surface, #fff); border:1px solid var(--border, #e5e7eb); border-radius:10px; padding:14px 16px; }
     .wow-col-head { font-size:11px; font-weight:700; color:var(--ink-3, #6b7280); text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px; }
     .wow-section { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
@@ -2257,7 +2367,7 @@ const THEMES = [
     "severity": "warn",
     "icon": "ℹ",
     "title": "Input gaps this week — read sales with care",
-    "body": "w/e 14 Jun: Covers/SPH WoW now sourced from this week's site KPI reports (some sites n/a). Food variance unavailable for all sites (2026 stocktake sheet not updated). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept. Deliveroo RAG w/c 08/06 provisional.",
+    "body": "w/e 14 Jun: Covers/SPH WoW now sourced from this week's site KPI reports (some sites n/a). Food/drinks variance now pulls from the stocktake feed for 14/17 sites — N/A only at M6, M8 and Maki Nori (no stocktake submitted). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept. Deliveroo RAG w/c 08/06 provisional.",
     "sites": [
       "M1/2",
       "M6",
@@ -2306,26 +2416,14 @@ const THEMES = [
     ]
   },
   {
-    "severity": "critical",
+    "severity": "warn",
     "icon": "∅",
-    "title": "Food variance unavailable for all sites w/e 14 Jun",
-    "body": "The central Stocktake Variance sheet has not been updated for 2026, so foodVar is null for every site this week (score skips foodVar). Food-cost % itself did pull for 16/17 (Maki Nori 6.48% rejected as a partial entry; IKI2 food % not tracked — prior 23.72% retained). Restore the 2026 stocktake sheet to reinstate variance scoring.",
+    "title": "Food/drinks variance live — N/A only at M6, M8, Maki Nori",
+    "body": "Stocktake variance now feeds the dashboard for 14/17 sites and is back in the efficiency score (foodVar 10%). Three sites have no stocktake submitted this week — M6, M8, Maki Nori — so they show N/A. Food-cost % pulled for 16/17 (Maki Nori 6.48% rejected as a partial entry; IKI2 food % not tracked — prior 23.72% retained). Chase the three missing stocktakes to complete coverage.",
     "sites": [
-      "M1/2",
-      "M3",
       "M6",
-      "M7",
       "M8",
-      "M10",
-      "M11",
-      "M12",
-      "M13",
-      "M14",
-      "M15",
-      "M16",
-      "M17",
-      "M18",
-      "IKI2"
+      "Maki Nori"
     ]
   },
   {
@@ -3155,15 +3253,17 @@ function efficiencyRag(score) {
   return 'red';
 }
 function salesRag(v) {
+  // Covers vs target: green at/above target, amber within 5% below target,
+  // bright (deep) red for anything more than 5% below target.
   if (v >= 0) return 'green';
-  if (v >= -25) return 'amber';
-  return 'red';
+  if (v >= -5) return 'amber';
+  return 'deep-red';
 }
 function combinedRag(s) {
   const m = METRICS[s.code] || {};
   const rags = [salesRag(s.vsTarget), wageRag(m.wage), foodRag(m.food), foodVarRag(m.foodVar)];
   const real = rags.filter(r => r !== 'na');
-  if (real.some(r => r === 'red')) return 'red';
+  if (real.some(r => r === 'red' || r === 'deep-red')) return 'red';
   if (real.some(r => r === 'amber')) return 'amber';
   if (real.length === 0) return 'na';
   return 'green';
@@ -3236,42 +3336,51 @@ function metricValueFor(s, metric) {
   return { value: green + '/' + real, label: 'KPIs on target', arrow: '' };
 }
 
-function renderHeatmap(filter = 'all') {
-  const wrap = document.getElementById('heatmap');
-  const sites = SITES.filter(s => {
-    if (filter === 'all') return true;
-    if (['red','amber','green'].includes(filter)) {
-      const r = metricRagFor(s, activeMetric);
-      const norm = r === 'deep-red' ? 'red' : r;
-      return norm === filter;
-    }
-    return s.cluster === filter;
-  });
+// Shared cluster definitions (id order = render order) — keep in sync with renderClusters().
+const CLUSTER_DEFS = [
+  { id: 'scotland', name: 'Scotland & Newcastle', am: 'Ka Ho · DAM Óisín Patrick Darragh' },
+  { id: 'north',    name: 'North England & Midlands', am: 'Inka Cheung · DAM Amy Tang' },
+  { id: 'south',    name: 'South England', am: 'Lincoln (Ziang) · DAM Kaitlin Dorcherty' }
+];
 
-  // Sort by current metric (worst first)
-  sites.sort((a,b) => {
-    const ma = METRICS[a.code] || {};
-    const mb = METRICS[b.code] || {};
-    if (activeMetric === 'wage') return (mb.wage ?? -1) - (ma.wage ?? -1);
-    if (activeMetric === 'food') return Math.abs(mb.food ?? 0) - Math.abs(ma.food ?? 0);
-    if (activeMetric === 'combined') {
-      const order = { red: 0, amber: 1, green: 2, na: 3 };
-      return order[combinedRag(a)] - order[combinedRag(b)];
-    }
-    return a.vsTarget - b.vsTarget;
-  });
+// Single source of truth for a tile's RAG bucket under the active metric.
+// Returns 'red' | 'amber' | 'green' so nav counts and tiles always agree.
+function tileRagBucket(s) {
+  const rag = metricRagFor(s, activeMetric);
+  if (rag === 'deep-red') return 'red';
+  if (rag === 'na') return 'amber';
+  return rag;
+}
 
-  wrap.innerHTML = sites.map(s => {
-    const issuesCount = s.issues.length;
-    const rag = metricRagFor(s, activeMetric);
-    const tileClass = rag === 'na' ? 'amber' : rag;
-    const v = metricValueFor(s, activeMetric);
-    const deltaCls = rag === 'deep-red' ? 'red' : (rag === 'na' ? '' : rag);
-    const m = METRICS[s.code] || {};
-    const wageTxt = m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%';
-    const foodTxt = m.food == null ? 'N/A' : m.food.toFixed(1) + '%';
-    const salesTxt = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(0) + '%';
-    return `
+// Worst-first comparator under the active metric (shared by groups).
+function heatmapSort(a, b) {
+  const ma = METRICS[a.code] || {};
+  const mb = METRICS[b.code] || {};
+  if (activeMetric === 'wage') return (mb.wage ?? -1) - (ma.wage ?? -1);
+  if (activeMetric === 'food') return Math.abs(mb.food ?? 0) - Math.abs(ma.food ?? 0);
+  if (activeMetric === 'combined') {
+    const order = { red: 0, amber: 1, green: 2, na: 3 };
+    return order[combinedRag(a)] - order[combinedRag(b)];
+  }
+  return a.vsTarget - b.vsTarget;
+}
+
+function tileHTML(s) {
+  const issuesCount = s.issues.length;
+  const rag = metricRagFor(s, activeMetric);
+  const tileClass = rag === 'na' ? 'amber' : rag;
+  const v = metricValueFor(s, activeMetric);
+  const deltaCls = rag === 'deep-red' ? 'red' : (rag === 'na' ? '' : rag);
+  const m = METRICS[s.code] || {};
+  const wageTxt = m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%';
+  const foodTxt = m.food == null ? 'N/A' : m.food.toFixed(1) + '%';
+  const salesTxt = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(0) + '%';
+  const fvCls = varBandClass(m.foodVar);
+  const dvCls = varBandClass(m.drinksVar);
+  const fvTxt = fmtVar(m.foodVar);
+  const dvTxt = fmtVar(m.drinksVar);
+  const vClass = c => c === 'na' ? 'na' : (c === 'green' ? 'good' : 'bad');
+  return `
       <div class="tile ${tileClass}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="tile-issues-badge">${issuesCount}</div>
         <div>
@@ -3286,9 +3395,104 @@ function renderHeatmap(filter = 'all') {
           <div class="tile-metric ${salesRag(s.vsTarget) === 'green' ? 'good' : (salesRag(s.vsTarget) === 'amber' ? 'warn' : 'bad')}">S<br>${salesTxt}</div>
           <div class="tile-metric ${wageRag(m.wage) === 'na' ? 'na' : (wageRag(m.wage) === 'green' ? 'good' : (wageRag(m.wage) === 'amber' ? 'warn' : 'bad'))}">W<br>${wageTxt}</div>
           <div class="tile-metric ${foodRag(m.food) === 'na' ? 'na' : (foodRag(m.food) === 'green' ? 'good' : (foodRag(m.food) === 'amber' ? 'warn' : 'bad'))}">F<br>${foodTxt}</div>
+          <div class="tile-metric ${vClass(fvCls)}">FV<br>${fvTxt}</div>
+          <div class="tile-metric ${vClass(dvCls)}">DV<br>${dvTxt}</div>
         </div>
       </div>`;
-  }).join('');
+}
+
+function renderHeatmap(filter = 'all') {
+  const wrap = document.getElementById('heatmap');
+  if (!wrap) return;
+  const isRag = ['red','amber','green'].includes(filter);
+
+  // Cluster render order: known clusters first, then any "other" cluster present in data.
+  const knownIds = CLUSTER_DEFS.map(c => c.id);
+  const otherIds = [...new Set(SITES.map(s => s.cluster).filter(c => c && !knownIds.includes(c)))];
+  const groupDefs = [
+    ...CLUSTER_DEFS,
+    ...otherIds.map(id => ({ id, name: (SITES.find(s => s.cluster === id) || {}).clusterName || 'Other', am: '' }))
+  ];
+
+  let html = '';
+  groupDefs.forEach(c => {
+    // Cluster filter: only that group renders.
+    if (!isRag && filter !== 'all' && filter !== c.id) return;
+
+    let groupSites = SITES.filter(s => s.cluster === c.id);
+    // RAG filter: drop non-matching tiles (and, below, empty groups).
+    if (isRag) groupSites = groupSites.filter(s => tileRagBucket(s) === filter);
+    if (!groupSites.length) return;
+
+    groupSites.sort(heatmapSort);
+
+    let r = 0, a = 0, g = 0;
+    groupSites.forEach(s => { const b = tileRagBucket(s); if (b === 'red') r++; else if (b === 'amber') a++; else g++; });
+    const summary = [
+      r ? `<b class="r">${r} red</b>` : '',
+      a ? `<b class="a">${a} amber</b>` : '',
+      g ? `<b class="g">${g} green</b>` : ''
+    ].join('');
+
+    html += `
+      <div class="cluster-group" id="cg-${c.id}">
+        <div class="cg-head">
+          <span class="cg-accent"></span>
+          <div>
+            <div class="cg-name">${c.name}</div>
+            <div class="cg-am">${c.am ? c.am + ' · ' : ''}${groupSites.length} site${groupSites.length === 1 ? '' : 's'}</div>
+          </div>
+          <div class="cg-summary">${summary}</div>
+        </div>
+        <div class="cg-grid">${groupSites.map(tileHTML).join('')}</div>
+      </div>`;
+  });
+
+  wrap.innerHTML = html;
+  if (typeof renderClusterNav === 'function') renderClusterNav();
+}
+
+// Build the sticky cluster quick-nav from SITES (counts + per-cluster RAG tallies).
+function renderClusterNav() {
+  const wrap = document.getElementById('cluster-nav');
+  if (!wrap) return;
+  const ragOf = (s) => tileRagBucket(s);
+
+  const pill = (id, name, sites) => {
+    let r = 0, a = 0, g = 0;
+    sites.forEach(s => { const b = ragOf(s); if (b === 'red') r++; else if (b === 'amber') a++; else g++; });
+    const active = (currentFilter === id) ? ' active' : '';
+    const rag = id === 'all' ? '' :
+      `<span class="cn-rag">${r ? `<b class="r">${r}</b>` : ''}${a ? `<b class="a">${a}</b>` : ''}${g ? `<b class="g">${g}</b>` : ''}</span>`;
+    return `<div class="cn-pill${active}" data-cluster="${id}" onclick="selectCluster('${id}')">
+      <span class="cn-name">${name}</span><span class="cn-count">${sites.length}</span>${rag}</div>`;
+  };
+
+  let html = '<span class="cn-label">Clusters</span>';
+  html += pill('all', 'All sites', SITES);
+  CLUSTER_DEFS.forEach(c => {
+    const sites = SITES.filter(s => s.cluster === c.id);
+    if (sites.length) html += pill(c.id, c.name, sites);
+  });
+  wrap.innerHTML = html;
+}
+
+// Cluster pill click → reuse the existing filter mechanism, sync chips, repaint, scroll.
+function selectCluster(id) {
+  currentFilter = id;
+  // Sync the matching .chip[data-filter] active state (mirrors RAG/cluster chips).
+  document.querySelectorAll('.filters .chip').forEach(x => {
+    x.classList.toggle('active', x.dataset.filter === id);
+  });
+  renderHeatmap(currentFilter);
+  // Smooth-scroll to the group (when a specific cluster is chosen).
+  if (id !== 'all') {
+    const target = document.getElementById('cg-' + id);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    const hm = document.getElementById('heatmap');
+    if (hm) hm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function renderScorecard() {
@@ -3530,8 +3734,8 @@ document.addEventListener('keydown', e => {
 
 // Compute stats
 const stats = SITES.reduce((acc, s) => {
-  if (s.rag === 'deep-red' || s.vsTarget < -25) acc.red++;
-  else if (s.vsTarget < 0) acc.amber++;
+  if (s.rag === 'deep-red' || s.rag === 'red' || s.vsTarget < -5) acc.red++;
+  else if (s.rag === 'amber' || s.vsTarget < 0) acc.amber++;
   else acc.green++;
   acc.issues += s.issues.length;
   return acc;
@@ -3922,7 +4126,7 @@ function repaintAll(){
   // Header stat counters
   try {
     const stats = SITES.reduce((acc, s) => {
-      if (s.rag === 'deep-red' || s.rag === 'red' || s.vsTarget < -25) acc.red++;
+      if (s.rag === 'deep-red' || s.rag === 'red' || s.vsTarget < -5) acc.red++;
       else if (s.rag === 'amber' || s.vsTarget < 0) acc.amber++;
       else acc.green++;
       acc.issues += (s.issues || []).length;
