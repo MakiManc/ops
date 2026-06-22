@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-19",
+  "generated_at": "2026-06-22",
   "week": {
     "label": "Week of 2026-06-08 \u2013 2026-06-14",
     "commencing": "2026-06-08",
@@ -17,11 +17,11 @@
       "kpis": {
         "sales": {
           "actual": 22530.89,
-          "target": 23400,
+          "target": 23400.0,
           "var_pct": -3.71,
-          "prev": 20155.79,
-          "wow_abs": 2375.1,
-          "wow_pct": 11.78
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 716,
@@ -49,7 +49,7 @@
           "actual": 300.7
         },
         "waste": {
-          "actual": null
+          "actual": 5.75
         }
       },
       "stock_take": {
@@ -127,7 +127,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -153,6 +153,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 6350.18,
         "orders": 209,
         "aov": 30.38,
@@ -188,11 +190,11 @@
       "kpis": {
         "sales": {
           "actual": 34773.21,
-          "target": 34650,
+          "target": 34650.0,
           "var_pct": 0.36,
-          "prev": 37621.39,
-          "wow_abs": -2848.18,
-          "wow_pct": -7.57
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1014,
@@ -208,19 +210,19 @@
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 23,
+          "actual": 23.0,
           "target": null
         },
         "food_pct": {
-          "actual": 25.44,
+          "actual": 26.19,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 546.5
         },
         "waste": {
-          "actual": 39.09
+          "actual": 209.24
         }
       },
       "stock_take": {
@@ -237,7 +239,7 @@
         "week_commencing": "2026-06-08"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 85,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -255,12 +257,12 @@
           },
           "food": {
             "weight": 30,
-            "value": 96.48,
-            "basis": "25.44% vs 25% baseline, -8/pp over"
+            "value": 90.48,
+            "basis": "26.19% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
-            "value": 70,
+            "value": 70.0,
             "basis": "23.00% vs 21% target, -15/pp over"
           },
           "weekly_star": {
@@ -280,7 +282,7 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "food 25.4%"
+          "food 26.2%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -300,7 +302,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -340,6 +342,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 10563.14,
         "orders": 318,
         "aov": 33.22,
@@ -361,9 +365,7 @@
         "gmv_vs_ly_pct": -3.7,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M6": {
       "code": "M6",
@@ -375,11 +377,11 @@
       "kpis": {
         "sales": {
           "actual": 22158.57,
-          "target": 24900,
+          "target": 24900.0,
           "var_pct": -11.01,
-          "prev": 22522.93,
-          "wow_abs": -364.36,
-          "wow_pct": -1.62
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 856,
@@ -399,7 +401,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 20.38,
+          "actual": 22.95,
           "target": 23.0,
           "gated": true
         },
@@ -443,7 +445,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "20.38% vs 25% baseline, -8/pp over"
+            "basis": "22.95% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -492,7 +494,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -518,6 +520,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 3454.69,
         "orders": 123,
         "aov": 28.09,
@@ -554,11 +558,11 @@
       "kpis": {
         "sales": {
           "actual": 56955.95,
-          "target": 60000,
+          "target": 60000.0,
           "var_pct": -5.07,
-          "prev": 60021.66,
-          "wow_abs": -3065.71,
-          "wow_pct": -5.11
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 2732,
@@ -664,7 +668,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -721,11 +725,11 @@
       "kpis": {
         "sales": {
           "actual": 39764.2,
-          "target": 42750,
+          "target": 42750.0,
           "var_pct": -6.98,
-          "prev": 43970.26,
-          "wow_abs": -4206.06,
-          "wow_pct": -9.57
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1495,
@@ -750,7 +754,7 @@
           "gated": true
         },
         "labour_hours": {
-          "actual": 670.3
+          "actual": 670.25
         },
         "waste": {
           "actual": 188.23
@@ -828,7 +832,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -868,6 +872,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 3825.52,
         "orders": 119,
         "aov": 32.15,
@@ -904,11 +910,11 @@
       "kpis": {
         "sales": {
           "actual": 18562.18,
-          "target": 21550,
+          "target": 21550.0,
           "var_pct": -13.86,
-          "prev": 20307.14,
-          "wow_abs": -1744.96,
-          "wow_pct": -8.59
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 795,
@@ -933,7 +939,7 @@
           "gated": false
         },
         "labour_hours": {
-          "actual": 305
+          "actual": 305.0
         },
         "waste": {
           "actual": 17.77
@@ -1008,7 +1014,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -1041,6 +1047,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 1393.11,
         "orders": 49,
         "aov": 28.43,
@@ -1076,11 +1084,11 @@
       "kpis": {
         "sales": {
           "actual": 26437.62,
-          "target": 34650,
+          "target": 34650.0,
           "var_pct": -23.7,
-          "prev": 27831.94,
-          "wow_abs": -1394.32,
-          "wow_pct": -5.01
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 942,
@@ -1197,7 +1205,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -1227,10 +1235,35 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": true,
+        "sales": 4260.63,
+        "orders": 137,
+        "orders_estimated": true,
+        "aov": 31.1,
+        "new_customers": 58,
+        "rating": null,
+        "open_hours_pct": null,
+        "avg_prep_min": null,
+        "rejection_pct": null,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+      },
       "gaps": [
-        "Food % from 5/7 days reported \u2014 treat as provisional",
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Food % from 5/7 days reported \u2014 treat as provisional"
       ]
     },
     "M13": {
@@ -1243,11 +1276,11 @@
       "kpis": {
         "sales": {
           "actual": 37458.93,
-          "target": 43000,
+          "target": 43000.0,
           "var_pct": -12.89,
-          "prev": 41747.33,
-          "wow_abs": -4288.4,
-          "wow_pct": -10.27
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1453,
@@ -1352,7 +1385,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -1382,10 +1415,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": true,
+        "sales": 5467.68,
+        "orders": 182,
+        "orders_estimated": true,
+        "aov": 30.04,
+        "new_customers": 54,
+        "rating": null,
+        "open_hours_pct": null,
+        "avg_prep_min": null,
+        "rejection_pct": null,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+      },
+      "gaps": []
     },
     "M15": {
       "code": "M15",
@@ -1399,9 +1456,9 @@
           "actual": 58510.37,
           "target": 60637.5,
           "var_pct": -3.51,
-          "prev": 62770.13,
-          "wow_abs": -4259.76,
-          "wow_pct": -6.79
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 2572,
@@ -1504,7 +1561,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -1536,7 +1593,7 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     },
     "M9": {
@@ -1549,11 +1606,11 @@
       "kpis": {
         "sales": {
           "actual": 69450.99,
-          "target": 67500,
+          "target": 67500.0,
           "var_pct": 2.89,
-          "prev": 65145.03,
-          "wow_abs": 4305.96,
-          "wow_pct": 6.61
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 2604,
@@ -1573,7 +1630,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 18.87,
+          "actual": 22.85,
           "target": 23.0,
           "gated": true
         },
@@ -1581,7 +1638,7 @@
           "actual": 910.1
         },
         "waste": {
-          "actual": 52.26
+          "actual": 88.0
         }
       },
       "stock_take": {
@@ -1617,7 +1674,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "18.87% vs 25% baseline, -8/pp over"
+            "basis": "22.85% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1681,7 +1738,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -1699,6 +1756,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 7554.41,
         "orders": 263,
         "aov": 28.72,
@@ -1734,11 +1793,11 @@
       "kpis": {
         "sales": {
           "actual": 33280.52,
-          "target": 35343,
+          "target": 35343.0,
           "var_pct": -5.84,
-          "prev": 30076.89,
-          "wow_abs": 3203.63,
-          "wow_pct": 10.65
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1085,
@@ -1758,7 +1817,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 17.51,
+          "actual": 21.46,
           "target": 23.0,
           "gated": true
         },
@@ -1766,7 +1825,7 @@
           "actual": 479.2
         },
         "waste": {
-          "actual": null
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -1802,7 +1861,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "17.51% vs 25% baseline, -8/pp over"
+            "basis": "21.46% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1859,7 +1918,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -1892,6 +1951,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 6798.48,
         "orders": 270,
         "aov": 25.18,
@@ -1927,11 +1988,11 @@
       "kpis": {
         "sales": {
           "actual": 23320.72,
-          "target": 27000,
+          "target": 27000.0,
           "var_pct": -13.63,
-          "prev": 26626.19,
-          "wow_abs": -3305.47,
-          "wow_pct": -12.41
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 837,
@@ -2068,7 +2129,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -2098,10 +2159,35 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": true,
+        "sales": 4112.49,
+        "orders": 136,
+        "orders_estimated": true,
+        "aov": 30.24,
+        "new_customers": 51,
+        "rating": null,
+        "open_hours_pct": null,
+        "avg_prep_min": null,
+        "rejection_pct": null,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+      },
       "gaps": [
-        "Food % from 1/7 days reported \u2014 treat as provisional",
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Food % from 1/7 days reported \u2014 treat as provisional"
       ]
     },
     "M14": {
@@ -2114,11 +2200,11 @@
       "kpis": {
         "sales": {
           "actual": 39544.62,
-          "target": 43000,
+          "target": 43000.0,
           "var_pct": -8.04,
-          "prev": 44795.01,
-          "wow_abs": -5250.39,
-          "wow_pct": -11.72
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1818,
@@ -2221,7 +2307,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -2238,7 +2324,7 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     },
     "M16": {
@@ -2251,11 +2337,11 @@
       "kpis": {
         "sales": {
           "actual": 35912.73,
-          "target": 38000,
+          "target": 38000.0,
           "var_pct": -5.49,
-          "prev": 37310.56,
-          "wow_abs": -1397.83,
-          "wow_pct": -3.75
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1422,
@@ -2366,7 +2452,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -2381,10 +2467,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": true,
+        "sales": 4393.08,
+        "orders": 161,
+        "orders_estimated": true,
+        "aov": 27.29,
+        "new_customers": 78,
+        "rating": null,
+        "open_hours_pct": null,
+        "avg_prep_min": null,
+        "rejection_pct": null,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+      },
+      "gaps": []
     },
     "M17": {
       "code": "M17",
@@ -2396,11 +2506,11 @@
       "kpis": {
         "sales": {
           "actual": 26935.07,
-          "target": 38000,
+          "target": 38000.0,
           "var_pct": -29.12,
-          "prev": 31350.54,
-          "wow_abs": -4415.47,
-          "wow_pct": -14.08
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1074,
@@ -2527,7 +2637,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -2544,7 +2654,7 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     },
     "M18": {
@@ -2557,11 +2667,11 @@
       "kpis": {
         "sales": {
           "actual": 37422.17,
-          "target": 32000,
+          "target": 32000.0,
           "var_pct": 16.94,
-          "prev": 37397.28,
-          "wow_abs": 24.89,
-          "wow_pct": 0.07
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1794,
@@ -2679,7 +2789,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -2696,7 +2806,7 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     },
     "MakiNori": {
@@ -2709,11 +2819,11 @@
       "kpis": {
         "sales": {
           "actual": 23942.46,
-          "target": 0,
+          "target": null,
           "var_pct": null,
-          "prev": 28895.89,
-          "wow_abs": -4953.43,
-          "wow_pct": -17.14
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 647,
@@ -2839,7 +2949,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -2857,7 +2967,7 @@
       "deliveroo": null,
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     }
   }
