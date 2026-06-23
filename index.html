@@ -1289,7 +1289,7 @@
       <h2>Deliveroo RAG</h2>
       <p>5-metric greens roll-up from the raw Deliveroo ops report. Informational only — site rag / Red Light status decisions stay with Lincoln.</p>
     </div>
-    <div class="section-head"><h2>Deliveroo RAG — w/c 08/06 (PROVISIONAL)</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report</div></div>
+    <div class="section-head"><h2 id="deliveroo-section-week">Deliveroo RAG</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report</div></div>
     <div id="rl-deliveroo"></div>
   </div><!-- /tab-deliveroo -->
 
@@ -3920,6 +3920,10 @@ function renderDeliverooRag(){
     const sel = document.getElementById('week-select');
     if (sel && sel.options[sel.selectedIndex]) wkLabel = sel.options[sel.selectedIndex].text;
   }
+
+  // Keep the static section heading in sync with the selected week.
+  const _sh = document.getElementById('deliveroo-section-week');
+  if (_sh) _sh.textContent = wkLabel ? ('Deliveroo RAG — ' + wkLabel) : 'Deliveroo RAG';
 
   // Canonical 5-metric thresholds. null => 'missing' (NOT red; but blocks GREEN).
   const band = (v, g, a, higherBetter) => {
