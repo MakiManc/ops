@@ -42,9 +42,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 25.16,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 837.6
@@ -83,6 +83,11 @@
             "value": 96.27,
             "basis": "70% (100-3.51) + 30% (\u00a3gap -2127 vs \u00b1\u00a350k cal)"
           },
+          "food": {
+            "weight": 30,
+            "value": 98.72,
+            "basis": "25.16% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 100.0,
@@ -99,14 +104,14 @@
             "basis": "-4.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 25.2%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {

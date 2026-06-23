@@ -42,9 +42,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": 10.8,
+          "actual": 26.87,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 355.9
@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-08"
       },
       "efficiency_score": {
-        "score": 92,
+        "score": 88,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -85,8 +85,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "10.80% vs 25% baseline, -8/pp over"
+            "value": 85.04,
+            "basis": "26.87% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -110,7 +110,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -13.6% vs target"
+          "sales -13.6% vs target",
+          "food 26.9%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -217,9 +218,7 @@
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.9
       },
-      "gaps": [
-        "Food % from 1/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     }
   }
 }
