@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-19",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-08 \u2013 2026-06-14",
@@ -18,11 +18,11 @@
       "kpis": {
         "sales": {
           "actual": 22530.89,
-          "target": 23400,
+          "target": 23400.0,
           "var_pct": -3.71,
-          "prev": 20155.79,
-          "wow_abs": 2375.1,
-          "wow_pct": 11.78
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 716,
@@ -50,7 +50,7 @@
           "actual": 300.7
         },
         "waste": {
-          "actual": null
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -128,7 +128,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -154,6 +154,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 6350.18,
         "orders": 209,
         "aov": 30.38,
@@ -161,8 +163,8 @@
         "rating": 4.95,
         "open_hours_pct": 99.9,
         "avg_prep_min": 10.7,
-        "rejection_pct": 0,
-        "inaccuracy_pct": 0,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
         "rider_wait_5min_pct": 0.5,
         "conversion_pct": 10.1,
         "wow": {
@@ -173,7 +175,8 @@
         },
         "gmv_vs_4wk_pct": 7.6,
         "gmv_vs_ly_pct": -12.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": [
         "Food % from 6/7 days reported \u2014 treat as provisional"

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-19",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-08 \u2013 2026-06-14",
@@ -18,11 +18,11 @@
       "kpis": {
         "sales": {
           "actual": 69450.99,
-          "target": 67500,
+          "target": 67500.0,
           "var_pct": 2.89,
-          "prev": 65145.03,
-          "wow_abs": 4305.96,
-          "wow_pct": 6.61
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 2604,
@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 18.87,
+          "actual": 22.85,
           "target": 23.0,
           "gated": true
         },
@@ -50,7 +50,7 @@
           "actual": 910.1
         },
         "waste": {
-          "actual": 52.26
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -86,7 +86,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "18.87% vs 25% baseline, -8/pp over"
+            "basis": "22.85% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -150,7 +150,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -168,6 +168,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 7554.41,
         "orders": 263,
         "aov": 28.72,
@@ -175,7 +177,7 @@
         "rating": 4.85,
         "open_hours_pct": 99.9,
         "avg_prep_min": 13.7,
-        "rejection_pct": 0,
+        "rejection_pct": 0.0,
         "inaccuracy_pct": 1.5,
         "rider_wait_5min_pct": 1.1,
         "conversion_pct": 8.5,
@@ -187,7 +189,8 @@
         },
         "gmv_vs_4wk_pct": 0.6,
         "gmv_vs_ly_pct": 34.3,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": [
         "Food % from 6/7 days reported \u2014 treat as provisional"

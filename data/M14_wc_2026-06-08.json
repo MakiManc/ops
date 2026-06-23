@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-19",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-08 \u2013 2026-06-14",
@@ -18,11 +18,11 @@
       "kpis": {
         "sales": {
           "actual": 39544.62,
-          "target": 43000,
+          "target": 43000.0,
           "var_pct": -8.04,
-          "prev": 44795.01,
-          "wow_abs": -5250.39,
-          "wow_pct": -11.72
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1818,
@@ -50,7 +50,7 @@
           "actual": 582.3
         },
         "waste": {
-          "actual": 9.7
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -125,7 +125,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -140,10 +140,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 4.67,
+        "open_hours_pct": 99.8,
+        "avg_prep_min": 18.2,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.5,
+        "rider_wait_5min_pct": 2.5,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
     }
   }
 }
