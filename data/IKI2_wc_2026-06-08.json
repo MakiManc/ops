@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-19",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-08 \u2013 2026-06-14",
@@ -18,11 +18,11 @@
       "kpis": {
         "sales": {
           "actual": 18562.18,
-          "target": 21550,
+          "target": 21550.0,
           "var_pct": -13.86,
-          "prev": 20307.14,
-          "wow_abs": -1744.96,
-          "wow_pct": -8.59
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 795,
@@ -47,10 +47,10 @@
           "gated": false
         },
         "labour_hours": {
-          "actual": 305
+          "actual": 305.0
         },
         "waste": {
-          "actual": 17.77
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -122,7 +122,7 @@
         "venue_review_count": null,
         "response_rate": null,
         "response_rate_note": "No automated source \u2014 left open.",
-        "source": "Reviews sheet 1aFGfbGr... gid 284143046 (weekly per-site tab) + Negative Review Tracker gid 60786975 (full comment text). Cumulative venue rating not in sheet (null)."
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-08.json (AGMM Task List Status). Open items only.",
@@ -155,6 +155,8 @@
       "deliveroo": {
         "store": null,
         "week_ending": "2026-06-14",
+        "resolution": "weekly",
+        "partial": false,
         "sales": 1393.11,
         "orders": 49,
         "aov": 28.43,
