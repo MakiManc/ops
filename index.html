@@ -1255,8 +1255,9 @@
   <!-- MEETING RISK BOARD (rendered from MEETING_RISK — replace that one object on weekly refresh) -->
   <div class="section-head" style="margin-top:28px;">
     <div>
-      <h2>Meeting Risk Board — w/c 09/06</h2>
+      <h2 id="meeting-risk-heading">Meeting Risk Board</h2>
       <div class="hint">Per-site resolved vs open from this week's AM meeting notes · open items carry to next meetings</div>
+      <span class="frozen-caption freeze-target" data-freeze="meetingrisk" style="display:none;">Frozen — weekly archive starts 2026-06-12. Showing current week.</span>
     </div>
   </div>
   <div id="meeting-risk-board"></div>
@@ -2367,7 +2368,7 @@ const THEMES = [
     "severity": "warn",
     "icon": "ℹ",
     "title": "Input gaps this week — read sales with care",
-    "body": "w/e 14 Jun: Covers/SPH WoW now sourced from this week's site KPI reports (some sites n/a). Food/drinks variance now pulls from the stocktake feed for 14/17 sites — N/A only at M6, M8 and Maki Nori (no stocktake submitted). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept. Deliveroo RAG w/c 08/06 provisional.",
+    "body": "w/e 14 Jun: Covers/SPH WoW now sourced from this week's site KPI reports (some sites n/a). Food/drinks variance now pulls from the stocktake feed for 14/17 sites — N/A only at M6, M8 and Maki Nori (no stocktake submitted). No-target sites this week: M1/2, M6, M13 (vs-target % carried, flagged). Maki Nori food 6.48% implausible — prior 19.64% kept. IKI2 food % not tracked — prior 23.72% kept.",
     "sites": [
       "M1/2",
       "M6",
@@ -3908,8 +3909,134 @@ function renderRoadmap(){
 /* No longer a baked object. renderDeliverooRag() now derives the RAG live from
    each site's `deliveroo` ops block (overlaid by adaptSite from the weekly JSON),
    using the canonical 5-metric thresholds. INFORMATIONAL ONLY — does not drive any
-   site's stored rag / Red Light status. Re-runs inside repaintAll() on week change. */
-function renderDeliverooRag(){
+   site's stored rag / Red Light status. Re-runs inside repaintAll() on week change.
+
+   AUTO-FALLBACK: when the ACTIVE week has no Deliveroo ops rows (e.g. the
+   stock-take feed has advanced the default week to one whose Deliveroo Weekly
+   Summary hasn't been published yet), renderDeliverooRag() transparently shows
+   the latest PRIOR week that DOES have ops — with a caption — instead of an
+   empty card. This affects ONLY the Deliveroo tab content; the global week
+   selector and every other tab stay on the active week. */
+
+// --- Shared Deliveroo RAG primitives (used by both the active-week path and the
+//     fallback path so the row-rendering logic lives in one place). ---------------
+// Canonical 5-metric thresholds. null => 'missing' (NOT red; but blocks GREEN).
+const DELIV_METRIC_DEFS = [
+  // [jsonField, shortLabel, greenTh, amberTh, higherBetter]
+  ['rating',              'rating', 4.7, 4.0, true ],
+  ['open_hours_pct',      'open',   98,  95,  true ],
+  ['avg_prep_min',        'prep',   15,  18,  false],
+  ['inaccuracy_pct',      'inacc',  2,   3,   false],
+  ['rider_wait_5min_pct', 'rider',  2,   4,   false],
+];
+function _delivBand(v, g, a, higherBetter){
+  if (v == null) return 'missing';
+  if (higherBetter) return v >= g ? 'green' : (v >= a ? 'amber' : 'red');
+  return v <= g ? 'green' : (v <= a ? 'amber' : 'red');
+}
+function _delivRollup(d){
+  const bands = DELIV_METRIC_DEFS.map(m => _delivBand(d[m[0]], m[2], m[3], m[4]));
+  let rag;
+  if (bands.includes('red')) rag = 'red';
+  else if (bands.every(b => b === 'green')) rag = 'green';
+  else rag = 'amber';
+  const pick = (k) => DELIV_METRIC_DEFS.filter((_, i) => bands[i] === k).map(m => m[1]);
+  const reds = pick('red'), ambers = pick('amber'), missing = pick('missing');
+  const parts = [];
+  if (reds.length)    parts.push('red: '     + reds.join(' · '));
+  if (ambers.length)  parts.push('amber: '   + ambers.join(' · '));
+  if (missing.length) parts.push('missing: ' + missing.join(' · '));
+  return { rag, drivers: parts.length ? parts.join('  |  ') : '5-metric greens' };
+}
+// Ops sites = those carrying the Weekly Summary ops-table overlay (source marker),
+// NOT sites that merely have rating/open from the sales-consolidation pipe (e.g. IKI2).
+const DELIV_OPS_SRC_RE = /ops from Weekly Summary|Weekly Summary sheet \(ops table\)/;
+function _delivHasOps(d){
+  return !!d && typeof d.source === 'string' && DELIV_OPS_SRC_RE.test(d.source)
+         && DELIV_METRIC_DEFS.some(m => d[m[0]] != null);
+}
+// Build sorted RAG rows from an array of {code, name, deliveroo} entries.
+function _delivBuildRows(siteEntries){
+  const rows = siteEntries
+    .filter(s => _delivHasOps(s.deliveroo))
+    .map(s => { const r = _delivRollup(s.deliveroo); return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers }; });
+  const order = { red:0, amber:1, green:2 };
+  rows.sort((a, b) => order[a.rag] - order[b.rag] || a.code.localeCompare(b.code, undefined, { numeric:true }));
+  return rows;
+}
+// Paint the RAG heatmap + summary into `host`. `wkLabel` heads the banner.
+// `fallbackNote` (optional HTML string) is prepended above the banner when the
+// shown week is NOT the active week.
+function _delivPaintRows(host, rows, wkLabel, fallbackNote){
+  const tile = (s) => `<div class="tile ${s.rag}">
+    <div class="tile-issues-badge">${s.rag.toUpperCase()}</div>
+    <div><div class="tile-code">${s.code}</div><div class="tile-name">${s.name}</div></div>
+    <div><div class="tile-meta">${s.drivers}</div></div></div>`;
+  const counts = rows.reduce((a, r) => { a[r.rag]++; return a; }, { red:0, amber:0, green:0 });
+  const banner = `
+    <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
+      ⚠ Deliveroo RAG — ${wkLabel}. 5-metric greens roll-up from the Deliveroo Weekly Summary ops report. Informational only — site rag / Red Light status decisions stay with Lincoln.
+    </div>`;
+  host.innerHTML = (fallbackNote || '') + banner + `
+    <div class="heatmap" style="margin-bottom:12px;">
+      ${rows.map(tile).join('')}
+    </div>
+    <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;">
+      <strong>${counts.red} red · ${counts.amber} amber · ${counts.green} green</strong> across ${rows.length} sites on Deliveroo this week.
+      Thresholds — rating ≥4.7/≥4.0 · open-hrs ≥98/≥95 · prep ≤15/≤18 · inaccuracy ≤2/≤3 · rider-wait ≤2/≤4. RED if any metric red; GREEN if all five green; a missing metric ⇒ AMBER.
+    </div>`;
+}
+
+// Cache for the fallback so repeated tab switches / repaints don't re-fetch.
+// null = not yet computed; {key,label,rows} = found; {key:null} = none anywhere.
+let _delivFallbackCache = null;
+// Walk the weeks list (newest first, same weeks_index.json the selector uses) and
+// return the newest week that has Deliveroo ops rows: {key, label, rows}. Returns
+// {key:null,label:null,rows:[]} if no week anywhere has ops. Only ever invoked
+// when the active week has 0 ops rows, so there is no perf cost on normal weeks.
+async function findLatestDeliverooWeek(){
+  if (_delivFallbackCache) return _delivFallbackCache;
+  try {
+    const idxR = await fetch(DATA_DIR + "weeks_index.json", {cache:"no-store"});
+    if (!idxR.ok) throw new Error("HTTP " + idxR.status);
+    const idx = await idxR.json();
+    const weeks = (idx.weeks || []).slice();   // newest first
+    for (const w of weeks){
+      try {
+        const mR = await fetch(DATA_DIR + w.file, {cache:"no-store"});
+        if (!mR.ok) continue;
+        const manifest = await mR.json();
+        const list = manifest.sites || [];
+        const settled = await Promise.allSettled(list.map(si =>
+          fetch(DATA_DIR + si.file, {cache:"no-store"})
+            .then(r => { if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+        ));
+        const entries = [];
+        settled.forEach((res, i) => {
+          if (res.status !== "fulfilled") return;
+          const code  = list[i].code;
+          const sites = (res.value && res.value.sites) || {};
+          const s = sites[code];
+          if (!s) return;
+          entries.push({
+            code: jsonToDisplay(code),
+            name: list[i].name || jsonToDisplay(code),
+            deliveroo: s.deliveroo || null
+          });
+        });
+        const rows = _delivBuildRows(entries);
+        if (rows.length){
+          _delivFallbackCache = { key: w.monday, label: w.label, rows };
+          return _delivFallbackCache;
+        }
+      } catch(e){ /* week probe failed — keep walking */ }
+    }
+  } catch(e){ /* index unavailable (e.g. file://) — fall through to "none" */ }
+  _delivFallbackCache = { key: null, label: null, rows: [] };
+  return _delivFallbackCache;
+}
+
+async function renderDeliverooRag(){
   const host = document.getElementById('rl-deliveroo');
   if (!host) return;
 
@@ -3923,77 +4050,38 @@ function renderDeliverooRag(){
 
   // Keep the static section heading in sync with the selected week.
   const _sh = document.getElementById('deliveroo-section-week');
-  if (_sh) _sh.textContent = wkLabel ? ('Deliveroo RAG — ' + wkLabel) : 'Deliveroo RAG';
+  const setHeading = (lbl) => { if (_sh) _sh.textContent = lbl ? ('Deliveroo RAG — ' + lbl) : 'Deliveroo RAG'; };
+  setHeading(wkLabel);
 
-  // Canonical 5-metric thresholds. null => 'missing' (NOT red; but blocks GREEN).
-  const band = (v, g, a, higherBetter) => {
-    if (v == null) return 'missing';
-    if (higherBetter) return v >= g ? 'green' : (v >= a ? 'amber' : 'red');
-    return v <= g ? 'green' : (v <= a ? 'amber' : 'red');
-  };
-  // [jsonField, shortLabel, greenTh, amberTh, higherBetter]
-  const METRIC_DEFS = [
-    ['rating',              'rating', 4.7, 4.0, true ],
-    ['open_hours_pct',      'open',   98,  95,  true ],
-    ['avg_prep_min',        'prep',   15,  18,  false],
-    ['inaccuracy_pct',      'inacc',  2,   3,   false],
-    ['rider_wait_5min_pct', 'rider',  2,   4,   false],
-  ];
-  const rollup = (d) => {
-    const bands = METRIC_DEFS.map(m => band(d[m[0]], m[2], m[3], m[4]));
-    let rag;
-    if (bands.includes('red')) rag = 'red';
-    else if (bands.every(b => b === 'green')) rag = 'green';
-    else rag = 'amber';
-    const pick = (k) => METRIC_DEFS.filter((_, i) => bands[i] === k).map(m => m[1]);
-    const reds = pick('red'), ambers = pick('amber'), missing = pick('missing');
-    const parts = [];
-    if (reds.length)    parts.push('red: '     + reds.join(' · '));
-    if (ambers.length)  parts.push('amber: '   + ambers.join(' · '));
-    if (missing.length) parts.push('missing: ' + missing.join(' · '));
-    return { rag, drivers: parts.length ? parts.join('  |  ') : '5-metric greens' };
-  };
+  // Active-week rows from the already-loaded SITES overlay.
+  const rows = _delivBuildRows(SITES);
 
-  // Ops sites = those carrying the Weekly Summary ops-table overlay (source marker),
-  // NOT sites that merely have rating/open from the sales-consolidation pipe (e.g. IKI2).
-  const OPS_SRC_RE = /ops from Weekly Summary|Weekly Summary sheet \(ops table\)/;
-  const hasOps = (d) => !!d && typeof d.source === 'string' && OPS_SRC_RE.test(d.source)
-                         && METRIC_DEFS.some(m => d[m[0]] != null);
-  const rows = SITES
-    .filter(s => hasOps(s.deliveroo))
-    .map(s => { const r = rollup(s.deliveroo); return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers }; });
+  if (rows.length){
+    _delivPaintRows(host, rows, wkLabel, '');
+    return;
+  }
 
-  const order = { red:0, amber:1, green:2 };
-  rows.sort((a, b) => order[a.rag] - order[b.rag] || a.code.localeCompare(b.code, undefined, { numeric:true }));
+  // Active week has no Deliveroo ops — find the latest prior week that does.
+  const fb = await findLatestDeliverooWeek();
+  if (fb && fb.rows && fb.rows.length){
+    // Heading + caption reflect the week ACTUALLY shown so it's not misleading.
+    setHeading(fb.label);
+    const note = `
+      <div style="border:1px solid var(--line,#e3e3e3); border-radius:10px; padding:9px 12px; margin-bottom:10px; font-size:12px; font-weight:600; background:#f4f6f8; color:var(--ink-soft,#555);">
+        ${wkLabel || 'Current week'} has no Deliveroo ops data yet — showing latest available: ${fb.label}.
+      </div>`;
+    _delivPaintRows(host, fb.rows, fb.label, note);
+    return;
+  }
 
+  // No week anywhere has ops — keep the existing empty-state card.
   const banner = `
     <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
       ⚠ Deliveroo RAG — ${wkLabel}. 5-metric greens roll-up from the Deliveroo Weekly Summary ops report. Informational only — site rag / Red Light status decisions stay with Lincoln.
     </div>`;
-
-  // Empty-state: no ops data for the selected week.
-  if (!rows.length){
-    host.innerHTML = banner + `
-      <div style="padding:18px; border:1px dashed var(--line,#e3e3e3); border-radius:10px; color:var(--ink-soft,#666); font-size:13px; text-align:center;">
-        No Deliveroo ops data for this week yet — the Weekly Summary sheet for this period hasn't been published. Switch to a week with ops data to view the RAG.
-      </div>`;
-    return;
-  }
-
-  const tile = (s) => `<div class="tile ${s.rag}">
-    <div class="tile-issues-badge">${s.rag.toUpperCase()}</div>
-    <div><div class="tile-code">${s.code}</div><div class="tile-name">${s.name}</div></div>
-    <div><div class="tile-meta">${s.drivers}</div></div></div>`;
-
-  const counts = rows.reduce((a, r) => { a[r.rag]++; return a; }, { red:0, amber:0, green:0 });
-
   host.innerHTML = banner + `
-    <div class="heatmap" style="margin-bottom:12px;">
-      ${rows.map(tile).join('')}
-    </div>
-    <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;">
-      <strong>${counts.red} red · ${counts.amber} amber · ${counts.green} green</strong> across ${rows.length} sites on Deliveroo this week.
-      Thresholds — rating ≥4.7/≥4.0 · open-hrs ≥98/≥95 · prep ≤15/≤18 · inaccuracy ≤2/≤3 · rider-wait ≤2/≤4. RED if any metric red; GREEN if all five green; a missing metric ⇒ AMBER.
+    <div style="padding:18px; border:1px dashed var(--line,#e3e3e3); border-radius:10px; color:var(--ink-soft,#666); font-size:13px; text-align:center;">
+      No Deliveroo ops data for this week yet — the Weekly Summary sheet for this period hasn't been published. Switch to a week with ops data to view the RAG.
     </div>`;
 }
 
@@ -4412,6 +4500,10 @@ const MEETING_RISK = {
 (function renderMeetingRisk(){
   const host = document.getElementById('meeting-risk-board');
   if (!host) return;
+  // Keep the heading in sync with the data object (single source of truth for the
+  // meeting-prep week) so it can never drift from the content again.
+  const head = document.getElementById('meeting-risk-heading');
+  if (head) head.textContent = 'Meeting Risk Board — ' + MEETING_RISK.week;
   const orange = 'var(--maki-orange, #E94E1B)';
   const sites = [...MEETING_RISK.sites].sort((a,b) => b.open - a.open || b.total - a.total || a.label.localeCompare(b.label));
 
