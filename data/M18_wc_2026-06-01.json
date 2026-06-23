@@ -42,9 +42,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 23.41,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 741.9
@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 33,
+        "score": 56,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -83,6 +83,11 @@
             "value": 100.0,
             "basis": "70% (100+16.87) + 30% (\u00a3gap +5397 vs \u00b1\u00a350k cal)"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "23.41% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 0.0,
@@ -95,7 +100,6 @@
           }
         },
         "components_dropped": [
-          "food",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"

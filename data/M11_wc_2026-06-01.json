@@ -42,9 +42,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": 1.54,
+          "actual": 21.79,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 408.8
@@ -86,7 +86,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "1.54% vs 25% baseline, -8/pp over"
+            "basis": "21.79% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -160,7 +160,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % from 2/7 days reported \u2014 treat as provisional",
         "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
       ]
     }

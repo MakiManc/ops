@@ -42,9 +42,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": 15.47,
+          "actual": 28.42,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 509.4
@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-01"
       },
       "efficiency_score": {
-        "score": 71,
+        "score": 63,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -85,8 +85,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "15.47% vs 25% baseline, -8/pp over"
+            "value": 72.64,
+            "basis": "28.42% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -111,7 +111,8 @@
         "status": "red",
         "triggers": [
           "sales -19.7% vs target",
-          "wage 26.7%"
+          "wage 26.7%",
+          "food 28.4%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -148,7 +149,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % from 5/7 days reported \u2014 treat as provisional",
         "Deliveroo \u2014 no Weekly Summary row (no storefront or not in export)"
       ]
     }

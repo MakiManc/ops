@@ -44,7 +44,7 @@
         "food_pct": {
           "actual": 25.97,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 297.7
@@ -178,9 +178,7 @@
         "gmv_vs_ly_pct": -23.7,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     }
   }
 }

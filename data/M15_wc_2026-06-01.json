@@ -42,9 +42,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 20.83,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 893.9
@@ -83,6 +83,11 @@
             "value": 100.0,
             "basis": "70% (100+3.52) + 30% (\u00a3gap +2133 vs \u00b1\u00a350k cal)"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "20.83% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 100.0,
@@ -99,9 +104,7 @@
             "basis": "4.90% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
