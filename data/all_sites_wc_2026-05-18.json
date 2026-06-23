@@ -41,7 +41,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 29.54,
           "target": 23.0,
           "gated": false
         },
@@ -66,8 +66,8 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 100,
-        "rag": "green",
+        "score": 78,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -77,6 +77,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 63.68,
+            "basis": "29.54% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -90,14 +95,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 29.5%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -193,7 +199,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 20.7,
           "target": 23.0,
           "gated": false
         },
@@ -229,6 +235,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "20.70% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -242,7 +253,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -345,7 +355,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 19.03,
           "target": 23.0,
           "gated": false
         },
@@ -381,6 +391,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "19.03% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -394,7 +409,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -497,7 +511,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 23.26,
           "target": 23.0,
           "gated": false
         },
@@ -533,6 +547,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "23.26% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -546,7 +565,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -626,7 +644,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 22.7,
           "target": 23.0,
           "gated": false
         },
@@ -662,6 +680,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "22.70% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -675,7 +698,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -778,7 +800,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 26.8,
           "target": 23.0,
           "gated": false
         },
@@ -802,10 +824,37 @@
         },
         "week_commencing": "2026-05-18"
       },
-      "efficiency_score": null,
+      "efficiency_score": {
+        "score": 86,
+        "rag": "amber",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sales": 20,
+          "weekly_star": 10,
+          "food_var": 10
+        },
+        "components": {
+          "food": {
+            "weight": 30,
+            "value": 85.6,
+            "basis": "26.80% vs 25% baseline, -8/pp over"
+          }
+        },
+        "components_dropped": [
+          "sales",
+          "wage",
+          "weekly_star",
+          "food_var"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 26.8%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -897,7 +946,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 18.89,
           "target": 23.0,
           "gated": false
         },
@@ -933,6 +982,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "18.89% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -946,7 +1000,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -1035,7 +1088,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 21.23,
           "target": 23.0,
           "gated": false
         },
@@ -1071,6 +1124,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "21.23% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -1084,7 +1142,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -1165,7 +1222,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 23.33,
           "target": 23.0,
           "gated": false
         },
@@ -1201,6 +1258,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "23.33% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -1214,7 +1276,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -1295,7 +1356,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 21.62,
           "target": 23.0,
           "gated": false
         },
@@ -1331,6 +1392,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "21.62% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -1344,7 +1410,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -1447,7 +1512,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 25.05,
           "target": 23.0,
           "gated": false
         },
@@ -1483,6 +1548,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 99.6,
+            "basis": "25.05% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -1496,14 +1566,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 25.1%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -1599,7 +1670,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 38.65,
           "target": 23.0,
           "gated": false
         },
@@ -1624,7 +1695,7 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 68,
+        "score": 27,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1635,6 +1706,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 0.0,
+            "basis": "38.65% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 35.71,
@@ -1648,14 +1724,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 38.6%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -1729,7 +1806,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 35.42,
           "target": 23.0,
           "gated": false
         },
@@ -1754,8 +1831,8 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 100,
-        "rag": "green",
+        "score": 50,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1765,6 +1842,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 16.64,
+            "basis": "35.42% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -1778,14 +1860,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 35.4%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -1867,7 +1950,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 35.42,
           "target": 23.0,
           "gated": false
         },
@@ -1892,8 +1975,8 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 100,
-        "rag": "green",
+        "score": 50,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1903,6 +1986,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 16.64,
+            "basis": "35.42% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -1916,14 +2004,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 35.4%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -2005,7 +2094,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 35.99,
           "target": 23.0,
           "gated": false
         },
@@ -2030,8 +2119,8 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 100,
-        "rag": "green",
+        "score": 47,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -2041,6 +2130,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 12.08,
+            "basis": "35.99% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -2054,14 +2148,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 36.0%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -2150,7 +2245,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 32.59,
           "target": 23.0,
           "gated": false
         },
@@ -2175,8 +2270,8 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 100,
-        "rag": "green",
+        "score": 64,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -2186,6 +2281,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 39.28,
+            "basis": "32.59% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -2199,14 +2299,15 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 32.6%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -2302,7 +2403,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 21.01,
           "target": 23.0,
           "gated": false
         },
@@ -2327,8 +2428,8 @@
         "week_commencing": "2026-05-18"
       },
       "efficiency_score": {
-        "score": 79,
-        "rag": "red",
+        "score": 95,
+        "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -2338,6 +2439,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "21.01% vs 25% baseline, -8/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 78.57,
@@ -2346,7 +2452,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "wage",
           "food_var"
         ],
