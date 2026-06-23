@@ -3653,6 +3653,7 @@ function openSite(code) {
           <div class="kpi-value ${efficiencyRag(efficiencyScore(s))}" style="font-size: 26px;">${efficiencyScore(s) == null ? 'N/A' : efficiencyScore(s)}</div>
           <div class="kpi-trend" style="margin-top:6px;">target = 100</div>
         </div>
+        ${deliverooCell(s)}
         <div class="kpi" style="grid-column: 1 / -1;">
           <div class="kpi-label">This week's Google reviews · Covers · SPH</div>
           <div class="kpi-value" style="font-size:13px;">
@@ -3903,55 +3904,93 @@ function renderRoadmap(){
     </div>`).join('');
 }
 
-// ---------- DELIVEROO RAG — w/c 01/06 (PROVISIONAL) ----------
-/* Derived from the raw Deliveroo ops report using the agreed RAG thresholds.
-   INFORMATIONAL ONLY — does not drive any site's stored rag / deep-red field or the M18 Red Light
-   protocol status. Status decisions stay with Lincoln. Weekly refresh: replace this object. */
-const DELIVEROO_RAG = {
-  "week": "w/c 08/06",
-  "label": "PROVISIONAL — 5-metric greens roll-up from raw Deliveroo ops report",
-  "red": [
-    { "code": "M3",  "name": "Fountain Bridge", "drivers": "red: open" },
-    { "code": "M14", "name": "Meadowhall",      "drivers": "red: prep · missing" },
-    { "code": "M17", "name": "Lakeside",        "drivers": "red: missing · rating · open" }
-  ],
-  "amber": [
-    { "code": "M1/2","name": "Nicolson",        "drivers": "red: missing" },
-    { "code": "M6",  "name": "Bath St",         "drivers": "amber roll-up" },
-    { "code": "M9",  "name": "Manchester",      "drivers": "amber roll-up" },
-    { "code": "NQ",  "name": "Maki Northern Quarter", "drivers": "red: rating" },
-    { "code": "M10", "name": "Leeds",           "drivers": "red: missing · rating" },
-    { "code": "M12", "name": "Newcastle",       "drivers": "red: open" },
-    { "code": "M13", "name": "Aberdeen",        "drivers": "amber roll-up" },
-    { "code": "M15", "name": "Metrocentre",     "drivers": "red: missing" },
-    { "code": "M16", "name": "Nottingham",      "drivers": "red: missing" },
-    { "code": "M18", "name": "Soho",            "drivers": "amber roll-up" }
-  ],
-  "green": [
-    { "code": "M8",  "name": "Renfield",        "drivers": "5-metric greens" },
-    { "code": "M11", "name": "Leicester",       "drivers": "5-metric greens" }
-  ],
-  "naNote": "Not on Deliveroo this week: M7 (SJQ), Maki Nori.",
-  "movement": "PROVISIONAL w/c 08/06 — derived from the raw ops report. Statuses reflect the 5-metric greens roll-up; treat as indicative only. Franchise (MAF1/MAF3/O2) not included in this AM-only compile."
-};
-
+// ---------- DELIVEROO RAG — computed per-week from SITES[].deliveroo ----------
+/* No longer a baked object. renderDeliverooRag() now derives the RAG live from
+   each site's `deliveroo` ops block (overlaid by adaptSite from the weekly JSON),
+   using the canonical 5-metric thresholds. INFORMATIONAL ONLY — does not drive any
+   site's stored rag / Red Light status. Re-runs inside repaintAll() on week change. */
 function renderDeliverooRag(){
   const host = document.getElementById('rl-deliveroo');
   if (!host) return;
-  const tile = (s, cls, badge) => `<div class="tile ${cls}">
-    <div class="tile-issues-badge">${badge}</div>
+
+  // Dynamic week label: hero h1 (set by applyWeek) -> dropdown selection -> ''.
+  const h1 = document.getElementById('hero-week-h1');
+  let wkLabel = h1 ? (h1.textContent || '').trim() : '';
+  if (!wkLabel){
+    const sel = document.getElementById('week-select');
+    if (sel && sel.options[sel.selectedIndex]) wkLabel = sel.options[sel.selectedIndex].text;
+  }
+
+  // Canonical 5-metric thresholds. null => 'missing' (NOT red; but blocks GREEN).
+  const band = (v, g, a, higherBetter) => {
+    if (v == null) return 'missing';
+    if (higherBetter) return v >= g ? 'green' : (v >= a ? 'amber' : 'red');
+    return v <= g ? 'green' : (v <= a ? 'amber' : 'red');
+  };
+  // [jsonField, shortLabel, greenTh, amberTh, higherBetter]
+  const METRIC_DEFS = [
+    ['rating',              'rating', 4.7, 4.0, true ],
+    ['open_hours_pct',      'open',   98,  95,  true ],
+    ['avg_prep_min',        'prep',   15,  18,  false],
+    ['inaccuracy_pct',      'inacc',  2,   3,   false],
+    ['rider_wait_5min_pct', 'rider',  2,   4,   false],
+  ];
+  const rollup = (d) => {
+    const bands = METRIC_DEFS.map(m => band(d[m[0]], m[2], m[3], m[4]));
+    let rag;
+    if (bands.includes('red')) rag = 'red';
+    else if (bands.every(b => b === 'green')) rag = 'green';
+    else rag = 'amber';
+    const pick = (k) => METRIC_DEFS.filter((_, i) => bands[i] === k).map(m => m[1]);
+    const reds = pick('red'), ambers = pick('amber'), missing = pick('missing');
+    const parts = [];
+    if (reds.length)    parts.push('red: '     + reds.join(' · '));
+    if (ambers.length)  parts.push('amber: '   + ambers.join(' · '));
+    if (missing.length) parts.push('missing: ' + missing.join(' · '));
+    return { rag, drivers: parts.length ? parts.join('  |  ') : '5-metric greens' };
+  };
+
+  // Ops sites = those carrying the Weekly Summary ops-table overlay (source marker),
+  // NOT sites that merely have rating/open from the sales-consolidation pipe (e.g. IKI2).
+  const OPS_SRC_RE = /ops from Weekly Summary|Weekly Summary sheet \(ops table\)/;
+  const hasOps = (d) => !!d && typeof d.source === 'string' && OPS_SRC_RE.test(d.source)
+                         && METRIC_DEFS.some(m => d[m[0]] != null);
+  const rows = SITES
+    .filter(s => hasOps(s.deliveroo))
+    .map(s => { const r = rollup(s.deliveroo); return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers }; });
+
+  const order = { red:0, amber:1, green:2 };
+  rows.sort((a, b) => order[a.rag] - order[b.rag] || a.code.localeCompare(b.code, undefined, { numeric:true }));
+
+  const banner = `
+    <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
+      ⚠ Deliveroo RAG — ${wkLabel}. 5-metric greens roll-up from the Deliveroo Weekly Summary ops report. Informational only — site rag / Red Light status decisions stay with Lincoln.
+    </div>`;
+
+  // Empty-state: no ops data for the selected week.
+  if (!rows.length){
+    host.innerHTML = banner + `
+      <div style="padding:18px; border:1px dashed var(--line,#e3e3e3); border-radius:10px; color:var(--ink-soft,#666); font-size:13px; text-align:center;">
+        No Deliveroo ops data for this week yet — the Weekly Summary sheet for this period hasn't been published. Switch to a week with ops data to view the RAG.
+      </div>`;
+    return;
+  }
+
+  const tile = (s) => `<div class="tile ${s.rag}">
+    <div class="tile-issues-badge">${s.rag.toUpperCase()}</div>
     <div><div class="tile-code">${s.code}</div><div class="tile-name">${s.name}</div></div>
     <div><div class="tile-meta">${s.drivers}</div></div></div>`;
-  host.innerHTML = `
-    <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
-      ⚠ Deliveroo RAG — ${DELIVEROO_RAG.week} (${DELIVEROO_RAG.label}). Informational only — site rag / Red Light status decisions stay with Lincoln.
-    </div>
+
+  const counts = rows.reduce((a, r) => { a[r.rag]++; return a; }, { red:0, amber:0, green:0 });
+
+  host.innerHTML = banner + `
     <div class="heatmap" style="margin-bottom:12px;">
-      ${DELIVEROO_RAG.red.map(s => tile(s,'red','RED')).join('')}
-      ${DELIVEROO_RAG.amber.map(s => tile(s,'amber','AMBER')).join('')}
-      ${DELIVEROO_RAG.green.map(s => tile(s,'green','GREEN')).join('')}
+      ${rows.map(tile).join('')}
     </div>
-    <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;"><strong>Movement:</strong> ${DELIVEROO_RAG.movement}</div>`;
+    <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;">
+      <strong>${counts.red} red · ${counts.amber} amber · ${counts.green} green</strong> across ${rows.length} sites on Deliveroo this week.
+      Thresholds — rating ≥4.7/≥4.0 · open-hrs ≥98/≥95 · prep ≤15/≤18 · inaccuracy ≤2/≤3 · rider-wait ≤2/≤4. RED if any metric red; GREEN if all five green; a missing metric ⇒ AMBER.
+    </div>`;
 }
 
 renderRedLight();
@@ -4032,6 +4071,27 @@ function fmtFoodVar(st){
   const v = st && st.food && st.food.variance_pct;
   return fmtVar(v);
 }
+// Deliveroo weekly sales cell for the site detail. Handles the gap sites
+// (M11-M18) whose figure comes from the weekly Dash PDF (partial=true: sales /
+// AOV / new-customers only, orders estimated). Replaces the monthly stopgap.
+function deliverooCell(s){
+  const d = s.deliveroo;
+  if(!d || d.sales == null){
+    return `<div class="kpi"><div class="kpi-label">Deliveroo Sales (wk)</div>`+
+      `<div class="kpi-value" style="color:var(--ink-3); font-size:18px;">N/A</div>`+
+      `<div class="kpi-trend" style="margin-top:6px;">no Deliveroo feed this week</div></div>`;
+  }
+  const gmv = '£' + Number(d.sales).toLocaleString('en-GB', {maximumFractionDigits:0});
+  const aov = d.aov != null ? ('£' + Number(d.aov).toFixed(2) + ' AOV') : '';
+  const ord = d.orders != null ? (d.orders.toLocaleString() + (d.orders_estimated ? ' est. orders' : ' orders')) : '';
+  const nc  = d.new_customers != null ? (d.new_customers + ' new') : '';
+  const srcLabel = d.partial ? 'weekly · PDF (sales only)' : 'weekly';
+  const tagColor = d.partial ? 'var(--amber)' : 'var(--ink-3)';
+  const tag = `<span style="font-weight:600;color:${tagColor};font-size:10px;"> · ${srcLabel}</span>`;
+  return `<div class="kpi"><div class="kpi-label">Deliveroo Sales (wk)${tag}</div>`+
+    `<div class="kpi-value">${gmv}</div>`+
+    `<div class="kpi-trend" style="margin-top:6px;">${[ord, aov, nc].filter(Boolean).join(' · ')}</div></div>`;
+}
 
 // --- ADAPTER: one fetched site JSON -> overwrite the baked shapes IN PLACE ---
 // `isNewest` true => keep curated narrative; false => auto-generate from JSON.
@@ -4057,6 +4117,9 @@ function adaptSite(jsonCode, s, isNewest){
     site.kpis.foodVarNum   = foodV;
     site.kpis.drinksVar    = fmtVar(drinksV);
     site.kpis.drinksVarNum = drinksV;
+    // pipe 6 / 6b: Deliveroo weekly block (full for the 8-store CSV list; PDF
+    // sales-only fallback for gap sites M11-M18). Surfaced in the detail grid.
+    site.deliveroo = s.deliveroo || null;
 
     // Narrative: live numbers, curated narrative.
     if(isNewest){
@@ -4107,6 +4170,7 @@ function repaintAll(){
   try { if (typeof renderThemes    === 'function') renderThemes(); } catch(e){}
   try { if (typeof renderHotActions=== 'function') renderHotActions(); } catch(e){}
   try { if (typeof renderRedLight  === 'function') renderRedLight(); } catch(e){}
+  try { if (typeof renderDeliverooRag === 'function') renderDeliverooRag(); } catch(e){}
   try { if (typeof renderGmScore   === 'function') renderGmScore(); } catch(e){}
   // Header stat counters
   try {
