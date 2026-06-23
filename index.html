@@ -3959,7 +3959,15 @@ function _delivHasOps(d){
 function _delivBuildRows(siteEntries){
   const rows = siteEntries
     .filter(s => _delivHasOps(s.deliveroo))
-    .map(s => { const r = _delivRollup(s.deliveroo); return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers }; });
+    .map(s => {
+      const r = _delivRollup(s.deliveroo);
+      const d = s.deliveroo || {};
+      // Carry raw metric values so the matrix table can render them from the same
+      // source as the tiles (incl. the fallback path).
+      const metrics = {};
+      DELIV_METRIC_DEFS.forEach(m => { metrics[m[0]] = (d[m[0]] == null ? null : d[m[0]]); });
+      return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers, metrics };
+    });
   const order = { red:0, amber:1, green:2 };
   rows.sort((a, b) => order[a.rag] - order[b.rag] || a.code.localeCompare(b.code, undefined, { numeric:true }));
   return rows;
@@ -3973,6 +3981,54 @@ function _delivPaintRows(host, rows, wkLabel, fallbackNote){
     <div><div class="tile-code">${s.code}</div><div class="tile-name">${s.name}</div></div>
     <div><div class="tile-meta">${s.drivers}</div></div></div>`;
   const counts = rows.reduce((a, r) => { a[r.rag]++; return a; }, { red:0, amber:0, green:0 });
+
+  // --- Colour-banded metric matrix (one row per site, reuses the tile thresholds) ---
+  // Cell background per band, using the dashboard's existing RAG colour tokens.
+  const bandStyle = {
+    red:     'background:var(--red-bg,#fef2f2); color:var(--red,#dc2626);',
+    amber:   'background:var(--amber-bg,#fffbeb); color:var(--amber,#d97706);',
+    green:   'background:var(--green-bg,#ecfdf5); color:var(--green,#059669);',
+    missing: 'background:var(--line,#f4f6f8); color:var(--ink-soft,#999);',
+  };
+  // Per-metric value formatting: rating 2dp, everything else 1dp.
+  const fmtVal = (field, v) => {
+    if (v == null) return '—';
+    return field === 'rating' ? Number(v).toFixed(2) : Number(v).toFixed(1);
+  };
+  const headCellTd = (txt, alignLeft) =>
+    `<th style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); background:#f4f6f8; font-size:11px; font-weight:700; color:var(--ink-soft,#555); text-align:${alignLeft ? 'left' : 'center'};">${txt}</th>`;
+  const tableHead = `<tr>
+    ${headCellTd('Site', true)}
+    ${headCellTd('Rating', false)}
+    ${headCellTd('Open %', false)}
+    ${headCellTd('Prep', false)}
+    ${headCellTd('Inacc %', false)}
+    ${headCellTd('Rider %', false)}
+    ${headCellTd('Overall', false)}
+  </tr>`;
+  const tableRow = (r) => {
+    const m = r.metrics || {};
+    const cell = (field, g, a, hb) => {
+      const v = (m[field] == null ? null : m[field]);
+      const band = _delivBand(v, g, a, hb);
+      return `<td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:center; font-size:12px; font-weight:700; ${bandStyle[band]}">${fmtVal(field, v)}</td>`;
+    };
+    const cells = DELIV_METRIC_DEFS.map(d => cell(d[0], d[2], d[3], d[4])).join('');
+    const pill = `<span style="display:inline-block; min-width:52px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.04em; ${bandStyle[r.rag]}">${r.rag.toUpperCase()}</span>`;
+    return `<tr>
+      <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:left; font-size:12px; white-space:nowrap;"><strong>${r.code}</strong> <span style="color:var(--ink-soft,#888); font-weight:500;">${r.name}</span></td>
+      ${cells}
+      <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:center;">${pill}</td>
+    </tr>`;
+  };
+  const matrix = `
+    <div style="overflow-x:auto; margin-bottom:12px;">
+      <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+        <thead>${tableHead}</thead>
+        <tbody>${rows.map(tableRow).join('')}</tbody>
+      </table>
+    </div>`;
+
   const banner = `
     <div style="border:1px dashed var(--amber-ring,#d97706); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; font-weight:700; background:#fffbeb; color:#92400e;">
       ⚠ Deliveroo RAG — ${wkLabel}. 5-metric greens roll-up from the Deliveroo Weekly Summary ops report. Informational only — site rag / Red Light status decisions stay with Lincoln.
@@ -3981,6 +4037,7 @@ function _delivPaintRows(host, rows, wkLabel, fallbackNote){
     <div class="heatmap" style="margin-bottom:12px;">
       ${rows.map(tile).join('')}
     </div>
+    ${matrix}
     <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;">
       <strong>${counts.red} red · ${counts.amber} amber · ${counts.green} green</strong> across ${rows.length} sites on Deliveroo this week.
       Thresholds — rating ≥4.7/≥4.0 · open-hrs ≥98/≥95 · prep ≤15/≤18 · inaccuracy ≤2/≤3 · rider-wait ≤2/≤4. RED if any metric red; GREEN if all five green; a missing metric ⇒ AMBER.
