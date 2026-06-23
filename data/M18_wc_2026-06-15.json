@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-22",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -17,28 +17,28 @@
       "cluster": "South England",
       "kpis": {
         "sales": {
-          "actual": 29235.64,
+          "actual": 33935.31,
           "target": 35500.0,
-          "var_pct": -17.65,
+          "var_pct": -4.41,
           "prev": 37422.17,
-          "wow_abs": -8186.53,
-          "wow_pct": -21.88
+          "wow_abs": -3486.86,
+          "wow_pct": -9.32
         },
         "covers": {
-          "actual": 1311,
+          "actual": 1523,
           "prev": 1794,
-          "wow_abs": -483,
-          "wow_pct": -26.92
+          "wow_abs": -271,
+          "wow_pct": -15.11
         },
         "sph": {
-          "actual": 20.63,
+          "actual": 20.7,
           "prev": 19.74,
-          "wow_abs": 0.89,
-          "wow_pct": 4.51,
+          "wow_abs": 0.96,
+          "wow_pct": 4.86,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 29.39,
+          "actual": 29.65,
           "target": null
         },
         "food_pct": {
@@ -47,10 +47,10 @@
           "gated": true
         },
         "labour_hours": {
-          "actual": 610.1
+          "actual": 718.4
         },
         "waste": {
-          "actual": 155.2
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 52,
+        "score": 55,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -80,13 +80,13 @@
         "components": {
           "sales": {
             "weight": 20,
-            "value": 83.89,
-            "basis": "70% (100-17.65) + 30% (\u00a3gap -6264 vs \u00b1\u00a350k cal)"
+            "value": 95.97,
+            "basis": "70% (100-4.41) + 30% (\u00a3gap -1565 vs \u00b1\u00a350k cal)"
           },
           "wage": {
             "weight": 30,
             "value": 0.0,
-            "basis": "29.39% vs 21% target, -15/pp over"
+            "basis": "29.65% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
@@ -107,8 +107,7 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -17.6% vs target",
-          "wage 29.4%"
+          "wage 29.6%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },

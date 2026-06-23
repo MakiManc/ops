@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-22",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -17,40 +17,40 @@
       "cluster": "Scotland & Newcastle",
       "kpis": {
         "sales": {
-          "actual": 32102.77,
+          "actual": 37395.62,
           "target": 42750.0,
-          "var_pct": -24.91,
+          "var_pct": -12.52,
           "prev": 39764.2,
-          "wow_abs": -7661.43,
-          "wow_pct": -19.27
+          "wow_abs": -2368.58,
+          "wow_pct": -5.96
         },
         "covers": {
-          "actual": 1255,
+          "actual": 1438,
           "prev": 1496,
-          "wow_abs": -241,
-          "wow_pct": -16.11
+          "wow_abs": -58,
+          "wow_pct": -3.88
         },
         "sph": {
-          "actual": 22.27,
+          "actual": 22.78,
           "prev": 23.52,
-          "wow_abs": -1.25,
-          "wow_pct": -5.31,
+          "wow_abs": -0.74,
+          "wow_pct": -3.15,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 24.54,
+          "actual": 24.62,
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 26.77,
           "target": 23.0,
           "gated": true
         },
         "labour_hours": {
-          "actual": 544.59
+          "actual": 636.99
         },
         "waste": {
-          "actual": 115.08
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 70,
+        "score": 77,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -80,13 +80,18 @@
         "components": {
           "sales": {
             "weight": 20,
-            "value": 76.17,
-            "basis": "70% (100-24.91) + 30% (\u00a3gap -10647 vs \u00b1\u00a350k cal)"
+            "value": 88.02,
+            "basis": "70% (100-12.52) + 30% (\u00a3gap -5354 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 85.84,
+            "basis": "26.77% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
-            "value": 46.9,
-            "basis": "24.54% vs 21% target, -15/pp over"
+            "value": 45.7,
+            "basis": "24.62% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
@@ -99,15 +104,14 @@
             "basis": "4.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -24.9% vs target"
+          "sales -12.5% vs target",
+          "food 26.8%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -191,7 +195,9 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": []
+      "gaps": [
+        "Food % from 6/7 days reported \u2014 treat as provisional"
+      ]
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-22",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -17,40 +17,40 @@
       "cluster": "Scotland & Newcastle",
       "kpis": {
         "sales": {
-          "actual": 44568.89,
+          "actual": 52296.35,
           "target": 60000.0,
-          "var_pct": -25.72,
+          "var_pct": -12.84,
           "prev": 56955.95,
-          "wow_abs": -12387.06,
-          "wow_pct": -21.75
+          "wow_abs": -4659.6,
+          "wow_pct": -8.18
         },
         "covers": {
-          "actual": 2144,
+          "actual": 2486,
           "prev": 2732,
-          "wow_abs": -588,
-          "wow_pct": -21.52
+          "wow_abs": -246,
+          "wow_pct": -9.0
         },
         "sph": {
-          "actual": 20.79,
+          "actual": 21.04,
           "prev": 20.85,
-          "wow_abs": -0.06,
-          "wow_pct": -0.29,
+          "wow_abs": 0.19,
+          "wow_pct": 0.91,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 23.84,
+          "actual": 23.67,
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 29.56,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
-          "actual": 718.3
+          "actual": 836.9
         },
         "waste": {
-          "actual": 204.42
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -80,13 +80,18 @@
         "components": {
           "sales": {
             "weight": 20,
-            "value": 72.74,
-            "basis": "70% (100-25.72) + 30% (\u00a3gap -15431 vs \u00b1\u00a350k cal)"
+            "value": 86.39,
+            "basis": "70% (100-12.84) + 30% (\u00a3gap -7704 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 63.52,
+            "basis": "29.56% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
-            "value": 57.4,
-            "basis": "23.84% vs 21% target, -15/pp over"
+            "value": 59.95,
+            "basis": "23.67% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
@@ -99,15 +104,14 @@
             "basis": "4.90% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -25.7% vs target"
+          "sales -12.8% vs target",
+          "food 29.6%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },

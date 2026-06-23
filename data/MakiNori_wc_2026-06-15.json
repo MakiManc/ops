@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-22",
+  "generated_at": "2026-06-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -17,28 +17,28 @@
       "cluster": "South England",
       "kpis": {
         "sales": {
-          "actual": 19729.52,
+          "actual": 23523.22,
           "target": null,
           "var_pct": null,
           "prev": 23942.46,
-          "wow_abs": -4212.94,
-          "wow_pct": -17.6
+          "wow_abs": -419.24,
+          "wow_pct": -1.75
         },
         "covers": {
-          "actual": 531,
+          "actual": 641,
           "prev": 647,
-          "wow_abs": -116,
-          "wow_pct": -17.93
+          "wow_abs": -6,
+          "wow_pct": -0.93
         },
         "sph": {
-          "actual": 37.16,
+          "actual": 36.7,
           "prev": 37.01,
-          "wow_abs": 0.15,
-          "wow_pct": 0.41,
+          "wow_abs": -0.31,
+          "wow_pct": -0.84,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 29.16,
+          "actual": 28.85,
           "target": null
         },
         "food_pct": {
@@ -47,10 +47,10 @@
           "gated": true
         },
         "labour_hours": {
-          "actual": 385.4
+          "actual": 451.7
         },
         "waste": {
-          "actual": 1.73
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -81,7 +81,7 @@
           "wage": {
             "weight": 30,
             "value": 0.0,
-            "basis": "29.16% vs 21% target, -15/pp over"
+            "basis": "28.85% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
@@ -99,7 +99,7 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 29.2%"
+          "wage 28.9%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
