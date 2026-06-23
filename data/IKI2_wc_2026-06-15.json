@@ -44,7 +44,7 @@
         "food_pct": {
           "actual": 17.51,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 292.8
@@ -153,7 +153,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional",
         "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]

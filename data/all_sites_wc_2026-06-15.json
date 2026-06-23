@@ -43,7 +43,7 @@
         "food_pct": {
           "actual": 26.33,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 287.8
@@ -188,9 +188,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 5/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M3": {
       "code": "M3",
@@ -390,7 +388,7 @@
         "food_pct": {
           "actual": 22.51,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 351.9
@@ -532,9 +530,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 5/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M7": {
       "code": "M7",
@@ -742,7 +738,7 @@
         "food_pct": {
           "actual": 26.77,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 636.99
@@ -893,9 +889,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "IKI2": {
       "code": "IKI2",
@@ -933,7 +927,7 @@
         "food_pct": {
           "actual": 17.51,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 292.8
@@ -1042,7 +1036,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional",
         "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
@@ -1081,9 +1074,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": 15.33,
+          "actual": 21.11,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 500.1
@@ -1125,7 +1118,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "15.33% vs 25% baseline, -8/pp over"
+            "basis": "21.11% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1226,9 +1219,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 5/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M13": {
       "code": "M13",
@@ -1264,9 +1255,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 22.24,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 566.9
@@ -1289,8 +1280,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 72,
-        "rag": "red",
+        "score": 80,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1304,6 +1295,11 @@
             "weight": 20,
             "value": 80.98,
             "basis": "70% (100-19.98) + 30% (\u00a3gap -8393 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "22.24% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1321,9 +1317,7 @@
             "basis": "-1.60% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -1442,9 +1436,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 21.16,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 864.2
@@ -1467,7 +1461,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 83,
+        "score": 88,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1482,6 +1476,11 @@
             "weight": 20,
             "value": 90.07,
             "basis": "70% (100-9.33) + 30% (\u00a3gap -5658 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "21.16% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1499,9 +1498,7 @@
             "basis": "-4.60% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -1596,7 +1593,7 @@
         "food_pct": {
           "actual": 21.6,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 853.7
@@ -1730,9 +1727,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M10": {
       "code": "M10",
@@ -1770,7 +1765,7 @@
         "food_pct": {
           "actual": 23.13,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 465.1
@@ -1913,9 +1908,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M11": {
       "code": "M11",
@@ -1951,9 +1944,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": 3.85,
+          "actual": 20.81,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 363.1
@@ -1995,7 +1988,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "3.85% vs 25% baseline, -8/pp over"
+            "basis": "20.81% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2096,9 +2089,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 4/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     },
     "M14": {
       "code": "M14",
@@ -2134,9 +2125,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 19.65,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 545.4
@@ -2159,7 +2150,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 85,
+        "score": 90,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2175,6 +2166,11 @@
             "value": 83.8,
             "basis": "70% (100-16.91) + 30% (\u00a3gap -7270 vs \u00b1\u00a350k cal)"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "19.65% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 80.5,
@@ -2187,7 +2183,6 @@
           }
         },
         "components_dropped": [
-          "food",
           "weekly_star"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -2270,9 +2265,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 19.65,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 528.7
@@ -2295,8 +2290,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 72,
-        "rag": "red",
+        "score": 80,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -2310,6 +2305,11 @@
             "weight": 20,
             "value": 82.85,
             "basis": "70% (100-18.48) + 30% (\u00a3gap -7023 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "19.65% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2327,9 +2327,7 @@
             "basis": "4.70% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2433,9 +2431,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 21.62,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 412.9
@@ -2458,7 +2456,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 97,
+        "score": 98,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2473,6 +2471,11 @@
             "weight": 20,
             "value": 89.48,
             "basis": "70% (100-11.71) + 30% (\u00a3gap -3864 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "21.62% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2490,9 +2493,7 @@
             "basis": "4.10% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2572,9 +2573,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 27.54,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 718.4
@@ -2597,7 +2598,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 55,
+        "score": 63,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2612,6 +2613,11 @@
             "weight": 20,
             "value": 95.97,
             "basis": "70% (100-4.41) + 30% (\u00a3gap -1565 vs \u00b1\u00a350k cal)"
+          },
+          "food": {
+            "weight": 30,
+            "value": 79.68,
+            "basis": "27.54% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2629,15 +2635,14 @@
             "basis": "4.90% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 29.6%"
+          "wage 29.6%",
+          "food 27.5%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -2711,9 +2716,9 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 23.8,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 451.7
@@ -2736,7 +2741,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 25,
+        "score": 57,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2747,6 +2752,11 @@
           "food_var": 10
         },
         "components": {
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "23.80% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 0.0,
@@ -2760,7 +2770,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"

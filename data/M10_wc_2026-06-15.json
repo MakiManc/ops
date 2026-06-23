@@ -44,7 +44,7 @@
         "food_pct": {
           "actual": 23.13,
           "target": 23.0,
-          "gated": true
+          "gated": false
         },
         "labour_hours": {
           "actual": 465.1
@@ -187,9 +187,7 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": [
-        "Food % from 6/7 days reported \u2014 treat as provisional"
-      ]
+      "gaps": []
     }
   }
 }
