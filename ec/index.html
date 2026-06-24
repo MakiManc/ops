@@ -446,7 +446,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.14.0",
+    version: "1.14.1",
     generated_at: "2026-06-24T06:30:00Z",
     food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27, food_cost_low_pct: 23,
     wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
@@ -605,7 +605,7 @@ const FALLBACK_DATA = {
       boh_solution:"New budget / continue-or-stop pending Michael; Marian to send O the ventilation photos and tighten floor cover and lead times for the next pop-up.", boh_owner:"Marian / Michael / O" },
 
     { code:"MN", name:"Maki Nori · London", cluster:"south",
-      food_cost_pct:[null,null,null,null,null,null,null,null], wage_pct:[null,null,null,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,null,null,null],
+      food_cost_pct:[23.80,null,null,null,null,null,null,null], wage_pct:[28.85,null,null,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,null,null,null],
       del_rag:[null,null,null,null,null,null,null,null], compliance_pct:null, star:null,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Not on any EC feed (no Food Cost Tracker, no Deliveroo perf, no BOH meeting, not on Soph KPI sheet). Wage 24.9% in May (MA only).",
@@ -679,18 +679,26 @@ const FALLBACK_DATA = {
   },
 
   deliveroo_rag: {
-    week: "w/c 08 Jun 2026 (week ending 14 Jun)",
-    source: "Deliveroo Master Consolidation (1lX1eWm…) · week_ending 2026-06-14",
-    note: "Latest available Deliveroo week. Coverage is PARTIAL — only 7 stores carried mapped ops metrics this week (M1, M3, M6, M8, M9, M10, IK2); the remaining corporate sites show no Deliveroo ops data for this week. ops = worst of prep/rider/missing/open (★ excluded). Sheet thresholds: prep G<=16.0/A<=17.5; rider G<5%/A<=10%; missing G<1%/A<=2%; star G>=4.70/A>=4.59; open G>=99%/A>=98%.",
-    ingested_at: "2026-06-23",
+    week: "w/c 15 Jun 2026 (week ending 21 Jun)",
+    source: "Deliveroo RAG sheet (Drive · 1RCucNd…) tab 15062026",
+    note: "Latest filled Deliveroo week. 15 corporate sites covered; franchises (MAF1/MAF2/MAF3) excluded. ops_rag = worst of prep/rider/missing/open (★ excluded). Sheet thresholds: prep G≤16/A≤17.5; rider G<5%/A≤10%; missing G<1%/A≤2%; star G≥4.70/A≥4.59; open G≥99%/A≥98%. Next two tabs (22062026, 29062026) exist but are unfilled zeros.",
+    ingested_at: "2026-06-24",
     sites: [
-      { code:"M1",  name:"West Richmond", prep:10.7, rider:0.5, missing:0.0, rating:4.95, open:99.9, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"green"}, ops:"green" },
-      { code:"M3",  name:"Fountainbridge", prep:13.4, rider:null, missing:1.3, rating:4.65, open:97.4, r:{prep:"green",rider:"grey",missing:"amber",rating:"amber",open:"red"}, ops:"red" },
-      { code:"M6",  name:"Bath St", prep:11.4, rider:0.8, missing:1.7, rating:4.6, open:99.9, r:{prep:"green",rider:"green",missing:"amber",rating:"amber",open:"green"}, ops:"amber" },
-      { code:"M8",  name:"Renfield (GLC)", prep:12.6, rider:2.5, missing:0.9, rating:5.0, open:99.9, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"green"}, ops:"green" },
-      { code:"M9",  name:"Manchester", prep:13.7, rider:1.1, missing:1.5, rating:4.85, open:99.9, r:{prep:"green",rider:"green",missing:"amber",rating:"green",open:"green"}, ops:"amber" },
-      { code:"M10", name:"Leeds", prep:13.7, rider:4.1, missing:2.2, rating:3.91, open:99.6, r:{prep:"green",rider:"green",missing:"red",rating:"red",open:"green"}, ops:"red" },
-      { code:"IK2", name:"Ikigai 2", prep:7.8, rider:null, missing:0.0, rating:3.67, open:86.5, r:{prep:"green",rider:"grey",missing:"green",rating:"red",open:"red"}, ops:"red" }
+      { code:"M1",  name:"West Richmond", prep:11.2, rider:1.7, missing:2.8, rating:4.89, open:99.9, r:{prep:"green",rider:"green",missing:"red",rating:"green",open:"green"}, ops:"red" },
+      { code:"M3",  name:"Fountainbridge", prep:14.7, rider:0.6, missing:1.3, rating:4.45, open:98.5, r:{prep:"green",rider:"green",missing:"amber",rating:"red",open:"amber"}, ops:"amber" },
+      { code:"M6",  name:"Bath St", prep:11.7, rider:0.8, missing:0.8, rating:4.07, open:99.9, r:{prep:"green",rider:"green",missing:"green",rating:"red",open:"green"}, ops:"green" },
+      { code:"M7",  name:"Leith Street (SJQ)", prep:6.6, rider:2.8, missing:0.4, rating:4.94, open:98.8, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"amber"}, ops:"amber" },
+      { code:"M8",  name:"Renfield (GLC)", prep:13.7, rider:5.9, missing:1.7, rating:4.64, open:96.5, r:{prep:"green",rider:"amber",missing:"amber",rating:"amber",open:"red"}, ops:"red" },
+      { code:"M9",  name:"Newcastle", prep:14.4, rider:1.6, missing:1.6, rating:4.31, open:97.8, r:{prep:"green",rider:"green",missing:"amber",rating:"red",open:"red"}, ops:"red" },
+      { code:"M10", name:"Leeds", prep:15.0, rider:1.9, missing:2.3, rating:4.39, open:99.1, r:{prep:"green",rider:"green",missing:"red",rating:"red",open:"green"}, ops:"red" },
+      { code:"M11", name:"Leicester", prep:14.2, rider:6.6, missing:1.9, rating:4.67, open:98.8, r:{prep:"green",rider:"amber",missing:"amber",rating:"amber",open:"amber"}, ops:"amber" },
+      { code:"M12", name:"Manchester", prep:13.7, rider:2.0, missing:1.0, rating:4.20, open:99.9, r:{prep:"green",rider:"green",missing:"amber",rating:"red",open:"green"}, ops:"amber" },
+      { code:"M13", name:"Aberdeen", prep:11.3, rider:3.3, missing:1.6, rating:4.50, open:98.1, r:{prep:"green",rider:"green",missing:"amber",rating:"red",open:"amber"}, ops:"amber" },
+      { code:"M14", name:"Meadowhall", prep:13.4, rider:3.6, missing:0.0, rating:5.00, open:96.4, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"red"}, ops:"red" },
+      { code:"M15", name:"Metro Centre", prep:9.8, rider:4.7, missing:0.0, rating:5.00, open:99.9, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"green"}, ops:"green" },
+      { code:"M16", name:"Nottingham", prep:13.5, rider:0.0, missing:0.0, rating:4.94, open:99.3, r:{prep:"green",rider:"green",missing:"green",rating:"green",open:"green"}, ops:"green" },
+      { code:"M17", name:"Lakeside", prep:7.8, rider:1.4, missing:4.2, rating:5.00, open:99.9, r:{prep:"green",rider:"green",missing:"red",rating:"green",open:"green"}, ops:"red" },
+      { code:"M18", name:"Soho", prep:11.4, rider:3.0, missing:0.0, rating:3.50, open:99.9, r:{prep:"green",rider:"green",missing:"green",rating:"red",open:"green"}, ops:"green" }
     ]
   },
 
