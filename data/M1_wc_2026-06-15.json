@@ -169,7 +169,6 @@
         "partial": false,
         "sales": 6046.98,
         "orders": 176,
-        "orders_estimated": true,
         "aov": 34.36,
         "new_customers": 29,
         "rating": 4.89,
@@ -178,16 +177,16 @@
         "rejection_pct": 0.0,
         "inaccuracy_pct": 2.8,
         "rider_wait_5min_pct": 1.7,
-        "conversion_pct": null,
+        "conversion_pct": 8.2,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": -4.8,
+          "orders_abs": -33,
+          "prev_gmv": 6350.18,
+          "prev_orders": 209
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "gmv_vs_4wk_pct": -0.3,
+        "gmv_vs_ly_pct": 10.1,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": []

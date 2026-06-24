@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-23",
+  "generated_at": "2026-06-24",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
     "commencing": "2026-06-15",
@@ -165,28 +165,28 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 6046.98,
         "orders": 176,
-        "orders_estimated": true,
         "aov": 34.36,
         "new_customers": 29,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
-        "conversion_pct": null,
+        "rating": 4.89,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 11.2,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.8,
+        "rider_wait_5min_pct": 1.7,
+        "conversion_pct": 8.2,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": -4.8,
+          "orders_abs": -33,
+          "prev_gmv": 6350.18,
+          "prev_orders": 209
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "gmv_vs_4wk_pct": -0.3,
+        "gmv_vs_ly_pct": 10.1,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -347,10 +347,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-21",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 10063.66,
+        "orders": 316,
+        "aov": 31.85,
+        "new_customers": 74,
+        "rating": 4.45,
+        "open_hours_pct": 98.5,
+        "avg_prep_min": 14.7,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.3,
+        "rider_wait_5min_pct": 0.6,
+        "conversion_pct": 10.4,
+        "wow": {
+          "gmv_pct": -4.7,
+          "orders_abs": -2,
+          "prev_gmv": 10563.14,
+          "prev_orders": 318
+        },
+        "gmv_vs_4wk_pct": -0.5,
+        "gmv_vs_ly_pct": 0.7,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 1.6
+      },
+      "gaps": []
     },
     "M6": {
       "code": "M6",
@@ -399,9 +423,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 6.7,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": 2.5,
@@ -507,28 +531,28 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 3527.65,
         "orders": 124,
-        "orders_estimated": true,
         "aov": 28.45,
         "new_customers": 46,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
-        "conversion_pct": null,
+        "rating": 4.07,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 11.7,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.8,
+        "rider_wait_5min_pct": 0.8,
+        "conversion_pct": 8.3,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": 2.1,
+          "orders_abs": 1,
+          "prev_gmv": 3454.69,
+          "prev_orders": 123
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "gmv_vs_4wk_pct": 3.7,
+        "gmv_vs_ly_pct": 20.9,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -866,28 +890,28 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 3890.29,
         "orders": 119,
-        "orders_estimated": true,
         "aov": 32.69,
         "new_customers": 34,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
-        "conversion_pct": null,
+        "rating": 4.64,
+        "open_hours_pct": 96.5,
+        "avg_prep_min": 13.7,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.7,
+        "rider_wait_5min_pct": 5.9,
+        "conversion_pct": 8,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": 1.7,
+          "orders_abs": 0,
+          "prev_gmv": 3825.52,
+          "prev_orders": 119
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "gmv_vs_4wk_pct": -6.9,
+        "gmv_vs_ly_pct": -4.7,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -1034,10 +1058,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-21",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 1665.71,
+        "orders": 59,
+        "aov": 28.23,
+        "new_customers": 22,
+        "rating": 4.43,
+        "open_hours_pct": 90.7,
+        "avg_prep_min": 7.9,
+        "rejection_pct": 0,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": 5.1,
+        "conversion_pct": 5.8,
+        "wow": {
+          "gmv_pct": 19.6,
+          "orders_abs": 10,
+          "prev_gmv": 1393.11,
+          "prev_orders": 49
+        },
+        "gmv_vs_4wk_pct": 6.2,
+        "gmv_vs_ly_pct": 18.8,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+      },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Reviews \u2014 no week rating in source"
       ]
     },
     "M12": {
@@ -1074,7 +1122,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 21.11,
+          "actual": 25.77,
           "target": 23.0,
           "gated": false
         },
@@ -1099,7 +1147,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 74,
+        "score": 72,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1117,8 +1165,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "21.11% vs 25% baseline, -8/pp over"
+            "value": 93.84,
+            "basis": "25.77% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1142,7 +1190,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 26.5%"
+          "wage 26.5%",
+          "food 25.8%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -1196,18 +1245,18 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 3801.99,
         "orders": 126,
         "orders_estimated": true,
         "aov": 30.17,
         "new_customers": 52,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.31,
+        "open_hours_pct": 97.8,
+        "avg_prep_min": 14.4,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.6,
+        "rider_wait_5min_pct": 1.6,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -1217,7 +1266,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 1.0
       },
       "gaps": []
     },
@@ -1255,7 +1305,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 22.24,
+          "actual": 26.49,
           "target": 23.0,
           "gated": false
         },
@@ -1280,8 +1330,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 80,
-        "rag": "amber",
+        "score": 77,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1298,8 +1348,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "22.24% vs 25% baseline, -8/pp over"
+            "value": 88.08,
+            "basis": "26.49% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1323,7 +1373,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -20.0% vs target"
+          "sales -20.0% vs target",
+          "food 26.5%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -1377,18 +1428,18 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 5387.72,
         "orders": 182,
         "orders_estimated": true,
         "aov": 29.6,
         "new_customers": 59,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.5,
+        "open_hours_pct": 98.1,
+        "avg_prep_min": 11.3,
+        "rejection_pct": 0.5,
+        "inaccuracy_pct": 1.6,
+        "rider_wait_5min_pct": 3.3,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -1398,7 +1449,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -1436,7 +1488,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 21.16,
+          "actual": 25.65,
           "target": 23.0,
           "gated": false
         },
@@ -1461,7 +1513,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 88,
+        "score": 87,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1479,8 +1531,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "21.16% vs 25% baseline, -8/pp over"
+            "value": 94.8,
+            "basis": "25.65% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1502,8 +1554,10 @@
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 25.6%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -1552,10 +1606,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-21",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 5.0,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 9.8,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
+        "rider_wait_5min_pct": 4.7,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
     },
     "M9": {
       "code": "M9",
@@ -1591,7 +1669,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 21.6,
+          "actual": 26.28,
           "target": 23.0,
           "gated": false
         },
@@ -1604,9 +1682,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": -0.4,
@@ -1616,8 +1694,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 97,
-        "rag": "green",
+        "score": 94,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1634,8 +1712,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "21.60% vs 25% baseline, -8/pp over"
+            "value": 89.76,
+            "basis": "26.28% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1657,8 +1735,10 @@
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 26.3%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -1704,28 +1784,28 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 5649.9,
         "orders": 203,
-        "orders_estimated": true,
         "aov": 27.83,
         "new_customers": 73,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
-        "conversion_pct": null,
+        "rating": 4.2,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 13.7,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.0,
+        "rider_wait_5min_pct": 2.0,
+        "conversion_pct": 7,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": -25.2,
+          "orders_abs": -60,
+          "prev_gmv": 7554.41,
+          "prev_orders": 263
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "gmv_vs_4wk_pct": -17.6,
+        "gmv_vs_ly_pct": -2.3,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -1763,7 +1843,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 23.13,
+          "actual": 28.48,
           "target": 23.0,
           "gated": false
         },
@@ -1776,9 +1856,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 7.9,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": 0.2,
@@ -1788,8 +1868,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 87,
-        "rag": "amber",
+        "score": 79,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1806,8 +1886,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "23.13% vs 25% baseline, -8/pp over"
+            "value": 72.16,
+            "basis": "28.48% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1831,7 +1911,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -15.6% vs target"
+          "sales -15.6% vs target",
+          "food 28.5%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -1885,28 +1966,28 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 5510.89,
         "orders": 215,
-        "orders_estimated": true,
         "aov": 25.63,
         "new_customers": 65,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
-        "conversion_pct": null,
+        "rating": 4.39,
+        "open_hours_pct": 99.1,
+        "avg_prep_min": 15.0,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.3,
+        "rider_wait_5min_pct": 1.9,
+        "conversion_pct": 5.9,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": -18.9,
+          "orders_abs": -55,
+          "prev_gmv": 6798.48,
+          "prev_orders": 270
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "gmv_vs_4wk_pct": -10.2,
+        "gmv_vs_ly_pct": 7.5,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -1944,7 +2025,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 20.81,
+          "actual": 27.15,
           "target": 23.0,
           "gated": false
         },
@@ -1957,9 +2038,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -1.8,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 1.0,
@@ -1969,7 +2050,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 90,
+        "score": 85,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1987,8 +2068,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "20.81% vs 25% baseline, -8/pp over"
+            "value": 82.8,
+            "basis": "27.15% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2012,7 +2093,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -14.6% vs target"
+          "sales -14.6% vs target",
+          "food 27.1%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -2066,18 +2148,18 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 2937.68,
         "orders": 106,
         "orders_estimated": true,
         "aov": 27.71,
         "new_customers": 44,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.67,
+        "open_hours_pct": 98.8,
+        "avg_prep_min": 14.2,
+        "rejection_pct": 1.9,
+        "inaccuracy_pct": 1.9,
+        "rider_wait_5min_pct": 6.6,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -2087,7 +2169,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -2125,7 +2208,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 19.65,
+          "actual": 23.09,
           "target": 23.0,
           "gated": false
         },
@@ -2138,9 +2221,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -4.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 0.2,
@@ -2169,7 +2252,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "19.65% vs 25% baseline, -8/pp over"
+            "basis": "23.09% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2225,10 +2308,35 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-21",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 5.0,
+        "open_hours_pct": 96.4,
+        "avg_prep_min": 13.4,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
+        "rider_wait_5min_pct": 3.6,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Reviews \u2014 no week rating in source"
       ]
     },
     "M16": {
@@ -2265,7 +2373,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 19.65,
+          "actual": 23.09,
           "target": 23.0,
           "gated": false
         },
@@ -2278,9 +2386,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 4.7,
@@ -2309,7 +2417,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "19.65% vs 25% baseline, -8/pp over"
+            "basis": "23.09% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2372,17 +2480,17 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 2873.42,
         "orders": 106,
         "orders_estimated": true,
         "aov": 27.11,
         "new_customers": 59,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
+        "rating": 4.94,
+        "open_hours_pct": 99.3,
+        "avg_prep_min": 13.5,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
         "rider_wait_5min_pct": null,
         "conversion_pct": null,
         "wow": {
@@ -2393,7 +2501,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -2431,7 +2540,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 21.62,
+          "actual": 25.82,
           "target": 23.0,
           "gated": false
         },
@@ -2456,7 +2565,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 98,
+        "score": 96,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2474,8 +2583,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "21.62% vs 25% baseline, -8/pp over"
+            "value": 93.44,
+            "basis": "25.82% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2499,7 +2608,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -11.7% vs target"
+          "sales -11.7% vs target",
+          "food 25.8%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -2534,10 +2644,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-21",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 5.0,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 7.8,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 4.2,
+        "rider_wait_5min_pct": 1.4,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
     },
     "M18": {
       "code": "M18",
@@ -2573,7 +2707,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 27.54,
+          "actual": 34.29,
           "target": 23.0,
           "gated": false
         },
@@ -2598,7 +2732,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 63,
+        "score": 46,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2616,8 +2750,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 79.68,
-            "basis": "27.54% vs 25% baseline, -8/pp over"
+            "value": 25.68,
+            "basis": "34.29% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2642,7 +2776,7 @@
         "status": "red",
         "triggers": [
           "wage 29.6%",
-          "food 27.5%"
+          "food 34.3%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -2677,10 +2811,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-21",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 3.5,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 11.4,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
+        "rider_wait_5min_pct": 3.0,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 2.1
+      },
+      "gaps": []
     },
     "MakiNori": {
       "code": "MakiNori",
