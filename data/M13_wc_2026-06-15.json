@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-23",
+  "generated_at": "2026-06-24",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -164,18 +164,18 @@
         "store": null,
         "week_ending": "2026-06-21",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 5387.72,
         "orders": 182,
         "orders_estimated": true,
         "aov": 29.6,
         "new_customers": 59,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.5,
+        "open_hours_pct": 98.1,
+        "avg_prep_min": 11.3,
+        "rejection_pct": 0.5,
+        "inaccuracy_pct": 1.6,
+        "rider_wait_5min_pct": 3.3,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -185,7 +185,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     }
