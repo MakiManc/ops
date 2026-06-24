@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 19.65,
+          "actual": 23.09,
           "target": 23.0,
           "gated": false
         },
@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 4.7,
@@ -86,7 +86,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "19.65% vs 25% baseline, -8/pp over"
+            "basis": "23.09% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,

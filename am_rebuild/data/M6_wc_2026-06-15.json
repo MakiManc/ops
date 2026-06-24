@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 6.7,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": 2.5,
@@ -166,7 +166,6 @@
         "partial": false,
         "sales": 3527.65,
         "orders": 124,
-        "orders_estimated": true,
         "aov": 28.45,
         "new_customers": 46,
         "rating": 4.07,
@@ -175,16 +174,16 @@
         "rejection_pct": 0.0,
         "inaccuracy_pct": 0.8,
         "rider_wait_5min_pct": 0.8,
-        "conversion_pct": null,
+        "conversion_pct": 8.3,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": 2.1,
+          "orders_abs": 1,
+          "prev_gmv": 3454.69,
+          "prev_orders": 123
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "gmv_vs_4wk_pct": 3.7,
+        "gmv_vs_ly_pct": 20.9,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": []

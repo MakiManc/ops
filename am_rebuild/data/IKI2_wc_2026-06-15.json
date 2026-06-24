@@ -8,46 +8,46 @@
     "ending": "2026-06-21"
   },
   "sites": {
-    "M1": {
-      "code": "M1",
-      "name": "Maki 1",
-      "gm": "Derrick Cheung",
+    "IKI2": {
+      "code": "IKI2",
+      "name": "Ikigai 2",
+      "gm": "Sujan (RM)",
       "gm_confirm": true,
       "am": "Ka Ho",
       "cluster": "Scotland & Newcastle",
       "kpis": {
         "sales": {
-          "actual": 19818.85,
-          "target": 22500.0,
-          "var_pct": -11.92,
-          "prev": 22530.89,
-          "wow_abs": -2712.04,
-          "wow_pct": -12.04
+          "actual": 17742.61,
+          "target": 21550.0,
+          "var_pct": -17.67,
+          "prev": 18562.18,
+          "wow_abs": -819.57,
+          "wow_pct": -4.42
         },
         "covers": {
-          "actual": 644,
-          "prev": 716,
-          "wow_abs": -72,
-          "wow_pct": -10.06
+          "actual": 739,
+          "prev": 795,
+          "wow_abs": -56,
+          "wow_pct": -7.04
         },
         "sph": {
-          "actual": 19.68,
-          "prev": 20.77,
-          "wow_abs": -1.09,
-          "wow_pct": -5.25,
+          "actual": 21.01,
+          "prev": 21.31,
+          "wow_abs": -0.3,
+          "wow_pct": -1.41,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 20.98,
+          "actual": 24.37,
           "target": null
         },
         "food_pct": {
-          "actual": 26.33,
+          "actual": 17.51,
           "target": 23.0,
           "gated": false
         },
         "labour_hours": {
-          "actual": 287.8
+          "actual": 292.8
         },
         "waste": {
           "actual": 0.0
@@ -55,19 +55,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": 0.3,
+          "variance_pct": -1.3,
           "target": "\u00b15%",
           "within_band": true
         },
         "food": {
-          "variance_pct": 3.9,
+          "variance_pct": 1.4,
           "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 93,
+        "score": 80,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -80,61 +80,43 @@
         "components": {
           "sales": {
             "weight": 20,
-            "value": 90.05,
-            "basis": "70% (100-11.92) + 30% (\u00a3gap -2681 vs \u00b1\u00a350k cal)"
+            "value": 85.35,
+            "basis": "70% (100-17.67) + 30% (\u00a3gap -3807 vs \u00b1\u00a350k cal)"
           },
           "food": {
             "weight": 30,
-            "value": 89.36,
-            "basis": "26.33% vs 25% baseline, -8/pp over"
+            "value": 100.0,
+            "basis": "17.51% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "20.98% vs 21% target, -15/pp over"
-          },
-          "weekly_star": {
-            "weight": 10,
-            "value": 85.71,
-            "basis": "4.60\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 49.45,
+            "basis": "24.37% vs 21% target, -15/pp over"
           },
           "food_var": {
             "weight": 10,
             "value": 100,
-            "basis": "3.90% inside \u00b15% band"
+            "basis": "1.40% inside \u00b15% band"
           }
         },
-        "components_dropped": [],
+        "components_dropped": [
+          "weekly_star"
+        ],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -11.9% vs target",
-          "food 26.3%"
+          "sales -17.7% vs target"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.6,
-        "new_reviews": 5,
-        "star_breakdown": {
-          "5": 4,
-          "4": 0,
-          "3": 1,
-          "2": 0,
-          "1": 0
-        },
-        "negatives": 1,
-        "negative_reviews": [
-          {
-            "stars": 3,
-            "author": "E R",
-            "text": "Quite expensive for what it is",
-            "date": "2026-06-16",
-            "url": null
-          }
-        ],
+        "week_avg_rating": null,
+        "new_reviews": 0,
+        "star_breakdown": null,
+        "negatives": null,
+        "negative_reviews": [],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -143,8 +125,15 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-15.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
+        "outstanding_count": 2,
         "tasks": [
+          {
+            "task": "canopy above stairs leaking and needs serviced",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          },
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
             "priority": "\u2014",
@@ -153,7 +142,7 @@
             "status": "open"
           }
         ],
-        "note": "1 open item(s)"
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -167,29 +156,30 @@
         "week_ending": "2026-06-21",
         "resolution": "weekly",
         "partial": false,
-        "sales": 6046.98,
-        "orders": 176,
-        "aov": 34.36,
-        "new_customers": 29,
-        "rating": 4.89,
-        "open_hours_pct": 99.9,
-        "avg_prep_min": 11.2,
-        "rejection_pct": 0.0,
-        "inaccuracy_pct": 2.8,
-        "rider_wait_5min_pct": 1.7,
-        "conversion_pct": 8.2,
+        "sales": 1665.71,
+        "orders": 59,
+        "aov": 28.23,
+        "new_customers": 22,
+        "rating": 4.43,
+        "open_hours_pct": 90.7,
+        "avg_prep_min": 7.9,
+        "rejection_pct": 0,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": 5.1,
+        "conversion_pct": 5.8,
         "wow": {
-          "gmv_pct": -4.8,
-          "orders_abs": -33,
-          "prev_gmv": 6350.18,
-          "prev_orders": 209
+          "gmv_pct": 19.6,
+          "orders_abs": 10,
+          "prev_gmv": 1393.11,
+          "prev_orders": 49
         },
-        "gmv_vs_4wk_pct": -0.3,
-        "gmv_vs_ly_pct": 10.1,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
-        "busy_mode_pct": 0.0
+        "gmv_vs_4wk_pct": 6.2,
+        "gmv_vs_ly_pct": 18.8,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": []
+      "gaps": [
+        "Reviews \u2014 no week rating in source"
+      ]
     }
   }
 }
