@@ -440,13 +440,13 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · BOH history to 16 Jun + Sales-vs-Budget w/c 15 Jun.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.13.1 · 24 Jun 2026 · w/c 15 Jun food cost revised to Soph KPI reconciled figures. Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.14.0 · 24 Jun 2026 · w/c 15 Jun food variance (7 sites, AM stock-take) + Deliveroo RAG (worst-of, w/c 15/06). Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%).</div>
 </footer>
 
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.13.1",
+    version: "1.14.0",
     generated_at: "2026-06-24T06:30:00Z",
     food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27, food_cost_low_pct: 23,
     wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
@@ -498,57 +498,57 @@ const FALLBACK_DATA = {
   sites: [
     /* SCOTLAND & NEWCASTLE */
     { code:"M1", name:"Edinburgh · Nicholson St", cluster:"scotland_newcastle",
-      food_cost_pct:[26.33,18.33,25.97,25.97,29.54,20.98,24.18,26.12], wage_pct:[20.98,19.15,21.26,21.11,22.48,21.62,20.36,19.95], foodvar_pct:[null,null,null,4.9,3.9,2.5,3.4,-0.6],
-      del_rag:[null,"green",null,"red","red","green","green","amber"], compliance_pct:null, star:4.93,
+      food_cost_pct:[26.33,18.33,25.97,25.97,29.54,20.98,24.18,26.12], wage_pct:[20.98,19.15,21.26,21.11,22.48,21.62,20.36,19.95], foodvar_pct:[3.9,null,null,4.9,3.9,2.5,3.4,-0.6],
+      del_rag:["red","green",null,"red","red","green","green","amber"], compliance_pct:null, star:4.93,
       hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Holes above raw-meat prep", hyg_owner:"Chin Wa Cheung", fq_dev:"Kimchi taste 4/5", fq_owner:"Chin Wa Cheung",
       boh_issue:"Ventilation upgrade planned to relocate the ramen-section setup; overdue new freezer still awaited and the broken ramen-section fridge needs replacing.",
       boh_solution:"Discuss the renovation plan with Ross; ops to expedite freezer delivery and remove the broken fridge.", boh_owner:"Penny / Ross" },
 
     { code:"M3", name:"Fountainbridge · Edinburgh", cluster:"scotland_newcastle",
-      food_cost_pct:[19.32,26.19,20.22,20.22,20.70,23.15,23.86,22.13], wage_pct:[22.57,23,21.44,21.49,20.64,20.10,21.43,21.10], foodvar_pct:[null,null,null,-4.6,3.5,2.3,1.9,0.5],
-      del_rag:[null,"red",null,"amber","red","amber","green","green"], compliance_pct:null, star:4.50,
+      food_cost_pct:[19.32,26.19,20.22,20.22,20.70,23.15,23.86,22.13], wage_pct:[22.57,23,21.44,21.49,20.64,20.10,21.43,21.10], foodvar_pct:[2.9,null,null,-4.6,3.5,2.3,1.9,0.5],
+      del_rag:["amber","red",null,"amber","red","amber","green","green"], compliance_pct:null, star:4.50,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Incorrect budget data on the stock list led the team to over-order, pushing food cost above target.",
       boh_solution:"Budget corrected by Penny with Matt Jenna and updated for coming weeks; align the Deliveroo machine to the early closing time.", boh_owner:"Penny" },
 
     { code:"M6", name:"Bath Street · Glasgow", cluster:"scotland_newcastle",
       food_cost_pct:[22.51,22.95,25.28,25.28,17.15,29.34,18.25,24.09], wage_pct:[22.23,23.99,23.41,21.95,20.08,21.82,21.24,23.14], foodvar_pct:[null,null,null,-1.0,4.7,4.7,-4.8,4.0],
-      del_rag:[null,"amber",null,"green","green","green","red","green"], compliance_pct:null, star:4.86,
+      del_rag:["green","amber",null,"green","green","green","red","green"], compliance_pct:null, star:4.86,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"One of the few sites green on food cost this week; no major BOH issue.",
       boh_solution:"Maintain current control.", boh_owner:"Penny" },
 
     { code:"M7", name:"St James Quarter (SJQ)", cluster:"scotland_newcastle",
-      food_cost_pct:[29.56,24.26,26.33,26.33,23.26,22.80,23.37,21.88], wage_pct:[23.67,22.23,21.75,20.76,20.66,21.15,20.47,21.02], foodvar_pct:[null,null,null,-4.6,3.5,2.0,1.8,3.2],
-      del_rag:[null,null,null,"amber",null,null,null,null], compliance_pct:null, star:4.88,
+      food_cost_pct:[29.56,24.26,26.33,26.33,23.26,22.80,23.37,21.88], wage_pct:[23.67,22.23,21.75,20.76,20.66,21.15,20.47,21.02], foodvar_pct:[4.9,null,null,-4.6,3.5,2.0,1.8,3.2],
+      del_rag:["amber",null,null,"amber",null,null,null,null], compliance_pct:null, star:4.88,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"RAW-OVER-RTE cross-contamination", hyg_owner:"Pui Shan Ho", fq_dev:"None", fq_owner:"-",
       boh_issue:"Chef's beef-cutting skill needs improvement; food cost above target.",
       boh_solution:"Head chef to provide further beef-cutting training.", boh_owner:"Penny / HC" },
 
     { code:"M8", name:"Renfield Street, Glasgow", cluster:"scotland_newcastle",
-      food_cost_pct:[26.77,25.71,27.5,27.5,22.31,23.98,18.51,26.64], wage_pct:[24.62,24.44,23.26,23.12,21.97,24.65,21.86,22.52], foodvar_pct:[null,null,null,4.4,3.4,3.1,3.3,3.0],
-      del_rag:[null,"green",null,"amber","green","red","amber","red"], compliance_pct:null, star:4.69,
+      food_cost_pct:[26.77,25.71,27.5,27.5,22.31,23.98,18.51,26.64], wage_pct:[24.62,24.44,23.26,23.12,21.97,24.65,21.86,22.52], foodvar_pct:[4.8,null,null,4.4,3.4,3.1,3.3,3.0],
+      del_rag:["red","green",null,"amber","green","red","amber","red"], compliance_pct:null, star:4.69,
       hygiene_pct:93.9, food_quality_pct:97.8, hyg_dev:"Hygiene 93.9% — lowest in group", hyg_owner:"Site GM", fq_dev:"Plating consistency", fq_owner:"DEC Matt",
       boh_issue:"Deliveroo forced to close Saturday during a city-centre protest; the lunch menu did not lift sales and food cost is above target.",
       boh_solution:"Monitor sales recovery and review the lunch menu's contribution.", boh_owner:"Penny" },
 
     { code:"M12", name:"Newcastle · Eldon Sq", cluster:"scotland_newcastle",
-      food_cost_pct:[21.11,28.29,28.42,28.42,24.97,16.03,10.99,17.54], wage_pct:[26.48,27.11,26.67,22.55,25.57,24.61,25.35,23.18], foodvar_pct:[null,null,null,4.4,2.2,4.5,5.0,3.4],
-      del_rag:[null,null,null,"red","green","green","green","red"], compliance_pct:null, star:4.80,
+      food_cost_pct:[21.11,28.29,28.42,28.42,24.97,16.03,10.99,17.54], wage_pct:[26.48,27.11,26.67,22.55,25.57,24.61,25.35,23.18], foodvar_pct:[2.5,null,null,4.4,2.2,4.5,5.0,3.4],
+      del_rag:["red",null,null,"red","green","green","green","red"], compliance_pct:null, star:4.80,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Labour and food cost high on a sales drop despite the 3–5pm weekday closure; high chicken-gyoza demand for the 1-year anniversary.",
       boh_solution:"Align the Deliveroo machine to the early closing time and monitor cost against reduced sales.", boh_owner:"Penny" },
 
     { code:"M13", name:"Aberdeen", cluster:"scotland_newcastle",
-      food_cost_pct:[22.24,28.38,25.08,25.08,15.59,21.52,22.40,22.40], wage_pct:[24.54,24.07,22.27,22.41,21.48,21.60,21.52,21.83], foodvar_pct:[null,null,null,0.2,4.9,1.8,4.7,4.6],
-      del_rag:[null,null,null,"amber","red","red","green","amber"], compliance_pct:null, star:5.00,
+      food_cost_pct:[22.24,28.38,25.08,25.08,15.59,21.52,22.40,22.40], wage_pct:[24.54,24.07,22.27,22.41,21.48,21.60,21.52,21.83], foodvar_pct:[-1.6,null,null,0.2,4.9,1.8,4.7,4.6],
+      del_rag:["amber",null,null,"amber","red","red","green","amber"], compliance_pct:null, star:5.00,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wall/ceiling damage REPEAT", hyg_owner:"Elliot Spalding", fq_dev:"1 of 3 whisks OVERDUE", fq_owner:"Elliot Spalding",
       boh_issue:"Food cost well above target with sales roughly 22% under target.",
       boh_solution:"Tighten invoice entry and ordering, and monitor.", boh_owner:"Penny" },
 
     { code:"M15", name:"Metrocentre", cluster:"scotland_newcastle",
-      food_cost_pct:[21.16,25.16,20.83,20.83,23.33,21.71,17.37,17.33], wage_pct:[23.17,20.97,21,21.96,24.96,21.25,20.88,21.39], foodvar_pct:[null,null,null,-2.4,-2.7,-1.7,-0.7,-3.4],
-      del_rag:[null,null,null,"red","green","green","red","green"], compliance_pct:null, star:5.00,
+      food_cost_pct:[21.16,25.16,20.83,20.83,23.33,21.71,17.37,17.33], wage_pct:[23.17,20.97,21,21.96,24.96,21.25,20.88,21.39], foodvar_pct:[-4.6,null,null,-2.4,-2.7,-1.7,-0.7,-3.4],
+      del_rag:["green",null,null,"red","green","green","red","green"], compliance_pct:null, star:5.00,
       hygiene_pct:96, food_quality_pct:97.8, hyg_dev:"Walk-in vegetable fridge broken", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
       boh_issue:"Food cost above target and the washing sink is releasing a bad smell.",
       boh_solution:"Eric suggested cross-training BOH staff across hot and sushi sections; deep-clean the sink and call a professional if no improvement.", boh_owner:"Penny / Eric" },
@@ -556,35 +556,35 @@ const FALLBACK_DATA = {
     /* NORTH ENGLAND & MIDLANDS — M9/M10/M14 from England BOH 16.06; M11/M16 food cost from Soph KPI */
     { code:"M9", name:"Manchester", cluster:"north_midlands",
       food_cost_pct:[21.60,22.85,25.88,25.88,null,null,20.69,21.01], wage_pct:[20.08,18.93,20.02,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,null,1.0,1.0],
-      del_rag:[null,"amber",null,"amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
+      del_rag:["amber","amber",null,"amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
       hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Insectocutors", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
       boh_issue:"Halal steak tataki ramen broth disliked (3-star); griddle being repaired and a new dishwasher approved.",
       boh_solution:"Engineer fixing the griddle; dishwasher arriving soon; review the broth on the halal version.", boh_owner:"Artur" },
 
     { code:"M10", name:"Leeds", cluster:"north_midlands",
       food_cost_pct:[23.13,21.46,29.41,29.41,null,null,24.00,20.13], wage_pct:[23.23,21.66,22.4,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,null,-2.9,-0.9],
-      del_rag:[null,"red",null,"red",null,null,null,"amber"], compliance_pct:null, star:4.88,
+      del_rag:["red","red",null,"red",null,null,null,"amber"], compliance_pct:null, star:4.88,
       hygiene_pct:95.9, food_quality_pct:100, hyg_dev:"Sushi mgr L2 cert lapsed", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
       boh_issue:"Deliveroo missing items and customer score need improvement; a 2-star review cited gut upset.",
       boh_solution:"FOH photographing every order before dispatch.", boh_owner:"Artur" },
 
     { code:"M11", name:"Leicester", cluster:"north_midlands",
       food_cost_pct:[20.81,26.87,21.79,18.87,null,null,null,null], wage_pct:[22.58,21.82,22.07,null,26.88,null,null,null], foodvar_pct:[1.0,null,null,null,null,null,null,null],
-      del_rag:[null,null,null,"red",null,null,null,null], compliance_pct:null, star:4.00,
+      del_rag:["amber",null,null,"red",null,null,null,null], compliance_pct:null, star:4.00,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wash basin blocked", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
       boh_issue:"Fire hazard at the back door by the lift (broken microwave, stacked boxes); dessert quality complaints on brownie and banana fritter.",
       boh_solution:"Jason to get the GM / High Cross security to clear the back-door clutter, check the dessert complaints and tighten ordering (now on Kobas).", boh_owner:"Jason / O" },
 
     { code:"M14", name:"Meadowhall · Sheffield", cluster:"north_midlands",
       food_cost_pct:[19.65,28.01,21.49,21.49,35.00,24.00,18.40,21.21], wage_pct:[22.30,21.36,19.26,null,null,null,null,null], foodvar_pct:[null,null,null,null,null,null,1.4,3.0],
-      del_rag:[null,null,null,"green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
+      del_rag:["red",null,null,"green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
       hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"Kimchi taste 4/5", fq_owner:"DEC",
       boh_issue:"Food cost high at 28%; Deliveroo prep time and missing items need improvement.",
       boh_solution:"FOH photographing every order; BOH to prioritise Deliveroo orders.", boh_owner:"Artur" },
 
     { code:"M16", name:"Nottingham", cluster:"north_midlands",
       food_cost_pct:[19.65,28.01,21.49,21.49,null,null,null,null], wage_pct:[24.65,22.9,22.28,null,22.94,null,null,22.65], foodvar_pct:[4.7,null,null,null,null,null,null,null],
-      del_rag:[null,null,null,"red",null,null,null,null], compliance_pct:null, star:3.50,
+      del_rag:["green",null,null,"red",null,null,null,null], compliance_pct:null, star:3.50,
       hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Food cost down to 19.65% (from ~28%) via the Kobas / Dunster Farm / JFC switch; a lost Friday hit the weekly total and there are no sushi-chef applicants.",
       boh_solution:"Maged to coordinate with Hannah on sushi-chef trial shifts and flex staffing to real-time sales; the Chinese cooker is still open.", boh_owner:"Maged / O" },
@@ -592,14 +592,14 @@ const FALLBACK_DATA = {
     /* SOUTH ENGLAND — South BOH 23.06 (Srawut 'O'); M17/M18 food cost from Soph KPI */
     { code:"M17", name:"Lakeside", cluster:"south",
       food_cost_pct:[21.62,25.75,23.47,23.47,null,null,null,null], wage_pct:[23.84,21.92,21.65,null,24.37,null,null,null], foodvar_pct:[4.1,null,null,null,null,null,null,null],
-      del_rag:[null,null,null,"amber",null,null,null,null], compliance_pct:null, star:3.80,
+      del_rag:["red",null,null,"amber",null,null,null,null], compliance_pct:null, star:3.80,
       hygiene_pct:null, food_quality_pct:97.8, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Cooker burner won't hold a light; a new sushi manager is starting amid weekend sales softness.",
       boh_solution:"Thomas to train the new sushi manager on ordering/admin from day one; clean the burner then call a professional repair if the pilot won't hold gas.", boh_owner:"Thomas / GM" },
 
     { code:"M18", name:"Soho", cluster:"south",
       food_cost_pct:[27.54,24.69,23.41,23.41,null,null,null,null], wage_pct:[29.65,25.2,28.1,null,41.27,28.00,32.00,35.00], foodvar_pct:[4.9,null,null,null,null,null,null,null],
-      del_rag:[null,null,null,"red",null,null,null,null], compliance_pct:null, star:4.50,
+      del_rag:["green",null,null,"red",null,null,null,null], compliance_pct:null, star:4.50,
       hygiene_pct:null, food_quality_pct:93.5, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"2 deviations — 2nd-lowest", fq_owner:"DEC Jack",
       boh_issue:"Food cost high on the spinning-wheel and free-sushi promo; the sushi pop-up was undermined by thin floor cover and late materials, and the ventilation unit is leaking a black substance.",
       boh_solution:"New budget / continue-or-stop pending Michael; Marian to send O the ventilation photos and tighten floor cover and lead times for the next pop-up.", boh_owner:"Marian / Michael / O" },
