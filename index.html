@@ -420,7 +420,11 @@
   .sc-chip.green { background: var(--green-bg); color: var(--green); }
   .sc-chip.amber { background: var(--amber-bg); color: var(--amber); }
   .sc-chip.red { background: var(--red-bg); color: var(--red); }
+  .sc-chip.deep-red { background: var(--red); color: #fff; }
   .sc-chip.na { background: var(--surface-2); color: var(--ink-3); font-weight: 500; }
+  .scorecard-row.header .sc-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+  .scorecard-row.header .sc-sortable:hover { color: var(--ink-1); }
+  .scorecard-row.header .sc-sortable.active { color: var(--accent, var(--red)); font-weight: 800; }
   .sc-score {
     text-align: center;
     font-weight: 800;
@@ -3653,19 +3657,64 @@ function selectCluster(id) {
   }
 }
 
+// League-table sort state + column config. Default = Score desc (the original league feel).
+let scSort = { key: 'score', dir: 'desc' };
+const SC_COLS = [
+  { key: 'code', label: 'Site' },
+  { key: 'name', label: 'Name' },
+  { key: 'sales', label: 'Sales vs Tgt' },
+  { key: 'sph', label: 'SPH', center: true },
+  { key: 'wage', label: 'Wage %' },
+  { key: 'food', label: 'Food Cost' },
+  { key: 'foodVar', label: 'Food Var' },
+  { key: 'drinksVar', label: 'Drinks Var' },
+  { key: 'wk', label: 'Wk ★' },
+  { key: 'lifetime', label: 'Lifetime ★' },
+  { key: 'score', label: 'Score /100' },
+];
+// Sort value per column. Variances sort by magnitude (worst = furthest from 0).
+function scValue(s, key) {
+  const m = METRICS[s.code] || {};
+  const r = REVIEWS[s.code] || {};
+  switch (key) {
+    case 'code': return s.code;
+    case 'name': return s.name;
+    case 'sales': return s.vsTarget;
+    case 'sph': return m.sph;
+    case 'wage': return m.wage;
+    case 'food': return m.food;
+    case 'foodVar': return m.foodVar == null ? null : Math.abs(m.foodVar);
+    case 'drinksVar': return m.drinksVar == null ? null : Math.abs(m.drinksVar);
+    case 'wk': return weeklyRating(r);
+    case 'lifetime': return r.rating;
+    case 'score': return efficiencyScore(s);
+    default: return efficiencyScore(s);
+  }
+}
+function setScSort(key) {
+  if (scSort.key === key) scSort.dir = scSort.dir === 'asc' ? 'desc' : 'asc';
+  else scSort = { key, dir: (key === 'code' || key === 'name') ? 'asc' : 'desc' };
+  renderScorecard();
+}
 function renderScorecard() {
   const wrap = document.getElementById('scorecard');
-  const sites = [...SITES].sort((a,b) => {
-    const order = { red: 0, amber: 1, green: 2, na: 3 };
-    const ra = combinedRag(a), rb = combinedRag(b);
-    if (ra !== rb) return order[ra] - order[rb];
-    return a.vsTarget - b.vsTarget;
+  const sites = [...SITES].sort((a, b) => {
+    const va = scValue(a, scSort.key), vb = scValue(b, scSort.key);
+    const na = va == null || (typeof va === 'number' && isNaN(va));
+    const nb = vb == null || (typeof vb === 'number' && isNaN(vb));
+    if (na && nb) return 0;
+    if (na) return 1;   // N/A always sinks to the bottom regardless of direction
+    if (nb) return -1;
+    const cmp = (typeof va === 'string') ? va.localeCompare(vb) : (va - vb);
+    return scSort.dir === 'asc' ? cmp : -cmp;
   });
-  // Sort by efficiency score descending (league-table feel)
-  sites.sort((a, b) => (efficiencyScore(b) ?? -1) - (efficiencyScore(a) ?? -1));
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div style="text-align:center;">SPH</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
+      ${SC_COLS.map(c => {
+        const active = scSort.key === c.key;
+        const arrow = active ? (scSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+        return `<div class="sc-sortable${active ? ' active' : ''}"${c.center ? ' style="text-align:center;"' : ''} onclick="setScSort('${c.key}')">${c.label}${arrow}</div>`;
+      }).join('')}
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
