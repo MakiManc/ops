@@ -3531,6 +3531,7 @@ function tileHTML(s) {
   const wageTxt = m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%';
   const foodTxt = m.food == null ? 'N/A' : m.food.toFixed(1) + '%';
   const salesTxt = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(0) + '%';
+  const sphTxt = m.sph == null ? 'N/A' : '£' + m.sph.toFixed(1);
   const fvCls = varBandClass(m.foodVar);
   const dvCls = varBandClass(m.drinksVar);
   const fvTxt = fmtVar(m.foodVar);
@@ -3549,6 +3550,7 @@ function tileHTML(s) {
         </div>
         <div class="tile-metrics">
           <div class="tile-metric ${salesRag(s.vsTarget) === 'green' ? 'good' : (salesRag(s.vsTarget) === 'amber' ? 'warn' : 'bad')}">S<br>${salesTxt}</div>
+          <div class="tile-metric ${sphRag(m.sph, s.code) === 'na' ? 'na' : (sphRag(m.sph, s.code) === 'green' ? 'good' : (sphRag(m.sph, s.code) === 'amber' ? 'warn' : 'bad'))}">SPH<br>${sphTxt}</div>
           <div class="tile-metric ${wageRag(m.wage) === 'na' ? 'na' : (wageRag(m.wage) === 'green' ? 'good' : (wageRag(m.wage) === 'amber' ? 'warn' : 'bad'))}">W<br>${wageTxt}</div>
           <div class="tile-metric ${foodRag(m.food) === 'na' ? 'na' : (foodRag(m.food) === 'green' ? 'good' : (foodRag(m.food) === 'amber' ? 'warn' : 'bad'))}">F<br>${foodTxt}</div>
           <div class="tile-metric ${vClass(fvCls)}">FV<br>${fvTxt}</div>
