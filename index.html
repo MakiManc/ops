@@ -388,7 +388,7 @@
   }
   .scorecard-row {
     display: grid;
-    grid-template-columns: 48px 1fr 78px 78px 78px 78px 78px 70px 70px 72px;
+    grid-template-columns: 48px 1fr 78px 76px 78px 78px 78px 78px 70px 70px 72px;
     gap: 6px;
     padding: 10px 12px;
     align-items: center;
@@ -3354,11 +3354,21 @@ function efficiencyScore(s) {
   }
   const groupMaxGap = 50000; // calibration: -£50k = 0 on £-component, +£50k capped at 100
   const parts = [];
-  // Sales 20% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
+  // Sales 10% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
   if (s.vsTarget != null) {
     const pctPart = Math.max(0, Math.min(100, 100 + s.vsTarget));
     const gbpPart = Math.max(0, Math.min(100, 100 + (gbpGap / groupMaxGap) * 100));
-    parts.push({ w: 20, v: 0.7 * pctPart + 0.3 * gbpPart });
+    parts.push({ w: 10, v: 0.7 * pctPart + 0.3 * gbpPart });
+  }
+  // SPH 15% — blend 70% level vs the site's per-format target + 30% WoW momentum.
+  // Level: 100 at target (and above), then -100/6 per £ below, hitting 0 at £6 under target (mirrors Food/Wage: target = 100).
+  // Target is £22 for Maki & Ramen restaurants, £35 for Maki Nori (see sphTarget).
+  // Momentum: 50 = flat WoW, ±5% maps to the full 0–100 range. No prior-week data -> level only.
+  if (m.sph != null) {
+    const tgt = sphTarget(s.code);
+    const level = Math.max(0, Math.min(100, 100 - Math.max(0, tgt - m.sph) * (100 / 6)));
+    const mom = (m.sphWowPct == null) ? null : Math.max(0, Math.min(100, 50 + m.sphWowPct * 10));
+    parts.push({ w: 15, v: (mom == null) ? level : 0.7 * level + 0.3 * mom });
   }
   // Food cost 30% — 100 at 25% target, -8 per pp over
   if (m.food != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.food - 25) * 8)) });
@@ -3366,15 +3376,31 @@ function efficiencyScore(s) {
   if (m.wage != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.wage - 21) * 15)) });
   // Weekly ★ 10% — 100 at 4.7★ (the actual OKR), 0 at 4.0★
   if (wr != null) parts.push({ w: 10, v: Math.max(0, Math.min(100, ((wr - 4.0) / 0.7) * 100)) });
-  // Food variance 10% — flat 100 inside ±5% band, then -8 per pp outside
+  // Food variance 5% — flat 100 inside ±5% band, then -8 per pp outside
   if (m.foodVar != null) {
     const a = Math.abs(m.foodVar);
     const v = a <= 5 ? 100 : Math.max(0, 100 - (a - 5) * 8);
-    parts.push({ w: 10, v });
+    parts.push({ w: 5, v });
   }
   if (parts.length === 0) return null;
   const totalW = parts.reduce((a, c) => a + c.w, 0);
   return Math.round(parts.reduce((a, c) => a + c.v * c.w, 0) / totalW);
+}
+// Per-format SPH target: Maki Nori is a different format (grab-and-go, higher spend) so it carries
+// its own £35 bar; Ikigai Ramen (IKI2) is its own brand at £21; the Maki & Ramen restaurants target £22.
+function sphTarget(code) {
+  if (code === 'Maki Nori') return 35;
+  if (code === 'IKI2') return 21;
+  return 22;
+}
+// SPH chip colour for the league table — relative to the site's own target: green ≥ target,
+// amber within £2 below, red lower.
+function sphRag(v, code) {
+  if (v == null) return 'na';
+  const t = sphTarget(code);
+  if (v >= t) return 'green';
+  if (v >= t - 2) return 'amber';
+  return 'red';
 }
 function efficiencyRag(score) {
   if (score == null) return 'na';
@@ -3637,7 +3663,7 @@ function renderScorecard() {
   sites.sort((a, b) => (efficiencyScore(b) ?? -1) - (efficiencyScore(a) ?? -1));
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>SPH</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
@@ -3645,6 +3671,7 @@ function renderScorecard() {
     const wr = weeklyRating(r);
     const eff = efficiencyScore(s);
     const sRag = salesRag(s.vsTarget);
+    const spRag = sphRag(m.sph, s.code);
     const wRag = wageRag(m.wage);
     const fRag = foodRag(m.food);
     const vRag = varBandClass(m.foodVar);
@@ -3658,6 +3685,7 @@ function renderScorecard() {
         <div class="sc-code">${s.code}</div>
         <div class="sc-name">${s.name}</div>
         <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}% <span class="sc-chip-wow">${trendArrow(h.sales, 'up-is-good')}</span></div>
+        <div class="sc-chip ${spRag}">${m.sph == null ? 'N/A' : '£' + m.sph.toFixed(2)}${m.sphWowPct == null ? '' : ` <span class="sc-chip-wow">${m.sphWowPct >= 0 ? '▲' : '▼'}</span>`}</div>
         <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
         <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
         <div class="sc-chip ${vRag}">${fmtVar(m.foodVar)}</div>
@@ -3742,6 +3770,8 @@ function renderHotActions() {
 function openSite(code) {
   const s = SITES.find(x => x.code === code);
   if (!s) return;
+  const negList = (REVIEWS[s.code] || {}).negatives || [];
+  const hasNegs = negList.length > 0;
   const modal = document.getElementById('modal');
   const ragLabel = s.rag === 'deep-red' ? 'DEEP RED' : s.rag.toUpperCase();
   const ragColor = s.rag === 'deep-red' ? 'red' : s.rag;
@@ -3799,8 +3829,8 @@ function openSite(code) {
           <div class="kpi-trend" style="margin-top:6px;">target = 100</div>
         </div>
         ${deliverooCell(s)}
-        <div class="kpi" style="grid-column: 1 / -1;">
-          <div class="kpi-label">This week's Google reviews · Covers · SPH</div>
+        <div class="kpi" style="grid-column: 1 / -1;${hasNegs ? 'cursor:pointer;' : ''}" ${hasNegs ? 'onclick="toggleNegReviews()" title="Click to show / hide this week\'s negative reviews"' : ''}>
+          <div class="kpi-label">This week's Google reviews · Covers · SPH${hasNegs ? ` <span id="neg-chevron" style="color:var(--red);font-weight:700;">▸ ${negList.length} negative — click to view</span>` : ''}</div>
           <div class="kpi-value" style="font-size:13px;">
             ${(REVIEWS[s.code]||{}).weekCount == null ? '<span style="color:var(--ink-3)">No review data this week</span>' :
               `<span style="font-weight:700;">${(REVIEWS[s.code]).weekCount} reviews</span> &nbsp;
@@ -3812,15 +3842,14 @@ function openSite(code) {
       </div>
 
       ${(() => {
-        const negs = (REVIEWS[s.code] || {}).negatives || [];
-        if(!negs.length) return '';
+        if(!hasNegs) return '';
         const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const ddmmyyyy = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : (d || ''); };
         const starStr = n => { const k = Math.max(0, Math.min(5, Number(n) || 0)); return '★'.repeat(k) + '☆'.repeat(5 - k); };
         return `
-      <div class="panel">
-        <div class="panel-head issues"><span class="dot"></span>Negative reviews this week (${negs.length})</div>
-        ${negs.map(n => `<div class="item issue">
+      <div class="panel" id="neg-reviews-panel" style="display:none;">
+        <div class="panel-head issues"><span class="dot"></span>Negative reviews this week (${negList.length})</div>
+        ${negList.map(n => `<div class="item issue">
           <strong style="color:var(--red);">${starStr(n.stars)}</strong> &nbsp;${esc(n.author) || 'Anonymous'} &nbsp;<span style="color:var(--ink-3);font-size:12px;">${ddmmyyyy(n.date)}</span>
           <div style="margin-top:4px;color:var(--ink-2);">${esc(n.text)}</div>
           ${n.url ? `<a href="${esc(n.url)}" target="_blank" style="font-size:12px;">View on Google →</a>` : ''}
@@ -3853,6 +3882,15 @@ function openSite(code) {
 
 function closeModal() {
   document.getElementById('modal-bg').classList.remove('show');
+}
+// Toggle the collapsible negative-reviews panel in the site modal (clicked via the reviews KPI cell).
+function toggleNegReviews() {
+  const panel = document.getElementById('neg-reviews-panel');
+  if (!panel) return;
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  const chev = document.getElementById('neg-chevron');
+  if (chev) chev.innerHTML = (open ? '▾ ' : '▸ ') + chev.innerHTML.replace(/^[▸▾]\s*/, '');
 }
 
 // Filter handlers (RAG / cluster)
@@ -4558,6 +4596,12 @@ function adaptSite(jsonCode, s, isNewest, weekKey){
     if(kp.wage_pct && kp.wage_pct.actual != null) METRICS[display].wage = kp.wage_pct.actual;
     if(kp.food_pct && kp.food_pct.actual != null) METRICS[display].food = kp.food_pct.actual;
     else METRICS[display].food = BAKED_METRICS_FOOD[display]; // null -> keep baked
+    // Raw SPH (Spend Per Head) numbers for the efficiency score + league table — display string is set separately on site.kpis.sph.
+    if(kp.sph){
+      METRICS[display].sph       = (kp.sph.actual  != null) ? kp.sph.actual  : null;
+      METRICS[display].sphPrev   = (kp.sph.prev    != null) ? kp.sph.prev    : null;
+      METRICS[display].sphWowPct = (kp.sph.wow_pct != null) ? kp.sph.wow_pct : null;
+    }
     // Live stock-take variances (numeric; null -> renders N/A / neutral)
     const stm = s.stock_take || {};
     METRICS[display].foodVar   = (stm.food   && stm.food.variance_pct   != null) ? stm.food.variance_pct   : null;
