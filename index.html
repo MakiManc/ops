@@ -3663,7 +3663,7 @@ function renderScorecard() {
   sites.sort((a, b) => (efficiencyScore(b) ?? -1) - (efficiencyScore(a) ?? -1));
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>SPH</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div style="text-align:center;">SPH</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
@@ -3790,6 +3790,11 @@ function openSite(code) {
           <div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div>
           <div class="kpi-spark">${sparkline((HISTORY[s.code]||{}).sales, 'up-is-good', '#4f46e5')}</div>
           <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).sales, 'up-is-good')}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">SPH (tgt £${sphTarget(s.code)})</div>
+          <div class="kpi-value ${sphRag((METRICS[s.code]||{}).sph, s.code)}">${(METRICS[s.code]||{}).sph == null ? 'N/A' : '£' + (METRICS[s.code]).sph.toFixed(2)}</div>
+          <div class="kpi-trend" style="margin-top:6px;">WoW ${(METRICS[s.code]||{}).sphWowPct == null ? 'n/a' : ((METRICS[s.code]).sphWowPct >= 0 ? '▲ +' : '▼ ') + (METRICS[s.code]).sphWowPct.toFixed(1) + '%'}</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Wage % (tgt ≤21%)</div>
