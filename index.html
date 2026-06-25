@@ -1215,7 +1215,7 @@
   <div class="section-head">
     <div>
       <h2>Site League Table — Efficiency Score</h2>
-            <div class="hint">Weighted 5-component score (Wage 30%, Food 30%, Sales 20%, Weekly ★ 10%, Food Var 10%), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
+            <div class="hint">Weighted 6-component score (Wage 30%, Food 30%, SPH 15%, Sales 10%, Weekly ★ 10%, Food Var 5%), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. SPH blends level vs a per-format target (£22 restaurants / £35 Maki Nori / £21 Ikigai) with WoW momentum. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
       <span class="frozen-caption freeze-target" data-freeze="scorecard" style="display:none;">Opens on the most recent week with stock-take variance entered (stock-take lags ~1 week); selecting the current week may show N/A variance until the stock-take sheet is updated.</span>
     </div>
   </div>
@@ -3340,8 +3340,8 @@ function weeklyRatingRag(wr) {
   return 'red';
 }
 
-// Site Efficiency Score — weighted 5-component score, 0–100 nominal (100 = at target)
-// Components: Wage 30%, Food cost 30%, Sales 20% (% + £ gap blend), Weekly ★ 10%, Food variance 10% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
+// Site Efficiency Score — weighted 6-component score, 0–100 nominal (100 = at target)
+// Components: Wage 30%, Food cost 30%, SPH 15% (level vs per-format target + WoW momentum), Sales 10% (% + £ gap blend), Weekly ★ 10%, Food variance 5% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
 function efficiencyScore(s) {
   const m = METRICS[s.code] || {};
   const r = REVIEWS[s.code] || {};
