@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 90,
+        "score": 91,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -93,15 +93,18 @@
             "value": 80.5,
             "basis": "22.30% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 10,
             "value": 100,
             "basis": "0.20% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -112,10 +115,10 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 2,
+        "week_avg_rating": 4.8,
+        "new_reviews": 8,
         "star_breakdown": {
-          "5": 2,
+          "5": 8,
           "4": 0,
           "3": 0,
           "2": 0,
@@ -169,9 +172,7 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     }
   }
 }

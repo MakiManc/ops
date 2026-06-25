@@ -67,8 +67,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 80,
-        "rag": "amber",
+        "score": 79,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -95,8 +95,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 89.29,
+            "basis": "4.62\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 10,
@@ -115,17 +115,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 2,
+        "week_avg_rating": 4.625,
+        "new_reviews": 16,
         "star_breakdown": {
-          "5": 2,
-          "4": 0,
+          "5": 13,
+          "4": 2,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Nie72",
+            "text": "Was really looking forward to this and everyone has been hyping M&R up!!  But it was just an aweful experience :( I ended up getting food poisoning from here!! Attended with a friend and we both ordered different things.\n\nI thought I\u2019d be safe with the ramen option and my friend ordered a rack of sushi. The food came pretty quickly despite the slow service .\nThe sushi was cut so thick and messy with what looked like the ending or trimming of left over fish on the top like they ran out of ingredients ? The ramen I ordered came luke warm, noodles were undercooked but stuck together and only had two king prawns and two thin slices of salmon inside.\n\nThe service was also so so slow. There was only 1 person who seemed to be taking everyone\u2019s orders bless her and she looked understandably stressed. The lady rolling the sushi\u2019s looked like she couldn\u2019t really be bothered and it showed from how the rolls came out :(\n\nThe only good thing was the Japanese fizzy drink the waitress recommended and catching up with my friend but now regretting it all as I vomit\n\nSadly won\u2019t be returning again.",
+            "date": "2026-06-17",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 85,
+        "score": 83,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -95,8 +95,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 76.92,
+            "basis": "4.54\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 10,
@@ -116,17 +116,46 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 6,
+        "week_avg_rating": 4.538461538,
+        "new_reviews": 13,
         "star_breakdown": {
-          "5": 6,
+          "5": 11,
           "4": 0,
-          "3": 0,
+          "3": 1,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 4,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Ali",
+            "text": "Our main was really good and tasty, the desert was probably up there with the worst I've paid for at a restaurant.\n\nThe chocolate matcha brownie was a stale hard lump of cardboard. On par with a savers brownie from londis. There was also less than advertised on the menus picture. The Banana fritter was just a greasy deep fried mess, dripping in grease that hadn't been drained off.\n\nUnfortunately the deserts seriously dampened our initial thoughts of or meal, the main was a 4/5 initially.",
+            "date": "2026-06-20",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Hemaxi",
+            "text": "Never going back. First and last visit.\n\nWe arrived slightly earlier for our table for 2 booked for 7pm and were seated, no problem. We were waiting around 15 minutes for our drinks order to be taken, and we chose to order food at the same time.\n\nDrinks came over with a very confused server. To us, it was clear the drinks were for us and the table next to us judging by the number of glasses and people. She had to go away and check and then come back to finally give us the drinks.\n\nAfter that, my food arrived first and we had to wait another 10 minutes or so before my friend's food arrived. My food was getting cold by then. But they served the meat option when the vegan option had been ordered. They took it away and came back another 15 minutes or so later with the correct meal. They didn't even apologise.\n\nThe bill came with service charge included and in my opinion, they should have taken the initiative to take money off considering they served meat to someone who doesn't even eat meat. I requested they reconsider, and they returned with another bill with a drink and service charge removed. Ridiculous that we had to ask for that in the first place considering the poor service, but grateful they did do something about the bill. It was at this point we finally had an apology.",
+            "date": "2026-06-20",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "Ali",
+            "text": "Our main was really good and tasty, the desert was probably up there with the worst I've paid for at a restaurant.\n\nThe chocolate matcha brownie was a stale hard lump of cardboard. On par with a savers brownie from londis. There was also less than advertised on the menus picture. The Banana fritter was just a greasy deep fried mess, dripping in grease that hadn't been drained off.\n\nUnfortunately the deserts seriously dampened our initial thoughts of or meal, the main was a 4/5 initially.",
+            "date": "2026-06-20",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Hemaxi",
+            "text": "Never going back. First and last visit.\n\nWe arrived slightly earlier for our table for 2 booked for 7pm and were seated, no problem. We were waiting around 15 minutes for our drinks order to be taken, and we chose to order food at the same time.\n\nDrinks came over with a very confused server. To us, it was clear the drinks were for us and the table next to us judging by the number of glasses and people. She had to go away and check and then come back to finally give us the drinks.\n\nAfter that, my food arrived first and we had to wait another 10 minutes or so before my friend's food arrived. My food was getting cold by then. But they served the meat option when the vegan option had been ordered. They took it away and came back another 15 minutes or so later with the correct meal. They didn't even apologise.\n\nThe bill came with service charge included and in my opinion, they should have taken the initiative to take money off considering they served meat to someone who doesn't even eat meat. I requested they reconsider, and they returned with another bill with a drink and service charge removed. Ridiculous that we had to ask for that in the first place considering the poor service, but grateful they did do something about the bill. It was at this point we finally had an apology.",
+            "date": "2026-06-20",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

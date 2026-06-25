@@ -96,7 +96,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.73\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.71\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 10,
@@ -115,17 +115,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.727272727,
-        "new_reviews": 11,
+        "week_avg_rating": 4.705882353,
+        "new_reviews": 17,
         "star_breakdown": {
-          "5": 8,
-          "4": 3,
+          "5": 14,
+          "4": 2,
           "3": 0,
-          "2": 0,
+          "2": 1,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Amy Kenney",
+            "text": "We got the \u00a318 lunch special (+\u00a32 for steak).\nEdamame was barely cooked, the noodles were slimy in our ramen, like they\u2019d been sat for a while. Food came out suspiciously quick (I know it\u2019s 30 mins or they pay) steak and egg was freezing cold, even the broth didn\u2019t warm it up. We ended up getting half price as we didn\u2019t eat even a quarter of our meal. Staff were friendly but didn\u2019t check on us after they gave us our food and seemed to be rushing around when it wasn\u2019t overly busy.",
+            "date": "2026-06-17",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

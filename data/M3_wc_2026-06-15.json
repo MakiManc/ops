@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 87,
+        "score": 91,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -95,8 +95,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 42.86,
-            "basis": "4.30\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 79.37,
+            "basis": "4.56\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 10,
@@ -113,13 +113,13 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.3,
-        "new_reviews": 10,
+        "week_avg_rating": 4.555555556,
+        "new_reviews": 9,
         "star_breakdown": {
           "5": 7,
           "4": 1,
           "3": 0,
-          "2": 2,
+          "2": 1,
           "1": 0
         },
         "negatives": null,

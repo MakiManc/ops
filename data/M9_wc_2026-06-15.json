@@ -67,8 +67,8 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 94,
-        "rag": "amber",
+        "score": 95,
+        "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -95,8 +95,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 90.23,
-            "basis": "4.63\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 100.0,
+            "basis": "4.85\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 10,
@@ -115,17 +115,24 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.631578947,
-        "new_reviews": 19,
+        "week_avg_rating": 4.851485149,
+        "new_reviews": 101,
         "star_breakdown": {
-          "5": 15,
-          "4": 3,
-          "3": 0,
+          "5": 90,
+          "4": 9,
+          "3": 1,
           "2": 0,
           "1": 1
         },
-        "negatives": 1,
+        "negatives": 2,
         "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Yining Long",
+            "text": "Lisa is friendly",
+            "date": "2026-06-17",
+            "url": null
+          },
           {
             "stars": 1,
             "author": "YC wu",
