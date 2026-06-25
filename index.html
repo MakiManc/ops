@@ -3811,7 +3811,24 @@ function openSite(code) {
         </div>
       </div>
 
-      ${s.empty ? '<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
+      ${(() => {
+        const negs = (REVIEWS[s.code] || {}).negatives || [];
+        if(!negs.length) return '';
+        const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const ddmmyyyy = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : (d || ''); };
+        const starStr = n => { const k = Math.max(0, Math.min(5, Number(n) || 0)); return '★'.repeat(k) + '☆'.repeat(5 - k); };
+        return `
+      <div class="panel">
+        <div class="panel-head issues"><span class="dot"></span>Negative reviews this week (${negs.length})</div>
+        ${negs.map(n => `<div class="item issue">
+          <strong style="color:var(--red);">${starStr(n.stars)}</strong> &nbsp;${esc(n.author) || 'Anonymous'} &nbsp;<span style="color:var(--ink-3);font-size:12px;">${ddmmyyyy(n.date)}</span>
+          <div style="margin-top:4px;color:var(--ink-2);">${esc(n.text)}</div>
+          ${n.url ? `<a href="${esc(n.url)}" target="_blank" style="font-size:12px;">View on Google →</a>` : ''}
+        </div>`).join('')}
+      </div>`;
+      })()}
+
+      ${s.empty ?'<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
 
       <div class="panel">
         <div class="panel-head issues"><span class="dot"></span>Issues raised (${s.issues.length})</div>
@@ -4430,9 +4447,11 @@ function fmtCovers(c){
   return `${a>=0?'+':''}${a} (${p>=0?'+':''}${p}%)`;
 }
 function fmtSph(sph){
-  if(!sph || sph.wow_abs == null) return "n/a";
-  const v = sph.wow_abs;
-  return `${v>=0?'+':'-'}£${Math.abs(v).toFixed(2)}`;
+  if(!sph || sph.actual == null) return "n/a";
+  const a = sph.actual;
+  const dv = sph.wow_abs;
+  const delta = (dv == null) ? '' : ` (${dv>=0?'+':'-'}£${Math.abs(dv).toFixed(2)})`;
+  return `£${Number(a).toFixed(2)}${delta}`;
 }
 function fmtVsTarget(sales){
   if(!sales || sales.target == null) return "n/a";
@@ -4551,6 +4570,8 @@ function adaptSite(jsonCode, s, isNewest, weekKey){
     if(rv.new_reviews != null) REVIEWS[display].weekCount = rv.new_reviews;
     const bd = rv.star_breakdown;
     if(bd) REVIEWS[display].stars = [bd["5"]||0, bd["4"]||0, bd["3"]||0, bd["2"]||0, bd["1"]||0];
+    // Carry the week's negative-review text through to the site modal (rendered in openSite).
+    REVIEWS[display].negatives = Array.isArray(rv.negative_reviews) ? rv.negative_reviews : [];
   }
 }
 
