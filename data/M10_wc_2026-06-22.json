@@ -3,71 +3,71 @@
   "generated_at": "2026-06-29",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-15 \u2013 2026-06-21",
-    "commencing": "2026-06-15",
-    "ending": "2026-06-21"
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
+    "commencing": "2026-06-22",
+    "ending": "2026-06-28"
   },
   "sites": {
-    "IKI2": {
-      "code": "IKI2",
-      "name": "Ikigai 2",
-      "gm": "Sujan (RM)",
+    "M10": {
+      "code": "M10",
+      "name": "Maki 10",
+      "gm": "Ninder Joshi",
       "gm_confirm": true,
-      "am": "Ka Ho",
-      "cluster": "Scotland & Newcastle",
+      "am": "Inka Cheung",
+      "cluster": "North England & Midlands",
       "kpis": {
         "sales": {
-          "actual": 17742.61,
-          "target": 21550.0,
-          "var_pct": -17.67,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "actual": 29576.1,
+          "target": 35343.0,
+          "var_pct": -16.32,
+          "prev": 29824.39,
+          "wow_abs": -248.29,
+          "wow_pct": -0.83
         },
         "covers": {
-          "actual": 739,
-          "prev": 795,
-          "wow_abs": -56,
-          "wow_pct": -7.04
+          "actual": 1031,
+          "prev": 1066,
+          "wow_abs": -35,
+          "wow_pct": -3.28
         },
         "sph": {
-          "actual": 21.01,
-          "prev": 21.31,
-          "wow_abs": -0.3,
-          "wow_pct": -1.41,
+          "actual": 21.84,
+          "prev": 20.95,
+          "wow_abs": 0.89,
+          "wow_pct": 4.25,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 24.37,
+          "actual": 21.51,
           "target": null
         },
         "food_pct": {
-          "actual": 17.51,
+          "actual": null,
           "target": 23.0,
           "gated": false
         },
         "labour_hours": {
-          "actual": 292.8
+          "actual": 436.81
         },
         "waste": {
-          "actual": 6.17
+          "actual": 0.0
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": -1.3,
+          "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": true
+          "within_band": null
         },
         "food": {
-          "variance_pct": 1.4,
+          "variance_pct": -1,
           "target": "\u00b15%",
           "within_band": true
         },
-        "week_commencing": "2026-06-15"
+        "week_commencing": "2026-06-22"
       },
       "efficiency_score": {
-        "score": 78,
+        "score": 79,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -81,46 +81,52 @@
         "components": {
           "sales": {
             "weight": 10,
-            "value": 85.35,
-            "basis": "70% (100-17.67) + 30% (\u00a3gap -3807 vs \u00b1\u00a350k cal)"
+            "value": 85.12,
+            "basis": "70% (100-16.32) + 30% (\u00a3gap -5767 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
-            "value": 80.77,
-            "basis": "\u00a321.01 vs \u00a321 tgt \u2014 level 100, WoW -1.41% \u2192 mom 36"
-          },
-          "food": {
-            "weight": 30,
-            "value": 100.0,
-            "basis": "17.51% vs 25% baseline, -8/pp over"
+            "value": 95.88,
+            "basis": "\u00a321.84 vs \u00a322 tgt \u2014 level 97, WoW +4.25% \u2192 mom 92"
           },
           "wage": {
             "weight": 30,
-            "value": 49.45,
-            "basis": "24.37% vs 21% target, -15/pp over"
+            "value": 92.35,
+            "basis": "21.51% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 0.0,
+            "basis": "1.67\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "1.40% inside \u00b15% band"
+            "basis": "-1.00% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "weekly_star"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -17.7% vs target"
+          "sales -16.3% vs target"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
+        "week_avg_rating": 1.666666667,
+        "new_reviews": 4,
+        "star_breakdown": {
+          "5": 4,
+          "4": 0,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -130,21 +136,21 @@
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
-        "source": "automation/data/maintenance_2026-06-15.json (AGMM Task List Status). Open items only.",
+        "source": "automation/data/maintenance_2026-06-22.json (AGMM Task List Status). Open items only.",
         "outstanding_count": 2,
         "tasks": [
           {
-            "task": "canopy above stairs leaking and needs serviced",
+            "task": "Wifi Consistency",
             "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
+            "logged_week": "Pending",
+            "owner": "Chris",
             "status": "open"
           },
           {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "task": "Front Door (Left) Stopper smashed",
             "priority": "\u2014",
             "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
+            "owner": "\u2014",
             "status": "open"
           }
         ],
@@ -159,32 +165,32 @@
       },
       "deliveroo": {
         "store": null,
-        "week_ending": "2026-06-21",
+        "week_ending": "2026-06-28",
         "resolution": "weekly",
         "partial": false,
-        "sales": 1665.71,
-        "orders": 59,
-        "aov": 28.23,
-        "new_customers": 22,
-        "rating": 4.43,
-        "open_hours_pct": 90.7,
-        "avg_prep_min": 7.9,
+        "sales": 5029.15,
+        "orders": 186,
+        "aov": 27.04,
+        "new_customers": 60,
+        "rating": 4.77,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 15.9,
         "rejection_pct": 0,
         "inaccuracy_pct": null,
-        "rider_wait_5min_pct": 5.1,
-        "conversion_pct": 5.8,
+        "rider_wait_5min_pct": 2.7,
+        "conversion_pct": 4.9,
         "wow": {
-          "gmv_pct": 19.6,
-          "orders_abs": 10,
-          "prev_gmv": 1393.11,
-          "prev_orders": 49
+          "gmv_pct": -8.7,
+          "orders_abs": -29,
+          "prev_gmv": 5510.89,
+          "prev_orders": 215
         },
-        "gmv_vs_4wk_pct": 6.2,
-        "gmv_vs_ly_pct": 18.8,
+        "gmv_vs_4wk_pct": -14.9,
+        "gmv_vs_ly_pct": -3.5,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     }
   }

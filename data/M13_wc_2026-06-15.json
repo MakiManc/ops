@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-24",
+  "generated_at": "2026-06-29",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -20,9 +20,9 @@
           "actual": 33607.46,
           "target": 42000.0,
           "var_pct": -19.98,
-          "prev": 37458.93,
-          "wow_abs": -3851.47,
-          "wow_pct": -10.28
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1220,
@@ -50,7 +50,7 @@
           "actual": 566.9
         },
         "waste": {
-          "actual": 0.0
+          "actual": 29.23
         }
       },
       "stock_take": {
@@ -67,21 +67,27 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 77,
+        "score": 78,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
-          "sales": 20,
+          "sph": 15,
+          "sales": 10,
           "weekly_star": 10,
-          "food_var": 10
+          "food_var": 5
         },
         "components": {
           "sales": {
-            "weight": 20,
+            "weight": 10,
             "value": 80.98,
             "basis": "70% (100-19.98) + 30% (\u00a3gap -8393 vs \u00b1\u00a350k cal)"
+          },
+          "sph": {
+            "weight": 15,
+            "value": 97.84,
+            "basis": "\u00a322.40 vs \u00a322 tgt \u2014 level 100, WoW +4.28% \u2192 mom 93"
           },
           "food": {
             "weight": 30,
@@ -99,13 +105,13 @@
             "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
-            "weight": 10,
+            "weight": 5,
             "value": 100,
             "basis": "-1.60% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",

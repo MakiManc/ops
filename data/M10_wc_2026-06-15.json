@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-24",
+  "generated_at": "2026-06-29",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-15 \u2013 2026-06-21",
@@ -20,9 +20,9 @@
           "actual": 29824.39,
           "target": 35343.0,
           "var_pct": -15.61,
-          "prev": 33280.52,
-          "wow_abs": -3456.13,
-          "wow_pct": -10.38
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1066,
@@ -67,21 +67,27 @@
         "week_commencing": "2026-06-15"
       },
       "efficiency_score": {
-        "score": 79,
+        "score": 74,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
-          "sales": 20,
+          "sph": 15,
+          "sales": 10,
           "weekly_star": 10,
-          "food_var": 10
+          "food_var": 5
         },
         "components": {
           "sales": {
-            "weight": 20,
+            "weight": 10,
             "value": 85.76,
             "basis": "70% (100-15.61) + 30% (\u00a3gap -5519 vs \u00b1\u00a350k cal)"
+          },
+          "sph": {
+            "weight": 15,
+            "value": 57.75,
+            "basis": "\u00a320.95 vs \u00a322 tgt \u2014 level 82, WoW -5.16% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -99,13 +105,13 @@
             "basis": "20.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
-            "weight": 10,
+            "weight": 5,
             "value": 100,
             "basis": "0.20% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v2 \u2014 each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",

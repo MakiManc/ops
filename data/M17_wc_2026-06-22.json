@@ -3,54 +3,54 @@
   "generated_at": "2026-06-29",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-15 \u2013 2026-06-21",
-    "commencing": "2026-06-15",
-    "ending": "2026-06-21"
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
+    "commencing": "2026-06-22",
+    "ending": "2026-06-28"
   },
   "sites": {
-    "MakiNori": {
-      "code": "MakiNori",
-      "name": "Maki Nori",
-      "gm": "(confirm)",
-      "gm_confirm": false,
+    "M17": {
+      "code": "M17",
+      "name": "Maki 17",
+      "gm": "Kei Cannon",
+      "gm_confirm": true,
       "am": "Lincoln",
       "cluster": "South England",
       "kpis": {
         "sales": {
-          "actual": 23523.22,
-          "target": null,
-          "var_pct": null,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "actual": 26427.77,
+          "target": 33000.0,
+          "var_pct": -19.92,
+          "prev": 29136.36,
+          "wow_abs": -2708.59,
+          "wow_pct": -9.3
         },
         "covers": {
-          "actual": 641,
-          "prev": 647,
-          "wow_abs": -6,
-          "wow_pct": -0.93
+          "actual": 999,
+          "prev": 1122,
+          "wow_abs": -123,
+          "wow_pct": -10.96
         },
         "sph": {
-          "actual": 36.7,
-          "prev": 37.01,
-          "wow_abs": -0.31,
-          "wow_pct": -0.84,
+          "actual": 24.23,
+          "prev": 23.73,
+          "wow_abs": 0.5,
+          "wow_pct": 2.11,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 28.85,
+          "actual": 22.18,
           "target": null
         },
         "food_pct": {
-          "actual": 23.8,
+          "actual": null,
           "target": 23.0,
           "gated": false
         },
         "labour_hours": {
-          "actual": 451.7
+          "actual": 416.8
         },
         "waste": {
-          "actual": 1.73
+          "actual": 9.66
         }
       },
       "stock_take": {
@@ -64,11 +64,11 @@
           "target": "\u00b15%",
           "within_band": null
         },
-        "week_commencing": "2026-06-15"
+        "week_commencing": "2026-06-22"
       },
       "efficiency_score": {
-        "score": 62,
-        "rag": "red",
+        "score": 87,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -79,29 +79,29 @@
           "food_var": 5
         },
         "components": {
+          "sales": {
+            "weight": 10,
+            "value": 82.11,
+            "basis": "70% (100-19.92) + 30% (\u00a3gap -6572 vs \u00b1\u00a350k cal)"
+          },
           "sph": {
             "weight": 15,
-            "value": 82.48,
-            "basis": "\u00a336.70 vs \u00a335 tgt \u2014 level 100, WoW -0.84% \u2192 mom 42"
-          },
-          "food": {
-            "weight": 30,
-            "value": 100.0,
-            "basis": "23.80% vs 25% baseline, -8/pp over"
+            "value": 91.33,
+            "basis": "\u00a324.23 vs \u00a322 tgt \u2014 level 100, WoW +2.11% \u2192 mom 71"
           },
           "wage": {
             "weight": 30,
-            "value": 0.0,
-            "basis": "28.85% vs 21% target, -15/pp over"
+            "value": 82.3,
+            "basis": "22.18% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.89\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
         "components_dropped": [
-          "sales",
+          "food",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -109,30 +109,22 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 28.9%"
+          "sales -19.9% vs target"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.888888889,
-        "new_reviews": 18,
+        "week_avg_rating": 5.0,
+        "new_reviews": 1,
         "star_breakdown": {
-          "5": 17,
+          "5": 1,
           "4": 0,
-          "3": 1,
+          "3": 0,
           "2": 0,
           "1": 0
         },
-        "negatives": 1,
-        "negative_reviews": [
-          {
-            "stars": 3,
-            "author": "Jade Wong",
-            "text": "Food was okay, the sushi doesn\u2019t feel fresh enough unfortunately, however the service and the chef were really kind and apologetic about the long wait for the food. The vibe of the restaurant is nice and not too loud. I ordered a chef selection of 15. I wouldn\u2019t say it\u2019s the traditional omakase as it came in a platter of plate but there was still introduction of what\u2019s on the plate.",
-            "date": "2026-06-16",
-            "url": null
-          }
-        ],
+        "negatives": null,
+        "negative_reviews": [],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -140,7 +132,7 @@
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
-        "source": "automation/data/maintenance_2026-06-15.json (AGMM Task List Status). Open items only.",
+        "source": "automation/data/maintenance_2026-06-22.json (AGMM Task List Status). Open items only.",
         "outstanding_count": 0,
         "tasks": [],
         "note": "0 outstanding"
@@ -154,6 +146,7 @@
       },
       "deliveroo": null,
       "gaps": [
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
         "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
