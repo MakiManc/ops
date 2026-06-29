@@ -388,7 +388,7 @@
   }
   .scorecard-row {
     display: grid;
-    grid-template-columns: 48px 1fr 78px 76px 78px 78px 78px 78px 70px 70px 72px;
+    grid-template-columns: 48px 1fr 78px 78px 78px 78px 78px 70px 70px 72px;
     gap: 6px;
     padding: 10px 12px;
     align-items: center;
@@ -420,11 +420,7 @@
   .sc-chip.green { background: var(--green-bg); color: var(--green); }
   .sc-chip.amber { background: var(--amber-bg); color: var(--amber); }
   .sc-chip.red { background: var(--red-bg); color: var(--red); }
-  .sc-chip.deep-red { background: var(--red-bg); color: var(--red); }
   .sc-chip.na { background: var(--surface-2); color: var(--ink-3); font-weight: 500; }
-  .scorecard-row.header .sc-sortable { cursor: pointer; user-select: none; white-space: nowrap; }
-  .scorecard-row.header .sc-sortable:hover { color: var(--ink-1); }
-  .scorecard-row.header .sc-sortable.active { color: var(--accent, var(--red)); font-weight: 800; }
   .sc-score {
     text-align: center;
     font-weight: 800;
@@ -1219,7 +1215,7 @@
   <div class="section-head">
     <div>
       <h2>Site League Table — Efficiency Score</h2>
-            <div class="hint">Weighted 6-component score (Wage 30%, Food 30%, SPH 15%, Sales 10%, Weekly ★ 10%, Food Var 5%), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. SPH blends level vs a per-format target (£22 restaurants / £35 Maki Nori / £21 Ikigai) with WoW momentum. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
+            <div class="hint">Weighted 5-component score (Wage 30%, Food 30%, Sales 20%, Weekly ★ 10%, Food Var 10%), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
       <span class="frozen-caption freeze-target" data-freeze="scorecard" style="display:none;">Opens on the most recent week with stock-take variance entered (stock-take lags ~1 week); selecting the current week may show N/A variance until the stock-take sheet is updated.</span>
     </div>
   </div>
@@ -1267,7 +1263,7 @@
   <div id="meeting-risk-board"></div>
 
   <div class="footer">
-    Source: <a href="https://drive.google.com/drive/folders/18zid54KrspVfveZhcWG_gGJEPn7ncs1B" target="_blank">18–24 May 2026 KPI folder</a>
+    Source: <a href="https://drive.google.com/drive/folders/18zid54KrspVfveZhcWG_gGJEPn7ncs1B" target="_blank">May 18–24, 2026 KPI folder</a>
     · Synthesised from 16 weekly GM/HC reports + Monday admin meeting notes
   </div>
   </div><!-- /tab-week -->
@@ -1278,7 +1274,7 @@
       <h2>Red Light System</h2>
       <p>48-hour protocol · live red &amp; amber sites · closure log. Source of truth = the dashboard's own site KPIs (AM Manual §6).</p>
     </div>
-    <div class="section-head"><h2>Currently flagged — w/c 25/05 (prior week)</h2><div class="hint">Computed from site KPIs — click a site for detail</div></div>
+    <div class="section-head"><h2>Currently flagged — w/c 22/06</h2><div class="hint">Computed from site KPIs — click a site for detail</div></div>
     <div class="heatmap" id="rl-sites"></div>
     <div class="section-head"><h2>The 48-hour protocol</h2><div class="hint">Every red site walks these seven stages</div></div>
     <div class="stepper" id="rl-stepper"></div>
@@ -1296,7 +1292,6 @@
     </div>
     <div class="section-head"><h2 id="deliveroo-section-week">Deliveroo RAG</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report</div></div>
     <div id="rl-deliveroo"></div>
-    <div id="rl-deliveroo-reviews" style="margin-top:18px;"></div>
   </div><!-- /tab-deliveroo -->
 
   <!-- ============ TAB: OKRS ============ -->
@@ -1839,13 +1834,7 @@ const SITES = [
     },
     "issues": [
       "Sales -3.67% vs target (-£858.12); covers 716 (+1.84% WoW, +7.99% YoY); SPH £20.67 (-£0.20 WoW).",
-      "Extractor fan still awaiting Ross (on annual leave).",
-      "Covers declining WoW; sushi sales low; Deliveroo down",
-      "Refunds — missing items (extra chashu, egg); food-quality complaints (meat too rare, chicken too salty); sour smell in Tantan meat",
-      "Ventilation issue still unresolved; new fridge install forcing late 12:30 opening",
-      "Labour high despite skeleton staffing",
-      "Ranking last on Spend Per Head",
-      "Region-wide (Scotland & Newcastle): 23% food-cost target reaffirmed (clear up 25% confusion); Óisín on annual leave Thu–Sun — route needs to Ka Ho; chase sprinkler report with Kieran"
+      "Extractor fan still awaiting Ross (on annual leave)."
     ],
     "carryover": [
       "Confirm: Deliveroo orders 600 vs usual 1,000 — Wi-Fi signal but no internet [09/06] — resolved?",
@@ -1856,12 +1845,7 @@ const SITES = [
     ],
     "actions": [
       "Drive SPH via staff incentive.",
-      "Chase extractor fan with Ross on return.",
-      "Contact Ross re ventilation status",
-      "Run upselling training (esp. lunch menu) to lift SPH",
-      "Keep food items in fridge overnight to manage quality (sour Tantan)",
-      "Continue BOGOF Deliveroo offer",
-      "Region-wide (Scotland & Newcastle): hold all sites to 23% food cost; route Thu–Sun needs to Ka Ho during Óisín's leave; Óisín to chase Kieran for sprinkler report"
+      "Chase extractor fan with Ross on return."
     ]
   },
   {
@@ -1883,13 +1867,7 @@ const SITES = [
     "issues": [
       "Submitted report covers 1–7 Jun (wrong week) — w/e 14 Jun sales figure unverified.",
       "Meeting: covers at lowest since early Jan (poor weather/footfall), sales strong; rating back to 4.7, compliance 100%.",
-      "Broken fryer switch; extraction fan location unresolved.",
-      "Deliveroo BOGOF wrongly applied to all ramen (intended only chicken & hell ramen; later expanded to include vegan)",
-      "Labour missed target second week running",
-      "F&V fridge running too cold (fan circulation); ramen fridge previously blocked, now stabilised",
-      "Staffing gaps — Baros away to end July, Sunni on wedding leave",
-      "PAT testing due before 15 July",
-      "Region-wide (Scotland & Newcastle): 23% food-cost target reaffirmed; Óisín on leave Thu–Sun — route to Ka Ho; sprinkler report outstanding"
+      "Broken fryer switch; extraction fan location unresolved."
     ],
     "carryover": [
       "Confirm: Deliveroo new layout misrepresents weekly figures [09/06] — resolved?",
@@ -1901,13 +1879,7 @@ const SITES = [
     "actions": [
       "Resubmit correct-week report.",
       "Cut hours to match footfall; target food cost 23%.",
-      "Chris to update on fryer switch; Óisín to follow up extraction fan after Ross returns.",
-      "Organise PAT testing with Hannah before 15 July",
-      "Laminate new lunch-deal materials for display",
-      "Be more vigilant with labour cuts",
-      "Roll out new weekly SPH incentive",
-      "Fix F&V fridge fan with Joel",
-      "Region-wide (Scotland & Newcastle): hold 23% food cost; route Thu–Sun needs to Ka Ho; chase Kieran for sprinkler report"
+      "Chris to update on fryer switch; Óisín to follow up extraction fan after Ross returns."
     ]
   },
   {
@@ -1960,15 +1932,7 @@ const SITES = [
     "issues": [
       "Sales -4.57% vs £60k target (£57,255); covers 2,732 (-4.14% YoY).",
       "Food cost brought back under 25% (Dylan managing drinks variance).",
-      "Staffing: Monica shift conflict, onboard Dylan & Ali; visas Wynna/Nicole ~32 days left; sprinkler service outstanding.",
-      "Quiet week; covers down",
-      "Labour high — struggled to cut hours in quiet period",
-      "Food-cost discrepancy attributed to errors in daily GM spend input",
-      "Incorrect target figure on the report",
-      "New staff not added to tracker",
-      "Google review QR code issue",
-      "Staffing changes — Tabag stepping down as supervisor, Tim → kitchen supervisor (25th); further hires paused after Sebastian",
-      "Region-wide (Scotland & Newcastle): 23% food-cost target reaffirmed; Óisín on leave Thu–Sun — route to Ka Ho; sprinkler report outstanding"
+      "Staffing: Monica shift conflict, onboard Dylan & Ali; visas Wynna/Nicole ~32 days left; sprinkler service outstanding."
     ],
     "carryover": [
       "Confirm: Covers down WoW & YoY; food cost jumped to 26.33% [09/06] — resolved?",
@@ -1980,13 +1944,7 @@ const SITES = [
     ],
     "actions": [
       "Finish rota; trial new staff Friday; onboard Ali to payroll.",
-      "Confirm visa status (Óisín); chase sprinkler service; discuss incentives with Tyson.",
-      "Correct the wrong target figure on the report",
-      "Add new staff members to the tracker file",
-      "Investigate the Google review QR code issue",
-      "Manage food cost by adjusting orders (not just monitoring); improve team↔GM communication",
-      "Cut shifts to hit labour target",
-      "Region-wide (Scotland & Newcastle): hold 23% food cost; route Thu–Sun needs to Ka Ho; chase Kieran for sprinkler report"
+      "Confirm visa status (Óisín); chase sprinkler service; discuss incentives with Tyson."
     ]
   },
   {
@@ -2040,10 +1998,7 @@ const SITES = [
     "issues": [
       "Sales +2.89% vs target (+£1,951) after dropping lunch-deal promo.",
       "Labour held to new 19% target; food 22.85% (under 23%).",
-      "Fly/pest from damp wood by sink; dishwasher repair pending; Deliveroo refunds (missing item + rider error).",
-      "Negative customer review received",
-      "Lunch-deal signage not yet collected",
-      "Region-wide (North): labour over optimum vs sales; Kobas vs delivery-record mismatch; supplier switch Lynas→JFC; window decoration inconsistent; hand-wash basin boilers needed; manager structure to review; food-safety on high-risk items (eggs)"
+      "Fly/pest from damp wood by sink; dishwasher repair pending; Deliveroo refunds (missing item + rider error)."
     ],
     "carryover": [
       "Confirm: GM asked to lower targets — declined, targets fixed; flex labour [09/06] — holding?",
@@ -2053,10 +2008,7 @@ const SITES = [
     ],
     "actions": [
       "Deep clean + replace sink woodwork/sealant.",
-      "Contact Lincoln re dishwasher plumber; management to pack & photo all deliveries.",
-      "Reply to the negative review today",
-      "Collect new lunch-deal materials from the printers",
-      "Region-wide (North): reduce labour to optimum; record invoices on arrival + sync Kobas daily; notify head chefs of Lynas→JFC; get window-decoration standard from marketing; Wayne to log boilers + Inka to fit; Inka to schedule manager-structure call; enforce 4-hour rule on eggs, stricter cooling, smaller batches, update risk assessments + retrain"
+      "Contact Lincoln re dishwasher plumber; management to pack & photo all deliveries."
     ]
   },
   {
@@ -2078,12 +2030,7 @@ const SITES = [
     "issues": [
       "Sales -5.84% vs target (-£2,062); covers +9.04% WoW but SPH down (Sat dice-game promo).",
       "Labour 21.66% (over 21%); food 21.46%.",
-      "Maple compliance app access failures; back-section Wi-Fi dropping; Sunday delivery ran out of ramen/chicken.",
-      "Labour high vs current sales",
-      "Upselling / service standards below target (Jervin)",
-      "Training certificate outstanding; compliance docs not uploaded",
-      "Negative review to follow up",
-      "Region-wide (North): labour over optimum; Kobas vs delivery mismatch; Lynas→JFC switch; window decoration; boilers; manager structure; food-safety (eggs)"
+      "Maple compliance app access failures; back-section Wi-Fi dropping; Sunday delivery ran out of ramen/chicken."
     ],
     "carryover": [
       "Confirm: Food cost risk — £30k sales target to hold 23% FC; one-order-per-week rule [09/06] — holding?",
@@ -2093,12 +2040,7 @@ const SITES = [
     ],
     "actions": [
       "Send affected-staff list to Amy → Ross/IT for Maple; Chris to chase Wi-Fi.",
-      "Photograph all delivery orders; rebalance promo to protect SPH.",
-      "Reduce staff hours to align with sales",
-      "Jervin to coach team on service & upselling",
-      "Finish training course by month-end; upload compliance docs from Drive",
-      "Research the negative review for follow-up",
-      "Region-wide (North): reduce labour to optimum; record invoices on arrival + sync Kobas daily; notify head chefs of Lynas→JFC; window-decoration standard from marketing; log + fit boilers; manager-structure call; enforce 4-hour egg rule + retrain"
+      "Photograph all delivery orders; rebalance promo to protect SPH."
     ]
   },
   {
@@ -2154,12 +2096,7 @@ const SITES = [
     "issues": [
       "Sales -23.70% vs target (-£8,212.39) — target NOT adjusted for new 3–5pm Mon–Thu closure; YoY +44.96% (+117% per meeting).",
       "AGM Erin reported no knowledge of food cost requirements.",
-      "Maintenance Ultra High: air con & toilets. 3★: uncomfortable seating (section A) + vegan chicken complaints.",
-      "Deliveroo down; two refund claims (one undisputable — hair in food)",
-      "Labour higher than expected",
-      "Alberto on final warning (attendance)",
-      "Bottomless brunch volume quieter than usual",
-      "Region-wide (Scotland & Newcastle): 23% food-cost target reaffirmed; Óisín on leave Thu–Sun — route to Ka Ho; sprinkler report outstanding"
+      "Maintenance Ultra High: air con & toilets. 3★: uncomfortable seating (section A) + vegan chicken complaints."
     ],
     "carryover": [
       "Confirm: Quiet Saturday; missed sushi target [09/06] — recovered?",
@@ -2170,11 +2107,7 @@ const SITES = [
     "actions": [
       "Re-baseline target for reduced trading hours.",
       "Erin food-cost training + sit-in on new PT hire; confirm Eva visa hours.",
-      "Log air con/toilets for urgent repair.",
-      "Discuss compliance with Eva — current status & expiration deadlines",
-      "Implement late forms to monitor punctuality",
-      "Accept brunch bookings whenever requested",
-      "Region-wide (Scotland & Newcastle): hold 23% food cost; route Thu–Sun needs to Ka Ho; chase Kieran for sprinkler report"
+      "Log air con/toilets for urgent repair."
     ]
   },
   {
@@ -2196,15 +2129,7 @@ const SITES = [
     "issues": [
       "Sales -12.79% vs target (-£5,502.95); covers -12.48% WoW.",
       "Labour 24% (2% over target); food-cost sheet not updated daily.",
-      "Competitor pressure (Hot Sushi; Yo Sushi dark kitchen); Lynas delivery mix-up again.",
-      "Covers down, SPH low",
-      "Hot weather expected to cut footfall",
-      "Poor F&V quality (avocados) from Glasgow supplier",
-      "Sunday early-closure delivery discrepancy",
-      "Food overspend risk",
-      "Google reviews under target",
-      "Staff member Quinn — attitude / 'calculated laziness'",
-      "Closing inefficiency"
+      "Competitor pressure (Hot Sushi; Yo Sushi dark kitchen); Lynas delivery mix-up again."
     ],
     "carryover": [
       "Confirm: BOH — performing well, costs manageable (03/06) — still the case?",
@@ -2213,15 +2138,7 @@ const SITES = [
     ],
     "actions": [
       "Enforce daily food-cost sheet; recover labour to 22%.",
-      "Local marketing response to competitors; escalate Lynas accuracy.",
-      "Push £18 lunch deal; ask every customer (currently ~1 in 5)",
-      "Revise weekend rota with chef Elliot to protect labour",
-      "Research local F&V alternatives; present to Matt",
-      "Investigate Sunday delivery back-end discrepancy",
-      "Update daily food-budget sheet every day; record invoices on arrival (log zero days)",
-      "Hit Google review target by end of week",
-      "Conduct ROC, then performance review (include Elliot)",
-      "Memo: clear the floor before any admin / laptop work"
+      "Local marketing response to competitors; escalate Lynas accuracy."
     ]
   },
   {
@@ -2243,14 +2160,7 @@ const SITES = [
     "issues": [
       "Sales -8.04% vs target (-£3,455); covers -10.75% WoW (end of school holidays).",
       "Food cost 28.01% (big restock after high-volume weekend).",
-      "BOH staffing crisis — donburi/ramen chefs leaving (paternity/relocation); Monday fire-alarm test hurting labour.",
-      "Upselling below target — team not engaging customers enough",
-      "Staff not taking required breaks (labour impact)",
-      "Diet Coke tracked by volume rather than units",
-      "Five-star reviews still in single digits",
-      "Underperforming bar staff member (poor customer service)",
-      "B2B visit prep needed (2 July)",
-      "Region-wide (North): labour over optimum vs sales; Kobas vs delivery-record mismatch; supplier switch Lynas→JFC; window decoration inconsistent; hand-wash basin boilers needed; manager structure to review; food-safety on high-risk items (eggs)"
+      "BOH staffing crisis — donburi/ramen chefs leaving (paternity/relocation); Monday fire-alarm test hurting labour."
     ],
     "carryover": [
       "Confirm: Stock count accuracy (Stuart wk 2) — Dave assists; Sunday reconcile with Amy [09/06] — done?",
@@ -2261,14 +2171,7 @@ const SITES = [
     ],
     "actions": [
       "Forecast budget via Kobas stock/supplier report (Arthur); confirm hiring need post GM/head-chef meeting.",
-      "Move fire-alarm test to Friday; do delivery between table service at peak.",
-      "Encourage team to use bingo cards more interactively to boost upselling",
-      "Monitor breaks so staff take required rest and hit labour",
-      "Change Diet Coke tracking to record units rather than volume",
-      "Run incentives to reach double-digit five-star reviews",
-      "Terminate the underperforming bar employee",
-      "B2B visit (2 July): Inka to transport Stuart, brief staff to arrive earlier, review past HFJ handover docs",
-      "Region-wide (North): reduce labour to optimum; record invoices on arrival + sync Kobas daily; notify head chefs of Lynas→JFC; get window-decoration standard from marketing; Wayne to log boilers + Inka to fit; Inka to schedule manager-structure call; enforce 4-hour rule on eggs, stricter cooling, smaller batches, update risk assessments + retrain"
+      "Move fire-alarm test to Friday; do delivery between table service at peak."
     ]
   },
   {
@@ -2290,13 +2193,7 @@ const SITES = [
     "issues": [
       "Sales -3.33% vs target (-£2,021.86); covers 2,572 (-10.91% WoW) but SPH up to £22.33; ranked 3rd in Metrocentre.",
       "Food overspend (-4.8%) — ingredients not linked to recipes on Kobas; stock discrepancies.",
-      "Inaccurate Deliveroo orders incl. missed raw-steak claim; BOH Jesse resigned by text.",
-      "Covers down (Hoppings fair + weather)",
-      "Labour high — staffed for demand that didn't materialise",
-      "Food/drink variance — Soba noodle ingredient linking from new supplier LTH causing discrepancies",
-      "Ingredient recipes not linking correctly in backend",
-      "Maintenance — hot cellar (Makiu sales stopped pending repair permit/roof access), smashed toilet seat, broken hand dryers, fire-exit repair due Wed, pest-control report awaited (bar)",
-      "Region-wide (Scotland & Newcastle): 23% food-cost target reaffirmed; Óisín on leave Thu–Sun — route to Ka Ho; sprinkler report outstanding"
+      "Inaccurate Deliveroo orders incl. missed raw-steak claim; BOH Jesse resigned by text."
     ],
     "carryover": [
       "Confirm: Alt-supplier ingredients not linked to recipes (FC 22.08%) [09/06] — wired in?",
@@ -2309,12 +2206,7 @@ const SITES = [
     ],
     "actions": [
       "Fix Kobas recipe links (Andrew); meet Andrew re food-cost/stock.",
-      "Tighten Deliveroo accuracy & refund timing; onboard replacement BOH (Mavis); chase hot-water & cellar repairs.",
-      "Send examples of variance issues to Óisín for backend fix",
-      "Review recipes — investigate backend ingredient linking",
-      "Update Soba noodle variance mapping to align with LTH ordering source",
-      "Progress maintenance fixes (cellar permit, toilet seat, hand dryers, fire exit, pest control)",
-      "Region-wide (Scotland & Newcastle): hold 23% food cost; route Thu–Sun needs to Ka Ho; chase Kieran for sprinkler report"
+      "Tighten Deliveroo accuracy & refund timing; onboard replacement BOH (Mavis); chase hot-water & cellar repairs."
     ]
   },
   {
@@ -2336,13 +2228,7 @@ const SITES = [
     "issues": [
       "Sales -5.49% vs target (-£2,087); low covers; submitted report covers wrong week (25–31 May).",
       "Food-cost discrepancy: site 22.9% vs HO 26%/27.13% (AA factory cost omitted) — use Matt's KPI sheet.",
-      "Maintenance: blocked pipes/toilets (smell ~2 weeks); dishwasher awaiting technician.",
-      "Negative review to investigate",
-      "Staff performance reviews outstanding",
-      "Handover gap (Magic → Sheriff)",
-      "Disabled toilet blocked",
-      "Team needs ramen-prep coverage",
-      "Region-wide (North): labour over optimum; Kobas vs delivery mismatch; Lynas→JFC switch; window decoration; boilers; manager structure; food-safety (eggs)"
+      "Maintenance: blocked pipes/toilets (smell ~2 weeks); dishwasher awaiting technician."
     ],
     "carryover": [
       "Confirm: Labour budget mismatch 23.31% vs 22.34% — group standardising calc [09/06] — resolved?",
@@ -2354,13 +2240,7 @@ const SITES = [
     ],
     "actions": [
       "Resubmit correct-week report; align food cost to KPI sheet (Matt/Mag).",
-      "Chase internal pipes via Franchesca; mgmt to pack & photo Deliveroo (Leicester iPad/AirDrop method).",
-      "Investigate circumstances of the negative review",
-      "Complete all staff performance reviews this week",
-      "Magic to document instructions for Sheriff",
-      "Clear the disabled-toilet blockage",
-      "Train team on ramen production during busy shifts",
-      "Region-wide (North): reduce labour to optimum; record invoices on arrival + sync Kobas daily; notify head chefs of Lynas→JFC; window-decoration standard from marketing; log + fit boilers; manager-structure call; enforce 4-hour egg rule + retrain"
+      "Chase internal pipes via Franchesca; mgmt to pack & photo Deliveroo (Leicester iPad/AirDrop method)."
     ]
   },
   {
@@ -2381,9 +2261,7 @@ const SITES = [
     },
     "issues": [
       "Sales -29.12% vs target (-£11,065) — largest miss; £18 lunch deal drove +321% volume but cut average spend; Deliveroo BOGOF pressured food cost; poor weather.",
-      "Labour held ~22% (tightly controlled).",
-      "Strong review generation — share learnings with other sites (16 Jun)",
-      "Region-wide (South): recipes missing; influencer/PR visits unannounced; service flow slow; recruitment + EHO outstanding"
+      "Labour held ~22% (tightly controlled)."
     ],
     "carryover": [
       "Confirm: BOH — sushi manager vacancy; cross-training to cover; delivery issues (03/06) — resolved?",
@@ -2391,9 +2269,7 @@ const SITES = [
     ],
     "actions": [
       "Review £18 lunch-deal economics & BOGOF impact on food cost.",
-      "Rebalance promo mix to protect spend-per-head; reset target expectation with COO given promo strategy.",
-      "Emy to share review-generation tactics in the group chat",
-      "Region-wide (South): Sophie to update recipes; build influencer-scheduling system; train team on service + iPad use; Ziang to call candidates + email EHO; test menu script; complete training modules + KPI sheets"
+      "Rebalance promo mix to protect spend-per-head; reset target expectation with COO given promo strategy."
     ]
   },
   {
@@ -2415,9 +2291,7 @@ const SITES = [
     "issues": [
       "Sales +16.94% vs target (+£5,422) — first positive week; covers +3.63% WoW. Red Light retained (Lincoln override) pending 4 consecutive green weeks.",
       "Labour high at 25.20% (KOBAS; -2.9% vs 01.06); SPH low from heavy discounting.",
-      "FOH applying wrong discounts at billing; staff performance issue (Surayyah Amoah).",
-      "Delivery quality risk (16 Jun)",
-      "Region-wide (South): recipes missing; influencer/PR visits unannounced; service flow slow; recruitment + EHO outstanding"
+      "FOH applying wrong discounts at billing; staff performance issue (Surayyah Amoah)."
     ],
     "carryover": [
       "Confirm: BOH — food variance spike (Sophie investigating); hours cut, sushi chef covering bar; Victoria transferring to Nori (03/06) — resolved?",
@@ -2425,9 +2299,7 @@ const SITES = [
     ],
     "actions": [
       "Bank week 1 of recovery; reduce discounting to lift SPH.",
-      "Retrain FOH on discount/billing; address staff performance; bring labour toward target.",
-      "Verify 26oz soup cups used for ramen/broth delivery (Marian)",
-      "Region-wide (South): Sophie to update recipes; build influencer-scheduling system; train team on service + iPad use; Ziang to call candidates + email EHO; test menu script; complete training modules + KPI sheets"
+      "Retrain FOH on discount/billing; address staff performance; bring labour toward target."
     ]
   },
   {
@@ -2450,34 +2322,14 @@ const SITES = [
     "issues": [
       "Sales -14.49% vs target (-£4,058); very quiet week (World Cup + weather).",
       "FOH staffing gap (Gab left); labour ~23% budget (down £700).",
-      "1★ review — unfresh salmon roll.",
-      "Covers being mis-input — distorts SPH",
-      "Upselling / second drinks drop when no supervisor present",
-      "Fruit & veg stock variance discrepancy",
-      "Negative reviews on service & staff tone",
-      "Reviews not collected when management absent; QR code may not work",
-      "Food labelling inconsistent",
-      "KP roofing repair + AC survey outstanding",
-      "Labour efficiency to review",
-      "(16 Jun) Jada needs computer/admin training; evening cover thin; bar items unlabelled",
-      "Region-wide (South): recipes missing from ingredient lists; influencer/PR visits arriving unannounced; service flow slow; recruitment shortfall + EHO query outstanding"
+      "1★ review — unfresh salmon roll."
     ],
     "carryover": [
       "Confirm: BOH — system incomplete: wage data not pulling, food cost showing 100% (no revenue recorded); Victoria incoming from Soho (03/06) — resolved?"
     ],
     "actions": [
       "Recruit FOH cover.",
-      "Tighten freshness/prep checks on sushi; hold labour to 23% budget.",
-      "Verify staff log the correct number of covers",
-      "Reinforce upselling / second-drink technique; apply consistently even without supervision",
-      "Marian to find root cause of F&V variance with head chef",
-      "Evaluate and address negative service reviews",
-      "Verify review-collection process and test the QR code",
-      "Address labelling with Ash; enforce daily start/end checks",
-      "Repair KP roof; confirm AC survey contractor",
-      "Consult Sophie on staffing efficiency",
-      "(16 Jun) Train Jada on admin; rota 3 staff to 7:30pm; label bar items",
-      "Region-wide (South): Sophie to update recipes; notify marketing + build influencer-scheduling system; train team on service protocols + iPad use; Ziang to call candidates + email EHO; test 15–30s menu script; complete training modules + KPI sheets"
+      "Tighten freshness/prep checks on sushi; hold labour to 23% budget."
     ]
   },
   {
@@ -3344,8 +3196,8 @@ function weeklyRatingRag(wr) {
   return 'red';
 }
 
-// Site Efficiency Score — weighted 6-component score, 0–100 nominal (100 = at target)
-// Components: Wage 30%, Food cost 30%, SPH 15% (level vs per-format target + WoW momentum), Sales 10% (% + £ gap blend), Weekly ★ 10%, Food variance 5% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
+// Site Efficiency Score — weighted 5-component score, 0–100 nominal (100 = at target)
+// Components: Wage 30%, Food cost 30%, Sales 20% (% + £ gap blend), Weekly ★ 10%, Food variance 10% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
 function efficiencyScore(s) {
   const m = METRICS[s.code] || {};
   const r = REVIEWS[s.code] || {};
@@ -3358,21 +3210,11 @@ function efficiencyScore(s) {
   }
   const groupMaxGap = 50000; // calibration: -£50k = 0 on £-component, +£50k capped at 100
   const parts = [];
-  // Sales 10% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
+  // Sales 20% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
   if (s.vsTarget != null) {
     const pctPart = Math.max(0, Math.min(100, 100 + s.vsTarget));
     const gbpPart = Math.max(0, Math.min(100, 100 + (gbpGap / groupMaxGap) * 100));
-    parts.push({ w: 10, v: 0.7 * pctPart + 0.3 * gbpPart });
-  }
-  // SPH 15% — blend 70% level vs the site's per-format target + 30% WoW momentum.
-  // Level: 100 at target (and above), then -100/6 per £ below, hitting 0 at £6 under target (mirrors Food/Wage: target = 100).
-  // Target is £22 for Maki & Ramen restaurants, £35 for Maki Nori (see sphTarget).
-  // Momentum: 50 = flat WoW, ±5% maps to the full 0–100 range. No prior-week data -> level only.
-  if (m.sph != null) {
-    const tgt = sphTarget(s.code);
-    const level = Math.max(0, Math.min(100, 100 - Math.max(0, tgt - m.sph) * (100 / 6)));
-    const mom = (m.sphWowPct == null) ? null : Math.max(0, Math.min(100, 50 + m.sphWowPct * 10));
-    parts.push({ w: 15, v: (mom == null) ? level : 0.7 * level + 0.3 * mom });
+    parts.push({ w: 20, v: 0.7 * pctPart + 0.3 * gbpPart });
   }
   // Food cost 30% — 100 at 25% target, -8 per pp over
   if (m.food != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.food - 25) * 8)) });
@@ -3380,31 +3222,15 @@ function efficiencyScore(s) {
   if (m.wage != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.wage - 21) * 15)) });
   // Weekly ★ 10% — 100 at 4.7★ (the actual OKR), 0 at 4.0★
   if (wr != null) parts.push({ w: 10, v: Math.max(0, Math.min(100, ((wr - 4.0) / 0.7) * 100)) });
-  // Food variance 5% — flat 100 inside ±5% band, then -8 per pp outside
+  // Food variance 10% — flat 100 inside ±5% band, then -8 per pp outside
   if (m.foodVar != null) {
     const a = Math.abs(m.foodVar);
     const v = a <= 5 ? 100 : Math.max(0, 100 - (a - 5) * 8);
-    parts.push({ w: 5, v });
+    parts.push({ w: 10, v });
   }
   if (parts.length === 0) return null;
   const totalW = parts.reduce((a, c) => a + c.w, 0);
   return Math.round(parts.reduce((a, c) => a + c.v * c.w, 0) / totalW);
-}
-// Per-format SPH target: Maki Nori is a different format (grab-and-go, higher spend) so it carries
-// its own £35 bar; Ikigai Ramen (IKI2) is its own brand at £21; the Maki & Ramen restaurants target £22.
-function sphTarget(code) {
-  if (code === 'Maki Nori') return 35;
-  if (code === 'IKI2') return 21;
-  return 22;
-}
-// SPH chip colour for the league table — relative to the site's own target: green ≥ target,
-// amber within £2 below, red lower.
-function sphRag(v, code) {
-  if (v == null) return 'na';
-  const t = sphTarget(code);
-  if (v >= t) return 'green';
-  if (v >= t - 2) return 'amber';
-  return 'red';
 }
 function efficiencyRag(score) {
   if (score == null) return 'na';
@@ -3535,7 +3361,6 @@ function tileHTML(s) {
   const wageTxt = m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%';
   const foodTxt = m.food == null ? 'N/A' : m.food.toFixed(1) + '%';
   const salesTxt = (s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(0) + '%';
-  const sphTxt = m.sph == null ? 'N/A' : '£' + m.sph.toFixed(1);
   const fvCls = varBandClass(m.foodVar);
   const dvCls = varBandClass(m.drinksVar);
   const fvTxt = fmtVar(m.foodVar);
@@ -3554,7 +3379,6 @@ function tileHTML(s) {
         </div>
         <div class="tile-metrics">
           <div class="tile-metric ${salesRag(s.vsTarget) === 'green' ? 'good' : (salesRag(s.vsTarget) === 'amber' ? 'warn' : 'bad')}">S<br>${salesTxt}</div>
-          <div class="tile-metric ${sphRag(m.sph, s.code) === 'na' ? 'na' : (sphRag(m.sph, s.code) === 'green' ? 'good' : (sphRag(m.sph, s.code) === 'amber' ? 'warn' : 'bad'))}">SPH<br>${sphTxt}</div>
           <div class="tile-metric ${wageRag(m.wage) === 'na' ? 'na' : (wageRag(m.wage) === 'green' ? 'good' : (wageRag(m.wage) === 'amber' ? 'warn' : 'bad'))}">W<br>${wageTxt}</div>
           <div class="tile-metric ${foodRag(m.food) === 'na' ? 'na' : (foodRag(m.food) === 'green' ? 'good' : (foodRag(m.food) === 'amber' ? 'warn' : 'bad'))}">F<br>${foodTxt}</div>
           <div class="tile-metric ${vClass(fvCls)}">FV<br>${fvTxt}</div>
@@ -3657,64 +3481,19 @@ function selectCluster(id) {
   }
 }
 
-// League-table sort state + column config. Default = Score desc (the original league feel).
-let scSort = { key: 'score', dir: 'desc' };
-const SC_COLS = [
-  { key: 'code', label: 'Site' },
-  { key: 'name', label: 'Name' },
-  { key: 'sales', label: 'Sales vs Tgt' },
-  { key: 'sph', label: 'SPH', center: true },
-  { key: 'wage', label: 'Wage %' },
-  { key: 'food', label: 'Food Cost' },
-  { key: 'foodVar', label: 'Food Var' },
-  { key: 'drinksVar', label: 'Drinks Var' },
-  { key: 'wk', label: 'Wk ★' },
-  { key: 'lifetime', label: 'Lifetime ★' },
-  { key: 'score', label: 'Score /100' },
-];
-// Sort value per column. Variances sort by magnitude (worst = furthest from 0).
-function scValue(s, key) {
-  const m = METRICS[s.code] || {};
-  const r = REVIEWS[s.code] || {};
-  switch (key) {
-    case 'code': return s.code;
-    case 'name': return s.name;
-    case 'sales': return s.vsTarget;
-    case 'sph': return m.sph;
-    case 'wage': return m.wage;
-    case 'food': return m.food;
-    case 'foodVar': return m.foodVar == null ? null : Math.abs(m.foodVar);
-    case 'drinksVar': return m.drinksVar == null ? null : Math.abs(m.drinksVar);
-    case 'wk': return weeklyRating(r);
-    case 'lifetime': return r.rating;
-    case 'score': return efficiencyScore(s);
-    default: return efficiencyScore(s);
-  }
-}
-function setScSort(key) {
-  if (scSort.key === key) scSort.dir = scSort.dir === 'asc' ? 'desc' : 'asc';
-  else scSort = { key, dir: (key === 'code' || key === 'name') ? 'asc' : 'desc' };
-  renderScorecard();
-}
 function renderScorecard() {
   const wrap = document.getElementById('scorecard');
-  const sites = [...SITES].sort((a, b) => {
-    const va = scValue(a, scSort.key), vb = scValue(b, scSort.key);
-    const na = va == null || (typeof va === 'number' && isNaN(va));
-    const nb = vb == null || (typeof vb === 'number' && isNaN(vb));
-    if (na && nb) return 0;
-    if (na) return 1;   // N/A always sinks to the bottom regardless of direction
-    if (nb) return -1;
-    const cmp = (typeof va === 'string') ? va.localeCompare(vb) : (va - vb);
-    return scSort.dir === 'asc' ? cmp : -cmp;
+  const sites = [...SITES].sort((a,b) => {
+    const order = { red: 0, amber: 1, green: 2, na: 3 };
+    const ra = combinedRag(a), rb = combinedRag(b);
+    if (ra !== rb) return order[ra] - order[rb];
+    return a.vsTarget - b.vsTarget;
   });
+  // Sort by efficiency score descending (league-table feel)
+  sites.sort((a, b) => (efficiencyScore(b) ?? -1) - (efficiencyScore(a) ?? -1));
   const header = `
     <div class="scorecard-row header">
-      ${SC_COLS.map(c => {
-        const active = scSort.key === c.key;
-        const arrow = active ? (scSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
-        return `<div class="sc-sortable${active ? ' active' : ''}"${c.center ? ' style="text-align:center;"' : ''} onclick="setScSort('${c.key}')">${c.label}${arrow}</div>`;
-      }).join('')}
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
@@ -3722,7 +3501,6 @@ function renderScorecard() {
     const wr = weeklyRating(r);
     const eff = efficiencyScore(s);
     const sRag = salesRag(s.vsTarget);
-    const spRag = sphRag(m.sph, s.code);
     const wRag = wageRag(m.wage);
     const fRag = foodRag(m.food);
     const vRag = varBandClass(m.foodVar);
@@ -3736,7 +3514,6 @@ function renderScorecard() {
         <div class="sc-code">${s.code}</div>
         <div class="sc-name">${s.name}</div>
         <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}% <span class="sc-chip-wow">${trendArrow(h.sales, 'up-is-good')}</span></div>
-        <div class="sc-chip ${spRag}">${m.sph == null ? 'N/A' : '£' + m.sph.toFixed(2)}${m.sphWowPct == null ? '' : ` <span class="sc-chip-wow">${m.sphWowPct >= 0 ? '▲' : '▼'}</span>`}</div>
         <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
         <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
         <div class="sc-chip ${vRag}">${fmtVar(m.foodVar)}</div>
@@ -3821,8 +3598,6 @@ function renderHotActions() {
 function openSite(code) {
   const s = SITES.find(x => x.code === code);
   if (!s) return;
-  const negList = (REVIEWS[s.code] || {}).negatives || [];
-  const hasNegs = negList.length > 0;
   const modal = document.getElementById('modal');
   const ragLabel = s.rag === 'deep-red' ? 'DEEP RED' : s.rag.toUpperCase();
   const ragColor = s.rag === 'deep-red' ? 'red' : s.rag;
@@ -3841,11 +3616,6 @@ function openSite(code) {
           <div class="kpi-value ${deltaClass(s.vsTarget)}">${s.kpis.vsTarget}</div>
           <div class="kpi-spark">${sparkline((HISTORY[s.code]||{}).sales, 'up-is-good', '#4f46e5')}</div>
           <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).sales, 'up-is-good')}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">SPH (tgt £${sphTarget(s.code)})</div>
-          <div class="kpi-value ${sphRag((METRICS[s.code]||{}).sph, s.code)}">${(METRICS[s.code]||{}).sph == null ? 'N/A' : '£' + (METRICS[s.code]).sph.toFixed(2)}</div>
-          <div class="kpi-trend" style="margin-top:6px;">WoW ${(METRICS[s.code]||{}).sphWowPct == null ? 'n/a' : ((METRICS[s.code]).sphWowPct >= 0 ? '▲ +' : '▼ ') + (METRICS[s.code]).sphWowPct.toFixed(1) + '%'}</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Wage % (tgt ≤21%)</div>
@@ -3885,8 +3655,8 @@ function openSite(code) {
           <div class="kpi-trend" style="margin-top:6px;">target = 100</div>
         </div>
         ${deliverooCell(s)}
-        <div class="kpi" style="grid-column: 1 / -1;${hasNegs ? 'cursor:pointer;' : ''}" ${hasNegs ? 'onclick="toggleNegReviews()" title="Click to show / hide this week\'s negative reviews"' : ''}>
-          <div class="kpi-label">This week's Google reviews · Covers · SPH${hasNegs ? ` <span id="neg-chevron" style="color:var(--red);font-weight:700;">▸ ${negList.length} negative — click to view</span>` : ''}</div>
+        <div class="kpi" style="grid-column: 1 / -1;">
+          <div class="kpi-label">This week's Google reviews · Covers · SPH</div>
           <div class="kpi-value" style="font-size:13px;">
             ${(REVIEWS[s.code]||{}).weekCount == null ? '<span style="color:var(--ink-3)">No review data this week</span>' :
               `<span style="font-weight:700;">${(REVIEWS[s.code]).weekCount} reviews</span> &nbsp;
@@ -3897,23 +3667,7 @@ function openSite(code) {
         </div>
       </div>
 
-      ${(() => {
-        if(!hasNegs) return '';
-        const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const ddmmyyyy = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : (d || ''); };
-        const starStr = n => { const k = Math.max(0, Math.min(5, Number(n) || 0)); return '★'.repeat(k) + '☆'.repeat(5 - k); };
-        return `
-      <div class="panel" id="neg-reviews-panel" style="display:none;">
-        <div class="panel-head issues"><span class="dot"></span>Negative reviews this week (${negList.length})</div>
-        ${negList.map(n => `<div class="item issue">
-          <strong style="color:var(--red);">${starStr(n.stars)}</strong> &nbsp;${esc(n.author) || 'Anonymous'} &nbsp;<span style="color:var(--ink-3);font-size:12px;">${ddmmyyyy(n.date)}</span>
-          <div style="margin-top:4px;color:var(--ink-2);">${esc(n.text)}</div>
-          ${n.url ? `<a href="${esc(n.url)}" target="_blank" style="font-size:12px;">View on Google →</a>` : ''}
-        </div>`).join('')}
-      </div>`;
-      })()}
-
-      ${s.empty ?'<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
+      ${s.empty ? '<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
 
       <div class="panel">
         <div class="panel-head issues"><span class="dot"></span>Issues raised (${s.issues.length})</div>
@@ -3938,15 +3692,6 @@ function openSite(code) {
 
 function closeModal() {
   document.getElementById('modal-bg').classList.remove('show');
-}
-// Toggle the collapsible negative-reviews panel in the site modal (clicked via the reviews KPI cell).
-function toggleNegReviews() {
-  const panel = document.getElementById('neg-reviews-panel');
-  if (!panel) return;
-  const open = panel.style.display === 'none';
-  panel.style.display = open ? 'block' : 'none';
-  const chev = document.getElementById('neg-chevron');
-  if (chev) chev.innerHTML = (open ? '▾ ' : '▸ ') + chev.innerHTML.replace(/^[▸▾]\s*/, '');
 }
 
 // Filter handlers (RAG / cluster)
@@ -4397,98 +4142,8 @@ async function renderDeliverooRag(){
     </div>`;
 }
 
-// ---------- DELIVEROO CUSTOMER REVIEWS (per-week log) ----------
-// Self-contained panel rendered below the RAG matrix. Fetches the per-week
-// reviews slice for the currently selected week and lists each review.
-// 404 / empty -> muted note; never throws into the rest of the tab.
-function _delivRevEsc(s){
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function _delivRevUKDate(iso){
-  // iso = yyyy-mm-dd -> dd/mm/yyyy
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
-  return m ? (m[3] + '/' + m[2] + '/' + m[1]) : _delivRevEsc(iso);
-}
-function _delivRevWeekKey(){
-  // Same mechanism the rest of the tab uses: the monday set by applyWeek.
-  if (window.currentWeekKey) return window.currentWeekKey;
-  const sel = document.getElementById('week-select');
-  if (sel && sel.value) return sel.value;
-  return null;
-}
-async function renderDeliverooReviews(){
-  const host = document.getElementById('rl-deliveroo-reviews');
-  if (!host) return;
-  const wkKey = _delivRevWeekKey();
-  if (!wkKey){ host.innerHTML = ''; return; }
-
-  // UK-format week-commencing label for the panel heading.
-  const ukWk = _delivRevUKDate(wkKey);
-
-  let data = null;
-  try {
-    const r = await fetch(DATA_DIR + "deliveroo_reviews_" + wkKey + ".json", {cache:"no-store"});
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    data = await r.json();
-  } catch(e){
-    // 404 / file:// / parse error -> render a muted note, don't break the tab.
-    host.innerHTML = `
-      <div style="font-size:12px; color:var(--ink-soft,#888); padding:4px 2px;">
-        No Deliveroo reviews logged for w/c ${_delivRevEsc(ukWk)}.
-      </div>`;
-    return;
-  }
-
-  const reviews = (data && Array.isArray(data.reviews)) ? data.reviews.slice() : [];
-  if (!reviews.length){
-    host.innerHTML = `
-      <div style="font-size:12px; color:var(--ink-soft,#888); padding:4px 2px;">
-        No Deliveroo reviews logged for w/c ${_delivRevEsc(ukWk)}.
-      </div>`;
-    return;
-  }
-
-  // Newest first (defensive — slice is pre-sorted but re-sort to be safe).
-  reviews.sort((a,b) => String(b.date||'').localeCompare(String(a.date||'')));
-
-  const starPill = (n) => {
-    const s = Number(n);
-    const band = (s >= 4) ? 'green' : (s === 3 ? 'amber' : 'red');
-    const colour = {
-      green: 'background:var(--green-bg,#ecfdf5); color:var(--green,#059669);',
-      amber: 'background:var(--amber-bg,#fffbeb); color:var(--amber,#d97706);',
-      red:   'background:var(--red-bg,#fef2f2); color:var(--red,#dc2626);',
-    }[band];
-    const label = (isFinite(s) ? s : '?') + '★';
-    return `<span style="display:inline-block; min-width:34px; text-align:center; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:800; ${colour}">${_delivRevEsc(label)}</span>`;
-  };
-
-  const rowHtml = (rv) => {
-    const venue = _delivRevEsc(rv.venue || '');
-    const code  = rv.site_code ? `<span style="color:var(--ink-soft,#888); font-weight:600;"> · ${_delivRevEsc(rv.site_code)}</span>` : '';
-    const date  = _delivRevUKDate(rv.date);
-    const text  = _delivRevEsc(rv.text || '');
-    return `<div style="display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border:0.5px solid var(--line,#e3e3e3); border-radius:8px; margin-bottom:7px; background:#fff;">
-      <div style="flex:0 0 auto; padding-top:1px;">${starPill(rv.stars)}</div>
-      <div style="flex:1 1 auto; min-width:0;">
-        <div style="font-size:12px; font-weight:700; color:var(--ink,#222);">${venue}${code} <span style="color:var(--ink-soft,#999); font-weight:500;">· ${_delivRevEsc(date)}</span></div>
-        <div style="font-size:12px; color:var(--ink-soft,#555); margin-top:3px; line-height:1.45;">${text}</div>
-      </div>
-    </div>`;
-  };
-
-  host.innerHTML = `
-    <div class="section-head"><h2 style="font-size:15px;">Deliveroo customer reviews — w/c ${_delivRevEsc(ukWk)}</h2><div class="hint">${reviews.length} review(s) logged this week</div></div>
-    <div style="max-height:420px; overflow-y:auto; padding:2px;">
-      ${reviews.map(rowHtml).join('')}
-    </div>`;
-}
-
 renderRedLight();
 renderDeliverooRag();
-renderDeliverooReviews();
 renderRaci();
 renderRisk();
 renderRoadmap();
@@ -4541,11 +4196,9 @@ function fmtCovers(c){
   return `${a>=0?'+':''}${a} (${p>=0?'+':''}${p}%)`;
 }
 function fmtSph(sph){
-  if(!sph || sph.actual == null) return "n/a";
-  const a = sph.actual;
-  const dv = sph.wow_abs;
-  const delta = (dv == null) ? '' : ` (${dv>=0?'+':'-'}£${Math.abs(dv).toFixed(2)})`;
-  return `£${Number(a).toFixed(2)}${delta}`;
+  if(!sph || sph.wow_abs == null) return "n/a";
+  const v = sph.wow_abs;
+  return `${v>=0?'+':'-'}£${Math.abs(v).toFixed(2)}`;
 }
 function fmtVsTarget(sales){
   if(!sales || sales.target == null) return "n/a";
@@ -4589,18 +4242,10 @@ function deliverooCell(s){
     `<div class="kpi-trend" style="margin-top:6px;">${[ord, aov, nc].filter(Boolean).join(' · ')}</div></div>`;
 }
 
-// FIXED week that owns the curated AM meeting-note narrative (issues/carryover/
-// actions). Decoupled from NEWEST_KEY so the next weekly refresh prepending a
-// newer week does NOT detach the 15/06 notes from their record. (Michael's rule.)
-const NARRATIVE_WEEK = '2026-06-15';
-
 // --- ADAPTER: one fetched site JSON -> overwrite the baked shapes IN PLACE ---
-// `isNewest` => still drives this-week semantics elsewhere; the curated AM
-// narrative is restored ONLY for `weekKey === NARRATIVE_WEEK` (the fixed
-// 15/06 record that owns the meeting notes), not for whichever week is newest.
-function adaptSite(jsonCode, s, isNewest, weekKey){
+// `isNewest` true => keep curated narrative; false => auto-generate from JSON.
+function adaptSite(jsonCode, s, isNewest){
   if(!s) return;
-  const isNarrativeWeek = (weekKey === NARRATIVE_WEEK);
   const display = jsonToDisplay(jsonCode);
   const kp = s.kpis || {};
 
@@ -4625,9 +4270,8 @@ function adaptSite(jsonCode, s, isNewest, weekKey){
     // sales-only fallback for gap sites M11-M18). Surfaced in the detail grid.
     site.deliveroo = s.deliveroo || null;
 
-    // Narrative: live numbers, curated narrative. Locked to NARRATIVE_WEEK
-    // (15/06) so refresh-prepended newer weeks never steal the meeting notes.
-    if(isNarrativeWeek){
+    // Narrative: live numbers, curated narrative.
+    if(isNewest){
       const baked = BAKED_NARRATIVE[display];
       if(baked){
         site.issues    = baked.issues.slice();
@@ -4652,12 +4296,6 @@ function adaptSite(jsonCode, s, isNewest, weekKey){
     if(kp.wage_pct && kp.wage_pct.actual != null) METRICS[display].wage = kp.wage_pct.actual;
     if(kp.food_pct && kp.food_pct.actual != null) METRICS[display].food = kp.food_pct.actual;
     else METRICS[display].food = BAKED_METRICS_FOOD[display]; // null -> keep baked
-    // Raw SPH (Spend Per Head) numbers for the efficiency score + league table — display string is set separately on site.kpis.sph.
-    if(kp.sph){
-      METRICS[display].sph       = (kp.sph.actual  != null) ? kp.sph.actual  : null;
-      METRICS[display].sphPrev   = (kp.sph.prev    != null) ? kp.sph.prev    : null;
-      METRICS[display].sphWowPct = (kp.sph.wow_pct != null) ? kp.sph.wow_pct : null;
-    }
     // Live stock-take variances (numeric; null -> renders N/A / neutral)
     const stm = s.stock_take || {};
     METRICS[display].foodVar   = (stm.food   && stm.food.variance_pct   != null) ? stm.food.variance_pct   : null;
@@ -4670,8 +4308,6 @@ function adaptSite(jsonCode, s, isNewest, weekKey){
     if(rv.new_reviews != null) REVIEWS[display].weekCount = rv.new_reviews;
     const bd = rv.star_breakdown;
     if(bd) REVIEWS[display].stars = [bd["5"]||0, bd["4"]||0, bd["3"]||0, bd["2"]||0, bd["1"]||0];
-    // Carry the week's negative-review text through to the site modal (rendered in openSite).
-    REVIEWS[display].negatives = Array.isArray(rv.negative_reviews) ? rv.negative_reviews : [];
   }
 }
 
@@ -4684,7 +4320,6 @@ function repaintAll(){
   try { if (typeof renderHotActions=== 'function') renderHotActions(); } catch(e){}
   try { if (typeof renderRedLight  === 'function') renderRedLight(); } catch(e){}
   try { if (typeof renderDeliverooRag === 'function') renderDeliverooRag(); } catch(e){}
-  try { if (typeof renderDeliverooReviews === 'function') renderDeliverooReviews(); } catch(e){}
   try { if (typeof renderGmScore   === 'function') renderGmScore(); } catch(e){}
   // Header stat counters
   try {
@@ -4721,7 +4356,7 @@ function clearLoadError(){ const b=document.getElementById('part-b-error'); if(b
 const WEEK_CACHE = {};
 
 // Fetch one week's manifest + per-site files (fault-isolated), adapt, repaint.
-function loadLiveWeek(manifestFile, isNewest, weekKey){
+function loadLiveWeek(manifestFile, isNewest){
   const cached = WEEK_CACHE[manifestFile];   // reuse probe's fetch for the winning week
   const source = cached
     ? Promise.resolve(cached)
@@ -4742,7 +4377,7 @@ function loadLiveWeek(manifestFile, isNewest, weekKey){
         if(res.status !== "fulfilled") return;          // per-site failure: leave that site baked
         const sites = (res.value && res.value.sites) || {};
         const code  = list[i].code;
-        adaptSite(code, sites[code], isNewest, weekKey);
+        adaptSite(code, sites[code], isNewest);
       });
       clearLoadError();
       repaintAll();
@@ -4798,9 +4433,7 @@ function loadLiveWeek(manifestFile, isNewest, weekKey){
 
     // Live-load this week's numbers; repaintAll() runs inside on success.
     // On failure the baked data stays rendered (graceful degradation).
-    // Pass weekKey so the curated-narrative restore can lock to NARRATIVE_WEEK,
-    // independently of isCurrent (which still drives this-week chrome above).
-    loadLiveWeek(meta.file, isCurrent, weekKey);
+    loadLiveWeek(meta.file, isCurrent);
   }
   window.applyWeek = applyWeek;
 
