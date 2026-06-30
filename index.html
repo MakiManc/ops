@@ -388,7 +388,7 @@
   }
   .scorecard-row {
     display: grid;
-    grid-template-columns: 48px 1fr 78px 78px 78px 78px 78px 70px 70px 72px;
+    grid-template-columns: 48px 1fr 78px 78px 78px 78px 78px 78px 70px 70px 72px;
     gap: 6px;
     padding: 10px 12px;
     align-items: center;
@@ -442,7 +442,7 @@
     margin-top: 0;
     margin-left: auto;
     flex: 0 1 auto;
-    max-width: 132px;
+    max-width: 160px;
   }
   .tile-metric {
     flex: 0 0 auto;
@@ -1215,7 +1215,7 @@
   <div class="section-head">
     <div>
       <h2>Site League Table — Efficiency Score</h2>
-            <div class="hint">Weighted 5-component score (Wage 30%, Food 30%, Sales 20%, Weekly ★ 10%, Food Var 10%), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
+            <div class="hint">Weighted 6-component score (Wage 30 / Food 30 / SPH 15 / Sales 10 / Wk★ 10 / Food Var 5), each component capped at 100. 100 = at target. Sales blends % vs target with absolute £ gap. SPH = 0.7·level + 0.3·WoW momentum vs per-format target (£35 Maki Nori, £21 IKI2, £22 default). Lifetime ★ shown for info but not in the score. Click a row for full detail.</div>
       <span class="frozen-caption freeze-target" data-freeze="scorecard" style="display:none;">Opens on the most recent week with stock-take variance entered (stock-take lags ~1 week); selecting the current week may show N/A variance until the stock-take sheet is updated.</span>
     </div>
   </div>
@@ -3196,8 +3196,26 @@ function weeklyRatingRag(wr) {
   return 'red';
 }
 
-// Site Efficiency Score — weighted 5-component score, 0–100 nominal (100 = at target)
-// Components: Wage 30%, Food cost 30%, Sales 20% (% + £ gap blend), Weekly ★ 10%, Food variance 10% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
+// Per-format Spend-Per-Head target (£): Maki Nori £35, Ikigai (IKI2) £21, else £22.
+// Codes are the display codes used in METRICS / SITES (e.g. 'M1', 'IKI2', 'MAF-NQ').
+function sphTarget(code) {
+  if (code == null) return 22;
+  const c = String(code);
+  if (/nori/i.test(c) || c === 'MAF-NQ') return 35;
+  if (c === 'IKI2') return 21;
+  return 22;
+}
+// SPH RAG: green at/above target, amber within £2 below, red further below. null/'na' if missing.
+function sphRag(v, code) {
+  if (v == null) return 'na';
+  const t = sphTarget(code);
+  if (v >= t)       return 'green';
+  if (v >= t - 2)   return 'amber';
+  return 'red';
+}
+
+// Site Efficiency Score — weighted 6-component score, 0–100 nominal (100 = at target)
+// Components: Wage 30%, Food cost 30%, SPH 15% (level + WoW momentum blend), Sales 10% (% + £ gap blend), Weekly ★ 10%, Food variance 5% (±5% green band). Each component hard-capped at 100. Lifetime ★ shown for info only — NOT in score.
 function efficiencyScore(s) {
   const m = METRICS[s.code] || {};
   const r = REVIEWS[s.code] || {};
@@ -3210,27 +3228,42 @@ function efficiencyScore(s) {
   }
   const groupMaxGap = 50000; // calibration: -£50k = 0 on £-component, +£50k capped at 100
   const parts = [];
-  // Sales 20% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
+  // Sales 10% — blend 70% % vs target, 30% £ gap (big sites carry more weight in the league)
   if (s.vsTarget != null) {
     const pctPart = Math.max(0, Math.min(100, 100 + s.vsTarget));
     const gbpPart = Math.max(0, Math.min(100, 100 + (gbpGap / groupMaxGap) * 100));
-    parts.push({ w: 20, v: 0.7 * pctPart + 0.3 * gbpPart });
+    parts.push({ w: 10, v: 0.7 * pctPart + 0.3 * gbpPart });
   }
   // Food cost 30% — 100 at 25% target, -8 per pp over
   if (m.food != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.food - 25) * 8)) });
   // Wage 30% — 100 at 21% target, -15 per pp over
   if (m.wage != null) parts.push({ w: 30, v: Math.max(0, Math.min(100, 100 - Math.max(0, m.wage - 21) * 15)) });
+  // SPH 15% — blend 0.7 · level + 0.3 · WoW momentum (level only if no WoW data).
+  // level: 100 at sphTarget; -100/6 per £ below; 0 at £6 under target.
+  // momentum: 50 + sphWowPct·10, clamped 0..100 (50 = flat WoW, ±5% spans full range).
+  if (m.sph != null) {
+    const tgt = sphTarget(s.code);
+    const level = Math.max(0, Math.min(100, 100 - Math.max(0, tgt - m.sph) * (100 / 6)));
+    let sphVal;
+    if (m.sphWowPct == null) {
+      sphVal = level;
+    } else {
+      const momentum = Math.max(0, Math.min(100, 50 + m.sphWowPct * 10));
+      sphVal = 0.7 * level + 0.3 * momentum;
+    }
+    parts.push({ w: 15, v: Math.max(0, Math.min(100, sphVal)) });
+  }
   // Weekly ★ 10% — 100 at 4.7★ (the actual OKR), 0 at 4.0★
   if (wr != null) parts.push({ w: 10, v: Math.max(0, Math.min(100, ((wr - 4.0) / 0.7) * 100)) });
-  // Food variance 10% — flat 100 inside ±5% band, then -8 per pp outside
+  // Food variance 5% — flat 100 inside ±5% band, then -8 per pp outside
   if (m.foodVar != null) {
     const a = Math.abs(m.foodVar);
     const v = a <= 5 ? 100 : Math.max(0, 100 - (a - 5) * 8);
-    parts.push({ w: 10, v });
+    parts.push({ w: 5, v });
   }
   if (parts.length === 0) return null;
   const totalW = parts.reduce((a, c) => a + c.w, 0);
-  return Math.round(parts.reduce((a, c) => a + c.v * c.w, 0) / totalW);
+  return Math.max(0, Math.min(100, Math.round(parts.reduce((a, c) => a + c.v * c.w, 0) / totalW)));
 }
 function efficiencyRag(score) {
   if (score == null) return 'na';
@@ -3365,7 +3398,10 @@ function tileHTML(s) {
   const dvCls = varBandClass(m.drinksVar);
   const fvTxt = fmtVar(m.foodVar);
   const dvTxt = fmtVar(m.drinksVar);
-  const vClass = c => c === 'na' ? 'na' : (c === 'green' ? 'good' : 'bad');
+  const sphCls = sphRag(m.sph, s.code);
+  const sphTileTxt = m.sph == null ? 'N/A' : '£' + m.sph.toFixed(2);
+  const sphTipTxt = `SPH (tgt £${sphTarget(s.code)})`;
+  const vClass = c => c === 'na' ? 'na' : (c === 'green' ? 'good' : (c === 'amber' ? 'warn' : 'bad'));
   return `
       <div class="tile ${tileClass}" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="tile-issues-badge">${issuesCount}</div>
@@ -3379,6 +3415,7 @@ function tileHTML(s) {
         </div>
         <div class="tile-metrics">
           <div class="tile-metric ${salesRag(s.vsTarget) === 'green' ? 'good' : (salesRag(s.vsTarget) === 'amber' ? 'warn' : 'bad')}">S<br>${salesTxt}</div>
+          <div class="tile-metric ${vClass(sphCls)}" title="${sphTipTxt}">SPH<br>${sphTileTxt}</div>
           <div class="tile-metric ${wageRag(m.wage) === 'na' ? 'na' : (wageRag(m.wage) === 'green' ? 'good' : (wageRag(m.wage) === 'amber' ? 'warn' : 'bad'))}">W<br>${wageTxt}</div>
           <div class="tile-metric ${foodRag(m.food) === 'na' ? 'na' : (foodRag(m.food) === 'green' ? 'good' : (foodRag(m.food) === 'amber' ? 'warn' : 'bad'))}">F<br>${foodTxt}</div>
           <div class="tile-metric ${vClass(fvCls)}">FV<br>${fvTxt}</div>
@@ -3493,7 +3530,7 @@ function renderScorecard() {
   sites.sort((a, b) => (efficiencyScore(b) ?? -1) - (efficiencyScore(a) ?? -1));
   const header = `
     <div class="scorecard-row header">
-      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
+      <div>Site</div><div>Name</div><div>Sales vs Tgt</div><div style="text-align:center;">SPH</div><div>Wage %</div><div>Food Cost</div><div>Food Var</div><div>Drinks Var</div><div>Wk ★</div><div>Lifetime ★</div><div>Score /100</div>
     </div>`;
   const rows = sites.map(s => {
     const m = METRICS[s.code] || {};
@@ -3509,11 +3546,19 @@ function renderScorecard() {
     const ltRag = ratingRag(r.rating);
     const effRag = efficiencyRag(eff);
     const h = HISTORY[s.code] || {};
+    const sphVal     = m.sph;
+    const sphWow     = m.sphWowPct;
+    const sphRagCls  = sphRag(sphVal, s.code);
+    const sphTxt     = sphVal == null ? 'N/A' : '£' + sphVal.toFixed(2);
+    const sphWowHtml = (sphWow == null)
+      ? ''
+      : `<span class="sc-chip-wow" style="color:${sphWow >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${sphWow >= 0 ? '▲' : '▼'} ${Math.abs(sphWow).toFixed(1)}%</span>`;
     return `
       <div class="scorecard-row" onclick="openSite('${s.code.replace(/'/g, "\\'")}')">
         <div class="sc-code">${s.code}</div>
         <div class="sc-name">${s.name}</div>
         <div class="sc-chip ${sRag}">${(s.vsTarget >= 0 ? '+' : '') + s.vsTarget.toFixed(1)}% <span class="sc-chip-wow">${trendArrow(h.sales, 'up-is-good')}</span></div>
+        <div class="sc-chip ${sphRagCls}">${sphTxt} ${sphWowHtml}</div>
         <div class="sc-chip ${wRag}">${m.wage == null ? 'N/A' : m.wage.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.wage, 'down-is-good')}</span></div>
         <div class="sc-chip ${fRag}">${m.food == null ? 'N/A' : m.food.toFixed(1) + '%'} <span class="sc-chip-wow">${trendArrow(h.food, 'down-is-good')}</span></div>
         <div class="sc-chip ${vRag}">${fmtVar(m.foodVar)}</div>
@@ -3628,6 +3673,11 @@ function openSite(code) {
           <div class="kpi-value ${foodRag((METRICS[s.code]||{}).food)}">${(METRICS[s.code]||{}).food == null ? 'N/A' : (METRICS[s.code]).food.toFixed(2) + '%'}</div>
           <div class="kpi-spark">${sparkline((HISTORY[s.code]||{}).food, 'down-is-good', '#4f46e5')}</div>
           <div class="kpi-trend">WoW ${trendArrow((HISTORY[s.code]||{}).food, 'down-is-good')}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">SPH (tgt £${sphTarget(s.code)})</div>
+          <div class="kpi-value ${sphRag((METRICS[s.code]||{}).sph, s.code)}">${(METRICS[s.code]||{}).sph == null ? 'N/A' : '£' + (METRICS[s.code]).sph.toFixed(2)}</div>
+          <div class="kpi-trend" style="margin-top:6px;">${(METRICS[s.code]||{}).sphWowPct == null ? 'no WoW' : `WoW <span style="color:${(METRICS[s.code]).sphWowPct >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight:700;">${(METRICS[s.code]).sphWowPct >= 0 ? '▲' : '▼'} ${Math.abs((METRICS[s.code]).sphWowPct).toFixed(2)}%</span>`}</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Food Variance (tgt ±5%)</div>
@@ -4300,6 +4350,9 @@ function adaptSite(jsonCode, s, isNewest){
     const stm = s.stock_take || {};
     METRICS[display].foodVar   = (stm.food   && stm.food.variance_pct   != null) ? stm.food.variance_pct   : null;
     METRICS[display].drinksVar = (stm.drinks && stm.drinks.variance_pct != null) ? stm.drinks.variance_pct : null;
+    // SPH (Spend Per Head) — live actual £ + WoW% from kpis.sph. Feeds league chip, tile, modal, score.
+    METRICS[display].sph       = (kp.sph && kp.sph.actual  != null) ? kp.sph.actual  : null;
+    METRICS[display].sphWowPct = (kp.sph && kp.sph.wow_pct != null) ? kp.sph.wow_pct : null;
   }
 
   // REVIEWS entry — overlay ONLY the clean weekly fields; keep cumulative rating/total baked.
