@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-29",
+  "generated_at": "2026-06-30",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-22 \u2013 2026-06-28",
@@ -163,10 +163,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-06-28",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 6566.97,
+        "orders": 215,
+        "orders_estimated": true,
+        "aov": 30.54,
+        "new_customers": 67,
+        "rating": 3.69,
+        "open_hours_pct": 99.0,
+        "avg_prep_min": 12.4,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.9,
+        "rider_wait_5min_pct": 4.2,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     }
   }
