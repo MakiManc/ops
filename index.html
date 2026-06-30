@@ -3718,6 +3718,15 @@ function openSite(code) {
         </div>
       </div>
 
+      ${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? `
+      <div class="panel">
+        <div class="panel-head" style="color:var(--red);"><span class="dot" style="background:var(--red);"></span>≤3★ reviews this week (${(REVIEWS[s.code]).negativeReviews.length})</div>
+        ${(REVIEWS[s.code]).negativeReviews.map(r => `<div class="item" style="border-left-color:var(--red);">
+          <div style="font-size:12px; font-weight:700; color:var(--red); margin-bottom:4px;">${r.stars}★ &middot; ${r.author || 'Anonymous'} &middot; ${r.date || ''}</div>
+          <div style="font-size:13px; color:var(--ink-2); white-space:pre-line;">${(r.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          ${r.url ? `<a href="${r.url}" target="_blank" style="font-size:11px; color:var(--ink-3); margin-top:4px; display:block;">View on Google →</a>` : ''}</div>`).join('')}
+      </div>` : ''}
+
       ${s.empty ? '<div class="empty">⚠ This report\'s qualitative sections are largely empty — the issues/solutions below were inferred from headline numbers + the Monday admin meeting transcript, not from the GM\'s written narrative.</div><br>' : ''}
 
       <div class="panel">
@@ -4362,6 +4371,7 @@ function adaptSite(jsonCode, s, isNewest){
     if(rv.new_reviews != null) REVIEWS[display].weekCount = rv.new_reviews;
     const bd = rv.star_breakdown;
     if(bd) REVIEWS[display].stars = [bd["5"]||0, bd["4"]||0, bd["3"]||0, bd["2"]||0, bd["1"]||0];
+    if(rv.negative_reviews) REVIEWS[display].negativeReviews = rv.negative_reviews;
   }
 }
 
