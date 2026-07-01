@@ -3707,8 +3707,8 @@ function openSite(code) {
         </div>
         ${deliverooCell(s)}
         <div class="kpi" style="grid-column: 1 / -1;">
-          <div class="kpi-label">This week's Google reviews · Covers · SPH</div>
-          <div class="kpi-value" style="font-size:13px;">
+          <div class="kpi-label">This week's Google reviews · Covers · SPH${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? ` <span style="font-size:11px; color:var(--ink-3); font-weight:400;">(click stars to show/hide ≤3★ reviews)</span>` : ''}</div>
+          <div class="kpi-value" style="font-size:13px; ${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? 'cursor:pointer; user-select:none;' : ''}" ${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? `onclick="toggleNegPanel('${s.code}')" title="Click to show/hide ≤3★ review details"` : ''}>
             ${(REVIEWS[s.code]||{}).weekCount == null ? '<span style="color:var(--ink-3)">No review data this week</span>' :
               `<span style="font-weight:700;">${(REVIEWS[s.code]).weekCount} reviews</span> &nbsp;
               ${(REVIEWS[s.code]).stars.map((c,i) => c == null ? '' : `<span style="color:${i >= 3 ? 'var(--red)' : (i === 2 ? 'var(--amber)' : 'var(--ink-2)')}; font-size:12px; font-weight:600;">${5-i}★ ${c}</span>`).filter(Boolean).join(' &nbsp; ')}`
@@ -3719,7 +3719,7 @@ function openSite(code) {
       </div>
 
       ${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? `
-      <div class="panel">
+      <div class="panel" id="neg-panel-${s.code}" style="display:none;">
         <div class="panel-head" style="color:var(--red);"><span class="dot" style="background:var(--red);"></span>≤3★ reviews this week (${(REVIEWS[s.code]).negativeReviews.length})</div>
         ${(REVIEWS[s.code]).negativeReviews.map(r => `<div class="item" style="border-left-color:var(--red);">
           <div style="font-size:12px; font-weight:700; color:var(--red); margin-bottom:4px;">${r.stars}★ &middot; ${r.author || 'Anonymous'} &middot; ${r.date || ''}</div>
@@ -3752,6 +3752,14 @@ function openSite(code) {
 
 function closeModal() {
   document.getElementById('modal-bg').classList.remove('show');
+}
+
+// Click-toggle: show/hide the ≤3★ negative-reviews panel in the site modal.
+// Called from the star row's onclick (only wired when negativeReviews.length > 0).
+function toggleNegPanel(code) {
+  const el = document.getElementById('neg-panel-' + code);
+  if (!el) return;
+  el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
 }
 
 // Filter handlers (RAG / cluster)
