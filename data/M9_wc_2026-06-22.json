@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-30",
+  "generated_at": "2026-07-01",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-22 \u2013 2026-06-28",
@@ -127,8 +127,23 @@
           "2": 1,
           "1": 2
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "SMILE DAY",
+            "text": "Very disappointed with my experience.\n\nThe curry chicken was far too salty, and the chicken portions were very small despite the high price. On top of that, the restaurant automatically added a 10% service charge, which made the meal even more expensive.\n\nThe ramen was also extremely oily and not enjoyable at all.\n\nOverall, the food was overpriced and not worth the money. I won't be coming back.",
+            "date": "2026-06-28",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Docile Bodies",
+            "text": "Eating food at this place was equal to being dismembered on a medieval market square during a nice summer\u2019s night. An insult to the history of food. Staff was quite nice! Please reconsider the use of that big drum when people enter the restaurant",
+            "date": "2026-06-27",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

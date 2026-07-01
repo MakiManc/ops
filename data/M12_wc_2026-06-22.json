@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-30",
+  "generated_at": "2026-07-01",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-22 \u2013 2026-06-28",
@@ -128,8 +128,16 @@
           "2": 1,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "steven de ruig",
+            "text": "4 different staff at my table that didnt know another one helped me.\nthe smell of staff members smoking outside was very annoying.",
+            "date": "2026-06-27",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
