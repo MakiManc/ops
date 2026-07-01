@@ -1067,7 +1067,7 @@
     <div class="hero-inner">
       <div class="eyebrow">AM Weekly Control Centre</div>
       <h1 id="hero-week-h1">Week of 8–14 June 2026</h1>
-      <div class="hero-sub">17 site KPI Report docs + England & EDI/NEW KPI meetings (16 Jun) · 3 clusters · Sourced from the weekly KPI Report folder · refreshed 17 Jun 2026</div>
+      <div class="hero-sub"><span id="header-refresh-caption">17 site KPI Report docs + England & EDI/NEW KPI meetings (16 Jun) · 3 clusters · Sourced from the weekly KPI Report folder · refreshed 17 Jun 2026</span></div>
     </div>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">17</div><div class="stat-label">Sites</div></div>
@@ -1082,7 +1082,7 @@
   <div class="section-head" style="margin-top:24px;">
     <div>
       <h2>What moved this week</h2>
-      <div class="section-sub">Biggest WoW shifts in covers and SPH, w/e 14 Jun vs w/e 7 Jun — sourced from this week's 17 site KPI reports. Covers WoW unavailable for M3 (report wrong week), M6, M8; SPH WoW shown where reported.</div>
+      <div class="section-sub"><span id="what-moved-subtitle">Biggest WoW shifts in covers and SPH, w/e 14 Jun vs w/e 7 Jun — sourced from this week's 17 site KPI reports. Covers WoW unavailable for M3 (report wrong week), M6, M8; SPH WoW shown where reported.</span></div>
     </div>
   </div>
   <span class="frozen-caption freeze-target" data-freeze="wow" style="display:none;">Frozen — weekly archive starts 2026-06-12. Showing current week.</span>
@@ -1173,6 +1173,43 @@
         paint('wow-sph-up',      'Top risers',  rank('sph','up'),      '▲');
         paint('wow-sph-down',    'Top fallers', rank('sph','down'),    '▼');
       }
+      window.paintAll = paintAll;
+      function fmtUKShort(d){ try { return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); } catch(e){ return ''; } }
+      function mondayFromKey(k){
+        const [y,m,d] = k.split('-').map(Number); return new Date(Date.UTC(y,m-1,d));
+      }
+      window.updateWhatMovedSubtitle = function(){
+        try {
+          const el = document.getElementById('what-moved-subtitle'); if(!el) return;
+          const key = window.currentWeekKey; if(!key) return;
+          const monThis = mondayFromKey(key);
+          const weEndThis = new Date(monThis.getTime() + 6*86400000);
+          const weEndPrior = new Date(monThis.getTime() - 1*86400000);
+          let missing=[];
+          try {
+            const sites = (typeof SITES!=='undefined' && SITES) || {};
+            Object.keys(sites).forEach(code => {
+              const s = sites[code]; if(!s || !s.kpis) return;
+              const c = s.kpis.covers; const hasWow = c && (c.wow_pct!=null || (typeof c==='string' && /\(/.test(c)));
+              if(!hasWow) missing.push(code);
+            });
+          } catch(e){}
+          const missTxt = missing.length ? ` Covers WoW unavailable for ${missing.join(', ')};` : '';
+          el.textContent = `Biggest WoW shifts in covers and SPH, w/e ${fmtUKShort(weEndThis)} vs w/e ${fmtUKShort(weEndPrior)} — sourced from this week's site KPI reports.${missTxt} SPH WoW shown where reported.`;
+        } catch(e){ console.warn('subtitle update failed', e); }
+      };
+      window.updateHeaderCaption = function(){
+        try {
+          const el = document.getElementById('header-refresh-caption'); if(!el) return;
+          const key = window.currentWeekKey;
+          const now = new Date();
+          const nowTxt = fmtUKShort(now) + ' ' + now.getFullYear();
+          let wkTxt = '';
+          if(key){ const mon = mondayFromKey(key); const sun = new Date(mon.getTime()+6*86400000);
+            wkTxt = ' · week of ' + fmtUKShort(mon) + '–' + fmtUKShort(sun); }
+          el.textContent = `refreshed ${nowTxt}${wkTxt} · 17-site KPI Report pipeline`;
+        } catch(e){ console.warn('caption update failed', e); }
+      };
       paintAll();
       document.addEventListener('week-changed', paintAll);
     });
@@ -4407,6 +4444,7 @@ function repaintAll(){
     const elG=document.getElementById('stat-green');  if(elG) elG.textContent=stats.green;
     const elI=document.getElementById('stat-issues'); if(elI) elI.textContent=stats.issues;
   } catch(e){}
+  try { if (typeof paintAll === 'function') paintAll(); if (typeof updateWhatMovedSubtitle === 'function') updateWhatMovedSubtitle(); if (typeof updateHeaderCaption === 'function') updateHeaderCaption(); } catch(e) { console.warn('what-moved repaint failed', e); }
 }
 
 function showLoadError(msg){
