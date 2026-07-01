@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-06-30",
-  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-15 \u2013 2026-06-21",
+    "label": "Week of 2026-06-15 – 2026-06-21",
     "commencing": "2026-06-15",
     "ending": "2026-06-21"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.1,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-15"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 77,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 82.85,
-            "basis": "70% (100-18.48) + 30% (\u00a3gap -7023 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-18.48) + 30% (£gap -7023 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 85.69,
-            "basis": "\u00a322.07 vs \u00a322 tgt \u2014 level 100, WoW +0.23% \u2192 mom 52"
+            "basis": "£22.07 vs £22 tgt — level 100, WoW +0.23% → mom 52"
           },
           "food": {
             "weight": 30,
@@ -102,16 +102,16 @@
           "weekly_star": {
             "weight": 10,
             "value": 89.29,
-            "basis": "4.62\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.62★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.70% inside \u00b15% band"
+            "basis": "4.70% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -119,7 +119,7 @@
           "sales -18.5% vs target",
           "food 25.6%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.625,
@@ -136,7 +136,7 @@
           {
             "stars": 1,
             "author": "Nie72",
-            "text": "Was really looking forward to this and everyone has been hyping M&R up!!  But it was just an aweful experience :( I ended up getting food poisoning from here!! Attended with a friend and we both ordered different things.\n\nI thought I\u2019d be safe with the ramen option and my friend ordered a rack of sushi. The food came pretty quickly despite the slow service .\nThe sushi was cut so thick and messy with what looked like the ending or trimming of left over fish on the top like they ran out of ingredients ? The ramen I ordered came luke warm, noodles were undercooked but stuck together and only had two king prawns and two thin slices of salmon inside.\n\nThe service was also so so slow. There was only 1 person who seemed to be taking everyone\u2019s orders bless her and she looked understandably stressed. The lady rolling the sushi\u2019s looked like she couldn\u2019t really be bothered and it showed from how the rolls came out :(\n\nThe only good thing was the Japanese fizzy drink the waitress recommended and catching up with my friend but now regretting it all as I vomit\n\nSadly won\u2019t be returning again.",
+            "text": "Was really looking forward to this and everyone has been hyping M&R up!!  But it was just an aweful experience :( I ended up getting food poisoning from here!! Attended with a friend and we both ordered different things.\n\nI thought I’d be safe with the ramen option and my friend ordered a rack of sushi. The food came pretty quickly despite the slow service .\nThe sushi was cut so thick and messy with what looked like the ending or trimming of left over fish on the top like they ran out of ingredients ? The ramen I ordered came luke warm, noodles were undercooked but stuck together and only had two king prawns and two thin slices of salmon inside.\n\nThe service was also so so slow. There was only 1 person who seemed to be taking everyone’s orders bless her and she looked understandably stressed. The lady rolling the sushi’s looked like she couldn’t really be bothered and it showed from how the rolls came out :(\n\nThe only good thing was the Japanese fizzy drink the waitress recommended and catching up with my friend but now regretting it all as I vomit\n\nSadly won’t be returning again.",
             "date": "2026-06-17",
             "url": null
           }
@@ -144,7 +144,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -154,7 +154,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -185,10 +185,31 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Sales -5.49% vs target (-£2,087); low covers; submitted report covers wrong week (25–31 May).",
+          "Food-cost discrepancy: site 22.9% vs HO 26%/27.13% (AA factory cost omitted) — use Matt's KPI sheet.",
+          "Maintenance: blocked pipes/toilets (smell ~2 weeks); dishwasher awaiting technician."
+        ],
+        "actions": [
+          "Resubmit correct-week report; align food cost to KPI sheet (Matt/Mag).",
+          "Chase internal pipes via Franchesca; mgmt to pack & photo Deliveroo (Leicester iPad/AirDrop method)."
+        ],
+        "carryover": [
+          "Confirm: Labour budget mismatch 23.31% vs 22.34% — group standardising calc [09/06] — resolved?",
+          "Confirm: Recurring Dinjo sake stock adjustment — weekly tracking (Amy) [09/06] — stable?",
+          "Confirm: Toilets blocked incl. disabled — Ross + building mgmt on main pipe [09/06] — fixed?",
+          "Confirm: KP left, 2 kitchen staff pre-summer — GM recruitment [09/06] — resolved?",
+          "Confirm: BOH — FOH→pass delay; CCTV + FOH/BOH ratio review (Sophie) (03/06) — resolved?",
+          "Confirm: GM focus — deep clean; post-it wall → social drive — actioned?"
+        ],
+        "empty": false,
+        "docId": "1_NNcLrsLEHsj3gVkxnY2CMMW5xcRBlexBxjEMHdk-uk"
+      }
     }
   }
 }
