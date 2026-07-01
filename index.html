@@ -4348,7 +4348,7 @@ function deliverooCell(s){
 }
 
 // --- ADAPTER: one fetched site JSON -> overwrite the baked shapes IN PLACE ---
-// `isNewest` true => keep curated narrative; false => auto-generate from JSON.
+// Notes come from JSON `notes` block per-week; falls back to baked SITES const.
 function adaptSite(jsonCode, s, isNewest){
   if(!s) return;
   const display = jsonToDisplay(jsonCode);
@@ -4375,24 +4375,23 @@ function adaptSite(jsonCode, s, isNewest){
     // sales-only fallback for gap sites M11-M18). Surfaced in the detail grid.
     site.deliveroo = s.deliveroo || null;
 
-    // Narrative: live numbers, curated narrative.
-    if(isNewest){
+    // Narrative: per-week notes from JSON `notes` block if present, else baked
+    // fallback (older weeks with no notes JSON). NARRATIVE_WEEK gate retired —
+    // every week reads its own notes now.
+    const n = s.notes;
+    if(n && (n.issues || n.actions || n.carryover)){
+      site.issues    = (n.issues    || []).slice();
+      site.carryover = (n.carryover || []).slice();
+      site.actions   = (n.actions   || []).slice();
+      if(n.empty != null) site.empty = n.empty;
+      if(n.docId) site.docId = n.docId;
+    } else {
       const baked = BAKED_NARRATIVE[display];
       if(baked){
         site.issues    = baked.issues.slice();
         site.carryover = baked.carryover.slice();
         site.actions   = baked.actions.slice();
       }
-    } else {
-      const issues = ["— Auto-generated from weekly data; no curated notes for past weeks."];
-      (s.red_light && s.red_light.triggers || []).forEach(t => issues.push("Red-light: " + t));
-      (s.gaps || []).forEach(g => issues.push(g));
-      (s.maintenance && s.maintenance.tasks || [])
-        .filter(t => t.status === "open")
-        .forEach(t => issues.push(`Maintenance: ${t.task} (${t.owner})`));
-      site.issues    = issues;
-      site.carryover = [];
-      site.actions   = [];
     }
   }
 
