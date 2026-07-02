@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-30",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-02",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-15 – 2026-06-21",
+    "label": "Week of 2026-06-15 \u2013 2026-06-21",
     "commencing": "2026-06-15",
     "ending": "2026-06-21"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -1.8,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 1.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-15"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 80,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 87.42,
-            "basis": "70% (100-14.59) + 30% (£gap -3939 vs ±£50k cal)"
+            "basis": "70% (100-14.59) + 30% (\u00a3gap -3939 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 75.33,
-            "basis": "£21.75 vs £22 tgt — level 96, WoW -2.25% → mom 28"
+            "basis": "\u00a321.75 vs \u00a322 tgt \u2014 level 96, WoW -2.25% \u2192 mom 28"
           },
           "food": {
             "weight": 30,
@@ -101,17 +101,17 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 76.92,
-            "basis": "4.54★ vs 4.7★ OKR (0 at 4.0★)"
+            "value": 77.14,
+            "basis": "4.54\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "1.00% inside ±5% band"
+            "basis": "1.00% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -119,10 +119,10 @@
           "sales -14.6% vs target",
           "food 27.1%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.538461538,
+        "week_avg_rating": 4.54,
         "new_reviews": 13,
         "star_breakdown": {
           "5": 11,
@@ -131,22 +131,8 @@
           "2": 0,
           "1": 1
         },
-        "negatives": 4,
+        "negatives": 2,
         "negative_reviews": [
-          {
-            "stars": 3,
-            "author": "Ali",
-            "text": "Our main was really good and tasty, the desert was probably up there with the worst I've paid for at a restaurant.\n\nThe chocolate matcha brownie was a stale hard lump of cardboard. On par with a savers brownie from londis. There was also less than advertised on the menus picture. The Banana fritter was just a greasy deep fried mess, dripping in grease that hadn't been drained off.\n\nUnfortunately the deserts seriously dampened our initial thoughts of or meal, the main was a 4/5 initially.",
-            "date": "2026-06-20",
-            "url": null
-          },
-          {
-            "stars": 1,
-            "author": "Hemaxi",
-            "text": "Never going back. First and last visit.\n\nWe arrived slightly earlier for our table for 2 booked for 7pm and were seated, no problem. We were waiting around 15 minutes for our drinks order to be taken, and we chose to order food at the same time.\n\nDrinks came over with a very confused server. To us, it was clear the drinks were for us and the table next to us judging by the number of glasses and people. She had to go away and check and then come back to finally give us the drinks.\n\nAfter that, my food arrived first and we had to wait another 10 minutes or so before my friend's food arrived. My food was getting cold by then. But they served the meat option when the vegan option had been ordered. They took it away and came back another 15 minutes or so later with the correct meal. They didn't even apologise.\n\nThe bill came with service charge included and in my opinion, they should have taken the initiative to take money off considering they served meat to someone who doesn't even eat meat. I requested they reconsider, and they returned with another bill with a drink and service charge removed. Ridiculous that we had to ask for that in the first place considering the poor service, but grateful they did do something about the bill. It was at this point we finally had an apology.",
-            "date": "2026-06-20",
-            "url": null
-          },
           {
             "stars": 3,
             "author": "Ali",
@@ -165,7 +151,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -174,23 +160,23 @@
         "tasks": [
           {
             "task": "Wifi are slow in some areas",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Chris/Amy",
             "status": "open"
           },
           {
             "task": "Griddle where we cook gyoza steak and pork is broken",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
-            "owner": "—",
+            "owner": "\u2014",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -221,27 +207,27 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales -13.63% vs target (-£3,679); covers -16.31% WoW (quiet week, outdoor match screenings).",
-          "Food cost high at 26.87% — invoices/sector to investigate.",
-          "Matcha quality (batches too big/over 5-day, not layered) → 2★ review; GM on 5 days' holiday."
+          "Sales -13.63% vs target (-\u00a33,679); covers -16.31% WoW (quiet week, outdoor match screenings).",
+          "Food cost high at 26.87% \u2014 invoices/sector to investigate.",
+          "Matcha quality (batches too big/over 5-day, not layered) \u2192 2\u2605 review; GM on 5 days' holiday."
         ],
         "actions": [
           "Audit invoices driving food cost (Caroline/Jason).",
           "Smaller matcha batches + posted layering SOP; GM handover note before leave."
         ],
         "carryover": [
-          "Confirm: iPad not syncing out-of-stock — orders disputed [09/06] — fixed?",
-          "Confirm: High Cross food banks depress sales — Amy re event discounts [09/06] — resolved?",
-          "Confirm: Father's Day pop-up 21 Jun promo — draft beer promo, Amy watching prep [09/06] — ran?",
-          "Confirm: Wage 23.98% — well over 21% target — still live?",
-          "Confirm: Weekly ★ avg 4.25 below 4.7 OKR — still live?",
-          "Confirm: GM focus — keep labour & food cost stable; grow Google review volume — actioned?"
+          "Confirm: iPad not syncing out-of-stock \u2014 orders disputed [09/06] \u2014 fixed?",
+          "Confirm: High Cross food banks depress sales \u2014 Amy re event discounts [09/06] \u2014 resolved?",
+          "Confirm: Father's Day pop-up 21 Jun promo \u2014 draft beer promo, Amy watching prep [09/06] \u2014 ran?",
+          "Confirm: Wage 23.98% \u2014 well over 21% target \u2014 still live?",
+          "Confirm: Weekly \u2605 avg 4.25 below 4.7 OKR \u2014 still live?",
+          "Confirm: GM focus \u2014 keep labour & food cost stable; grow Google review volume \u2014 actioned?"
         ],
         "empty": false,
         "docId": "1fxxF92VXeBuJXqApnmxxFSRHGLbOQdjT_k4UZhC4lY4"

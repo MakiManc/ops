@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-01",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-02",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-22 – 2026-06-28",
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
     "commencing": "2026-06-22",
     "ending": "2026-06-28"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -4.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": null,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": null
         },
         "week_commencing": "2026-06-22"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 41,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,7 +82,7 @@
           "sph": {
             "weight": 15,
             "value": 73.87,
-            "basis": "£35.34 vs £35 tgt — level 100, WoW -3.71% → mom 13"
+            "basis": "\u00a335.34 vs \u00a335 tgt \u2014 level 100, WoW -3.71% \u2192 mom 13"
           },
           "wage": {
             "weight": 30,
@@ -92,7 +92,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 25.71,
-            "basis": "4.18★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.18\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
         "components_dropped": [
@@ -100,12 +100,12 @@
           "food",
           "food_var"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.18,
@@ -122,13 +122,13 @@
           {
             "stars": 1,
             "author": "Rugile D",
-            "text": "If you are hoping for an actual omakase this isn't the place, ordered the 15 piece omakase and it was a platter rather than having the pieces served individually. Quality of fish was pretty poor too, tuna had really fishy smell and all the fish was somewhat warm. Place was pretty empty when we got there but it took almost 25min to get some water.  Had high expectations for this place but left extremely disappointed.",
+            "text": "If you are hoping for an actual omakase this isn't the place, ordered the 15 piece omakase and it was a platter rather than having the pieces served individually. Quality of fish was pretty poor too, tuna had really fishy smell and all the fish was somewhat warm. Place was pretty empty when we got there but it took almost 25min to get some water. Had high expectations for this place but left extremely disappointed.",
             "date": "2026-06-28",
             "url": null
           },
           {
             "stars": 2,
-            "author": "נועה הולצמן",
+            "author": "\u05e0\u05d5\u05e2\u05d4 \u05d4\u05d5\u05dc\u05e6\u05de\u05df",
             "text": "We arrived at the restaurant as a group of three diners for dinner at 9:00 PM. Although we had reserved seats in advance, it took about five minutes to get us into the restaurant, during which we waited at the entrance until the hostess, who was also a waitress, would clear up. After we sat down, we ordered drinks and food together, the waiter took our order and returned a few minutes later to inform us that the drink we requested was out of stock, and then again a few minutes later to inform us that we actually had some. We ordered some rolls that were incredibly delicious, the crispiness of the seaweed was exceptional, and overall we really enjoyed the quality of the food. Unfortunately, we were mainly disappointed with the service - we were not contacted during the meal, and around 10:00 PM we wanted to order additional dishes, but the waiter informed us that the chef had already closed the kitchen a few minutes ago. It is unclear why diners do not receive an update beforehand, especially since there were other diners in the restaurant who were still eating. Regarding the cleanliness of the place, it is mediocre.",
             "date": "2026-06-27",
             "url": null
@@ -144,7 +144,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -154,7 +154,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -162,17 +162,17 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % — no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take — no variance entered this week",
-        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
+        "Stock-take \u2014 no variance entered this week",
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ],
       "notes": {
         "issues": [
-          "SPH decreased ~£1 WoW — partially attributed to time of year + increase in visiting families.",
+          "SPH decreased ~\u00a31 WoW \u2014 partially attributed to time of year + increase in visiting families.",
           "Missed 30k sales target but 200 extra covers; target revised to 28k until mid-July.",
-          "Persistent variance in sushi rice + avocado usage — investigating Kobas recipe associations.",
+          "Persistent variance in sushi rice + avocado usage \u2014 investigating Kobas recipe associations.",
           "Drink stock-take variance 4.2% (within acceptable range).",
-          "EHO audit expected soon — not yet occurred.",
+          "EHO audit expected soon \u2014 not yet occurred.",
           "Roof issue (Ross to address this week).",
           "Ice machine underperforming and accumulating water; recurring cellar leaks attributed to glass washer.",
           "Ongoing interpersonal issue between Jada and Luca.",
@@ -190,7 +190,7 @@
           "Require head chef to submit daily kitchen labelling findings in management chat; hold Ashraf accountable for continued labelling failures.",
           "Sit down with Jada and Luca to resolve working relationship; transfer or remove if unresolved.",
           "Formal conversation + verbal (final) warning to Shaquille regarding attendance.",
-          "Communicate importance of customer feedback to team — target 4.8 star rating.",
+          "Communicate importance of customer feedback to team \u2014 target 4.8 star rating.",
           "Influencer events to use set menu with paired drinks (standard guidelines apply).",
           "Region-wide (London): Photograph all delivery order contents before sealing bags and store images in Google Drive (dispute evidence).",
           "Region-wide (London): Kitchen rosters must be finalised by Wednesday each week; projections must be calculated for accurate labour planning.",
@@ -200,7 +200,7 @@
           "Region-wide (London): FOH to proactively inform customers that food will be served as ready, not simultaneously."
         ],
         "carryover": [
-          "Upcoming promotions/events: £5 hand rolls for Pride; influencer events; Maki Nori late event on 8 August.",
+          "Upcoming promotions/events: \u00a35 hand rolls for Pride; influencer events; Maki Nori late event on 8 August.",
           "New hires: KP fully onboarded; new sushi chef Ruby (competent); compliance 97%."
         ],
         "empty": false,

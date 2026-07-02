@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-06-30",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-02",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-15 – 2026-06-21",
+    "label": "Week of 2026-06-15 \u2013 2026-06-21",
     "commencing": "2026-06-15",
     "ending": "2026-06-21"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": null
         },
         "food": {
           "variance_pct": 4.1,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-15"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 83,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 89.48,
-            "basis": "70% (100-11.71) + 30% (£gap -3864 vs ±£50k cal)"
+            "basis": "70% (100-11.71) + 30% (\u00a3gap -3864 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 90.28,
-            "basis": "£23.73 vs £22 tgt — level 100, WoW +1.76% → mom 68"
+            "basis": "\u00a323.73 vs \u00a322 tgt \u2014 level 100, WoW +1.76% \u2192 mom 68"
           },
           "food": {
             "weight": 30,
@@ -102,16 +102,16 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.93★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.88\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.10% inside ±5% band"
+            "basis": "4.10% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -119,15 +119,15 @@
           "sales -11.7% vs target",
           "food 25.8%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.933333333,
-        "new_reviews": 45,
+        "week_avg_rating": 4.88,
+        "new_reviews": 43,
         "star_breakdown": {
-          "5": 42,
+          "5": 39,
           "4": 3,
-          "3": 0,
+          "3": 1,
           "2": 0,
           "1": 0
         },
@@ -136,7 +136,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -146,7 +146,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -176,22 +176,22 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales -29.12% vs target (-£11,065) — largest miss; £18 lunch deal drove +321% volume but cut average spend; Deliveroo BOGOF pressured food cost; poor weather.",
+          "Sales -29.12% vs target (-\u00a311,065) \u2014 largest miss; \u00a318 lunch deal drove +321% volume but cut average spend; Deliveroo BOGOF pressured food cost; poor weather.",
           "Labour held ~22% (tightly controlled)."
         ],
         "actions": [
-          "Review £18 lunch-deal economics & BOGOF impact on food cost.",
+          "Review \u00a318 lunch-deal economics & BOGOF impact on food cost.",
           "Rebalance promo mix to protect spend-per-head; reset target expectation with COO given promo strategy."
         ],
         "carryover": [
-          "Confirm: BOH — sushi manager vacancy; cross-training to cover; delivery issues (03/06) — resolved?",
-          "Confirm: GM focus — stabilise sushi section with staff — actioned?"
+          "Confirm: BOH \u2014 sushi manager vacancy; cross-training to cover; delivery issues (03/06) \u2014 resolved?",
+          "Confirm: GM focus \u2014 stabilise sushi section with staff \u2014 actioned?"
         ],
         "empty": false,
         "docId": "1WuIUqfm168ucKRTyV8mZPxDTvQRtC4RDc2bLjZkHCWs"

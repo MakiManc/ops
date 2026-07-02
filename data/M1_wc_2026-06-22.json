@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-01",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-02",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-22 – 2026-06-28",
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
     "commencing": "2026-06-22",
     "ending": "2026-06-28"
   },
@@ -50,18 +50,18 @@
           "actual": 294.9
         },
         "waste": {
-          "actual": 6.58
+          "actual": 19.83
         }
       },
       "stock_take": {
         "drinks": {
           "variance_pct": -1.3,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-22"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 81,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 92.92,
-            "basis": "70% (100-8.48) + 30% (£gap -1909 vs ±£50k cal)"
+            "basis": "70% (100-8.48) + 30% (\u00a3gap -1909 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 83.24,
-            "basis": "£20.62 vs £22 tgt — level 77, WoW +4.78% → mom 98"
+            "basis": "\u00a320.62 vs \u00a322 tgt \u2014 level 77, WoW +4.78% \u2192 mom 98"
           },
           "wage": {
             "weight": 30,
@@ -97,23 +97,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 0.0,
-            "basis": "3.50★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "3.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.90% inside ±5% band"
+            "basis": "4.90% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "food"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 3.5,
@@ -130,7 +130,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -139,7 +139,7 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
@@ -148,7 +148,7 @@
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -178,41 +178,41 @@
         },
         "gmv_vs_4wk_pct": -5.1,
         "gmv_vs_ly_pct": -21.1,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Food % — no entry in the Mona Lisa Food Cost % table this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ],
       "notes": {
         "issues": [
           "Region-wide (Scotland & Newcastle): Significant sales fluctuations and ongoing labour management challenges across all locations.",
-          "Region-wide (Scotland & Newcastle): Multiple sites failed to hit financial targets — decreased delivery volumes and inconsistent market conditions.",
+          "Region-wide (Scotland & Newcastle): Multiple sites failed to hit financial targets \u2014 decreased delivery volumes and inconsistent market conditions.",
           "Region-wide (Scotland & Newcastle): Ongoing maintenance issues and staffing transitions, including safety concerns regarding exposed wiring and food compliance.",
-          "Site missed its target and experienced a significant drop in delivery volume over the last two weeks — partly attributed to heavy usage of buy-one-get-one-free offers.",
+          "Site missed its target and experienced a significant drop in delivery volume over the last two weeks \u2014 partly attributed to heavy usage of buy-one-get-one-free offers.",
           "High labour costs; adjusting staff hours and breaks to manage, though limited by the busy sit-in service.",
           "Service failure regarding a missing Yasairo and an incorrect order; delivery customer service was unresponsive.",
-          "Strange food variance issue caused by incorrect unit settings for Diet Coke — working to rectify.",
+          "Strange food variance issue caused by incorrect unit settings for Diet Coke \u2014 working to rectify.",
           "Morning staff find it difficult to upsell during the lunch menu.",
           "Ventilation fan repair schedule outstanding."
         ],
         "actions": [
-          "Region-wide (Scotland & Newcastle): Cross-training sushi staff for bar duties REJECTED — will not be implemented.",
+          "Region-wide (Scotland & Newcastle): Cross-training sushi staff for bar duties REJECTED \u2014 will not be implemented.",
           "Region-wide (Scotland & Newcastle): Site budgets to be updated to align with actual achieved sales figures rather than projected spend.",
           "Region-wide (Scotland & Newcastle): Prioritise labour cost reduction across all underperforming locations.",
           "Region-wide (Scotland & Newcastle): Deploy marketing efforts and new incentives to boost covers and reviews.",
           "Region-wide (Scotland & Newcastle): Complete all pending supervisor performance reviews immediately.",
-          "Region-wide (Scotland & Newcastle): Óisín Darragh to distribute the management performance review link and ensure all recipients save it for submission.",
+          "Region-wide (Scotland & Newcastle): \u00d3is\u00edn Darragh to distribute the management performance review link and ensure all recipients save it for submission.",
           "Region-wide (Scotland & Newcastle): Complete all outstanding AGM and supervisor performance reviews by end of day.",
-          "Region-wide (Scotland & Newcastle): Óisín Darragh to finalise performance reviews for Kurun and Cameron.",
+          "Region-wide (Scotland & Newcastle): \u00d3is\u00edn Darragh to finalise performance reviews for Kurun and Cameron.",
           "Follow up with the maintenance team to confirm the repair schedule for the ventilation fan.",
-          "Óisín Darragh to provide additional XOXO menus to support the ongoing promotion.",
+          "\u00d3is\u00edn Darragh to provide additional XOXO menus to support the ongoing promotion.",
           "Working to implement staff incentives for upselling.",
           "Adjusting staff hours and breaks to manage high labour costs."
         ],
         "carryover": [
-          "Ventilation fan repair — awaiting confirmation of repair schedule.",
-          "XOXO drink promotion — additional menu materials requested."
+          "Ventilation fan repair \u2014 awaiting confirmation of repair schedule.",
+          "XOXO drink promotion \u2014 additional menu materials requested."
         ],
         "empty": false,
         "docId": "1R07t_JUQaAT87JSQqJJf_cr7E3lJ46sq"

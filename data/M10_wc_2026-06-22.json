@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-01",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-02",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-22 – 2026-06-28",
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
     "commencing": "2026-06-22",
     "ending": "2026-06-28"
   },
@@ -50,18 +50,18 @@
           "actual": 436.81
         },
         "waste": {
-          "actual": 0.0
+          "actual": 24.16
         }
       },
       "stock_take": {
         "drinks": {
           "variance_pct": -6.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": false
         },
         "food": {
           "variance_pct": -1.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-22"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 94,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 85.12,
-            "basis": "70% (100-16.32) + 30% (£gap -5767 vs ±£50k cal)"
+            "basis": "70% (100-16.32) + 30% (\u00a3gap -5767 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 95.88,
-            "basis": "£21.84 vs £22 tgt — level 97, WoW +4.25% → mom 92"
+            "basis": "\u00a321.84 vs \u00a322 tgt \u2014 level 97, WoW +4.25% \u2192 mom 92"
           },
           "wage": {
             "weight": 30,
@@ -97,25 +97,25 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "9.17★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "9.17\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-1.00% inside ±5% band"
+            "basis": "-1.00% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "food"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -16.3% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 9.17,
@@ -132,7 +132,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -141,23 +141,23 @@
         "tasks": [
           {
             "task": "Wifi Consistency",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Front Door (Left) Stopper smashed",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
-            "owner": "—",
+            "owner": "\u2014",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -187,21 +187,21 @@
         },
         "gmv_vs_4wk_pct": -14.9,
         "gmv_vs_ly_pct": -3.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Food % — no entry in the Mona Lisa Food Cost % table this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ],
       "notes": {
         "issues": [
-          "Region-wide (North England & Midlands): Overall trading quieter across the region — recent heatwave and the ongoing World Cup.",
+          "Region-wide (North England & Midlands): Overall trading quieter across the region \u2014 recent heatwave and the ongoing World Cup.",
           "Region-wide (North England & Midlands): EHO contacted us following a customer complaint at the Nottingham site regarding a burn caused by dry ice.",
           "Region-wide (North England & Midlands): Several sites experienced shortages of key ingredients due to the ongoing supplier transition.",
           "Performance remains steady.",
           "Street marketing paused last week after promotional vouchers ran out.",
-          "EHO remediation ongoing — pipe painting and socket covers scheduled for installation this week by Tyrone.",
-          "Labour above 21% target — being monitored."
+          "EHO remediation ongoing \u2014 pipe painting and socket covers scheduled for installation this week by Tyrone.",
+          "Labour above 21% target \u2014 being monitored."
         ],
         "actions": [
           "Region-wide (North England & Midlands): Warning sign must be displayed wherever dry ice is served.",
@@ -217,8 +217,8 @@
           "Pipe painting and socket covers scheduled for install this week by Tyrone."
         ],
         "carryover": [
-          "Food cost improvement towards 23% target — improving.",
-          "Street marketing with trackable vouchers — resuming this week.",
+          "Food cost improvement towards 23% target \u2014 improving.",
+          "Street marketing with trackable vouchers \u2014 resuming this week.",
           "BOH spend remains under target."
         ],
         "empty": false,
