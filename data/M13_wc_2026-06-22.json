@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-01",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-06",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-22 – 2026-06-28",
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
     "commencing": "2026-06-22",
     "ending": "2026-06-28"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -2.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": -1.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-22"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 78,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 89.67,
-            "basis": "70% (100-10.85) + 30% (£gap -4558 vs ±£50k cal)"
+            "basis": "70% (100-10.85) + 30% (\u00a3gap -4558 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 57.75,
-            "basis": "£20.95 vs £22 tgt — level 82, WoW -6.47% → mom 0"
+            "basis": "\u00a320.95 vs \u00a322 tgt \u2014 level 82, WoW -6.47% \u2192 mom 0"
           },
           "wage": {
             "weight": 30,
@@ -97,28 +97,28 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.90★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.88\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-1.70% inside ±5% band"
+            "basis": "-1.70% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "food"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -10.8% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.9,
+        "week_avg_rating": 4.882352941,
         "new_reviews": 17,
         "star_breakdown": {
           "5": 15,
@@ -132,7 +132,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -141,14 +141,14 @@
         "tasks": [
           {
             "task": "Roof tiles needing replaced.",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           },
           {
             "task": "Cracked wall tiles need replacing.",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -157,7 +157,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -188,35 +188,35 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Food % — no entry in the Mona Lisa Food Cost % table this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ],
       "notes": {
         "issues": [
-          "Small issues circulating in shop during GM's rest days — misalignment between GM (Joe) and HC/Elliot; Elliot venting frustrations to Matt Polak.",
-          "EC Matt Polak involvement adding fuel to the fire — outside his job description (no authority over shop decisions).",
-          "FOH: Ben on phone during service — potential complacency, unacceptable.",
-          "Sales dip on Wednesday — Daniel was closing manager; need to check tablet was properly managed at close.",
-          "Delivery refund £36.20 during a busy shift; customer confusion over an 'extra egg' order (was a half tea-stained egg, not a whole one).",
-          "SPH dipped to £21.90 WoW; sales target 42k missed, but covers +15.22% (+482 covers vs prior fortnight).",
+          "Small issues circulating in shop during GM's rest days \u2014 misalignment between GM (Joe) and HC/Elliot; Elliot venting frustrations to Matt Polak.",
+          "EC Matt Polak involvement adding fuel to the fire \u2014 outside his job description (no authority over shop decisions).",
+          "FOH: Ben on phone during service \u2014 potential complacency, unacceptable.",
+          "Sales dip on Wednesday \u2014 Daniel was closing manager; need to check tablet was properly managed at close.",
+          "Delivery refund \u00a336.20 during a busy shift; customer confusion over an 'extra egg' order (was a half tea-stained egg, not a whole one).",
+          "SPH dipped to \u00a321.90 WoW; sales target 42k missed, but covers +15.22% (+482 covers vs prior fortnight).",
           "PIP for Quinn drafted but not yet delivered (employee on annual leave)."
         ],
         "actions": [
           "GM to hold alignment discussion with HC/Elliot to iron out issues; peer-to-peer conversation over coffee to resolve frustrations before escalation.",
-          "EC Matt Polak not to be involved — out with his job description; Ka Ho to feed back that all operational issues go to Ka Ho directly.",
-          "Organise and conduct a Management Team Meeting (FOH + BOH) to gather feedback and align the team — must be recorded and professional in tone.",
+          "EC Matt Polak not to be involved \u2014 out with his job description; Ka Ho to feed back that all operational issues go to Ka Ho directly.",
+          "Organise and conduct a Management Team Meeting (FOH + BOH) to gather feedback and align the team \u2014 must be recorded and professional in tone.",
           "Joe to update Ka Ho with a detailed summary of the Elliot coffee meeting + Management Team Meeting outcomes.",
           "Talk with Daniel about Wednesday sales dip and check if tablet was properly managed at closing.",
           "Address Ben's phone-on-shift + unprofessional behaviour directly.",
-          "On Quinn's return: Joe and Elliot to review the PIP together with the employee (witnessed) — follow official channels (recorded conversations, PIPs, weekly reviews).",
+          "On Quinn's return: Joe and Elliot to review the PIP together with the employee (witnessed) \u2014 follow official channels (recorded conversations, PIPs, weekly reviews).",
           "Extra shifts added to accommodate expected graduation-week increase in business."
         ],
         "carryover": [
           "Upcoming Promos/Events/New Launches: graduation week expected to boost sales; no new launches this week.",
-          "Additional Notes: labour 22.5% approved (training hours); food/drinks within ±5% variance; June FOH hygiene audit successful; hygiene compliance 99%; 15×5★ + 2×4★ reviews (4.9 avg)."
+          "Additional Notes: labour 22.5% approved (training hours); food/drinks within \u00b15% variance; June FOH hygiene audit successful; hygiene compliance 99%; 15\u00d75\u2605 + 2\u00d74\u2605 reviews (4.9 avg)."
         ],
         "empty": false,
         "docId": "1yXdkrt8CZp5s0Bd7KPjOr7Zauhay3_be2-sm0c3kIx4"

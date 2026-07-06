@@ -1,0 +1,185 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-07-06",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
+    "commencing": "2026-06-29",
+    "ending": "2026-07-05"
+  },
+  "sites": {
+    "M1": {
+      "code": "M1",
+      "name": "Maki 1",
+      "gm": "Derrick Cheung",
+      "gm_confirm": true,
+      "am": "Ka Ho",
+      "cluster": "Scotland & Newcastle",
+      "kpis": {
+        "sales": {
+          "actual": 22484.45,
+          "target": 22500.0,
+          "var_pct": -0.07,
+          "prev": 20591.13,
+          "wow_abs": 1893.32,
+          "wow_pct": 9.19
+        },
+        "covers": {
+          "actual": 679,
+          "prev": 686,
+          "wow_abs": -7,
+          "wow_pct": -1.02
+        },
+        "sph": {
+          "actual": 20.23,
+          "prev": 20.44,
+          "wow_abs": -0.21,
+          "wow_pct": -1.03,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 19.62,
+          "target": null
+        },
+        "food_pct": {
+          "actual": null,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": 302.3
+        },
+        "waste": {
+          "actual": 0.0
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
+        },
+        "food": {
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
+        },
+        "week_commencing": "2026-06-29"
+      },
+      "efficiency_score": {
+        "score": 76,
+        "rag": "red",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sph": 15,
+          "sales": 10,
+          "weekly_star": 10,
+          "food_var": 5
+        },
+        "components": {
+          "sales": {
+            "weight": 10,
+            "value": 99.94,
+            "basis": "70% (100-0.07) + 30% (\u00a3gap -16 vs \u00b1\u00a350k cal)"
+          },
+          "sph": {
+            "weight": 15,
+            "value": 61.26,
+            "basis": "\u00a320.23 vs \u00a322 tgt \u2014 level 70, WoW -1.03% \u2192 mom 40"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "19.62% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 0.0,
+            "basis": "4.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          }
+        },
+        "components_dropped": [
+          "food",
+          "food_var"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "green",
+        "triggers": [],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": 4.0,
+        "new_reviews": 3,
+        "star_breakdown": {
+          "5": 2,
+          "4": 0,
+          "3": 0,
+          "2": 1,
+          "1": 0
+        },
+        "negatives": null,
+        "negative_reviews": [],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 1,
+        "tasks": [
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          }
+        ],
+        "note": "1 open item(s)"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 7199.86,
+        "orders": 233,
+        "aov": 30.9,
+        "new_customers": 40,
+        "rating": 4.24,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 11.6,
+        "rejection_pct": 0,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": 1.7,
+        "conversion_pct": 9.7,
+        "wow": {
+          "gmv_pct": 30.7,
+          "orders_abs": 58,
+          "prev_gmv": 5508.98,
+          "prev_orders": 175
+        },
+        "gmv_vs_4wk_pct": 14.7,
+        "gmv_vs_ly_pct": 7,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+      },
+      "gaps": [
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
+        "Stock-take \u2014 no variance entered this week"
+      ]
+    }
+  }
+}

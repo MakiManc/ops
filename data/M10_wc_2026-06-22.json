@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-02",
+  "generated_at": "2026-07-06",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-22 \u2013 2026-06-28",
@@ -50,7 +50,7 @@
           "actual": 436.81
         },
         "waste": {
-          "actual": 24.16
+          "actual": 0.0
         }
       },
       "stock_take": {
@@ -118,7 +118,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 9.17,
+        "week_avg_rating": 9.166666667,
         "new_reviews": 22,
         "star_breakdown": {
           "5": 22,

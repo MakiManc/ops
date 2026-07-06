@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-01",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-06",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-22 – 2026-06-28",
+    "label": "Week of 2026-06-22 \u2013 2026-06-28",
     "commencing": "2026-06-22",
     "ending": "2026-06-28"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.3,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.8,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-22"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 85,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 95.58,
-            "basis": "70% (100-5.26) + 30% (£gap -1236 vs ±£50k cal)"
+            "basis": "70% (100-5.26) + 30% (\u00a3gap -1236 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 100.0,
-            "basis": "£22.94 vs £22 tgt — level 100, WoW +11.14% → mom 100"
+            "basis": "\u00a322.94 vs \u00a322 tgt \u2014 level 100, WoW +11.14% \u2192 mom 100"
           },
           "wage": {
             "weight": 30,
@@ -97,26 +97,26 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.70★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.80% inside ±5% band"
+            "basis": "2.80% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "food"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.7,
+        "week_avg_rating": 4.75,
         "new_reviews": 8,
         "star_breakdown": {
           "5": 6,
@@ -130,7 +130,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -139,7 +139,7 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
@@ -148,7 +148,7 @@
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -178,27 +178,27 @@
         },
         "gmv_vs_4wk_pct": 3.7,
         "gmv_vs_ly_pct": -0.9,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Food % — no entry in the Mona Lisa Food Cost % table this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ],
       "notes": {
         "issues": [
           "Region-wide (Scotland & Newcastle): Significant sales fluctuations and ongoing labour management challenges across all locations.",
-          "Region-wide (Scotland & Newcastle): Multiple sites failed to hit financial targets — decreased delivery volumes and inconsistent market conditions.",
+          "Region-wide (Scotland & Newcastle): Multiple sites failed to hit financial targets \u2014 decreased delivery volumes and inconsistent market conditions.",
           "Region-wide (Scotland & Newcastle): Ongoing maintenance issues and staffing transitions, including safety concerns regarding exposed wiring and food compliance."
         ],
         "actions": [
-          "Region-wide (Scotland & Newcastle): Cross-training sushi staff for bar duties REJECTED — will not be implemented.",
+          "Region-wide (Scotland & Newcastle): Cross-training sushi staff for bar duties REJECTED \u2014 will not be implemented.",
           "Region-wide (Scotland & Newcastle): Site budgets to be updated to align with actual achieved sales figures rather than projected spend.",
           "Region-wide (Scotland & Newcastle): Prioritise labour cost reduction across all underperforming locations.",
           "Region-wide (Scotland & Newcastle): Deploy marketing efforts and new incentives to boost covers and reviews.",
           "Region-wide (Scotland & Newcastle): Complete all pending supervisor performance reviews immediately.",
-          "Region-wide (Scotland & Newcastle): Óisín Darragh to distribute the management performance review link and ensure all recipients save it for submission.",
+          "Region-wide (Scotland & Newcastle): \u00d3is\u00edn Darragh to distribute the management performance review link and ensure all recipients save it for submission.",
           "Region-wide (Scotland & Newcastle): Complete all outstanding AGM and supervisor performance reviews by end of day.",
-          "Region-wide (Scotland & Newcastle): Óisín Darragh to finalise performance reviews for Kurun and Cameron."
+          "Region-wide (Scotland & Newcastle): \u00d3is\u00edn Darragh to finalise performance reviews for Kurun and Cameron."
         ],
         "carryover": [],
         "empty": true,
