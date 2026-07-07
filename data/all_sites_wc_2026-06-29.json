@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-06",
+  "generated_at": "2026-07-07",
   "week": {
     "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
@@ -54,19 +54,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 0.8,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 4.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 76,
+        "score": 77,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -97,11 +97,15 @@
             "weight": 10,
             "value": 0.0,
             "basis": "4.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "4.30% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -130,17 +134,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          }
-        ],
-        "note": "1 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -161,8 +157,8 @@
         "rating": 4.24,
         "open_hours_pct": 99.9,
         "avg_prep_min": 11.6,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.9,
         "rider_wait_5min_pct": 1.7,
         "conversion_pct": 9.7,
         "wow": {
@@ -173,11 +169,11 @@
         },
         "gmv_vs_4wk_pct": 14.7,
         "gmv_vs_ly_pct": 7,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.6
       },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     },
     "M3": {
@@ -222,24 +218,24 @@
           "actual": 557.5
         },
         "waste": {
-          "actual": 79.91
+          "actual": 83.66
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 2.6,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 95,
+        "score": 96,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -270,11 +266,15 @@
             "weight": 10,
             "value": 92.44,
             "basis": "4.65\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "2.60% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -303,22 +303,8 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 3,
+        "outstanding_count": 1,
         "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
-          },
           {
             "task": "WiFi still inconsistent",
             "priority": "\u2014",
@@ -327,7 +313,7 @@
             "status": "open"
           }
         ],
-        "note": "3 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -348,8 +334,8 @@
         "rating": 4.5,
         "open_hours_pct": 98.5,
         "avg_prep_min": 16.8,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.9,
         "rider_wait_5min_pct": 2.9,
         "conversion_pct": 12.1,
         "wow": {
@@ -360,11 +346,11 @@
         },
         "gmv_vs_4wk_pct": 0.4,
         "gmv_vs_ly_pct": 5.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 6.0
       },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     },
     "M6": {
@@ -490,17 +476,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          }
-        ],
-        "note": "1 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -521,9 +499,9 @@
         "rating": 4.75,
         "open_hours_pct": 99.9,
         "avg_prep_min": 12.3,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": 2,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 3.0,
+        "rider_wait_5min_pct": 2.0,
         "conversion_pct": 5.5,
         "wow": {
           "gmv_pct": -9.6,
@@ -533,7 +511,8 @@
         },
         "gmv_vs_4wk_pct": -8,
         "gmv_vs_ly_pct": -36.9,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
@@ -587,19 +566,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 4.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 3.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 87,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -630,11 +609,15 @@
             "weight": 10,
             "value": 47.62,
             "basis": "4.33\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "3.50% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -663,7 +646,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 4,
+        "outstanding_count": 2,
         "tasks": [
           {
             "task": "ticket machine has connection issue, ticket time to time delay",
@@ -678,23 +661,9 @@
             "logged_week": "Ongoing",
             "owner": "Lincoln/Ross",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
           }
         ],
-        "note": "4 open item(s)"
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -705,8 +674,7 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     },
     "M8": {
@@ -756,9 +724,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 4,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -832,7 +800,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 3,
+        "outstanding_count": 1,
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
@@ -840,23 +808,9 @@
             "logged_week": "Ongoing",
             "owner": "\u2014",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
           }
         ],
-        "note": "3 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -874,11 +828,11 @@
         "orders": 151,
         "aov": 28.52,
         "new_customers": 55,
-        "rating": 4.76,
+        "rating": 4.77,
         "open_hours_pct": 99.8,
         "avg_prep_min": 15.1,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 4.7,
         "rider_wait_5min_pct": 7.3,
         "conversion_pct": 8.7,
         "wow": {
@@ -889,7 +843,8 @@
         },
         "gmv_vs_4wk_pct": 3.2,
         "gmv_vs_ly_pct": 6.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
@@ -943,14 +898,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 0.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": -4.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
@@ -981,12 +936,16 @@
             "weight": 30,
             "value": 100.0,
             "basis": "20.35% vs 21% target, -15/pp over"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "-4.20% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "food",
-          "weekly_star",
-          "food_var"
+          "weekly_star"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -1009,7 +968,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
+        "outstanding_count": 1,
         "tasks": [
           {
             "task": "canopy above stairs leaking and needs serviced",
@@ -1017,16 +976,9 @@
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
           }
         ],
-        "note": "2 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1063,7 +1015,6 @@
       },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source"
       ]
     },
@@ -1114,19 +1065,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 4.7,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 62,
+        "score": 65,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1157,11 +1108,15 @@
             "weight": 10,
             "value": 71.43,
             "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "5.00% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -1190,24 +1145,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
-          }
-        ],
-        "note": "2 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1216,11 +1156,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 4856.14,
+        "orders": 139,
+        "orders_estimated": true,
+        "aov": 34.94,
+        "new_customers": 60,
+        "rating": 4.47,
+        "open_hours_pct": 97.5,
+        "avg_prep_min": 15.9,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.7,
+        "rider_wait_5min_pct": 1.4,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     },
     "M13": {
@@ -1270,14 +1235,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -3.4,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": -1.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
@@ -1313,11 +1278,15 @@
             "weight": 10,
             "value": 100.0,
             "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "-1.50% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -1372,11 +1341,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 5773.85,
+        "orders": 193,
+        "orders_estimated": true,
+        "aov": 29.92,
+        "new_customers": 66,
+        "rating": 4.5,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 15.6,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.6,
+        "rider_wait_5min_pct": 5.2,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 2.7
+      },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     },
     "M15": {
@@ -1426,19 +1420,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -2.9,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": -3.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 93,
+        "score": 94,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1469,11 +1463,15 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.79\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "-3.50% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food",
-          "food_var"
+          "food"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -1502,24 +1500,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-06-29.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
-          }
-        ],
-        "note": "2 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1528,11 +1511,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 1607.37,
+        "orders": 47,
+        "orders_estimated": true,
+        "aov": 34.2,
+        "new_customers": 19,
+        "rating": 4.2,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 10.7,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
+        "rider_wait_5min_pct": 4.3,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ]
     },
     "M9": {
@@ -1577,14 +1585,14 @@
           "actual": 851.6
         },
         "waste": {
-          "actual": 50.82
+          "actual": 86.24
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.7,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -1689,8 +1697,8 @@
         "rating": 4.78,
         "open_hours_pct": 99.9,
         "avg_prep_min": 13.5,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.5,
         "rider_wait_5min_pct": 2.5,
         "conversion_pct": 6.9,
         "wow": {
@@ -1701,7 +1709,8 @@
         },
         "gmv_vs_4wk_pct": -8,
         "gmv_vs_ly_pct": -25.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
@@ -1750,14 +1759,14 @@
           "actual": 429.7
         },
         "waste": {
-          "actual": 12.08
+          "actual": 18.66
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.6,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -1871,9 +1880,9 @@
         "rating": 4.81,
         "open_hours_pct": 99.5,
         "avg_prep_min": 16.3,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": 2,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.0,
+        "rider_wait_5min_pct": 2.0,
         "conversion_pct": 6.8,
         "wow": {
           "gmv_pct": 5.6,
@@ -1883,7 +1892,8 @@
         },
         "gmv_vs_4wk_pct": -6.2,
         "gmv_vs_ly_pct": 11,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
@@ -1937,9 +1947,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 1.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -2041,11 +2051,37 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 3502.63,
+        "orders": 125,
+        "orders_estimated": true,
+        "aov": 28.02,
+        "new_customers": 60,
+        "rating": 4.62,
+        "open_hours_pct": 98.9,
+        "avg_prep_min": 19.0,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.8,
+        "rider_wait_5min_pct": 9.6,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take \u2014 no variance entered this week"
       ]
     },
     "M14": {
@@ -2095,9 +2131,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -2182,11 +2218,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 5.0,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 15.3,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 3.0,
+        "rider_wait_5min_pct": 6.1,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take \u2014 no variance entered this week"
       ]
     },
     "M16": {
@@ -2198,12 +2259,12 @@
       "cluster": "North England & Midlands",
       "kpis": {
         "sales": {
-          "actual": 0.0,
+          "actual": 33342.92,
           "target": 43000.0,
-          "var_pct": -100.0,
-          "prev": 0.0,
-          "wow_abs": 0.0,
-          "wow_pct": null
+          "var_pct": -22.46,
+          "prev": 28735.26,
+          "wow_abs": 4607.66,
+          "wow_pct": 16.03
         },
         "covers": {
           "actual": 1387,
@@ -2219,7 +2280,7 @@
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": null,
+          "actual": 23.38,
           "target": null
         },
         "food_pct": {
@@ -2228,17 +2289,17 @@
           "gated": false
         },
         "labour_hours": {
-          "actual": 0.0
+          "actual": 534.4
         },
         "waste": {
-          "actual": 0.0
+          "actual": 25.46
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.7,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -2248,7 +2309,7 @@
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 66,
+        "score": 76,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2262,13 +2323,18 @@
         "components": {
           "sales": {
             "weight": 10,
-            "value": 4.2,
-            "basis": "70% (100-100.00) + 30% (\u00a3gap -43000 vs \u00b1\u00a350k cal)"
+            "value": 78.48,
+            "basis": "70% (100-22.46) + 30% (\u00a3gap -9657 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 83.67,
             "basis": "\u00a321.84 vs \u00a322 tgt \u2014 level 97, WoW +0.18% \u2192 mom 52"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 64.3,
+            "basis": "23.38% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
@@ -2278,7 +2344,6 @@
         },
         "components_dropped": [
           "food",
-          "wage",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -2286,7 +2351,7 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -100.0% vs target"
+          "sales -22.5% vs target"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -2321,11 +2386,37 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 2607.25,
+        "orders": 95,
+        "orders_estimated": true,
+        "aov": 27.44,
+        "new_customers": 40,
+        "rating": 4.46,
+        "open_hours_pct": 97.5,
+        "avg_prep_min": 15.6,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.9,
+        "rider_wait_5min_pct": 6.3,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take \u2014 no variance entered this week"
       ]
     },
     "M17": {
@@ -2464,11 +2555,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 4.0,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 9.1,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.9,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take \u2014 no variance entered this week"
       ]
     },
     "M18": {
@@ -2605,11 +2721,37 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-05",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 2127.54,
+        "orders": 76,
+        "orders_estimated": true,
+        "aov": 27.99,
+        "new_customers": 42,
+        "rating": 4.0,
+        "open_hours_pct": 93.4,
+        "avg_prep_min": 13.1,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
+        "rider_wait_5min_pct": 1.3,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 4.8
+      },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take \u2014 no variance entered this week"
       ]
     },
     "MakiNori": {
@@ -2621,12 +2763,12 @@
       "cluster": "South England",
       "kpis": {
         "sales": {
-          "actual": 0.0,
+          "actual": 23371.01,
           "target": null,
           "var_pct": null,
-          "prev": 0.0,
-          "wow_abs": 0.0,
-          "wow_pct": null
+          "prev": 28733.66,
+          "wow_abs": -5362.65,
+          "wow_pct": -18.66
         },
         "covers": {
           "actual": 671,
@@ -2642,7 +2784,7 @@
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": null,
+          "actual": 34.51,
           "target": null
         },
         "food_pct": {
@@ -2651,10 +2793,10 @@
           "gated": false
         },
         "labour_hours": {
-          "actual": 0.0
+          "actual": 538.9
         },
         "waste": {
-          "actual": 0.0
+          "actual": 144.51
         }
       },
       "stock_take": {
@@ -2671,8 +2813,8 @@
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 87,
-        "rag": "amber",
+        "score": 40,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -2688,6 +2830,11 @@
             "value": 78.7,
             "basis": "\u00a334.83 vs \u00a335 tgt \u2014 level 97, WoW -1.44% \u2192 mom 36"
           },
+          "wage": {
+            "weight": 30,
+            "value": 0.0,
+            "basis": "34.51% vs 21% target, -15/pp over"
+          },
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
@@ -2697,14 +2844,15 @@
         "components_dropped": [
           "sales",
           "food",
-          "wage",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "wage 34.5%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
