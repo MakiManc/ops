@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-07-07",
-  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 \u2013 2026-07-05",
+    "label": "Week of 2026-06-29 – 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -2.9,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -3.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+1.02) + 30% (\u00a3gap +618 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+1.02) + 30% (£gap +618 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 70.0,
-            "basis": "\u00a322.72 vs \u00a322 tgt \u2014 level 100, WoW -5.33% \u2192 mom 0"
+            "basis": "£22.72 vs £22 tgt — level 100, WoW -5.33% → mom 0"
           },
           "food": {
             "weight": 30,
@@ -102,21 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.79\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.79★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-3.50% inside \u00b15% band"
+            "basis": "-3.50% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.785714286,
@@ -133,7 +133,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -143,7 +143,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -174,10 +174,31 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "SPH down £1.30 WoW (-5.40%) to £22.76 as covers went up +23.18% — SPH suffering with volume.",
+          "1x4-star review (sides arrived before drinks) and 1x3-star (no comment).",
+          "Toilet door / neon sign / hot tap in female toilets (again) — maintenance list.",
+          "Jackie's last shift 06/07; Alli leaving 17/07/26 — headcount attrition.",
+          "Sales £61,346 vs £60,637 target (+1.16%) — on target."
+        ],
+        "actions": [
+          "GM (Kieran): drive SPH-uplift focus — upsell drinks and sides on higher-cover days.",
+          "GM (Kieran) / FOH: sequence drinks before sides — service order training.",
+          "AM (Óisín): confirm toilet door + neon sign + hot tap works with maintenance team.",
+          "AM (Óisín): recruit 2-3 P/T FOH in October for winter period."
+        ],
+        "carryover": [
+          "Compliance sweeps — all completed (Pest / Fire / Electrical / Gas / Ventilation).",
+          "SPH programme — ongoing."
+        ],
+        "empty": false,
+        "docId": "1tgQtcSrkqCk3i9R_daCapSUY5D0BvWCjVFmbsCBi-4w"
+      }
     }
   }
 }
