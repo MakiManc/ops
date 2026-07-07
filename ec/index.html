@@ -462,13 +462,13 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · heat-map + Sales-vs-Budget w/c 29 Jun (anchored to Soph A1).</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.17.0 · 07 Jul 2026 · w/c 29 Jun 26 full refresh — Soph food cost/wage + Sales-vs-Budget, food variance (6 Scotland stock-take sites) from AM. Deliveroo w/c 29 Jun tab still unfilled (Matthew). Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%). ⚠️ 2026-07-05 watchdog: daily spend pull failed — ledger only current to 2026-07-03.</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.17.1 · 07 Jul 2026 · w/c 29 Jun 26 full refresh — Soph food cost/wage + Sales-vs-Budget, food variance (6 Scotland sites) + Deliveroo RAG from the AM Control Centre (mirrors AM Overall, incl ★). M7/SJQ &amp; MN no delivery. Weeks run Monday→Sunday; current week auto-derived from today. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW flag below 23%</strong>. Mapal compliance live on Weekly tab (red-light &lt;99%). ⚠️ 2026-07-05 watchdog: daily spend pull failed — ledger only current to 2026-07-03.</div>
 </footer>
 
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.17.0",
+    version: "1.17.1",
     generated_at: "2026-07-07T12:00:00Z",
     food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27, food_cost_low_pct: 23,
     wage_revenue_target_pct: 22, wage_revenue_warn_pct: 24, wage_revenue_critical_pct: 26,
@@ -526,21 +526,21 @@ const FALLBACK_DATA = {
     /* SCOTLAND & NEWCASTLE */
     { code:"M1", name:"Edinburgh · Nicholson St", cluster:"scotland_newcastle",
       food_cost_pct:[20.44,26.09,26.33,18.33,25.97,25.97,29.54,20.98,24.18,26.12], wage_pct:[19.62,20.60,20.98,19.15,21.26,21.11,22.48,21.62,20.36,19.95], foodvar_pct:[4.3,4.9,3.9,null,null,4.9,3.9,2.5,3.4,-0.6],
-      del_rag:[null,null,"red","green",null,"red","red","green","green","amber"], compliance_pct:null, star:4.93,
+      del_rag:["amber",null,"red","green",null,"red","red","green","green","amber"], compliance_pct:null, star:4.93,
       hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Holes above raw-meat prep", hyg_owner:"Chin Wa Cheung", fq_dev:"Kimchi taste 4/5", fq_owner:"Chin Wa Cheung",
       boh_issue:"Dessert-free 3 weeks (factory supply gap); new FOH staff mispacked an order.",
       boh_solution:"Train new FOH on packing; Penny to chase Aaron/Dean for factory dessert stock.", boh_owner:"Penny" },
 
     { code:"M3", name:"Fountainbridge · Edinburgh", cluster:"scotland_newcastle",
       food_cost_pct:[21.52,23.18,19.32,26.19,20.22,20.22,20.70,23.15,23.86,22.13], wage_pct:[19.42,22.32,22.57,23,21.44,21.49,20.64,20.10,21.43,21.10], foodvar_pct:[2.6,4.5,2.9,null,null,-4.6,3.5,2.3,1.9,0.5],
-      del_rag:[null,null,"amber","red",null,"amber","red","amber","green","green"], compliance_pct:null, star:4.50,
+      del_rag:["amber",null,"amber","red",null,"amber","red","amber","green","green"], compliance_pct:null, star:4.50,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"No major issues this week.",
       boh_solution:"Maintain current control.", boh_owner:"Penny" },
 
     { code:"M6", name:"Bath Street · Glasgow", cluster:"scotland_newcastle",
       food_cost_pct:[19.69,20.64,22.51,22.95,25.28,25.28,17.15,29.34,18.25,24.09], wage_pct:[20.69,23.25,22.23,23.99,23.41,21.95,20.08,21.82,21.24,23.14], foodvar_pct:[null,2.8,null,null,null,-1.0,4.7,4.7,-4.8,4.0],
-      del_rag:[null,null,"green","amber",null,"green","green","green","red","green"], compliance_pct:null, star:4.86,
+      del_rag:["amber",null,"green","amber",null,"green","green","green","red","green"], compliance_pct:null, star:4.86,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"No dessert supply from factory for 3 weeks running.",
       boh_solution:"Penny to escalate to factory (Aaron/Dean) for dessert stock.", boh_owner:"Penny" },
@@ -554,28 +554,28 @@ const FALLBACK_DATA = {
 
     { code:"M8", name:"Renfield Street, Glasgow", cluster:"scotland_newcastle",
       food_cost_pct:[19.87,23.23,26.77,25.71,27.5,27.5,22.31,23.98,18.51,26.64], wage_pct:[18.93,22.50,24.62,24.44,23.26,23.12,21.97,24.65,21.86,22.52], foodvar_pct:[null,3.8,4.8,null,null,4.4,3.4,3.1,3.3,3.0],
-      del_rag:[null,null,"red","green",null,"amber","green","red","amber","red"], compliance_pct:null, star:4.69,
+      del_rag:["red",null,"red","green",null,"amber","green","red","amber","red"], compliance_pct:null, star:4.69,
       hygiene_pct:93.9, food_quality_pct:97.8, hyg_dev:"Hygiene 93.9% — lowest in group", hyg_owner:"Site GM", fq_dev:"Plating consistency", fq_owner:"DEC Matt",
       boh_issue:"No dessert supply from factory 3 weeks; bartender coverage low.",
       boh_solution:"Factory chase (Aaron/Dean); recruit/rota-cover bartenders.", boh_owner:"Penny" },
 
     { code:"M12", name:"Newcastle · Eldon Sq", cluster:"scotland_newcastle",
       food_cost_pct:[27.30,24.21,21.11,28.29,28.42,28.42,24.97,16.03,10.99,17.54], wage_pct:[25.09,28.27,26.48,27.11,26.67,22.55,25.57,24.61,25.35,23.18], foodvar_pct:[5.0,0.4,2.5,null,null,4.4,2.2,4.5,5.0,3.4],
-      del_rag:[null,null,"red",null,null,"red","green","green","green","red"], compliance_pct:null, star:4.80,
+      del_rag:["amber",null,"red",null,null,"red","green","green","green","red"], compliance_pct:null, star:4.80,
       hygiene_pct:null, food_quality_pct:null, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"3–5pm closure still drags sales; new dishwasher due to arrive.",
       boh_solution:"HQ decision pending on reopening the 3–5pm window; install dishwasher on arrival.", boh_owner:"Penny / HQ" },
 
     { code:"M13", name:"Aberdeen", cluster:"scotland_newcastle",
       food_cost_pct:[23.37,22.99,22.24,28.38,25.08,25.08,15.59,21.52,22.40,22.40], wage_pct:[19.21,22.79,24.54,24.07,22.27,22.41,21.48,21.60,21.52,21.83], foodvar_pct:[-1.5,-1.7,-1.6,null,null,0.2,4.9,1.8,4.7,4.6],
-      del_rag:[null,null,"amber",null,null,"amber","red","red","green","amber"], compliance_pct:null, star:5.00,
+      del_rag:["red",null,"amber",null,null,"amber","red","red","green","amber"], compliance_pct:null, star:5.00,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wall/ceiling damage REPEAT", hyg_owner:"Elliot Spalding", fq_dev:"1 of 3 whisks OVERDUE", fq_owner:"Elliot Spalding",
       boh_issue:"Food cost improved 31→19% WoW; Lynas now delivering direct.",
       boh_solution:"Continue direct-Lynas supply; hold improved discipline.", boh_owner:"Penny" },
 
     { code:"M15", name:"Metrocentre", cluster:"scotland_newcastle",
       food_cost_pct:[22.91,23.41,21.16,25.16,20.83,20.83,23.33,21.71,17.37,17.33], wage_pct:[20.94,21.94,23.17,20.97,21,21.96,24.96,21.25,20.88,21.39], foodvar_pct:[-3.5,-2.4,-4.6,null,null,-2.4,-2.7,-1.7,-0.7,-3.4],
-      del_rag:[null,null,"green",null,null,"red","green","green","red","green"], compliance_pct:null, star:5.00,
+      del_rag:["red",null,"green",null,null,"red","green","green","red","green"], compliance_pct:null, star:5.00,
       hygiene_pct:96, food_quality_pct:97.8, hyg_dev:"Walk-in vegetable fridge broken", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
       boh_issue:"Sushi chef (Jackie) leaving; part-timer being upskilled.",
       boh_solution:"Upskill part-timer to cover; recruit replacement sushi chef.", boh_owner:"Penny" },
@@ -583,35 +583,35 @@ const FALLBACK_DATA = {
     /* NORTH ENGLAND & MIDLANDS — M9/M10/M14 from England BOH; M11/M16 food cost from Soph KPI */
     { code:"M9", name:"Manchester", cluster:"north_midlands",
       food_cost_pct:[18.08,26.51,21.60,22.85,25.88,25.88,null,null,20.69,21.01], wage_pct:[19.51,20.44,20.08,18.93,20.02,null,null,null,null,null], foodvar_pct:[null,-0.4,null,null,null,null,null,null,1.0,1.0],
-      del_rag:[null,null,"amber","amber",null,"amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
+      del_rag:["amber",null,"amber","amber",null,"amber","green","amber",null,"green"], compliance_pct:null, star:4.90,
       hygiene_pct:98, food_quality_pct:97.8, hyg_dev:"Insectocutors", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
       boh_issue:"Deliveroo sheet not updated this week; small sushi-roll complaint filed.",
       boh_solution:"Chase Matthew on Deliveroo tab; investigate the sushi-roll complaint.", boh_owner:"Artur" },
 
     { code:"M10", name:"Leeds", cluster:"north_midlands",
       food_cost_pct:[18.28,26.58,23.13,21.46,29.41,29.41,null,null,24.00,20.13], wage_pct:[20.35,21.51,23.23,21.66,22.4,null,null,null,null,null], foodvar_pct:[null,-1.0,null,null,null,null,null,null,-2.9,-0.9],
-      del_rag:[null,null,"red","red",null,"red",null,null,null,"amber"], compliance_pct:null, star:4.88,
+      del_rag:["amber",null,"red","red",null,"red",null,null,null,"amber"], compliance_pct:null, star:4.88,
       hygiene_pct:95.9, food_quality_pct:100, hyg_dev:"Sushi mgr L2 cert lapsed", hyg_owner:"Site GM", fq_dev:"-", fq_owner:"-",
       boh_issue:"Pipe repair + socket cover jobs awaiting dates.",
       boh_solution:"Ross Ward / maintenance to confirm dates.", boh_owner:"Artur" },
 
     { code:"M11", name:"Leicester", cluster:"north_midlands",
       food_cost_pct:[20.88,32.27,20.81,26.87,21.79,18.87,null,null,null,null], wage_pct:[21.91,23.02,22.58,21.82,22.07,null,26.88,null,null,null], foodvar_pct:[null,-1.2,1.0,null,null,null,null,null,null,null],
-      del_rag:[null,null,"amber",null,null,"red",null,null,null,null], compliance_pct:null, star:4.00,
+      del_rag:["red",null,"amber",null,null,"red",null,null,null,null], compliance_pct:null, star:4.00,
       hygiene_pct:98, food_quality_pct:100, hyg_dev:"Wash basin blocked", hyg_owner:"Unowned — gap", fq_dev:"-", fq_owner:"-",
       boh_issue:"Food cost 25.91% just over target; supplier switch live.",
       boh_solution:"Monitor supplier switch impact next week; tighten ordering.", boh_owner:"O" },
 
     { code:"M14", name:"Meadowhall · Sheffield", cluster:"north_midlands",
       food_cost_pct:[14.49,29.86,19.65,28.01,21.49,21.49,35.00,24.00,18.40,21.21], wage_pct:[19.60,21.18,22.30,21.36,19.26,null,null,null,null,null], foodvar_pct:[null,3.6,null,null,null,null,null,null,1.4,3.0],
-      del_rag:[null,null,"red",null,null,"green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
+      del_rag:["red",null,"red",null,null,"green","red","amber",null,"amber"], compliance_pct:null, star:3.00,
       hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"Kimchi taste 4/5", fq_owner:"DEC",
       boh_issue:"No issues this week.",
       boh_solution:"Maintain current control.", boh_owner:"Artur" },
 
     { code:"M16", name:"Nottingham", cluster:"north_midlands",
       food_cost_pct:[15.28,32.20,19.65,28.01,21.49,21.49,null,null,null,null], wage_pct:[23.38,25.69,24.65,22.9,22.28,null,22.94,null,null,22.65], foodvar_pct:[null,4.5,4.7,null,null,null,null,null,null,null],
-      del_rag:[null,null,"green",null,null,"red",null,null,null,null], compliance_pct:null, star:3.50,
+      del_rag:["red",null,"green",null,null,"red",null,null,null,null], compliance_pct:null, star:3.50,
       hygiene_pct:97, food_quality_pct:97.8, hyg_dev:"-", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Chlorine / off-taste in drinks — water filter chase; staff losses in August.",
       boh_solution:"Chase water filter maintenance; plan Aug rota cover for departing staff.", boh_owner:"O" },
@@ -619,14 +619,14 @@ const FALLBACK_DATA = {
     /* SOUTH ENGLAND — 30 Jun BOH (Srawut 'O'); M17/M18 food cost from Soph KPI */
     { code:"M17", name:"Lakeside", cluster:"south",
       food_cost_pct:[18.73,33.37,21.62,25.75,23.47,23.47,null,null,null,null], wage_pct:[20.12,22.18,23.84,21.92,21.65,null,24.37,null,null,null], foodvar_pct:[null,3.4,4.1,null,null,null,null,null,null,null],
-      del_rag:[null,null,"red",null,null,"amber",null,null,null,null], compliance_pct:null, star:3.80,
+      del_rag:["amber",null,"red",null,null,"amber",null,null,null,null], compliance_pct:null, star:3.80,
       hygiene_pct:null, food_quality_pct:97.8, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"-", fq_owner:"-",
       boh_issue:"Chinese cooker pilot-gas fix booked in.",
       boh_solution:"Engineer visit scheduled; monitor post-fix.", boh_owner:"O" },
 
     { code:"M18", name:"Soho", cluster:"south",
       food_cost_pct:[14.43,31.59,27.54,24.69,23.41,23.41,null,null,null,null], wage_pct:[25.35,31.42,29.65,25.2,28.1,null,41.27,28.00,32.00,35.00], foodvar_pct:[null,-5.0,4.9,null,null,null,null,null,null,null],
-      del_rag:[null,null,"green",null,null,"red",null,null,null,null], compliance_pct:null, star:4.50,
+      del_rag:["red",null,"green",null,null,"red",null,null,null,null], compliance_pct:null, star:4.50,
       hygiene_pct:null, food_quality_pct:93.5, hyg_dev:"Hygiene scan unreadable (80MB+)", hyg_owner:"-", fq_dev:"2 deviations — 2nd-lowest", fq_owner:"DEC Jack",
       boh_issue:"Extractor grease leak + floor leak; wage 31.4% on soft trade.",
       boh_solution:"Maintenance to fix extractor + floor leaks; review rota vs trade.", boh_owner:"O" },
