@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 29.89,
           "target": 23.0,
           "gated": false
         },
@@ -67,7 +67,7 @@
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 40,
+        "score": 47,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -84,6 +84,11 @@
             "value": 78.7,
             "basis": "\u00a334.83 vs \u00a335 tgt \u2014 level 97, WoW -1.44% \u2192 mom 36"
           },
+          "food": {
+            "weight": 30,
+            "value": 60.88,
+            "basis": "29.89% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 0.0,
@@ -97,7 +102,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -105,7 +109,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 34.5%"
+          "wage 34.5%",
+          "food 29.9%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -142,7 +147,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
         "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
