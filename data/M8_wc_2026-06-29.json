@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-07-07",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -55,21 +55,21 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": 4,
-          "target": "±5%",
+          "variance_pct": 4.0,
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
-          "target": "±5%",
-          "within_band": null
+          "variance_pct": 1.2,
+          "target": "\u00b15%",
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+29.16) + 30% (£gap +12467 vs ±£50k cal)"
+            "basis": "70% (100+29.16) + 30% (\u00a3gap +12467 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 92.17,
-            "basis": "£23.10 vs £22 tgt — level 100, WoW +2.39% → mom 74"
+            "basis": "\u00a323.10 vs \u00a322 tgt \u2014 level 100, WoW +2.39% \u2192 mom 74"
           },
           "food": {
             "weight": 30,
@@ -102,18 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 71.43,
-            "basis": "4.50★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "1.20% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "components_dropped": [],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.5,
@@ -130,7 +133,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -139,16 +142,16 @@
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
-            "owner": "—",
+            "owner": "\u2014",
             "status": "open"
           }
         ],
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -178,27 +181,25 @@
         },
         "gmv_vs_4wk_pct": 3.2,
         "gmv_vs_ly_pct": 6.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take — no variance entered this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
-          "1x1-star and 1x2-star Google review this week — discussed and acknowledged in meeting.",
+          "1x1-star and 1x2-star Google review this week \u2014 discussed and acknowledged in meeting.",
           "Review volume steady but conversion rate remains low for an established site.",
-          "SPH £23.39, +0.6% YoY; covers +13.21% YoY — solid week."
+          "SPH \u00a323.39, +0.6% YoY; covers +13.21% YoY \u2014 solid week."
         ],
         "actions": [
-          "GM (Scott): drive higher review conversion — table-side ask on every check-back.",
+          "GM (Scott): drive higher review conversion \u2014 table-side ask on every check-back.",
           "AM (Ka Ho): approve occasional shifts for Caryss from M13 (moving back to Glasgow for summer) to save on new-hire cost.",
-          "No additional hours approved unless clearly necessary — keep operational labour at ~19%.",
-          "GM (Scott): continue XOXO / promo run — no new promos this week."
+          "No additional hours approved unless clearly necessary \u2014 keep operational labour at ~19%.",
+          "GM (Scott): continue XOXO / promo run \u2014 no new promos this week."
         ],
         "carryover": [
-          "Onboarding via Talent Funnel — no change.",
-          "Maintenance — nothing new from previous KPIs."
+          "Onboarding via Talent Funnel \u2014 no change.",
+          "Maintenance \u2014 nothing new from previous KPIs."
         ],
         "empty": false,
         "docId": "1-XEPjvEKlrAtBAhrVjHi6PVnU5f4ElL5dn4lkesg_dY"

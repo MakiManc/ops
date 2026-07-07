@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-07-07",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,20 +56,20 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
-          "target": "±5%",
-          "within_band": null
+          "variance_pct": 4.8,
+          "target": "\u00b15%",
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 92.57,
-            "basis": "70% (100-7.76) + 30% (£gap -3337 vs ±£50k cal)"
+            "basis": "70% (100-7.76) + 30% (\u00a3gap -3337 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 90.04,
-            "basis": "£22.33 vs £22 tgt — level 100, WoW +1.68% → mom 67"
+            "basis": "\u00a322.33 vs \u00a322 tgt \u2014 level 100, WoW +1.68% \u2192 mom 67"
           },
           "food": {
             "weight": 30,
@@ -102,18 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.80★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "4.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "components_dropped": [],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.8,
@@ -130,7 +133,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -140,7 +143,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -170,33 +173,31 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take — no variance entered this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
-          "2 vegan ramens missing on one Deliveroo order; 1 sashimi missing — 2 portions put in one pot (order accuracy).",
-          "Liv resigned; Zaira terminated — FOH headcount hit.",
+          "2 vegan ramens missing on one Deliveroo order; 1 sashimi missing \u2014 2 portions put in one pot (order accuracy).",
+          "Liv resigned; Zaira terminated \u2014 FOH headcount hit.",
           "Letter on outside of restaurant is falling off (high priority).",
-          "A lot of LWC stock coming in damaged — supplier quality concern.",
+          "A lot of LWC stock coming in damaged \u2014 supplier quality concern.",
           "Jemma final warning issued for lateness.",
-          "Sales £39,542 vs £42,880 target (-7.76%), covers +1.10% WoW — quiet week."
+          "Sales \u00a339,542 vs \u00a342,880 target (-7.76%), covers +1.10% WoW \u2014 quiet week."
         ],
         "actions": [
-          "AM (Inka): documented conversation with Jemma regarding lateness — actioned via ROC.",
+          "AM (Inka): documented conversation with Jemma regarding lateness \u2014 actioned via ROC.",
           "AM (Inka) + GM (Eve): recruit FOH replacements for Liv / Zaira; keep customer complaint email pipeline responsive.",
-          "Ross: fix the falling outside letter — high priority.",
+          "Ross: fix the falling outside letter \u2014 high priority.",
           "AM (Inka): contact Madison to confirm arrangements for the upcoming food festival.",
           "AM (Inka): forward pest control composition details (received WhatsApp screenshots) to the pest control provider.",
-          "GM (Eve): steak delivery expected — receipt confirmation to AM."
+          "GM (Eve): steak delivery expected \u2014 receipt confirmation to AM."
         ],
         "carryover": [
-          "Jemma final warning — under monitoring.",
-          "Pest control composition follow-up — awaiting provider response.",
-          "Food festival — in planning."
+          "Jemma final warning \u2014 under monitoring.",
+          "Pest control composition follow-up \u2014 awaiting provider response.",
+          "Food festival \u2014 in planning."
         ],
         "empty": false,
         "docId": "1eWDFwhUu9bAN4D5MzgPIrLAVdoDnbOMY86eHvygtggk"

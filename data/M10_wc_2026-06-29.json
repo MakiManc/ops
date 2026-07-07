@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-07-07",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,20 +56,20 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.6,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
-          "target": "±5%",
-          "within_band": null
+          "variance_pct": -2.7,
+          "target": "\u00b15%",
+          "within_band": true
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 90.17,
-            "basis": "70% (100-10.78) + 30% (£gap -3811 vs ±£50k cal)"
+            "basis": "70% (100-10.78) + 30% (\u00a3gap -3811 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 91.72,
-            "basis": "£22.33 vs £22 tgt — level 100, WoW +2.24% → mom 72"
+            "basis": "\u00a322.33 vs \u00a322 tgt \u2014 level 100, WoW +2.24% \u2192 mom 72"
           },
           "food": {
             "weight": 30,
@@ -102,20 +102,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "-2.70% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "components_dropped": [],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -10.8% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -132,7 +135,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -141,23 +144,23 @@
         "tasks": [
           {
             "task": "Wifi Consistency",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Front Door (Left) Stopper smashed",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
-            "owner": "—",
+            "owner": "\u2014",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -187,29 +190,27 @@
         },
         "gmv_vs_4wk_pct": -6.2,
         "gmv_vs_ly_pct": 11,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take — no variance entered this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
-          "Sales £1,956 above prev week (+6.61%) but still £3,810 below target (-10.78%) — red-light zone.",
-          "Late prep numbers need to come down — order/service timing issue.",
+          "Sales \u00a31,956 above prev week (+6.61%) but still \u00a33,810 below target (-10.78%) \u2014 red-light zone.",
+          "Late prep numbers need to come down \u2014 order/service timing issue.",
           "Missing plastic bolt board in kitchen porter area (from 07/07 KPI meeting).",
-          "Hot-water temperature at sink needs regulating (twist pipe) — flagged 07/07."
+          "Hot-water temperature at sink needs regulating (twist pipe) \u2014 flagged 07/07."
         ],
         "actions": [
-          "GM (Ninder): reduce late prep by tightening BOH sequence — pull prep list forward by 30 min.",
-          "GM (Ninder): replace missing plastic bolt board in KP area — order via Ross.",
+          "GM (Ninder): reduce late prep by tightening BOH sequence \u2014 pull prep list forward by 30 min.",
+          "GM (Ninder): replace missing plastic bolt board in KP area \u2014 order via Ross.",
           "GM (Ninder): adjust the hot-water pipe at the sink to regulate temp; send photographic evidence of all repairs to AM.",
           "AM (Inka): urgent stock transfer Leeds > Manchester actioned this week.",
-          "GM (Ninder): plan graduation trading — impact starts to show from Sunday."
+          "GM (Ninder): plan graduation trading \u2014 impact starts to show from Sunday."
         ],
         "carryover": [
-          "Graduation-week trading — expected to lift from wc 06/07.",
-          "Photographic proof of completed repairs — outstanding to send to AM."
+          "Graduation-week trading \u2014 expected to lift from wc 06/07.",
+          "Photographic proof of completed repairs \u2014 outstanding to send to AM."
         ],
         "empty": false,
         "docId": "10RM4Ezonz38W6hTHJ-b39oTm7qo2d8xUj0P7oqPrNvI"
