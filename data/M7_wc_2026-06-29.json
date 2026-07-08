@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-07",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-08",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 91,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 97.91,
-            "basis": "70% (100-1.92) + 30% (£gap -1251 vs ±£50k cal)"
+            "basis": "70% (100-1.92) + 30% (\u00a3gap -1251 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.2,
-            "basis": "£20.96 vs £22 tgt — level 83, WoW +1.11% → mom 61"
+            "basis": "\u00a320.96 vs \u00a322 tgt \u2014 level 83, WoW +1.11% \u2192 mom 61"
           },
           "food": {
             "weight": 30,
@@ -102,21 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 47.62,
-            "basis": "4.33★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.33\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.50% inside ±5% band"
+            "basis": "3.50% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.333333333,
@@ -133,7 +133,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -142,14 +142,14 @@
         "tasks": [
           {
             "task": "ticket machine has connection issue, ticket time to time delay",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Booth Seats needing reupholstered",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Lincoln/Ross",
             "status": "open"
@@ -158,7 +158,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -168,19 +168,19 @@
       "gaps": [],
       "notes": {
         "issues": [
-          "Reviews sheet still merged with M4 — data not accurate for M7 in isolation.",
-          "Sales £63,848 vs £65,000 target (-1.77%); YoY covers -3.77%, SPH -£2.39 (-10.22%).",
-          "Calum (GM) on annual leave 06/07–13/07 — cover needed for the week."
+          "Reviews sheet still merged with M4 \u2014 data not accurate for M7 in isolation.",
+          "Sales \u00a363,848 vs \u00a365,000 target (-1.77%); YoY covers -3.77%, SPH -\u00a32.39 (-10.22%).",
+          "Calum (GM) on annual leave 06/07\u201313/07 \u2014 cover needed for the week."
         ],
         "actions": [
-          "AM (Óisín): raise review-sheet demerge with Ross to separate M7 from M4.",
-          "AM (Óisín): review candidate pipeline for one more part-time / full-time FOH; potential internal transfer of Kelvin from M8.",
+          "AM (\u00d3is\u00edn): raise review-sheet demerge with Ross to separate M7 from M4.",
+          "AM (\u00d3is\u00edn): review candidate pipeline for one more part-time / full-time FOH; potential internal transfer of Kelvin from M8.",
           "GM (Calum) / cover: continue lunch menu / XOXO / World Cup drinks promos.",
           "GM (Calum): reinforce SPH-uplift comms in team briefings."
         ],
         "carryover": [
-          "Compliance sweeps — all completed.",
-          "Kelvin (M8) transfer request — under review."
+          "Compliance sweeps \u2014 all completed.",
+          "Kelvin (M8) transfer request \u2014 under review."
         ],
         "empty": false,
         "docId": "1-Z0d5Ctf52N_WzoWSevetuHhT1oP5Hy1kp_bytwJIM8"
