@@ -2,7 +2,7 @@
   "schema_version": "1.2",
   "generated_at": "2026-07-08",
   "week": {
-    "label": "Week of 2026-06-29 \u2013 2026-07-05",
+    "label": "Week of 2026-06-29 – 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -55,12 +55,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.3,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -68,7 +68,7 @@
       "efficiency_score": {
         "score": 87,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -81,12 +81,12 @@
           "sales": {
             "weight": 10,
             "value": 99.94,
-            "basis": "70% (100-0.07) + 30% (\u00a3gap -16 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-0.07) + 30% (£gap -16 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 77.96,
-            "basis": "\u00a321.61 vs \u00a322 tgt \u2014 level 93, WoW -0.83% \u2192 mom 42"
+            "basis": "£21.61 vs £22 tgt — level 93, WoW -0.83% → mom 42"
           },
           "food": {
             "weight": 30,
@@ -101,21 +101,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 0.0,
-            "basis": "4.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.00★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.30% inside \u00b15% band"
+            "basis": "4.30% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.0,
@@ -132,7 +132,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -142,7 +142,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -172,29 +172,25 @@
         },
         "gmv_vs_4wk_pct": 14.7,
         "gmv_vs_ly_pct": 7,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.6
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Region-wide (Scotland & Newcastle): Review volume still low \u2014 has to increase overall Wow.",
-          "Region-wide (Scotland & Newcastle): Sales just below target across the cluster; SPH continues to soften WoW at several sites.",
-          "Covers flat WoW at 679 (-1.02%); sales \u00a322,495 vs \u00a323,400 target (-3.86%).",
-          "Ventilation update still outstanding \u2014 carry-over from previous weeks."
+          "Customer feedback: quality-of-food complaint, dislikes paying service charge — Owner: GM (Derrick) (07/07/2026)",
+          "Extraction renovation on hold — contractor visited last Tuesday, Derrick had no briefing — Owner: Michael / management (07/07/2026)",
+          "KPIs: Labour 19.62% · Food 20.44% · Food variance +3.50%."
         ],
         "actions": [
-          "Region-wide (Scotland & Newcastle): Reviews volume push \u2014 every FOH shift to ask happy tables for a Google review.",
-          "Region-wide (Scotland & Newcastle): Continue XOXO promo comms; refresh printed menu materials.",
-          "\u00d3is\u00edn to chase ventilation service update and confirm next scheduled visit.",
-          "GM (Derrick): maintain compliance sweeps (Pest / Fire / Electrical / Gas / Ventilation all completed this week)."
+          "GM (Derrick): brief team on customer complaint theme; ensure service-charge explanation at table — Owner: GM (07/07/2026)",
+          "AM (Ka Ho): chase management for extraction renovation update / next steps — Owner: AM (07/07/2026)"
         ],
         "carryover": [
-          "Ventilation service \u2014 awaiting confirmation from maintenance.",
-          "XOXO promotion \u2014 ongoing."
+          "Extraction renovation — awaiting management instruction (rolled from prior weeks)."
         ],
         "empty": false,
-        "docId": "19KKDx56C1Q54fCBG1rAUBGHBFWdgWEaBwLF3iF-1ICc"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M3": {
@@ -245,12 +241,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 5.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.6,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -258,7 +254,7 @@
       "efficiency_score": {
         "score": 97,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -271,12 +267,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+21.97) + 30% (\u00a3gap +7611 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+21.97) + 30% (£gap +7611 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 84.46,
-            "basis": "\u00a322.79 vs \u00a322 tgt \u2014 level 100, WoW -0.18% \u2192 mom 48"
+            "basis": "£22.79 vs £22 tgt — level 100, WoW -0.18% → mom 48"
           },
           "food": {
             "weight": 30,
@@ -291,21 +287,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 92.44,
-            "basis": "4.65\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.65★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.60% inside \u00b15% band"
+            "basis": "2.60% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.647058824,
@@ -322,7 +318,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -331,7 +327,7 @@
         "tasks": [
           {
             "task": "WiFi still inconsistent",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
@@ -340,7 +336,7 @@
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -370,31 +366,25 @@
         },
         "gmv_vs_4wk_pct": 0.4,
         "gmv_vs_ly_pct": 5.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 6.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Region-wide (Scotland & Newcastle): Review volume still low \u2014 has to increase overall Wow.",
-          "Deliveroo inaccurate-orders figure inflated by false claims \u2014 4 disputes won (\u00a377.15 credited back), 2 still under review; true inaccurate total ~\u00a364.40, still too high but not as bad as the Hub suggests.",
-          "Saturday: ran out of Vegan Bacon during two orders that each had 2 Vegan Ramens; unable to reach customers to offer Tofu substitute \u2014 refunds issued.",
-          "Sumi and Kalpana off this week for Sumi's daughter's wedding \u2014 BOH cover required.",
-          "Broken socket bracket downstairs \u2014 being fixed by Han."
+          "Customer feedback: soup portion too small — suspected Deliveroo driver spillage — Owner: GM (07/07/2026)",
+          "Edinburgh Festival next month — must be ready for covers uplift during period — Owner: GM (07/07/2026)",
+          "KPIs: Labour 19.42% · Food 21.52% · Food variance +2.60% · 13×5★ / 3×4★ / 1×3★."
         ],
         "actions": [
-          "GM (Rory): continue Deliveroo dispute pipeline; log Vegan Bacon stock-out as a par-level review with EC.",
-          "GM (Rory): plan BOH cover for Sumi/Kalpana absence.",
-          "Han (contractor): repair broken socket bracket downstairs this week.",
-          "Region-wide (Scotland & Newcastle): SPH incentive push \u2014 regular staff reminders; continued World Cup cocktail (26) / mocktail (98) + XOXO run.",
-          "AM (\u00d3is\u00edn): recruit one FOH member for early August \u2014 trial with Bethan to be organised."
+          "GM (Rory): continue takeaway-bag photo protocol for Deliveroo dispute evidence — Owner: GM (07/07/2026)",
+          "GM (Rory): Fringe readiness plan — staffing / prep / stock for Aug festival period — Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Ventilation / compliance sweeps \u2014 all completed this week.",
-          "SPH incentive \u2014 ongoing over the course of the incentive period."
+          "Fringe uplift preparation — planning in progress (Aug 2026)."
         ],
         "empty": false,
-        "docId": "191A1P46YeehORQOyvzX0CVLtFkIT5s-mvmfvj_-SN1Q"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M6": {
@@ -445,12 +435,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.6,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 0.9,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -458,7 +448,7 @@
       "efficiency_score": {
         "score": 93,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -471,12 +461,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+11.72) + 30% (\u00a3gap +2754 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+11.72) + 30% (£gap +2754 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 98.35,
-            "basis": "\u00a323.96 vs \u00a322 tgt \u2014 level 100, WoW +4.45% \u2192 mom 94"
+            "basis": "£23.96 vs £22 tgt — level 100, WoW +4.45% → mom 94"
           },
           "food": {
             "weight": 30,
@@ -491,21 +481,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 35.71,
-            "basis": "4.25\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.25★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "0.90% inside \u00b15% band"
+            "basis": "0.90% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.25,
@@ -522,7 +512,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -532,7 +522,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -562,25 +552,17 @@
         },
         "gmv_vs_4wk_pct": -8,
         "gmv_vs_ly_pct": -36.9,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Lynas distribution issues \u2014 app states Vegan Bacon in stock but shipment did not arrive; comms from Lynas currently poor and need improving.",
-          "Region-wide (Scotland & Newcastle): Review volume still low \u2014 has to increase overall Wow.",
-          "SPH \u00a324.03 (+11.3% YoY) but covers -7.54% YoY at 943 \u2014 footfall still soft."
+          "Ka Ho: meeting on site — no separate notes this week.",
+          "KPIs (Scotland BOH 07/07): Labour 20.69% · Food 19.69% · Food variance +0.90% · 1×5★ / 3×4★."
         ],
-        "actions": [
-          "AM (Ka Ho): escalate Lynas comms issue in Tuesday supplier catch-up; log missed Vegan Bacon on Lynas app as evidence.",
-          "RM (Justyna): keep labour at 20.4% operational / 23.5% all-in; minimal-hours rota to continue.",
-          "GM/HC: reviews volume push in service \u2014 ask every satisfied table for a Google review.",
-          "Compliance sweeps: all up to date, nothing outstanding this week."
-        ],
-        "carryover": [
-          "Site compliance \u2014 all completed."
-        ],
+        "actions": [],
+        "carryover": [],
         "empty": false,
         "docId": "1vxwDRTgGVlR0rdEvt1CDJCZVhlUD1wKGzxwJvvK8A4M"
       }
@@ -633,12 +615,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -646,7 +628,7 @@
       "efficiency_score": {
         "score": 91,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -659,12 +641,12 @@
           "sales": {
             "weight": 10,
             "value": 97.91,
-            "basis": "70% (100-1.92) + 30% (\u00a3gap -1251 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-1.92) + 30% (£gap -1251 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.2,
-            "basis": "\u00a320.96 vs \u00a322 tgt \u2014 level 83, WoW +1.11% \u2192 mom 61"
+            "basis": "£20.96 vs £22 tgt — level 83, WoW +1.11% → mom 61"
           },
           "food": {
             "weight": 30,
@@ -679,21 +661,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 47.62,
-            "basis": "4.33\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.33★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.50% inside \u00b15% band"
+            "basis": "3.50% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.333333333,
@@ -710,7 +692,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -719,14 +701,14 @@
         "tasks": [
           {
             "task": "ticket machine has connection issue, ticket time to time delay",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Booth Seats needing reupholstered",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Lincoln/Ross",
             "status": "open"
@@ -735,7 +717,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -745,22 +727,22 @@
       "gaps": [],
       "notes": {
         "issues": [
-          "Reviews sheet still merged with M4 \u2014 data not accurate for M7 in isolation.",
-          "Sales \u00a363,848 vs \u00a365,000 target (-1.77%); YoY covers -3.77%, SPH -\u00a32.39 (-10.22%).",
-          "Calum (GM) on annual leave 06/07\u201313/07 \u2014 cover needed for the week."
+          "Google Maps business address is incorrect — linked to M4 instead of M7 — Owner: Ross (07/07/2026)",
+          "Vegan bacon / chicken katsu out of stock on Lynas app — HC ordered from JFC as alternative; Matt confirmed in stock (app issue, not stock issue) — Owner: HC / Matt (07/07/2026)",
+          "New fridge required — Kris is sourcing the correct size — Owner: Kris (07/07/2026)",
+          "Customer feedback: overpriced, food tastes bad — Owner: GM (07/07/2026)",
+          "KPIs: Labour 21.09% · Food 23.01% · Food variance +4.30% · 9×5★ / 1×4★ / 1×3★ / 1×2★."
         ],
         "actions": [
-          "AM (\u00d3is\u00edn): raise review-sheet demerge with Ross to separate M7 from M4.",
-          "AM (\u00d3is\u00edn): review candidate pipeline for one more part-time / full-time FOH; potential internal transfer of Kelvin from M8.",
-          "GM (Calum) / cover: continue lunch menu / XOXO / World Cup drinks promos.",
-          "GM (Calum): reinforce SPH-uplift comms in team briefings."
+          "Ross: update Google Maps business address (currently linked to M4) — Owner: Ross (07/07/2026)",
+          "Matt / HC: escalate Lynas app stock display bug to supply-chain team — Owner: Matt (07/07/2026)",
+          "Kris: procure correctly-sized replacement fridge — Owner: Kris (07/07/2026)"
         ],
         "carryover": [
-          "Compliance sweeps \u2014 all completed.",
-          "Kelvin (M8) transfer request \u2014 under review."
+          "JFC delivery-to-wrong-site issue — appears resolved (monitor)."
         ],
         "empty": false,
-        "docId": "1-Z0d5Ctf52N_WzoWSevetuHhT1oP5Hy1kp_bytwJIM8"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M8": {
@@ -811,12 +793,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 1.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -824,7 +806,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -837,12 +819,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+29.16) + 30% (\u00a3gap +12467 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+29.16) + 30% (£gap +12467 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 92.17,
-            "basis": "\u00a323.10 vs \u00a322 tgt \u2014 level 100, WoW +2.39% \u2192 mom 74"
+            "basis": "£23.10 vs £22 tgt — level 100, WoW +2.39% → mom 74"
           },
           "food": {
             "weight": 30,
@@ -857,21 +839,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 71.43,
-            "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.50★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "1.20% inside \u00b15% band"
+            "basis": "1.20% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.5,
@@ -888,7 +870,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -897,16 +879,16 @@
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           }
         ],
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -936,28 +918,22 @@
         },
         "gmv_vs_4wk_pct": 3.2,
         "gmv_vs_ly_pct": 6.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "1x1-star and 1x2-star Google review this week \u2014 discussed and acknowledged in meeting.",
-          "Review volume steady but conversion rate remains low for an established site.",
-          "SPH \u00a323.39, +0.6% YoY; covers +13.21% YoY \u2014 solid week."
+          "Customer feedback: food was bland and cold — Owner: GM / HC (07/07/2026)",
+          "Sales +29.2% over target (£55,217 vs £42,750) — strong pay-week performance.",
+          "KPIs: Labour 18.93% · Food 19.87% · Food variance +1.20% · 12×5★ / 1×4★ / 1×3★."
         ],
         "actions": [
-          "GM (Scott): drive higher review conversion \u2014 table-side ask on every check-back.",
-          "AM (Ka Ho): approve occasional shifts for Caryss from M13 (moving back to Glasgow for summer) to save on new-hire cost.",
-          "No additional hours approved unless clearly necessary \u2014 keep operational labour at ~19%.",
-          "GM (Scott): continue XOXO / promo run \u2014 no new promos this week."
+          "GM (Scott) + HC: quality check on plated dishes — temperature at pass — Owner: GM (07/07/2026)"
         ],
-        "carryover": [
-          "Onboarding via Talent Funnel \u2014 no change.",
-          "Maintenance \u2014 nothing new from previous KPIs."
-        ],
+        "carryover": [],
         "empty": false,
-        "docId": "1-XEPjvEKlrAtBAhrVjHi6PVnU5f4ElL5dn4lkesg_dY"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "IKI2": {
@@ -1008,12 +984,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -4.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -1021,7 +997,7 @@
       "efficiency_score": {
         "score": 99,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1034,12 +1010,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+5.95) + 30% (\u00a3gap +1283 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+5.95) + 30% (£gap +1283 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 92.74,
-            "basis": "\u00a321.46 vs \u00a321 tgt \u2014 level 100, WoW +2.58% \u2192 mom 76"
+            "basis": "£21.46 vs £21 tgt — level 100, WoW +2.58% → mom 76"
           },
           "food": {
             "weight": 30,
@@ -1054,21 +1030,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.75★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-4.20% inside \u00b15% band"
+            "basis": "-4.20% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.75,
@@ -1085,7 +1061,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1094,7 +1070,7 @@
         "tasks": [
           {
             "task": "canopy above stairs leaking and needs serviced",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -1103,7 +1079,7 @@
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1133,27 +1109,22 @@
         },
         "gmv_vs_4wk_pct": 24.7,
         "gmv_vs_ly_pct": 52.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary."
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales \u00a321,654 vs \u00a321,550 target (+0.48%) \u2014 just above target; covers +20.05% WoW.",
-          "YoY still down: covers -28.94% and sales -16.43% vs last year (post-refit baseline).",
-          "HC training in progress \u2014 BOH capacity constraint until sign-off."
+          "Sales +6% over target (£22,833 vs £21,550).",
+          "Food variance -4.90% — under (favourable) but wide swing to investigate.",
+          "KPIs: Labour 24.58% · Food 28.99% · Food variance -4.90% · 7×5★ / 1×4★."
         ],
         "actions": [
-          "RM (Abhi): continue HC training programme; unblock BOH capacity.",
-          "DAM (\u00d3is\u00edn): monitor SPH \u00a320.49 \u2014 Fringe pricing uplift decision (agreed +50p on ramen for Fringe period) to be applied when Fringe starts.",
-          "Compliance sweeps: all up to date (Pest / Fire / Electrical / Gas / Ventilation)."
+          "GM (Sujan RM): investigate favourable food variance (-4.90%) — usage / recording check — Owner: GM (07/07/2026)",
+          "GM: hold labour to target as pay-week trading fades — Owner: GM (07/07/2026)"
         ],
-        "carryover": [
-          "HC training \u2014 in progress.",
-          "Fringe +50p ramen pricing \u2014 agreed at 29/06 Ikigai KPI, deferred to Fringe start.",
-          "Downstairs toilet / storage flooding issue \u2014 Abhi personally assessing."
-        ],
+        "carryover": [],
         "empty": false,
-        "docId": "1P2EDLXdtoROA6IQB9I6uouh32B80xGZ4CByYKMWo63I"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M12": {
@@ -1204,12 +1175,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 5.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -1217,7 +1188,7 @@
       "efficiency_score": {
         "score": 71,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1230,12 +1201,12 @@
           "sales": {
             "weight": 10,
             "value": 93.53,
-            "basis": "70% (100-7.35) + 30% (\u00a3gap -2206 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-7.35) + 30% (£gap -2206 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 81.37,
-            "basis": "\u00a321.91 vs \u00a322 tgt \u2014 level 98, WoW -0.86% \u2192 mom 41"
+            "basis": "£21.91 vs £22 tgt — level 98, WoW -0.86% → mom 41"
           },
           "food": {
             "weight": 30,
@@ -1250,23 +1221,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 81.63,
-            "basis": "4.57\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.57★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "5.00% inside \u00b15% band"
+            "basis": "5.00% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 27.3%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.571428571,
@@ -1283,7 +1254,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1293,7 +1264,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1324,32 +1295,28 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Deliveroo Hub reporting shows GMV -0.9%, but final sales last week were \u00a34,864.67 \u2014 actual WoW is a +15.27% increase (Hub figure misleading).",
-          "Sales \u00a327,793 vs \u00a330,000 target (-7.35%); covers +16.46% WoW but YoY still down -51.90% (post-refit baseline).",
-          "Deliveroo wait time and prep accuracy \u2014 needs tightening.",
-          "Front door needs a service (medium priority \u2014 Kris).",
-          "Air con \u2014 ultra-high priority (Ross).",
-          "Matt away for 2 weeks \u2014 FOH cover required."
+          "Labour still high at 25.09% despite cuts — running 1 sushi chef weekdays, 1 from 5pm Fri — kitchen says cannot cut further; low sales volume worsens % — Owner: GM (Matt Lee) + Matt Polak (07/07/2026)",
+          "Missing Factory stock via Lynas Delivery still being charged by Factory — Mapal Deviation report awaited from Dean (Factory manager) — Owner: Dean / Matt (07/07/2026)",
+          "Sales -7.4% under target (£27,794 vs £30,000).",
+          "Customer feedback: overpriced; salmon overcooked; customer wanted salmon substitute in Seafood Hell Ramen but was charged extra — manager followed up — Owner: GM (07/07/2026)",
+          "KPIs: Labour 25.09% · Food 27.30% · Food variance +5.00% · 4×5★ / 1×4★ / 1×2★."
         ],
         "actions": [
-          "AGM (Harry): tighten Deliveroo prep \u2014 enable busy mode; double-check bag contents before sealing.",
-          "AM (\u00d3is\u00edn) / Kris: schedule front door service this week.",
-          "Ross: expedite air-con repair \u2014 ultra-high priority.",
-          "AGM (Harry): plan Matt's 2-week cover \u2014 no new hires this quiet period.",
-          "GM/AGM: push Bottomless Brunch (7 covers booked Fri/Sat/Sun) + lunch menu + graduation offer."
+          "Dean (Factory) → Matt: send Mapal Deviation report for missing Factory stock — Owner: Dean (07/07/2026)",
+          "GM (Matt Lee): rota approved by Matt; monitor labour daily; explore sales-driving activity to lift denominator — Owner: GM (07/07/2026)",
+          "GM (Matt Lee): review substitution policy at till — communicate uplift pricing before charging — Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Rota \u2014 next 2 weeks done, FOH adjusted.",
-          "Bottomless Brunch programming \u2014 ongoing."
+          "Labour reduction plan — rota already reviewed by Matt; monitoring weekly."
         ],
         "empty": false,
-        "docId": "1SkYlFbcnrQmjtXqzP03lS6MYbTDWDacRCCHTzSaTZDU"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M13": {
@@ -1400,12 +1367,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -3.4,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -1.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -1413,7 +1380,7 @@
       "efficiency_score": {
         "score": 100,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1426,12 +1393,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+8.40) + 30% (\u00a3gap +3527 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+8.40) + 30% (£gap +3527 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 99.07,
-            "basis": "\u00a321.92 vs \u00a322 tgt \u2014 level 99, WoW +5.08% \u2192 mom 100"
+            "basis": "£21.92 vs £22 tgt — level 99, WoW +5.08% → mom 100"
           },
           "food": {
             "weight": 30,
@@ -1446,21 +1413,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-1.50% inside \u00b15% band"
+            "basis": "-1.50% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -1477,7 +1444,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1486,14 +1453,14 @@
         "tasks": [
           {
             "task": "Roof tiles needing replaced.",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           },
           {
             "task": "Cracked wall tiles need replacing.",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -1502,7 +1469,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1533,30 +1500,21 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 2.7
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Review volume has to increase overall WoW \u2014 no new negs but conversion low.",
-          "Alberto (Sushi cover) needs additional training time to complete the full cover Sushi Chef process \u2014 hours TBC, kept minimal.",
-          "Part-timer FOH \u2014 actively looking but not filled yet.",
-          "Sales \u00a344,791 vs \u00a342,000 target (+6.64%); covers +21.77% WoW \u2014 strong week."
+          "Sales +8.4% over target (£45,527 vs £42,000) — strong week.",
+          "KPIs: Labour 19.21% · Food 23.37% · Food variance -1.50% · 5×5★."
         ],
         "actions": [
-          "GM (Joe Herrera) + full team: Management Meeting 2pm on 07/07/2026 during opening downtime \u2014 align full team on underlying issues.",
-          "AGM (Iain): take minutes of the 07/07 management meeting and send AM a breakdown.",
-          "AM (Ka Ho): recruit part-timer FOH \u2014 active pipeline.",
-          "GM (Joe): schedule Alberto's Sushi Chef cover training; minimise hours impact.",
-          "GM (Joe) + HC: continue joint alignment \u2014 meetings have been productive."
+          "GM (Joe Herrera): maintain current trajectory — no operational issues raised this week — Owner: GM (07/07/2026)"
         ],
-        "carryover": [
-          "Part-time FOH recruitment \u2014 in progress.",
-          "Alberto Sushi cover training \u2014 planned."
-        ],
+        "carryover": [],
         "empty": false,
-        "docId": "1at13WKh-kzStNmcG7wFGD4L1xxJBeAUWgKvFy0aA0dA"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M15": {
@@ -1607,12 +1565,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -2.9,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -3.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -1620,7 +1578,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1633,12 +1591,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+1.02) + 30% (\u00a3gap +618 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+1.02) + 30% (£gap +618 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 70.0,
-            "basis": "\u00a322.72 vs \u00a322 tgt \u2014 level 100, WoW -5.33% \u2192 mom 0"
+            "basis": "£22.72 vs £22 tgt — level 100, WoW -5.33% → mom 0"
           },
           "food": {
             "weight": 30,
@@ -1653,21 +1611,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.79\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.79★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-3.50% inside \u00b15% band"
+            "basis": "-3.50% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.785714286,
@@ -1684,7 +1642,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1694,7 +1652,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1725,30 +1683,26 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "SPH down \u00a31.30 WoW (-5.40%) to \u00a322.76 as covers went up +23.18% \u2014 SPH suffering with volume.",
-          "1x4-star review (sides arrived before drinks) and 1x3-star (no comment).",
-          "Toilet door / neon sign / hot tap in female toilets (again) \u2014 maintenance list.",
-          "Jackie's last shift 06/07; Alli leaving 17/07/26 \u2014 headcount attrition.",
-          "Sales \u00a361,346 vs \u00a360,637 target (+1.16%) \u2014 on target."
+          "Chicken Katsu out of stock — forced site to close one of its best-selling items — Owner: HC / Matt (07/07/2026)",
+          "Sushi Manager Eric complained about FOH service issues — Penny suggested Eric join the GM/GC meeting to share his comments — Owner: Eric / GM Kieran (07/07/2026)",
+          "Sales +1.0% over target (£61,256 vs £60,638) — on target.",
+          "KPIs: Labour 20.94% · Food 22.91% · Food variance -3.50% · 12×5★ / 1×4★ / 1×3★."
         ],
         "actions": [
-          "GM (Kieran): drive SPH-uplift focus \u2014 upsell drinks and sides on higher-cover days.",
-          "GM (Kieran) / FOH: sequence drinks before sides \u2014 service order training.",
-          "AM (\u00d3is\u00edn): confirm toilet door + neon sign + hot tap works with maintenance team.",
-          "AM (\u00d3is\u00edn): recruit 2-3 P/T FOH in October for winter period."
+          "HC / Matt: resolve Chicken Katsu stock-out — root-cause + reorder trigger — Owner: HC (07/07/2026)",
+          "Penny: invite Eric (Sushi Mgr) to next GM/GC meeting to raise FOH service concerns — Owner: Penny (14/07/2026)"
         ],
         "carryover": [
-          "Compliance sweeps \u2014 all completed (Pest / Fire / Electrical / Gas / Ventilation).",
-          "SPH programme \u2014 ongoing."
+          "FOH service review — action tracked, owner Kieran + Eric."
         ],
         "empty": false,
-        "docId": "1tgQtcSrkqCk3i9R_daCapSUY5D0BvWCjVFmbsCBi-4w"
+        "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
       }
     },
     "M9": {
@@ -1799,12 +1753,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -2.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -1812,7 +1766,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1825,12 +1779,12 @@
           "sales": {
             "weight": 10,
             "value": 93.91,
-            "basis": "70% (100-5.51) + 30% (\u00a3gap -3720 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-5.51) + 30% (£gap -3720 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 84.61,
-            "basis": "\u00a322.55 vs \u00a322 tgt \u2014 level 100, WoW -0.13% \u2192 mom 49"
+            "basis": "£22.55 vs £22 tgt — level 100, WoW -0.13% → mom 49"
           },
           "food": {
             "weight": 30,
@@ -1845,21 +1799,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 88.67,
-            "basis": "4.62\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.62★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-2.50% inside \u00b15% band"
+            "basis": "-2.50% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.620689655,
@@ -1876,7 +1830,7 @@
           {
             "stars": 2,
             "author": "CC Chan",
-            "text": "We came here today to celebrate the birthday and were really looking forward to trying the food, but unfortunately, it didn\u2019t live up to our expectations.\n\nApart from the ramen, the fried chicken and sushi were really disappointing. The fried chicken was cold, tough and very dry. As for the sushi, the photos speak for themselves. The fish on the rainbow rolls was cut thin and small & didn\u2019t taste very fresh. It felt a bit misleading.\n\nThe ramen were decent, but the portion was small. I don\u2019t think it would even be enough to satisfy one person. Considering the price \u00a314.9 (not include the 10% service charge), there are plenty of better places offering much better value for money.\n\nBased on our experience, I wouldn\u2019t recommend this restaurant.",
+            "text": "We came here today to celebrate the birthday and were really looking forward to trying the food, but unfortunately, it didn’t live up to our expectations.\n\nApart from the ramen, the fried chicken and sushi were really disappointing. The fried chicken was cold, tough and very dry. As for the sushi, the photos speak for themselves. The fish on the rainbow rolls was cut thin and small & didn’t taste very fresh. It felt a bit misleading.\n\nThe ramen were decent, but the portion was small. I don’t think it would even be enough to satisfy one person. Considering the price £14.9 (not include the 10% service charge), there are plenty of better places offering much better value for money.\n\nBased on our experience, I wouldn’t recommend this restaurant.",
             "date": "2026-06-29",
             "url": null
           }
@@ -1884,7 +1838,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1894,7 +1848,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1924,30 +1878,39 @@
         },
         "gmv_vs_4wk_pct": -8,
         "gmv_vs_ly_pct": -25.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Region-wide (North England & Midlands): Supplier transition and heatwave / World Cup drag continue to affect trading.",
-          "1x Deliveroo refund: customer thought egg was mouldy \u2014 actually sesame on top; dispute won.",
-          "Sales \u00a38,637 above prev week (+15.66%) but \u00a31,280 below target (-5.51%).",
-          "PIP written up for Kai Leung (BOH) \u2014 review conducted 02/07."
+          "Persistent stock outages for Kurag, tabby, steak over the last 4 weeks — PAR levels don't reflect weekly volume — Owner: GM (Emily) + HC (07/07/2026)",
+          "Takeaway packaging shortages — ramen bowls and bags; alternative larger bags sourced from Amazon; primary supplier 'Dumpsters' being investigated — Owner: GM (07/07/2026)",
+          "Sales £63k below target; labour 19.5% vs 18.73% budget — Owner: GM (07/07/2026)",
+          "Resignation + no-show (Mitchell) — considering hiring a 16-year-old part-timer; requires safety + alcohol-service training — Owner: GM + AM (07/07/2026)",
+          "Kitchen Porter area suffers extreme heat → high turnover; approved: low-voltage fan + surge protection investigation — Owner: GM (07/07/2026)",
+          "Facility repairs: fire door, foul-smelling toilet, leak near new ice machine, bar wooden broken part — Owner: Ross / GM (07/07/2026)",
+          "Manager James: admin duties (rota) removed to focus on core shift management — Owner: AM Inka (07/07/2026)"
         ],
         "actions": [
-          "AM (Inka) + Avinash: no immediate KA back-fill hire \u2014 recruitment paused until mid-August to prepare for busy season.",
-          "GM/AGM (Kai / Chan): continue tight labour discipline \u2014 actual 19.51% vs 21% target.",
-          "AM (Inka): follow up PIP for Kai Leung \u2014 weekly reviews.",
-          "Ross: replace broken wooden part in bar (medium); progress boiler repair.",
-          "GM: finalise blind box order for next Saturday with BOH team."
+          "GM (Emily): consult HC to increase PAR levels for upcoming week to cover past shortages — Owner: GM (07/07/2026)",
+          "GM (Emily): inspect existing kitchen extension leads before ordering surge-protection strips — Owner: GM (07/07/2026)",
+          "GM (Emily): message Ross to repair kitchen fire door — Owner: GM (07/07/2026)",
+          "GM (Emily): bleach corner toilet to address odour / hygiene — Owner: GM (07/07/2026)",
+          "GM (Emily): perform record-of-conversation with Mitchell (no-show) — Owner: GM (07/07/2026)",
+          "GM (Emily): purchase low-voltage kitchen porter fan (approved 07/07) — Owner: GM (07/07/2026)",
+          "GM (Emily): print origami graduation cap instruction manuals; propose to marketing group chat — Owner: GM (07/07/2026)",
+          "GM (Emily): collect updated menus / promo leaflets from print shop Friday — Owner: GM (11/07/2026)",
+          "GM (Emily): order Fanta to keep stock levels accurate — Owner: GM (07/07/2026)",
+          "AM (Inka): daily management task-list to improve consistency (aligned decision) — Owner: AM (07/07/2026)"
         ],
         "carryover": [
-          "Kai Leung PIP \u2014 under weekly review.",
-          "Boiler + bar wooden part \u2014 logged with Ross."
+          "Documentation / manuals delivery — chasing print shop via group chat.",
+          "Manager James — admin responsibilities removed; monitor core-shift performance.",
+          "Delivery order accuracy — 2 inaccurate orders identified; corrective closing routine (7–8pm) in place."
         ],
         "empty": false,
-        "docId": "1JH52MQvHW9EuZSHVc_-5R2xhQVQt7_KDg8vD194R6vQ"
+        "docId": "1du8EDK99XSNT9ed7pK2hHCiJMS-K5i4IBF2ScsRrRZQ"
       }
     },
     "M10": {
@@ -1998,12 +1961,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.6,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -2.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -2011,7 +1974,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2024,12 +1987,12 @@
           "sales": {
             "weight": 10,
             "value": 90.17,
-            "basis": "70% (100-10.78) + 30% (\u00a3gap -3811 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-10.78) + 30% (£gap -3811 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 91.72,
-            "basis": "\u00a322.33 vs \u00a322 tgt \u2014 level 100, WoW +2.24% \u2192 mom 72"
+            "basis": "£22.33 vs £22 tgt — level 100, WoW +2.24% → mom 72"
           },
           "food": {
             "weight": 30,
@@ -2044,23 +2007,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-2.70% inside \u00b15% band"
+            "basis": "-2.70% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -10.8% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -2077,7 +2040,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2086,23 +2049,23 @@
         "tasks": [
           {
             "task": "Wifi Consistency",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Front Door (Left) Stopper smashed",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2132,30 +2095,28 @@
         },
         "gmv_vs_4wk_pct": -6.2,
         "gmv_vs_ly_pct": 11,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales \u00a31,956 above prev week (+6.61%) but still \u00a33,810 below target (-10.78%) \u2014 red-light zone.",
-          "Late prep numbers need to come down \u2014 order/service timing issue.",
-          "Missing plastic bolt board in kitchen porter area (from 07/07 KPI meeting).",
-          "Hot-water temperature at sink needs regulating (twist pipe) \u2014 flagged 07/07."
+          "Kitchen Porter area: missing ceiling bolt board — Owner: GM (Ninder) (07/07/2026)",
+          "Hot water temperature in KP sink area needs regulating (twist pipe fix) — Owner: GM (Ninder) (07/07/2026)",
+          "Sales +£2,000 WoW but still below target; graduation season + England football match expected to drive traffic — Owner: GM (07/07/2026)",
+          "KPIs: Labour 20.35% · Food 18%."
         ],
         "actions": [
-          "GM (Ninder): reduce late prep by tightening BOH sequence \u2014 pull prep list forward by 30 min.",
-          "GM (Ninder): replace missing plastic bolt board in KP area \u2014 order via Ross.",
-          "GM (Ninder): adjust the hot-water pipe at the sink to regulate temp; send photographic evidence of all repairs to AM.",
-          "AM (Inka): urgent stock transfer Leeds > Manchester actioned this week.",
-          "GM (Ninder): plan graduation trading \u2014 impact starts to show from Sunday."
+          "GM (Ninder): replace missing plastic bolt board in KP area — Owner: GM (07/07/2026)",
+          "GM (Ninder): adjust hot-water pipe to regulate sink temperature — Owner: GM (07/07/2026)",
+          "GM (Ninder): send photographic evidence of all completed repairs (hot water, equipment removal) via email to AM — Owner: GM (07/07/2026)",
+          "GM (Ninder): activate graduation-season trading plan + England-match uplift — Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Graduation-week trading \u2014 expected to lift from wc 06/07.",
-          "Photographic proof of completed repairs \u2014 outstanding to send to AM."
+          "Photographic proof of repairs — outstanding to send to AM."
         ],
         "empty": false,
-        "docId": "10RM4Ezonz38W6hTHJ-b39oTm7qo2d8xUj0P7oqPrNvI"
+        "docId": "1du8EDK99XSNT9ed7pK2hHCiJMS-K5i4IBF2ScsRrRZQ"
       }
     },
     "M11": {
@@ -2206,12 +2167,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.1,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -3.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -2219,7 +2180,7 @@
       "efficiency_score": {
         "score": 91,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2232,12 +2193,12 @@
           "sales": {
             "weight": 10,
             "value": 87.74,
-            "basis": "70% (100-14.22) + 30% (\u00a3gap -3838 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-14.22) + 30% (£gap -3838 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.69,
-            "basis": "\u00a321.65 vs \u00a322 tgt \u2014 level 94, WoW -1.41% \u2192 mom 36"
+            "basis": "£21.65 vs £22 tgt — level 94, WoW -1.41% → mom 36"
           },
           "food": {
             "weight": 30,
@@ -2252,23 +2213,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.87\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.87★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-3.20% inside \u00b15% band"
+            "basis": "-3.20% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -14.2% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.866666667,
@@ -2285,7 +2246,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2294,23 +2255,23 @@
         "tasks": [
           {
             "task": "Wifi are slow in some areas",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Chris/Amy",
             "status": "open"
           },
           {
             "task": "Griddle where we cook gyoza steak and pork is broken",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2341,28 +2302,32 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales \u00a322,884 vs \u00a326,722 target (-14.22%) \u2014 red-light zone; WoW essentially flat (+0.91%).",
-          "Covers -14 (-1.58%) WoW \u2014 footfall softer.",
-          "Region-wide (North England & Midlands): supplier transition still causing key-ingredient shortages."
+          "Covers similar to previous week; labour 19.6%; managed shift with one call-in-sick — Owner: GM (07/07/2026)",
+          "Staffing: 1 resignation + 1 termination — Owner: GM + AM Inka (07/07/2026)",
+          "External signage peeling — adhesive ineffective — Owner: GM (07/07/2026)",
+          "Ongoing disciplinary: Gemma lateness — will use documented discussion (staff <2yrs service, per policy) — Owner: AM (Inka) (07/07/2026)",
+          "Pest control provider concerns — issues identified — Owner: AM (Inka) (07/07/2026)",
+          "Upcoming food festival — Madison arrangements to confirm — Owner: GM (07/07/2026)"
         ],
         "actions": [
-          "GM (Caroline) / AGM (JJ): execute street-marketing wheel activity consistently throughout the week; run sessions during off-peak (not busy) periods.",
-          "GM (Caroline): tighten labour to 21% target during softer trading period.",
-          "AM (Inka): reply to refund email \u2014 Leicester \u2014 done this week.",
-          "AM (Inka): monitor stock levels closely to pre-empt shortages before minimum stock reached."
+          "GM: acquire stronger adhesive for external signage; send photo update to Inka — Owner: GM (07/07/2026)",
+          "AM (Inka): documented discussion with Gemma regarding lateness — Owner: AM (07/07/2026)",
+          "GM: email Madison to confirm food festival arrangements — Owner: GM (07/07/2026)",
+          "GM: send pest-control composition screenshots via WhatsApp — Owner: GM (07/07/2026)",
+          "AM (Inka): forward pest control composition to the provider — Owner: AM (07/07/2026)"
         ],
         "carryover": [
-          "Street marketing wheel \u2014 repeating weekly cadence.",
-          "Supplier shortage vigilance \u2014 ongoing."
+          "Pest control provider concerns — under review.",
+          "Food festival — planning ongoing."
         ],
         "empty": false,
-        "docId": "1Z4GIeCFQP9E7MqmrWgZkOKTvlL6yMqVpg_1fOmzQWag"
+        "docId": "1du8EDK99XSNT9ed7pK2hHCiJMS-K5i4IBF2ScsRrRZQ"
       }
     },
     "M14": {
@@ -2413,12 +2378,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -2426,7 +2391,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2439,12 +2404,12 @@
           "sales": {
             "weight": 10,
             "value": 92.57,
-            "basis": "70% (100-7.76) + 30% (\u00a3gap -3337 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-7.76) + 30% (£gap -3337 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 90.04,
-            "basis": "\u00a322.33 vs \u00a322 tgt \u2014 level 100, WoW +1.68% \u2192 mom 67"
+            "basis": "£22.33 vs £22 tgt — level 100, WoW +1.68% → mom 67"
           },
           "food": {
             "weight": 30,
@@ -2459,21 +2424,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.80★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.80% inside \u00b15% band"
+            "basis": "4.80% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.8,
@@ -2490,7 +2455,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2500,7 +2465,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2530,34 +2495,23 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "2 vegan ramens missing on one Deliveroo order; 1 sashimi missing \u2014 2 portions put in one pot (order accuracy).",
-          "Liv resigned; Zaira terminated \u2014 FOH headcount hit.",
-          "Letter on outside of restaurant is falling off (high priority).",
-          "A lot of LWC stock coming in damaged \u2014 supplier quality concern.",
-          "Jemma final warning issued for lateness.",
-          "Sales \u00a339,542 vs \u00a342,880 target (-7.76%), covers +1.10% WoW \u2014 quiet week."
+          "KPIs: Food cost 28.8% · Wages 21.91% · 0 negative reviews.",
+          "No additional support required this week while operating without usual support staff — Owner: GM (07/07/2026)"
         ],
         "actions": [
-          "AM (Inka): documented conversation with Jemma regarding lateness \u2014 actioned via ROC.",
-          "AM (Inka) + GM (Eve): recruit FOH replacements for Liv / Zaira; keep customer complaint email pipeline responsive.",
-          "Ross: fix the falling outside letter \u2014 high priority.",
-          "AM (Inka): contact Madison to confirm arrangements for the upcoming food festival.",
-          "AM (Inka): forward pest control composition details (received WhatsApp screenshots) to the pest control provider.",
-          "GM (Eve): steak delivery expected \u2014 receipt confirmation to AM."
+          "GM: execute street-marketing wheel activity consistently throughout the week — during off-peak (not busy) periods — Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Jemma final warning \u2014 under monitoring.",
-          "Pest control composition follow-up \u2014 awaiting provider response.",
-          "Food festival \u2014 in planning."
+          "Street-marketing wheel — weekly cadence."
         ],
         "empty": false,
-        "docId": "1eWDFwhUu9bAN4D5MzgPIrLAVdoDnbOMY86eHvygtggk"
+        "docId": "1du8EDK99XSNT9ed7pK2hHCiJMS-K5i4IBF2ScsRrRZQ"
       }
     },
     "M16": {
@@ -2608,12 +2562,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -2621,7 +2575,7 @@
       "efficiency_score": {
         "score": 85,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2634,12 +2588,12 @@
           "sales": {
             "weight": 10,
             "value": 78.48,
-            "basis": "70% (100-22.46) + 30% (\u00a3gap -9657 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-22.46) + 30% (£gap -9657 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 83.67,
-            "basis": "\u00a321.84 vs \u00a322 tgt \u2014 level 97, WoW +0.18% \u2192 mom 52"
+            "basis": "£21.84 vs £22 tgt — level 97, WoW +0.18% → mom 52"
           },
           "food": {
             "weight": 30,
@@ -2654,23 +2608,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.95\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.95★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.20% inside \u00b15% band"
+            "basis": "2.20% inside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -22.5% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.947368421,
@@ -2687,7 +2641,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2697,7 +2651,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2728,46 +2682,20 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "PAR-level system: keeps running out of steak and Karrage \u2014 SS not recognising weekly stock-outs.",
-          "AA Factory delivery invoiced through Kobas as normal \u2014 uncertain if that was correct process; food cost = 16.41% with AA / 16.07% without.",
-          "Juice balls range: passion fruit outperforming Fanta; lychee not stocked.",
-          "Sales \u00a333,357 vs \u00a343,014 target (-22.46%) \u2014 red-light; SPH essentially flat +0.18%; covers -20.29% notes conflict but WoW covers reported +234.",
-          "Mitchell no-show \u2014 needs formal warning / company process.",
-          "Liv gone from FOH \u2014 cover thin for busy weekends.",
-          "Fire doors, ice machine / bar leak, pipes (Tyrone suggests plumber for underground pipes \u2014 far cubicle smells like leak, wood rotting), KP tap, disabled toilet unblocked by Mag, need another hook to open both doors.",
-          "Fire Audit outstanding actions: last bits of extraction, fire blanket and doors."
+          "No fresh notes this week — site invited to Maki England KPI meeting but not covered in the 07/07 detail bullets."
         ],
-        "actions": [
-          "GM (Emily): update PAR levels with head chef to account for weekly supply-chain issues.",
-          "GM (Emily): inspect extension leads / kitchen wiring before purchasing new surge protection.",
-          "GM (Emily): message Ross to repair kitchen fire door; complete remaining Fire Audit actions.",
-          "GM (Emily): bleach corner toilet to address odour / hygiene.",
-          "GM (Emily): perform record-of-conversation with Mitchell regarding no-show; company process.",
-          "GM (Emily) + AM (Inka): buy low-voltage kitchen porter fan \u2014 approved in 07/07 meeting.",
-          "GM (Emily): create origami-graduation-cap instruction manuals; share concept with marketing group chat for approval.",
-          "GM (Emily): collect updated menus / promo leaflets from print shop Friday morning.",
-          "GM (Emily): order Fanta to keep juice-ball stock accurate.",
-          "GM (Emily): trial HRK's friend for KP; trial Fares's friend for FOH (age check first).",
-          "James (Manager): admin duties (rota etc.) removed from him to focus on service; Emily now doing the rota.",
-          "GM (Emily): closing standards need to improve \u2014 labour leaking at end of day.",
-          "AM (Inka): announce annual leave in team chat and post handover notes.",
-          "AM (Inka): follow up with plumber quote for underground pipe / disabled toilet smell."
-        ],
+        "actions": [],
         "carryover": [
-          "Mitchell ROC / no-show \u2014 actioned this week.",
-          "Fire Audit final actions \u2014 extraction / fire blanket / doors outstanding.",
-          "Graduation activation (selfie wall + balloons + origami caps) \u2014 running this week.",
-          "Bane marie replaced \u2014 old one boxed pending warranty claim.",
-          "Pipe plumber quote for underground pipes \u2014 pending."
+          "AM (Inka) on annual leave from next week — Amy Tang covering; Inka returns first week of August."
         ],
         "empty": false,
-        "docId": "1NBivmuN24VWK2AliNGJraeaE0fQ3Wg2k4OgIH10Xlbs"
+        "docId": "1du8EDK99XSNT9ed7pK2hHCiJMS-K5i4IBF2ScsRrRZQ"
       }
     },
     "M17": {
@@ -2818,12 +2746,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": -7.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": false
         },
         "week_commencing": "2026-06-29"
@@ -2831,7 +2759,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2844,12 +2772,12 @@
           "sales": {
             "weight": 10,
             "value": 88.16,
-            "basis": "70% (100-13.19) + 30% (\u00a3gap -4352 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-13.19) + 30% (£gap -4352 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 84.01,
-            "basis": "\u00a324.15 vs \u00a322 tgt \u2014 level 100, WoW -0.33% \u2192 mom 47"
+            "basis": "£24.15 vs £22 tgt — level 100, WoW -0.33% → mom 47"
           },
           "food": {
             "weight": 30,
@@ -2864,23 +2792,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.99\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.99★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 82.4,
-            "basis": "-7.20% outside \u00b15% band"
+            "basis": "-7.20% outside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -13.2% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.987012987,
@@ -2897,7 +2825,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2907,7 +2835,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2937,38 +2865,34 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales \u00a328,648 vs \u00a333,000 target (-13.19%) \u2014 red-light; WoW +8.40% recovery from prior week.",
-          "Region-wide (London): Deliveroo order accuracy \u2014 need mandatory photograph of every order before sealing bag.",
-          "Josh (FOH) handed in notice \u2014 leaves Wed 08/07.",
-          "Fridge keeps beeping (low priority \u2014 waiting for fix, not a problem).",
-          "Stock control still an issue \u2014 orders being split across the week."
+          "Sales exceeded target; +15% covers WoW; higher regular spend; 78% of reviews are 5-star (62 new 5-stars, 1×3-star for service) — Owner: GM (Kei Cannon) (07/07/2026)",
+          "Frozen stock variance +27% (Ziang clarified this is OVER stock, likely delivery-recording error) — Owner: GM + Marian (07/07/2026)",
+          "Sushi chef Muhammad Raju departing due to performance issues — Owner: GM (07/07/2026)",
+          "Compliance 98% with minor delays — Owner: GM (07/07/2026)",
+          "Event ROI: K-pop dancers + 'To Jam' events did NOT drive traffic; free food/drinks to non-paying guests — losses recorded. Management to reassess vs 'The Wheel' — Owner: Lincoln + GM (07/07/2026)",
+          "Labour hit 23% — lowest since site opened; must maintain via break control + productive quiet periods — Owner: GM (07/07/2026)"
         ],
         "actions": [
-          "Region-wide (London): photograph all delivery-order contents before sealing bags; store images in Google Drive for dispute evidence.",
-          "Region-wide (London): kitchen rota must be finalised by Wednesday each week for accurate labour planning.",
-          "Region-wide (London): count two children as one cover; single child not counted as a cover.",
-          "Region-wide (London): enable Deliveroo 'busy mode' whenever high traffic to manage prep times.",
-          "Region-wide (London): FOH to perform check-back at every table regardless of traffic.",
-          "Region-wide (London): FOH to proactively inform customers food will be served as ready, not simultaneously.",
-          "Lakeside GM: collect direct K-pop night feedback from Thursday customers on awareness and attendance motivation.",
-          "GM (Kei Cannon): split orders across the week continues; Tom to control BOH breaks; toilets checked 5x/day with roll top-up.",
-          "AM (Lincoln): arrange pick-up of tables; Jocelyn confirmed as new AGM (management tracker issued).",
-          "Deliveroo dispute won \u2014 rating now 4.44."
+          "GM (Kei) + Soho Mgr / Mario: review invoicing procedures — no more receipts left in DJ booth; proper tracking — Owner: GM (07/07/2026)",
+          "GM (Kei): finish BOH roster by Wednesday and share projections photo to group chat — Owner: GM (09/07/2026)",
+          "Marian + Ziang Lin: meet to analyse frozen inventory +27% variance and clarify reporting — Owner: Marian (07/07/2026)",
+          "GM (Kei): recruit replacement sushi chef for Muhammad Raju — Owner: GM (07/07/2026)",
+          "Group: submit management team weekly projections in the group chat going forward — Owner: The group (07/07/2026)",
+          "GM (Kei): cross-train FOH tasks during quiet periods (no more watching football on shift) — Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "K-Pop nights effectiveness measurement \u2014 direct customer feedback due at next event.",
-          "New Monday schedule to reduce labour through the week \u2014 continue.",
-          "Jocelyn AGM handover \u2014 in progress.",
-          "Summer garden works \u2014 arranged Wed 8th."
+          "Event ROI reassessment (K-pop / To Jam vs The Wheel) — decision pending.",
+          "Frozen stock +27% root-cause — Marian/Ziang investigation.",
+          "Compliance minor delays — monitor."
         ],
         "empty": false,
-        "docId": "1dqMM0889U04qqtqQ61bJ3kKvcOCmJ7Fh2n1j0JPPaKo"
+        "docId": "1XkhKduNh0iAyYqWpE3jvMnc5brpXSGMrtpFVoO0Ir6o"
       }
     },
     "M18": {
@@ -3019,12 +2943,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": -7.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": false
         },
         "week_commencing": "2026-06-29"
@@ -3032,7 +2956,7 @@
       "efficiency_score": {
         "score": 78,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3045,12 +2969,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+0.29) + 30% (\u00a3gap +102 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+0.29) + 30% (£gap +102 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 91.81,
-            "basis": "\u00a322.07 vs \u00a322 tgt \u2014 level 100, WoW +2.27% \u2192 mom 73"
+            "basis": "£22.07 vs £22 tgt — level 100, WoW +2.27% → mom 73"
           },
           "food": {
             "weight": 30,
@@ -3065,21 +2989,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 82.4,
-            "basis": "-7.20% outside \u00b15% band"
+            "basis": "-7.20% outside ±5% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -3096,7 +3020,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3106,7 +3030,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3137,42 +3061,29 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 4.8
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales -14.38% vs prev week; target +0.29% \u2014 essentially on target for the week.",
-          "Marketing x FOH comms unclear \u2014 PR invitations don't specify what's included (full comp / take-away / F&B allowance); Sushi Rave Party sold poorly despite FOH following the memo.",
-          "Kitchen rota not being done by Wednesdays \u2014 labour planning slipping.",
-          "Kitchen not cooperative on labour cuts (long breaks); not taking initiative on downtime tasks (washing plates) \u2014 watching football instead.",
-          "Mohammad Raju (BOH) to be terminated end of this week \u2014 sushi service speed issues.",
-          "Imi (FOH) on holiday this week; multiple FOH holidays over the next two weeks.",
-          "Internet connectivity poor/slow \u2014 impacting hygiene compliance capture.",
-          "Managers working on days off / during breaks \u2014 not sustainable.",
-          "1x3-star review (food quality \u2014 salmon not fresh)."
+          "Successful week: ~100 more covers WoW; sales +£2,000 to £28k; labour 20% (-2% WoW) — Owner: GM (Imre Balogh) (07/07/2026)",
+          "Team-member 'Doctor' departing tomorrow (effective 08/07) — Owner: GM (07/07/2026)",
+          "100% compliance this week — Owner: GM (07/07/2026)",
+          "Maintenance: beeping fridge under management (low priority) — Owner: GM (07/07/2026)",
+          "Outside area renovation scheduled for tomorrow (08/07) — Owner: GM (07/07/2026)"
         ],
         "actions": [
-          "AM (Lincoln): terminate Mohammad Raju end of this week; discuss chef performance with Marian and Sophie regarding sushi speed.",
-          "AM (Lincoln): raise Wednesday kitchen-rota deadline concern in management chat; head chef to finalise rota by Wednesday and provide daily projections.",
-          "AM (Lincoln): review variance report \u2014 full breakdown from Marian on recent fruit and veg variance.",
-          "Sophie: on-site visit to Soho to investigate fruit and veg variance.",
-          "Region-wide (London): Photograph all delivery-order contents (see M17 shared actions).",
-          "Region-wide (London): Enable Deliveroo busy mode; table check-back protocol; child-cover counting.",
-          "Ross: fix update review tracking sheet.",
-          "Kaitlin: grant Raj administrative permissions on Kobas.",
-          "GM (Imre) / AGM (Ginger): brief FOH on complaint handling; keep BOH labour tight (massive FOH cuts last week helped)."
+          "GM (Imre): furniture-setup photos/videos to Kai after team completes install tomorrow — Owner: GM (08/07/2026)",
+          "GM (Imre): maintain strict break control to sustain 20% labour — Owner: GM (07/07/2026)",
+          "GM (Imre): continue successful cross-training (Ziang praised the approach) — Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Mohammad Raju termination \u2014 end of week.",
-          "Fruit and veg variance investigation \u2014 Sophie on-site.",
-          "Kobas admin access for Raj \u2014 Kaitlin actioning.",
-          "Internet issue \u2014 logged; hygiene compliance impacted.",
-          "Banister handrail \u2014 done by Ross."
+          "Outside area renovation — 08/07 install day.",
+          "Cross-training programme — Ziang requested photos of new furniture setup."
         ],
         "empty": false,
-        "docId": "1IQAxA5G4GZdB1kqd2tXadhPu5qNrXhQhxBJumwzX90Y"
+        "docId": "1XkhKduNh0iAyYqWpE3jvMnc5brpXSGMrtpFVoO0Ir6o"
       }
     },
     "MakiNori": {
@@ -3223,12 +3134,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "week_commencing": "2026-06-29"
@@ -3236,7 +3147,7 @@
       "efficiency_score": {
         "score": 47,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3249,7 +3160,7 @@
           "sph": {
             "weight": 15,
             "value": 78.7,
-            "basis": "\u00a334.83 vs \u00a335 tgt \u2014 level 97, WoW -1.44% \u2192 mom 36"
+            "basis": "£34.83 vs £35 tgt — level 97, WoW -1.44% → mom 36"
           },
           "food": {
             "weight": 30,
@@ -3264,14 +3175,14 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
           }
         },
         "components_dropped": [
           "sales",
           "food_var"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -3279,7 +3190,7 @@
           "wage 34.5%",
           "food 29.9%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -3296,7 +3207,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3306,7 +3217,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3314,42 +3225,41 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take — no variance entered this week",
+        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ],
       "notes": {
         "issues": [
-          "Sales \u00a3-5,362 WoW (-18.66%) and -\u00a34,628 vs target (-16.53%); Mondays consistently letting the site down.",
-          "SPH -\u00a30.51 WoW (-1.44%) to \u00a334.99 \u2014 trend down (about \u00a31 each week; this week only 50p, surprising given $5 handrolls sold heavily on 4th July).",
-          "Wet stock take fine as usual; food stock variance issue \u2014 mostly Avocados each week (Sophie investigating).",
-          "1x2-star review \u2014 customer disliked all fish in omakase; server (American, unnamed) went above and beyond; dynamite prawns comped as too saucy; customer left happy but still reviewed.",
-          "Shakeel (BOH) \u2014 no-show; needs ROC.",
-          "Toilets flagged as needing attention in the 2-star review; FOH forgot closing tasks (GM's fault while closing alone).",
-          "KP roof (high priority \u2014 Ross).",
-          "Ice machine \u2014 fixed."
+          "Spender-head slightly declined despite £5 handroll success — Monday performance poor — Owner: GM (Kayleigh) (07/07/2026)",
+          "Wage % spiked to 34% due to Shaquille + new sushi chef training hours; some nights hit 44% wages closing with 3 staff — Owner: GM (07/07/2026)",
+          "Ziang: Nori cannot sustain high staffing on 3-4k days — max 3 BOH sufficient for a 3k day — Owner: GM (07/07/2026)",
+          "KPI sheet discrepancies — being investigated by Matt — Owner: Matt (07/07/2026)",
+          "Avocado wastage: ~1,600-2,000 extra units identified — primary waste issue — Owner: HC (Florin) (07/07/2026)",
+          "2-star review re: fish quality — customer left without complaining; comped dynamite prawns — Owner: GM (07/07/2026)",
+          "Review volume declining — working with Jaeda + Luca to increase — Owner: GM (07/07/2026)",
+          "Shaquille no-show — ROC conducted; family issues cited; advance notice required in future — Owner: GM (07/07/2026)",
+          "KP Roof leak — high priority — Owner: Ross (07/07/2026)",
+          "New food/drink menus picked up — need adding to till — Owner: Ziang Lin (07/07/2026)"
         ],
         "actions": [
-          "GM (Kayleigh): have ROC with Shakeel regarding no-show.",
-          "GM (Kayleigh) + Sophie: investigate avocado stock variance \u2014 root cause required.",
-          "GM (Kayleigh) + Florin: continue admin during breaks / at home to reduce their expensive hours; break lengths already extended to 1\u20131.5 hr for FOH.",
-          "GM (Kayleigh): drive review conversion \u2014 every table asked by Jaeda and Luca.",
-          "AM (Lincoln): call out avocado variance in Sophie's investigation; align with EC on Nori sushi standards.",
-          "Region-wide (London): all shared actions (photograph delivery orders, Wed rota deadline, cover counting, Deliveroo busy mode, table check-back, food-serve comms).",
-          "GM (Kayleigh): repair KP Roof \u2014 Ross.",
-          "GM (Kayleigh): finalise GM meeting summary with Lauren.",
-          "GM (Kayleigh): require head chef to submit daily kitchen labelling findings in management chat.",
-          "GM (Kayleigh): sit down with Jaeda and Luca to resolve their working relationship.",
-          "GM (Kayleigh): add new food / drinks menus to till."
+          "GM (Kayleigh): head chef meeting with Florin re performance + site goals — Owner: GM (07/07/2026)",
+          "GM (Kayleigh): send list of new menu items to Ziang Lin for POS entry — Owner: GM (07/07/2026)",
+          "Ziang Lin: update POS system with new menu items — Owner: Ziang (07/07/2026)",
+          "GM (Kayleigh): follow up with Ross re kitchen roof leakage — Owner: GM (07/07/2026)",
+          "GM (Kayleigh) + FOH: ask every happy table for a Google review — daily habit — Owner: GM (07/07/2026)",
+          "GM (Kayleigh) + Florin: continue reducing management hours (both taking 1.5-2hr breaks; doing admin off-shift) — Owner: GM (07/07/2026)",
+          "GM (Kayleigh): drop Monday KP requirement before 5pm — Owner: GM (13/07/2026)",
+          "HC (Florin): actioned avocado wastage reduction — Owner: HC (07/07/2026)"
         ],
         "carryover": [
-          "Avocado variance \u2014 Sophie investigating.",
-          "Shakeel ROC \u2014 actioned this week.",
-          "Ice machine \u2014 repaired.",
-          "Jaeda / Luca resolution \u2014 meeting scheduled.",
-          "Influencer events \u2014 upcoming."
+          "Shaquille attendance — final chance; ROC on file.",
+          "KPI sheet discrepancies — Matt investigation.",
+          "Ice Machine — fixed (carryover complete).",
+          "Small influencer events + E-club driving traffic — ongoing.",
+          "Menu updates — awaiting till entry by Ziang."
         ],
         "empty": false,
-        "docId": "1_UjhHIYk_B73yqBfEgwULV_-c2pYYAy-yCl0ngupqMg"
+        "docId": "1XkhKduNh0iAyYqWpE3jvMnc5brpXSGMrtpFVoO0Ir6o"
       }
     }
   }
