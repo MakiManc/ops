@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-06",
+  "generated_at": "2026-07-08",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-06-22 \u2013 2026-06-28",
@@ -20,9 +20,9 @@
           "actual": 29576.1,
           "target": 35343.0,
           "var_pct": -16.32,
-          "prev": 29824.39,
-          "wow_abs": -248.29,
-          "wow_pct": -0.83
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 1031,
@@ -50,7 +50,7 @@
           "actual": 436.81
         },
         "waste": {
-          "actual": 0.0
+          "actual": 24.16
         }
       },
       "stock_take": {
