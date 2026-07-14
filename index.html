@@ -2775,7 +2775,9 @@ const REVIEWS = {
       0
     ]
   },
-  "Maki Nori": { rating: 4.65, total: 50, weekCount: 50, stars: [39, 7, 2, 1, 1] }
+  "Maki Nori": { rating: 4.65, total: 50, weekCount: 50, stars: [39, 7, 2, 1, 1] },
+  "M19": { rating: 5.0, total: 200, weekCount: 0, stars: [0,0,0,0,0] },
+  "M20": { rating: 4.8, total: 286, weekCount: 0, stars: [0,0,0,0,0] }
 };
 
 // --- HISTORY (last 5 weeks for sparklines) ---
@@ -4457,7 +4459,8 @@ function adaptSite(jsonCode, s, isNewest){
   }
 
   // REVIEWS entry — overlay ONLY the clean weekly fields; keep cumulative rating/total baked.
-  if(REVIEWS[display] && s.reviews){
+  if(s.reviews){
+    if(!REVIEWS[display]) REVIEWS[display] = {rating: null, total: null, weekCount: 0, stars: [0,0,0,0,0]};
     const rv = s.reviews;
     if(rv.new_reviews != null) REVIEWS[display].weekCount = rv.new_reviews;
     const bd = rv.star_breakdown;
