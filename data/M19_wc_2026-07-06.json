@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 43,
+        "score": 52,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -93,11 +93,15 @@
             "weight": 30,
             "value": 0.0,
             "basis": "51.26% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.93\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
         "components_dropped": [
           "food",
-          "weekly_star",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -111,9 +115,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": null,
-        "star_breakdown": null,
+        "week_avg_rating": 4.93,
+        "new_reviews": 14,
+        "star_breakdown": {
+          "5": 13,
+          "4": 1,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -139,7 +149,6 @@
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
         "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     }
