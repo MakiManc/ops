@@ -2341,6 +2341,50 @@ const SITES = [
     ]
   },
   {
+    "code": "M19",
+    "isNew": true,
+    "name": "Maki 19 (Shoreditch)",
+    "cluster": "south",
+    "clusterName": "South England",
+    "am": "Lincoln",
+    "gm": "TBC",
+    "rag": "amber",
+    "vsTarget": 0,
+    "kpis": {
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "n/a",
+      "foodVar": "N/A"
+    },
+    "issues": [
+      "New site — first full trading week wc 29/06/2026 (baked view predates opening; live weeks load from data/)."
+    ],
+    "carryover": [],
+    "actions": []
+  },
+  {
+    "code": "M20",
+    "isNew": true,
+    "name": "Maki 20 (Southampton)",
+    "cluster": "south",
+    "clusterName": "South England",
+    "am": "Lincoln",
+    "gm": "TBC",
+    "rag": "amber",
+    "vsTarget": 0,
+    "kpis": {
+      "covers": "n/a",
+      "sph": "n/a",
+      "vsTarget": "n/a",
+      "foodVar": "N/A"
+    },
+    "issues": [
+      "New site — first full trading week wc 06/07/2026 (baked view predates opening; live weeks load from data/). No Deliveroo storefront yet (standing gap)."
+    ],
+    "carryover": [],
+    "actions": []
+  },
+  {
     "code": "Maki Nori",
     "isNew": true,
     "name": "Maki Nori",
@@ -2495,7 +2539,7 @@ const HOT_ACTIONS = [
   {
     "priority": "P2",
     "owner": "Lincoln / Ops",
-    "text": "Wire M19 Maki Nori into the KPI-sheet + review feeds so it gets a 4-week trend, wage and ratings next week.",
+    "text": "Wire Maki Nori into the KPI-sheet + review feeds so it gets a 4-week trend, wage and ratings next week. (Note: 'M19' now = Shoreditch, NOT Maki Nori.)",
     "due": "Next run"
   },
   {
@@ -2529,6 +2573,8 @@ const METRICS = {
   "M16": { wage: 27.0, food: 25.17, foodVar: null, varIncomplete: "both" },
   "M17": { wage: 22, food: 20.64, foodVar: null, varIncomplete: "both" },
   "M18": { wage: 25.20, food: 25.43, foodVar: null, varIncomplete: "both" },
+  "M19": { wage: null, food: null, foodVar: null, varIncomplete: "both" },
+  "M20": { wage: null, food: null, foodVar: null, varIncomplete: "both" },
   "Maki Nori": { wage: 23, food: 19, foodVar: null, varIncomplete: "both" },
   "IKI2": { wage: 28.6, food: 23.72, foodVar: null, varIncomplete: "both" }
 };
@@ -4265,7 +4311,8 @@ const GM_ROSTER = [
   ['M7','Calum Heriot','Ka Ho'],['M8','Scott Renwick','Ka Ho'],['M12','Matt Lee','Ka Ho'],
   ['M13','Joe Herera','Ka Ho'],['IKI2','Sujan (RM)','Ka Ho'],['M15','Kieran Day','Óisín / Ka Ho'],
   ['M9','Kai Chau Leung / Chan Zhi Quan','Inka'],['M10','Ninder Joshi','Inka'],['M11','Caroline / JJ','Inka'],
-  ['M14','(vacant)','Inka'],['M16','(vacant)','Inka'],['M17','Kei Cannon','Lincoln'],['M18','Imre Balogh','Lincoln']
+  ['M14','(vacant)','Inka'],['M16','(vacant)','Inka'],['M17','Kei Cannon','Lincoln'],['M18','Imre Balogh','Lincoln'],
+  ['M19','TBC','Lincoln'],['M20','TBC','Lincoln']
 ];
 function renderGmScore(){
   document.getElementById('gm-dims').innerHTML = GM_DIMS.map(d=>`
