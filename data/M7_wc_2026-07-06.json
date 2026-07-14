@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 22.16,
           "target": 23.0,
           "gated": false
         },
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 95,
+        "score": 97,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -89,6 +89,11 @@
             "value": 77.55,
             "basis": "\u00a321.14 vs \u00a322 tgt \u2014 level 86, WoW +0.86% \u2192 mom 59"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "22.16% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 100.0,
@@ -105,9 +110,7 @@
             "basis": "1.50% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -176,9 +179,7 @@
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
       "deliveroo": null,
-      "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
-      ]
+      "gaps": []
     }
   }
 }

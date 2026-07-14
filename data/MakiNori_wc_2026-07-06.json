@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 25.18,
           "target": 23.0,
           "gated": false
         },
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 27,
+        "score": 56,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -84,6 +84,11 @@
             "value": 81.39,
             "basis": "\u00a334.75 vs \u00a335 tgt \u2014 level 96, WoW -0.23% \u2192 mom 48"
           },
+          "food": {
+            "weight": 30,
+            "value": 98.56,
+            "basis": "25.18% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 0.0,
@@ -92,7 +97,6 @@
         },
         "components_dropped": [
           "sales",
-          "food",
           "weekly_star",
           "food_var"
         ],
@@ -101,7 +105,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 31.6%"
+          "wage 31.6%",
+          "food 25.2%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -132,7 +137,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
         "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"

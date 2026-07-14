@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 28.37,
           "target": 23.0,
           "gated": false
         },
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 89,
+        "score": 84,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -89,6 +89,11 @@
             "value": 60.32,
             "basis": "\u00a321.17 vs \u00a322 tgt \u2014 level 86, WoW -5.19% \u2192 mom 0"
           },
+          "food": {
+            "weight": 30,
+            "value": 73.04,
+            "basis": "28.37% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 100.0,
@@ -101,7 +106,6 @@
           }
         },
         "components_dropped": [
-          "food",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -109,7 +113,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "sales -16.0% vs target"
+          "sales -16.0% vs target",
+          "food 28.4%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -186,7 +191,6 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
         "Stock-take \u2014 no variance entered this week"
       ]
     }

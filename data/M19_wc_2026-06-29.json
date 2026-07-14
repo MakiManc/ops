@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 33.17,
           "target": 23.0,
           "gated": false
         },
@@ -58,12 +58,14 @@
           "variance_pct": null
         },
         "food": {
-          "variance_pct": null
+          "variance_pct": 6.3,
+          "target": "\u00b15%",
+          "within_band": false
         },
         "week_commencing": "2026-06-29"
       },
       "efficiency_score": {
-        "score": 34,
+        "score": 37,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -85,6 +87,11 @@
             "value": 47.67,
             "basis": "\u00a318.86 vs \u00a322 tgt \u2014 level 48"
           },
+          "food": {
+            "weight": 30,
+            "value": 34.64,
+            "basis": "33.17% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 0.0,
@@ -94,19 +101,22 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.95\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 89.6,
+            "basis": "6.30% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food",
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -53.5% vs target",
-          "wage 78.4%"
+          "wage 78.4%",
+          "food 33.2%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -143,8 +153,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
-        "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     }

@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 26.56,
           "target": 23.0,
           "gated": false
         },
@@ -89,6 +89,11 @@
             "value": 82.9,
             "basis": "\u00a321.31 vs \u00a321 tgt \u2014 level 100, WoW -0.70% \u2192 mom 43"
           },
+          "food": {
+            "weight": 30,
+            "value": 87.52,
+            "basis": "26.56% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 100.0,
@@ -105,14 +110,14 @@
             "basis": "1.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 26.6%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -187,9 +192,7 @@
         "gmv_vs_ly_pct": -4.7,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
-      ]
+      "gaps": []
     }
   }
 }
