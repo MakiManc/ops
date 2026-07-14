@@ -3388,7 +3388,7 @@ function metricRagFor(s, metric) {
 // direction: 'down-is-good' (wage, food) or 'up-is-good' (sales)
 function sparkline(values, direction = 'up-is-good', color = '#4f46e5') {
   const w = 90, h = 28, pad = 3;
-  const real = values.filter(v => v != null);
+  const real = (values || []).filter(v => v != null);
   if (real.length < 2) return `<svg width="${w}" height="${h}"></svg>`;
   const min = Math.min(...real), max = Math.max(...real);
   const range = max - min || 1;
@@ -3409,7 +3409,7 @@ function sparkline(values, direction = 'up-is-good', color = '#4f46e5') {
 
 // Trend arrow comparing last vs prior
 function trendArrow(values, direction = 'up-is-good') {
-  const real = values.filter(v => v != null);
+  const real = (values || []).filter(v => v != null);
   if (real.length < 2) return '<span style="color:var(--ink-3); font-size:11px;">—</span>';
   const last = real[real.length - 1], prev = real[real.length - 2];
   const delta = last - prev;
