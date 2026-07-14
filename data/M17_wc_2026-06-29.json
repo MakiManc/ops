@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-08",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-14",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": null
         },
         "food": {
           "variance_pct": -7.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": false
         },
         "week_commencing": "2026-06-29"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 88.16,
-            "basis": "70% (100-13.19) + 30% (£gap -4352 vs ±£50k cal)"
+            "basis": "70% (100-13.19) + 30% (\u00a3gap -4352 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 84.01,
-            "basis": "£24.15 vs £22 tgt — level 100, WoW -0.33% → mom 47"
+            "basis": "\u00a324.15 vs \u00a322 tgt \u2014 level 100, WoW -0.33% \u2192 mom 47"
           },
           "food": {
             "weight": 30,
@@ -102,23 +102,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.99★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.99\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 82.4,
-            "basis": "-7.20% outside ±5% band"
+            "basis": "-7.20% outside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -13.2% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.987012987,
@@ -135,7 +135,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -145,7 +145,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -175,31 +175,31 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales exceeded target; +15% covers WoW; higher regular spend; 78% of reviews are 5-star (62 new 5-stars, 1×3-star for service) — Owner: GM (Kei Cannon) (07/07/2026)",
-          "Frozen stock variance +27% (Ziang clarified this is OVER stock, likely delivery-recording error) — Owner: GM + Marian (07/07/2026)",
-          "Sushi chef Muhammad Raju departing due to performance issues — Owner: GM (07/07/2026)",
-          "Compliance 98% with minor delays — Owner: GM (07/07/2026)",
-          "Event ROI: K-pop dancers + 'To Jam' events did NOT drive traffic; free food/drinks to non-paying guests — losses recorded. Management to reassess vs 'The Wheel' — Owner: Lincoln + GM (07/07/2026)",
-          "Labour hit 23% — lowest since site opened; must maintain via break control + productive quiet periods — Owner: GM (07/07/2026)"
+          "Sales exceeded target; +15% covers WoW; higher regular spend; 78% of reviews are 5-star (62 new 5-stars, 1\u00d73-star for service) \u2014 Owner: GM (Kei Cannon) (07/07/2026)",
+          "Frozen stock variance +27% (Ziang clarified this is OVER stock, likely delivery-recording error) \u2014 Owner: GM + Marian (07/07/2026)",
+          "Sushi chef Muhammad Raju departing due to performance issues \u2014 Owner: GM (07/07/2026)",
+          "Compliance 98% with minor delays \u2014 Owner: GM (07/07/2026)",
+          "Event ROI: K-pop dancers + 'To Jam' events did NOT drive traffic; free food/drinks to non-paying guests \u2014 losses recorded. Management to reassess vs 'The Wheel' \u2014 Owner: Lincoln + GM (07/07/2026)",
+          "Labour hit 23% \u2014 lowest since site opened; must maintain via break control + productive quiet periods \u2014 Owner: GM (07/07/2026)"
         ],
         "actions": [
-          "GM (Kei) + Soho Mgr / Mario: review invoicing procedures — no more receipts left in DJ booth; proper tracking — Owner: GM (07/07/2026)",
-          "GM (Kei): finish BOH roster by Wednesday and share projections photo to group chat — Owner: GM (09/07/2026)",
-          "Marian + Ziang Lin: meet to analyse frozen inventory +27% variance and clarify reporting — Owner: Marian (07/07/2026)",
-          "GM (Kei): recruit replacement sushi chef for Muhammad Raju — Owner: GM (07/07/2026)",
-          "Group: submit management team weekly projections in the group chat going forward — Owner: The group (07/07/2026)",
-          "GM (Kei): cross-train FOH tasks during quiet periods (no more watching football on shift) — Owner: GM (07/07/2026)"
+          "GM (Kei) + Soho Mgr / Mario: review invoicing procedures \u2014 no more receipts left in DJ booth; proper tracking \u2014 Owner: GM (07/07/2026)",
+          "GM (Kei): finish BOH roster by Wednesday and share projections photo to group chat \u2014 Owner: GM (09/07/2026)",
+          "Marian + Ziang Lin: meet to analyse frozen inventory +27% variance and clarify reporting \u2014 Owner: Marian (07/07/2026)",
+          "GM (Kei): recruit replacement sushi chef for Muhammad Raju \u2014 Owner: GM (07/07/2026)",
+          "Group: submit management team weekly projections in the group chat going forward \u2014 Owner: The group (07/07/2026)",
+          "GM (Kei): cross-train FOH tasks during quiet periods (no more watching football on shift) \u2014 Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Event ROI reassessment (K-pop / To Jam vs The Wheel) — decision pending.",
-          "Frozen stock +27% root-cause — Marian/Ziang investigation.",
-          "Compliance minor delays — monitor."
+          "Event ROI reassessment (K-pop / To Jam vs The Wheel) \u2014 decision pending.",
+          "Frozen stock +27% root-cause \u2014 Marian/Ziang investigation.",
+          "Compliance minor delays \u2014 monitor."
         ],
         "empty": false,
         "docId": "1XkhKduNh0iAyYqWpE3jvMnc5brpXSGMrtpFVoO0Ir6o"

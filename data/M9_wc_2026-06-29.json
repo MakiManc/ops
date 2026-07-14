@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-08",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-14",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -50,18 +50,18 @@
           "actual": 851.6
         },
         "waste": {
-          "actual": 86.24
+          "actual": 113.4
         }
       },
       "stock_take": {
         "drinks": {
           "variance_pct": -0.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": -2.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 93.91,
-            "basis": "70% (100-5.51) + 30% (£gap -3720 vs ±£50k cal)"
+            "basis": "70% (100-5.51) + 30% (\u00a3gap -3720 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 84.61,
-            "basis": "£22.55 vs £22 tgt — level 100, WoW -0.13% → mom 49"
+            "basis": "\u00a322.55 vs \u00a322 tgt \u2014 level 100, WoW -0.13% \u2192 mom 49"
           },
           "food": {
             "weight": 30,
@@ -102,21 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 88.67,
-            "basis": "4.62★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.62\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-2.50% inside ±5% band"
+            "basis": "-2.50% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.620689655,
@@ -133,7 +133,7 @@
           {
             "stars": 2,
             "author": "CC Chan",
-            "text": "We came here today to celebrate the birthday and were really looking forward to trying the food, but unfortunately, it didn’t live up to our expectations.\n\nApart from the ramen, the fried chicken and sushi were really disappointing. The fried chicken was cold, tough and very dry. As for the sushi, the photos speak for themselves. The fish on the rainbow rolls was cut thin and small & didn’t taste very fresh. It felt a bit misleading.\n\nThe ramen were decent, but the portion was small. I don’t think it would even be enough to satisfy one person. Considering the price £14.9 (not include the 10% service charge), there are plenty of better places offering much better value for money.\n\nBased on our experience, I wouldn’t recommend this restaurant.",
+            "text": "We came here today to celebrate the birthday and were really looking forward to trying the food, but unfortunately, it didn\u2019t live up to our expectations.\n\nApart from the ramen, the fried chicken and sushi were really disappointing. The fried chicken was cold, tough and very dry. As for the sushi, the photos speak for themselves. The fish on the rainbow rolls was cut thin and small & didn\u2019t taste very fresh. It felt a bit misleading.\n\nThe ramen were decent, but the portion was small. I don\u2019t think it would even be enough to satisfy one person. Considering the price \u00a314.9 (not include the 10% service charge), there are plenty of better places offering much better value for money.\n\nBased on our experience, I wouldn\u2019t recommend this restaurant.",
             "date": "2026-06-29",
             "url": null
           }
@@ -141,7 +141,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -151,7 +151,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -181,26 +181,26 @@
         },
         "gmv_vs_4wk_pct": -8,
         "gmv_vs_ly_pct": -25.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Sales £63k — up slightly on better weather but still below target; labour 19.5% vs 18.73% budget (25% on a poor Sunday) — Owner: GM (07/07/2026)",
-          "Deliveroo all green; one refund claim ('mouldy' item) was actually sesame topping — dispute raised and accepted — Owner: GM (07/07/2026)",
-          "One 2-star review (portion size / sushi); managers cross-checking sushi output quality — Owner: GM (07/07/2026)",
-          "Staffing: Kato leaving; hiring paused until September — team sufficient, agreed no replacement hire — Owner: GM + AM (Inka) (07/07/2026)",
-          "Maintenance: broken wooden part at the bar — awaiting Ross — Owner: Ross (07/07/2026)",
-          "KPIs: Labour 19.5% · Food 18%."
+          "Sales \u00a363k \u2014 up slightly on better weather but still below target; labour 19.5% vs 18.73% budget (25% on a poor Sunday) \u2014 Owner: GM (07/07/2026)",
+          "Deliveroo all green; one refund claim ('mouldy' item) was actually sesame topping \u2014 dispute raised and accepted \u2014 Owner: GM (07/07/2026)",
+          "One 2-star review (portion size / sushi); managers cross-checking sushi output quality \u2014 Owner: GM (07/07/2026)",
+          "Staffing: Kato leaving; hiring paused until September \u2014 team sufficient, agreed no replacement hire \u2014 Owner: GM + AM (Inka) (07/07/2026)",
+          "Maintenance: broken wooden part at the bar \u2014 awaiting Ross \u2014 Owner: Ross (07/07/2026)",
+          "KPIs: Labour 19.5% \u00b7 Food 18%."
         ],
         "actions": [
-          "GM: hold labour to 18.73% budget as trade lifts — Owner: GM (07/07/2026)",
-          "GM: continue manager cross-checks on sushi quality following 2-star review — Owner: GM (07/07/2026)",
-          "Ross: repair broken wooden bar part — Owner: Ross (07/07/2026)"
+          "GM: hold labour to 18.73% budget as trade lifts \u2014 Owner: GM (07/07/2026)",
+          "GM: continue manager cross-checks on sushi quality following 2-star review \u2014 Owner: GM (07/07/2026)",
+          "Ross: repair broken wooden bar part \u2014 Owner: Ross (07/07/2026)"
         ],
         "carryover": [
-          "Bar wooden part repair — awaiting Ross."
+          "Bar wooden part repair \u2014 awaiting Ross."
         ],
         "empty": false,
         "docId": "1du8EDK99XSNT9ed7pK2hHCiJMS-K5i4IBF2ScsRrRZQ"

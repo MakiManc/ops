@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-08",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-14",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 5.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 71,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 93.53,
-            "basis": "70% (100-7.35) + 30% (£gap -2206 vs ±£50k cal)"
+            "basis": "70% (100-7.35) + 30% (\u00a3gap -2206 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 81.37,
-            "basis": "£21.91 vs £22 tgt — level 98, WoW -0.86% → mom 41"
+            "basis": "\u00a321.91 vs \u00a322 tgt \u2014 level 98, WoW -0.86% \u2192 mom 41"
           },
           "food": {
             "weight": 30,
@@ -102,23 +102,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 81.63,
-            "basis": "4.57★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.57\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "5.00% inside ±5% band"
+            "basis": "5.00% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 27.3%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.571428571,
@@ -135,7 +135,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -145,7 +145,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -176,25 +176,25 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Labour still high at 25.09% despite cuts — running 1 sushi chef weekdays, 1 from 5pm Fri — kitchen says cannot cut further; low sales volume worsens % — Owner: GM (Matt Lee) + Matt Polak (07/07/2026)",
-          "Missing Factory stock via Lynas Delivery still being charged by Factory — Mapal Deviation report awaited from Dean (Factory manager) — Owner: Dean / Matt (07/07/2026)",
-          "Sales -7.4% under target (£27,794 vs £30,000).",
-          "Customer feedback: overpriced; salmon overcooked; customer wanted salmon substitute in Seafood Hell Ramen but was charged extra — manager followed up — Owner: GM (07/07/2026)",
-          "KPIs: Labour 25.09% · Food 27.30% · Food variance +5.00% · 4×5★ / 1×4★ / 1×2★."
+          "Labour still high at 25.09% despite cuts \u2014 running 1 sushi chef weekdays, 1 from 5pm Fri \u2014 kitchen says cannot cut further; low sales volume worsens % \u2014 Owner: GM (Matt Lee) + Matt Polak (07/07/2026)",
+          "Missing Factory stock via Lynas Delivery still being charged by Factory \u2014 Mapal Deviation report awaited from Dean (Factory manager) \u2014 Owner: Dean / Matt (07/07/2026)",
+          "Sales -7.4% under target (\u00a327,794 vs \u00a330,000).",
+          "Customer feedback: overpriced; salmon overcooked; customer wanted salmon substitute in Seafood Hell Ramen but was charged extra \u2014 manager followed up \u2014 Owner: GM (07/07/2026)",
+          "KPIs: Labour 25.09% \u00b7 Food 27.30% \u00b7 Food variance +5.00% \u00b7 4\u00d75\u2605 / 1\u00d74\u2605 / 1\u00d72\u2605."
         ],
         "actions": [
-          "Dean (Factory) → Matt: send Mapal Deviation report for missing Factory stock — Owner: Dean (07/07/2026)",
-          "GM (Matt Lee): rota approved by Matt; monitor labour daily; explore sales-driving activity to lift denominator — Owner: GM (07/07/2026)",
-          "GM (Matt Lee): review substitution policy at till — communicate uplift pricing before charging — Owner: GM (07/07/2026)"
+          "Dean (Factory) \u2192 Matt: send Mapal Deviation report for missing Factory stock \u2014 Owner: Dean (07/07/2026)",
+          "GM (Matt Lee): rota approved by Matt; monitor labour daily; explore sales-driving activity to lift denominator \u2014 Owner: GM (07/07/2026)",
+          "GM (Matt Lee): review substitution policy at till \u2014 communicate uplift pricing before charging \u2014 Owner: GM (07/07/2026)"
         ],
         "carryover": [
-          "Labour reduction plan — rota already reviewed by Matt; monitoring weekly."
+          "Labour reduction plan \u2014 rota already reviewed by Matt; monitoring weekly."
         ],
         "empty": false,
         "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"

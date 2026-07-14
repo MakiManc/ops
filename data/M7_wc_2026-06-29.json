@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-08",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-07-14",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-06-29 – 2026-07-05",
+    "label": "Week of 2026-06-29 \u2013 2026-07-05",
     "commencing": "2026-06-29",
     "ending": "2026-07-05"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-06-29"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 91,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 97.91,
-            "basis": "70% (100-1.92) + 30% (£gap -1251 vs ±£50k cal)"
+            "basis": "70% (100-1.92) + 30% (\u00a3gap -1251 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.2,
-            "basis": "£20.96 vs £22 tgt — level 83, WoW +1.11% → mom 61"
+            "basis": "\u00a320.96 vs \u00a322 tgt \u2014 level 83, WoW +1.11% \u2192 mom 61"
           },
           "food": {
             "weight": 30,
@@ -102,21 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 47.62,
-            "basis": "4.33★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.33\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.50% inside ±5% band"
+            "basis": "3.50% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.333333333,
@@ -133,7 +133,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -142,14 +142,14 @@
         "tasks": [
           {
             "task": "ticket machine has connection issue, ticket time to time delay",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Booth Seats needing reupholstered",
-            "priority": "—",
+            "priority": "\u2014",
             "logged_week": "Ongoing",
             "owner": "Lincoln/Ross",
             "status": "open"
@@ -158,7 +158,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -168,19 +168,19 @@
       "gaps": [],
       "notes": {
         "issues": [
-          "Google Maps business address is incorrect — linked to M4 instead of M7 — Owner: Ross (07/07/2026)",
-          "Vegan bacon / chicken katsu out of stock on Lynas app — HC ordered from JFC as alternative; Matt confirmed in stock (app issue, not stock issue) — Owner: HC / Matt (07/07/2026)",
-          "New fridge required — Kris is sourcing the correct size — Owner: Kris (07/07/2026)",
-          "Customer feedback: overpriced, food tastes bad — Owner: GM (07/07/2026)",
-          "KPIs: Labour 21.09% · Food 23.01% · Food variance +4.30% · 9×5★ / 1×4★ / 1×3★ / 1×2★."
+          "Google Maps business address is incorrect \u2014 linked to M4 instead of M7 \u2014 Owner: Ross (07/07/2026)",
+          "Vegan bacon / chicken katsu out of stock on Lynas app \u2014 HC ordered from JFC as alternative; Matt confirmed in stock (app issue, not stock issue) \u2014 Owner: HC / Matt (07/07/2026)",
+          "New fridge required \u2014 Kris is sourcing the correct size \u2014 Owner: Kris (07/07/2026)",
+          "Customer feedback: overpriced, food tastes bad \u2014 Owner: GM (07/07/2026)",
+          "KPIs: Labour 21.09% \u00b7 Food 23.01% \u00b7 Food variance +4.30% \u00b7 9\u00d75\u2605 / 1\u00d74\u2605 / 1\u00d73\u2605 / 1\u00d72\u2605."
         ],
         "actions": [
-          "Ross: update Google Maps business address (currently linked to M4) — Owner: Ross (07/07/2026)",
-          "Matt / HC: escalate Lynas app stock display bug to supply-chain team — Owner: Matt (07/07/2026)",
-          "Kris: procure correctly-sized replacement fridge — Owner: Kris (07/07/2026)"
+          "Ross: update Google Maps business address (currently linked to M4) \u2014 Owner: Ross (07/07/2026)",
+          "Matt / HC: escalate Lynas app stock display bug to supply-chain team \u2014 Owner: Matt (07/07/2026)",
+          "Kris: procure correctly-sized replacement fridge \u2014 Owner: Kris (07/07/2026)"
         ],
         "carryover": [
-          "JFC delivery-to-wrong-site issue — appears resolved (monitor)."
+          "JFC delivery-to-wrong-site issue \u2014 appears resolved (monitor)."
         ],
         "empty": false,
         "docId": "19FBaOaZDvfUFm6M7H1-n4dRefQc-n123"
