@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M&amp;R Marketing Hub</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif; background: #F4F2F0; color: #0F172A; padding: 14px; }
+body::before { content: ''; position: fixed; top: -140px; right: -120px; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(225,29,72,.10), transparent 70%); pointer-events: none; z-index: -1; }
+body::after { content: ''; position: fixed; bottom: -160px; left: -140px; width: 560px; height: 560px; border-radius: 50%; background: radial-gradient(circle at 60% 60%, rgba(30,41,59,.09), transparent 70%); pointer-events: none; z-index: -1; }
+h1 { font-size: 19px; letter-spacing: .01em; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: #334155; }
+.sub { color: #6B7280; font-size: 12px; margin-top: 2px; }
+header { background: linear-gradient(120deg, #0F172A 0%, #1E293B 70%, #7F1D1D 100%); color: #fff; padding: 16px 20px; border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+header .sub { color: #9CA3AF; }
+nav.tabs { background: #111827; border-radius: 0 0 10px 10px; padding: 4px 6px; display: flex; gap: 2px; overflow-x: auto; margin-bottom: 14px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+nav.tabs button { background: transparent; color: #9CA3AF; border: 0; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; white-space: nowrap; letter-spacing: .02em; font-family: inherit; }
+nav.tabs button:hover { color: #fff; }
+nav.tabs button.active { background: #E11D48; color: #fff; }
+.tabpane { display: none; }
+.tabpane.active { display: block; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.card { background: #fff; border-radius: 14px; padding: 14px 16px; border: 1px solid #E8ECF3; box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+.card .label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #64748B; }
+.card .value { font-size: 24px; font-weight: 700; margin-top: 4px; letter-spacing: -.01em; }
+.card.hero { background: linear-gradient(135deg, #111827 0%, #7F1D1D 100%); border: 0; color: #fff; }
+.card.hero .label { color: #FCA5A5; }
+.card.hero .value { font-size: 30px; }
+.card.hero .delta { color: #FECACA; }
+.card.hero .pos { color: #86EFAC; }
+.card.hero .neg { color: #FCA5A5; }
+.ringrow { display: flex; gap: 12px; align-items: center; margin-top: 6px; }
+.ring { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
+.ring .ringin { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+.sparkwrap { position: relative; height: 36px; margin-top: 8px; }
+td.fillbar { background-repeat: no-repeat; }
+.card .value.v-RED { color: #B91C1C; }
+.card .value.v-AMBER { color: #B45309; }
+.card .value.v-GREEN { color: #15803D; }
+tr.mutedrow { opacity: .55; }
+.card .delta { font-size: 11px; color: #6B7280; margin-top: 2px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+.section { background: #fff; border-radius: 14px; border: 1px solid #E8ECF3; box-shadow: 0 1px 3px rgba(16,24,40,.06); padding: 16px; margin-bottom: 14px; }
+.section .src { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: .04em; margin: 2px 0 10px; }
+.chartwrap { position: relative; height: 210px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; color: #6B7280; font-weight: bold; border-bottom: 2px solid #E5E7EB; padding: 6px 8px; text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+td { padding: 6px 8px; border-bottom: 1px solid #F3F4F6; vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: bold; }
+.tag.meta { background: #DBEAFE; color: #1D4ED8; }
+.tag.gads { background: #DCFCE7; color: #15803D; }
+.tag.ig { background: #FEF3C7; color: #92400E; }
+.tag.tt { background: #E5E7EB; color: #1F2937; }
+.tag.reel { background: #FCE7F3; color: #9D174D; }
+.tag.image { background: #E0E7FF; color: #3730A3; }
+.tag.carousel { background: #CCFBF1; color: #0F766E; }
+.rag { display: inline-block; font-size: 10px; padding: 2px 9px; border-radius: 999px; font-weight: bold; letter-spacing: .02em; }
+.rag.GREEN, .rag.SCALE { background: #DCFCE7; color: #15803D; }
+.rag.AMBER, .rag.KEEP { background: #FEF3C7; color: #B45309; }
+.rag.RED, .rag.KILL { background: #FEE2E2; color: #B91C1C; }
+.rag.NT { background: #E5E7EB; color: #6B7280; }
+.ragsummary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.ragsummary .rag { font-size: 11px; padding: 4px 12px; }
+.statrow { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat { flex: 1; min-width: 110px; background: #F9FAFB; border-radius: 8px; padding: 10px; }
+.stat .label { font-size: 10px; color: #6B7280; text-transform: uppercase; letter-spacing: .04em; }
+.stat .value { font-size: 18px; font-weight: bold; margin-top: 3px; }
+.err { background: #FEE2E2; border: 1px solid #FECACA; color: #991B1B; border-radius: 8px; padding: 10px; font-size: 12px; margin: 8px 0; }
+.loading { color: #6B7280; font-size: 12px; padding: 16px; text-align: center; }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; }
+.controls select, .controls input { font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid #D1D5DB; font-family: inherit; }
+.controls label { color: #6B7280; text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+.sheetlink { font-size: 10px; color: #2563EB; text-decoration: none; margin-left: 8px; }
+.sheetlink:hover { text-decoration: underline; }
+.caption { color: #4B5563; font-size: 11px; max-width: 280px; }
+.captionshort { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.postlink { font-size: 10px; color: #2563EB; text-decoration: none; }
+.postlink:hover { text-decoration: underline; }
+.subtle { color: #9CA3AF; font-size: 10px; }
+.pos { color: #15803D; }
+.neg { color: #B91C1C; }
+tr.clusterrow td { background: #EEF2F7; font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #334155; border-bottom: 1px solid #E2E8F0; padding-top: 8px; padding-bottom: 8px; }
+.note { color: #92400E; font-size: 11px; background: #FEF3C7; border-radius: 6px; padding: 2px 6px; display: inline-block; max-width: 200px; }
+.pillrow { display: flex; gap: 6px; align-items: center; margin: 6px 0 4px; }
+.pill { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #F3F4F6; color: #4B5563; }
+.notice { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; border-radius: 8px; padding: 8px 12px; font-size: 11px; margin-bottom: 10px; }
+.warn { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; border-radius: 8px; padding: 8px 12px; font-size: 11px; margin-bottom: 10px; }
+footer { color: #9CA3AF; font-size: 11px; text-align: center; padding: 8px 0 2px; }
+/* Summary interactivity (v4.2) */
+.rangebtns { display: inline-flex; gap: 2px; background: #F1F5F9; border-radius: 8px; padding: 2px; }
+.rangebtns button { border: 0; background: transparent; color: #64748B; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.rangebtns button.active { background: #fff; color: #0F172A; box-shadow: 0 1px 2px rgba(16,24,40,.12); }
+#gltable tr:not(.clusterrow):hover td { background: #F8FAFC; }
+tr.clusterrow { cursor: pointer; user-select: none; }
+tr.clusterrow:hover td { background: #E2E8F0; }
+tr.clusterrow .chev { display: inline-block; width: 14px; color: #64748B; transition: transform .15s; }
+tr.clusterrow.collapsed .chev { transform: rotate(-90deg); }
+tr.hiddenrow { display: none; }
+.sparkline polyline { stroke-dasharray: 100; stroke-dashoffset: 100; animation: sparkdraw .9s ease-out forwards; }
+@keyframes sparkdraw { to { stroke-dashoffset: 0; } }
+/* IG/TT content card grid (v4.2) */
+.cardgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 12px; }
+.ccard { background: #fff; border: 1px solid #E8ECF3; border-left: 3px solid #CBD5E1; border-radius: 14px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(16,24,40,.06); display: flex; flex-direction: column; gap: 8px; transition: transform .12s ease, box-shadow .12s ease; }
+.ccard:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,24,40,.12); }
+.ccard.hot { border-left-color: #16A34A; }
+.ccard.cold { border-left-color: #DC2626; }
+.ccard .toprow { display: flex; align-items: center; gap: 8px; }
+.ccard .toprow .date { font-size: 10px; color: #64748B; }
+.ccard .toprow .postlink { margin-left: auto; }
+.ccard .cap { color: #334155; font-size: 12px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+.mchips { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: auto; }
+.mchip { font-size: 10px; background: #F8FAFC; border: 1px solid #EEF2F7; color: #64748B; border-radius: 6px; padding: 3px 7px; white-space: nowrap; }
+.mchip b { color: #0F172A; font-variant-numeric: tabular-nums; }
+.mchip.hot { background: #F0FDF4; border-color: #DCFCE7; color: #15803D; }
+.mchip.hot b { color: #15803D; }
+.mchip.cold { background: #FEF2F2; border-color: #FEE2E2; color: #B91C1C; }
+.mchip.cold b { color: #B91C1C; }
+.ccard .note { max-width: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Maki &amp; Ramen — Marketing Hub</h1>
+  <div class="sub" id="asof">Loading…</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="summary" class="active">Summary</button>
+  <button data-tab="instagram">Instagram</button>
+  <button data-tab="tiktok">TikTok</button>
+  <button data-tab="google">Google</button>
+  <button data-tab="paid">Paid media</button>
+  <button data-tab="budget">Budget</button>
+  <button data-tab="matrix">Add/Remove</button>
+  <button data-tab="manual">Manual feeds</button>
+</nav>
+
+<!-- ================================================================ -->
+<!-- SUMMARY TAB                                                       -->
+<!-- ================================================================ -->
+<div id="tab-summary" class="tabpane active">
+  <div class="cards" id="cards"><div class="loading">Pulling live data…</div></div>
+
+  <div class="section">
+    <h2 title="Kobas Cash Log → COVERS_SALES_DAILY · targets = Mona Lisa weekly sales ÷ £22 SPH · green ≥100% · amber ≥85%">Green Light — covers vs target <span class="subtle" style="cursor:help">ⓘ</span></h2>
+    <div class="controls" style="justify-content:space-between">
+      <div class="sub" id="glweek"></div>
+      <div class="rangebtns" id="glrange">
+        <button data-range="1" class="active">Last week</button>
+        <button data-range="4">4 weeks</button>
+        <button data-range="12">12 weeks</button>
+      </div>
+    </div>
+    <div class="ragsummary" id="glsummary"></div>
+    <table>
+      <thead><tr><th>Site</th><th class="num">Covers</th><th class="num">vs target</th><th class="num">WoW</th><th>Trend · 12wk</th><th></th></tr></thead>
+      <tbody id="gltable"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- INSTAGRAM TAB                                                     -->
+<!-- ================================================================ -->
+<div id="tab-instagram" class="tabpane">
+  <div class="section">
+    <h2>Instagram — content library</h2>
+    <div class="src">Last 90 days · post-level · via Windsor into CONTENT_LIBRARY (AUTO)
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1yMuNa771vy2UeDovS9_qBnf0TLgu7Qhe0dbaE1QHqYs/edit" target="_blank">open sheet ↗</a>
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1fA6J0ri8Gz3RpG0SMSbZyR6uSHXB8XvUw9u1URpHntU/edit" target="_blank">annotate ↗</a>
+    </div>
+    <div class="controls">
+      <label>Type</label>
+      <select id="ig-type">
+        <option value="">All</option>
+        <option value="REELS">Reels</option>
+        <option value="CAROUSEL_ALBUM">Carousel</option>
+        <option value="IMAGE">Image</option>
+      </select>
+      <label>Sort</label>
+      <select id="ig-sort">
+        <option value="date">Newest</option>
+        <option value="reach">Reach</option>
+        <option value="eng">Engagement</option>
+        <option value="engrate">Eng/Reach</option>
+        <option value="watch">Watch time</option>
+      </select>
+    </div>
+    <div class="sub" style="margin-bottom:8px">Card accent: <span class="rag GREEN">green ≥6% eng/reach</span> <span class="rag RED">red &lt;2%</span> — same thresholds as the Add/Remove matrix</div>
+    <div class="cardgrid" id="ig-cards"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- TIKTOK TAB                                                        -->
+<!-- ================================================================ -->
+<div id="tab-tiktok" class="tabpane">
+  <div class="section">
+    <h2>TikTok — content library</h2>
+    <div class="src">Last 90 days · video-level · via Windsor into CONTENT_LIBRARY (AUTO)
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1yMuNa771vy2UeDovS9_qBnf0TLgu7Qhe0dbaE1QHqYs/edit" target="_blank">open sheet ↗</a>
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1fA6J0ri8Gz3RpG0SMSbZyR6uSHXB8XvUw9u1URpHntU/edit" target="_blank">annotate ↗</a>
+    </div>
+    <div class="controls">
+      <label>Sort</label>
+      <select id="tt-sort">
+        <option value="date">Newest</option>
+        <option value="views">Views</option>
+        <option value="reach">Reach</option>
+        <option value="eng">Engagement</option>
+        <option value="engrate">Eng/Reach</option>
+        <option value="watch">Watch time</option>
+        <option value="followers">Followers +</option>
+      </select>
+    </div>
+    <div class="sub" style="margin-bottom:8px">Card accent: <span class="rag GREEN">green ≥6% eng/reach</span> <span class="rag RED">red &lt;2%</span> — same thresholds as the Add/Remove matrix</div>
+    <div class="cardgrid" id="tt-cards"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- GOOGLE TAB — GA4 + sources + pages + GBP + Google Ads             -->
+<!-- ================================================================ -->
+<div id="tab-google" class="tabpane">
+  <div class="grid2">
+    <div class="section">
+      <h2>GA4 — website last 28 days</h2>
+      <div class="src">makiramen.com via Windsor</div>
+      <div class="chartwrap"><canvas id="ga4chart"></canvas></div>
+    </div>
+    <div class="section">
+      <h2>Google Business Profile — last 28 days</h2>
+      <div class="src">All-sites totals (per-site split possible later — 19 locations listed in Windsor) via Windsor</div>
+      <div class="statrow" id="gbpstats"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="section">
+      <h2>Traffic sources — last 28 days</h2>
+      <div class="src">GA4 source/medium grouped · via Windsor</div>
+      <div class="warn" id="ga4-directwarn" style="display:none"></div>
+      <table>
+        <thead><tr><th>Channel</th><th class="num">Sessions</th><th class="num">Share</th></tr></thead>
+        <tbody id="ga4-sources"><tr><td colspan="3" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h2>Top pages — last 28 days</h2>
+      <div class="src">GA4 page titles by sessions · via Windsor</div>
+      <table>
+        <thead><tr><th>Page</th><th class="num">Sessions</th></tr></thead>
+        <tbody id="ga4-pages"><tr><td colspan="2" class="loading">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="section">
+    <h2>Google Ads — last 30 days</h2>
+    <div class="src">By campaign · via Windsor</div>
+    <table>
+      <thead><tr><th>Campaign</th><th class="num">Spend</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Conv.</th><th class="num">CPA</th></tr></thead>
+      <tbody id="gads-table"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="notice"><strong>Search Console:</strong> not yet connected in Windsor — connect it (windsor.ai → searchconsole) to see the search queries driving clicks. On the action list.</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- PAID MEDIA TAB — Meta + TikTok                                    -->
+<!-- ================================================================ -->
+<div id="tab-paid" class="tabpane">
+  <div class="section">
+    <h2>Meta Ads — last 30 days</h2>
+    <div class="src">Facebook + Instagram Ads by campaign · via Windsor · kill/keep/scale from ADD_REMOVE_MATRIX · conv = purchases + leads</div>
+    <table>
+      <thead><tr><th>Campaign</th><th class="num">Spend</th><th class="num">Share</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Conv.</th><th class="num">CPA</th><th>Auto flag</th></tr></thead>
+      <tbody id="meta-table"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="section">
+    <h2>TikTok Ads</h2>
+    <div class="src">Live since 1 Jul 2026 · budget £1,400/mo</div>
+    <div class="warn"><strong>Campaign detail blocked:</strong> TikTok ads are spending (£162 in week 1 per the expense tracker) but the TikTok Ads connector is not yet connected in Windsor — spend is invisible to the budget board until it is. Connect at windsor.ai → tiktok. The daily pull is already wired to pick it up automatically.</div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- BUDGET TAB                                                        -->
+<!-- ================================================================ -->
+<div id="tab-budget" class="tabpane">
+  <div class="cards" id="budget-cards"><div class="loading">Loading budget board…</div></div>
+
+  <div class="grid2">
+    <div class="section">
+      <h2>Ad spend — daily</h2>
+      <div class="src">Meta · Google · TikTok · from PAID_MEDIA_DAILY</div>
+      <div class="chartwrap"><canvas id="spendchart"></canvas></div>
+    </div>
+    <div class="section">
+      <h2>Spend distribution — MTD</h2>
+      <div class="src">Ad channels + non-ad log</div>
+      <div class="chartwrap"><canvas id="distchart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Budget vs actual — month to date</h2>
+    <div class="src">BUDGET_BOARD (AUTO) · recomputed daily 9–10am · ad actuals auto from PAID_MEDIA_DAILY · non-ad from NON_AD_SPEND_LOG
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1YQ-wIRBm176xBpOssgX605fTWowRwy_8akwczTePHFI/edit" target="_blank">set caps ↗</a>
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1V0hsjnqnSlB70S97u7Emt86qzUwQF52kUnDT4lDum2k/edit" target="_blank">log non-ad spend ↗</a>
+    </div>
+    <div class="notice">
+      <strong>Caps CONFIRMED 7 Jul (Michael, from budget doc):</strong> Meta £3,200 · Google £2,000 · TikTok £1,400 · Influencer £500 · Events £2,000 · Collaborations £1,000 · System Bills £400 · Travel £100 · Props £100 — total £10,700/mo.
+      <strong>RAG:</strong> RED = pace &gt;110% of month-elapsed or unbudgeted spend · AMBER = 100–110% · GREEN = on/under pace.
+    </div>
+    <table>
+      <thead><tr><th>Channel</th><th class="num">Budget</th><th class="num">Actual MTD</th><th class="num">Pace</th><th class="num">Projected month-end</th><th class="num">Headroom</th><th>RAG</th></tr></thead>
+      <tbody id="budget-table"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Ad spend history — by month</h2>
+    <div class="src">PAID_MEDIA_DAILY monthly totals vs caps in MARKETING_BUDGET · builds automatically as months accrue</div>
+    <table>
+      <thead><tr><th>Month</th><th class="num">Meta</th><th class="num">Meta cap</th><th class="num">Google</th><th class="num">Google cap</th><th class="num">TikTok</th><th class="num">TikTok cap</th><th class="num">Total ads</th></tr></thead>
+      <tbody id="history-table"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Non-ad spend log — this month</h2>
+    <div class="src">NON_AD_SPEND_LOG · manual entries by the team (influencer, print, events, collaborations, bills, travel, props, other)</div>
+    <table>
+      <thead><tr><th>Date</th><th>Channel</th><th>Site</th><th>Description</th><th class="num">£</th><th>Owner</th><th>Invoice</th></tr></thead>
+      <tbody id="nonad-table"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- ADD / REMOVE MATRIX TAB                                           -->
+<!-- ================================================================ -->
+<div id="tab-matrix" class="tabpane">
+  <div class="section">
+    <h2>Add / Remove matrix</h2>
+    <div class="src">Auto flag from CONTENT_LIBRARY + PAID_MEDIA_DAILY · manual_confirm overrides · decisions raised in the weekly digital meeting
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">confirm in sheet ↗</a>
+    </div>
+    <div class="notice">
+      <strong>Organic rule:</strong> KILL if median eng/reach &lt;2% OR saves+shares/reach &lt;0.5% (last 28d, ≥3 posts). SCALE if median eng/reach ≥6% OR any post ≥3× rolling median reach.<br>
+      <strong>Paid rule (CPA, approved 7 Jul):</strong> SCALE if CPA ≤£5 with 5+ conversions · KILL if CPA &gt;£12 after £50+ spend, or zero conversions after £75+ (last 30d). Awareness/boost campaigns keep the CTR/CPC rule (KILL CTR&lt;0.8% + CPC&gt;£1.50 · SCALE CTR&gt;1.5% + CPC&lt;£0.60).
+    </div>
+    <div class="controls">
+      <label><input type="checkbox" id="matrix-showall"> Show confirmed too</label>
+    </div>
+    <table>
+      <thead><tr><th>Type</th><th>Name</th><th>Platform</th><th>Window</th><th class="num">Sample</th><th>Metric 1</th><th>Metric 2</th><th>Auto flag</th><th>Reason</th><th>Team confirm</th></tr></thead>
+      <tbody id="matrix-table"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- MANUAL FEEDS TAB                                                  -->
+<!-- ================================================================ -->
+<div id="tab-manual" class="tabpane">
+  <div class="section">
+    <h2>Manual feeds</h2>
+    <div class="src">Rednote · Deliveroo/Uber Eats/Just Eat ratings · print · local · from MANUAL_FEEDS sheet
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1e3uiRhFQ7sRaG_n8lKIRcJBgQjZ6Ziq5uHjJVMV1_bE/edit" target="_blank">update sheet ↗</a>
+    </div>
+    <div class="notice">
+      Team fills MANUAL_FEEDS weekly. Dashboard shows latest values with a "last updated" stamp per feed.
+    </div>
+    <table>
+      <thead><tr><th>Feed</th><th>Site</th><th>Week</th><th>Metric</th><th class="num">Value</th><th>Note</th><th>Updated</th></tr></thead>
+      <tbody id="manual-table"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>M&amp;R Marketing Hub · web edition v1.0 · live data via the M&amp;R Apps Script API (Windsor datasets cached ~30 min) · budget board + watchdog + Monday wrap run in Apps Script</footer>
+
+<script>
+'use strict';
+
+// =====================================================================
+// CONFIG — sheet IDs and Klaviyo segments
+// =====================================================================
+var API_URL = 'https://script.google.com/macros/s/AKfycbz2fToIaHMuEeq7gsVs_m1v7TPiEtd5kwb0nB69DbAlDrouxaLrcQRc8yfwC8snmI4WPQ/exec';
+var SHEETS = {
+  CONTENT_LIBRARY: 'content_library',
+  CONTENT_ANNOTATIONS: 'annotations',
+  ADD_REMOVE_MATRIX: 'matrix',
+  MANUAL_FEEDS: 'manual_feeds',
+  GREEN_LIGHT_BOARD: 'green_light',
+  BUDGET_BOARD: 'budget_board',
+  MARKETING_BUDGET: 'marketing_budget',
+  NON_AD_SPEND_LOG: 'non_ad_log',
+  PAID_MEDIA_DAILY: 'paid_daily'
+};
+
+// =====================================================================
+// TABS
+// =====================================================================
+var loaded = {}; // tab id → true once first-loaded
+var TAB_KEY = 'mrhub-active-tab';
+
+function activateTab(name) {
+  document.querySelectorAll('nav.tabs button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('.tabpane').forEach(function(p) {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+  try { localStorage.setItem(TAB_KEY, name); } catch (e) {}
+  if (!loaded[name]) {
+    loaded[name] = true;
+    loadTab(name);
+  }
+}
+
+document.querySelectorAll('nav.tabs button').forEach(function(b) {
+  b.addEventListener('click', function() { activateTab(b.dataset.tab); });
+});
+
+// =====================================================================
+// DATA LAYER — one JSON payload from the Apps Script web API
+// =====================================================================
+var DATA = null;
+var _dataPromise = null;
+function loadData() {
+  if (!_dataPromise) {
+    _dataPromise = fetch(API_URL).then(function(r) {
+      if (!r.ok) throw new Error('data API HTTP ' + r.status);
+      return r.json();
+    }).then(function(d) { DATA = d; return d; });
+  }
+  return _dataPromise;
+}
+
+async function getWindsor(connector, fields) {
+  var d = await loadData();
+  if (connector === 'facebook') return d.meta30 || [];
+  if (connector === 'google_ads') return d.gads30 || [];
+  if (connector === 'google_my_business') return d.gbp28 || [];
+  if (connector === 'googleanalytics4') {
+    if (fields.indexOf('source') !== -1) return d.sources28 || [];
+    if (fields.indexOf('pagetitle') !== -1) return d.pages28 || [];
+    return d.ga4_28 || [];
+  }
+  return [];
+}
+
+async function readSheetCsv(key) {
+  var d = await loadData();
+  return d[key] || [];
+}
+
+// Parse the markdown-table format the Drive MCP returns for a Google Sheet.
+// Layout: empty header row | alignment row (:-:) | real header | data rows.
+// Backslash-escaped chars like week\_commencing need unescaping.
+function parseCsv(txt) {
+  if (!txt) return [];
+  var lines = String(txt).split('\n').filter(function(l) { return l.trim().indexOf('|') === 0; });
+  var rows = lines.map(function(l) {
+    var inner = l.trim().replace(/^\|/, '').replace(/\|$/, '');
+    return inner.split('|').map(function(c) {
+      return c.trim().replace(/\\([_*|`\[\]])/g, '$1');
+    });
+  });
+  return rows.filter(function(r) {
+    return !r.every(function(c) { return /^:?-+:?$/.test(c); });
+  });
+}
+
+function csvToObjects(txt) {
+  if (Array.isArray(txt)) return txt;
+  var rows = parseCsv(txt);
+  if (!rows.length) return [];
+  var headerIdx = 0;
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].some(function(c) { return c && c.trim(); })) { headerIdx = i; break; }
+  }
+  var header = rows[headerIdx].map(function(h) { return h.trim(); });
+  return rows.slice(headerIdx + 1).filter(function(r) {
+    return r.some(function(v) { return v && v.trim(); });
+  }).map(function(r) {
+    var o = {};
+    header.forEach(function(h, i) { o[h] = r[i] != null ? r[i] : ''; });
+    return o;
+  });
+}
+
+// =====================================================================
+// FORMATTING
+// =====================================================================
+function fmtN(n, dp) { if (n == null || n === '' || isNaN(+n)) return '—'; var f = new Intl.NumberFormat('en-GB', {maximumFractionDigits: dp||0}); return f.format(+n); }
+function fmtGbp(n) { if (n == null || n === '' || isNaN(+n)) return '—'; return '£' + Number(n).toLocaleString('en-GB', {maximumFractionDigits: 0}); }
+function fmtGbp2(n) { if (n == null || n === '' || isNaN(+n)) return '—'; return '£' + Number(n).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+function fmtPct(n) { if (n == null || n === '' || isNaN(+n)) return '—'; return (Number(n) * 100).toFixed(2) + '%'; }
+function fmtDate(v) { if (!v) return '—'; return String(v).slice(0, 10); }
+function fmtWatch(ms) { var n = Number(ms); if (!n || isNaN(n)) return '—'; return (n / 1000).toFixed(1) + 's'; }
+function shortCaption(s) { if (!s) return ''; s = String(s); return s.length > 90 ? s.slice(0, 89) + '…' : s; }
+function typeTag(t) {
+  var c = (t || '').toLowerCase();
+  if (c.indexOf('reel') === 0 || c === 'reels') return '<span class="tag reel">REEL</span>';
+  if (c === 'carousel_album') return '<span class="tag carousel">CAROUSEL</span>';
+  if (c === 'image') return '<span class="tag image">IMAGE</span>';
+  if (c === 'video') return '<span class="tag tt">VIDEO</span>';
+  return t || '—';
+}
+
+// =====================================================================
+// DISPATCH — tab loaders
+// =====================================================================
+async function loadTab(name) {
+  try {
+    if (name === 'summary') return await loadSummary();
+    if (name === 'instagram') return await loadInstagram();
+    if (name === 'tiktok') return await loadTikTok();
+    if (name === 'google') return await loadGoogle();
+    if (name === 'paid') return await loadMetaPaid();
+    if (name === 'budget') return await loadBudget();
+    if (name === 'matrix') return await loadMatrix();
+    if (name === 'manual') return await loadManual();
+  } catch (e) {
+    var pane = document.getElementById('tab-' + name);
+    if (pane) {
+      var err = document.createElement('div');
+      err.className = 'err';
+      err.textContent = 'Load error: ' + (e.message || e);
+      pane.insertBefore(err, pane.firstChild);
+    }
+    console.error(name, e);
+  }
+}
+
+// =====================================================================
+// SUMMARY TAB
+// =====================================================================
+async function loadSummary() {
+  var [kpiData, glCsv, bbCsv] = await Promise.all([
+    loadKpiData().catch(function(e) { return {_err: e.message}; }),
+    readSheetCsv(SHEETS.GREEN_LIGHT_BOARD).catch(function(e) { return ''; }),
+    readSheetCsv(SHEETS.BUDGET_BOARD).catch(function(e) { return ''; })
+  ]);
+  renderCards(kpiData, bbCsv, glCsv);
+  renderGreenLight(glCsv);
+  document.getElementById('asof').textContent = 'Data as of ' + ((DATA && DATA.generated_at) ? String(DATA.generated_at).replace('T', ' ') + ' UK' : new Date().toLocaleString('en-GB'));
+}
+
+async function loadKpiData() {
+  var [meta30, gads30, ga428, klaviyoActive] = await Promise.all([
+    getWindsor('facebook', ['campaign','spend','impressions','clicks','actions_purchase','actions_lead'], {date_preset: 'last_30d'}),
+    getWindsor('google_ads', ['campaign','spend','impressions','clicks','conversions'], {date_preset: 'last_30d'}),
+    getWindsor('googleanalytics4', ['date','sessions'], {date_preset: 'last_28d'}),
+    Promise.resolve(null) // Klaviyo: not wired into the web API yet
+  ]);
+  var totMeta = 0, totMetaConv = 0;
+  meta30.forEach(function(r) {
+    totMeta += Number(r.spend) || 0;
+    totMetaConv += (Number(r.actions_purchase) || 0) + (Number(r.actions_lead) || 0);
+  });
+  var totGads = 0, totGadsConv = 0;
+  gads30.forEach(function(r) {
+    totGads += Number(r.spend) || 0;
+    totGadsConv += Number(r.conversions) || 0;
+  });
+  var totSessions = ga428.reduce(function(s, r) { return s + (Number(r.sessions) || 0); }, 0);
+  var sessionsSeries = ga428.map(function(r) { return Number(r.sessions) || 0; });
+  var active = 0;
+  try {
+    var res = klaviyoActive && klaviyoActive.data && klaviyoActive.data.attributes && klaviyoActive.data.attributes.results;
+    if (res && res.length) active = res[res.length - 1].measurements.members[res[res.length - 1].measurements.members.length - 1];
+  } catch (e) {}
+  return {totMeta: totMeta, totGads: totGads, totMetaConv: totMetaConv, totGadsConv: totGadsConv, totSessions: totSessions, sessionsSeries: sessionsSeries, active: active};
+}
+
+function renderCards(d, bbCsv, glCsv) {
+  var el = document.getElementById('cards');
+  if (d._err) { el.innerHTML = '<div class="err">KPI load: ' + d._err + '</div>'; return; }
+  // Budget pace — goal ring
+  var budgetCard = '';
+  try {
+    var tot = csvToObjects(bbCsv || '').filter(function(r) { return r.channel === 'TOTAL'; })[0];
+    if (tot) {
+      var paceN = Number(tot.spend_pace_pct);
+      var paceRag = String(tot.rag || '').replace(/\s/g, '').toUpperCase();
+      var col = paceRag === 'RED' ? '#DC2626' : paceRag === 'AMBER' ? '#D97706' : '#16A34A';
+      var deg = Math.min(360, Math.max(0, (isNaN(paceN) ? 0 : paceN) * 3.6));
+      budgetCard = '<div class="card"><div class="label">Budget pace · MTD</div>' +
+        '<div class="ringrow"><div class="ring" style="background:conic-gradient(' + col + ' ' + deg + 'deg, #E5E7EB 0)"><div class="ringin v-' + paceRag + '">' + (isNaN(paceN) ? '—' : paceN.toFixed(0) + '%') + '</div></div>' +
+        '<div class="delta">' + fmtGbp(tot.actual_mtd_gbp) + ' of ' + fmtGbp(tot.budget_gbp) + '<br><span class="rag ' + (paceRag || 'NT') + '">' + (tot.rag || '—') + '</span></div></div></div>';
+    }
+  } catch (e) {}
+  // Covers hero card: completed week total + WoW + WTD + 12wk trend sparkline
+  var coversCard = '';
+  var heroSeries = [];
+  try {
+    var g = glParse(glCsv || '');
+    if (g.report) {
+      var repTot = g.weeks[g.report].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0);
+      var wtd = g.current ? g.weeks[g.current].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0) : 0;
+      var prevTot = g.prev ? g.weeks[g.prev].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0) : 0;
+      var wow = prevTot > 0 ? repTot / prevTot - 1 : null;
+      heroSeries = (g.completed || []).slice(-12).map(function(w) {
+        return g.weeks[w].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0);
+      });
+      coversCard = '<div class="card hero"><div class="label">Covers · wk of ' + fmtWc(g.report) + '</div><div class="value" data-count="' + repTot + '">' + fmtN(repTot) + '</div>' +
+        '<div class="delta">' + (wow != null ? signedPct(wow) + ' WoW · ' : '') + (wtd > 0 ? 'this wk so far ' + fmtN(wtd) : 'this wk: no data yet (covers lag)') + '</div>' +
+        (heroSeries.length > 1 ? '<div class="sparkwrap"><canvas id="covers-spark"></canvas></div>' : '') + '</div>';
+    }
+  } catch (e) {}
+  // Blended CPA card
+  var conv = (d.totMetaConv || 0) + (d.totGadsConv || 0);
+  var cpa = conv > 0 ? (d.totMeta + d.totGads) / conv : null;
+  var cpaCard = '<div class="card"><div class="label">Blended CPA · 30d</div><div class="value"' + (cpa != null ? ' data-count="' + cpa + '" data-fmt="gbp2"' : '') + '>' + (cpa != null ? fmtGbp2(cpa) : '—') + '</div>' +
+    '<div class="delta">' + fmtN(conv) + ' conv (Meta purch+leads ' + fmtN(d.totMetaConv) + ' · Google ' + fmtN(d.totGadsConv, 0) + ')</div></div>';
+  var sessCard = '<div class="card"><div class="label">Sessions · 28d</div><div class="value" data-count="' + (d.totSessions || 0) + '">' + fmtN(d.totSessions) + '</div><div class="sparkwrap"><canvas id="sess-spark"></canvas></div></div>';
+  var klaviyoCard = '<div class="card"><div class="label">Klaviyo active · email <span class="subtle">(desktop Hub only)</span></div><div class="value"' + (d.active ? ' data-count="' + d.active + '"' : '') + '>' + fmtN(d.active) + '</div></div>';
+  el.innerHTML =
+    coversCard +
+    budgetCard +
+    cpaCard +
+    sessCard +
+    klaviyoCard;
+  if (d.sessionsSeries && d.sessionsSeries.length) drawSpark('sess-spark', d.sessionsSeries);
+  if (heroSeries.length > 1) drawSpark('covers-spark', heroSeries, '#FCA5A5', 'rgba(252,165,165,.14)');
+  animateCounts(el);
+}
+function card(label, value) { return '<div class="card"><div class="label">' + label + '</div><div class="value">' + value + '</div></div>'; }
+
+function drawSpark(id, series, color, fillCol) {
+  var el = document.getElementById(id);
+  if (!el || typeof Chart === 'undefined') return;
+  new Chart(el, {
+    type: 'line',
+    data: {labels: series.map(function(_, i) { return i; }), datasets: [{data: series, borderColor: color || '#E11D48', borderWidth: 1.5, pointRadius: 0, fill: 'origin', backgroundColor: fillCol || 'rgba(225,29,72,.08)', tension: .35}]},
+    options: {responsive: true, maintainAspectRatio: false, animation: {duration: 900, easing: 'easeOutQuart'}, plugins: {legend: {display: false}, tooltip: {enabled: false}}, scales: {x: {display: false}, y: {display: false}}}
+  });
+}
+
+// Inline SVG sparkline with a draw-on animation (nulls = site missing that week, skipped)
+function sparkSvg(series, w, h, color) {
+  var pts = [];
+  var vals = (series || []).filter(function(v) { return v != null; });
+  if (vals.length < 2) return '<span class="subtle">—</span>';
+  var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+  var span = max - min || 1;
+  var xs = series.length - 1 || 1;
+  series.forEach(function(v, i) {
+    if (v == null) return;
+    var x = i / xs * (w - 2) + 1;
+    var y = h - 2 - ((v - min) / span) * (h - 4);
+    pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+  });
+  return '<svg class="sparkline" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+    '<polyline fill="none" stroke="' + color + '" stroke-width="1.5" pathLength="100" points="' + pts.join(' ') + '"/></svg>';
+}
+
+// Count-up animation for KPI card numbers
+function animateCounts(root) {
+  Array.prototype.forEach.call(root.querySelectorAll('[data-count]'), function(el) {
+    var target = Number(el.getAttribute('data-count'));
+    if (isNaN(target)) return;
+    var fmt = el.getAttribute('data-fmt') || 'int';
+    var t0 = null, dur = 850;
+    function frame(t) {
+      if (t0 == null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var v = target * (1 - Math.pow(1 - p, 3));
+      el.textContent = fmt === 'gbp2'
+        ? '£' + v.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2})
+        : new Intl.NumberFormat('en-GB', {maximumFractionDigits: 0}).format(Math.round(v));
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+// Inline fill-bar cell: right-aligned number over a proportional soft bar
+function barCell(val, max, text, color) {
+  var pct = max > 0 ? Math.min(100, Math.max(2, val / max * 100)) : 0;
+  return '<td class="num fillbar" style="background-image:linear-gradient(90deg,' + color + ' ' + pct.toFixed(1) + '%, transparent ' + pct.toFixed(1) + '%)">' + text + '</td>';
+}
+
+// Site code → name (from the site directory; unknown codes fall back to the code itself)
+var SITE_NAMES = {
+  M1: 'Nicolson', M3: 'Fountainbridge', M6: 'Bath Street', M7: 'SJQ', M8: 'Renfield', M9: 'York Street', M10: 'Leeds',
+  M11: 'Leicester', M12: 'Newcastle', M13: 'Aberdeen', M14: 'Meadowhall', M15: 'Metrocentre',
+  M16: 'Nottingham', M17: 'Lakeside', M18: 'Soho', M19: 'Shoreditch', M20: 'Southampton', NORI: 'Maki Nori', IKIGAI: 'Ikigai'
+};
+var CLUSTERS = {
+  'Scotland & Newcastle': ['M1', 'M2', 'M3', 'M6', 'M7', 'M8', 'M12', 'M13', 'M15', 'IKIGAI'],
+  'North England & Midlands': ['M9', 'M10', 'M11', 'M14', 'M16'],
+  'South England': ['M17', 'M18', 'M19', 'M20', 'NORI']
+};
+function clusterOf(code) {
+  code = String(code || '').toUpperCase();
+  for (var k in CLUSTERS) if (CLUSTERS[k].indexOf(code) !== -1) return k;
+  return 'Other';
+}
+function siteLabel(code) {
+  var n = SITE_NAMES[String(code || '').toUpperCase()];
+  return n ? '<strong>' + n + '</strong> <span class="subtle">' + code + '</span>' : '<strong>' + (code || '') + '</strong>';
+}
+function fmtWc(iso) {
+  var d = new Date(iso);
+  if (isNaN(d)) return iso || '';
+  return d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+}
+function signedPct(x) {
+  if (x == null || isNaN(x)) return '—';
+  var s = (x > 0 ? '↑ ' : x < 0 ? '↓ ' : '') + Math.abs(x * 100).toFixed(1) + '%';
+  return '<span class="' + (x >= 0 ? 'pos' : 'neg') + '">' + s + '</span>';
+}
+// Group GREEN_LIGHT_BOARD rows into weeks; report = latest completed week (7 days traded),
+// prev = completed week before it (feeds WoW), current = in-progress week after it.
+function glParse(csv) {
+  var rows = csvToObjects(csv);
+  var weeks = {};
+  rows.forEach(function(r) {
+    var w = String(r.week_commencing || '').slice(0, 10);
+    if (!w) return;
+    (weeks[w] = weeks[w] || []).push(r);
+  });
+  var keys = Object.keys(weeks).sort();
+  var completed = keys.filter(function(w) {
+    return weeks[w].some(function(r) { return (Number(r.days_traded) || 0) >= 7; });
+  });
+  var report = completed.length ? completed[completed.length - 1] : (keys.length ? keys[keys.length - 1] : null);
+  var prev = completed.length > 1 ? completed[completed.length - 2] : null;
+  var later = keys.filter(function(w) { return report && w > report; });
+  return {rows: rows, weeks: weeks, completed: completed, report: report, prev: prev, current: later.length ? later[later.length - 1] : null};
+}
+
+var glCsvCache = '';
+var glRangeN = 1;
+var glCollapsed = {};
+var GL_CLUSTER_ORDER = ['Scotland & Newcastle', 'North England & Midlands', 'South England', 'Other'];
+
+function renderGreenLight(csv) {
+  glCsvCache = csv;
+  var g = glParse(csv);
+  var tbody = document.getElementById('gltable');
+  var summary = document.getElementById('glsummary');
+  var weekEl = document.getElementById('glweek');
+
+  // one-time bindings: range selector + cluster collapse (event delegation survives re-render)
+  var rb = document.getElementById('glrange');
+  if (rb && !rb._bound) {
+    rb._bound = true;
+    rb.addEventListener('click', function(ev) {
+      var b = ev.target.closest('button[data-range]');
+      if (!b) return;
+      glRangeN = Number(b.getAttribute('data-range')) || 1;
+      Array.prototype.forEach.call(rb.querySelectorAll('button'), function(x) { x.classList.toggle('active', x === b); });
+      renderGreenLight(glCsvCache);
+    });
+  }
+  if (tbody && !tbody._bound) {
+    tbody._bound = true;
+    tbody.addEventListener('click', function(ev) {
+      var tr = ev.target.closest('tr.clusterrow');
+      if (!tr) return;
+      var ci = Number(tr.getAttribute('data-ci'));
+      var cname = GL_CLUSTER_ORDER[ci];
+      if (cname == null) return;
+      glCollapsed[cname] = !glCollapsed[cname];
+      renderGreenLight(glCsvCache);
+    });
+  }
+
+  if (!g.rows.length || !g.report) {
+    tbody.innerHTML = '<tr><td colspan="6" class="subtle">GREEN_LIGHT_BOARD (AUTO) empty — run computeGreenLight() in the Apps Script project</td></tr>';
+    summary.innerHTML = '';
+    return;
+  }
+
+  var completed = g.completed || [];
+  var n = Math.max(1, Math.min(glRangeN, completed.length));
+  var rangeWeeks = completed.slice(-n);
+  var prevWeeks = completed.slice(-(n * 2), -n);
+  var hasPrev = prevWeeks.length === n;
+  var trendWeeks = completed.slice(-12);
+
+  if (n === 1) {
+    weekEl.textContent = 'Completed week commencing ' + fmtWc(g.report) + (hasPrev ? ' · WoW vs w/c ' + fmtWc(prevWeeks[0]) : ' · WoW builds as the board history grows');
+  } else {
+    weekEl.textContent = n + ' completed weeks · w/c ' + fmtWc(rangeWeeks[0]) + ' → ' + fmtWc(rangeWeeks[rangeWeeks.length - 1]) +
+      (hasPrev ? ' · Δ vs preceding ' + n + ' weeks' : ' · prior-period Δ needs ' + (n * 2) + ' weeks of history');
+  }
+
+  function sumBySite(weeksArr, field) {
+    var m = {};
+    weeksArr.forEach(function(w) {
+      (g.weeks[w] || []).forEach(function(r) {
+        m[r.site] = (m[r.site] || 0) + (Number(r[field]) || 0);
+      });
+    });
+    return m;
+  }
+  var coversBy = sumBySite(rangeWeeks, 'covers_actual');
+  var targetBy = sumBySite(rangeWeeks, 'covers_target_week');
+  var prevBy = hasPrev ? sumBySite(prevWeeks, 'covers_actual') : {};
+
+  // per-site 12wk trend series (null where the site is missing that week)
+  var trendBy = {};
+  trendWeeks.forEach(function(w, i) {
+    (g.weeks[w] || []).forEach(function(r) {
+      if (!trendBy[r.site]) { trendBy[r.site] = trendWeeks.map(function() { return null; }); }
+      trendBy[r.site][i] = Number(r.covers_actual) || 0;
+    });
+  });
+
+  var RANK = {RED: 0, AMBER: 1, GREEN: 2, NT: 3};
+  var counts = {GREEN: 0, AMBER: 0, RED: 0, NT: 0};
+  var view = Object.keys(coversBy).map(function(s) {
+    var covers = coversBy[s] || 0;
+    var target = targetBy[s] || 0;
+    var pct = target > 0 ? covers / target * 100 : null;
+    var ragKey = pct == null ? 'NT' : pct >= 100 ? 'GREEN' : pct >= 85 ? 'AMBER' : 'RED';
+    counts[ragKey]++;
+    var prevC = prevBy[s];
+    return {site: s, ragKey: ragKey, covers: covers, target: target, prevC: prevC || 0,
+      vsT: target > 0 ? covers / target - 1 : null,
+      wow: prevC > 0 ? covers / prevC - 1 : null,
+      trend: trendBy[s] || []};
+  });
+
+  // Problems first within each cluster: RED → AMBER → GREEN → N/T, worst vs-target first
+  function worstFirst(a, b) {
+    if (RANK[a.ragKey] !== RANK[b.ragKey]) return RANK[a.ragKey] - RANK[b.ragKey];
+    var va = a.vsT != null ? a.vsT : 9, vb = b.vsT != null ? b.vsT : 9;
+    if (va !== vb) return va - vb;
+    return String(a.site || '').localeCompare(String(b.site || ''));
+  }
+  function rowHtml(hidden) {
+    return function(x) {
+      var cls = [];
+      if (x.ragKey === 'GREEN') cls.push('mutedrow');
+      if (hidden) cls.push('hiddenrow');
+      return '<tr' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + '>' +
+        '<td>' + siteLabel(x.site) + '</td>' +
+        '<td class="num">' + fmtN(x.covers) + '</td>' +
+        '<td class="num">' + signedPct(x.vsT) + '</td>' +
+        '<td class="num">' + signedPct(x.wow) + '</td>' +
+        '<td>' + sparkSvg(x.trend, 64, 18, '#94A3B8') + '</td>' +
+        '<td><span class="rag ' + x.ragKey + '">' + (x.ragKey === 'NT' ? 'NO TARGET' : x.ragKey) + '</span></td>' +
+        '</tr>';
+    };
+  }
+  var byCluster = {};
+  view.forEach(function(x) { var c = clusterOf(x.site); (byCluster[c] = byCluster[c] || []).push(x); });
+  var html = '';
+  GL_CLUSTER_ORDER.forEach(function(cname, ci) {
+    var arr = byCluster[cname];
+    if (!arr || !arr.length) return;
+    arr.sort(worstFirst);
+    var covers = 0, target = 0, prevTot = 0, cc = {RED: 0, AMBER: 0, GREEN: 0, NT: 0};
+    arr.forEach(function(x) { covers += x.covers; target += x.target; prevTot += x.prevC; cc[x.ragKey]++; });
+    var cvsT = target > 0 ? covers / target - 1 : null;
+    var cwow = prevTot > 0 ? covers / prevTot - 1 : null;
+    var ctrend = trendWeeks.map(function(_, i) {
+      var tot = 0, has = false;
+      arr.forEach(function(x) { if (x.trend[i] != null) { tot += x.trend[i]; has = true; } });
+      return has ? tot : null;
+    });
+    var collapsed = !!glCollapsed[cname];
+    html += '<tr class="clusterrow' + (collapsed ? ' collapsed' : '') + '" data-ci="' + ci + '" title="Click to ' + (collapsed ? 'expand' : 'collapse') + '">' +
+      '<td><span class="chev">▾</span>' + cname + '</td>' +
+      '<td class="num">' + fmtN(covers) + '</td>' +
+      '<td class="num">' + signedPct(cvsT) + '</td>' +
+      '<td class="num">' + signedPct(cwow) + '</td>' +
+      '<td>' + sparkSvg(ctrend, 64, 18, '#475569') + '</td>' +
+      '<td>' + (cc.RED ? '<span class="rag RED">' + cc.RED + '</span> ' : '') +
+               (cc.AMBER ? '<span class="rag AMBER">' + cc.AMBER + '</span> ' : '') +
+               (cc.GREEN ? '<span class="rag GREEN">' + cc.GREEN + '</span>' : '') + '</td></tr>';
+    html += arr.map(rowHtml(collapsed)).join('');
+  });
+  tbody.innerHTML = html;
+  summary.innerHTML =
+    '<span class="rag RED">RED ' + (counts.RED || 0) + '</span>' +
+    '<span class="rag AMBER">AMBER ' + (counts.AMBER || 0) + '</span>' +
+    '<span class="rag GREEN">GREEN ' + (counts.GREEN || 0) + '</span>' +
+    (counts.NT ? '<span class="rag NT">N/T ' + counts.NT + '</span>' : '');
+}
+
+function computeEngRate(o) {
+  var reach = Number(o.reach) || 0;
+  if (!reach) return 0;
+  return ((Number(o.likes) || 0) + (Number(o.comments) || 0) + (Number(o.saves) || 0) + (Number(o.shares) || 0)) / reach;
+}
+
+// =====================================================================
+// INSTAGRAM & TIKTOK TABS — content library + annotations
+// =====================================================================
+var libCache = null;
+var annCache = null;
+
+async function loadLibraryAndAnnotations() {
+  if (libCache && annCache) return {lib: libCache, ann: annCache};
+  var [libCsv, annCsv] = await Promise.all([
+    readSheetCsv(SHEETS.CONTENT_LIBRARY),
+    readSheetCsv(SHEETS.CONTENT_ANNOTATIONS)
+  ]);
+  libCache = csvToObjects(libCsv);
+  annCache = csvToObjects(annCsv).filter(function(a) { return a.content_id && a.content_id !== 'INSTRUCTIONS'; });
+  return {lib: libCache, ann: annCache};
+}
+
+function annotationMaps(ann) {
+  var byId = {};
+  ann.forEach(function(a) {
+    if (!a.content_id) return;
+    byId[a.content_id] = {series: a.format_series || '', note: a.notes || '', verdict: a.verdict_manual || ''};
+  });
+  return byId;
+}
+
+async function loadInstagram() {
+  var r = await loadLibraryAndAnnotations();
+  var annById = annotationMaps(r.ann);
+  var ig = r.lib.filter(function(x) { return x.platform === 'instagram'; }).map(function(x) {
+    var a = annById[x.content_id] || {};
+    return Object.assign({}, x, {
+      teamNote: a.note || '',
+      engRate: computeEngRate(x)
+    });
+  });
+  ['ig-type', 'ig-sort'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', function() { renderIg(ig); });
+  });
+  renderIg(ig);
+}
+
+// Content-card helpers (v4.2) — accent bands mirror the Add/Remove matrix organic thresholds
+function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function fmtK(n) { n = Number(n); if (n == null || isNaN(n)) return '—'; if (Math.abs(n) >= 10000) return (n / 1000).toFixed(0) + 'k'; if (Math.abs(n) >= 1000) return (n / 1000).toFixed(1) + 'k'; return String(Math.round(n)); }
+function chip(label, val, cls) { return '<span class="mchip' + (cls ? ' ' + cls : '') + '"><b>' + val + '</b> ' + label + '</span>'; }
+function engBand(rate) { return rate >= 0.06 ? 'hot' : (rate > 0 && rate < 0.02 ? 'cold' : ''); }
+function contentCard(r, tag, chips) {
+  var band = engBand(r.engRate);
+  return '<div class="ccard' + (band ? ' ' + band : '') + '">' +
+    '<div class="toprow">' + tag + '<span class="date">' + fmtDate(r.posted_at) + '</span>' +
+      (r.permalink ? '<a class="postlink" href="' + escAttr(r.permalink) + '" target="_blank">open ↗</a>' : '') + '</div>' +
+    '<div class="cap" title="' + escAttr(r.caption) + '">' + escAttr(shortCaption(r.caption)) + '</div>' +
+    (r.teamNote ? '<div><span class="note">' + escAttr(r.teamNote) + '</span></div>' : '') +
+    '<div class="mchips">' + chips.join('') + '</div></div>';
+}
+
+function renderIg(ig) {
+  var t = document.getElementById('ig-type').value;
+  var sort = document.getElementById('ig-sort').value;
+  var view = ig.filter(function(r) {
+    if (t && r.media_type !== t) return false;
+    return true;
+  });
+  var sorters = {
+    date: function(a, b) { return String(b.posted_at).localeCompare(String(a.posted_at)); },
+    reach: function(a, b) { return (Number(b.reach) || 0) - (Number(a.reach) || 0); },
+    eng: function(a, b) { return (Number(b.engagement) || 0) - (Number(a.engagement) || 0); },
+    engrate: function(a, b) { return b.engRate - a.engRate; },
+    watch: function(a, b) { return (Number(b.avg_watch_time_ms) || 0) - (Number(a.avg_watch_time_ms) || 0); }
+  };
+  view.sort(sorters[sort] || sorters.date);
+  var grid = document.getElementById('ig-cards');
+  if (!view.length) { grid.innerHTML = '<div class="subtle">No posts match the filters</div>'; return; }
+  grid.innerHTML = view.map(function(r) {
+    return contentCard(r, typeTag(r.media_type), [
+      chip('reach', fmtK(r.reach)),
+      chip('eng/reach', fmtPct(r.engRate), engBand(r.engRate)),
+      chip('likes', fmtK(r.likes)),
+      chip('comments', fmtK(r.comments)),
+      chip('saves', fmtK(r.saves)),
+      chip('shares', fmtK(r.shares)),
+      (Number(r.avg_watch_time_ms) ? chip('watch', fmtWatch(r.avg_watch_time_ms)) : '')
+    ]);
+  }).join('');
+}
+
+async function loadTikTok() {
+  var r = await loadLibraryAndAnnotations();
+  var annById = annotationMaps(r.ann);
+  var tt = r.lib.filter(function(x) { return x.platform === 'tiktok'; }).map(function(x) {
+    var a = annById[x.content_id] || {};
+    return Object.assign({}, x, {
+      teamNote: a.note || '',
+      engRate: computeEngRate(x)
+    });
+  });
+  document.getElementById('tt-sort').addEventListener('change', function() { renderTt(tt); });
+  renderTt(tt);
+}
+
+function renderTt(tt) {
+  var sort = document.getElementById('tt-sort').value;
+  var view = tt.slice();
+  var sorters = {
+    date: function(a, b) { return String(b.posted_at).localeCompare(String(a.posted_at)); },
+    views: function(a, b) { return (Number(b.views) || 0) - (Number(a.views) || 0); },
+    reach: function(a, b) { return (Number(b.reach) || 0) - (Number(a.reach) || 0); },
+    eng: function(a, b) { return (Number(b.engagement) || 0) - (Number(a.engagement) || 0); },
+    engrate: function(a, b) { return b.engRate - a.engRate; },
+    watch: function(a, b) { return (Number(b.avg_watch_time_ms) || 0) - (Number(a.avg_watch_time_ms) || 0); },
+    followers: function(a, b) { return (Number(b.new_followers) || 0) - (Number(a.new_followers) || 0); }
+  };
+  view.sort(sorters[sort] || sorters.date);
+  var grid = document.getElementById('tt-cards');
+  if (!view.length) { grid.innerHTML = '<div class="subtle">No videos match the filters</div>'; return; }
+  grid.innerHTML = view.map(function(r) {
+    return contentCard(r, '<span class="tag tt">TIKTOK</span>', [
+      chip('views', fmtK(r.views)),
+      chip('reach', fmtK(r.reach)),
+      chip('eng/reach', fmtPct(r.engRate), engBand(r.engRate)),
+      chip('likes', fmtK(r.likes)),
+      chip('comments', fmtK(r.comments)),
+      chip('shares', fmtK(r.shares)),
+      chip('saves', fmtK(r.saves)),
+      (Number(r.avg_watch_time_ms) ? chip('watch', fmtWatch(r.avg_watch_time_ms)) : ''),
+      (Number(r.full_watch_rate) ? chip('full-watch', fmtPct(Number(r.full_watch_rate))) : ''),
+      (Number(r.new_followers) ? chip('followers +', fmtK(r.new_followers)) : '')
+    ]);
+  }).join('');
+}
+
+// =====================================================================
+// GOOGLE TAB
+// =====================================================================
+function channelGroup(source, medium) {
+  var s = String(source || '').toLowerCase(), m = String(medium || '').toLowerCase();
+  if (m === '(none)' || s === '(direct)') return 'Direct';
+  if (m === 'cpc' || m === 'ppc' || m === 'paid_search') return 'Paid search';
+  if (m === 'paid' || m === 'paid_social') return 'Paid social';
+  if (m === 'email') return 'Email';
+  if (m === 'ai-assistant' || s.indexOf('chatgpt') !== -1 || s.indexOf('perplexity') !== -1) return 'AI assistants';
+  if (m === 'organic') {
+    if (['google','bing','duckduckgo','yahoo','ecosia.org','baidu'].indexOf(s) !== -1 || s.indexOf('search') !== -1) return 'Organic search';
+    return 'Organic search';
+  }
+  if (['ig','instagram','facebook','tiktok','m.facebook.com','l.instagram.com','linktr.ee'].indexOf(s) !== -1) return 'Organic social';
+  if (m === 'referral') return 'Referral';
+  if (m === '(not set)') return 'Unattributed';
+  return 'Other';
+}
+
+async function loadGoogle() {
+  var [ga428, gads30, gbp28, sources28, pages28] = await Promise.all([
+    getWindsor('googleanalytics4', ['date','sessions','totalusers','conversions'], {date_preset: 'last_28d'}),
+    getWindsor('google_ads', ['campaign','spend','impressions','clicks','conversions'], {date_preset: 'last_30d'}),
+    getWindsor('google_my_business', ['website_clicks','call_clicks','direction_requests'], {date_preset: 'last_28d'}),
+    getWindsor('googleanalytics4', ['source','medium','sessions'], {date_preset: 'last_28d'}),
+    getWindsor('googleanalytics4', ['pagetitle','sessions'], {date_preset: 'last_28d'})
+  ]);
+  drawGa4(ga428);
+  drawGbp(gbp28);
+  drawGadsTable(gads30);
+  drawSources(sources28);
+  drawPages(pages28);
+}
+
+function drawGa4(rows) {
+  var el = document.getElementById('ga4chart');
+  if (!el) return;
+  var labels = rows.map(function(r) { return String(r.date).slice(5); });
+  var data = rows.map(function(r) { return Number(r.sessions) || 0; });
+  new Chart(el, {
+    type: 'line',
+    data: {labels: labels, datasets: [{label: 'Sessions', data: data, borderColor: '#2563EB', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3, pointRadius: 0}]},
+    options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {x: {ticks: {maxTicksLimit: 8}}, y: {beginAtZero: true}}}
+  });
+}
+
+function drawGbp(rows) {
+  var totWeb = rows.reduce(function(s, r) { return s + (Number(r.website_clicks) || 0); }, 0);
+  var totCall = rows.reduce(function(s, r) { return s + (Number(r.call_clicks) || 0); }, 0);
+  var totDir = rows.reduce(function(s, r) { return s + (Number(r.direction_requests) || 0); }, 0);
+  document.getElementById('gbpstats').innerHTML =
+    stat('Website clicks', fmtN(totWeb)) +
+    stat('Calls', fmtN(totCall)) +
+    stat('Directions', fmtN(totDir));
+}
+function stat(label, val) { return '<div class="stat"><div class="label">' + label + '</div><div class="value">' + val + '</div></div>'; }
+
+function drawSources(rows) {
+  var groups = {};
+  var tot = 0;
+  rows.forEach(function(r) {
+    var g = channelGroup(r.source, r.medium);
+    var n = Number(r.sessions) || 0;
+    groups[g] = (groups[g] || 0) + n;
+    tot += n;
+  });
+  var list = Object.keys(groups).map(function(g) { return {g: g, n: groups[g]}; })
+    .sort(function(a, b) { return b.n - a.n; });
+  var tbody = document.getElementById('ga4-sources');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="3" class="subtle">No source data</td></tr>'; return; }
+  var maxN = list[0].n;
+  tbody.innerHTML = list.map(function(x) {
+    return '<tr><td>' + x.g + '</td>' + barCell(x.n, maxN, fmtN(x.n), 'rgba(225,29,72,.10)') + '<td class="num">' + (tot > 0 ? (x.n / tot * 100).toFixed(1) + '%' : '—') + '</td></tr>';
+  }).join('');
+  // Direct-share warning: heavy "Direct" usually means missing UTM tagging
+  var direct = groups['Direct'] || 0;
+  var warnEl = document.getElementById('ga4-directwarn');
+  if (tot > 0 && direct / tot > 0.6) {
+    warnEl.style.display = 'block';
+    warnEl.innerHTML = '<strong>' + (direct / tot * 100).toFixed(0) + '% of sessions are "Direct"</strong> — that usually means links in bios, emails and ads are missing UTM tags, so GA4 can\'t attribute them. Worth a UTM standard for the team.';
+  } else {
+    warnEl.style.display = 'none';
+  }
+}
+
+function drawPages(rows) {
+  var byPage = {};
+  rows.forEach(function(r) {
+    var p = r.pagetitle || '(unknown)';
+    byPage[p] = (byPage[p] || 0) + (Number(r.sessions) || 0);
+  });
+  var list = Object.keys(byPage).map(function(p) { return {p: p, n: byPage[p]}; })
+    .sort(function(a, b) { return b.n - a.n; }).slice(0, 12);
+  var tbody = document.getElementById('ga4-pages');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="2" class="subtle">No page data</td></tr>'; return; }
+  tbody.innerHTML = list.map(function(x) {
+    return '<tr><td class="caption">' + x.p + '</td><td class="num">' + fmtN(x.n) + '</td></tr>';
+  }).join('');
+}
+
+function drawGadsTable(rows) {
+  var byCamp = {};
+  rows.forEach(function(r) {
+    var c = r.campaign || '(unnamed)';
+    byCamp[c] = byCamp[c] || {spend: 0, impr: 0, clicks: 0, conv: 0};
+    byCamp[c].spend += Number(r.spend) || 0;
+    byCamp[c].impr += Number(r.impressions) || 0;
+    byCamp[c].clicks += Number(r.clicks) || 0;
+    byCamp[c].conv += Number(r.conversions) || 0;
+  });
+  var list = Object.keys(byCamp).map(function(c) {
+    var v = byCamp[c];
+    var ctr = v.impr > 0 ? v.clicks / v.impr : 0;
+    var cpc = v.clicks > 0 ? v.spend / v.clicks : 0;
+    var cpa = v.conv > 0 ? v.spend / v.conv : null;
+    return {c: c, v: v, ctr: ctr, cpc: cpc, cpa: cpa};
+  }).sort(function(a, b) { return b.v.spend - a.v.spend; });
+  var tbody = document.getElementById('gads-table');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" class="subtle">No campaign data</td></tr>'; return; }
+  var maxSpend = list.length ? list[0].v.spend : 0;
+  var maxClicks = list.reduce(function(m, x) { return Math.max(m, x.v.clicks); }, 0);
+  tbody.innerHTML = list.map(function(x) {
+    return '<tr>' +
+      '<td>' + x.c + '</td>' +
+      barCell(x.v.spend, maxSpend, fmtGbp(x.v.spend), 'rgba(22,163,74,.16)') +
+      '<td class="num">' + fmtN(x.v.impr) + '</td>' +
+      barCell(x.v.clicks, maxClicks, fmtN(x.v.clicks), 'rgba(15,23,42,.10)') +
+      '<td class="num">' + fmtPct(x.ctr) + '</td>' +
+      '<td class="num">' + fmtGbp2(x.cpc) + '</td>' +
+      '<td class="num">' + fmtN(x.v.conv, 1) + '</td>' +
+      '<td class="num">' + (x.cpa != null ? fmtGbp2(x.cpa) : '—') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================================
+// PAID MEDIA TAB — Meta (+ TikTok placeholder until Windsor connected)
+// =====================================================================
+async function loadMetaPaid() {
+  var [meta30, matrixCsv] = await Promise.all([
+    getWindsor('facebook', ['campaign','spend','impressions','clicks','actions_purchase','actions_lead'], {date_preset: 'last_30d'}),
+    readSheetCsv(SHEETS.ADD_REMOVE_MATRIX).catch(function() { return ''; })
+  ]);
+  var matrix = csvToObjects(matrixCsv);
+  var flagByCamp = {};
+  matrix.forEach(function(r) {
+    if (r.entity_type === 'paid_campaign' && r.platform === 'meta') flagByCamp[r.entity_name] = {auto: r.auto_flag, confirm: r.manual_confirm};
+  });
+  var byCamp = {};
+  var totSpend = 0;
+  meta30.forEach(function(r) {
+    var c = r.campaign || '(unnamed)';
+    byCamp[c] = byCamp[c] || {spend: 0, impr: 0, clicks: 0, conv: 0};
+    byCamp[c].spend += Number(r.spend) || 0;
+    byCamp[c].impr += Number(r.impressions) || 0;
+    byCamp[c].clicks += Number(r.clicks) || 0;
+    byCamp[c].conv += (Number(r.actions_purchase) || 0) + (Number(r.actions_lead) || 0);
+    totSpend += Number(r.spend) || 0;
+  });
+  var list = Object.keys(byCamp).map(function(c) {
+    var v = byCamp[c];
+    var ctr = v.impr > 0 ? v.clicks / v.impr : 0;
+    var cpc = v.clicks > 0 ? v.spend / v.clicks : 0;
+    var cpa = v.conv > 0 ? v.spend / v.conv : null;
+    var share = totSpend > 0 ? v.spend / totSpend : 0;
+    return {c: c, v: v, ctr: ctr, cpc: cpc, cpa: cpa, share: share, flag: flagByCamp[c]};
+  }).sort(function(a, b) { return b.v.spend - a.v.spend; });
+  var tbody = document.getElementById('meta-table');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="10" class="subtle">No Meta campaign data</td></tr>'; return; }
+  var maxSpend = list.length ? list[0].v.spend : 0;
+  var maxClicks = list.reduce(function(m, x) { return Math.max(m, x.v.clicks); }, 0);
+  var maxConv = list.reduce(function(m, x) { return Math.max(m, x.v.conv); }, 0);
+  tbody.innerHTML = list.map(function(x) {
+    var flagCell = '<span class="subtle">not yet judged</span>';
+    if (x.flag) {
+      var f = x.flag.confirm || x.flag.auto;
+      flagCell = '<span class="rag ' + f + '">' + f + '</span>' + (x.flag.confirm ? ' <span class="subtle">confirmed</span>' : ' <span class="subtle">auto</span>');
+    }
+    return '<tr>' +
+      '<td>' + x.c + '</td>' +
+      barCell(x.v.spend, maxSpend, fmtGbp(x.v.spend), 'rgba(37,99,235,.14)') +
+      '<td class="num">' + (x.share * 100).toFixed(1) + '%</td>' +
+      '<td class="num">' + fmtN(x.v.impr) + '</td>' +
+      barCell(x.v.clicks, maxClicks, fmtN(x.v.clicks), 'rgba(15,23,42,.10)') +
+      '<td class="num">' + fmtPct(x.ctr) + '</td>' +
+      '<td class="num">' + fmtGbp2(x.cpc) + '</td>' +
+      barCell(x.v.conv, maxConv, fmtN(x.v.conv), 'rgba(225,29,72,.14)') +
+      '<td class="num">' + (x.cpa != null ? fmtGbp2(x.cpa) : '—') + '</td>' +
+      '<td>' + flagCell + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================================
+// BUDGET TAB
+// =====================================================================
+async function loadBudget() {
+  var [bbCsv, logCsv, paidCsv, budCsv] = await Promise.all([
+    readSheetCsv(SHEETS.BUDGET_BOARD),
+    readSheetCsv(SHEETS.NON_AD_SPEND_LOG).catch(function() { return ''; }),
+    readSheetCsv(SHEETS.PAID_MEDIA_DAILY).catch(function() { return ''; }),
+    readSheetCsv(SHEETS.MARKETING_BUDGET).catch(function() { return ''; })
+  ]);
+  var rows = csvToObjects(bbCsv);
+  var cardsEl = document.getElementById('budget-cards');
+  var tbody = document.getElementById('budget-table');
+
+  if (!rows.length) {
+    cardsEl.innerHTML = '';
+    tbody.innerHTML = '<tr><td colspan="7" class="subtle">BUDGET_BOARD (AUTO) empty — run reportingDailyRun() in the Apps Script project</td></tr>';
+  } else {
+    var tot = rows.filter(function(r) { return r.channel === 'TOTAL'; })[0];
+    if (tot) {
+      cardsEl.innerHTML =
+        card('Month budget', fmtGbp(tot.budget_gbp)) +
+        card('Actual MTD', fmtGbp(tot.actual_mtd_gbp)) +
+        card('Month elapsed', tot.month_elapsed_pct ? Number(tot.month_elapsed_pct).toFixed(0) + '%' : '—') +
+        card('Spend pace', tot.spend_pace_pct ? Number(tot.spend_pace_pct).toFixed(0) + '%' : '—') +
+        card('Projected month-end', fmtGbp(tot.projected_month_end_gbp));
+    }
+    tbody.innerHTML = rows.map(function(r) {
+      var rag = String(r.rag || 'NT').toUpperCase();
+      var ragClass = rag.replace(/\s/g, '') === 'NOBUDGET' ? 'NT' : rag;
+      var isTot = r.channel === 'TOTAL';
+      return '<tr' + (isTot ? ' style="font-weight:bold;background:#F9FAFB"' : '') + '>' +
+        '<td>' + (r.channel || '') + '</td>' +
+        '<td class="num">' + fmtGbp(r.budget_gbp) + '</td>' +
+        '<td class="num">' + fmtGbp(r.actual_mtd_gbp) + '</td>' +
+        '<td class="num">' + (r.spend_pace_pct ? Number(r.spend_pace_pct).toFixed(0) + '%' : '—') + '</td>' +
+        '<td class="num">' + fmtGbp(r.projected_month_end_gbp) + '</td>' +
+        '<td class="num">' + fmtGbp(r.projected_variance_gbp) + '</td>' +
+        '<td><span class="rag ' + ragClass + '">' + rag + '</span></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ---- Ad spend history by month (from PAID_MEDIA_DAILY + caps in MARKETING_BUDGET)
+  var paidRows = csvToObjects(paidCsv);
+  renderHistory(paidRows, csvToObjects(budCsv));
+  drawSpendCharts(paidRows, csvToObjects(logCsv));
+
+  // ---- Non-ad spend log, current month, newest first
+  var log = csvToObjects(logCsv).filter(function(r) {
+    var ch = String(r.channel || '');
+    return ch && ch.toUpperCase().indexOf('EXAMPLE') !== 0;
+  });
+  var month = new Date().toISOString().slice(0, 7);
+  var thisMonth = log.filter(function(r) { return String(r.date || '').slice(0, 7) === month; })
+    .sort(function(a, b) { return String(b.date).localeCompare(String(a.date)); });
+  var ntbody = document.getElementById('nonad-table');
+  if (!thisMonth.length) {
+    ntbody.innerHTML = '<tr><td colspan="7" class="subtle">No non-ad spend logged this month — team adds influencer/print/events/collab/bills lines in NON_AD_SPEND_LOG</td></tr>';
+  } else {
+    ntbody.innerHTML = thisMonth.map(function(r) {
+      return '<tr>' +
+        '<td>' + fmtDate(r.date) + '</td>' +
+        '<td>' + (r.channel || '') + '</td>' +
+        '<td>' + (r.site || '') + '</td>' +
+        '<td class="caption">' + (r.description || '') + '</td>' +
+        '<td class="num">' + fmtGbp(r.amount_gbp) + '</td>' +
+        '<td>' + (r.owner || '') + '</td>' +
+        '<td class="subtle">' + (r.invoice_ref || '') + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+}
+
+function drawSpendCharts(paid, log) {
+  var days = paid.filter(function(r) { return /^\d{4}-\d{2}-\d{2}/.test(String(r.date || '')); })
+    .sort(function(a, b) { return String(a.date).localeCompare(String(b.date)); }).slice(-45);
+  var labels = days.map(function(r) { return String(r.date).slice(5, 10); });
+  function ser(k) { return days.map(function(r) { return Number(r[k]) || 0; }); }
+  var sc = document.getElementById('spendchart');
+  var totSeries = days.map(function(r) { return (Number(r.meta_spend) || 0) + (Number(r.google_spend) || 0) + (Number(r.tiktok_spend) || 0); });
+  var avg = totSeries.length ? totSeries.reduce(function(s, v) { return s + v; }, 0) / totSeries.length : 0;
+  if (sc && days.length) new Chart(sc, {
+    type: 'line',
+    data: {labels: labels, datasets: [
+      {label: 'Meta', data: ser('meta_spend'), borderColor: '#2563EB', backgroundColor: 'rgba(37,99,235,.08)', fill: true, tension: .3, pointRadius: 0},
+      {label: 'Google', data: ser('google_spend'), borderColor: '#16A34A', backgroundColor: 'rgba(22,163,74,.08)', fill: true, tension: .3, pointRadius: 0},
+      {label: 'TikTok', data: ser('tiktok_spend'), borderColor: '#0F172A', backgroundColor: 'rgba(15,23,42,.08)', fill: true, tension: .3, pointRadius: 0},
+      {label: 'Avg total/day', data: labels.map(function() { return avg; }), borderColor: '#94A3B8', borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false}
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 10}}}}, scales: {x: {ticks: {maxTicksLimit: 8, font: {size: 10}}}, y: {beginAtZero: true, ticks: {font: {size: 10}}}}}
+  });
+  var month = new Date().toISOString().slice(0, 7);
+  var meta = 0, goog = 0, tik = 0, non = 0;
+  paid.forEach(function(r) {
+    if (String(r.date || '').slice(0, 7) !== month) return;
+    meta += Number(r.meta_spend) || 0; goog += Number(r.google_spend) || 0; tik += Number(r.tiktok_spend) || 0;
+  });
+  log.forEach(function(r) {
+    if (String(r.date || '').slice(0, 7) !== month) return;
+    if (String(r.channel || '').toUpperCase().indexOf('EXAMPLE') === 0) return;
+    non += Number(r.amount_gbp) || 0;
+  });
+  var dc = document.getElementById('distchart');
+  if (dc) new Chart(dc, {
+    type: 'doughnut',
+    data: {labels: ['Meta', 'Google', 'TikTok', 'Non-ad'], datasets: [{data: [meta, goog, tik, non], backgroundColor: ['#2563EB', '#16A34A', '#0F172A', '#E11D48'], borderWidth: 0}]},
+    options: {responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 10}}}}}
+  });
+}
+
+function renderHistory(paid, budgets) {
+  var months = {}; // yyyy-MM -> {meta, google, tiktok}
+  paid.forEach(function(r) {
+    var m = String(r.date || '').slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(m)) return;
+    months[m] = months[m] || {meta: 0, google: 0, tiktok: 0};
+    months[m].meta += Number(r.meta_spend) || 0;
+    months[m].google += Number(r.google_spend) || 0;
+    months[m].tiktok += Number(r.tiktok_spend) || 0;
+  });
+  var caps = {}; // yyyy-MM -> {Meta Ads: n, ...}
+  budgets.forEach(function(r) {
+    var m = String(r.month || '').slice(0, 7);
+    if (!m) return;
+    caps[m] = caps[m] || {};
+    caps[m][String(r.channel || '').trim()] = Number(r.monthly_budget_gbp) || 0;
+  });
+  var keys = Object.keys(months).sort().reverse().slice(0, 4); // newest 4 months
+  var tbody = document.getElementById('history-table');
+  if (!keys.length) { tbody.innerHTML = '<tr><td colspan="8" class="subtle">No history yet</td></tr>'; return; }
+  tbody.innerHTML = keys.map(function(m) {
+    var v = months[m];
+    var c = caps[m] || {};
+    function capCell(n) { return n != null && !isNaN(n) && n > 0 ? fmtGbp(n) : '<span class="subtle">no cap</span>'; }
+    return '<tr>' +
+      '<td><strong>' + m + '</strong></td>' +
+      '<td class="num">' + fmtGbp(v.meta) + '</td>' +
+      '<td class="num">' + capCell(c['Meta Ads']) + '</td>' +
+      '<td class="num">' + fmtGbp(v.google) + '</td>' +
+      '<td class="num">' + capCell(c['Google Ads']) + '</td>' +
+      '<td class="num">' + fmtGbp(v.tiktok) + '</td>' +
+      '<td class="num">' + capCell(c['TikTok Ads']) + '</td>' +
+      '<td class="num"><strong>' + fmtGbp(v.meta + v.google + v.tiktok) + '</strong></td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================================
+// ADD / REMOVE MATRIX TAB
+// =====================================================================
+var matrixRowsCache = null;
+
+async function loadMatrix() {
+  var csv = await readSheetCsv(SHEETS.ADD_REMOVE_MATRIX);
+  matrixRowsCache = csvToObjects(csv).filter(function(r) { return r.entity_type && r.entity_type !== 'RULES'; });
+  document.getElementById('matrix-showall').addEventListener('change', renderMatrix);
+  renderMatrix();
+}
+
+function renderMatrix() {
+  var showAll = document.getElementById('matrix-showall').checked;
+  var rows = (matrixRowsCache || []).filter(function(r) {
+    if (showAll) return true;
+    return !r.manual_confirm; // default: actionable pending flags only
+  });
+  var tbody = document.getElementById('matrix-table');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="subtle">' +
+      (showAll ? 'ADD_REMOVE_MATRIX empty — run computeAddRemoveMatrix() in the Apps Script project'
+               : 'Nothing pending — all flags confirmed (tick "Show confirmed too" to see them)') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r) {
+    var confirmCell = r.manual_confirm ? '<span class="rag ' + r.manual_confirm + '">' + r.manual_confirm + '</span>' : '<span class="subtle">pending</span>';
+    return '<tr>' +
+      '<td>' + (r.entity_type || '') + '</td>' +
+      '<td>' + (r.entity_name || '') + '</td>' +
+      '<td>' + (r.platform || '') + '</td>' +
+      '<td>' + (r.window || '') + '</td>' +
+      '<td class="num">' + (r.sample_size || '') + '</td>' +
+      '<td class="num">' + (r.key_metric_1_name || '') + ': ' + (r.key_metric_1_value || '') + '</td>' +
+      '<td class="num">' + (r.key_metric_2_name || '') + ': ' + (r.key_metric_2_value || '') + '</td>' +
+      '<td><span class="rag ' + (r.auto_flag || 'NT') + '">' + (r.auto_flag || 'NT') + '</span></td>' +
+      '<td class="caption">' + (r.reason || '') + '</td>' +
+      '<td>' + confirmCell + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================================
+// MANUAL FEEDS TAB
+// =====================================================================
+async function loadManual() {
+  var csv = await readSheetCsv(SHEETS.MANUAL_FEEDS);
+  var rows = csvToObjects(csv).filter(function(r) { return r.feed && !(r.feed === 'INSTRUCTIONS'); });
+  var tbody = document.getElementById('manual-table');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" class="subtle">MANUAL_FEEDS empty — team hasn\'t filled anything yet</td></tr>'; return; }
+  tbody.innerHTML = rows.map(function(r) {
+    return '<tr>' +
+      '<td>' + (r.feed || '') + '</td>' +
+      '<td>' + (r.site || '') + '</td>' +
+      '<td>' + (r.week_commencing || '') + '</td>' +
+      '<td>' + (r.key_metric || '') + '</td>' +
+      '<td class="num">' + (r.value || '') + '</td>' +
+      '<td>' + (r.note || '') + '</td>' +
+      '<td class="subtle">' + (r.updated_at ? String(r.updated_at).slice(0, 10) : '') + ' ' + (r.updated_by || '') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================================
+// BOOT
+// =====================================================================
+var startTab = 'summary';
+try { var saved = localStorage.getItem(TAB_KEY); if (saved) startTab = saved; } catch (e) {}
+activateTab(startTab);
+</script>
+</body>
+</html>
