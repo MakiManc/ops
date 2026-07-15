@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -117,8 +117,16 @@
         "week_avg_rating": null,
         "new_reviews": 0,
         "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Kayden Fahey",
+            "date": "2026-07-08",
+            "text": "The vegan tantan had little to no taste, just watery broth and a handful of toppings. The vegan bacon was overcooked and like rubber. Added fried tofu for \u00a33.50 which had no seasoning, just a block of plain tofu fried for a few seconds. My fianc\u00e9 liked his meat dish, and my friend said the same about her seafood hell ramen. Vegan option just lacking in flavour",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -183,7 +191,27 @@
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Sales down and target missed due to the football match (average spend up 18p), with five of six delivery refund claims for broth quantity and missing sushi disputed successfully \u2014 Owner: GM (14/07/2026)",
+          "BOH break times were irregular and sushi supervisor Bino started a shift at 1:30 instead of the rota'd 1pm/agreed 4pm with no approval \u2014 Owner: GM (14/07/2026)",
+          "Ran out of ramen noodles (four bags transferred from Nottingham on Saturday) and out of vegan chicken \u2014 Owner: GM (14/07/2026)",
+          "A bad review was received about vegan item texture/flavour \u2014 Owner: GM (14/07/2026)",
+          "Labour came in around 24% this week (more labour, lower sales than the prior week) \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Talk to Bino/Jason about controlling labour and unauthorised early starts \u2014 Owner: GM (14/07/2026)",
+          "Communicate menu alternatives to customers for out-of-stock items to avoid negative reviews \u2014 Owner: GM (14/07/2026)",
+          "Confirm the large takeaway-bag order status with Caroline and source bigger bags locally in the interim \u2014 Owner: GM (14/07/2026)",
+          "Prepare for Friday's K-pop night (16 bookings confirmed), with Amy attending and B2B guests invited \u2014 Owner: GM (14/07/2026)",
+          "Monitor the increased 3\u20135pm closing-hour footfall to assess extending hours \u2014 Owner: Amy Tang (14/07/2026)"
+        ],
+        "carryover": [
+          "Keep monitoring vegan pad thai / vegan item quality \u2014 Owner: GM (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }

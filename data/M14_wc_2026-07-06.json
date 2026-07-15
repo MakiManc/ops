@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 3.7,
@@ -146,7 +146,20 @@
       "gaps": [
         "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Very quiet week with roughly a full weekday of sales lost to the football match, and one incorrect-item delivery complaint contested \u2014 Owner: GM (14/07/2026)",
+          "Compliance at 98% because one closing list was missed \u2014 Owner: GM (14/07/2026)",
+          "JFC broth prices showed discrepancies in Kobas (e.g. \u00a35.70 vs \u00a34.20), corrected manually on site \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Notify Ross/Amy of any suspicious price variances so Kobas can be updated or investigated \u2014 Owner: GM (14/07/2026)",
+          "Follow up with the organiser on requirements for the 29 Aug bank-holiday food festival and confirm support/budget with Amy and Michael \u2014 Owner: Amy Tang (14/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false
+      }
     }
   }
 }

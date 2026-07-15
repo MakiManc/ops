@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 1.4,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -184,7 +184,26 @@
       },
       "gaps": [
         "Stock-take \u2014 no variance entered this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Covers down WoW and YoY, attributed to the city-wide Princes Street fire and the end of a local conference \u2014 Owner: GM (14/07/2026)",
+          "Delivery sales dropped approximately 18% \u2014 Owner: GM (14/07/2026)",
+          "Labour met target but remains tight, requiring careful management of staff breaks \u2014 Owner: GM (14/07/2026)",
+          "Allergen incident with a sesame-allergy customer (addressed with kitchen; customer later left five-star after re-contact) \u2014 Owner: GM (14/07/2026)",
+          "Two three-star reviews (service charge/drum usage and slow service); staff instructed to prioritise table checkbacks \u2014 Owner: GM (14/07/2026)",
+          "Boiler issue being addressed with Chris \u2014 Owner: GM (14/07/2026)",
+          "Staff departure ongoing and Samuel's final departure date pending confirmation \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Review and complete the budget rotor for the first full week of August \u2014 Owner: GM (14/07/2026)",
+          "Contact Samuel to confirm his final date \u2014 Owner: GM (14/07/2026)",
+          "Arrange a trial today with FOH candidate Bethan \u2014 Owner: GM (14/07/2026)",
+          "Meet with the Fountainbridge manager to review the budget rotor \u2014 Owner: Oisin Darragh (14/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false
+      }
     }
   }
 }

@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 6.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": null,
@@ -118,8 +118,30 @@
         "week_avg_rating": null,
         "new_reviews": 0,
         "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 3,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Bonnie Wong",
+            "date": "2026-07-06",
+            "text": "Not happy about the food and quality, chicken karaage was served warm-cold, ramen wasn't cooked enough still raw and jammed together, but got the noodles replaced after complaint. Overall, not recommend",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Court Berry",
+            "date": "2026-07-07",
+            "text": "Came with friends today around 4:30pm. Service was so poor, server seemed like he wasn't interested in us at all. Waited ages to order then received our meals before our drinks on the hottest day of the week. Ramen had hardly any toppings, wasn't worth it at all. Also the railing going down the stairs at the bottom is hanging off the wall nearly causing one of my friends to fall over.",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "Steven Joseph",
+            "date": "2026-07-07",
+            "text": "If you've eaten ramen in Japan, this ramen doesn't compare unfortunately. Service was good and they are nice, but the flavors and food are nothing special.",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -169,7 +191,21 @@
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Spend per head down 1.31% due to extreme heat and running discounts, with sales targets missed \u2014 Owner: GM (14/07/2026)",
+          "Labour at 26.8%, higher than desired, with difficulty getting the kitchen to take longer breaks in quiet periods \u2014 Owner: GM (14/07/2026)",
+          "Stock variance on chicken broth, chilli beans and aloe vera caused by supplier packaging changes needing Kobas updates \u2014 Owner: GM (14/07/2026)",
+          "Some incorrect-order disputes arose but were resolved \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Redesign the upstairs area into a Japanese shop-front 'secret underground ramen spot' (remove the current bar/furniture, add lanterns and Tokyo-themed walls), pending Michael's approval \u2014 Owner: Ziang Lin (14/07/2026)",
+          "Update Kobas for the changed supplier packaging to correct the stock variances \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false
+      }
     }
   }
 }

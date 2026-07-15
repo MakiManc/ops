@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 5.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -192,7 +192,22 @@
       },
       "gaps": [
         "Stock-take \u2014 no variance entered this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Average spend down \u00a31, covers down 24 and sales down ~\u00a32k, driven by the football match on Friday/Saturday despite a strong early week \u2014 Owner: GM (14/07/2026)",
+          "Lack of proper takeaway bags increased delivery prep time, forcing use of yakisoba bowls/soup cups as ramen containers \u2014 Owner: GM (14/07/2026)",
+          "A combined JFC invoice covering Manchester, Sheffield and Leeds created an apparent ~\u00a32k food-cost variance (showing ~28%) \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Source larger takeaway bags from local shops as an interim fix \u2014 Owner: GM (14/07/2026)",
+          "Maintain sufficient stock for the upcoming graduation week, with the next JFC delivery due Thursday \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [
+          "Track the combined JFC-invoice variance until it is corrected \u2014 Owner: GM (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }

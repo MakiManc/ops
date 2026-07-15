@@ -131,8 +131,16 @@
           "2": 0,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Hasan Afsar",
+            "date": "2026-07-07",
+            "text": "",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -194,7 +202,20 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Weekend underperformed with an 11.5% WoW drop against target as good weather and football drew customers away \u2014 Owner: GM (14/07/2026)",
+          "Food costs slightly high, overspent approximately \u00a3200 due to a bubble tea order arrival (overall food/wet stock in a good position) \u2014 Owner: GM (14/07/2026)",
+          "Searching for a new sushi chef as current applications have not been ideal \u2014 Owner: GM (14/07/2026)",
+          "Maintenance pending on a disabled toilet door and a neon light, awaiting action from Chris \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Hold the head chef / GM meeting tomorrow \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false
+      }
     }
   }
 }

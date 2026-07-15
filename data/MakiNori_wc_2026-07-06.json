@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 1.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -114,8 +114,23 @@
         "week_avg_rating": null,
         "new_reviews": 0,
         "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "JC",
+            "date": "2026-07-11",
+            "text": "Food tasted good but for the same price compared to similar sushi places in London you'd expect a higher quality & quality control. Some of the rice was hard! Staff were friendly but training and coordination still needed. We were served our handroll before we got our hand towels. They also seemed eager to give us the bill when it was still very quiet.",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "Angelina c",
+            "date": "2026-07-12",
+            "text": "The scallops were not fresh but the fish was fine. Hit a sushi spot for me but won't be going again.",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -140,7 +155,34 @@
         "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Pre-theatre menu underperforming (lunch menu acceptable) with sales down \u00a319 versus the previous week \u2014 Owner: GM (14/07/2026)",
+          "High labour managed by having only one person close for four or five shifts \u2014 Owner: GM (14/07/2026)",
+          "Staff-morale concern over Luca's condescending tone (possible departure), with further concerns over Sophia and Shaquille \u2014 Owner: GM (14/07/2026)",
+          "Dry-age fridge out of order (running at 30\u00b0C), being handled under warranty \u2014 Owner: GM (14/07/2026)",
+          "KP roof panels shipped in error to Manchester, being rectified \u2014 Owner: GM (14/07/2026)",
+          "Head Chef Floren's absence and insufficient FOH staffing flagged after a recent influencer event with 14 influencers \u2014 Owner: GM (14/07/2026)",
+          "Need to recruit at least two FOH members due to departures and holiday cover for Eric, Ginger, Nan and Raj \u2014 Owner: GM (14/07/2026)",
+          "Kitchen rota by Marian repeatedly unfinished by the Wednesday deadline, pushing admin onto off-duty managers \u2014 Owner: GM (14/07/2026)",
+          "Women's toilet sink top awaiting repair from Ross (handrail already fixed; compliance 100%) \u2014 Owner: Ross Ward (14/07/2026)",
+          "Weekly reviews were 62 total (58 five-star praising Raj, Eric and Ginger), with a 3-star (Japan comparison), a 2-star (food quality) and a 1-star (straw and staff smile), all verified by management as consistent service \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Consult Floren on reducing BOH staff to improve labour efficiency \u2014 Owner: GM (14/07/2026)",
+          "Immediately recruit a computer-proficient AGM ready for August staff shortages and begin recruiting FOH cover now \u2014 Owner: GM (14/07/2026)",
+          "Send FOH labour projections for the next two weeks to management \u2014 Owner: GM (14/07/2026)",
+          "Determine next steps on Jada's potential demotion/role change and notify Ziang Lin \u2014 Owner: GM (14/07/2026)",
+          "Ziang to nudge Marian to complete the kitchen roster on time and split FOH/BOH performance metrics \u2014 Owner: Ziang Lin (14/07/2026)",
+          "Escalate the recurring delayed kitchen-rota issue to Michael \u2014 Owner: Ziang Lin (14/07/2026)",
+          "Find a DJ within budget for the influencer events on the 16th and 23rd \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [
+          "'Two-Jam Tuesday' and K-pop dance events flagged for further discussion on whether they justify continuing \u2014 Owner: GM (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }

@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -2.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": -1.9,
@@ -130,8 +130,16 @@
           "2": 1,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Lettie Lime",
+            "date": "2026-07-06",
+            "text": "I went in there at 20:40pm (06/07/26) My order was taken promptly and food was served quickly. When it was time for me to pay I had to go near the till to get someone's attention. I told the waitress that I have an NHS card. She proceeded to look at the card and said it doesn't have an expiry date. I've used this same card with no issues previously. Don't pick and choose when you'll accept NHS cards. I'm very disappointed in the way the situation was handled",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -177,7 +185,27 @@
         "gmv_vs_ly_pct": 5.8,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Sales target fell after the Saturday England football match and three delivery refunds were received (two disputed successfully) \u2014 Owner: GM (14/07/2026)",
+          "Food cost showed at 16% and items ran out (tag meats, chashu, brownies, vegan chicken) because the JFC delivery failed to arrive, forcing a reorder \u2014 Owner: GM (14/07/2026)",
+          "Delivery prep time increased \u2014 Owner: GM (14/07/2026)",
+          "A 2-star review over a rejected NHS card was raised, but the described staff member did not match the team \u2014 Owner: GM (14/07/2026)",
+          "Bar wine fridge is non-functional (repair booked this week) and the kitchen hand-wash sink tap is being monitored for leakage \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Shorten delivery preparation time by packing orders quicker \u2014 Owner: GM (14/07/2026)",
+          "Verify the delivery status of the JFC shipment expected today/tomorrow \u2014 Owner: GM (14/07/2026)",
+          "Give Amy stock-level updates so key items (chicken, broth) can be transferred from other sites when out \u2014 Owner: GM (14/07/2026)",
+          "Amy to notify the team regarding the 2-star NHS-card feedback \u2014 Owner: Amy Tang (14/07/2026)",
+          "Pause hiring until August while managing existing hours to staff preferences \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [
+          "JFC delivery remains unstable and is being followed up with Ross \u2014 Owner: GM (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }

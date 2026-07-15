@@ -131,8 +131,30 @@
           "2": 1,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 3,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Richie Curtis",
+            "date": "2026-07-06",
+            "text": "Food is luke warm and the chicken katsu curry is just processed chicken in breadcrumbs, on a bed of luke warm rice. Not impressed at all and I won't be coming back",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Vasil Petrov",
+            "date": "2026-07-12",
+            "text": "Use to be one of the places we take our kids to every two weeks but after last time unfortunately I will not go back. Old overcooked noodles, small tasteless steak. Clumpy rice. Awful!",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "Nyan Win Htut",
+            "date": "2026-07-12",
+            "text": "",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -194,7 +216,23 @@
         "gmv_vs_ly_pct": null,
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Delivery sales slightly down \u2014 Owner: GM (14/07/2026)",
+          "Inaccurate orders and prep times identified as focus areas for improvement \u2014 Owner: GM (14/07/2026)",
+          "Labour missed target (team optimistic to hit it next week) \u2014 Owner: GM (14/07/2026)",
+          "Eva's visa expires in three weeks \u2014 Owner: GM (14/07/2026)",
+          "Laura left with immediate notice and needs replacing \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Follow up with Becca regarding dark advertisement information \u2014 Owner: GM (14/07/2026)",
+          "Speak with Eva regarding her upcoming visa expiry \u2014 Owner: GM (14/07/2026)",
+          "New staff Wi-Fi network established to improve point-of-sale connectivity \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false
+      }
     }
   }
 }

@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 8.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": null,
@@ -118,8 +118,23 @@
         "week_avg_rating": null,
         "new_reviews": 0,
         "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Sep Nowrouz",
+            "date": "2026-07-07",
+            "text": "Arrived for our first time to try Maki & Ramen\u2026 initially didn't feel welcome. Was sat down, menu wasn't explained to us, waited nearly 20 minutes for someone to actually acknowledge us. Felt ignored the whole time. It wasn't busy. Decided to leave as we couldn't even get the staff attention. We were looking forward to trying the food, but I find service equally as important.",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Aris Alcantara",
+            "date": "2026-07-13",
+            "text": "They promised that if we don't get our food within 30 minutes it will be free. Our takoyaki didn't come even before we had our bill. That's a total of more than 1 hour of wait. Nobody even apologised or acknowledged that the service/food was late. No urgency at all! Specially that we are celebrating a special occasion today. So disappointing.",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -169,7 +184,35 @@
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Quietest week since opening with covers down ~300, though average spend rose ~78p \u2014 Owner: GM (14/07/2026)",
+          "Severe stock shortages for a third consecutive week (tonkotsu broth, kurag, curry, sushi, miso ramen, diced pork, matcha brownies, cr\u00e8me br\u00fbl\u00e9e), with the PAR replenishment system not accounting for zero-stock \u2014 Owner: Mag / GM (14/07/2026)",
+          "Multiple refund disputes in progress, including a contested seafood-allergy/seaweed claim and missing-broth delivery orders \u2014 Owner: GM (14/07/2026)",
+          "Only small takeaway bags available, so extra-large sturdier bags were bought from Amazon after branded orders kept arriving the wrong size \u2014 Owner: GM (14/07/2026)",
+          "A delivery order went out with no meat on the tonkatsu, indicating the kitchen needs an extra strong chef and tighter order checks \u2014 Owner: GM (14/07/2026)",
+          "Three delivery orders auto-rejected between 7pm and midnight due to incorrect availability/opening-time settings, now fixed \u2014 Owner: GM (14/07/2026)",
+          "Labour spiked partly because closing manager James takes ~1.5 hrs extra to close and staff report he leaves the floor \u2014 Owner: GM (14/07/2026)",
+          "Facility issues reported: faulty KP tap, plumbing leaks pooling near a fire exit, and water-damaged wood in the toilets \u2014 Owner: GM (14/07/2026)",
+          "A negative review over lack of welcome and menu explanation was received \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Send screenshots of the delivery complaints to the finance and management teams \u2014 Owner: GM (14/07/2026)",
+          "Calculate and document daily drink stock variance including Postmix syrup, and upload weekly variance figures to the tracking sheet \u2014 Owner: GM (14/07/2026)",
+          "Photograph the maintenance issues (kitchen tap, floor water damage) and send them to the relevant team \u2014 Owner: GM (14/07/2026)",
+          "Provide a stock update immediately after the next delivery to identify missing components \u2014 Owner: GM (14/07/2026)",
+          "Supervise closing shifts with James for two weeks to enforce standards and labour efficiency \u2014 Owner: GM (14/07/2026)",
+          "Use Nicole as a part-time supervisor to cover peak periods \u2014 Owner: GM (14/07/2026)",
+          "Notify Mag about the GM meeting scheduled for 2:00 tomorrow \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [
+          "Third-week stock shortage to be confirmed resolved after the next delivery \u2014 Owner: Mag / GM (14/07/2026)",
+          "Local sourcing of missing ingredients requires prior approval from Sophie for halal compliance and traceability \u2014 Owner: Sophie Wang (14/07/2026)",
+          "Urgent stock issues must be raised by direct message or call to management, not the group chat \u2014 Owner: Amy Tang (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }

@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -128,8 +128,16 @@
           "2": 0,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Joanna S",
+            "date": "2026-07-08",
+            "text": "Sarah K was great!!",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -153,7 +161,21 @@
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Footfall down 10.2% and spend per head down 50\u201360p in a 'dead' week hit by the World Cup and warm weather \u2014 Owner: GM (14/07/2026)",
+          "Food cost at 25% for the week due to missed deliveries, though labour was held at 23% by sending staff home in quiet periods \u2014 Owner: GM (14/07/2026)"
+        ],
+        "actions": [
+          "Set next week's projection at \u00a333k rather than \u00a338k to reflect the start of summer holidays \u2014 Owner: GM (14/07/2026)",
+          "Train new sushi manager Satya on the bar to cut labour, improve delivery operations and write personal notes on takeaway bags to drive reviews \u2014 Owner: GM (14/07/2026)",
+          "Rearrange outside seating (two tables to the front window, others spaced out) and capture high-quality evening images of the new outdoor area for marketing \u2014 Owner: GM (14/07/2026)",
+          "Run an \u00a38 ramen offer if England win their next game \u2014 Owner: GM (14/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false
+      }
     }
   }
 }
