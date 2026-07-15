@@ -130,8 +130,16 @@
           "2": 0,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Procyon Leo",
+            "date": "2026-07-13",
+            "text": "Overpriced mediocre ramen + hidden service fee charged at the end.",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -199,7 +207,30 @@
         "gmv_vs_ly_pct": 23.8,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Missed the food cost target this week after over-ordering stock (busy prior week, quieter current week) \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "An allergen issue occurred this week, addressed with kitchen and FOH but needs continued monitoring \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Recent incorrect orders at the pass, including the allergen error \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Covers down 142 (-10.6%) week-on-week and 176 (-12.81%) year-on-year \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Two 3-star reviews (service charge/drum complaint and a genuine slow-service complaint) \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Deliveroo refunds totalling \u00a317.90 (two items disputed with photo evidence pending, one genuine error not contested) \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Boiler requires repair/replacement \u2014 Owner: Kris (Ops Manager) (14/07/2026)"
+        ],
+        "actions": [
+          "FOH to keep a closer eye on the pass to avoid incorrect orders \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "BOH to read tickets more closely to avoid mistakes \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Reraise the allergen issue at the HC/GM meeting and ensure BOH comply with all allergen procedures \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Respond to the slow-service reviewer and invite them back for a comped/discounted meal \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "Confirm Sam's leaving date and organise the early-August FOH trial with Bethan \u2014 Owner: GM Rory Ferguson (14/07/2026)"
+        ],
+        "carryover": [
+          "World Cup cocktail/mocktail, Deliveroo 2-for-1, XOXO and SPH incentive promos all ongoing \u2014 Owner: GM Rory Ferguson (14/07/2026)",
+          "EHO fixes still ongoing (clearer signage, shelf repairs, extra BOH prep area downstairs) \u2014 Owner: GM Rory Ferguson (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }

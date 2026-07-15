@@ -127,8 +127,16 @@
           "2": 0,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "L.G. Obreja",
+            "date": "2026-07-09",
+            "text": "Visited in Glasgow within the advertised lunch-offer window (until 15:00) but was refused service, told I wouldn't have time to eat before 15:00. The waitress was dismissive and rude, and a very young staff member who introduced himself as the 'general manager' reinforced the refusal. An active offer you can't use, unhelpful staff, and management that seems more improvised than professional.",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -198,7 +206,26 @@
       },
       "gaps": [
         "Stock-take \u2014 no variance entered this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Sales of \u00a342,494.18 landed \u00a3255.82 (0.59%) below the \u00a342,750 target \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "Food cost variance running 2.5% over projection with stabilisation still in progress \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "One 1-star Google review from an aggressive customer, judged inaccurate; outreach made with no reply \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "BOH team member Octavio resigned with immediate effect \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "Review volume needs to increase for an established site \u2014 Owner: GM Scott Renwick (14/07/2026)"
+        ],
+        "actions": [
+          "Management to encourage the team to push reviews daily to lift volume \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "Ren switched to bar supervising to stabilise the team \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "Penny returning 20.07.26 for two weeks before opening Birmingham, and to move onto salary as EC (in progress) \u2014 Owner: GM Scott Renwick (14/07/2026)"
+        ],
+        "carryover": [
+          "\u00a38 World Cup Ramen promo ongoing, pending game result \u2014 Owner: GM Scott Renwick (14/07/2026)",
+          "FOH stable apart from matters already discussed in the previous KPI \u2014 Owner: GM Scott Renwick (14/07/2026)"
+        ],
+        "empty": false
+      }
     }
   }
 }
