@@ -3804,7 +3804,7 @@ function openSite(code) {
       </div>
 
       ${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? `
-      <div class="panel" id="neg-panel-${s.code}" style="display:none;">
+      <div class="panel" id="neg-panel-${s.code}" style="display:block;">
         <div class="panel-head" style="color:var(--red);"><span class="dot" style="background:var(--red);"></span>≤3★ reviews this week (${(REVIEWS[s.code]).negativeReviews.length})</div>
         ${(REVIEWS[s.code]).negativeReviews.map(r => `<div class="item" style="border-left-color:var(--red);">
           <div style="font-size:12px; font-weight:700; color:var(--red); margin-bottom:4px;">${r.stars}★ &middot; ${r.author || 'Anonymous'} &middot; ${r.date || ''}</div>
