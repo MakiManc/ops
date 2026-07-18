@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -50,7 +50,7 @@
           "actual": 792.1
         },
         "waste": {
-          "actual": 96.66
+          "actual": 135.57
         }
       },
       "stock_take": {
@@ -135,8 +135,8 @@
           {
             "stars": 2,
             "author": "Lettie Lime",
+            "text": "I went in there at 20:40pm (06/07/26) My order was taken promptly and food was served quickly. When it was time for me to pay I had to go near the till to get someone\u2019s attention. I told the waitress (she was wearing a white blouse and had short dark hair didn\u2019t catch her name) that I have an NHS card. She proceeded to look at the card and said it doesn\u2019t have an expiry date. I\u2019ve used this same card with no issues previously. I explained to her that our cards don\u2019t come with expiry dates. It will have the month the card was issued and that\u2019s about it. If these are the rules it should always be consistent. (She accepted the card the last time I was there) Don\u2019t pick and choose when you\u2019ll accept NHS cards. I\u2019m very disappointed in the way the situation was handled",
             "date": "2026-07-06",
-            "text": "I went in there at 20:40pm (06/07/26) My order was taken promptly and food was served quickly. When it was time for me to pay I had to go near the till to get someone's attention. I told the waitress that I have an NHS card. She proceeded to look at the card and said it doesn't have an expiry date. I've used this same card with no issues previously. Don't pick and choose when you'll accept NHS cards. I'm very disappointed in the way the situation was handled",
             "url": null
           }
         ],
@@ -171,8 +171,8 @@
         "rating": 4.78,
         "open_hours_pct": 98.6,
         "avg_prep_min": 14.6,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.5,
         "rider_wait_5min_pct": 3.5,
         "conversion_pct": 6.9,
         "wow": {
@@ -183,29 +183,10 @@
         },
         "gmv_vs_4wk_pct": 9,
         "gmv_vs_ly_pct": 5.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [],
-      "notes": {
-        "issues": [
-          "Sales target fell after the Saturday England football match and three delivery refunds were received (two disputed successfully) \u2014 Owner: GM (14/07/2026)",
-          "Food cost showed at 16% and items ran out (tag meats, chashu, brownies, vegan chicken) because the JFC delivery failed to arrive, forcing a reorder \u2014 Owner: GM (14/07/2026)",
-          "Delivery prep time increased \u2014 Owner: GM (14/07/2026)",
-          "A 2-star review over a rejected NHS card was raised, but the described staff member did not match the team \u2014 Owner: GM (14/07/2026)",
-          "Bar wine fridge is non-functional (repair booked this week) and the kitchen hand-wash sink tap is being monitored for leakage \u2014 Owner: GM (14/07/2026)"
-        ],
-        "actions": [
-          "Shorten delivery preparation time by packing orders quicker \u2014 Owner: GM (14/07/2026)",
-          "Verify the delivery status of the JFC shipment expected today/tomorrow \u2014 Owner: GM (14/07/2026)",
-          "Give Amy stock-level updates so key items (chicken, broth) can be transferred from other sites when out \u2014 Owner: GM (14/07/2026)",
-          "Amy to notify the team regarding the 2-star NHS-card feedback \u2014 Owner: Amy Tang (14/07/2026)",
-          "Pause hiring until August while managing existing hours to staff preferences \u2014 Owner: GM (14/07/2026)"
-        ],
-        "carryover": [
-          "JFC delivery remains unstable and is being followed up with Ross \u2014 Owner: GM (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }

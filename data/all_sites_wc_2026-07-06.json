@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
     "commencing": "2026-07-06",
@@ -49,7 +49,7 @@
           "actual": 300.0
         },
         "waste": {
-          "actual": 0.0
+          "actual": 26.49
         }
       },
       "stock_take": {
@@ -137,17 +137,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          }
-        ],
-        "note": "1 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -168,8 +160,8 @@
         "rating": 4.52,
         "open_hours_pct": 99.8,
         "avg_prep_min": 10.7,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.7,
         "rider_wait_5min_pct": 0.4,
         "conversion_pct": 8.3,
         "wow": {
@@ -180,7 +172,8 @@
         },
         "gmv_vs_4wk_pct": 5.1,
         "gmv_vs_ly_pct": 25.4,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -214,7 +207,7 @@
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 21.64,
+          "actual": 21.47,
           "target": null
         },
         "food_pct": {
@@ -226,7 +219,7 @@
           "actual": 566.4
         },
         "waste": {
-          "actual": 25.41
+          "actual": 56.57
         }
       },
       "stock_take": {
@@ -243,7 +236,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 89,
+        "score": 90,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -272,8 +265,8 @@
           },
           "wage": {
             "weight": 30,
-            "value": 90.4,
-            "basis": "21.64% vs 21% target, -15/pp over"
+            "value": 92.95,
+            "basis": "21.47% vs 21% target, -15/pp over"
           },
           "weekly_star": {
             "weight": 10,
@@ -316,22 +309,8 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 3,
+        "outstanding_count": 1,
         "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
-          },
           {
             "task": "WiFi still inconsistent",
             "priority": "\u2014",
@@ -340,7 +319,7 @@
             "status": "open"
           }
         ],
-        "note": "3 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -359,10 +338,10 @@
         "aov": 33.24,
         "new_customers": 73,
         "rating": 4.76,
-        "open_hours_pct": 99,
+        "open_hours_pct": 99.0,
         "avg_prep_min": 14.6,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.6,
         "rider_wait_5min_pct": 1.6,
         "conversion_pct": 11,
         "wow": {
@@ -373,7 +352,8 @@
         },
         "gmv_vs_4wk_pct": 2.1,
         "gmv_vs_ly_pct": 23.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -424,19 +404,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 1.4,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 3.8,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 80,
+        "score": 81,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -472,11 +452,14 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "3.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -506,17 +489,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          }
-        ],
-        "note": "1 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -537,8 +512,8 @@
         "rating": 4.83,
         "open_hours_pct": 99.7,
         "avg_prep_min": 11.4,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.3,
         "rider_wait_5min_pct": 2.2,
         "conversion_pct": 8.3,
         "wow": {
@@ -549,11 +524,10 @@
         },
         "gmv_vs_4wk_pct": 12.1,
         "gmv_vs_ly_pct": -10.3,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     },
     "M7": {
       "code": "M7",
@@ -685,7 +659,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 4,
+        "outstanding_count": 2,
         "tasks": [
           {
             "task": "ticket machine has connection issue, ticket time to time delay",
@@ -700,23 +674,9 @@
             "logged_week": "Ongoing",
             "owner": "Lincoln/Ross",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
           }
         ],
-        "note": "4 open item(s)"
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -780,14 +740,14 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 2.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 75,
+        "score": 76,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -823,11 +783,14 @@
             "weight": 10,
             "value": 0.0,
             "basis": "3.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "2.50% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -847,8 +810,16 @@
           "2": 0,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "L.G. Obreja",
+            "text": "I had the pleasure of visiting Maki & Ramen in Glasgow today at precisely 14:18, comfortably within their advertised lunch offer window (valid until 15:00). Or so I naively believed.\nInstead of being served, I was told I couldn\u2019t order because I \u201cwouldn\u2019t have time to eat before 15:00.\u201d This is a remarkable reinterpretation of basic hospitality\u2014apparently, customers are now expected to justify not just arriving on time, but also their projected eating speed.\nWhat made the experience truly memorable, however, was the staff. The waitress was dismissive and unnecessarily rude from the outset, making it very clear that customer service was not high on the priority list. Any attempt to question the logic of the refusal was met with attitude rather than explanation.\nTo add a final layer of confidence to the situation, a very young staff member\u2014who introduced himself as the \u201cgeneral manager\u201d\u2014stepped in to reinforce the decision. Whether this was meant to reassure me or simply end the conversation quickly is unclear, but it did little to inspire trust in how the place is run.\nSo to summarise: an active offer that you can\u2019t actually use, unhelpful staff, and management that seems more improvised than professional. If you\u2019re looking for a restaurant that honours its own terms and treats customers with basic respect, you may want to look elsewhere.",
+            "date": "2026-07-09",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -857,7 +828,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 3,
+        "outstanding_count": 1,
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
@@ -865,23 +836,9 @@
             "logged_week": "Ongoing",
             "owner": "\u2014",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
           }
         ],
-        "note": "3 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -902,8 +859,8 @@
         "rating": 3.5,
         "open_hours_pct": 99.3,
         "avg_prep_min": 14.5,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.6,
         "rider_wait_5min_pct": 5.5,
         "conversion_pct": 8.3,
         "wow": {
@@ -914,11 +871,10 @@
         },
         "gmv_vs_4wk_pct": -5.8,
         "gmv_vs_ly_pct": 4.1,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     },
     "IKI2": {
       "code": "IKI2",
@@ -1052,7 +1008,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
+        "outstanding_count": 1,
         "tasks": [
           {
             "task": "canopy above stairs leaking and needs serviced",
@@ -1060,16 +1016,9 @@
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
           }
         ],
-        "note": "2 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1229,8 +1178,23 @@
           "2": 1,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Vasil Petrov",
+            "text": "Use to be one of the places we take our kids to every two weeks but after last time unfortunately I will not go back. I usually don\u2019t leave reviews but the food was so bad I hope they change and go back to how it was before. Old overcooked noodles, small tasteless steak. Clumpy rice. Awful!",
+            "date": "2026-07-12",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Richie Curtis",
+            "text": "Food is luke warm and the chicken katsu curry is just processed chicken in breadcrumbs, on a bed of luke warm rice and a packet curry sauce. Very overpriced for what they serve. Not impressed at all and I won't be coming back",
+            "date": "2026-07-06",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -1239,24 +1203,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
-          }
-        ],
-        "note": "2 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1269,18 +1218,18 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 4621.87,
         "orders": 150,
         "orders_estimated": true,
         "aov": 30.81,
         "new_customers": 65,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.22,
+        "open_hours_pct": 99.4,
+        "avg_prep_min": 16.1,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.7,
+        "rider_wait_5min_pct": 2.7,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -1290,7 +1239,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 2.0
       },
       "gaps": []
     },
@@ -1417,8 +1367,23 @@
           "2": 0,
           "1": 2
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Regan Roberts",
+            "text": "I got SEVERE FOOD POISONING after eating here last Wednesday. This restaurant has been warned by other customers multiple times about serving food at improper temperatures going back 5 months, as several 1-star comments here show. The ramen I got should have been served piping hot as per Japanese tradition. It was just warm enough for me to not bother sending it back. HUGE mistake. I'm now on day four of being sick with diarrhea, nausea, fatigue, and stomach cramps. It is NOT WORTH THE RISK to eat at a restaurant like this that demonstrates such EXTREME NEGLIGENCE when it comes to protecting the public! Some 180 people every year DIE from food poisoning in the UK alone and this establishment is obviously NOT taking its warnings seriously! I have filed a complaint with the Aberdeen City Council as should anyone else who has been served food at an improper temperature regardless of whether they got sick or not. AVOID THIS RESTAURANT AT ALL COSTS!!!",
+            "date": "2026-07-12",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Gary Cairns",
+            "text": "Went in for lunch with my wife. First time we've been. Ordered the soft shell crab rolls and unfortunately the meat was obviously spoiled.  Only had one mouth full. The rainbow sushi roll we got also tasted of fish past it's best.\n\nThe issue was handled well by the staff but I don't think I'll be going back. Shame as I was hopeful.\n\nUpdate - reduced my rating to one star.  My wife now has food poisoning.  I now recommend that you avoid this restaurant.  Will be reporting to the authorities",
+            "date": "2026-07-06",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -1457,17 +1422,17 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 4197.15,
         "orders": 142,
         "orders_estimated": true,
         "aov": 29.56,
         "new_customers": 41,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
+        "rating": 4.43,
+        "open_hours_pct": 98.7,
+        "avg_prep_min": 10.6,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.7,
         "rider_wait_5min_pct": null,
         "conversion_pct": null,
         "wow": {
@@ -1478,7 +1443,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -1615,24 +1581,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 2,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
-          }
-        ],
-        "note": "2 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1645,17 +1596,17 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 1503.28,
         "orders": 45,
         "orders_estimated": true,
         "aov": 33.41,
         "new_customers": 16,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
+        "rating": 5.0,
+        "open_hours_pct": 99.4,
+        "avg_prep_min": 12.1,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
         "rider_wait_5min_pct": null,
         "conversion_pct": null,
         "wow": {
@@ -1666,7 +1617,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.2
       },
       "gaps": []
     },
@@ -1712,14 +1664,14 @@
           "actual": 792.1
         },
         "waste": {
-          "actual": 96.66
+          "actual": 135.57
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -2.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": -1.9,
@@ -1792,8 +1744,16 @@
           "2": 1,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Lettie Lime",
+            "text": "I went in there at 20:40pm (06/07/26) My order was taken promptly and food was served quickly. When it was time for me to pay I had to go near the till to get someone\u2019s attention. I told the waitress (she was wearing a white blouse and had short dark hair didn\u2019t catch her name) that I have an NHS card. She proceeded to look at the card and said it doesn\u2019t have an expiry date. I\u2019ve used this same card with no issues previously. I explained to her that our cards don\u2019t come with expiry dates. It will have the month the card was issued and that\u2019s about it. If these are the rules it should always be consistent. (She accepted the card the last time I was there) Don\u2019t pick and choose when you\u2019ll accept NHS cards. I\u2019m very disappointed in the way the situation was handled",
+            "date": "2026-07-06",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -1825,8 +1785,8 @@
         "rating": 4.78,
         "open_hours_pct": 98.6,
         "avg_prep_min": 14.6,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.5,
         "rider_wait_5min_pct": 3.5,
         "conversion_pct": 6.9,
         "wow": {
@@ -1837,7 +1797,8 @@
         },
         "gmv_vs_4wk_pct": 9,
         "gmv_vs_ly_pct": 5.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
       "gaps": []
     },
@@ -1888,14 +1849,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 5.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 6.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "week_commencing": "2026-07-06"
       },
@@ -1935,12 +1896,15 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.83\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 90.4,
+            "basis": "6.20% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -1952,11 +1916,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.833333333,
-        "new_reviews": 12,
+        "week_avg_rating": 5.0,
+        "new_reviews": 10,
         "star_breakdown": {
           "5": 10,
-          "4": 2,
+          "4": 0,
           "3": 0,
           "2": 0,
           "1": 0
@@ -2009,8 +1973,8 @@
         "rating": 4.47,
         "open_hours_pct": 98.6,
         "avg_prep_min": 17.6,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.5,
         "rider_wait_5min_pct": 1.6,
         "conversion_pct": 6.1,
         "wow": {
@@ -2021,11 +1985,10 @@
         },
         "gmv_vs_4wk_pct": -0.5,
         "gmv_vs_ly_pct": 2.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     },
     "M11": {
       "code": "M11",
@@ -2074,19 +2037,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": -0.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 80,
+        "score": 81,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2117,12 +2080,19 @@
             "weight": 30,
             "value": 54.85,
             "basis": "24.01% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 79.37,
+            "basis": "4.56\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "-0.10% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star",
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2133,11 +2103,32 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "week_avg_rating": 4.555555556,
+        "new_reviews": 9,
+        "star_breakdown": {
+          "5": 7,
+          "4": 1,
+          "3": 0,
+          "2": 1,
+          "1": 0
+        },
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Kayden Fahey",
+            "text": "The vegan tantan had little to no taste, just watery broth and a handful of toppings. The vegan bacon was overcooked and like rubber. Added fried tofu for \u00a33.50 which had no seasoning, just a block of plain tofu fried for a few seconds. My fianc\u00e9 liked his meat dish, and my friend said the same about her seafood hell ramen. Vegan option just lacking in flavour",
+            "date": "2026-07-08",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Kayden Fahey",
+            "text": "The vegan tantan had little to no taste, just watery broth and a handful of toppings. The vegan bacon was overcooked and like rubber. Added fried tofu for \u00a33.50 which had no seasoning, just a block of plain tofu fried for a few seconds. My fianc\u00e9 liked his meat dish, and my friend said the same about her seafood hell ramen. Vegan option just lacking in flavour",
+            "date": "2026-07-08",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -2176,18 +2167,18 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 2751.9,
         "orders": 102,
         "orders_estimated": true,
         "aov": 26.98,
         "new_customers": 43,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 3.67,
+        "open_hours_pct": 99.7,
+        "avg_prep_min": 15.8,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 4.7,
+        "rider_wait_5min_pct": 5.9,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -2197,12 +2188,10 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 2.4
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     },
     "M14": {
       "code": "M14",
@@ -2251,9 +2240,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 3.7,
@@ -2263,7 +2252,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 87,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2295,15 +2284,18 @@
             "value": 75.7,
             "basis": "22.62% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "3.70% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2314,9 +2306,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
+        "week_avg_rating": 4.8,
+        "new_reviews": 11,
+        "star_breakdown": {
+          "5": 11,
+          "4": 0,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -2338,11 +2336,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-12",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 4.17,
+        "open_hours_pct": 96.3,
+        "avg_prep_min": 14.9,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 3.0,
+        "rider_wait_5min_pct": 3.0,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
     },
     "M16": {
       "code": "M16",
@@ -2391,19 +2412,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 8.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 7.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 66,
+        "score": 69,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2434,12 +2455,19 @@
             "weight": 30,
             "value": 15.7,
             "basis": "26.62% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 85.71,
+            "basis": "4.60\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 81.6,
+            "basis": "7.30% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star",
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2451,11 +2479,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "week_avg_rating": 4.6,
+        "new_reviews": 15,
+        "star_breakdown": {
+          "5": 12,
+          "4": 2,
+          "3": 0,
+          "2": 0,
+          "1": 1
+        },
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Sep Nowrouz",
+            "text": "Arrived for our first time to try Makin & Ramen\u2026 initially didn\u2019t feel welcome. Was sat down, menu wasn\u2019t explained to us\u2026 we had no idea what was included in the lunch menu, waited nearly 20 minutes for someone to actually acknowledge us to go through the menu with us, felt ignored the whole time. There were about 2 other tables in the restaurant so it wasn\u2019t busy\u2026 decided to leave as we couldn\u2019t even get the staff attention. We were looking forward to trying the food, but I find service equally as important.",
+            "date": "2026-07-07",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -2479,18 +2521,18 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 2572.95,
         "orders": 84,
         "orders_estimated": true,
         "aov": 30.63,
         "new_customers": 45,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.8,
+        "open_hours_pct": 83.9,
+        "avg_prep_min": 12.9,
+        "rejection_pct": 3.1,
+        "inaccuracy_pct": 5.2,
+        "rider_wait_5min_pct": 10.7,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -2500,12 +2542,10 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     },
     "M17": {
       "code": "M17",
@@ -2554,19 +2594,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 4.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 82,
+        "score": 83,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2601,12 +2641,15 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.98\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.94\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "4.50% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2618,17 +2661,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.98,
-        "new_reviews": 50,
+        "week_avg_rating": 4.941176471,
+        "new_reviews": 51,
         "star_breakdown": {
           "5": 49,
           "4": 1,
-          "3": 0,
+          "3": 1,
           "2": 0,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Joanna S",
+            "text": "Sarah K was great!!",
+            "date": "2026-07-08",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -2648,11 +2699,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-12",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": null,
+        "open_hours_pct": 99.8,
+        "avg_prep_min": 9.5,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 9.1,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
     },
     "M18": {
       "code": "M18",
@@ -2701,19 +2775,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 6.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 16.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 63,
+        "score": 64,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2744,12 +2818,19 @@
             "weight": 30,
             "value": 13.0,
             "basis": "26.80% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.81\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 10.4,
+            "basis": "16.20% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star",
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2761,11 +2842,39 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "week_avg_rating": 4.807692308,
+        "new_reviews": 52,
+        "star_breakdown": {
+          "5": 48,
+          "4": 1,
+          "3": 1,
+          "2": 1,
+          "1": 1
+        },
+        "negatives": 3,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Court Berry",
+            "text": "Came with friends today around 4:30pm. Service was so poor server seemed like he wasn't interested in us at all. Waited ages to order then received our meals before our drinks on the hottest day of the week. Ramen had hardly any toppings wasn't worth it at all. Very disappointed as it was my First time. Also bought the lychee lemonade but couldn't drink it as the boba at the bottom was too big for the straw so it kept blocking the liquid.\n\nAlso the handrail leading down the stairs at the bottom is hanging off the wall nearly causing one of my friends to fall over.",
+            "date": "2026-07-07",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "Steven Joseph",
+            "text": "If you've eaten ramen in Japan, this ramen doesn't compare unfortunately.\n\nService was good and they are nice, but the flavors and food are nothing special.",
+            "date": "2026-07-07",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Bonnie Wong",
+            "text": "Not happy about the food and quality, chicken karaage was served in warm-cold , reman wasn\u2019t cook enough still raw and jammed together, but got the noodles replaced after complain. Overall , not recommend",
+            "date": "2026-07-06",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -2789,18 +2898,18 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 1602.1,
         "orders": 62,
         "orders_estimated": true,
         "aov": 25.84,
         "new_customers": 34,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.62,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 14.2,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.5,
+        "rider_wait_5min_pct": 4.8,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -2810,12 +2919,10 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 3.4
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     },
     "M19": {
       "code": "M19",
@@ -2869,9 +2976,9 @@
           "within_band": null
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": -9.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "week_commencing": "2026-07-06"
       },
@@ -2912,11 +3019,14 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.93\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 68.0,
+            "basis": "-9.00% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2928,7 +3038,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.93,
+        "week_avg_rating": 4.928571429,
         "new_reviews": 14,
         "star_breakdown": {
           "5": 13,
@@ -2958,11 +3068,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-12",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 5.0,
+        "open_hours_pct": 100.0,
+        "avg_prep_min": 14.4,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.0,
+        "rider_wait_5min_pct": 10.0,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
     },
     "M20": {
       "code": "M20",
@@ -2976,21 +3109,21 @@
           "actual": 55833.08,
           "target": 52500.0,
           "var_pct": 6.35,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "prev": 26238.53,
+          "wow_abs": 29594.55,
+          "wow_pct": 112.79
         },
         "covers": {
           "actual": 3148,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "prev": 1162,
+          "wow_abs": 1986,
+          "wow_pct": 170.91
         },
         "sph": {
           "actual": 17.72,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null,
+          "prev": 22.58,
+          "wow_abs": -4.86,
+          "wow_pct": -21.52,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -3023,7 +3156,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 57,
+        "score": 56,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3042,8 +3175,8 @@
           },
           "sph": {
             "weight": 15,
-            "value": 28.67,
-            "basis": "\u00a317.72 vs \u00a322 tgt \u2014 level 29"
+            "value": 20.07,
+            "basis": "\u00a317.72 vs \u00a322 tgt \u2014 level 29, WoW -21.52% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -3074,7 +3207,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.81,
+        "week_avg_rating": 4.807453416,
         "new_reviews": 161,
         "star_breakdown": {
           "5": 138,
@@ -3107,8 +3240,7 @@
       "deliveroo": null,
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week",
-        "food% 7.23 suspiciously low \u2014 new-site data entry to verify"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     },
     "MakiNori": {
@@ -3158,9 +3290,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 1.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": null,
@@ -3170,7 +3302,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 56,
+        "score": 61,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3196,11 +3328,15 @@
             "weight": 30,
             "value": 0.0,
             "basis": "31.55% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.78\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
         "components_dropped": [
           "sales",
-          "weekly_star",
           "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
@@ -3214,11 +3350,32 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "week_avg_rating": 4.777777778,
+        "new_reviews": 18,
+        "star_breakdown": {
+          "5": 16,
+          "4": 0,
+          "3": 2,
+          "2": 0,
+          "1": 0
+        },
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Angelina c",
+            "text": "The scallops were not fresh but the fish was fine. Hit a sushi spot for me but won\u2019t be going again.",
+            "date": "2026-07-12",
+            "url": null
+          },
+          {
+            "stars": 3,
+            "author": "JC",
+            "text": "Food tasted good but for the same price compared to similar sushi places in London you\u2019d expect a higher quality & quality control. Some of the rice was hard! Staff were friendly but training and coordination still needed. We were served our handroll before we got our hand towels - minor thing but good to be aware of. They also seemed eager to give us the bill when it was still very quiet in the shop.",
+            "date": "2026-07-11",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -3241,7 +3398,6 @@
       "deliveroo": null,
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     }
