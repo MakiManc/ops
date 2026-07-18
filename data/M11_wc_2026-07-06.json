@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -60,14 +60,14 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": -0.1,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 80,
+        "score": 81,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -98,12 +98,19 @@
             "weight": 30,
             "value": 54.85,
             "basis": "24.01% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 79.37,
+            "basis": "4.56\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "-0.10% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star",
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -114,16 +121,29 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": 1,
+        "week_avg_rating": 4.555555556,
+        "new_reviews": 9,
+        "star_breakdown": {
+          "5": 7,
+          "4": 1,
+          "3": 0,
+          "2": 1,
+          "1": 0
+        },
+        "negatives": 2,
         "negative_reviews": [
           {
             "stars": 2,
             "author": "Kayden Fahey",
-            "date": "2026-07-08",
             "text": "The vegan tantan had little to no taste, just watery broth and a handful of toppings. The vegan bacon was overcooked and like rubber. Added fried tofu for \u00a33.50 which had no seasoning, just a block of plain tofu fried for a few seconds. My fianc\u00e9 liked his meat dish, and my friend said the same about her seafood hell ramen. Vegan option just lacking in flavour",
+            "date": "2026-07-08",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Kayden Fahey",
+            "text": "The vegan tantan had little to no taste, just watery broth and a handful of toppings. The vegan bacon was overcooked and like rubber. Added fried tofu for \u00a33.50 which had no seasoning, just a block of plain tofu fried for a few seconds. My fianc\u00e9 liked his meat dish, and my friend said the same about her seafood hell ramen. Vegan option just lacking in flavour",
+            "date": "2026-07-08",
             "url": null
           }
         ],
@@ -165,18 +185,18 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 2751.9,
         "orders": 102,
         "orders_estimated": true,
         "aov": 26.98,
         "new_customers": 43,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 3.67,
+        "open_hours_pct": 99.7,
+        "avg_prep_min": 15.8,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 4.7,
+        "rider_wait_5min_pct": 5.9,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -186,32 +206,10 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 2.4
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source"
-      ],
-      "notes": {
-        "issues": [
-          "Sales down and target missed due to the football match (average spend up 18p), with five of six delivery refund claims for broth quantity and missing sushi disputed successfully \u2014 Owner: GM (14/07/2026)",
-          "BOH break times were irregular and sushi supervisor Bino started a shift at 1:30 instead of the rota'd 1pm/agreed 4pm with no approval \u2014 Owner: GM (14/07/2026)",
-          "Ran out of ramen noodles (four bags transferred from Nottingham on Saturday) and out of vegan chicken \u2014 Owner: GM (14/07/2026)",
-          "A bad review was received about vegan item texture/flavour \u2014 Owner: GM (14/07/2026)",
-          "Labour came in around 24% this week (more labour, lower sales than the prior week) \u2014 Owner: GM (14/07/2026)"
-        ],
-        "actions": [
-          "Talk to Bino/Jason about controlling labour and unauthorised early starts \u2014 Owner: GM (14/07/2026)",
-          "Communicate menu alternatives to customers for out-of-stock items to avoid negative reviews \u2014 Owner: GM (14/07/2026)",
-          "Confirm the large takeaway-bag order status with Caroline and source bigger bags locally in the interim \u2014 Owner: GM (14/07/2026)",
-          "Prepare for Friday's K-pop night (16 bookings confirmed), with Amy attending and B2B guests invited \u2014 Owner: GM (14/07/2026)",
-          "Monitor the increased 3\u20135pm closing-hour footfall to assess extending hours \u2014 Owner: Amy Tang (14/07/2026)"
-        ],
-        "carryover": [
-          "Keep monitoring vegan pad thai / vegan item quality \u2014 Owner: GM (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }

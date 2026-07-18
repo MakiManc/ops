@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -60,9 +60,9 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 6.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "week_commencing": "2026-07-06"
       },
@@ -102,12 +102,15 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.83\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 90.4,
+            "basis": "6.20% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -119,11 +122,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.833333333,
-        "new_reviews": 12,
+        "week_avg_rating": 5.0,
+        "new_reviews": 10,
         "star_breakdown": {
           "5": 10,
-          "4": 2,
+          "4": 0,
           "3": 0,
           "2": 0,
           "1": 0
@@ -176,8 +179,8 @@
         "rating": 4.47,
         "open_hours_pct": 98.6,
         "avg_prep_min": 17.6,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.5,
         "rider_wait_5min_pct": 1.6,
         "conversion_pct": 6.1,
         "wow": {
@@ -188,26 +191,10 @@
         },
         "gmv_vs_4wk_pct": -0.5,
         "gmv_vs_ly_pct": 2.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ],
-      "notes": {
-        "issues": [
-          "Average spend down \u00a31, covers down 24 and sales down ~\u00a32k, driven by the football match on Friday/Saturday despite a strong early week \u2014 Owner: GM (14/07/2026)",
-          "Lack of proper takeaway bags increased delivery prep time, forcing use of yakisoba bowls/soup cups as ramen containers \u2014 Owner: GM (14/07/2026)",
-          "A combined JFC invoice covering Manchester, Sheffield and Leeds created an apparent ~\u00a32k food-cost variance (showing ~28%) \u2014 Owner: GM (14/07/2026)"
-        ],
-        "actions": [
-          "Source larger takeaway bags from local shops as an interim fix \u2014 Owner: GM (14/07/2026)",
-          "Maintain sufficient stock for the upcoming graduation week, with the next JFC delivery due Thursday \u2014 Owner: GM (14/07/2026)"
-        ],
-        "carryover": [
-          "Track the combined JFC-invoice variance until it is corrected \u2014 Owner: GM (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }

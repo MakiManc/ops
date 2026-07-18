@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -60,14 +60,14 @@
           "within_band": false
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 7.3,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 66,
+        "score": 69,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -98,12 +98,19 @@
             "weight": 30,
             "value": 15.7,
             "basis": "26.62% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 85.71,
+            "basis": "4.60\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 81.6,
+            "basis": "7.30% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star",
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -115,23 +122,22 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": 2,
+        "week_avg_rating": 4.6,
+        "new_reviews": 15,
+        "star_breakdown": {
+          "5": 12,
+          "4": 2,
+          "3": 0,
+          "2": 0,
+          "1": 1
+        },
+        "negatives": 1,
         "negative_reviews": [
           {
             "stars": 1,
             "author": "Sep Nowrouz",
+            "text": "Arrived for our first time to try Makin & Ramen\u2026 initially didn\u2019t feel welcome. Was sat down, menu wasn\u2019t explained to us\u2026 we had no idea what was included in the lunch menu, waited nearly 20 minutes for someone to actually acknowledge us to go through the menu with us, felt ignored the whole time. There were about 2 other tables in the restaurant so it wasn\u2019t busy\u2026 decided to leave as we couldn\u2019t even get the staff attention. We were looking forward to trying the food, but I find service equally as important.",
             "date": "2026-07-07",
-            "text": "Arrived for our first time to try Maki & Ramen\u2026 initially didn't feel welcome. Was sat down, menu wasn't explained to us, waited nearly 20 minutes for someone to actually acknowledge us. Felt ignored the whole time. It wasn't busy. Decided to leave as we couldn't even get the staff attention. We were looking forward to trying the food, but I find service equally as important.",
-            "url": null
-          },
-          {
-            "stars": 2,
-            "author": "Aris Alcantara",
-            "date": "2026-07-13",
-            "text": "They promised that if we don't get our food within 30 minutes it will be free. Our takoyaki didn't come even before we had our bill. That's a total of more than 1 hour of wait. Nobody even apologised or acknowledged that the service/food was late. No urgency at all! Specially that we are celebrating a special occasion today. So disappointing.",
             "url": null
           }
         ],
@@ -158,18 +164,18 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 2572.95,
         "orders": 84,
         "orders_estimated": true,
         "aov": 30.63,
         "new_customers": 45,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
-        "rider_wait_5min_pct": null,
+        "rating": 4.8,
+        "open_hours_pct": 83.9,
+        "avg_prep_min": 12.9,
+        "rejection_pct": 3.1,
+        "inaccuracy_pct": 5.2,
+        "rider_wait_5min_pct": 10.7,
         "conversion_pct": null,
         "wow": {
           "gmv_pct": null,
@@ -179,40 +185,10 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source"
-      ],
-      "notes": {
-        "issues": [
-          "Quietest week since opening with covers down ~300, though average spend rose ~78p \u2014 Owner: GM (14/07/2026)",
-          "Severe stock shortages for a third consecutive week (tonkotsu broth, kurag, curry, sushi, miso ramen, diced pork, matcha brownies, cr\u00e8me br\u00fbl\u00e9e), with the PAR replenishment system not accounting for zero-stock \u2014 Owner: Mag / GM (14/07/2026)",
-          "Multiple refund disputes in progress, including a contested seafood-allergy/seaweed claim and missing-broth delivery orders \u2014 Owner: GM (14/07/2026)",
-          "Only small takeaway bags available, so extra-large sturdier bags were bought from Amazon after branded orders kept arriving the wrong size \u2014 Owner: GM (14/07/2026)",
-          "A delivery order went out with no meat on the tonkatsu, indicating the kitchen needs an extra strong chef and tighter order checks \u2014 Owner: GM (14/07/2026)",
-          "Three delivery orders auto-rejected between 7pm and midnight due to incorrect availability/opening-time settings, now fixed \u2014 Owner: GM (14/07/2026)",
-          "Labour spiked partly because closing manager James takes ~1.5 hrs extra to close and staff report he leaves the floor \u2014 Owner: GM (14/07/2026)",
-          "Facility issues reported: faulty KP tap, plumbing leaks pooling near a fire exit, and water-damaged wood in the toilets \u2014 Owner: GM (14/07/2026)",
-          "A negative review over lack of welcome and menu explanation was received \u2014 Owner: GM (14/07/2026)"
-        ],
-        "actions": [
-          "Send screenshots of the delivery complaints to the finance and management teams \u2014 Owner: GM (14/07/2026)",
-          "Calculate and document daily drink stock variance including Postmix syrup, and upload weekly variance figures to the tracking sheet \u2014 Owner: GM (14/07/2026)",
-          "Photograph the maintenance issues (kitchen tap, floor water damage) and send them to the relevant team \u2014 Owner: GM (14/07/2026)",
-          "Provide a stock update immediately after the next delivery to identify missing components \u2014 Owner: GM (14/07/2026)",
-          "Supervise closing shifts with James for two weeks to enforce standards and labour efficiency \u2014 Owner: GM (14/07/2026)",
-          "Use Nicole as a part-time supervisor to cover peak periods \u2014 Owner: GM (14/07/2026)",
-          "Notify Mag about the GM meeting scheduled for 2:00 tomorrow \u2014 Owner: GM (14/07/2026)"
-        ],
-        "carryover": [
-          "Third-week stock shortage to be confirmed resolved after the next delivery \u2014 Owner: Mag / GM (14/07/2026)",
-          "Local sourcing of missing ingredients requires prior approval from Sophie for halal compliance and traceability \u2014 Owner: Sophie Wang (14/07/2026)",
-          "Urgent stock issues must be raised by direct message or call to management, not the group chat \u2014 Owner: Amy Tang (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }

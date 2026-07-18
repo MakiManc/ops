@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -60,14 +60,14 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 3.8,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 80,
+        "score": 81,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -103,11 +103,14 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "3.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -137,17 +140,9 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 1,
-        "tasks": [
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          }
-        ],
-        "note": "1 open item(s)"
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -168,8 +163,8 @@
         "rating": 4.83,
         "open_hours_pct": 99.7,
         "avg_prep_min": 11.4,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 2.3,
         "rider_wait_5min_pct": 2.2,
         "conversion_pct": 8.3,
         "wow": {
@@ -180,30 +175,10 @@
         },
         "gmv_vs_4wk_pct": 12.1,
         "gmv_vs_ly_pct": -10.3,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ],
-      "notes": {
-        "issues": [
-          "Sales of \u00a321,466.72 fell \u00a32,033.28 (8.65%) below the \u00a323,500 target and were down 14.98% year-on-year, with covers down 217 (-23.30%) \u2014 Owner: RM Justyna Polak (14/07/2026)",
-          "Operational labour ran at 24.4% against the 22% target (2.4% over; all-in labour 28.7%) \u2014 Owner: RM Justyna Polak (14/07/2026)",
-          "BOH team member Sebastian exiting the business, unable to provide a share code under RTW regulations, P45 issued \u2014 Owner: RM Justyna Polak (14/07/2026)",
-          "Ongoing Lynas delivery problems with missing items (no change from previous week) \u2014 Owner: RM Justyna Polak / Nad (Ops) (14/07/2026)",
-          "Light switch needs replacing \u2014 Owner: Kris (Ops Manager) (14/07/2026)",
-          "Review quality needs to improve \u2014 Owner: RM Justyna Polak (14/07/2026)"
-        ],
-        "actions": [
-          "Reduce labour relative to sales taken, directed by the AM \u2014 Owner: RM Justyna Polak (14/07/2026)",
-          "Aswina to complete an Alcohol Awareness training course \u2014 Owner: RM Justyna Polak (14/07/2026)"
-        ],
-        "carryover": [
-          "\u00a38 World Cup Ramen promo ongoing, pending game result \u2014 Owner: RM Justyna Polak (14/07/2026)",
-          "Lynas ordering/missing items and missing invoices persist with no change from prior weeks \u2014 Owner: RM Justyna Polak / Nad (Ops) (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }

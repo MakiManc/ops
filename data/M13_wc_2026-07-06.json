@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -135,16 +135,16 @@
         "negative_reviews": [
           {
             "stars": 1,
-            "author": "Gary Cairns",
-            "date": "2026-07-06",
-            "text": "Went in for lunch with my wife. First time we've been. Ordered the soft shell crab rolls and unfortunately the meat was obviously spoiled. Only had one mouth full. The rainbow sushi roll we got also tasted of fish past it's best. The issue was handled well by the staff but I don't think I'll be going back. Update - reduced my rating to one star. My wife now has food poisoning. Will be reporting to the authorities",
+            "author": "Regan Roberts",
+            "text": "I got SEVERE FOOD POISONING after eating here last Wednesday. This restaurant has been warned by other customers multiple times about serving food at improper temperatures going back 5 months, as several 1-star comments here show. The ramen I got should have been served piping hot as per Japanese tradition. It was just warm enough for me to not bother sending it back. HUGE mistake. I'm now on day four of being sick with diarrhea, nausea, fatigue, and stomach cramps. It is NOT WORTH THE RISK to eat at a restaurant like this that demonstrates such EXTREME NEGLIGENCE when it comes to protecting the public! Some 180 people every year DIE from food poisoning in the UK alone and this establishment is obviously NOT taking its warnings seriously! I have filed a complaint with the Aberdeen City Council as should anyone else who has been served food at an improper temperature regardless of whether they got sick or not. AVOID THIS RESTAURANT AT ALL COSTS!!!",
+            "date": "2026-07-12",
             "url": null
           },
           {
             "stars": 1,
-            "author": "Regan Roberts",
-            "date": "2026-07-12",
-            "text": "I got SEVERE FOOD POISONING after eating here last Wednesday. The ramen I got should have been served piping hot. I'm now on day four of being sick with diarrhea, nausea, fatigue, and stomach cramps. I have filed a complaint with the Aberdeen City Council. AVOID THIS RESTAURANT AT ALL COSTS!!!",
+            "author": "Gary Cairns",
+            "text": "Went in for lunch with my wife. First time we've been. Ordered the soft shell crab rolls and unfortunately the meat was obviously spoiled.  Only had one mouth full. The rainbow sushi roll we got also tasted of fish past it's best.\n\nThe issue was handled well by the staff but I don't think I'll be going back. Shame as I was hopeful.\n\nUpdate - reduced my rating to one star.  My wife now has food poisoning.  I now recommend that you avoid this restaurant.  Will be reporting to the authorities",
+            "date": "2026-07-06",
             "url": null
           }
         ],
@@ -186,17 +186,17 @@
         "store": null,
         "week_ending": "2026-07-12",
         "resolution": "weekly",
-        "partial": true,
+        "partial": false,
         "sales": 4197.15,
         "orders": 142,
         "orders_estimated": true,
         "aov": 29.56,
         "new_customers": 41,
-        "rating": null,
-        "open_hours_pct": null,
-        "avg_prep_min": null,
-        "rejection_pct": null,
-        "inaccuracy_pct": null,
+        "rating": 4.43,
+        "open_hours_pct": 98.7,
+        "avg_prep_min": 10.6,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 0.7,
         "rider_wait_5min_pct": null,
         "conversion_pct": null,
         "wow": {
@@ -207,28 +207,10 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source."
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [],
-      "notes": {
-        "issues": [
-          "Sales came in at \u00a332,559.21 versus a \u00a342,000 target (-22.47%, -\u00a39,440.79) and fell 27.3% week-on-week with covers down 377 (-22.84%) \u2014 Owner: GM Joe Herrera (14/07/2026)",
-          "Operational labour ran at 24.6% against the 22% target (2.6% over; all-in labour 28.8%) \u2014 Owner: GM Joe Herrera (14/07/2026)",
-          "Food cost variance is running 4.4% over projection with stabilisation still in progress \u2014 Owner: GM Joe Herrera (14/07/2026)",
-          "Two 1-star Google reviews received, judged inaccurate; site was subsequently visited and passed by the authorities \u2014 Owner: GM Joe Herrera (14/07/2026)",
-          "FOH team member Ben given an unofficial warning for phone usage and disruption during service \u2014 Owner: GM Joe Herrera (14/07/2026)",
-          "Outstanding maintenance items logged: LED lights, urinal and male/female floats \u2014 Owner: Kris (Ops Manager) (14/07/2026)"
-        ],
-        "actions": [
-          "Increase review volume this week to offset the inaccurate 1-star feedback \u2014 Owner: GM Joe Herrera and site team (14/07/2026)",
-          "Measure labour-to-sales this week and on an ongoing basis \u2014 Owner: GM Joe Herrera (14/07/2026)"
-        ],
-        "carryover": [
-          "\u00a38 World Cup Ramen promo ongoing, pending game result \u2014 Owner: GM Joe Herrera (14/07/2026)",
-          "Maintenance status unchanged apart from items discussed in previous KPIs \u2014 Owner: Kris (Ops Manager) (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }

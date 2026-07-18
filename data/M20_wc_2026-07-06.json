@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -20,21 +20,21 @@
           "actual": 55833.08,
           "target": 52500.0,
           "var_pct": 6.35,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "prev": 26238.53,
+          "wow_abs": 29594.55,
+          "wow_pct": 112.79
         },
         "covers": {
           "actual": 3148,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "prev": 1162,
+          "wow_abs": 1986,
+          "wow_pct": 170.91
         },
         "sph": {
           "actual": 17.72,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null,
+          "prev": 22.58,
+          "wow_abs": -4.86,
+          "wow_pct": -21.52,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 57,
+        "score": 56,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -86,8 +86,8 @@
           },
           "sph": {
             "weight": 15,
-            "value": 28.67,
-            "basis": "\u00a317.72 vs \u00a322 tgt \u2014 level 29"
+            "value": 20.07,
+            "basis": "\u00a317.72 vs \u00a322 tgt \u2014 level 29, WoW -21.52% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -118,7 +118,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.81,
+        "week_avg_rating": 4.807453416,
         "new_reviews": 161,
         "star_breakdown": {
           "5": 138,
@@ -127,51 +127,8 @@
           "2": 0,
           "1": 2
         },
-        "negatives": 6,
-        "negative_reviews": [
-          {
-            "stars": 3,
-            "author": "Aya Gurashi",
-            "date": "2026-07-08",
-            "text": "The food was good and very tasty, nice restaurant.",
-            "url": null
-          },
-          {
-            "stars": 1,
-            "author": "yi ran zhang",
-            "date": "2026-07-10",
-            "text": "",
-            "url": null
-          },
-          {
-            "stars": 1,
-            "author": "\u8d75\u82ae\u79be",
-            "date": "2026-07-11",
-            "text": "(Translated by Google) It's just average, nothing special. (Original) \u666e\u666e\u901a\u901a\uff0c\u611f\u89c9\u5f88\u4e00\u822c",
-            "url": null
-          },
-          {
-            "stars": 3,
-            "author": "Tegan Young",
-            "date": "2026-07-11",
-            "text": "Me and my boyfriend went for an early dinner to try out the new restaurant in West Quay. There was a small queue when we got there with just one person greeting and seating people. The restaurant was lovely and tidy and the food was incredible. When we ordered, our server did not seem very interested as we did not want any sides/extras. After we asked for the bill, it took about 10 mins just to get the card reader when other tables could pay immediately. Food was lovely but service may feel rushed.",
-            "url": null
-          },
-          {
-            "stars": 1,
-            "author": "Glen Everson",
-            "date": "2026-07-13",
-            "text": "",
-            "url": null
-          },
-          {
-            "stars": 2,
-            "author": "Christopher Ansell",
-            "date": "2026-07-13",
-            "text": "Would not recommend, the service was very chaotic as we had maybe 6 different servers throughout the 30 mins we were there. The food was ok, but seeing as Wagamama is next door I would always go there as it is better, cheaper and larger portions.",
-            "url": null
-          }
-        ],
+        "negatives": null,
+        "negative_reviews": [],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -194,8 +151,7 @@
       "deliveroo": null,
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week",
-        "food% 7.23 suspiciously low \u2014 new-site data entry to verify"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     }
   }

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-18",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-06 \u2013 2026-07-12",
@@ -60,14 +60,14 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 2.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-06"
       },
       "efficiency_score": {
-        "score": 75,
+        "score": 76,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -103,11 +103,14 @@
             "weight": 10,
             "value": 0.0,
             "basis": "3.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "2.50% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -132,8 +135,8 @@
           {
             "stars": 1,
             "author": "L.G. Obreja",
+            "text": "I had the pleasure of visiting Maki & Ramen in Glasgow today at precisely 14:18, comfortably within their advertised lunch offer window (valid until 15:00). Or so I naively believed.\nInstead of being served, I was told I couldn\u2019t order because I \u201cwouldn\u2019t have time to eat before 15:00.\u201d This is a remarkable reinterpretation of basic hospitality\u2014apparently, customers are now expected to justify not just arriving on time, but also their projected eating speed.\nWhat made the experience truly memorable, however, was the staff. The waitress was dismissive and unnecessarily rude from the outset, making it very clear that customer service was not high on the priority list. Any attempt to question the logic of the refusal was met with attitude rather than explanation.\nTo add a final layer of confidence to the situation, a very young staff member\u2014who introduced himself as the \u201cgeneral manager\u201d\u2014stepped in to reinforce the decision. Whether this was meant to reassure me or simply end the conversation quickly is unclear, but it did little to inspire trust in how the place is run.\nSo to summarise: an active offer that you can\u2019t actually use, unhelpful staff, and management that seems more improvised than professional. If you\u2019re looking for a restaurant that honours its own terms and treats customers with basic respect, you may want to look elsewhere.",
             "date": "2026-07-09",
-            "text": "Visited in Glasgow within the advertised lunch-offer window (until 15:00) but was refused service, told I wouldn't have time to eat before 15:00. The waitress was dismissive and rude, and a very young staff member who introduced himself as the 'general manager' reinforced the refusal. An active offer you can't use, unhelpful staff, and management that seems more improvised than professional.",
             "url": null
           }
         ],
@@ -145,7 +148,7 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-06.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 3,
+        "outstanding_count": 1,
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
@@ -153,23 +156,9 @@
             "logged_week": "Ongoing",
             "owner": "\u2014",
             "status": "open"
-          },
-          {
-            "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris/Rafal",
-            "status": "open"
-          },
-          {
-            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
-            "logged_week": "Ongoing",
-            "owner": "Kris",
-            "status": "open"
           }
         ],
-        "note": "3 open item(s)"
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -190,8 +179,8 @@
         "rating": 3.5,
         "open_hours_pct": 99.3,
         "avg_prep_min": 14.5,
-        "rejection_pct": 0,
-        "inaccuracy_pct": null,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.6,
         "rider_wait_5min_pct": 5.5,
         "conversion_pct": 8.3,
         "wow": {
@@ -202,30 +191,10 @@
         },
         "gmv_vs_4wk_pct": -5.8,
         "gmv_vs_ly_pct": 4.1,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ],
-      "notes": {
-        "issues": [
-          "Sales of \u00a342,494.18 landed \u00a3255.82 (0.59%) below the \u00a342,750 target \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "Food cost variance running 2.5% over projection with stabilisation still in progress \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "One 1-star Google review from an aggressive customer, judged inaccurate; outreach made with no reply \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "BOH team member Octavio resigned with immediate effect \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "Review volume needs to increase for an established site \u2014 Owner: GM Scott Renwick (14/07/2026)"
-        ],
-        "actions": [
-          "Management to encourage the team to push reviews daily to lift volume \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "Ren switched to bar supervising to stabilise the team \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "Penny returning 20.07.26 for two weeks before opening Birmingham, and to move onto salary as EC (in progress) \u2014 Owner: GM Scott Renwick (14/07/2026)"
-        ],
-        "carryover": [
-          "\u00a38 World Cup Ramen promo ongoing, pending game result \u2014 Owner: GM Scott Renwick (14/07/2026)",
-          "FOH stable apart from matters already discussed in the previous KPI \u2014 Owner: GM Scott Renwick (14/07/2026)"
-        ],
-        "empty": false
-      }
+      "gaps": []
     }
   }
 }
