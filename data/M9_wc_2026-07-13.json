@@ -1,0 +1,196 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-07-22",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-07-13 \u2013 2026-07-19",
+    "commencing": "2026-07-13",
+    "ending": "2026-07-19"
+  },
+  "sites": {
+    "M9": {
+      "code": "M9",
+      "name": "Maki 9",
+      "gm": "Kai Chau Leung / Chan Zhi Quan",
+      "gm_confirm": true,
+      "am": "Inka Cheung",
+      "cluster": "North England & Midlands",
+      "kpis": {
+        "sales": {
+          "actual": 64193.94,
+          "target": 67500.0,
+          "var_pct": -4.9,
+          "prev": 56536.03,
+          "wow_abs": 7657.91,
+          "wow_pct": 13.55
+        },
+        "covers": {
+          "actual": 2521,
+          "prev": 2149,
+          "wow_abs": 372,
+          "wow_pct": 17.31
+        },
+        "sph": {
+          "actual": 22.67,
+          "prev": 22.68,
+          "wow_abs": -0.01,
+          "wow_pct": -0.04,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 19.77,
+          "target": null
+        },
+        "food_pct": {
+          "actual": null,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": 869.4
+        },
+        "waste": {
+          "actual": 53.74
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": 0.4,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "food": {
+          "variance_pct": 1.9,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "week_commencing": "2026-07-13"
+      },
+      "efficiency_score": {
+        "score": 92,
+        "rag": "amber",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sph": 15,
+          "sales": 10,
+          "weekly_star": 10,
+          "food_var": 5
+        },
+        "components": {
+          "sales": {
+            "weight": 10,
+            "value": 94.59,
+            "basis": "70% (100-4.90) + 30% (\u00a3gap -3306 vs \u00b1\u00a350k cal)"
+          },
+          "sph": {
+            "weight": 15,
+            "value": 84.88,
+            "basis": "\u00a322.67 vs \u00a322 tgt \u2014 level 100, WoW -0.04% \u2192 mom 50"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "19.77% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 74.53,
+            "basis": "4.52\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "1.90% inside \u00b15% band"
+          }
+        },
+        "components_dropped": [
+          "food"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "green",
+        "triggers": [],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": 4.52173913,
+        "new_reviews": 23,
+        "star_breakdown": {
+          "5": 18,
+          "4": 3,
+          "3": 0,
+          "2": 0,
+          "1": 2
+        },
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Suelen Mathias Borges",
+            "text": "Unfortunately, we didn\u2019t even get the chance to try the food, so I can\u2019t comment on that. However, the customer service was the worst I\u2019ve ever experienced.\n\nFrom what I saw in the two minutes we were there, it\u2019s a beautiful venue in a great location. We decided to visit after seeing it advertised and my partner purchased a Groupon voucher, as neither of us had been there before.\n\nWhen we arrived, we immediately told the receptionist that we had a Groupon voucher. She welcomed us, did a big show with a drum showed us to a table, and said everything was fine. A few moments later, another member of staff came over and told us we couldn\u2019t use the Groupon voucher on weekends, that could be totally avoided.\n\nThe frustrating part is that this restriction wasn\u2019t made clear on Groupon, and if weekends weren\u2019t eligible, the receptionist should have told us before seating us. Instead, we were seated, which was embarrassing and completely avoidable.\n\nThe restaurant looks lovely, and although the menu apparently nice, we were happy to give it a try. Sadly, the poor customer service completely changed our impression.\n\nLosing two customers means losing much more than that. We won\u2019t be returning, and unfortunately we can\u2019t recommend the restaurant to our friends, family, or clients. A simple apology doesn\u2019t make up for being treated so dismissively.\n\nI hope the management takes this feedback on board and invests in better staff training and clearer communication regarding promotional offers. This experience wasn\u2019t just about the Groupon voucher, it was about how we were treated.",
+            "date": "2026-07-19",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Y.K W",
+            "text": "The food and environment were good. However, it seemed that the waiters were not very welcoming towards Asian customers, even though they themselves were Asian. We felt that there was a different attitude in the way we were treated compared with local customers.",
+            "date": "2026-07-16",
+            "url": null
+          }
+        ],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-07-13.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-19",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 5312.08,
+        "orders": 182,
+        "aov": 29.19,
+        "new_customers": 68,
+        "rating": 4.56,
+        "open_hours_pct": 99.6,
+        "avg_prep_min": 14.9,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 4.4,
+        "rider_wait_5min_pct": 2.2,
+        "conversion_pct": 6.6,
+        "wow": {
+          "gmv_pct": -12.1,
+          "orders_abs": -19,
+          "prev_gmv": 6045.94,
+          "prev_orders": 201
+        },
+        "gmv_vs_4wk_pct": -2.7,
+        "gmv_vs_ly_pct": -13.5,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": [
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
+      ]
+    }
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-07-22",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-07-13 \u2013 2026-07-19",
+    "commencing": "2026-07-13",
+    "ending": "2026-07-19"
+  },
+  "sites": {
+    "MakiNori": {
+      "code": "MakiNori",
+      "name": "Maki Nori",
+      "gm": "(confirm)",
+      "gm_confirm": false,
+      "am": "Lincoln",
+      "cluster": "South England",
+      "kpis": {
+        "sales": {
+          "actual": 21727.09,
+          "target": null,
+          "var_pct": null,
+          "prev": 23351.98,
+          "wow_abs": -1624.89,
+          "wow_pct": -6.96
+        },
+        "covers": {
+          "actual": 558,
+          "prev": 672,
+          "wow_abs": -114,
+          "wow_pct": -16.96
+        },
+        "sph": {
+          "actual": 38.94,
+          "prev": 34.75,
+          "wow_abs": 4.19,
+          "wow_pct": 12.06,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 30.42,
+          "target": null
+        },
+        "food_pct": {
+          "actual": null,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": 438.3
+        },
+        "waste": {
+          "actual": 8.27
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
+        },
+        "food": {
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
+        },
+        "week_commencing": "2026-07-13"
+      },
+      "efficiency_score": {
+        "score": 41,
+        "rag": "red",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sph": 15,
+          "sales": 10,
+          "weekly_star": 10,
+          "food_var": 5
+        },
+        "components": {
+          "sph": {
+            "weight": 15,
+            "value": 100.0,
+            "basis": "\u00a338.94 vs \u00a335 tgt \u2014 level 100, WoW +12.06% \u2192 mom 100"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 0.0,
+            "basis": "30.42% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 75.63,
+            "basis": "4.53\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          }
+        },
+        "components_dropped": [
+          "sales",
+          "food",
+          "food_var"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "red",
+        "triggers": [
+          "wage 30.4%"
+        ],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": 4.529411765,
+        "new_reviews": 17,
+        "star_breakdown": {
+          "5": 14,
+          "4": 1,
+          "3": 0,
+          "2": 1,
+          "1": 1
+        },
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Foodie girl",
+            "text": "\u507d\u5bff\u53f8\u5c4b\u3067\u3059\u3002\u304a\u3059\u3059\u3081\u3057\u307e\u305b\u3093\u3002\n\u7f8e\u5473\u3057\u304f\u306a\u3044\u3002\u65e5\u672c\u98df\u3067\u50cd\u3044\u3066\u304a\u3044\u3066\u30a2\u30b8\u30a2\u4eba\u5dee\u5225\u3092\u3059\u308b\u6700\u4f4e\u306a\u5e97\u54e1\u304c\u3044\u307e\u3059\u3002\nI went to this restaurant with my Asian friends. I visited because the website menu showed an \u201comakase aburi sushi\u201d option, which I was interested in trying. However, when we arrived, it was not available on the actual menu.\n\nI asked a male staff member about it, and he told me that if we requested it, the chef could prepare an omakase with some aburi (seared) sushi. When the female server came over, I explained that we would like to order omakase with aburi sushi. She asked which pieces we wanted to be seared, which was reasonable. However, when I asked, \u201cWhich sushi pieces would normally be selected?\u201d because it was omakase, she did not check with the chef or try to help. Instead, she replied bluntly, \u201cIt\u2019s omakase,\u201d and left it at that.\n\nThe restaurant was not busy at all \u2014 there were only two other tables occupied \u2014 yet this server repeatedly came back almost every minute asking if we had decided what to order. The constant pressure, combined with her unfriendly attitude, made the experience very uncomfortable.\n\nAs a Japanese person, I found this level of service especially disappointing from a restaurant that presents itself as serving Japanese cuisine. I believe staff should have a better understanding of Japanese dining culture, especially the meaning of \u201comakase,\u201d where customers trust the chef\u2019s selection.\n\nThe most frustrating part was that when we paid using a certain service, her attitude suddenly changed. She became friendly, smiled, and even asked us to leave a review. So here I am, leaving an honest one.\n\nUnfortunately, the sushi itself was not good, and the sushi was not prepared by a Japanese chef. In my opinion, this felt more like a fake representation of Japanese sushi rather than an authentic sushi experience.",
+            "date": "2026-07-18",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "Tom Honeyands",
+            "text": "45 min wait once ordered. Other customers also visibly annoyed. Decent but not great food. Too busy impressing influencers at the bar. - and a fancy cup of dry ice smoking does not make it feel as high-end as they think it does. They did apologise and take off service charge. Not terrible, and reasonably priced. but not good enough. Better options nearby.",
+            "date": "2026-07-16",
+            "url": null
+          }
+        ],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-07-13.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": null,
+      "gaps": [
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
+        "Stock-take \u2014 no variance entered this week",
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+      ]
+    }
+  }
+}

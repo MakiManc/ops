@@ -1,0 +1,188 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-07-22",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-07-13 \u2013 2026-07-19",
+    "commencing": "2026-07-13",
+    "ending": "2026-07-19"
+  },
+  "sites": {
+    "M14": {
+      "code": "M14",
+      "name": "Maki 14",
+      "gm": "(vacant)",
+      "gm_confirm": false,
+      "am": "Inka Cheung",
+      "cluster": "North England & Midlands",
+      "kpis": {
+        "sales": {
+          "actual": 37869.26,
+          "target": 43000.0,
+          "var_pct": -11.93,
+          "prev": 34719.68,
+          "wow_abs": 3149.58,
+          "wow_pct": 9.07
+        },
+        "covers": {
+          "actual": 1674,
+          "prev": 1549,
+          "wow_abs": 125,
+          "wow_pct": 8.07
+        },
+        "sph": {
+          "actual": 21.93,
+          "prev": 21.77,
+          "wow_abs": 0.16,
+          "wow_pct": 0.73,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 20.67,
+          "target": null
+        },
+        "food_pct": {
+          "actual": null,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": 551.8
+        },
+        "waste": {
+          "actual": 37.26
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": -2.4,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "food": {
+          "variance_pct": 1.9,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "week_commencing": "2026-07-13"
+      },
+      "efficiency_score": {
+        "score": 95,
+        "rag": "green",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sph": 15,
+          "sales": 10,
+          "weekly_star": 10,
+          "food_var": 5
+        },
+        "components": {
+          "sales": {
+            "weight": 10,
+            "value": 88.57,
+            "basis": "70% (100-11.93) + 30% (\u00a3gap -5131 vs \u00b1\u00a350k cal)"
+          },
+          "sph": {
+            "weight": 15,
+            "value": 86.37,
+            "basis": "\u00a321.93 vs \u00a322 tgt \u2014 level 99, WoW +0.73% \u2192 mom 57"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "20.67% vs 21% target, -15/pp over"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "1.90% inside \u00b15% band"
+          }
+        },
+        "components_dropped": [
+          "food",
+          "weekly_star"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "red",
+        "triggers": [
+          "sales -11.9% vs target"
+        ],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": null,
+        "new_reviews": 11,
+        "star_breakdown": {
+          "5": 10,
+          "4": 0,
+          "3": 0,
+          "2": 1,
+          "1": 0
+        },
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "S X",
+            "text": "The staff were friendly and the restaurant was clean, so no complaints there. However, the food was a major disappointment, especially given the prices.\n\nEverything arrived so quickly that it felt less like a restaurant meal and more like pre-prepared food being assembled. The ramen lacked the depth, freshness, and attention to detail I would expect from a place specializing in Japanese cuisine. The broth tasted generic and lacked the richness of a properly cooked stock, while the noodles and toppings felt highly standardized and pre-portioned.\n\nWhat also struck me was that I couldn't see any real kitchen operation, which only reinforced the impression that much of the food was prepared elsewhere and simply finished on-site.\n\nThe biggest surprise, however, was the rating. After eating here, I genuinely struggled to understand how this place scores so highly. Perhaps many customers are drawn to the Japanese branding, trendy atmosphere, or fast service, but based on food quality alone, I found it very ordinary.",
+            "date": "2026-07-16",
+            "url": null
+          }
+        ],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-07-13.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-19",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": 4.84,
+        "open_hours_pct": 89.0,
+        "avg_prep_min": 13.8,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 5.0,
+        "rider_wait_5min_pct": 9.5,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": [
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
+        "Reviews \u2014 no week rating in source"
+      ]
+    }
+  }
+}
