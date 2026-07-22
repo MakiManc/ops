@@ -60,15 +60,15 @@
           "within_band": true
         },
         "food": {
-          "variance_pct": -2.6,
+          "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": true
+          "within_band": null
         },
         "week_commencing": "2026-07-13"
       },
       "efficiency_score": {
-        "score": 81,
-        "rag": "amber",
+        "score": 79,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -98,15 +98,11 @@
             "weight": 10,
             "value": 100.0,
             "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
-          },
-          "food_var": {
-            "weight": 5,
-            "value": 100,
-            "basis": "-2.60% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "food"
+          "food",
+          "food_var"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -176,7 +172,8 @@
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
+        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
+        "Stock-take \u2014 no variance entered this week"
       ]
     }
   }
