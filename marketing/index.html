@@ -121,6 +121,26 @@ tr.hiddenrow { display: none; }
 .mchip.cold { background: #FEF2F2; border-color: #FEE2E2; color: #B91C1C; }
 .mchip.cold b { color: #B91C1C; }
 .ccard .note { max-width: none; }
+/* Outliers (v5) */
+.outlier-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 0 12px; }
+.oh-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #0F172A; }
+.outlier-group { margin-bottom: 14px; }
+.og-label { font-size: 11px; font-weight: 700; color: #334155; margin: 6px 0 8px; display: flex; align-items: center; gap: 8px; }
+.og-label .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.outlier-group.good .og-label { color: #15803D; }
+.outlier-group.good .og-label .dot { background: #16A34A; }
+.outlier-group.bad .og-label { color: #B91C1C; }
+.outlier-group.bad .og-label .dot { background: #DC2626; }
+.outlier-sec { border-left: 3px solid #E8ECF3; padding-left: 12px; margin-bottom: 12px; }
+.subhead { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #64748B; margin: 16px 0 8px; padding-top: 12px; border-top: 1px solid #EEF2F7; }
+.og-legend { font-size: 10px; color: #6B7280; margin: -2px 0 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+.sevtag { display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; }
+.sevtag.cut { background: #7F1D1D; color: #fff; }
+.sevtag.weak { background: #FEE2E2; color: #B91C1C; }
+.mchip.crit { background: #7F1D1D; border-color: #7F1D1D; color: #fff; }
+.mchip.crit b { color: #fff; }
+.ccard.dead { border-left-color: #7F1D1D; background: #FEF2F2; }
+.ccard.dead .cap { color: #7F1D1D; }
 </style>
 </head>
 <body>
@@ -175,6 +195,14 @@ tr.hiddenrow { display: none; }
       <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1fA6J0ri8Gz3RpG0SMSbZyR6uSHXB8XvUw9u1URpHntU/edit" target="_blank">annotate ↗</a>
     </div>
     <div class="controls">
+      <label>Timeframe</label>
+      <select id="ig-range">
+        <option value="all">All (90 days)</option>
+        <option value="week">This week</option>
+        <option value="month">This month</option>
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+      </select>
       <label>Type</label>
       <select id="ig-type">
         <option value="">All</option>
@@ -191,6 +219,9 @@ tr.hiddenrow { display: none; }
         <option value="watch">Watch time</option>
       </select>
     </div>
+    <div class="statrow" id="ig-summary" style="margin-bottom:10px"></div>
+    <div class="outlier-sec" id="ig-outliers"></div>
+    <div class="subhead">All posts</div>
     <div class="sub" style="margin-bottom:8px">Card accent: <span class="rag GREEN">green ≥6% eng/reach</span> <span class="rag RED">red &lt;2%</span> — same thresholds as the Add/Remove matrix</div>
     <div class="cardgrid" id="ig-cards"><div class="loading">Loading…</div></div>
   </div>
@@ -207,6 +238,14 @@ tr.hiddenrow { display: none; }
       <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1fA6J0ri8Gz3RpG0SMSbZyR6uSHXB8XvUw9u1URpHntU/edit" target="_blank">annotate ↗</a>
     </div>
     <div class="controls">
+      <label>Timeframe</label>
+      <select id="tt-range">
+        <option value="all">All (90 days)</option>
+        <option value="week">This week</option>
+        <option value="month">This month</option>
+        <option value="7d">Last 7 days</option>
+        <option value="30d">Last 30 days</option>
+      </select>
       <label>Sort</label>
       <select id="tt-sort">
         <option value="date">Newest</option>
@@ -218,6 +257,9 @@ tr.hiddenrow { display: none; }
         <option value="followers">Followers +</option>
       </select>
     </div>
+    <div class="statrow" id="tt-summary" style="margin-bottom:10px"></div>
+    <div class="outlier-sec" id="tt-outliers"></div>
+    <div class="subhead">All videos</div>
     <div class="sub" style="margin-bottom:8px">Card accent: <span class="rag GREEN">green ≥6% eng/reach</span> <span class="rag RED">red &lt;2%</span> — same thresholds as the Add/Remove matrix</div>
     <div class="cardgrid" id="tt-cards"><div class="loading">Loading…</div></div>
   </div>
@@ -606,6 +648,8 @@ function renderCards(d, bbCsv, glCsv) {
     var g = glParse(glCsv || '');
     if (g.report) {
       var repTot = g.weeks[g.report].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0);
+      var repTarget = g.weeks[g.report].reduce(function(s, r) { return s + (Number(r.covers_target_week) || 0); }, 0);
+      var achPct = repTarget > 0 ? repTot / repTarget * 100 : null;
       var wtd = g.current ? g.weeks[g.current].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0) : 0;
       var prevTot = g.prev ? g.weeks[g.prev].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0) : 0;
       var wow = prevTot > 0 ? repTot / prevTot - 1 : null;
@@ -613,6 +657,7 @@ function renderCards(d, bbCsv, glCsv) {
         return g.weeks[w].reduce(function(s, r) { return s + (Number(r.covers_actual) || 0); }, 0);
       });
       coversCard = '<div class="card hero"><div class="label">Covers · wk of ' + fmtWc(g.report) + '</div><div class="value" data-count="' + repTot + '">' + fmtN(repTot) + '</div>' +
+        (repTarget > 0 ? '<div class="delta">Target ' + fmtN(repTarget) + ' · <span class="' + (achPct >= 100 ? 'pos' : 'neg') + '">' + achPct.toFixed(0) + '% of target</span></div>' : '<div class="delta">Target — no target set this week</div>') +
         '<div class="delta">' + (wow != null ? signedPct(wow) + ' WoW · ' : '') + (wtd > 0 ? 'this wk so far ' + fmtN(wtd) : 'this wk: no data yet (covers lag)') + '</div>' +
         (heroSeries.length > 1 ? '<div class="sparkwrap"><canvas id="covers-spark"></canvas></div>' : '') + '</div>';
     }
@@ -898,6 +943,27 @@ function computeEngRate(o) {
   return ((Number(o.likes) || 0) + (Number(o.comments) || 0) + (Number(o.saves) || 0) + (Number(o.shares) || 0)) / reach;
 }
 
+// Timeframe filter for the content library. 'week'/'month' are calendar-to-date
+// (Mon-start week · 1st of month); '7d'/'30d' are rolling windows; 'all' = everything.
+function inDateWindow(dateStr, win) {
+  if (!win || win === 'all') return true;
+  var d = new Date(String(dateStr || '').slice(0, 10));
+  if (isNaN(d)) return false;
+  var now = new Date();
+  if (win === '7d')  { var c7 = new Date(now);  c7.setDate(c7.getDate() - 7);  return d >= c7; }
+  if (win === '30d') { var c30 = new Date(now); c30.setDate(c30.getDate() - 30); return d >= c30; }
+  if (win === 'week') { var cw = new Date(now); var dow = (cw.getDay() + 6) % 7; cw.setDate(cw.getDate() - dow); cw.setHours(0,0,0,0); return d >= cw; }
+  if (win === 'month') { return d >= new Date(now.getFullYear(), now.getMonth(), 1); }
+  return true;
+}
+function median(arr) {
+  var a = arr.filter(function(v) { return v != null && !isNaN(v); }).sort(function(x, y) { return x - y; });
+  if (!a.length) return null;
+  var m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+var WIN_LABEL = {all: 'last 90 days', week: 'this week', month: 'this month', '7d': 'last 7 days', '30d': 'last 30 days'};
+
 // =====================================================================
 // INSTAGRAM & TIKTOK TABS — content library + annotations
 // =====================================================================
@@ -934,7 +1000,7 @@ async function loadInstagram() {
       engRate: computeEngRate(x)
     });
   });
-  ['ig-type', 'ig-sort'].forEach(function(id) {
+  ['ig-range', 'ig-type', 'ig-sort'].forEach(function(id) {
     document.getElementById(id).addEventListener('change', function() { renderIg(ig); });
   });
   renderIg(ig);
@@ -945,8 +1011,8 @@ function escAttr(s) { return String(s || '').replace(/&/g, '&amp;').replace(/"/g
 function fmtK(n) { n = Number(n); if (n == null || isNaN(n)) return '—'; if (Math.abs(n) >= 10000) return (n / 1000).toFixed(0) + 'k'; if (Math.abs(n) >= 1000) return (n / 1000).toFixed(1) + 'k'; return String(Math.round(n)); }
 function chip(label, val, cls) { return '<span class="mchip' + (cls ? ' ' + cls : '') + '"><b>' + val + '</b> ' + label + '</span>'; }
 function engBand(rate) { return rate >= 0.06 ? 'hot' : (rate > 0 && rate < 0.02 ? 'cold' : ''); }
-function contentCard(r, tag, chips) {
-  var band = engBand(r.engRate);
+function contentCard(r, tag, chips, forceBand) {
+  var band = forceBand !== undefined ? forceBand : engBand(r.engRate);
   return '<div class="ccard' + (band ? ' ' + band : '') + '">' +
     '<div class="toprow">' + tag + '<span class="date">' + fmtDate(r.posted_at) + '</span>' +
       (r.permalink ? '<a class="postlink" href="' + escAttr(r.permalink) + '" target="_blank">open ↗</a>' : '') + '</div>' +
@@ -955,13 +1021,136 @@ function contentCard(r, tag, chips) {
     '<div class="mchips">' + chips.join('') + '</div></div>';
 }
 
+// Aggregate strip above the content grid — totals for the currently-selected timeframe
+function renderContentSummary(elId, view, win, isTt) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var totReach = view.reduce(function(s, r) { return s + (Number(r.reach) || 0); }, 0);
+  var totViews = view.reduce(function(s, r) { return s + (Number(r.views) || 0); }, 0);
+  var totEng = view.reduce(function(s, r) { return s + (Number(r.engagement) || 0); }, 0);
+  var medEng = median(view.map(function(r) { return r.engRate; }));
+  var label = WIN_LABEL[win] || 'this timeframe';
+  var stats = [stat((isTt ? 'Videos' : 'Posts') + ' · ' + label, fmtN(view.length))];
+  if (isTt) stats.push(stat('Total views', fmtN(totViews)));
+  stats.push(stat('Total reach', fmtN(totReach)));
+  stats.push(stat('Total engagement', fmtN(totEng)));
+  stats.push(stat('Median eng/reach', medEng != null ? fmtPct(medEng) : '—'));
+  el.innerHTML = stats.join('');
+}
+
+// Per-platform chip + card builders (shared by the full grid and the outlier groups)
+function igChips(r) {
+  return [
+    chip('reach', fmtK(r.reach)),
+    chip('eng/reach', fmtPct(r.engRate), engBand(r.engRate)),
+    chip('likes', fmtK(r.likes)),
+    chip('comments', fmtK(r.comments)),
+    chip('saves', fmtK(r.saves)),
+    chip('shares', fmtK(r.shares)),
+    (Number(r.avg_watch_time_ms) ? chip('watch', fmtWatch(r.avg_watch_time_ms)) : '')
+  ];
+}
+function ttChips(r) {
+  return [
+    chip('views', fmtK(r.views)),
+    chip('reach', fmtK(r.reach)),
+    chip('eng/reach', fmtPct(r.engRate), engBand(r.engRate)),
+    chip('likes', fmtK(r.likes)),
+    chip('comments', fmtK(r.comments)),
+    chip('shares', fmtK(r.shares)),
+    chip('saves', fmtK(r.saves)),
+    (Number(r.avg_watch_time_ms) ? chip('watch', fmtWatch(r.avg_watch_time_ms)) : ''),
+    (Number(r.full_watch_rate) ? chip('full-watch', fmtPct(Number(r.full_watch_rate))) : ''),
+    (Number(r.new_followers) ? chip('followers +', fmtK(r.new_followers)) : '')
+  ];
+}
+function igCardHtml(r) { return contentCard(r, typeTag(r.media_type), igChips(r)); }
+function ttCardHtml(r) { return contentCard(r, '<span class="tag tt">TIKTOK</span>', ttChips(r)); }
+
+// Outliers — standouts vs underperformers.
+// Standouts: reach (IG) / views (TikTok) >= 2x the window median.
+// Underperformers (judged HARSHLY, industry standard): weak reach/views (<=1/2 median) OR
+//   engagement/reach below the platform floor (IG 2% · TikTok 3% — TikTok norms run ~3.4% by view).
+//   CUT (dark) = the truly dead ones: eng/reach below the critical floor (IG 1% · TikTok 1.5%),
+//   or below the weak floor AND weak reach. WEAK (red) = fails one test.
+function renderOutliers(elId, view, isTt) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var metricLabel = isTt ? 'views' : 'reach';
+  var ENG_FLOOR = isTt ? 0.03 : 0.02;   // below platform norm = weak
+  var ENG_CRIT = isTt ? 0.015 : 0.01;   // truly dead
+  var LIKES_FLOOR = 80;                 // hard floor — under this = straight-up CUT, no matter the rate
+  var floorTxt = (ENG_FLOOR * 100).toFixed(0) + '%';
+  function metricOf(r) { return isTt ? (Number(r.views) || Number(r.reach) || 0) : (Number(r.reach) || 0); }
+  var valid = view.filter(function(r) { return metricOf(r) > 0; });
+  var headHtml = '<div class="outlier-head"><span class="oh-title">Outliers</span>';
+  if (valid.length < 5) {
+    el.innerHTML = headHtml + '<span class="subtle">need at least 5 ' + (isTt ? 'videos' : 'posts') + ' with ' + metricLabel + ' data in this window — widen the timeframe</span></div>';
+    return;
+  }
+  var med = median(valid.map(metricOf));
+  headHtml += '<span class="subtle">vs median ' + metricLabel + ' this window (median ' + fmtN(med) + ') · underperformers judged against the industry eng/reach floor (IG 2% · TikTok 3%) and a hard ' + LIKES_FLOOR + '-likes floor</span></div>';
+
+  // Standouts (must also clear the hard likes floor — a big-reach post with <80 likes is not a win)
+  var good = valid.filter(function(r) { return metricOf(r) >= 2 * med && (Number(r.likes) || 0) >= LIKES_FLOOR; })
+    .sort(function(a, b) { return metricOf(b) - metricOf(a); }).slice(0, 8);
+  var goodSet = {}; good.forEach(function(r) { goodSet[r.content_id] = 1; });
+  function goodCard(r) {
+    var ratio = med > 0 ? metricOf(r) / med : 0;
+    var reach = chip('vs median ' + metricLabel, ratio.toFixed(1) + '×', 'hot');
+    var tag = isTt ? '<span class="tag tt">TIKTOK</span>' : typeTag(r.media_type);
+    return contentCard(r, tag, [reach].concat(isTt ? ttChips(r) : igChips(r)), 'hot');
+  }
+
+  // Underperformers — harsh: weak reach OR sub-floor engagement
+  function isBad(r) { return metricOf(r) <= 0.5 * med || r.engRate < ENG_FLOOR || (Number(r.likes) || 0) < LIKES_FLOOR; }
+  function sevOf(r) {
+    var lowReach = metricOf(r) <= 0.5 * med;
+    if ((Number(r.likes) || 0) < LIKES_FLOOR) return 'CUT';
+    if (r.engRate < ENG_CRIT || (r.engRate < ENG_FLOOR && lowReach)) return 'CUT';
+    return 'WEAK';
+  }
+  function badness(r) { return (r.engRate / ENG_FLOOR) + (med > 0 ? metricOf(r) / med : 0); }
+  var bad = valid.filter(function(r) { return !goodSet[r.content_id] && isBad(r); })
+    .sort(function(a, b) { return badness(a) - badness(b); }).slice(0, 12);
+  var nCut = bad.filter(function(r) { return sevOf(r) === 'CUT'; }).length;
+  function badCard(r) {
+    var sev = sevOf(r);
+    var band = sev === 'CUT' ? 'dead' : 'cold';
+    var ratio = med > 0 ? metricOf(r) / med : 0;
+    var likes = Number(r.likes) || 0;
+    var badge = '<span class="mchip ' + (sev === 'CUT' ? 'crit' : 'cold') + '"><b>' + sev + '</b></span>';
+    var likesChip = likes < LIKES_FLOOR ? chip('likes · min ' + LIKES_FLOOR, fmtN(likes), 'cold') : '';
+    var reach = chip('vs median ' + metricLabel, ratio.toFixed(1) + '×', ratio <= 0.5 ? 'cold' : '');
+    var eng = chip('eng/reach · floor ' + floorTxt, fmtPct(r.engRate), r.engRate < ENG_FLOOR ? 'cold' : '');
+    var tag = isTt ? '<span class="tag tt">TIKTOK</span>' : typeTag(r.media_type);
+    return contentCard(r, tag, [badge, likesChip, reach, eng].concat(isTt ? ttChips(r) : igChips(r)), band);
+  }
+
+  var html = headHtml;
+  html += '<div class="outlier-group good"><div class="og-label"><span class="dot"></span>Standouts — ' + good.length + ' <span class="subtle">(≥2× median ' + metricLabel + ')</span></div>';
+  html += good.length ? '<div class="cardgrid">' + good.map(goodCard).join('') + '</div>'
+    : '<div class="subtle" style="padding:2px 0 6px">No clear standouts in this window.</div>';
+  html += '</div>';
+  html += '<div class="outlier-group bad"><div class="og-label"><span class="dot"></span>Underperformers — ' + bad.length + (nCut ? ' <span class="sevtag cut">' + nCut + ' CUT</span>' : '') + '</div>';
+  html += '<div class="og-legend"><span><span class="sevtag cut">CUT</span> under ' + LIKES_FLOOR + ' likes, eng/reach below ' + (ENG_CRIT * 100).toFixed(1) + '%, or below ' + floorTxt + ' with weak reach — pull it</span><span><span class="sevtag weak">WEAK</span> below the ' + floorTxt + ' floor or ≤½ median ' + metricLabel + '</span></div>';
+  html += bad.length ? '<div class="cardgrid">' + bad.map(badCard).join('') + '</div>'
+    : '<div class="subtle" style="padding:2px 0 6px">Nothing below the industry floor this window — nice.</div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
 function renderIg(ig) {
+  var win = document.getElementById('ig-range').value;
   var t = document.getElementById('ig-type').value;
   var sort = document.getElementById('ig-sort').value;
   var view = ig.filter(function(r) {
     if (t && r.media_type !== t) return false;
+    if (!inDateWindow(r.posted_at, win)) return false;
     return true;
   });
+  renderContentSummary('ig-summary', view, win, false);
+  renderOutliers('ig-outliers', view, false);
   var sorters = {
     date: function(a, b) { return String(b.posted_at).localeCompare(String(a.posted_at)); },
     reach: function(a, b) { return (Number(b.reach) || 0) - (Number(a.reach) || 0); },
@@ -971,18 +1160,8 @@ function renderIg(ig) {
   };
   view.sort(sorters[sort] || sorters.date);
   var grid = document.getElementById('ig-cards');
-  if (!view.length) { grid.innerHTML = '<div class="subtle">No posts match the filters</div>'; return; }
-  grid.innerHTML = view.map(function(r) {
-    return contentCard(r, typeTag(r.media_type), [
-      chip('reach', fmtK(r.reach)),
-      chip('eng/reach', fmtPct(r.engRate), engBand(r.engRate)),
-      chip('likes', fmtK(r.likes)),
-      chip('comments', fmtK(r.comments)),
-      chip('saves', fmtK(r.saves)),
-      chip('shares', fmtK(r.shares)),
-      (Number(r.avg_watch_time_ms) ? chip('watch', fmtWatch(r.avg_watch_time_ms)) : '')
-    ]);
-  }).join('');
+  if (!view.length) { grid.innerHTML = '<div class="subtle">No posts in ' + (WIN_LABEL[win] || 'this timeframe') + ' match the filters</div>'; return; }
+  grid.innerHTML = view.map(igCardHtml).join('');
 }
 
 async function loadTikTok() {
@@ -995,13 +1174,18 @@ async function loadTikTok() {
       engRate: computeEngRate(x)
     });
   });
-  document.getElementById('tt-sort').addEventListener('change', function() { renderTt(tt); });
+  ['tt-range', 'tt-sort'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', function() { renderTt(tt); });
+  });
   renderTt(tt);
 }
 
 function renderTt(tt) {
+  var win = document.getElementById('tt-range').value;
   var sort = document.getElementById('tt-sort').value;
-  var view = tt.slice();
+  var view = tt.filter(function(r) { return inDateWindow(r.posted_at, win); });
+  renderContentSummary('tt-summary', view, win, true);
+  renderOutliers('tt-outliers', view, true);
   var sorters = {
     date: function(a, b) { return String(b.posted_at).localeCompare(String(a.posted_at)); },
     views: function(a, b) { return (Number(b.views) || 0) - (Number(a.views) || 0); },
@@ -1013,21 +1197,8 @@ function renderTt(tt) {
   };
   view.sort(sorters[sort] || sorters.date);
   var grid = document.getElementById('tt-cards');
-  if (!view.length) { grid.innerHTML = '<div class="subtle">No videos match the filters</div>'; return; }
-  grid.innerHTML = view.map(function(r) {
-    return contentCard(r, '<span class="tag tt">TIKTOK</span>', [
-      chip('views', fmtK(r.views)),
-      chip('reach', fmtK(r.reach)),
-      chip('eng/reach', fmtPct(r.engRate), engBand(r.engRate)),
-      chip('likes', fmtK(r.likes)),
-      chip('comments', fmtK(r.comments)),
-      chip('shares', fmtK(r.shares)),
-      chip('saves', fmtK(r.saves)),
-      (Number(r.avg_watch_time_ms) ? chip('watch', fmtWatch(r.avg_watch_time_ms)) : ''),
-      (Number(r.full_watch_rate) ? chip('full-watch', fmtPct(Number(r.full_watch_rate))) : ''),
-      (Number(r.new_followers) ? chip('followers +', fmtK(r.new_followers)) : '')
-    ]);
-  }).join('');
+  if (!view.length) { grid.innerHTML = '<div class="subtle">No videos in ' + (WIN_LABEL[win] || 'this timeframe') + '</div>'; return; }
+  grid.innerHTML = view.map(ttCardHtml).join('');
 }
 
 // =====================================================================
