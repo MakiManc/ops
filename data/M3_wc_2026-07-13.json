@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-22",
+  "generated_at": "2026-07-23",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-13 \u2013 2026-07-19",
@@ -185,11 +185,22 @@
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
       ],
       "notes": {
-        "issues": [],
-        "actions": [],
+        "issues": [
+          "Slower July \u2014 covers down YoY, though WoW covers slightly up and SPH positive \u2014 Owner: GM (Rory Ferguson) (21/07/2026)",
+          "Sales missed target vs previous week \u2014 Owner: GM (21/07/2026)",
+          "Deliveroo stats look inaccurate (annual-leave / reporting-timing mix-up) \u2014 \u00d3is\u00edn advised pulling data directly from the delivery partner hub \u2014 Owner: GM (21/07/2026)",
+          "'Pass' accuracy: >2% of orders inaccurate (missing items) causing customer complaints \u2014 suspected to stem from high-intensity business spikes; GM to address with supervisors, cross-referencing busy periods vs refund data \u2014 Owner: GM (21/07/2026)",
+          "Food cost increased \u2014 consult Jack on whether linked to extra stock ordered after the \u00a38 ramen day \u2014 Owner: GM (21/07/2026)",
+          "Staffing: Sam leaving 10 Aug, Rachel finishing 24 Aug; new hire expected soon \u2014 Owner: GM (21/07/2026)",
+          "Maintenance: new boiler + Marman fridge being installed; shelves being replaced; bathroom taps being fixed \u2014 Owner: GM / Ross (21/07/2026)"
+        ],
+        "actions": [
+          "Remind staff of the disclosure policy regarding the service charge \u2014 Owner: GM (Rory Ferguson) (21/07/2026)",
+          "Complete the missing intangible reports \u2014 Owner: GM (21/07/2026)"
+        ],
         "carryover": [],
-        "empty": true,
-        "docId": ""
+        "empty": false,
+        "docId": "1rQ1HJlfGJsiQ4GV38vXFvscc8XVxW35NhtX9PGxEPto"
       }
     }
   }
