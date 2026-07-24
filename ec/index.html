@@ -462,7 +462,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · heat-map + Sales-vs-Budget w/c 29 Jun (anchored to Soph A1).</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.19.2 · 24 Jul 2026 · w/c 13 Jul food variance + Deliveroo RAG filled from AM Control Centre (composite now complete for the newest week). Corrected Soph KPI week labelling (sheet runs one week early): whole heat-map ladder shifted forward one week — newest Soph week = w/c 13 Jul (food cost + wage + Mapal 95.8%); w/c 06 Jul now full (Mapal 98.5%). Sales-vs-Budget = w/c 13 Jul. · Opens on the current week (both the main Week selector and the Budget tab). Daily Spend Skim filing status, figures and notes now recompute live from the ledger sheet on every load — baked snapshot notes no longer shown. Weeks run Monday→Sunday. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW below 23%</strong>. Mapal compliance red-light &lt;99% (Weekly tab).</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.19.3 · 24 Jul 2026 · Main Week selector now opens on the newest filled week (w/c 13 Jul), not the empty current week. w/c 13 Jul food variance + Deliveroo RAG filled from AM Control Centre (composite now complete for the newest week). Corrected Soph KPI week labelling (sheet runs one week early): whole heat-map ladder shifted forward one week — newest Soph week = w/c 13 Jul (food cost + wage + Mapal 95.8%); w/c 06 Jul now full (Mapal 98.5%). Sales-vs-Budget = w/c 13 Jul. · Opens on the newest week with filed data (main Week selector); the Budget tab still opens on the current week. Daily Spend Skim filing status, figures and notes now recompute live from the ledger sheet on every load — baked snapshot notes no longer shown. Weeks run Monday→Sunday. Food-cost RAG: green 23–25% · amber 25–27% · red &gt;27% · <strong>LOW below 23%</strong>. Mapal compliance red-light &lt;99% (Weekly tab).</div>
 </footer>
 
 <script>
@@ -1013,7 +1013,7 @@ function ensureWeekAxis(){
     mon=addDaysISO(mon,-7); guard++;
   }
   m.week_axis=axis; m.today_mon=todayMon; m.newest_boh=axis.find(a=>a.boh!=null)||null;
-  m.default_week_idx = 0;   // always open on the current week (axis[0] = this week) — Michael, 8 Jul 2026
+  var _nbIdx = axis.findIndex(function(a){return a.boh!=null;}); m.default_week_idx = (_nbIdx<0?0:_nbIdx);   // open on the newest week with filed data (Soph food cost), not the empty current week — Michael, 24 Jul 2026
   return axis;
 }
 function curAx(){ const ax=DATA.meta.week_axis; if(!ax||!ax.length) return null; return ax[effWeekIdx()]||ax[0]; }
