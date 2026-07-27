@@ -63,7 +63,13 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .rag.GREEN, .rag.SCALE { background: #DCFCE7; color: #15803D; }
 .rag.AMBER, .rag.KEEP { background: #FEF3C7; color: #B45309; }
 .rag.RED, .rag.KILL { background: #FEE2E2; color: #B91C1C; }
-.rag.NT { background: #E5E7EB; color: #6B7280; }
+.rag.NT, .rag.PENDING { background: #E5E7EB; color: #6B7280; }
+.rag.ADD { background: #DCFCE7; color: #15803D; }
+.rag.REMOVE, .rag.ERROR { background: #FEE2E2; color: #B91C1C; }
+.srcbadge { display: inline-block; margin-left: 6px; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: #64748B; }
+.srcbadge.override { color: #7C3AED; font-weight: 700; }
+.stale { color: #B91C1C; font-weight: 700; }
+.fresh { color: #15803D; }
 .ragsummary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .ragsummary .rag { font-size: 11px; padding: 4px 12px; }
 .statrow { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -95,8 +101,10 @@ footer { color: #9CA3AF; font-size: 11px; text-align: center; padding: 8px 0 2px
 .rangebtns { display: inline-flex; gap: 2px; background: #F1F5F9; border-radius: 8px; padding: 2px; }
 .rangebtns button { border: 0; background: transparent; color: #64748B; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; }
 .rangebtns button.active { background: #fff; color: #0F172A; box-shadow: 0 1px 2px rgba(16,24,40,.12); }
-#gltable tr:not(.clusterrow):hover td { background: #F8FAFC; }
+#gltable tr:not(.clusterrow):not(.totalrow):hover td { background: #F8FAFC; }
 tr.clusterrow { cursor: pointer; user-select: none; }
+tr.totalrow td { background: #0F172A; color: #F8FAFC; font-weight: 700; border-top: 2px solid #0F172A; }
+tr.totalrow td .subtle { color: #94A3B8; }
 tr.clusterrow:hover td { background: #E2E8F0; }
 tr.clusterrow .chev { display: inline-block; width: 14px; color: #64748B; transition: transform .15s; }
 tr.clusterrow.collapsed .chev { transform: rotate(-90deg); }
@@ -178,8 +186,8 @@ tr.hiddenrow { display: none; }
     </div>
     <div class="ragsummary" id="glsummary"></div>
     <table>
-      <thead><tr><th>Site</th><th class="num">Covers</th><th class="num">vs target</th><th class="num">WoW</th><th>Trend · 12wk</th><th></th></tr></thead>
-      <tbody id="gltable"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+      <thead><tr><th>Site</th><th class="num">Covers</th><th class="num">Target</th><th class="num">vs target</th><th class="num">WoW</th><th>Trend · 12wk</th><th></th></tr></thead>
+      <tbody id="gltable"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -302,7 +310,7 @@ tr.hiddenrow { display: none; }
   </div>
   <div class="section">
     <h2>Google Ads — last 30 days</h2>
-    <div class="src">By campaign · via Windsor</div>
+    <div class="src">By campaign · Google Ads Script → GOOGLE_ADS_DAILY (AUTO)</div>
     <table>
       <thead><tr><th>Campaign</th><th class="num">Spend</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Conv.</th><th class="num">CPA</th></tr></thead>
       <tbody id="gads-table"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
@@ -389,20 +397,23 @@ tr.hiddenrow { display: none; }
 <!-- ================================================================ -->
 <div id="tab-matrix" class="tabpane">
   <div class="section">
-    <h2>Add / Remove matrix</h2>
-    <div class="src">Auto flag from CONTENT_LIBRARY + PAID_MEDIA_DAILY · manual_confirm overrides · decisions raised in the weekly digital meeting
-      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">confirm in sheet ↗</a>
+    <h2>Add / Remove — live decisions</h2>
+    <div class="src">Decides itself · <span id="matrix-asof" class="subtle">checking freshness…</span>
+      <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">override in sheet ↗</a>
     </div>
     <div class="notice">
+      <strong>How the decision is made:</strong> a KILL or SCALE flag that survives <strong>3 consecutive daily runs</strong> is confirmed automatically — KILL becomes <span class="rag KILL">REMOVE</span>, SCALE becomes <span class="rag SCALE">ADD</span>. KEEP settles on sight. Nothing is paused or spent automatically: the matrix makes the call, a human actions it in the ad account.<br>
+      <strong>To disagree,</strong> type ADD / REMOVE / KEEP into <code>manual_confirm</code> in the sheet — your value wins and the row shows as <em>overridden</em>. You no longer need to confirm anything for the system to move.<br>
       <strong>Organic rule:</strong> KILL if median eng/reach &lt;2% OR saves+shares/reach &lt;0.5% (last 28d, ≥3 posts). SCALE if median eng/reach ≥6% OR any post ≥3× rolling median reach.<br>
       <strong>Paid rule (CPA, approved 7 Jul):</strong> SCALE if CPA ≤£5 with 5+ conversions · KILL if CPA &gt;£12 after £50+ spend, or zero conversions after £75+ (last 30d). Awareness/boost campaigns keep the CTR/CPC rule (KILL CTR&lt;0.8% + CPC&gt;£1.50 · SCALE CTR&gt;1.5% + CPC&lt;£0.60).
     </div>
+    <div class="ragsummary" id="matrix-summary"></div>
     <div class="controls">
-      <label><input type="checkbox" id="matrix-showall"> Show confirmed too</label>
+      <label><input type="checkbox" id="matrix-showall"> Show settled KEEPs too</label>
     </div>
     <table>
-      <thead><tr><th>Type</th><th>Name</th><th>Platform</th><th>Window</th><th class="num">Sample</th><th>Metric 1</th><th>Metric 2</th><th>Auto flag</th><th>Reason</th><th>Team confirm</th></tr></thead>
-      <tbody id="matrix-table"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
+      <thead><tr><th>Decision</th><th>Name</th><th>Type</th><th class="num">Sample</th><th>Metric 1</th><th>Metric 2</th><th>Auto flag</th><th>Flagged</th><th>Reason</th></tr></thead>
+      <tbody id="matrix-table"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -823,7 +834,7 @@ function renderGreenLight(csv) {
   }
 
   if (!g.rows.length || !g.report) {
-    tbody.innerHTML = '<tr><td colspan="6" class="subtle">GREEN_LIGHT_BOARD (AUTO) empty — run computeGreenLight() in the Apps Script project</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="subtle">GREEN_LIGHT_BOARD (AUTO) empty — run computeGreenLight() in the Apps Script project</td></tr>';
     summary.innerHTML = '';
     return;
   }
@@ -894,6 +905,7 @@ function renderGreenLight(csv) {
       return '<tr' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + '>' +
         '<td>' + siteLabel(x.site) + '</td>' +
         '<td class="num">' + fmtN(x.covers) + '</td>' +
+        '<td class="num">' + (x.target > 0 ? fmtN(x.target) : '<span class="subtle">—</span>') + '</td>' +
         '<td class="num">' + signedPct(x.vsT) + '</td>' +
         '<td class="num">' + signedPct(x.wow) + '</td>' +
         '<td>' + sparkSvg(x.trend, 64, 18, '#94A3B8') + '</td>' +
@@ -921,6 +933,7 @@ function renderGreenLight(csv) {
     html += '<tr class="clusterrow' + (collapsed ? ' collapsed' : '') + '" data-ci="' + ci + '" title="Click to ' + (collapsed ? 'expand' : 'collapse') + '">' +
       '<td><span class="chev">▾</span>' + cname + '</td>' +
       '<td class="num">' + fmtN(covers) + '</td>' +
+      '<td class="num">' + (target > 0 ? fmtN(target) : '<span class="subtle">—</span>') + '</td>' +
       '<td class="num">' + signedPct(cvsT) + '</td>' +
       '<td class="num">' + signedPct(cwow) + '</td>' +
       '<td>' + sparkSvg(ctrend, 64, 18, '#475569') + '</td>' +
@@ -929,6 +942,25 @@ function renderGreenLight(csv) {
                (cc.GREEN ? '<span class="rag GREEN">' + cc.GREEN + '</span>' : '') + '</td></tr>';
     html += arr.map(rowHtml(collapsed)).join('');
   });
+  // Estate total — covers vs target for every site in the selected range.
+  var tC = 0, tT = 0, tP = 0;
+  view.forEach(function(x) { tC += x.covers; tT += x.target; tP += x.prevC; });
+  var tVsT = tT > 0 ? tC / tT - 1 : null;
+  var tWow = tP > 0 ? tC / tP - 1 : null;
+  var tTrend = trendWeeks.map(function(_, i) {
+    var tot = 0, has = false;
+    view.forEach(function(x) { if (x.trend[i] != null) { tot += x.trend[i]; has = true; } });
+    return has ? tot : null;
+  });
+  html += '<tr class="totalrow">' +
+    '<td>All sites</td>' +
+    '<td class="num">' + fmtN(tC) + '</td>' +
+    '<td class="num">' + (tT > 0 ? fmtN(tT) : '<span class="subtle">—</span>') + '</td>' +
+    '<td class="num">' + signedPct(tVsT) + '</td>' +
+    '<td class="num">' + signedPct(tWow) + '</td>' +
+    '<td>' + sparkSvg(tTrend, 64, 18, '#0F172A') + '</td>' +
+    '<td>' + (tT > 0 ? '<span class="rag ' + (tC / tT >= 1 ? 'GREEN' : tC / tT >= 0.85 ? 'AMBER' : 'RED') + '">' + Math.round(tC / tT * 100) + '%</span>' : '') + '</td>' +
+    '</tr>';
   tbody.innerHTML = html;
   summary.innerHTML =
     '<span class="rag RED">RED ' + (counts.RED || 0) + '</span>' +
@@ -1348,7 +1380,7 @@ async function loadMetaPaid() {
   var matrix = csvToObjects(matrixCsv);
   var flagByCamp = {};
   matrix.forEach(function(r) {
-    if (r.entity_type === 'paid_campaign' && r.platform === 'meta') flagByCamp[r.entity_name] = {auto: r.auto_flag, confirm: r.manual_confirm};
+    if (r.entity_type === 'paid_campaign' && r.platform === 'meta') flagByCamp[r.entity_name] = {row: r, d: decisionOf(r)};
   });
   var byCamp = {};
   var totSpend = 0;
@@ -1377,8 +1409,16 @@ async function loadMetaPaid() {
   tbody.innerHTML = list.map(function(x) {
     var flagCell = '<span class="subtle">not yet judged</span>';
     if (x.flag) {
-      var f = x.flag.confirm || x.flag.auto;
-      flagCell = '<span class="rag ' + f + '">' + f + '</span>' + (x.flag.confirm ? ' <span class="subtle">confirmed</span>' : ' <span class="subtle">auto</span>');
+      var d = x.flag.d, fdays = daysSince(x.flag.row.flagged_since);
+      if (d.label === 'PENDING') {
+        flagCell = '<span class="rag ' + (x.flag.row.auto_flag || 'NT') + '">' + (x.flag.row.auto_flag || 'NT') + '</span>' +
+          '<span class="srcbadge">building' + (d.runsToGo != null ? ' · ' + d.runsToGo + ' to go' : '') + '</span>';
+      } else {
+        flagCell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
+          '<span class="srcbadge ' + (d.source === 'override' ? 'override' : '') + '">' +
+          (d.source === 'override' ? 'your call' : 'auto') +
+          (fdays != null && fdays >= 21 ? ' · ' + Math.floor(fdays / 7) + 'w' : '') + '</span>';
+      }
     }
     return '<tr>' +
       '<td>' + x.c + '</td>' +
@@ -1555,32 +1595,123 @@ async function loadMatrix() {
   renderMatrix();
 }
 
+// Days between an ISO/yyyy-MM-dd stamp and now. Null when unparseable.
+function daysSince(v) {
+  if (!v) return null;
+  var d = new Date(String(v).slice(0, 10));
+  if (isNaN(d)) return null;
+  return Math.floor((Date.now() - d.getTime()) / 864e5);
+}
+
+// The matrix now decides for itself, so a row's headline is its DECISION, not
+// its raw flag. Falls back gracefully to the old manual_confirm behaviour if
+// the sheet has not been upgraded to the 19-column format yet.
+function decisionOf(r) {
+  if (r.decision != null && String(r.decision).trim()) {
+    return {label: String(r.decision).trim().toUpperCase(),
+            source: String(r.decision_source || 'auto').trim(),
+            on: r.decided_on || ''};
+  }
+  if (r.decision_source === 'pending' || r.streak_runs != null) {
+    var runs = Number(r.streak_runs) || 0;
+    return {label: 'PENDING', source: 'pending', runsToGo: Math.max(0, 3 - runs)};
+  }
+  // legacy sheet: no decision columns at all
+  if (r.manual_confirm) {
+    var mc = String(r.manual_confirm).trim().toUpperCase();
+    return {label: mc === 'KILL' ? 'REMOVE' : mc === 'SCALE' ? 'ADD' : mc, source: 'override', on: ''};
+  }
+  return {label: 'PENDING', source: 'legacy'};
+}
+
 function renderMatrix() {
   var showAll = document.getElementById('matrix-showall').checked;
-  var rows = (matrixRowsCache || []).filter(function(r) {
+  var all = matrixRowsCache || [];
+
+  // Freshness — the matrix is only trustworthy if the daily job actually ran.
+  var stampEl = document.getElementById('matrix-asof');
+  if (stampEl) {
+    var newest = '';
+    all.forEach(function(r) { var u = String(r.updated_at || ''); if (u > newest) newest = u; });
+    var errRow = all.some(function(r) { return r.entity_type === 'ERROR' || r.auto_flag === 'ERROR'; });
+    if (!newest) {
+      stampEl.innerHTML = '<span class="stale">no updated_at — has computeAddRemoveMatrix ever run?</span>';
+    } else {
+      var ageH = Math.round((Date.now() - new Date(newest).getTime()) / 36e5);
+      var isStale = !(ageH >= 0) || ageH > 30;
+      stampEl.innerHTML = '<span class="' + (isStale ? 'stale' : 'fresh') + '">' +
+        (isStale ? 'STALE — ' : 'recomputed ') + (ageH >= 0 ? ageH + 'h ago' : 'clock skew') + '</span>' +
+        (errRow ? ' <span class="stale">· a source failed, see the ERROR row</span>' : '');
+    }
+  }
+
+  var view = all.map(function(r) { return {r: r, d: decisionOf(r)}; });
+
+  // Headline counts across everything, regardless of the filter.
+  var counts = {ADD: 0, REMOVE: 0, PENDING: 0};
+  view.forEach(function(x) { if (counts[x.d.label] != null) counts[x.d.label]++; });
+  var sumEl = document.getElementById('matrix-summary');
+  if (sumEl) {
+    sumEl.innerHTML =
+      '<span class="rag REMOVE">REMOVE ' + counts.REMOVE + '</span>' +
+      '<span class="rag ADD">ADD ' + counts.ADD + '</span>' +
+      '<span class="rag PENDING">building ' + counts.PENDING + '</span>';
+  }
+
+  // Default view = things with an actual call to action. KEEPs are settled and
+  // just add noise, so they hide behind the checkbox.
+  var rows = view.filter(function(x) {
     if (showAll) return true;
-    return !r.manual_confirm; // default: actionable pending flags only
+    return x.d.label !== 'KEEP';
   });
+
+  var ORDER = {ERROR: -1, REMOVE: 0, ADD: 1, PENDING: 2, KEEP: 3};
+  rows.sort(function(a, b) {
+    var oa = a.r.auto_flag === 'ERROR' ? -1 : (ORDER[a.d.label] != null ? ORDER[a.d.label] : 9);
+    var ob = b.r.auto_flag === 'ERROR' ? -1 : (ORDER[b.d.label] != null ? ORDER[b.d.label] : 9);
+    if (oa !== ob) return oa - ob;
+    // oldest-flagged first inside a decision — the ones that have been shouting longest
+    var fa = daysSince(a.r.flagged_since), fb = daysSince(b.r.flagged_since);
+    return (fb == null ? -1 : fb) - (fa == null ? -1 : fa);
+  });
+
   var tbody = document.getElementById('matrix-table');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="subtle">' +
+    tbody.innerHTML = '<tr><td colspan="9" class="subtle">' +
       (showAll ? 'ADD_REMOVE_MATRIX empty — run computeAddRemoveMatrix() in the Apps Script project'
-               : 'Nothing pending — all flags confirmed (tick "Show confirmed too" to see them)') + '</td></tr>';
+               : 'Nothing to action — everything is settled on KEEP (tick the box to see them)') + '</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map(function(r) {
-    var confirmCell = r.manual_confirm ? '<span class="rag ' + r.manual_confirm + '">' + r.manual_confirm + '</span>' : '<span class="subtle">pending</span>';
+
+  tbody.innerHTML = rows.map(function(x) {
+    var r = x.r, d = x.d;
+    var cell;
+    if (d.label === 'PENDING') {
+      cell = '<span class="rag PENDING">building</span>' +
+        '<span class="srcbadge">' + (d.runsToGo != null ? d.runsToGo + ' more run' + (d.runsToGo === 1 ? '' : 's') : 'not yet') + '</span>';
+    } else {
+      cell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
+        '<span class="srcbadge ' + (d.source === 'override' ? 'override' : '') + '">' +
+        (d.source === 'override' ? 'you' : d.source === 'auto' ? 'auto' : d.source) +
+        (d.on ? ' · ' + String(d.on).slice(5) : '') + '</span>';
+    }
+    var fs = daysSince(r.flagged_since);
+    var age = fs == null ? '' : fs < 7 ? fs + 'd' : Math.floor(fs / 7) + 'w';
+    var flaggedCell = r.flagged_since
+      ? '<span class="' + (fs != null && fs >= 21 ? 'stale' : 'subtle') + '">' +
+        String(r.flagged_since).slice(0, 10) + (age ? ' · ' + age : '') + '</span>'
+      : '<span class="subtle">—</span>';
     return '<tr>' +
-      '<td>' + (r.entity_type || '') + '</td>' +
+      '<td>' + cell + '</td>' +
       '<td>' + (r.entity_name || '') + '</td>' +
-      '<td>' + (r.platform || '') + '</td>' +
-      '<td>' + (r.window || '') + '</td>' +
+      '<td class="subtle">' + (r.entity_type === 'paid_campaign' ? 'paid' : r.entity_type === 'format_series' ? 'organic' : (r.entity_type || '')) +
+        ' · ' + (r.platform || '') + '</td>' +
       '<td class="num">' + (r.sample_size || '') + '</td>' +
       '<td class="num">' + (r.key_metric_1_name || '') + ': ' + (r.key_metric_1_value || '') + '</td>' +
       '<td class="num">' + (r.key_metric_2_name || '') + ': ' + (r.key_metric_2_value || '') + '</td>' +
       '<td><span class="rag ' + (r.auto_flag || 'NT') + '">' + (r.auto_flag || 'NT') + '</span></td>' +
+      '<td>' + flaggedCell + '</td>' +
       '<td class="caption">' + (r.reason || '') + '</td>' +
-      '<td>' + confirmCell + '</td>' +
       '</tr>';
   }).join('');
 }
