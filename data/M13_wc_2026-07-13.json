@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-23",
+  "generated_at": "2026-07-27",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-13 \u2013 2026-07-19",
@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 21.54,
           "target": 23.0,
           "gated": false
         },
@@ -67,8 +67,8 @@
         "week_commencing": "2026-07-13"
       },
       "efficiency_score": {
-        "score": 72,
-        "rag": "red",
+        "score": 80,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -89,6 +89,11 @@
             "value": 100.0,
             "basis": "\u00a322.61 vs \u00a322 tgt \u2014 level 100, WoW +6.55% \u2192 mom 100"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "21.54% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 71.5,
@@ -105,9 +110,7 @@
             "basis": "3.20% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -206,9 +209,7 @@
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Sales -14.76% vs \u00a342,000 target, though +9.82% vs two weeks ago; covers +1.09% and SPH +7.11% vs two weeks ago; GM felt the weekend was quiet despite the positive data \u2014 Owner: GM (Joe Herrera) (21/07/2026)",

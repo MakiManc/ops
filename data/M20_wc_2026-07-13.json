@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-22",
+  "generated_at": "2026-07-27",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-13 \u2013 2026-07-19",
@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 19.25,
           "target": 23.0,
           "gated": false
         },
@@ -60,14 +60,14 @@
           "within_band": null
         },
         "food": {
-          "variance_pct": 6,
+          "variance_pct": 6.0,
           "target": "\u00b15%",
           "within_band": false
         },
         "week_commencing": "2026-07-13"
       },
       "efficiency_score": {
-        "score": 56,
+        "score": 69,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -89,6 +89,11 @@
             "value": 99.3,
             "basis": "\u00a321.94 vs \u00a322 tgt \u2014 level 99, WoW +23.81% \u2192 mom 100"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "19.25% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 0.0,
@@ -101,13 +106,11 @@
           },
           "food_var": {
             "weight": 5,
-            "value": 92,
+            "value": 92.0,
             "basis": "6.00% outside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -150,7 +153,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ],
       "notes": {
