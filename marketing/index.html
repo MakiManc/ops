@@ -1693,7 +1693,7 @@ function renderMatrix() {
       cell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
         '<span class="srcbadge ' + (d.source === 'override' ? 'override' : '') + '">' +
         (d.source === 'override' ? 'you' : d.source === 'auto' ? 'auto' : d.source) +
-        (d.on ? ' · ' + String(d.on).slice(5) : '') + '</span>';
+        (d.on ? ' · ' + String(d.on).slice(0, 10).slice(5) : '') + '</span>';
     }
     var fs = daysSince(r.flagged_since);
     var age = fs == null ? '' : fs < 7 ? fs + 'd' : Math.floor(fs / 7) + 'w';
