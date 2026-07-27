@@ -402,7 +402,7 @@ tr.hiddenrow { display: none; }
       <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">override in sheet ↗</a>
     </div>
     <div class="notice">
-      <strong>How the decision is made:</strong> a KILL or SCALE flag that survives <strong>3 consecutive daily runs</strong> is confirmed automatically — KILL becomes <span class="rag KILL">REMOVE</span>, SCALE becomes <span class="rag SCALE">ADD</span>. KEEP settles on sight. Nothing is paused or spent automatically: the matrix makes the call, a human actions it in the ad account.<br>
+      <strong>How the decision is made:</strong> a KILL or SCALE flag must hold for <strong>at least 3 full days</strong> (and 3 consecutive runs) before it is confirmed automatically — KILL becomes <span class="rag KILL">REMOVE</span>, SCALE becomes <span class="rag SCALE">ADD</span>. KEEP settles on sight. A campaign has to be genuinely bad, or genuinely good, for three days running — one odd morning proves nothing, and re-running the job twice in a day buys no time. Nothing is paused or spent automatically: the matrix makes the call, a human actions it in the ad account.<br>
       <strong>To disagree,</strong> type ADD / REMOVE / KEEP into <code>manual_confirm</code> in the sheet — your value wins and the row shows as <em>overridden</em>. You no longer need to confirm anything for the system to move.<br>
       <strong>Organic rule:</strong> KILL if median eng/reach &lt;2% OR saves+shares/reach &lt;0.5% (last 28d, ≥3 posts). SCALE if median eng/reach ≥6% OR any post ≥3× rolling median reach.<br>
       <strong>Paid rule (CPA, approved 7 Jul):</strong> SCALE if CPA ≤£5 with 5+ conversions · KILL if CPA &gt;£12 after £50+ spend, or zero conversions after £75+ (last 30d). Awareness/boost campaigns keep the CTR/CPC rule (KILL CTR&lt;0.8% + CPC&gt;£1.50 · SCALE CTR&gt;1.5% + CPC&lt;£0.60).
@@ -1412,7 +1412,7 @@ async function loadMetaPaid() {
       var d = x.flag.d, fdays = daysSince(x.flag.row.flagged_since);
       if (d.label === 'PENDING') {
         flagCell = '<span class="rag ' + (x.flag.row.auto_flag || 'NT') + '">' + (x.flag.row.auto_flag || 'NT') + '</span>' +
-          '<span class="srcbadge">building' + (d.runsToGo != null ? ' · ' + d.runsToGo + ' to go' : '') + '</span>';
+          '<span class="srcbadge">building' + (d.daysToGo ? ' · ' + d.daysToGo + 'd to go' : '') + '</span>';
       } else {
         flagCell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
           '<span class="srcbadge ' + (d.source === 'override' ? 'override' : '') + '">' +
@@ -1613,8 +1613,14 @@ function decisionOf(r) {
             on: r.decided_on || ''};
   }
   if (r.decision_source === 'pending' || r.streak_runs != null) {
+    // The binding constraint is calendar days held, not runs — mirror the
+    // Apps Script rule so the countdown on screen is the real one.
+    var held = daysSince(r.flagged_since);
     var runs = Number(r.streak_runs) || 0;
-    return {label: 'PENDING', source: 'pending', runsToGo: Math.max(0, 3 - runs)};
+    var daysToGo = held == null ? 3 : Math.max(0, 3 - held);
+    var runsToGo = Math.max(0, 3 - runs);
+    return {label: 'PENDING', source: 'pending',
+            held: held, daysToGo: Math.max(daysToGo, runsToGo)};
   }
   // legacy sheet: no decision columns at all
   if (r.manual_confirm) {
@@ -1688,7 +1694,9 @@ function renderMatrix() {
     var cell;
     if (d.label === 'PENDING') {
       cell = '<span class="rag PENDING">building</span>' +
-        '<span class="srcbadge">' + (d.runsToGo != null ? d.runsToGo + ' more run' + (d.runsToGo === 1 ? '' : 's') : 'not yet') + '</span>';
+        '<span class="srcbadge">' + (d.daysToGo != null
+          ? (d.daysToGo === 0 ? 'decides next run' : d.daysToGo + ' more day' + (d.daysToGo === 1 ? '' : 's'))
+          : 'not yet') + '</span>';
     } else {
       cell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
         '<span class="srcbadge ' + (d.source === 'override' ? 'override' : '') + '">' +
