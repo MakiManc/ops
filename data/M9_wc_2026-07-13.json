@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-22",
+  "generated_at": "2026-07-27",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-13 \u2013 2026-07-19",
@@ -20,9 +20,9 @@
           "actual": 64193.94,
           "target": 67500.0,
           "var_pct": -4.9,
-          "prev": 56536.03,
-          "wow_abs": 7657.91,
-          "wow_pct": 13.55
+          "prev": null,
+          "wow_abs": null,
+          "wow_pct": null
         },
         "covers": {
           "actual": 2521,
@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 29.11,
           "target": 23.0,
           "gated": false
         },
@@ -50,7 +50,7 @@
           "actual": 869.4
         },
         "waste": {
-          "actual": 53.74
+          "actual": 79.49
         }
       },
       "stock_take": {
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-13"
       },
       "efficiency_score": {
-        "score": 92,
+        "score": 85,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -89,6 +89,11 @@
             "value": 84.88,
             "basis": "\u00a322.67 vs \u00a322 tgt \u2014 level 100, WoW -0.04% \u2192 mom 50"
           },
+          "food": {
+            "weight": 30,
+            "value": 67.12,
+            "basis": "29.11% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 100.0,
@@ -105,14 +110,14 @@
             "basis": "1.90% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 29.1%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -188,9 +193,7 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Sales down vs target but improved WoW; inaccurate delivery orders remain the main issue \u2014 5 disputed refund items incl. 'green dragon' and 2 undercooked/'pink' chicken orders; staff rebuttal with 80C temp evidence was rejected \u2014 Owner: GM (Kai/Quan) (21/07/2026)",
