@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 87,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -99,15 +99,18 @@
             "value": 59.65,
             "basis": "23.69% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.70\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "-2.70% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -116,17 +119,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 4,
+        "week_avg_rating": 4.7,
+        "new_reviews": 15,
         "star_breakdown": {
-          "5": 3,
+          "5": 14,
           "4": 0,
           "3": 0,
           "2": 1,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Peter Bersch",
+            "text": "My ramen was very disappointing. I got the most expensive ramen and it had 5 pieces of meat, noodles, one egg, and a bit of one vegetable. The ramen was way too spicy and my side dish/Edamame didn\u2019t have enough salt. For someone who eats ramen passionately it was really not the right choice to eat there.\nI hope it was a one time messed up dish since we ate at 7:30pm and the restaurant closes at 8:00pm. The story of the founder sounded great!\nGluten-free is not an option.",
+            "date": "2026-07-25",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -181,9 +192,26 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Order accuracy failing \u2014 items missing and dishes prepared incorrectly before leaving the shop.",
+          "Communication breakdown with the distributor: wrong stock delivered, calls not returned and no solutions offered, forcing order cancellations during busy periods.",
+          "Sales short of target with covers down year on year, partly attributed to trade lost to the new West End location.",
+          "Customer reviews citing small portion sizes and pricing; the gluten-free option exists but customers rarely ask and extra seasoning could have been offered.",
+          "Premises licence still needs transferring; personal licence now obtained but the change will take weeks."
+        ],
+        "actions": [
+          "Instruct the FOH team to check every order for accuracy before it leaves the shop \u2014 Owner: Ka Ho (28/07/2026)",
+          "Report operational issues to the office regularly so supplier failures are fed back and fixed \u2014 Owner: Ka Ho (28/07/2026)",
+          "Initiate the premises licence transfer once the required documentation is received \u2014 Owner: Justina (28/07/2026)",
+          "Maintain contact on the morning email to the buffet sheet \u2014 Owner: Justina (28/07/2026)",
+          "Region-wide (Scotland & Newcastle): Finalise the budget rota by 08:00 every Monday so labour reporting needs no manual correction \u2014 Owner: Ka Ho (03/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1kydfzyMWeM3uuWz6L9GKROzD9I6mBc7vY-PmzQOVtaI"
+      }
     }
   }
 }

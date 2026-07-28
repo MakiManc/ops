@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.79\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -121,17 +121,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.909090909,
-        "new_reviews": 33,
+        "week_avg_rating": 4.794117647,
+        "new_reviews": 34,
         "star_breakdown": {
           "5": 30,
           "4": 3,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Fariat Adigun",
+            "text": "Was sat at for ages and no staff attended to us. The noodles came out warm and tasteless\nThere were no cutleries until the food was served and we had to ask\nMember of staff rude and unbothered\nNo sauce was offered, we had to ask member of staff, and upon being the soy sauce, the dip bowls were dirty\n1/10 would never ever go back",
+            "date": "2026-07-19",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

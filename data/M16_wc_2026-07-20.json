@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.88\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -119,11 +119,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 7,
+        "week_avg_rating": 4.88,
+        "new_reviews": 50,
         "star_breakdown": {
-          "5": 7,
-          "4": 0,
+          "5": 44,
+          "4": 6,
           "3": 0,
           "2": 0,
           "1": 0
@@ -177,7 +177,31 @@
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Inaccurate delivery orders running high; being countered by photographing every order alongside its ticket.",
+          "Uptick in food quality complaints on the new chashu, possibly supplier-related and under investigation.",
+          "Food cost distorted by a delayed JFC shipment caused by a missed order submission deadline.",
+          "Persistent sewage and leak problem in the back right toilet, unresolved for months.",
+          "New kitchen porter's right-to-work check and contract still incomplete.",
+          "Region-wide (North & Midlands): manual onboarding paperwork being replaced by a centralised digital hiring platform, so staff account setups are consistent."
+        ],
+        "actions": [
+          "Input the accurate expenditure data into the KPI sheet \u2014 Owner: Amy Tang (28/07/2026)",
+          "Brief the team that JFC orders must be submitted before the daily deadline \u2014 Owner: Amy Tang (28/07/2026)",
+          "Submit the missing-item claims using the photographic evidence collected \u2014 Owner: Amy Tang (28/07/2026)",
+          "Ensure the new starter completes right-to-work documentation and contract signing \u2014 Owner: James (28/07/2026)",
+          "Contact Francheska to get a plumber properly assigned to the back right toilet \u2014 Owner: Amy Tang (28/07/2026)",
+          "Region-wide (North & Midlands): Move recruitment and onboarding onto the Talent Bundle / Telefono platform so account setups are automated instead of manual paperwork \u2014 Owner: Amy Tang (28/07/2026)",
+          "Region-wide (North & Midlands): Review and annotate the upcoming rotas before they are released \u2014 Owner: Amy Tang (28/07/2026)"
+        ],
+        "carryover": [
+          "Back right toilet leak and sewage issue outstanding for several months \u2014 Owner: Amy Tang (28/07/2026)"
+        ],
+        "empty": false,
+        "docId": "1rbxQBtDpjwT7wJtUd238srGnIuQA5tEFSeVxA5NyUCg"
+      }
     }
   }
 }

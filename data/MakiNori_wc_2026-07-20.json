@@ -97,7 +97,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.89\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
         "components_dropped": [
@@ -114,11 +114,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 3,
+        "week_avg_rating": 4.888888889,
+        "new_reviews": 18,
         "star_breakdown": {
-          "5": 3,
-          "4": 0,
+          "5": 16,
+          "4": 2,
           "3": 0,
           "2": 0,
           "1": 0
@@ -148,7 +148,28 @@
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Labour spiked badly on Tuesday and Wednesday before recovering over Friday and Saturday.",
+          "Food cost misreported because standing orders were being excluded from the daily spend calculation; the manager has now been shown the correct method.",
+          "A staff member is creating a toxic environment and calling in sick; being managed on site.",
+          "Compliance short of target, with missed head chef reports and cleaning checks.",
+          "KPI report could not be displayed on screen during the meeting, and a reporting movement was misread as a competition win."
+        ],
+        "actions": [
+          "Contact Luka about the prospective Nori role and possible transfer to the Shoreditch site \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Stand up the six-week Nori pop-up in Shoreditch as market research for a permanent site, and assign a lead who can also support the Maki operation \u2014 Owner: Ziang Lin (03/08/2026)",
+          "Confirm the DJ agency booking, trading a discounted menu and social promotion for the event \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Assign every staff member to a specific position in the system each shift so labour tracks automatically between FOH and BOH \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Complete all closing duties within one hour of the last order, preparing for close during the final two hours of service \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Display the supplier and delivery-deadline schedule visibly in every kitchen \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Brief FOH on the operating procedures required for the Shoreditch pop-up \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1GWufx---3x7_Q4pRZhIk3rIzxDY2VDm2xouNEsCeD-I"
+      }
     }
   }
 }

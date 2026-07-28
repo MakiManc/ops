@@ -123,7 +123,13 @@
       "reviews": {
         "week_avg_rating": 5.0,
         "new_reviews": 0,
-        "star_breakdown": null,
+        "star_breakdown": {
+          "5": 10,
+          "4": 0,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": 4,
         "negative_reviews": [
           {

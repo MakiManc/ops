@@ -122,8 +122,14 @@
       },
       "reviews": {
         "week_avg_rating": 5.0,
-        "new_reviews": 0,
-        "star_breakdown": null,
+        "new_reviews": 17,
+        "star_breakdown": {
+          "5": 12,
+          "4": 0,
+          "3": 3,
+          "2": 0,
+          "1": 2
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -187,7 +193,27 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Late prep orders spiked on days when dine-in and delivery landed together and tickets were missed because items were unavailable.",
+          "Staff marking orders as ready before they are actually completed, distorting prep timings.",
+          "Sales figures entered into the tracker were wrong and had to be corrected.",
+          "EHO visit being prepared for; standards currently evidenced by pushing cleaning photos and videos into the group chat.",
+          "Region-wide (North & Midlands): food quality complaints and rising food prices squeezing cost control, with labour needing to be held tighter on weekdays to offset weekends."
+        ],
+        "actions": [
+          "Correct the sales figures in the tracker \u2014 Owner: Amy Tang (28/07/2026)",
+          "Message the team about tracking late prep times and why it matters \u2014 Owner: Amy Tang (28/07/2026)",
+          "Tell staff to stop marking orders as ready before they are completed \u2014 Owner: Amy Tang (28/07/2026)",
+          "Request the invoice from Monica Lee for the repeat office takeaway order \u2014 Owner: Amy Tang (05/08/2026)",
+          "Region-wide (North & Midlands): Move recruitment and onboarding onto the Talent Bundle / Telefono platform so account setups are automated instead of manual paperwork \u2014 Owner: Amy Tang (28/07/2026)",
+          "Region-wide (North & Midlands): Review and annotate the upcoming rotas before they are released \u2014 Owner: Amy Tang (28/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1rbxQBtDpjwT7wJtUd238srGnIuQA5tEFSeVxA5NyUCg"
+      }
     }
   }
 }

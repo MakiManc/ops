@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.78\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -119,17 +119,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 3,
+        "week_avg_rating": 4.777777778,
+        "new_reviews": 18,
         "star_breakdown": {
-          "5": 3,
-          "4": 0,
-          "3": 0,
+          "5": 15,
+          "4": 2,
+          "3": 1,
           "2": 0,
           "1": 0
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Zuzana Barto\u0148ov\u00e1",
+            "text": "I would have preferred music to be more authentic",
+            "date": "2026-07-21",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -192,7 +200,14 @@
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [],
+        "actions": [],
+        "carryover": [],
+        "empty": true,
+        "docId": ""
+      }
     }
   }
 }

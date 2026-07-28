@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 67,
+        "score": 71,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -101,8 +101,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 0.0,
-            "basis": "4.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 38.96,
+            "basis": "4.27\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -122,17 +122,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.0,
-        "new_reviews": 3,
+        "week_avg_rating": 4.272727273,
+        "new_reviews": 11,
         "star_breakdown": {
-          "5": 0,
-          "4": 3,
+          "5": 6,
+          "4": 4,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Fiona Yu",
+            "text": "\u2b50\u2606\u2606\u2606\u2606 (1/5)\n\nVery disappointing experience. We came back because our first visit was good, but the quality has dropped dramatically.\n\nThe so-called soft-boiled ramen egg was completely hard-boiled with no runny yolk at all. The pork katsu was badly overcooked and black on the outside, making it dry, unpleasant and impossible to eat. Even more disappointing, the \"Japanese \" tonkotsu served with the ramen was just small pieces of shredded pork, not proper slices of tonkotsu as you would expect from a Japanese restaurant.\n\nThis was nowhere near the standard a restaurant serving Japanese food should offer. The food quality was extremely poor and nothing like our previous visit 9 months ago.\n\nThe only positive was that the staff were friendly and helpful. The ramen were remade and they apologized for the batch of fully boiled eggs (yet they still served them to customers) with a slightly discounted price. Unfortunately good service could not make up for the very disappointing food. The chef should genuinely understands and delivers the authenticity of the food they are selling.\n\nSadly, we won't be returning unless the food quality improves significantly.",
+            "date": "2026-07-24",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -195,7 +203,31 @@
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Sales dropped and average spend per customer fell despite covers rising \u2014 upselling was weak all week and Saturday trade was largely sacrificed to the extractor fan works.",
+          "Extraction fan motor replacement blocked: the replacement motors are longer than the originals and one is too heavy to carry up the ten flights of stairs to the roof; the centre control room will not assist beyond permits and door access.",
+          "Food cost running high and needs working through with the head chef at the GM/head chef meeting.",
+          "Sushi chef leaving this week with no dedicated replacement \u2014 hours to be split across existing chefs, leaving no sushi cover when they are on weekends or holiday.",
+          "Inaccurate delivery orders up on a missed dessert, and review volume very low following a one-star review on Friday.",
+          "Region-wide (North & Midlands): maintenance backlog across the cluster \u2014 fryer repairs and extraction fan motor replacements outstanding."
+        ],
+        "actions": [
+          "Meet the head chef at the GM/head chef meeting to work through the high food cost, and record the outcome on the tracker \u2014 Owner: Jervin Johnjeyaranjan (28/07/2026)",
+          "Message the front of house team chat to push the team to solicit more customer reviews \u2014 Owner: Jervin Johnjeyaranjan (28/07/2026)",
+          "Survey the kitchen team to identify who is interested in cross-training on sushi so there is backup cover \u2014 Owner: Jervin Johnjeyaranjan (28/07/2026)",
+          "Check the new buffet competitor's advertising for signs of promotional pricing, and report back on their customer volume once they open \u2014 Owner: Jervin Johnjeyaranjan (29/07/2026)",
+          "Submit the next two weeks' rotas for review and notes before releasing them \u2014 Owner: Jervin Johnjeyaranjan (28/07/2026)",
+          "Region-wide (North & Midlands): Move recruitment and onboarding onto the Talent Bundle / Telefono platform so account setups are automated instead of manual paperwork \u2014 Owner: Amy Tang (28/07/2026)",
+          "Region-wide (North & Midlands): Review and annotate the upcoming rotas before they are released \u2014 Owner: Amy Tang (28/07/2026)"
+        ],
+        "carryover": [
+          "Extraction fan motor replacement still outstanding \u2014 awaiting confirmation on whether the longer motors will fit, otherwise a different size must be sourced and installation slips to next week \u2014 Owner: Jervin Johnjeyaranjan (28/07/2026)"
+        ],
+        "empty": false,
+        "docId": "1rbxQBtDpjwT7wJtUd238srGnIuQA5tEFSeVxA5NyUCg"
+      }
     }
   }
 }

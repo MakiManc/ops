@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 71,
+        "score": 74,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -99,15 +99,18 @@
             "value": 44.65,
             "basis": "24.69% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.82\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "0.10% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -118,11 +121,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "week_avg_rating": 4.823529412,
+        "new_reviews": 51,
+        "star_breakdown": {
+          "5": 44,
+          "4": 6,
+          "3": 0,
+          "2": 1,
+          "1": 0
+        },
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Study Xs",
+            "text": "Was really excited to go here for my friends birthday. The server (man) that waited on us was very nice and helped us . While the waitress was not helpful at all. I waited 5 min for a spoon and it wasn\u2019t delivered but after I asked the male waiter he brought it to us fast. I felt as if the waitress was deliberately avoiding our table. The food was mediocre.",
+            "date": "2026-07-25",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -169,9 +186,31 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 3.9
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Mid-week stock outages left ramen and tonkatsu broth unavailable on Deliveroo, caused by missed ordering deadlines and incomplete supplier deliveries of beef.",
+          "Large invoice backlog \u2014 some invoices scanned but never uploaded to Kobas, others not scanned at all; SOP not followed from first delivery.",
+          "Kitchen and workspace excessively hot with no air conditioning, relying on a single fan.",
+          "Two-star review over a staff member's tone with a customer; GM advised to take the 'sass' out of service interactions.",
+          "Team leader terminated; rota needs re-cutting against contract constraints and holiday cover.",
+          "Region-wide (South England): admin and food-safety discipline slipping across the cluster \u2014 invoice processing and mandatory kitchen labelling both need re-enforcing."
+        ],
+        "actions": [
+          "Speak to Cindy to confirm the VIP room reservation \u2014 Owner: Ziang Lin (05/08/2026)",
+          "Agree the rota changes needed against current trading hours \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Keep the supplier and delivery-deadline schedule posted on the kitchen wall to stop ordering errors \u2014 Owner: Marian (28/07/2026)",
+          "Region-wide (South England): Assign every staff member to a specific position in the system each shift so labour tracks automatically between FOH and BOH \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Complete all closing duties within one hour of the last order, preparing for close during the final two hours of service \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Display the supplier and delivery-deadline schedule visibly in every kitchen \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Brief FOH on the operating procedures required for the Shoreditch pop-up \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "carryover": [
+          "Upstairs revamp quote received but work still unapproved and unscheduled; job to run over two nights once signed off \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "empty": false,
+        "docId": "1GWufx---3x7_Q4pRZhIk3rIzxDY2VDm2xouNEsCeD-I"
+      }
     }
   }
 }

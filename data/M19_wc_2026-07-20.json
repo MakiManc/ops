@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -122,11 +122,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 1,
+        "week_avg_rating": 4.796296296,
+        "new_reviews": 54,
         "star_breakdown": {
-          "5": 1,
-          "4": 0,
+          "5": 43,
+          "4": 11,
           "3": 0,
           "2": 0,
           "1": 0
@@ -179,7 +179,31 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Labour running well above the site's own target and a stock gap still open, despite covers and sales beating target.",
+          "Delivery sales fell sharply week on week and spend per head dropped, even as covers rose.",
+          "Toxic team culture \u2014 false rumours and negative talk between staff, with one team member repeatedly named as the source.",
+          "Management itself contributing: complaints about teammates and firing decisions being aired to other staff rather than handled directly.",
+          "Site manager has the willingness but not the method \u2014 ordering, stock counts and invoice recording are not on a fixed routine.",
+          "Stock management and closing procedures not being followed consistently; team training outstanding."
+        ],
+        "actions": [
+          "Hold a staff meeting making clear that false rumours and toxic behaviour carry disciplinary consequences, and address the individual concerned directly \u2014 Owner: Kaitlin Docherty (28/07/2026)",
+          "Sit down with Janette and Dion to resolve the interpersonal issues and align the management team \u2014 Owner: Kaitlin Docherty (28/07/2026)",
+          "Document current staffing issues and team dynamics in the report, implement the closing-procedure recommendations, and run the team training on stock management \u2014 Owner: Dionne Baldock (28/07/2026)",
+          "Build a fixed management calendar \u2014 orders placed Tuesday and Thursday, stock counts completed Sunday \u2014 Owner: Dion (02/08/2026)",
+          "Work through the outstanding administrative backlog alongside Dion \u2014 Owner: Ziang Lin (02/08/2026)",
+          "Region-wide (South England): Assign every staff member to a specific position in the system each shift so labour tracks automatically between FOH and BOH \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Complete all closing duties within one hour of the last order, preparing for close during the final two hours of service \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Display the supplier and delivery-deadline schedule visibly in every kitchen \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Brief FOH on the operating procedures required for the Shoreditch pop-up \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1GWufx---3x7_Q4pRZhIk3rIzxDY2VDm2xouNEsCeD-I"
+      }
     }
   }
 }

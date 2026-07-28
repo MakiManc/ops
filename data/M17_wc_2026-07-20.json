@@ -97,7 +97,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -118,17 +118,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 1,
+        "week_avg_rating": 4.803921569,
+        "new_reviews": 51,
         "star_breakdown": {
-          "5": 1,
-          "4": 0,
+          "5": 44,
+          "4": 6,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "N A",
+            "text": "Visited and decided we were going to sit outside. All the staff were inside huddled together in a corner chatting and didn't even notice I was standing by the door waiting for someone to hand me a menu and ask whether they accepted cash. It actually took one of the chefs to notice me and tell them there was a customer waiting. I honestly didn't even realise they were the staff because the atmosphere made it seem like they were just a group of friends sitting around laughing and talking together. Very unprofessional.\n\nI was told cash was accepted, but when the same staff member came to take our order, she said that because we were sitting outside we'd have to scan the QR code on the table and pay by card. I reminded her that I'd already said we'd be paying cash, which really should have been explained from the beginning.\n\nShe then said she could take our order, but we'd have to pay straight after ordering, which was absolutely fine. However, when she told me the total, it was higher than what I'd worked out from the menu prices. She hadn't mentioned that a service charge had been added, and I had to ask twice before she explained what the extra charge was.\n\nConsidering the service we'd already received, I asked for the service charge to be removed. From that point on, her attitude noticeably changed and the customer service became even worse. When we finished eating, I thanked her and got no response at all.\n\nThe food itself tasted good, but for the price, the portion sizes were very small and definitely need improving.\n\nOverall, a very disappointing experience. The lack of professionalism, poor communication and unfriendly service completely overshadowed the food. Unfortunately, I won't be returning.",
+            "date": "2026-07-26",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -178,7 +186,31 @@
       },
       "gaps": [
         "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Review rating slipped over takeaway food handling and presentation; new tubs bought and ratings starting to recover.",
+          "One-star review from a customer unhappy at being asked to pay before service for outdoor seating.",
+          "Operating without a dedicated kitchen porter, with duties shared across the existing team.",
+          "Excessive steak trim waste \u2014 par level raised to cover yield loss after trimming.",
+          "Saturday trade softened with the start of the summer holidays.",
+          "Region-wide (South England): admin and food-safety discipline slipping across the cluster \u2014 invoice processing and mandatory kitchen labelling both need re-enforcing."
+        ],
+        "actions": [
+          "Provide the returning customer with a complimentary meal to recover the review rating \u2014 Owner: Ziang Lin (30/07/2026)",
+          "Record the KPI updates and the DJ event detail in the meeting notes \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Hold the charity race planning meeting with Lakeside to fix teams and race logistics \u2014 Owner: Ziang Lin (16/08/2026)",
+          "Region-wide (South England): Assign every staff member to a specific position in the system each shift so labour tracks automatically between FOH and BOH \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Complete all closing duties within one hour of the last order, preparing for close during the final two hours of service \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Display the supplier and delivery-deadline schedule visibly in every kitchen \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Brief FOH on the operating procedures required for the Shoreditch pop-up \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "carryover": [
+          "Chinese cooker still awaiting repair \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "empty": false,
+        "docId": "1GWufx---3x7_Q4pRZhIk3rIzxDY2VDm2xouNEsCeD-I"
+      }
     }
   }
 }

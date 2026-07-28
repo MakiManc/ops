@@ -128,8 +128,16 @@
           "2": 0,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Naomi The Travelling Foodie",
+            "text": "i have had maki and ramen before and been impressed but this time i was really disappointed in my meal\n\nlukewarm broth and un marinated cold tough flavourless chasu, wasnt asked how the meal was rushed to order felt like a waste of money would try other places instead of here",
+            "date": "2026-07-23",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -176,7 +184,28 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Prep times rising because only smaller takeaway bags are available and they are slower to pack.",
+          "Takeaway packaging failing \u2014 bags tearing and containers leaking, driving customer complaints.",
+          "Gas fryer cutting out unexpectedly and the griddle tripping fuses; griddle may need full replacement.",
+          "Two full-time kitchen assistant vacancies unfilled, with the job posting auto-rejecting applicants for insufficient experience.",
+          "Kitchen extraction cleaning due and the fire panel inspection still to be scheduled.",
+          "Region-wide (North & Midlands): maintenance backlog across the cluster \u2014 fryer repairs and extraction fan motor replacements outstanding."
+        ],
+        "actions": [
+          "Check whether Naughty Hand can supply larger brown takeaway bags \u2014 Owner: Amy Tang (28/07/2026)",
+          "Post the confirmed kitchen extraction cleaning date in the team group chat \u2014 Owner: Amy Tang (28/07/2026)",
+          "Report back on the griddle replacement status \u2014 Owner: Amy Tang (28/07/2026)",
+          "Confirm with Michael Salvador whether budget is available for the fryer and griddle repairs \u2014 Owner: Amy Tang (28/07/2026)",
+          "Region-wide (North & Midlands): Move recruitment and onboarding onto the Talent Bundle / Telefono platform so account setups are automated instead of manual paperwork \u2014 Owner: Amy Tang (28/07/2026)",
+          "Region-wide (North & Midlands): Review and annotate the upcoming rotas before they are released \u2014 Owner: Amy Tang (28/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1rbxQBtDpjwT7wJtUd238srGnIuQA5tEFSeVxA5NyUCg"
+      }
     }
   }
 }

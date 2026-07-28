@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.71\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.89\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           }
         },
         "components_dropped": [
@@ -118,17 +118,24 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.714285714,
-        "new_reviews": 14,
+        "week_avg_rating": 4.885057471,
+        "new_reviews": 87,
         "star_breakdown": {
-          "5": 13,
-          "4": 0,
-          "3": 0,
+          "5": 81,
+          "4": 4,
+          "3": 1,
           "2": 0,
           "1": 1
         },
-        "negatives": 1,
+        "negatives": 2,
         "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Jorge Sanchez",
+            "text": "It's not a cheap place, the atmosphere it's ok like the service.\nI ordered chicken katsu curry and the curry barely doesn't have taste, very smooth for me.\nThe starters ( gyoza and squid) very tasty and good amount.",
+            "date": "2026-07-25",
+            "url": null
+          },
           {
             "stars": 1,
             "author": "Samantha Snowling",
@@ -160,7 +167,24 @@
       "gaps": [
         "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Newly opened site still requires immediate hands-on attention, with outstanding operational problems unresolved.",
+          "Region-wide (South England): zero-tolerance standard on toxic staff behaviour now applies to all sites, following ultimatums already used at this site.",
+          "Region-wide (South England): labour results mixed, with hours falling into 'unassigned' and closing shifts overrunning."
+        ],
+        "actions": [
+          "Visit the site overnight to evaluate operations and resolve the outstanding problems \u2014 Owner: Ziang Lin (29/07/2026)",
+          "Region-wide (South England): Assign every staff member to a specific position in the system each shift so labour tracks automatically between FOH and BOH \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Complete all closing duties within one hour of the last order, preparing for close during the final two hours of service \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Display the supplier and delivery-deadline schedule visibly in every kitchen \u2014 Owner: Ziang Lin (28/07/2026)",
+          "Region-wide (South England): Brief FOH on the operating procedures required for the Shoreditch pop-up \u2014 Owner: Ziang Lin (28/07/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1s-w5ghuiXACS5Q4Pwn4RqEPTv8mkahi3gU-7tK-Jmgc"
+      }
     }
   }
 }

@@ -121,8 +121,16 @@
         "week_avg_rating": null,
         "new_reviews": 0,
         "star_breakdown": null,
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Kara Newman",
+            "text": "Order was delivered wrong so had to go back for the right meal to be made and delivered which left one person waiting whilst others ate rapidly cooling food.\nOne side was forgotten so again had to wait for staff to check with kitchen and deliver.\nFood flavour itself was good. Staff were friendly and helpful.\nService charge of 10% was automatically included. I don\u2019t like this - please give us the choice rather than having to say take it off.\n\u00a3125 for 4 people (4 drinks, 4 mains, 3 sides) incl service charge.\n\nMale toilet out of service. Accessible toilet had urine everywhere.",
+            "date": "2026-07-24",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -187,7 +195,31 @@
       },
       "gaps": [
         "Reviews \u2014 no week rating in source"
-      ]
+      ],
+      "notes": {
+        "issues": [
+          "Talent Funnel partly unusable \u2014 no manager review option and trial shift events cannot be published.",
+          "Sales missed target with conversion down; the lift in covers came from large cruise-ship tables rather than underlying trade.",
+          "Slow periods such as bad weather days not being actively mitigated with upsells or quicker reaction to delays.",
+          "Delivery 'extra egg' modifier confusing customers and generating refunds and complaints.",
+          "Negative Google reviews not being removed despite repeated follow-ups.",
+          "Handover discipline during manager absences needs tightening, with expectations for managers and supervisors set explicitly in the management group chat."
+        ],
+        "actions": [
+          "Ask Hanna Awang whether the manager review setup was altered and get the trial-shift publishing issue resolved \u2014 Owner: Ka Ho (28/07/2026)",
+          "Forward the LVU meeting invite to the Scotland & Newcastle group and request there that the delivery egg modifier be changed to half eggs \u2014 Owner: Ka Ho (28/07/2026)",
+          "Complete all order inputs in the site spreadsheet even when the total is zero \u2014 Owner: Ka Ho (28/07/2026)",
+          "Draft the post-it pixel art project plan, approach Aberdeen marketing contacts and local societies, and get marketing approval to launch Too Good To Go ahead of September \u2014 Owner: Ka Ho (28/07/2026)",
+          "Check with Ross Ward whether the Direct 365 toilet sprayer servicing falls under the existing contract, and forward the IDES certification on receipt \u2014 Owner: Ka Ho (28/07/2026)",
+          "Region-wide (Scotland & Newcastle): Finalise the budget rota by 08:00 every Monday so labour reporting needs no manual correction \u2014 Owner: Ka Ho (03/08/2026)",
+          "Region-wide (Scotland & Newcastle): Cap discounts for friends of the COO's family at 30%; family themselves are not charged \u2014 Owner: Ka Ho (28/07/2026)"
+        ],
+        "carryover": [
+          "Keep chasing the plumbing contractor over the incomplete urinal repair and hold the invoice until the job is fully resolved \u2014 Owner: Ka Ho (28/07/2026)"
+        ],
+        "empty": false,
+        "docId": "1f3VOdYThRGynVRykS9SMIEfgpyyHZcME1fAcnTfd3K8"
+      }
     }
   }
 }
