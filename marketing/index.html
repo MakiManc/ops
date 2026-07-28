@@ -95,6 +95,50 @@ tr.clusterrow td { background: #EEF2F7; font-weight: 700; font-size: 10px; text-
 .pillrow { display: flex; gap: 6px; align-items: center; margin: 6px 0 4px; }
 .pill { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #F3F4F6; color: #4B5563; }
 .notice { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; border-radius: 8px; padding: 8px 12px; font-size: 11px; margin-bottom: 10px; }
+.notice.plain { font-size: 12px; line-height: 1.55; }
+.notice.plain details { margin-top: 6px; }
+.notice.plain summary { cursor: pointer; font-weight: 600; font-size: 11px; color: #3B62C4; }
+.notice.plain details[open] summary { margin-bottom: 4px; }
+.notice.plain .rules { font-size: 11px; color: #35509E; }
+/* --- Add/Remove: clickable rows, history, detail modal (v1.1) --- */
+#matrix-table tr.clickable, #matrix-hist-table tr.clickable { cursor: pointer; }
+#matrix-table tr.clickable:hover td, #matrix-hist-table tr.clickable:hover td { background: #F1F5F9; }
+.rowhint { font-size: 10px; color: #94A3B8; font-weight: 400; }
+.untagged-note { display: inline-block; font-size: 9px; color: #B45309; background: #FEF3C7; border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+.histstate { display: inline-block; font-size: 9px; border-radius: 4px; padding: 1px 6px; }
+.histstate.gone { background: #E5E7EB; color: #6B7280; }
+.histstate.live { background: #DBEAFE; color: #1D4ED8; }
+.mdl-ovl { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 90; display: flex; align-items: flex-start; justify-content: center; padding: 4vh 12px; overflow-y: auto; }
+.mdl-ovl[hidden] { display: none; }
+.mdl { background: #fff; border-radius: 14px; max-width: 760px; width: 100%; box-shadow: 0 24px 60px rgba(2,6,23,.35); margin-bottom: 4vh; }
+.mdl-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 18px 10px; border-bottom: 1px solid #E2E8F0; }
+.mdl-head h3 { margin: 0; font-size: 15px; flex: 1; line-height: 1.35; }
+.mdl-close { border: 0; background: #F1F5F9; color: #475569; font-size: 16px; line-height: 1; border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+.mdl-close:hover { background: #E2E8F0; }
+.mdl-body { padding: 14px 18px 18px; }
+.mdl-why { background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #94A3B8; border-radius: 8px; padding: 10px 12px; font-size: 12.5px; line-height: 1.6; margin-bottom: 12px; }
+.mdl-why.REMOVE { border-left-color: #DC2626; background: #FEF2F2; }
+.mdl-why.ADD { border-left-color: #16A34A; background: #F0FDF4; }
+.mdl-why.PENDING { border-left-color: #94A3B8; }
+.mdl-why.KEEP { border-left-color: #D97706; background: #FFFBEB; }
+.mdl-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.mdl-stat { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 9px; }
+.mdl-stat b { display: block; font-size: 15px; }
+.mdl-stat span { font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; color: #64748B; }
+.mdl-sec { margin: 14px 0 0; }
+.mdl-sec h4 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #64748B; }
+.meter { position: relative; height: 34px; background: linear-gradient(90deg,#DCFCE7 0%,#DCFCE7 33%,#FEF3C7 33%,#FEF3C7 66%,#FEE2E2 66%); border-radius: 8px; margin: 4px 0 2px; }
+.meter.flip { background: linear-gradient(90deg,#FEE2E2 0%,#FEE2E2 33%,#FEF3C7 33%,#FEF3C7 66%,#DCFCE7 66%); }
+.meter .pin { position: absolute; top: -4px; width: 2px; height: 42px; background: #0F172A; }
+.meter .pin i { position: absolute; top: -1px; left: -4px; width: 10px; height: 10px; border-radius: 50%; background: #0F172A; }
+.meter .lbl { position: absolute; bottom: -16px; font-size: 9px; color: #64748B; transform: translateX(-50%); }
+.meter-wrap { margin-bottom: 22px; }
+.mdl-days { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: #475569; background: #F8FAFC; border-radius: 8px; padding: 8px 10px; margin-top: 12px; }
+.mdl-days b { color: #0F172A; }
+.copybtn { border: 1px solid #CBD5E1; background: #fff; border-radius: 7px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: #334155; }
+.copybtn:hover { background: #F1F5F9; }
+.mdl .cardgrid { max-height: 340px; overflow-y: auto; }
+.barchart { width: 100%; height: 90px; display: block; }
 .warn { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; border-radius: 8px; padding: 8px 12px; font-size: 11px; margin-bottom: 10px; }
 footer { color: #9CA3AF; font-size: 11px; text-align: center; padding: 8px 0 2px; }
 /* Summary interactivity (v4.2) */
@@ -401,20 +445,43 @@ tr.hiddenrow { display: none; }
     <div class="src">Decides itself · <span id="matrix-asof" class="subtle">checking freshness…</span>
       <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">override in sheet ↗</a>
     </div>
-    <div class="notice">
-      <strong>How the decision is made:</strong> a KILL or SCALE flag must hold for <strong>at least 3 full days</strong> (and 3 consecutive runs) before it is confirmed automatically — KILL becomes <span class="rag KILL">REMOVE</span>, SCALE becomes <span class="rag SCALE">ADD</span>. KEEP settles on sight. A campaign has to be genuinely bad, or genuinely good, for three days running — one odd morning proves nothing, and re-running the job twice in a day buys no time. Nothing is paused or spent automatically: the matrix makes the call, a human actions it in the ad account.<br>
-      <strong>To disagree,</strong> type ADD / REMOVE / KEEP into <code>manual_confirm</code> in the sheet — your value wins and the row shows as <em>overridden</em>. You no longer need to confirm anything for the system to move.<br>
-      <strong>Organic rule:</strong> KILL if median eng/reach &lt;2% OR saves+shares/reach &lt;0.5% (last 28d, ≥3 posts). SCALE if median eng/reach ≥6% OR any post ≥3× rolling median reach.<br>
-      <strong>Paid rule (CPA, approved 7 Jul):</strong> SCALE if CPA ≤£5 with 5+ conversions · KILL if CPA &gt;£12 after £50+ spend, or zero conversions after £75+ (last 30d). Awareness/boost campaigns keep the CTR/CPC rule (KILL CTR&lt;0.8% + CPC&gt;£1.50 · SCALE CTR&gt;1.5% + CPC&lt;£0.60).
+    <div class="notice plain">
+      <strong>What this page does:</strong> every morning at 8am the system checks every paid ad (last 30 days) and every post (last 28 days), and sorts each one into three buckets — <span class="rag REMOVE">REMOVE</span> it's wasting money, turn it off · <span class="rag ADD">ADD</span> it's working, put more behind it · <span class="rag KEEP">KEEP</span> it's fine, leave it alone.<br>
+      <strong>"Building" means it isn't sure yet.</strong> One bad morning proves nothing, so it waits until it sees the same signal 3 days in a row before committing. "2 more days" = it has an opinion and is double-checking it.<br>
+      <strong>Nothing is switched off by itself.</strong> The system only decides — a person still has to pause or boost the ad in the ad account.<br>
+      <strong>Think it's wrong?</strong> Type ADD, REMOVE or KEEP next to that row in <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">the sheet ↗</a> — your word beats the machine's, immediately and without conditions.<br>
+      <strong>Click any row</strong> to see the full story: what it's costing, the trend, the content itself and the exact rule it tripped.
+      <details><summary>The exact rules, for reference</summary>
+        <div class="rules">
+          <strong>Posts (organic):</strong> KILL if typical engagement is under 2% of reach AND saves+shares are under 0.5% of reach — or engagement falls under 1% on its own (last 28 days, at least 3 posts). SCALE if typical engagement is 6%+ of reach, or one post reaches 3× the usual audience.<br>
+          <strong>Ads built to sell (CPA, approved 7 Jul):</strong> SCALE if a sale costs £5 or less (with 5+ sales) · KILL if a sale costs over £12 after £50+ spent, or there are no sales at all after £75+ (last 30 days).<br>
+          <strong>Ads built for attention (awareness/boosts):</strong> KILL if under 0.8% of viewers click AND each click costs over £1.50 · SCALE if over 1.5% click and each click costs under £0.60.
+        </div>
+      </details>
     </div>
     <div class="ragsummary" id="matrix-summary"></div>
     <div class="controls">
       <label><input type="checkbox" id="matrix-showall"> Show settled KEEPs too</label>
     </div>
     <table>
-      <thead><tr><th>Decision</th><th>Name</th><th>Type</th><th class="num">Sample</th><th>Metric 1</th><th>Metric 2</th><th>Auto flag</th><th>Flagged</th><th>Reason</th></tr></thead>
+      <thead><tr><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="num">Sample</th><th>Metric 1</th><th>Metric 2</th><th>Auto flag</th><th>Flagged</th><th>Reason</th></tr></thead>
       <tbody id="matrix-table"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
     </table>
+  </div>
+  <div class="section">
+    <h2>Decision history</h2>
+    <div class="src">Everything the system has confirmed as REMOVE or ADD — and why. Rows stay here even after the ad stops running and disappears from the live list above. Ledger starts 28 Jul 2026; kills before then weren't recorded.</div>
+    <table>
+      <thead><tr><th>Decided</th><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th>Final numbers</th><th>Why</th><th>Status</th></tr></thead>
+      <tbody id="matrix-hist-table"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<!-- Add/Remove row detail modal -->
+<div id="mdl-ovl" class="mdl-ovl" hidden>
+  <div class="mdl" role="dialog" aria-modal="true">
+    <div class="mdl-head"><h3 id="mdl-title"></h3><button class="mdl-close" id="mdl-close" aria-label="Close">✕</button></div>
+    <div class="mdl-body" id="mdl-body"></div>
   </div>
 </div>
 
@@ -437,7 +504,7 @@ tr.hiddenrow { display: none; }
   </div>
 </div>
 
-<footer>M&amp;R Marketing Hub · web edition v1.0 · live data via the M&amp;R Apps Script API (Windsor datasets cached ~30 min) · budget board + watchdog + Monday wrap run in Apps Script</footer>
+<footer>M&amp;R Marketing Hub · web edition v1.1 · live data via the M&amp;R Apps Script API (Windsor datasets cached ~30 min) · budget board + watchdog + Monday wrap run in Apps Script</footer>
 
 <script>
 'use strict';
@@ -1586,14 +1653,39 @@ function renderHistory(paid, budgets) {
 // =====================================================================
 // ADD / REMOVE MATRIX TAB
 // =====================================================================
-var matrixRowsCache = null;
+var matrixRowsCache = null;   // live rows (what the table shows)
+var matrixHistCache = null;   // HISTORY ledger rows from the sheet
+var matrixMeta30 = null;      // per-campaign daily Meta rows for the detail popup
+var matrixLibRows = null;     // content library for the detail popup
+var matrixAnnById = {};
 
 async function loadMatrix() {
-  var csv = await readSheetCsv(SHEETS.ADD_REMOVE_MATRIX);
-  matrixRowsCache = csvToObjects(csv).filter(function(r) { return r.entity_type && r.entity_type !== 'RULES'; });
+  var res = await Promise.all([
+    readSheetCsv(SHEETS.ADD_REMOVE_MATRIX),
+    getWindsor('facebook', ['date','campaign','spend','impressions','clicks','actions_purchase','actions_lead'], {}).catch(function() { return []; }),
+    loadLibraryAndAnnotations().catch(function() { return {lib: [], ann: []}; })
+  ]);
+  var all = csvToObjects(res[0]).filter(function(r) { return r.entity_type && r.entity_type !== 'RULES'; });
+  matrixRowsCache = all.filter(function(r) { return r.entity_type !== 'HISTORY'; });
+  matrixHistCache = all.filter(function(r) { return r.entity_type === 'HISTORY'; });
+  matrixMeta30 = res[1] || [];
+  matrixLibRows = (res[2] && res[2].lib) || [];
+  matrixAnnById = annotationMaps((res[2] && res[2].ann) || []);
   document.getElementById('matrix-showall').addEventListener('change', renderMatrix);
   renderMatrix();
+  renderMatrixHistory();
+  wireMatrixModal();
 }
+
+// "(untagged)" is machine truth but human noise — say what it actually is.
+function matrixDisplayName(r) {
+  if (r.entity_type === 'format_series' && String(r.entity_name).trim() === '(untagged)') {
+    var what = r.platform === 'instagram' ? 'Instagram posts' : r.platform === 'tiktok' ? 'TikTok videos' : (r.platform + ' posts');
+    return 'All ' + what + ', judged as one group';
+  }
+  return r.entity_name || '';
+}
+function isUntagged(r) { return r.entity_type === 'format_series' && String(r.entity_name).trim() === '(untagged)'; }
 
 // Days between an ISO/yyyy-MM-dd stamp and now. Null when unparseable.
 function daysSince(v) {
@@ -1613,11 +1705,13 @@ function decisionOf(r) {
             on: r.decided_on || ''};
   }
   if (r.decision_source === 'pending' || r.streak_runs != null) {
-    // The binding constraint is calendar days held, not runs — mirror the
-    // Apps Script rule so the countdown on screen is the real one.
-    var held = daysSince(r.flagged_since);
+    // Mirror the Apps Script rule: days held is topped up by evidence days
+    // (for paid, sample_size = days of real data), so for paid the run streak
+    // is almost always the bar that actually bites. Show whichever is longer.
+    var held = daysSince(r.flagged_since) || 0;
+    if (r.entity_type === 'paid_campaign') held = Math.max(held, Number(r.sample_size) || 0);
     var runs = Number(r.streak_runs) || 0;
-    var daysToGo = held == null ? 3 : Math.max(0, 3 - held);
+    var daysToGo = Math.max(0, 3 - held);
     var runsToGo = Math.max(0, 3 - runs);
     return {label: 'PENDING', source: 'pending',
             held: held, daysToGo: Math.max(daysToGo, runsToGo)};
@@ -1661,7 +1755,8 @@ function renderMatrix() {
     sumEl.innerHTML =
       '<span class="rag REMOVE">REMOVE ' + counts.REMOVE + '</span>' +
       '<span class="rag ADD">ADD ' + counts.ADD + '</span>' +
-      '<span class="rag PENDING">building ' + counts.PENDING + '</span>';
+      '<span class="rag PENDING">still deciding ' + counts.PENDING + '</span>' +
+      (counts.REMOVE ? '<span class="subtle" style="align-self:center">→ ' + counts.REMOVE + ' ad' + (counts.REMOVE === 1 ? ' needs' : 's need') + ' switching off in Meta Ads Manager</span>' : '');
   }
 
   // Default view = things with an actual call to action. KEEPs are settled and
@@ -1689,13 +1784,14 @@ function renderMatrix() {
     return;
   }
 
-  tbody.innerHTML = rows.map(function(x) {
+  matrixViewRows = rows; // for the click handler
+  tbody.innerHTML = rows.map(function(x, idx) {
     var r = x.r, d = x.d;
     var cell;
     if (d.label === 'PENDING') {
       cell = '<span class="rag PENDING">building</span>' +
         '<span class="srcbadge">' + (d.daysToGo != null
-          ? (d.daysToGo === 0 ? 'decides next run' : d.daysToGo + ' more day' + (d.daysToGo === 1 ? '' : 's'))
+          ? (d.daysToGo === 0 ? 'decides next run' : d.daysToGo + ' more morning' + (d.daysToGo === 1 ? '' : 's'))
           : 'not yet') + '</span>';
     } else {
       cell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
@@ -1709,9 +1805,10 @@ function renderMatrix() {
       ? '<span class="' + (fs != null && fs >= 21 ? 'stale' : 'subtle') + '">' +
         String(r.flagged_since).slice(0, 10) + (age ? ' · ' + age : '') + '</span>'
       : '<span class="subtle">—</span>';
-    return '<tr>' +
+    var clickable = r.entity_type === 'paid_campaign' || r.entity_type === 'format_series';
+    return '<tr' + (clickable ? ' class="clickable" data-i="' + idx + '" title="Click for the full story"' : '') + '>' +
       '<td>' + cell + '</td>' +
-      '<td>' + (r.entity_name || '') + '</td>' +
+      '<td>' + escAttr(matrixDisplayName(r)) + (isUntagged(r) ? '<span class="untagged-note">no format tags yet</span>' : '') + '</td>' +
       '<td class="subtle">' + (r.entity_type === 'paid_campaign' ? 'paid' : r.entity_type === 'format_series' ? 'organic' : (r.entity_type || '')) +
         ' · ' + (r.platform || '') + '</td>' +
       '<td class="num">' + (r.sample_size || '') + '</td>' +
@@ -1722,6 +1819,374 @@ function renderMatrix() {
       '<td class="caption">' + (r.reason || '') + '</td>' +
       '</tr>';
   }).join('');
+}
+
+// =====================================================================
+// DECISION HISTORY — the ledger of everything confirmed REMOVE/ADD.
+// Sheet HISTORY rows survive after a campaign stops running; live confirmed
+// rows are merged in too so today's decisions show before the ledger's first
+// morning run has written them.
+// =====================================================================
+var matrixViewRows = [];
+var matrixHistView = [];
+
+function renderMatrixHistory() {
+  var tbody = document.getElementById('matrix-hist-table');
+  if (!tbody) return;
+  var live = matrixRowsCache || [];
+  var liveKeys = {};
+  live.forEach(function(r) { liveKeys[r.entity_name + '||' + r.platform] = true; });
+  var byKey = {};
+  (matrixHistCache || []).forEach(function(r) {
+    byKey[r.entity_name + '||' + r.platform + '||' + r.decision + '||' + String(r.decided_on).slice(0, 10)] = {r: r, fromLedger: true};
+  });
+  live.forEach(function(r) {
+    var dec = String(r.decision || '').trim().toUpperCase();
+    if (dec !== 'REMOVE' && dec !== 'ADD') return;
+    var k = r.entity_name + '||' + r.platform + '||' + dec + '||' + String(r.decided_on).slice(0, 10);
+    if (!byKey[k]) byKey[k] = {r: r, fromLedger: false};
+  });
+  var list = Object.keys(byKey).map(function(k) { return byKey[k]; });
+  list.sort(function(a, b) {
+    return String(b.r.decided_on).localeCompare(String(a.r.decided_on)) ||
+           String(a.r.entity_name).localeCompare(String(b.r.entity_name));
+  });
+  matrixHistView = list;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="subtle">Nothing confirmed yet — decisions land here as the system (or you) confirms them. The ledger starts 28 Jul 2026.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(x, idx) {
+    var r = x.r;
+    var stillLive = liveKeys[r.entity_name + '||' + r.platform];
+    var m1 = (r.key_metric_1_value !== '' && r.key_metric_1_value != null) ? (r.key_metric_1_name || '') + ': ' + r.key_metric_1_value : '';
+    var m2 = (r.key_metric_2_value !== '' && r.key_metric_2_value != null) ? (r.key_metric_2_name || '') + ': ' + r.key_metric_2_value : '';
+    return '<tr class="clickable" data-h="' + idx + '" title="Click for the full story">' +
+      '<td class="subtle">' + String(r.decided_on || '').slice(0, 10) + '</td>' +
+      '<td><span class="rag ' + r.decision + '">' + r.decision + '</span>' +
+        (String(r.decision_source) === 'override' ? '<span class="srcbadge override">you</span>' : '') + '</td>' +
+      '<td>' + escAttr(matrixDisplayName(r)) + '</td>' +
+      '<td class="subtle">' + (r.entity_type === 'HISTORY' || r.entity_type === 'paid_campaign'
+        ? (r.platform === 'meta' ? 'paid · meta' : 'organic · ' + (r.platform || '')) : (r.platform || '')) + '</td>' +
+      '<td class="num">' + [m1, m2].filter(Boolean).join(' · ') + '</td>' +
+      '<td class="caption">' + escAttr(r.reason || '') + '</td>' +
+      '<td>' + (stillLive
+        ? '<span class="histstate live">still in live list</span>'
+        : '<span class="histstate gone">no longer running</span>') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================================
+// ROW DETAIL MODAL — the full story behind one decision, in plain English
+// =====================================================================
+var MRULES = {
+  ORG_KILL_ENG: 0.02, ORG_KILL_SS: 0.005, ORG_KILL_FLOOR: 0.01, ORG_SCALE_ENG: 0.06, ORG_SCALE_MULT: 3,
+  PAID_SCALE_CPA: 5, PAID_SCALE_MINCONV: 5, PAID_KILL_CPA: 12, PAID_KILL_MINSPEND: 50, PAID_ZERO_MINSPEND: 75,
+  AW_KILL_CTR: 0.008, AW_KILL_CPC: 1.5, AW_SCALE_CTR: 0.015, AW_SCALE_CPC: 0.6
+};
+function isAwarenessName(name) { return /awareness|boost|instagram post/i.test(String(name)); }
+
+// 30-day totals + daily series for one Meta campaign, from the payload we
+// already hold. Returns null when the campaign has aged out of the window.
+function campaignAgg(name) {
+  var spend = 0, impr = 0, clicks = 0, conv = 0, daily = {};
+  (matrixMeta30 || []).forEach(function(r) {
+    if (String(r.campaign || '') !== String(name)) return;
+    var d = String(r.date).slice(0, 10);
+    var s = Number(r.spend) || 0;
+    var c = (Number(r.actions_purchase) || 0) + (Number(r.actions_lead) || 0);
+    spend += s; impr += Number(r.impressions) || 0; clicks += Number(r.clicks) || 0; conv += c;
+    daily[d] = daily[d] || {spend: 0, conv: 0};
+    daily[d].spend += s; daily[d].conv += c;
+  });
+  var dates = Object.keys(daily).sort();
+  if (!dates.length) return null;
+  return {spend: spend, impr: impr, clicks: clicks, conv: conv, daily: daily, dates: dates,
+          ctr: impr > 0 ? clicks / impr : 0, cpc: clicks > 0 ? spend / clicks : 0,
+          cpa: conv > 0 ? spend / conv : null};
+}
+
+// Fallback when the campaign is gone from the data: the reason string the
+// matrix wrote still carries the final numbers — "(8 conv, £196 spend, 30d)".
+function statsFromReason(reason) {
+  var m = String(reason || '').match(/\((\d+)\s*conv,\s*£(\d+(?:\.\d+)?)\s*spend/i);
+  if (!m) return null;
+  return {conv: Number(m[1]), spend: Number(m[2])};
+}
+
+function meterHtml(val, max, zones, marks) {
+  var stops = [], prev = 0;
+  zones.forEach(function(z) {
+    var pct = Math.max(prev, Math.min(100, z.upTo / max * 100));
+    stops.push(z.color + ' ' + prev.toFixed(1) + '%'); stops.push(z.color + ' ' + pct.toFixed(1) + '%');
+    prev = pct;
+  });
+  var pin = Math.max(0.5, Math.min(99.5, val / max * 100));
+  var lbls = marks.map(function(m) {
+    return '<span class="lbl" style="left:' + (m.v / max * 100).toFixed(1) + '%">' + m.t + '</span>';
+  }).join('');
+  return '<div class="meter-wrap"><div class="meter" style="background:linear-gradient(90deg,' + stops.join(',') + ')">' +
+    '<div class="pin" style="left:' + pin.toFixed(1) + '%"><i></i></div>' + lbls + '</div></div>';
+}
+
+function barChartHtml(agg) {
+  var dates = agg.dates;
+  if (!dates.length) return '';
+  var W = 600, H = 90, PAD = 2;
+  var bw = Math.max(2, (W - PAD * 2) / dates.length - 2);
+  var maxS = 0;
+  dates.forEach(function(d) { if (agg.daily[d].spend > maxS) maxS = agg.daily[d].spend; });
+  if (maxS <= 0) maxS = 1;
+  var bars = dates.map(function(d, i) {
+    var v = agg.daily[d];
+    var h = Math.max(1, v.spend / maxS * (H - 26));
+    var x = PAD + i * ((W - PAD * 2) / dates.length);
+    var y = H - 14 - h;
+    return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) +
+      '" rx="1.5" fill="' + (v.conv > 0 ? '#16A34A' : '#CBD5E1') + '"><title>' + d + ' — £' + v.spend.toFixed(2) +
+      (v.conv ? ' · ' + v.conv + ' sale' + (v.conv > 1 ? 's' : '') : ' · no sales') + '</title></rect>';
+  }).join('');
+  return '<svg class="barchart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + bars +
+    '<text x="' + PAD + '" y="' + (H - 3) + '" font-size="9" fill="#94A3B8">' + dates[0].slice(5) + '</text>' +
+    '<text x="' + (W - PAD) + '" y="' + (H - 3) + '" font-size="9" fill="#94A3B8" text-anchor="end">' + dates[dates.length - 1].slice(5) + '</text>' +
+    '<text x="' + (W - PAD) + '" y="10" font-size="9" fill="#94A3B8" text-anchor="end">peak £' + maxS.toFixed(0) + '/day</text></svg>' +
+    '<div class="subtle" style="font-size:10px">Each bar is one day\'s spend · green bars are days that produced at least one sale/lead</div>';
+}
+
+function mstat(label, val) { return '<div class="mdl-stat"><b>' + val + '</b><span>' + label + '</span></div>'; }
+
+// The plain-English story for one row. x = {r, d} like the table rows.
+function matrixWhyHtml(r, d, agg) {
+  var dec = d.label, parts = [];
+  var isPaid = r.entity_type === 'paid_campaign' || (r.entity_type === 'HISTORY' && r.platform === 'meta');
+  var flag = String(r.auto_flag || '').toUpperCase();
+  var fallback = statsFromReason(r.reason);
+  var spend = agg ? agg.spend : (fallback ? fallback.spend : null);
+  var conv = agg ? agg.conv : (fallback ? fallback.conv : null);
+  var cpa = agg ? agg.cpa : (conv > 0 && spend != null ? spend / conv : (Number(r.key_metric_1_value) || null));
+  if (!agg && !cpa && Number(r.key_metric_1_value)) cpa = Number(r.key_metric_1_value);
+  var ctr = agg ? agg.ctr : null, cpc = agg ? agg.cpc : (Number(r.key_metric_2_value) || null);
+
+  if (isPaid && isAwarenessName(r.entity_name)) {
+    parts.push('This is an <b>awareness / boost ad</b>, so it\'s judged on attention, not sales.');
+    if (ctr != null || cpc != null) {
+      parts.push((ctr != null ? '<b>' + fmtPct(ctr) + '</b> of the people who saw it clicked (the "good" bar is ' + fmtPct(MRULES.AW_SCALE_CTR) + ')' : '') +
+        (cpc != null ? (ctr != null ? ', and each' : 'Each') + ' click cost <b>£' + Number(cpc).toFixed(2) + '</b> (cheap is under £' + MRULES.AW_SCALE_CPC.toFixed(2) + ', expensive is over £' + MRULES.AW_KILL_CPC.toFixed(2) + ')' : '') + '.');
+    }
+    if (flag === 'SCALE') parts.push('That\'s cheap attention — worth putting more behind it.');
+    if (flag === 'KILL') parts.push('That\'s weak attention at a high price — not worth the money.');
+  } else if (isPaid) {
+    if (spend != null && conv != null) {
+      if (conv > 0) {
+        parts.push('In the last 30 days this ad spent <b>' + fmtGbp2(spend) + '</b> and produced <b>' + conv + ' sale' + (conv === 1 ? '' : 's') + '/lead' + (conv === 1 ? '' : 's') + '</b> — that\'s <b>' + fmtGbp2(cpa) + ' per sale</b>.');
+      } else {
+        parts.push('In the last 30 days this ad spent <b>' + fmtGbp2(spend) + '</b> and produced <b>no sales or leads at all</b>.');
+      }
+    } else if (cpa != null) {
+      parts.push('Each sale from this ad costs <b>' + fmtGbp2(cpa) + '</b>.');
+    }
+    parts.push('<span class="subtle">The bars: under £' + MRULES.PAID_SCALE_CPA + ' a sale = scale it up · over £' + MRULES.PAID_KILL_CPA + ' a sale (or £' + MRULES.PAID_ZERO_MINSPEND + '+ spent with zero sales) = kill it.</span>');
+  } else {
+    // organic
+    var eng = Number(r.key_metric_1_value) || 0, ss = Number(r.key_metric_2_value) || 0;
+    parts.push('A typical post in this group engages <b>' + fmtPct(eng) + '</b> of the people it reaches' +
+      (ss ? ', and <b>' + fmtPct(ss) + '</b> save or share it' : '') + '.');
+    parts.push('<span class="subtle">The bars: 6%+ engagement = do more of this · under 2% engagement AND under 0.5% saves+shares = stop · under 1% engagement = stop regardless.</span>');
+    if (/hit \d+x median reach|or hit/i.test(String(r.reason)) && flag === 'SCALE') {
+      var mm = String(r.reason).match(/(\d+)x median reach/i);
+      if (mm) parts.push('The scale signal here: <b>one post reached ' + mm[1] + '× the usual audience</b> — something in it clearly worked.');
+    }
+  }
+
+  // status line
+  if (dec === 'REMOVE' || dec === 'ADD') {
+    var who = d.source === 'override' ? 'You (or the team) overrode the machine in the sheet' : 'The system saw the same picture 3 mornings in a row';
+    parts.push(who + ', so on <b>' + String(d.on || r.decided_on || '').slice(0, 10) + '</b> this was confirmed: <b>' +
+      (dec === 'REMOVE' ? 'turn it off' : 'put more behind it') + '</b>.');
+    if (dec === 'REMOVE') parts.push('⚠ Nothing switches off by itself — someone has to pause it in Meta Ads Manager.');
+  } else if (dec === 'KEEP') {
+    if (conv === 0 && spend != null && spend < MRULES.PAID_ZERO_MINSPEND && isPaid && !isAwarenessName(r.entity_name)) {
+      parts.push('No sales yet, but it\'s only spent ' + fmtGbp2(spend) + ' — still under the £' + MRULES.PAID_ZERO_MINSPEND + ' line where the system calls time. <b>Being watched, not condemned.</b>');
+    } else {
+      parts.push('It\'s neither wasting money nor clearly outperforming, so the call is: <b>leave it alone</b>.');
+    }
+  } else if (dec === 'PENDING') {
+    var leaning = flag === 'KILL' ? 'turn it off' : flag === 'SCALE' ? 'put more behind it' : 'keep it';
+    parts.push('The system currently thinks: <b>' + leaning + '</b> — but it won\'t commit until it has seen the same signal <b>3 mornings in a row</b>. ' +
+      (d.daysToGo === 0 ? 'It decides on the next morning run.' : '<b>' + d.daysToGo + ' more morning' + (d.daysToGo === 1 ? '' : 's') + '</b> to go.'));
+  }
+  if (isUntagged(r)) {
+    parts.push('<b>Why this row is vague:</b> nobody has tagged posts into formats/series yet, so the system can only judge ALL ' +
+      (r.platform === 'tiktok' ? 'TikTok videos' : 'Instagram posts') + ' as one group — it can\'t tell you <i>which kind</i> of post to do more of. Fix: fill in <code>format_series</code> in the <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1fA6J0ri8Gz3RpG0SMSbZyR6uSHXB8XvUw9u1URpHntU/edit" target="_blank">CONTENT_ANNOTATIONS sheet ↗</a>.');
+  }
+  return parts.join(' ');
+}
+
+function matrixContentHtml(r) {
+  var html = '';
+  if (r.entity_type === 'format_series' || (r.entity_type === 'HISTORY' && r.platform !== 'meta')) {
+    var isTt = r.platform === 'tiktok';
+    var cutoff = new Date(Date.now() - 28 * 864e5).toISOString().slice(0, 10);
+    var series = String(r.entity_name).trim();
+    var posts = (matrixLibRows || []).filter(function(x) {
+      if (x.platform !== r.platform) return false;
+      if (String(x.posted_at).slice(0, 10) < cutoff) return false;
+      var a = matrixAnnById[x.content_id] || {};
+      var tag = a.series || x.format_series || '(untagged)';
+      return series === '(untagged)' ? tag === '(untagged)' : tag === series;
+    }).map(function(x) {
+      var a = matrixAnnById[x.content_id] || {};
+      return Object.assign({}, x, {teamNote: a.note || '', engRate: computeEngRate(x)});
+    });
+    posts.sort(function(a, b) { return String(b.posted_at).localeCompare(String(a.posted_at)); });
+    if (posts.length) {
+      html += '<div class="mdl-sec"><h4>The ' + posts.length + ' post' + (posts.length === 1 ? '' : 's') + ' behind this judgement (last 28 days)</h4>' +
+        '<div class="cardgrid">' + posts.slice(0, 30).map(isTt ? ttCardHtml : igCardHtml).join('') + '</div></div>';
+    }
+  } else {
+    // paid: boosts carry the post caption in the campaign name — find the post
+    var name = String(r.entity_name || '');
+    var m = name.match(/^instagram post:\s*(.*)$/i);
+    if (m) {
+      var frag = m[1].replace(/(\.\.\.|…)\s*$/, '').trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 30);
+      var hit = (matrixLibRows || []).filter(function(x) {
+        return x.platform === 'instagram' && frag &&
+          String(x.caption || '').toLowerCase().replace(/\s+/g, ' ').indexOf(frag) === 0;
+      })[0];
+      if (hit) {
+        var a2 = matrixAnnById[hit.content_id] || {};
+        var row = Object.assign({}, hit, {teamNote: a2.note || '', engRate: computeEngRate(hit)});
+        html += '<div class="mdl-sec"><h4>The boosted post</h4><div class="cardgrid">' + igCardHtml(row) + '</div></div>';
+      }
+    }
+    html += '<div class="mdl-sec"><h4>Find it in the ad account</h4>' +
+      '<button class="copybtn" data-copy="' + escAttr(r.entity_name) + '">Copy campaign name</button> ' +
+      '<a class="sheetlink" href="https://adsmanager.facebook.com/adsmanager/manage/campaigns" target="_blank">open Meta Ads Manager ↗</a>' +
+      '<span class="subtle" style="font-size:10px"> — paste the name into its search box</span></div>';
+  }
+  return html;
+}
+
+function openMatrixModal(r, dRaw, fromHistory) {
+  var d = dRaw || decisionOf(r);
+  var isPaid = r.platform === 'meta';
+  var agg = isPaid ? campaignAgg(r.entity_name) : null;
+  var title = escAttr(matrixDisplayName(r));
+  var badge = d.label === 'PENDING'
+    ? '<span class="rag PENDING">building</span>'
+    : '<span class="rag ' + d.label + '">' + d.label + '</span>';
+  document.getElementById('mdl-title').innerHTML = badge + ' ' + title +
+    '<div class="subtle" style="font-size:10px;font-weight:400;margin-top:3px">' +
+    (isPaid ? 'paid · meta' : 'organic · ' + (r.platform || '')) +
+    (fromHistory ? ' · from the decision history' : '') + '</div>';
+
+  var body = '<div class="mdl-why ' + (d.label || '') + '">' + matrixWhyHtml(r, d, agg) + '</div>';
+
+  // stats
+  var stats = [];
+  if (isPaid && agg) {
+    stats.push(mstat('spend · 30d', fmtGbp2(agg.spend)));
+    stats.push(mstat('sales/leads', fmtN(agg.conv)));
+    stats.push(mstat('cost per sale', agg.cpa != null ? fmtGbp2(agg.cpa) : '—'));
+    stats.push(mstat('clicks', fmtN(agg.clicks)));
+    stats.push(mstat('click rate', fmtPct(agg.ctr)));
+    stats.push(mstat('cost per click', fmtGbp2(agg.cpc)));
+    stats.push(mstat('days with data', fmtN(agg.dates.length)));
+  } else if (isPaid) {
+    var fb = statsFromReason(r.reason);
+    if (fb) { stats.push(mstat('final spend', fmtGbp2(fb.spend))); stats.push(mstat('final sales', fmtN(fb.conv))); }
+    if (r.key_metric_1_value) stats.push(mstat('cost per sale', fmtGbp2(r.key_metric_1_value)));
+    if (r.key_metric_2_value) stats.push(mstat('cost per click', fmtGbp2(r.key_metric_2_value)));
+    stats.push(mstat('status', 'aged out of the 30-day data'));
+  } else {
+    stats.push(mstat('posts judged', fmtN(r.sample_size)));
+    stats.push(mstat('typical engagement', fmtPct(r.key_metric_1_value)));
+    stats.push(mstat('typical saves+shares', fmtPct(r.key_metric_2_value)));
+  }
+  body += '<div class="mdl-stats">' + stats.join('') + '</div>';
+
+  // threshold meter
+  if (isPaid && !isAwarenessName(r.entity_name)) {
+    var cpaV = agg && agg.cpa != null ? agg.cpa : Number(r.key_metric_1_value) || null;
+    if (cpaV != null) {
+      var maxC = Math.max(16, cpaV * 1.15);
+      body += '<div class="mdl-sec"><h4>Where it sits — cost per sale</h4>' +
+        meterHtml(cpaV, maxC,
+          [{upTo: MRULES.PAID_SCALE_CPA, color: '#DCFCE7'}, {upTo: MRULES.PAID_KILL_CPA, color: '#FEF3C7'}, {upTo: maxC, color: '#FEE2E2'}],
+          [{v: MRULES.PAID_SCALE_CPA, t: '£5 scale'}, {v: MRULES.PAID_KILL_CPA, t: '£12 kill'}]) + '</div>';
+    }
+  } else if (isPaid) {
+    var ctrV = agg ? agg.ctr : null;
+    if (ctrV != null) {
+      var maxT = Math.max(0.03, ctrV * 1.3);
+      body += '<div class="mdl-sec"><h4>Where it sits — click rate</h4>' +
+        meterHtml(ctrV, maxT,
+          [{upTo: MRULES.AW_KILL_CTR, color: '#FEE2E2'}, {upTo: MRULES.AW_SCALE_CTR, color: '#FEF3C7'}, {upTo: maxT, color: '#DCFCE7'}],
+          [{v: MRULES.AW_KILL_CTR, t: '0.8% kill'}, {v: MRULES.AW_SCALE_CTR, t: '1.5% scale'}]) + '</div>';
+    }
+  } else {
+    var engV = Number(r.key_metric_1_value) || 0;
+    var maxE = Math.max(0.08, engV * 1.15);
+    body += '<div class="mdl-sec"><h4>Where it sits — engagement per person reached</h4>' +
+      meterHtml(engV, maxE,
+        [{upTo: MRULES.ORG_KILL_ENG, color: '#FEE2E2'}, {upTo: MRULES.ORG_SCALE_ENG, color: '#FEF3C7'}, {upTo: maxE, color: '#DCFCE7'}],
+        [{v: MRULES.ORG_KILL_ENG, t: '2% kill'}, {v: MRULES.ORG_SCALE_ENG, t: '6% scale'}]) + '</div>';
+  }
+
+  if (agg) body += '<div class="mdl-sec"><h4>Daily spend, last 30 days</h4>' + barChartHtml(agg) + '</div>';
+
+  body += matrixContentHtml(r);
+
+  // timeline
+  var tl = [];
+  if (r.flagged_since) tl.push('First flagged: <b>' + String(r.flagged_since).slice(0, 10) + '</b>');
+  if (r.streak_runs) tl.push('Seen <b>' + r.streak_runs + '</b> morning' + (Number(r.streak_runs) === 1 ? '' : 's') + ' in a row');
+  if (r.decided_on) tl.push('Confirmed: <b>' + String(r.decided_on).slice(0, 10) + '</b> (' + (String(r.decision_source) === 'override' ? 'your override' : 'automatic') + ')');
+  if (tl.length) body += '<div class="mdl-days">' + tl.join('<span class="subtle">·</span>') + '</div>';
+
+  document.getElementById('mdl-body').innerHTML = body;
+  var ovl = document.getElementById('mdl-ovl');
+  ovl.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMatrixModal() {
+  document.getElementById('mdl-ovl').hidden = true;
+  document.body.style.overflow = '';
+}
+
+var matrixModalWired = false;
+function wireMatrixModal() {
+  if (matrixModalWired) return;
+  matrixModalWired = true;
+  document.getElementById('matrix-table').addEventListener('click', function(e) {
+    var tr = e.target.closest('tr.clickable');
+    if (!tr) return;
+    var x = matrixViewRows[Number(tr.dataset.i)];
+    if (x) openMatrixModal(x.r, x.d, false);
+  });
+  document.getElementById('matrix-hist-table').addEventListener('click', function(e) {
+    var tr = e.target.closest('tr.clickable');
+    if (!tr) return;
+    var x = matrixHistView[Number(tr.dataset.h)];
+    if (x) openMatrixModal(x.r, {label: String(x.r.decision).toUpperCase(), source: x.r.decision_source, on: x.r.decided_on}, true);
+  });
+  document.getElementById('mdl-close').addEventListener('click', closeMatrixModal);
+  document.getElementById('mdl-ovl').addEventListener('click', function(e) {
+    if (e.target === this) closeMatrixModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMatrixModal();
+  });
+  document.getElementById('mdl-body').addEventListener('click', function(e) {
+    var b = e.target.closest('.copybtn');
+    if (!b) return;
+    var txt = b.dataset.copy || '';
+    (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject())
+      .then(function() { b.textContent = 'Copied ✓'; setTimeout(function() { b.textContent = 'Copy campaign name'; }, 1500); })
+      .catch(function() { window.prompt('Copy the campaign name:', txt); });
+  });
 }
 
 // =====================================================================
