@@ -454,13 +454,13 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · heat-map w/c 13 Jul (newest filed) · Mapal to w/c 20 Jul · Sales-vs-Budget w/c 13 Jul.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.21.0 · 28 Jul 2026 · <strong>Food-cost budget raised to 27% for w/c 27 Jul only</strong> (par-level replenishment) — RAG bands move with it: green 25–27% · amber 27–29% · red &gt;29% · <strong>LOW below 25%</strong>. Reverts to the standing 25% target (green 23–25 · amber 25–27 · red &gt;27 · LOW &lt;23) from w/c 03 Aug. The Budget tab&rsquo;s weekly food purchase budget for w/c 27 Jul is set centrally at 27% × Soph KPI target sales (£171,742 across 16 sites, +£12,722 on the 25% basis) instead of the Head Chef weekly base. <strong>w/c 20 Jul is now fully filed</strong>: Soph KPI published 28 Jul (food cost + wage, incl Maki Nori), AM Control Centre stocktake food variance for all sites, Deliveroo RAG (5 red / 9 amber / 1 green) and Mapal compliance chain 98.8%. M17 Lakeside food cost missing from Soph (£0 food actual) — chase; M16 (14.3%) and M9 (19.2%) look under-invoiced (LOW flag). Weeks run Monday→Sunday (the Budget tab runs Sunday→Saturday, matching Mapal). Main Week selector opens on the newest week with filed data.</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.21.1 · 28 Jul 2026 · <strong>Food-cost budget raised to 27% for w/c 27 Jul only</strong> (par-level replenishment) — RAG bands move with it: green 25–27% · amber 27–29% · red &gt;29% · <strong>LOW below 25%</strong>. Reverts to the standing 25% target (green 23–25 · amber 25–27 · red &gt;27 · LOW &lt;23) from w/c 03 Aug. The Budget tab&rsquo;s weekly food purchase budget for w/c 27 Jul is set centrally at 27% × Soph KPI target sales (£171,742 across 16 sites, +£12,722 on the 25% basis) instead of the Head Chef weekly base. <strong>w/c 20 Jul is now fully filed</strong>: Soph KPI published 28 Jul (food cost + wage, incl Maki Nori), AM Control Centre stocktake food variance for all sites, Deliveroo RAG (5 red / 9 amber / 1 green) and Mapal compliance chain 98.8%. M17 Lakeside food cost missing from Soph (£0 food actual) — chase; M16 (14.3%) and M9 (19.2%) look under-invoiced (LOW flag). Weeks run Monday→Sunday (the Budget tab runs Sunday→Saturday, matching Mapal). Main Week selector opens on the newest week with filed data.</div>
 </footer>
 
 <script>
 const FALLBACK_DATA = {
   meta: {
-    version: "1.21.0",
+    version: "1.21.1",
     generated_at: "2026-07-28T08:00:00Z",
     food_cost_target_pct: 25, food_cost_warn_pct: 25, food_cost_critical_pct: 27, food_cost_low_pct: 23,
     /* Per-week food-cost band override (Michael, 27 Jul 2026). w/c 27 Jul budget raised to 27% so sites can
@@ -644,6 +644,7 @@ const FALLBACK_DATA = {
   ],
 
   data_caveats: [
+    "Budget tab (28 Jul, v1.21.1): M19 Shoreditch + M20 Southampton added to the budget burn (South cluster). The daily skim still writes them under legacy codes SHO/SOT on some days — the dashboard aliases SHO→M19 / SOT→M20 at load and skips the two VOID mislabel rows (16 Jul). Neither site has a monthly cap yet (no Mar–May MA base). M20 flag: WTD at 100% of its HC weekly base on 19 AND 26 Jul — review with the HC. They are NOT in the w/c 27 Jul 27% override (they keep their HC base) and not on the main heat map.",
     "w/c 20 Jul 2026 (newest week, FULLY FILED, added 28 Jul): Soph KPI published 28 Jul with A1 = 20/7 — this time the A1 date matched the true trading week (validated: AM Control Centre M1 food KPI 30.78% == Soph BASE; the one-week-early rule did NOT apply — always validate against AM CC before labelling). Food cost + wage raw Soph BASE (factory add-on NOT applied); Maki Nori included (fc 19.65 / wage 30.70). M17 Lakeside fc missing (Soph £0 food actual) — chase; M16 14.27% and M9 19.18% look under-invoiced (LOW). Food variance from AM CC stocktake (all sites; MN null). del_rag = AM CC Overall verbatim: 5 red (M10,M11,M14,M16,M18) / 9 amber / 1 green (M3); M7/IK2/MN not on delivery. Mapal chain 98.8%. Judged on the standing 25% bands (the 27% override applies to w/c 27 Jul only).",
     "WEEK-LABEL CORRECTION (24 Jul): the Soph KPI sheet runs one week early — its newest block (cell A1 = 6/7) is actually the w/c 13 Jul trading week — so the whole heat-map ladder was shifted forward one week to match the true calendar. Mapal weeks carry their own correct dates and were not shifted.",
     "w/c 13 Jul 2026 (newest Soph week): food cost + wage from Soph KPI (raw; factory add-on NOT applied) + Mapal compliance chain 95.8%. w/c 06 Jul: food cost + wage + Mapal chain 98.5%. Both fully populated after the +1-week label shift. Soph has NOT published w/c 20 Jul yet (current week shows compliance/BOH pending). Food variance + Deliveroo NOW filled for w/c 13 Jul from the AM Control Centre (makiramen.github.io/ops, week of 13–19 Jul): FV per site (N/A at M6/M8/MN — no stocktake); del_rag = AM Overall RAG verbatim (incl ★), 9 red / 6 amber; M7/MN not on delivery.",
@@ -779,6 +780,8 @@ const FALLBACK_DATA = {
       { code:"M16", yday:3748.86, hc_wtd:3748.86,  hc_left:4991.14, wk_budget:8740.00,  mtd:17796.37, cap:38501, note:"Solstice £316.16 + Harro £547.26 + JFC £292 + Lynas £1,151.91 + TWF £208.12 + LWC £593.77 + AA factory £639.64 = £3,748.86. HC config matches." },
       { code:"M17", yday:null,    hc_wtd:null,     hc_left:null,    wk_budget:8740.00,  mtd:7272.88,  cap:34336, note:"NOT FILED — chase HC. 2nd consecutive non-file (also missed prior day)." },
       { code:"M18", yday:4327.90, hc_wtd:4327.90,  hc_left:2681.10, wk_budget:7360.00,  mtd:14769.30, cap:30451, note:"Harro £758.77 + Lynas £1,593.19 + TWF £269.56 + LWC £1,160.99 + AA Factory £545.39 = £4,327.90. Day-1 burn 59% of wk budget. HC config now showing weekly base £7,009 (was zero last week) — closer to ours; Δ £351." },
+      { code:"M19", yday:null, hc_wtd:3716.13, hc_left:1688.67, wk_budget:5404.80, mtd:null, cap:null,  note:"Shoreditch — added to Budget tab 28 Jul. Ledger history since 27 Jun; skim still files some days under legacy code SHO (aliased to M19 on load). No monthly cap yet (new site — no Mar–May MA base)." },
+      { code:"M20", yday:null, hc_wtd:7466.26, hc_left:0.00, wk_budget:7466.26, mtd:null, cap:null,  note:"Southampton — added to Budget tab 28 Jul. Ledger history since 10 Jul; skim still files some days under legacy code SOT (aliased to M20 on load). WTD has been at 100% of the HC weekly base two weeks running — review. No monthly cap yet." },
       { code:"IK2", yday:454.23,  hc_wtd:454.23,   hc_left:3932.77, wk_budget:4956.50,  mtd:2902.08,  cap:17547, note:"AA Factory £408.30 + Global Fruits £45.93 = £454.23. | HC base £4,387 vs our £4,957 (Δ £570)." },
       { code:"MN",  yday:1826.77, hc_wtd:1826.77,  hc_left:5173.23, wk_budget:7000.00,  mtd:8640.25,  cap:null,  note:"Single £1,826.77 figure logged (suppliers not itemised). HC base £7,000 — wk_budget set from HC base (no Soph KPI row for MN)." }
     ],
@@ -884,6 +887,9 @@ function applySheetRows(rows){
   let latestDate=null;
   for(const r of rows){
     if(!r.date) continue;
+    if(((r.notes||"")+"").trim().toUpperCase().startsWith("VOID")) continue;   // mislabelled rows voided in the ledger
+    if(r.site_code==="SHO") r.site_code="M19";   // legacy skim codes for Shoreditch/Southampton
+    if(r.site_code==="SOT") r.site_code="M20";
     const val=(r.daily_total===""||r.daily_total==null)?null:parseFloat(r.daily_total);
     if(r.source==="weekly_budget_lock"){           // per-week locked 23% basis · date = w/c Sunday
       if(!r.site_code) continue;
@@ -1260,7 +1266,7 @@ function renderWeeklyBudget(){
 function renderDailySpend(){
   const d = DATA.daily_spend; if(!d) return;
   let view = d.sites;
-  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle"; codeCluster["M19"]="south"; codeCluster["M20"]="south";
   const effC = budgetEffCluster();
   if(effC!=="all") view = view.filter(r=>codeCluster[r.code]===effC);  const filed = d.sites.filter(r=>r.hc_wtd!=null).length;
   const ydaySum = d.sites.reduce((a,r)=>a+(r.yday||0),0);
@@ -1571,7 +1577,7 @@ function renderBudgetStatusAndOverview(d, dates, view, selSun, selThrough){
 function renderClosedWeeks(d, dates){
   const tb=document.querySelector("#closedWeeksTbl tbody"); if(!tb) return;
   const liveSun=liveWeekSun(d);
-  const codeCluster={}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
+  const codeCluster={}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle"; codeCluster["M19"]="south"; codeCluster["M20"]="south";
   const effC=budgetEffCluster();
   const sites=d.sites.filter(r=> effC==="all" || codeCluster[r.code]===effC);
   const sumRange=(code,a,b)=>dates.filter(dt=>dt>=a&&dt<=b).reduce((s,dt)=>s+((d.ledger[dt]||{})[code]||0),0);
@@ -1634,7 +1640,7 @@ function renderBudget(){
   document.getElementById("budgetHeroTitle").textContent = `Budget burn · ${weekLabel(sunISO)}${isLiveWeek?" (current)":""} · ${dObj.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`;
   const month = date.slice(0,7);
   const dayOfMonth = parseInt(date.slice(8,10),10);
-  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle";
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle"; codeCluster["M19"]="south"; codeCluster["M20"]="south";
   const sumRange = (code, fromISO, toISO) => dates.filter(dt=>dt>=fromISO&&dt<=toISO).reduce((a,dt)=>a+((d.ledger[dt]||{})[code]||0),0);
   const bar = (pct, warn, crit) => {
     if(pct==null) return '<span style="color:var(--maki-muted)">—</span>';
