@@ -247,7 +247,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 94,
+        "score": 91,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -279,15 +279,18 @@
             "value": 83.35,
             "basis": "22.11% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 64.94,
+            "basis": "4.45\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "0.40% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -296,9 +299,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
+        "week_avg_rating": 4.454545455,
+        "new_reviews": 11,
+        "star_breakdown": {
+          "5": 8,
+          "4": 1,
+          "3": 1,
+          "2": 1,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -369,9 +378,7 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 3.5
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     },
     "M6": {
       "code": "M6",
@@ -609,8 +616,8 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 92,
-        "rag": "amber",
+        "score": 99,
+        "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -643,8 +650,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 35.71,
-            "basis": "4.25\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 100.0,
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -661,10 +668,10 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.25,
-        "new_reviews": 4,
+        "week_avg_rating": 4.8,
+        "new_reviews": 15,
         "star_breakdown": {
-          "5": 3,
+          "5": 14,
           "4": 0,
           "3": 0,
           "2": 1,
@@ -974,7 +981,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 87,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1006,15 +1013,18 @@
             "value": 70.0,
             "basis": "23.00% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.79\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "-0.10% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -1025,9 +1035,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
+        "week_avg_rating": 4.785714286,
         "new_reviews": 0,
-        "star_breakdown": null,
+        "star_breakdown": {
+          "5": 11,
+          "4": 3,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -1090,9 +1106,7 @@
         "gmv_vs_ly_pct": -8.4,
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     },
     "M12": {
       "code": "M12",
@@ -1741,7 +1755,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.84\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -1758,14 +1772,14 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
-        "new_reviews": 2,
+        "week_avg_rating": 4.84,
+        "new_reviews": 25,
         "star_breakdown": {
-          "5": 2,
+          "5": 24,
           "4": 0,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
         "negatives": null,
         "negative_reviews": [],
@@ -3150,8 +3164,16 @@
           "2": 0,
           "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Samantha Snowling",
+            "text": "Was not told majority of the food served is Halal - Need to make clear. Very disappointed.",
+            "date": "2026-07-20",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,

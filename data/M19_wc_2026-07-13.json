@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-27",
+  "generated_at": "2026-07-28",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-13 \u2013 2026-07-19",
@@ -20,9 +20,9 @@
           "actual": 21207.12,
           "target": 23500.0,
           "var_pct": -9.76,
-          "prev": null,
-          "wow_abs": null,
-          "wow_pct": null
+          "prev": 20241.58,
+          "wow_abs": 965.54,
+          "wow_pct": 4.77
         },
         "covers": {
           "actual": 885,
@@ -130,8 +130,30 @@
           "2": 1,
           "1": 2
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 3,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Di sgg",
+            "text": "This was my second visit to this restaurant, and unfortunately the experience was even worse than the first. When I arrived, a staff member asked if I had any allergies. I told them that I can\u2019t eat spicy food because I have an allergic reaction and my throat starts to itch. I was assured that this would be taken into account. After we were seated, our order was taken about ten minutes later. I specifically ordered a non-spicy ramen. There was nothing on the menu indicating that the dish was spicy. However, when my food arrived, it was spicy. When I pointed this out, staff initially argued with me. Only after I reminded them that I had told them about my allergy beforehand did they take the dish back. I then had to wait another twenty minutes for a replacement. Mistakes involving food allergies are not just inconvenient, they can be dangerous. I had also ordered a dessert, but after some time I was told that it was no longer available and asked to choose something else. After all that had happened, my appetite was already gone. What makes this even more disappointing is that this was already my second negative experience. During my first visit, I waited around forty minutes for my food because my order had been forgotten. After I left a review, I was told that if I came back, the service would be much better. Unfortunately, this second visit turned out to be even worse. I hope the management takes this feedback seriously, especially when it comes to handling customers with food allergies. These mistakes are not only careless, but can pose a real risk to health. Sadly, after two such experiences, I don\u2019t think I\u2019ll be returning to this restaurant.",
+            "date": "2026-07-18",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "IVG",
+            "text": "We went here with our kids and they loved their gyozas and avocado and cucumber maki. But for the adults it was a big disappointment. Karagee chicken was too fat, the squid had no taste, the prawns too deep fried/fat and buried in way too much sauce and the prawn tempura roll also too much sauce. Nothing tasted fresh as Japanese food should. Also 3 things we asked for were not available and the place was almost empty and lacked atmosphere. Music was good though.\nWon't be coming back.",
+            "date": "2026-07-18",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Melissa W",
+            "text": "If you\u2019re looking for authentic Japanese food, this is not it. We ordered a few small dishes and nearly every single one was disappointing.\n\n5 dishes in total and the only good one was the pumpkin croquettes. But that was probably brought in frozen so it\u2019s not hard to mess it up. The other dishes had a array of issues, soggy sushi rice, unfresh raw fish, heavy tempura and cheap cuts.\n\nThankfully we didn\u2019t pay full price due to the soft launch offer but either way we would not go again.",
+            "date": "2026-07-16",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
