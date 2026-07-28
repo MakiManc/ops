@@ -1890,18 +1890,23 @@ function isAwarenessName(name) { return /awareness|boost|instagram post/i.test(S
 // 30-day totals + daily series for one Meta campaign, from the payload we
 // already hold. Returns null when the campaign has aged out of the window.
 function campaignAgg(name) {
-  var spend = 0, impr = 0, clicks = 0, conv = 0, daily = {};
+  var spend = 0, impr = 0, clicks = 0, conv = 0, daily = {}, matched = 0;
   (matrixMeta30 || []).forEach(function(r) {
     if (String(r.campaign || '') !== String(name)) return;
-    var d = String(r.date).slice(0, 10);
+    matched++;
     var s = Number(r.spend) || 0;
     var c = (Number(r.actions_purchase) || 0) + (Number(r.actions_lead) || 0);
     spend += s; impr += Number(r.impressions) || 0; clicks += Number(r.clicks) || 0; conv += c;
-    daily[d] = daily[d] || {spend: 0, conv: 0};
-    daily[d].spend += s; daily[d].conv += c;
+    // The payload may be campaign totals with no per-day rows — only build the
+    // daily series when a real date is present, or the chart lies.
+    var d = String(r.date || '').slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      daily[d] = daily[d] || {spend: 0, conv: 0};
+      daily[d].spend += s; daily[d].conv += c;
+    }
   });
+  if (!matched) return null;
   var dates = Object.keys(daily).sort();
-  if (!dates.length) return null;
   return {spend: spend, impr: impr, clicks: clicks, conv: conv, daily: daily, dates: dates,
           ctr: impr > 0 ? clicks / impr : 0, cpc: clicks > 0 ? spend / clicks : 0,
           cpa: conv > 0 ? spend / conv : null};
@@ -2092,7 +2097,8 @@ function openMatrixModal(r, dRaw, fromHistory) {
     stats.push(mstat('clicks', fmtN(agg.clicks)));
     stats.push(mstat('click rate', fmtPct(agg.ctr)));
     stats.push(mstat('cost per click', fmtGbp2(agg.cpc)));
-    stats.push(mstat('days with data', fmtN(agg.dates.length)));
+    if (agg.dates.length > 1) stats.push(mstat('days with data', fmtN(agg.dates.length)));
+    else if (Number(r.sample_size)) stats.push(mstat('days with data', fmtN(r.sample_size)));
   } else if (isPaid) {
     var fb = statsFromReason(r.reason);
     if (fb) { stats.push(mstat('final spend', fmtGbp2(fb.spend))); stats.push(mstat('final sales', fmtN(fb.conv))); }
@@ -2134,7 +2140,7 @@ function openMatrixModal(r, dRaw, fromHistory) {
         [{v: MRULES.ORG_KILL_ENG, t: '2% kill'}, {v: MRULES.ORG_SCALE_ENG, t: '6% scale'}]) + '</div>';
   }
 
-  if (agg) body += '<div class="mdl-sec"><h4>Daily spend, last 30 days</h4>' + barChartHtml(agg) + '</div>';
+  if (agg && agg.dates.length > 1) body += '<div class="mdl-sec"><h4>Daily spend, last 30 days</h4>' + barChartHtml(agg) + '</div>';
 
   body += matrixContentHtml(r);
 
