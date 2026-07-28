@@ -1,0 +1,204 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-07-28",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-07-20 \u2013 2026-07-26",
+    "commencing": "2026-07-20",
+    "ending": "2026-07-26"
+  },
+  "sites": {
+    "M8": {
+      "code": "M8",
+      "name": "Maki 8",
+      "gm": "Scott Renwick",
+      "gm_confirm": true,
+      "am": "Ka Ho",
+      "cluster": "Scotland & Newcastle",
+      "kpis": {
+        "sales": {
+          "actual": 45018.04,
+          "target": 42750.0,
+          "var_pct": 5.31,
+          "prev": 41844.44,
+          "wow_abs": 3173.6,
+          "wow_pct": 7.58
+        },
+        "covers": {
+          "actual": 1713,
+          "prev": 1572,
+          "wow_abs": 141,
+          "wow_pct": 8.97
+        },
+        "sph": {
+          "actual": 23.97,
+          "prev": 23.25,
+          "wow_abs": 0.72,
+          "wow_pct": 3.1,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 21.87,
+          "target": null
+        },
+        "food_pct": {
+          "actual": 24.26,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": 671.2
+        },
+        "waste": {
+          "actual": 148.14
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": 4.2,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "food": {
+          "variance_pct": 3.4,
+          "target": "\u00b15%",
+          "within_band": true
+        },
+        "week_commencing": "2026-07-20"
+      },
+      "efficiency_score": {
+        "score": 95,
+        "rag": "green",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sph": 15,
+          "sales": 10,
+          "weekly_star": 10,
+          "food_var": 5
+        },
+        "components": {
+          "sales": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "70% (100+5.31) + 30% (\u00a3gap +2268 vs \u00b1\u00a350k cal)"
+          },
+          "sph": {
+            "weight": 15,
+            "value": 94.3,
+            "basis": "\u00a323.97 vs \u00a322 tgt \u2014 level 100, WoW +3.10% \u2192 mom 81"
+          },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "24.26% vs 25% baseline, -8/pp over"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 86.95,
+            "basis": "21.87% vs 21% target, -15/pp over"
+          },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "3.40% inside \u00b15% band"
+          }
+        },
+        "components_dropped": [],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "green",
+        "triggers": [],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": 5.0,
+        "new_reviews": 4,
+        "star_breakdown": {
+          "5": 4,
+          "4": 0,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
+        "negatives": null,
+        "negative_reviews": [],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-07-20.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 3,
+        "tasks": [
+          {
+            "task": "Recarpeting at front of store, potentially with company logo",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "\u2014",
+            "status": "open"
+          },
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "3 open item(s)"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-26",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 3825.04,
+        "orders": 106,
+        "aov": 36.09,
+        "new_customers": 35,
+        "rating": 4.55,
+        "open_hours_pct": 99.9,
+        "avg_prep_min": 14.4,
+        "rejection_pct": 0.0,
+        "inaccuracy_pct": 1.0,
+        "rider_wait_5min_pct": 1.9,
+        "conversion_pct": 9.9,
+        "wow": {
+          "gmv_pct": -11.3,
+          "orders_abs": -33,
+          "prev_gmv": 4310.7,
+          "prev_orders": 139
+        },
+        "gmv_vs_4wk_pct": -6.7,
+        "gmv_vs_ly_pct": 12.3,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "busy_mode_pct": 0.0
+      },
+      "gaps": []
+    }
+  }
+}
