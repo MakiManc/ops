@@ -454,7 +454,7 @@ footer{border-top:1px solid var(--maki-line);margin-top:40px;padding:14px 22px;f
 
 <footer>
   <div><strong>EC Control Centre</strong> · Maki &amp; Ramen · 16 corporate sites · heat-map w/c 13 Jul (newest filed) · Mapal to w/c 20 Jul · Sales-vs-Budget w/c 13 Jul.</div>
-  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.21.1 · 28 Jul 2026 · <strong>Food-cost budget raised to 27% for w/c 27 Jul only</strong> (par-level replenishment) — RAG bands move with it: green 25–27% · amber 27–29% · red &gt;29% · <strong>LOW below 25%</strong>. Reverts to the standing 25% target (green 23–25 · amber 25–27 · red &gt;27 · LOW &lt;23) from w/c 03 Aug. The Budget tab&rsquo;s weekly food purchase budget for w/c 27 Jul is set centrally at 27% × Soph KPI target sales (£171,742 across 16 sites, +£12,722 on the 25% basis) instead of the Head Chef weekly base. <strong>w/c 20 Jul is now fully filed</strong>: Soph KPI published 28 Jul (food cost + wage, incl Maki Nori), AM Control Centre stocktake food variance for all sites, Deliveroo RAG (5 red / 9 amber / 1 green) and Mapal compliance chain 98.8%. M17 Lakeside food cost missing from Soph (£0 food actual) — chase; M16 (14.3%) and M9 (19.2%) look under-invoiced (LOW flag). Weeks run Monday→Sunday (the Budget tab runs Sunday→Saturday, matching Mapal). Main Week selector opens on the newest week with filed data.</div>
+  <div>Repo: <a href="https://github.com/makiramen/ops/tree/main/ec" target="_blank">github.com/makiramen/ops</a> · Live: <a href="https://makiramen.github.io/ops/ec/" target="_blank">makiramen.github.io/ops/ec/</a> · v1.22.1 · 28 Jul 2026 · <strong>Food-cost budget raised to 27% for w/c 27 Jul only</strong> (par-level replenishment) — RAG bands move with it: green 25–27% · amber 27–29% · red &gt;29% · <strong>LOW below 25%</strong>. Reverts to the standing 25% target (green 23–25 · amber 25–27 · red &gt;27 · LOW &lt;23) from w/c 03 Aug. The Budget tab&rsquo;s weekly food purchase budget for w/c 27 Jul is set centrally at 27% × Soph KPI target sales (£190,507 across 18 sites, now including M19 Shoreditch £6,345 and M20 Southampton £12,420) instead of the Head Chef weekly base. <strong>M20 Southampton has never been issued a weekly budget</strong> — its Head Chef entered Budget Left = £0 every day, so the burn read 100% by construction; it now runs on the standing rule of 25% of projected revenue, £11,500/wk. <strong>w/c 20 Jul is now fully filed</strong>: Soph KPI published 28 Jul (food cost + wage, incl Maki Nori), AM Control Centre stocktake food variance for all sites, Deliveroo RAG (5 red / 9 amber / 1 green) and Mapal compliance chain 98.8%. M17 Lakeside food cost missing from Soph (£0 food actual) — chase; M16 (14.3%) and M9 (19.2%) look under-invoiced (LOW flag). Weeks run Monday→Sunday (the Budget tab runs Sunday→Saturday, matching Mapal). Main Week selector opens on the newest week with filed data.</div>
 </footer>
 
 <script>
@@ -644,7 +644,7 @@ const FALLBACK_DATA = {
   ],
 
   data_caveats: [
-    "Budget tab (28 Jul, v1.21.1): M19 Shoreditch + M20 Southampton added to the budget burn (South cluster). The daily skim still writes them under legacy codes SHO/SOT on some days — the dashboard aliases SHO→M19 / SOT→M20 at load and skips the two VOID mislabel rows (16 Jul). Neither site has a monthly cap yet (no Mar–May MA base). M20 flag: WTD at 100% of its HC weekly base on 19 AND 26 Jul — review with the HC. They are NOT in the w/c 27 Jul 27% override (they keep their HC base) and not on the main heat map.",
+    "Budget tab (28 Jul, v1.22.1): M19 Shoreditch + M20 Southampton now have a real weekly budget. Root cause of the broken burn: M20 has never been issued a weekly food budget, so its Head Chef entered Budget Left This Week = £0 on every filed day and the derived basis equalled its own spend — 100% burn by construction, not overspend. M20 now runs on the standing budget rule — 25% of projected revenue (£11,500/wk) — with 27% (£12,420) for the w/c 27 Jul par-replenishment week; both sites are now included in the w/c 27 Jul 27% override (M19 £6,345, M20 £12,420), taking that week to £190,507 across 18 sites. The daily skim still writes them under legacy codes SHO/SOT on some days — the dashboard aliases SHO→M19 / SOT→M20 at load and skips the two VOID mislabel rows (16 Jul); the durable fix is the skim SKILL.md mapping. Neither site has a monthly cap yet (no Mar–May MA base) and neither is on the main heat map. Watch item: M19 food cost 29.3% for w/c 20 Jul, up from 23.0% — food spend +50% on sales +18%.",
     "w/c 20 Jul 2026 (newest week, FULLY FILED, added 28 Jul): Soph KPI published 28 Jul with A1 = 20/7 — this time the A1 date matched the true trading week (validated: AM Control Centre M1 food KPI 30.78% == Soph BASE; the one-week-early rule did NOT apply — always validate against AM CC before labelling). Food cost + wage raw Soph BASE (factory add-on NOT applied); Maki Nori included (fc 19.65 / wage 30.70). M17 Lakeside fc missing (Soph £0 food actual) — chase; M16 14.27% and M9 19.18% look under-invoiced (LOW). Food variance from AM CC stocktake (all sites; MN null). del_rag = AM CC Overall verbatim: 5 red (M10,M11,M14,M16,M18) / 9 amber / 1 green (M3); M7/IK2/MN not on delivery. Mapal chain 98.8%. Judged on the standing 25% bands (the 27% override applies to w/c 27 Jul only).",
     "WEEK-LABEL CORRECTION (24 Jul): the Soph KPI sheet runs one week early — its newest block (cell A1 = 6/7) is actually the w/c 13 Jul trading week — so the whole heat-map ladder was shifted forward one week to match the true calendar. Mapal weeks carry their own correct dates and were not shifted.",
     "w/c 13 Jul 2026 (newest Soph week): food cost + wage from Soph KPI (raw; factory add-on NOT applied) + Mapal compliance chain 95.8%. w/c 06 Jul: food cost + wage + Mapal chain 98.5%. Both fully populated after the +1-week label shift. Soph has NOT published w/c 20 Jul yet (current week shows compliance/BOH pending). Food variance + Deliveroo NOW filled for w/c 13 Jul from the AM Control Centre (makiramen.github.io/ops, week of 13–19 Jul): FV per site (N/A at M6/M8/MN — no stocktake); del_rag = AM Overall RAG verbatim (incl ★), 9 red / 6 amber; M7/MN not on delivery.",
@@ -757,11 +757,23 @@ const FALLBACK_DATA = {
        used by this tab. Applied AFTER the live sheet load so it survives every refresh. */
     budget_override: {
       "2026-07-26": {
-        pct: 27, basis: "27% × Soph KPI target sales (w/c 13 Jul target set — the newest published)",
-        note: "Par-level replenishment week — food purchase budget set at 27% of target sales (Michael, 27 Jul 2026). Reverts to 25% from w/c 03 Aug. Maki Nori is not on the Soph KPI sheet, so MN keeps its Head Chef weekly base.",
-        total: 171741.73,
-        by_code: { M1:6075.00, M3:9355.50, M6:6345.00, M7:18090.00, M8:11542.50, M9:18225.00, M10:9542.61, M11:7290.00, M12:9355.50, M13:11340.00, M14:11610.00, M15:16372.12, M16:10260.00, M17:8910.00, M18:11610.00, IK2:5818.50 }
+        pct: 27, basis: "27% × Soph KPI target sales (w/c 13 Jul target set; M19/M20 off the w/c 20 Jul set — their first published targets)",
+        note: "Par-level replenishment week — food purchase budget set at 27% of target sales (Michael, 27 Jul 2026). Reverts to 25% from w/c 03 Aug. M19 Shoreditch (£23,500 target) and M20 Southampton (£46,000 target) added 28 Jul — they were previously running on a Head-Chef-derived base. Maki Nori is not on the Soph KPI sheet, so MN keeps its Head Chef weekly base.",
+        total: 190506.73,
+        by_code: { M1:6075.00, M3:9355.50, M6:6345.00, M7:18090.00, M8:11542.50, M9:18225.00, M10:9542.61, M11:7290.00, M12:9355.50, M13:11340.00, M14:11610.00, M15:16372.12, M16:10260.00, M17:8910.00, M18:11610.00, M19:6345.00, M20:12420.00, IK2:5818.50 }
       }
+    },
+    /* STANDING WEEKLY BUDGET (v1.22.1, 28 Jul 2026)
+       For sites whose Head Chef "Budget Left This Week" cannot be trusted, the week basis is set
+       centrally instead of derived from WTD + Budget-Left. M20 Southampton has reported Budget Left
+       = £0 on EVERY filed day since it opened, so the derived basis always equalled its own spend and
+       the burn read 100% by construction. Set at the standing rule: 25% of projected revenue
+       (Soph KPI target sales) — the 27% par-replenishment week is handled by budget_override instead.
+       Remove a site from here once its Head Chef reports a real Budget Left figure. */
+    standing_budget: {
+      M20: { amount: 11500.00, pct: 25, from: "2026-07-05",
+             basis: "25% × Soph KPI target sales £46,000 (w/c 20 Jul) — the standing budget rule",
+             reason: "Head Chef has reported Budget Left This Week = £0 on every filed day (10, 16, 19, 26, 27 Jul) — no weekly budget has ever been issued to the site, so the HC-derived basis was meaningless." }
     },
     june_cap_basis: "Interim monthly caps = 23% × Mar–May avg MA revenue (until official caps are issued)",
     sites: [
@@ -780,8 +792,8 @@ const FALLBACK_DATA = {
       { code:"M16", yday:3748.86, hc_wtd:3748.86,  hc_left:4991.14, wk_budget:8740.00,  mtd:17796.37, cap:38501, note:"Solstice £316.16 + Harro £547.26 + JFC £292 + Lynas £1,151.91 + TWF £208.12 + LWC £593.77 + AA factory £639.64 = £3,748.86. HC config matches." },
       { code:"M17", yday:null,    hc_wtd:null,     hc_left:null,    wk_budget:8740.00,  mtd:7272.88,  cap:34336, note:"NOT FILED — chase HC. 2nd consecutive non-file (also missed prior day)." },
       { code:"M18", yday:4327.90, hc_wtd:4327.90,  hc_left:2681.10, wk_budget:7360.00,  mtd:14769.30, cap:30451, note:"Harro £758.77 + Lynas £1,593.19 + TWF £269.56 + LWC £1,160.99 + AA Factory £545.39 = £4,327.90. Day-1 burn 59% of wk budget. HC config now showing weekly base £7,009 (was zero last week) — closer to ours; Δ £351." },
-      { code:"M19", yday:null, hc_wtd:3716.13, hc_left:1688.67, wk_budget:5404.80, mtd:null, cap:null,  note:"Shoreditch — added to Budget tab 28 Jul. Ledger history since 27 Jun; skim still files some days under legacy code SHO (aliased to M19 on load). No monthly cap yet (new site — no Mar–May MA base)." },
-      { code:"M20", yday:null, hc_wtd:7466.26, hc_left:0.00, wk_budget:7466.26, mtd:null, cap:null,  note:"Southampton — added to Budget tab 28 Jul. Ledger history since 10 Jul; skim still files some days under legacy code SOT (aliased to M20 on load). WTD has been at 100% of the HC weekly base two weeks running — review. No monthly cap yet." },
+      { code:"M19", yday:null, hc_wtd:3716.13, hc_left:1688.67, wk_budget:6345.00, mtd:null, cap:null,  note:"Shoreditch — budget now set centrally: 27% × £23,500 Soph KPI target = £6,345 for w/c 27 Jul, reverting to 23% (£5,405) after. The Head Chef base was already a correct 23% of target, so only the override week changes. Ledger history since 27 Jun; skim still files some days under legacy code SHO (aliased to M19 on load). No monthly cap yet (new site — no Mar–May MA base). Food cost 29.3% for w/c 20 Jul (up from 23.0%) — food spend +50% on sales +18%: the real issue at this site." },
+      { code:"M20", yday:null, hc_wtd:7466.26, hc_left:0.00, wk_budget:12420.00, mtd:null, cap:null,  note:"Southampton — NEVER HAD A WEEKLY BUDGET. The Head Chef has entered Budget Left This Week = £0 on every filed day (10, 16, 19, 26 Jul), so the derived basis equalled its own spend and the burn read 100% by construction. Budget now set centrally: standing 25% × £46,000 Soph KPI target = £11,500/wk, and 27% (£12,420) for the w/c 27 Jul par-replenishment week. On that basis Southampton has been running at roughly 65% of budget, not 100%. ACTION: issue the £11,500 figure to the Head Chef so Mapal reports a real Budget Left. Ledger history since 10 Jul; skim still files some days under legacy code SOT (aliased to M20 on load). No monthly cap yet." },
       { code:"IK2", yday:454.23,  hc_wtd:454.23,   hc_left:3932.77, wk_budget:4956.50,  mtd:2902.08,  cap:17547, note:"AA Factory £408.30 + Global Fruits £45.93 = £454.23. | HC base £4,387 vs our £4,957 (Δ £570)." },
       { code:"MN",  yday:1826.77, hc_wtd:1826.77,  hc_left:5173.23, wk_budget:7000.00,  mtd:8640.25,  cap:null,  note:"Single £1,826.77 figure logged (suppliers not itemised). HC base £7,000 — wk_budget set from HC base (no Soph KPI row for MN)." }
     ],
@@ -925,7 +937,14 @@ function applySheetRows(rows){
     // REPLACE each derived week wholesale so stale provisional placeholders for non-filing sites don't linger
     for(const wk in newHcBase){ const obj={_derived:true}; for(const code in newHcBase[wk]) obj[code]=newHcBase[wk][code].v; ds.weeks_budget[wk]=obj; }
   }
-  if(Object.keys(newWeeksBudget).length){ ds.weeks_budget=Object.assign(ds.weeks_budget||{}, newWeeksBudget); }
+  // merge locks PER SITE into the week (a lock covering only some sites must not wipe the rest)
+  if(Object.keys(newWeeksBudget).length){
+    ds.weeks_budget = ds.weeks_budget || {};
+    for(const wk in newWeeksBudget){
+      const tgt = ds.weeks_budget[wk] = ds.weeks_budget[wk] || {};
+      for(const k in newWeeksBudget[wk]) tgt[k] = newWeeksBudget[wk][k];
+    }
+  }
   if(Object.keys(newWeekClose).length){ ds.week_close=Object.assign(ds.week_close||{}, newWeekClose); }
   if(latestDate){ ds.as_at=latestDate; ds.through=latestDate; }
   // Refresh sites[] for the latest date. Filed sites get live figures; non-filers are nulled
@@ -1519,8 +1538,25 @@ function seedWeekBudgets(d){
     d.sites.forEach(s=>{ if(d.weeks_budget[sun][s.code]==null && s.wk_budget!=null) d.weeks_budget[sun][s.code]=s.wk_budget; });
     d._provisionalWeeks[sun]=true;   // current 23% basis applied to a week that was never contemporaneously locked
   });
+  applyStandingBudgets(d);
   applyBudgetOverride(d);
 }
+function applyStandingBudgets(d){
+  const sb=d.standing_budget; if(!sb) return;
+  const dates=Object.keys(d.ledger||{}); if(!dates.length) return;
+  d._standingWeeks={};
+  [...new Set(dates.map(weekSunISO))].forEach(sun=>{
+    for(const code in sb){
+      const s=sb[code]; if(!s || s.amount==null) continue;
+      if(s.from && sun < weekSunISO(s.from)) continue;
+      d.weeks_budget[sun]=d.weeks_budget[sun]||{};
+      d.weeks_budget[sun][code]=s.amount;
+      (d._standingWeeks[sun]=d._standingWeeks[sun]||{})[code]=true;
+    }
+  });
+  if(Array.isArray(d.sites)) d.sites.forEach(x=>{ if(sb[x.code] && sb[x.code].amount!=null) x.wk_budget=sb[x.code].amount; });
+}
+function isStanding(sunISO, code, d){ return !!(d._standingWeeks && d._standingWeeks[sunISO] && d._standingWeeks[sunISO][code]); }
 function applyBudgetOverride(d){
   const ov = d.budget_override; if(!ov) return;
   d._overrideWeeks = {};
