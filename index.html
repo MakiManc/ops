@@ -1022,18 +1022,19 @@
   <!-- ============ TAB: DAILY ============ -->
   <div class="tabpanel" id="tab-daily">
     <style>
-      #tab-daily { --foh:#2E6F8E; --boh:#E94E1B; --unal:#9AA3AB; }
+      #tab-daily { --foh:#2E6F8E; --boh:#E94E1B; --unal:#9AA3AB; --band:#E94E1B; }
       #tab-daily .dly-nav { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 16px; }
       #tab-daily .dly-navbtn { font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 14px; cursor:pointer; box-shadow:var(--shadow); }
-      #tab-daily .dly-navbtn:hover:not(:disabled) { border-color:var(--maki-orange); color:var(--maki-orange); }
+      #tab-daily .dly-navbtn:hover:not(:disabled) { border-color:var(--band); color:var(--band); }
       #tab-daily .dly-navbtn:disabled { opacity:.38; cursor:default; }
       #tab-daily .dly-datesel { font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 12px; box-shadow:var(--shadow); }
       #tab-daily .dly-today { font-size:11.5px; color:var(--ink-3); }
-      #tab-daily .dly-totals { display:grid; grid-template-columns:repeat(auto-fill, minmax(195px, 1fr)); gap:10px; margin-bottom:16px; }
+      #tab-daily .dly-totals { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:10px; margin-bottom:16px; }
       #tab-daily .dly-chip { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
       #tab-daily .dly-chip.foh { border-left:4px solid var(--foh); }
       #tab-daily .dly-chip.boh { border-left:4px solid var(--boh); }
       #tab-daily .dly-chip.unal { border-left:4px solid var(--unal); }
+      #tab-daily .dly-chip.tgt { border-left:4px solid var(--band); }
       #tab-daily .dly-chip .lbl { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-3); }
       #tab-daily .dly-chip .val { font-size:19px; font-weight:800; color:var(--ink); margin-top:3px; font-variant-numeric:tabular-nums; }
       #tab-daily .dly-chip .sub { font-size:11px; color:var(--ink-3); margin-top:2px; }
@@ -1043,14 +1044,20 @@
       #tab-daily .dly-chip .val.dly-a, #tab-daily .dly-chip .sub.dly-a { color:var(--amber); }
       #tab-daily .dly-chip .val.dly-r, #tab-daily .dly-chip .sub.dly-r { color:var(--red); }
       #tab-daily .dly-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:14px; box-shadow:var(--shadow); }
-      #tab-daily table.dly { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:12.5px; min-width:1080px; }
-      #tab-daily table.dly th { background:var(--ink); color:#fff; text-align:right; padding:9px 8px; white-space:nowrap; font-weight:600; }
-      #tab-daily table.dly th:first-child { text-align:left; }
-      #tab-daily table.dly th.foh { background:var(--foh); }
-      #tab-daily table.dly th.boh { background:var(--boh); }
-      #tab-daily table.dly td { padding:8px; border-top:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; vertical-align:top; }
-      #tab-daily table.dly td:first-child { text-align:left; }
+      #tab-daily table.dly { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:12.5px; min-width:1240px; }
+      /* Maki-orange header band, and EVERY cell centred */
+      #tab-daily table.dly th { background:var(--band); color:#fff; text-align:center; padding:10px 8px; white-space:nowrap; font-weight:700; letter-spacing:.2px; }
+      #tab-daily table.dly th.acc-foh { box-shadow:inset 0 -4px 0 var(--foh); }
+      #tab-daily table.dly th.acc-boh { box-shadow:inset 0 -4px 0 #7A1F00; }
+      #tab-daily table.dly td { padding:8px; border-top:1px solid var(--line); text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; vertical-align:middle; }
       #tab-daily table.dly td .sub { display:block; font-size:10.5px; font-weight:600; }
+      /* regional group band */
+      #tab-daily table.dly tr.dly-band td { background:#FDEEE8; border-top:2px solid var(--band); border-bottom:1px solid #F6C9B6; padding:9px 14px; text-align:left; }
+      #tab-daily .dly-bandrow { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+      #tab-daily .dly-bandname { font-size:12.5px; font-weight:800; letter-spacing:.3px; text-transform:uppercase; color:var(--band); }
+      #tab-daily .dly-bandwho { font-size:11.5px; font-weight:600; color:var(--ink-2); }
+      #tab-daily .dly-bandwho b { color:var(--ink); }
+      #tab-daily .dly-bandsum { margin-left:auto; font-size:11.5px; font-weight:700; color:var(--ink-2); font-variant-numeric:tabular-nums; }
       #tab-daily .dly-g { color:var(--green); font-weight:700; }
       #tab-daily .dly-a { color:var(--amber); font-weight:700; }
       #tab-daily .dly-r { color:var(--red); font-weight:700; }
@@ -1059,14 +1066,19 @@
       #tab-daily .dly-bohv { color:var(--boh); font-weight:800; }
       #tab-daily .dly-site { font-weight:800; color:var(--ink); }
       #tab-daily .dly-site .sub { color:var(--ink-3); font-weight:500; }
-      #tab-daily .dly-bar { display:flex; width:132px; height:9px; border-radius:5px; overflow:hidden; background:var(--line); margin-left:auto; }
+      /* hit / missed pill — worded, not just a colour, so there is no ambiguity */
+      #tab-daily .dly-pill { display:inline-block; min-width:64px; padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
+      #tab-daily .dly-pill.hit { background:#E4F4EA; color:#15703C; }
+      #tab-daily .dly-pill.miss { background:#FDE7E7; color:#B3261E; }
+      #tab-daily .dly-pill.none { background:#EFEFEF; color:#7A7A7A; }
+      #tab-daily .dly-bar { display:flex; width:132px; height:9px; border-radius:5px; overflow:hidden; background:var(--line); margin:0 auto; }
       #tab-daily .dly-bar i { display:block; height:100%; }
       #tab-daily .dly-bar i.f { background:var(--foh); }
       #tab-daily .dly-bar i.b { background:var(--boh); }
       #tab-daily .dly-bar i.u { background:var(--unal); }
       #tab-daily .dly-barnote { display:block; font-size:10.5px; font-weight:600; margin-top:4px; }
-      #tab-daily .dly-gaps { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--maki-orange); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow); margin-top:16px; }
-      #tab-daily .dly-gaps h3 { margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--maki-orange); }
+      #tab-daily .dly-gaps { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--band); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow); margin-top:16px; }
+      #tab-daily .dly-gaps h3 { margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--band); }
       #tab-daily .dly-gaps li { font-size:12px; color:var(--ink-2); margin:4px 0; }
       #tab-daily .dly-gaps b.sec { font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.3px; }
       #tab-daily .dly-foot { font-size:11.5px; color:var(--ink-3); margin-top:12px; line-height:1.55; }
@@ -4798,9 +4810,9 @@ const MEETING_RISK = {
 </script>
 <script>
 // ===================== DAILY CASH-UP (live fetch + FOH/BOH split) =====================
-// Rebuilt 29/07/2026. The previous version baked a `const DAILY = {...}` literal
-// into this file and froze on 17/06/2026 while still rendering as the first tab,
-// with no staleness indicator. It now fetches per-day files so that cannot recur.
+// Rebuilt 29/07/2026. The previous version baked a data literal into this file
+// and froze on 17/06/2026 while still rendering as the first tab, with no
+// staleness indicator. It now fetches per-day files so that cannot recur.
 //
 //   <DATA_DIR>/daily/daily_index.json   -> { latest, dates: [newest .. oldest] }
 //   <DATA_DIR>/daily/daily_<date>.json  -> one trading day, 19 sites
@@ -4810,6 +4822,10 @@ const MEETING_RISK = {
 // percentages are each department's share of the FINAL total labour cost -- not a
 // comparison against the rota, and not the sheet's own % columns, which use
 // different denominators at different sites.
+//
+// Rows are grouped by region, in the order the pull emits `clusters`, each band
+// naming the AM and DAM. Target is "Target Sales" (Sit In target + Delivery
+// Target), the same figure as the Day before Auto tabs.
 (function () {
   var DIR = (typeof DATA_DIR === 'string' ? DATA_DIR : './data/') + 'daily/';
   var elTitle = document.getElementById('daily-title');
@@ -4823,6 +4839,7 @@ const MEETING_RISK = {
   var elGaps = document.getElementById('daily-gaps');
   var elFoot = document.getElementById('daily-foot');
 
+  var NCOL = 10;
   var DATES = [];
   var cache = {};
 
@@ -4835,6 +4852,7 @@ const MEETING_RISK = {
     return (n < 0 ? '-' : '') + '£' + Math.abs(n).toFixed(2);
   };
   var fmtP = function (n, dp) { return n == null ? '—' : n.toFixed(dp == null ? 1 : dp) + '%'; };
+  var fmtSigned = function (n) { return n == null ? '—' : (n >= 0 ? '+' : '') + n.toFixed(1) + '%'; };
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -4852,12 +4870,21 @@ const MEETING_RISK = {
   // Wage % thresholds carried over unchanged from the previous Daily tab.
   var ragWage = function (w) { return w == null ? 'dly-m' : (w <= 25 ? 'dly-g' : (w <= 30 ? 'dly-a' : 'dly-r')); };
   // Unallocated labour: shifts worked but never assigned to FOH or BOH in the
-  // rota system. Anything past 5% of a site's labour is a real reporting fault.
+  // rota system. Anything past 5% of a site's labour cost is a real reporting fault.
   var ragUnal = function (p) {
     if (p == null) return 'dly-m';
     p = Math.abs(p);
     return p < 1 ? 'dly-m' : (p < 5 ? 'dly-a' : 'dly-r');
   };
+
+  function hitCell(sales, target, pct) {
+    if (target == null) {
+      return '<span class="dly-pill none">no target</span>';
+    }
+    var hit = sales >= target;
+    return '<span class="dly-pill ' + (hit ? 'hit' : 'miss') + '">' + (hit ? 'Hit' : 'Missed') + '</span>'
+      + '<span class="sub ' + (hit ? 'dly-g' : 'dly-r') + '">' + fmtSigned(pct) + '</span>';
+  }
 
   function fail(msg) {
     elSub.textContent = '';
@@ -4885,6 +4912,49 @@ const MEETING_RISK = {
       + '<i class="u" style="width:' + u.toFixed(2) + '%"></i></div>' + note;
   }
 
+  function siteRow(p, code) {
+    var s = p.sites[code], l = s.labour;
+    var deliv = s.sales.delivery ? fmtG(s.sales.delivery) + ' delivery' : 'no delivery';
+    var foh = l.foh == null
+      ? '<span class="dly-m">—</span>'
+      : '<span class="dly-fohv">' + fmtG(l.foh) + '</span><span class="sub dly-fohv">' + fmtP(l.foh_pct) + '</span>';
+    var boh = l.boh == null
+      ? '<span class="dly-m">—</span>'
+      : '<span class="dly-bohv">' + fmtG(l.boh) + '</span><span class="sub dly-bohv">' + fmtP(l.boh_pct) + '</span>';
+    return '<tr>'
+      + '<td class="dly-site">' + esc(code) + '<span class="sub">' + esc(s.name) + '</span></td>'
+      + '<td>' + fmtG(s.sales.target) + '</td>'
+      + '<td><b>' + fmtG(s.sales.actual) + '</b><span class="sub dly-m">' + deliv + '</span></td>'
+      + '<td>' + hitCell(s.sales.actual, s.sales.target, s.sales.vs_target_pct) + '</td>'
+      + '<td>' + (s.covers == null ? '—' : s.covers.toLocaleString('en-GB'))
+      + '<span class="sub dly-m">' + fmtG2(s.avg_spend) + ' avg</span></td>'
+      + '<td>' + fmtG(l.total) + '<span class="sub dly-m">' + (l.hours == null ? '—' : l.hours.toFixed(1) + ' hrs') + '</span></td>'
+      + '<td><span class="' + ragWage(l.wage_pct) + '">' + fmtP(l.wage_pct) + '</span></td>'
+      + '<td>' + foh + '</td><td>' + boh + '</td>'
+      + '<td>' + splitBar(s) + '</td></tr>';
+  }
+
+  function bandRow(p, cl) {
+    var sales = 0, target = 0, labour = 0;
+    cl.codes.forEach(function (c) {
+      var s = p.sites[c];
+      sales += s.sales.actual || 0;
+      target += s.sales.target || 0;
+      labour += s.labour.total || 0;
+    });
+    var vs = target ? (sales / target - 1) * 100 : null;
+    var wage = sales ? labour / sales * 100 : null;
+    var sum = fmtG(sales) + ' vs ' + fmtG(target) + ' target '
+      + '<span class="' + (vs == null ? 'dly-m' : (vs >= 0 ? 'dly-g' : 'dly-r')) + '">' + fmtSigned(vs) + '</span>'
+      + ' &nbsp;·&nbsp; wage <span class="' + ragWage(wage) + '">' + fmtP(wage) + '</span>';
+    return '<tr class="dly-band"><td colspan="' + NCOL + '"><div class="dly-bandrow">'
+      + '<span class="dly-bandname">' + esc(cl.name) + '</span>'
+      + '<span class="dly-bandwho">AM <b>' + esc(cl.am) + '</b> &nbsp;·&nbsp; DAM <b>' + esc(cl.dam) + '</b>'
+      + ' &nbsp;·&nbsp; ' + cl.codes.length + ' sites</span>'
+      + '<span class="dly-bandsum">' + sum + '</span>'
+      + '</div></td></tr>';
+  }
+
   function render(p) {
     var codes = Object.keys(p.sites);
     var t = p.totals || {};
@@ -4896,11 +4966,9 @@ const MEETING_RISK = {
       + 'FOH/BOH split recorded at ' + p.foh_boh_reported + ' · pulled ' + pulled;
 
     // The FOH/BOH shares are taken over the sites that ACTUALLY recorded a
-    // split, not over all labour. Dividing by total labour would fold the three
-    // sites with no split at all into the same bucket as genuinely unassigned
-    // shifts, and the two are different problems with different owners: one is
-    // "nobody recorded anything", the other is "shifts were worked but never
-    // attributed". They get separate tiles.
+    // split, not over all labour. Dividing by total labour would fold the sites
+    // with no split at all into the same bucket as genuinely unassigned shifts,
+    // and the two are different problems with different owners.
     var splitCodes = codes.filter(function (c) { return p.sites[c].labour.split_status === 'ok'; });
     var splitLabour = 0, unrecLabour = 0;
     codes.forEach(function (c) {
@@ -4911,10 +4979,13 @@ const MEETING_RISK = {
     var share = function (v) { return splitLabour ? v / splitLabour * 100 : null; };
     var unal = splitLabour - (t.foh || 0) - (t.boh || 0);
     var denom = ' of ' + fmtG(splitLabour) + ' split labour';
+    var grpVs = t.target ? (t.sales / t.target - 1) * 100 : null;
 
     // [borderClass, label, value, sub, valueClass, subClass]
     var chips = [
-      ['', 'Net sales', fmtG(t.sales), codes.length + ' sites', '', ''],
+      ['tgt', 'Target', fmtG(t.target), codes.length + ' sites', '', ''],
+      ['', 'Sales', fmtG(t.sales), 'vs target ' + fmtSigned(grpVs), '',
+        grpVs == null ? '' : (grpVs >= 0 ? 'dly-g' : 'dly-r')],
       ['', 'Covers', (t.covers || 0).toLocaleString('en-GB'), 'avg spend ' + fmtG2(t.avg_spend), '', ''],
       ['', 'Labour cost', fmtG(t.labour), 'wage ' + fmtP(t.wage_pct), '', ragWage(t.wage_pct)],
       ['foh', 'FOH labour', fmtG(t.foh), fmtP(share(t.foh)) + denom, '', ''],
@@ -4932,31 +5003,27 @@ const MEETING_RISK = {
         + '<div class="sub ' + c[5] + '">' + c[3] + '</div></div>';
     }).join('');
 
-    var head = '<tr><th>Site</th><th>Net sales</th><th>Covers</th><th>Labour</th><th>Wage %</th>'
-      + '<th class="foh">FOH</th><th class="boh">BOH</th><th>Split of labour cost</th></tr>';
+    var head = '<tr><th>Site</th><th>Target</th><th>Sales</th><th>Target hit?</th><th>Covers</th>'
+      + '<th>Labour</th><th>Wage %</th><th class="acc-foh">FOH</th><th class="acc-boh">BOH</th>'
+      + '<th>Split of labour cost</th></tr>';
 
-    var rows = codes.slice().sort(function (a, b) {
-      return p.sites[b].sales.actual - p.sites[a].sales.actual;
-    }).map(function (code) {
-      var s = p.sites[code], l = s.labour;
-      var deliv = s.sales.delivery ? fmtG(s.sales.delivery) + ' delivery' : 'no delivery';
-      var foh = l.foh == null
-        ? '<span class="dly-m">—</span>'
-        : '<span class="dly-fohv">' + fmtG(l.foh) + '</span><span class="sub dly-fohv">' + fmtP(l.foh_pct) + '</span>';
-      var boh = l.boh == null
-        ? '<span class="dly-m">—</span>'
-        : '<span class="dly-bohv">' + fmtG(l.boh) + '</span><span class="sub dly-bohv">' + fmtP(l.boh_pct) + '</span>';
-      return '<tr>'
-        + '<td class="dly-site">' + esc(code) + '<span class="sub">' + esc(s.name) + '</span></td>'
-        + '<td><b>' + fmtG(s.sales.actual) + '</b><span class="sub dly-m">' + deliv + '</span></td>'
-        + '<td>' + (s.covers == null ? '—' : s.covers.toLocaleString('en-GB'))
-        + '<span class="sub dly-m">' + fmtG2(s.avg_spend) + ' avg</span></td>'
-        + '<td>' + fmtG(l.total) + '<span class="sub dly-m">' + (l.hours == null ? '—' : l.hours.toFixed(1) + ' hrs') + '</span></td>'
-        + '<td><span class="' + ragWage(l.wage_pct) + '">' + fmtP(l.wage_pct) + '</span></td>'
-        + '<td>' + foh + '</td><td>' + boh + '</td>'
-        + '<td>' + splitBar(s) + '</td></tr>';
+    // Group by region. Any site not in a cluster still gets rendered, under a
+    // catch-all band, so a new site can never silently vanish from the tab.
+    var clusters = (p.clusters || []).filter(function (c) { return c.codes && c.codes.length; });
+    var placed = {};
+    clusters.forEach(function (c) { c.codes.forEach(function (x) { placed[x] = 1; }); });
+    var orphans = codes.filter(function (c) { return !placed[c]; });
+    if (orphans.length) {
+      clusters = clusters.concat([{ name: 'Unassigned to a region', am: '—', dam: '—', codes: orphans }]);
+    }
+
+    var body = clusters.map(function (cl) {
+      var ordered = cl.codes.slice().sort(function (a, b) {
+        return p.sites[b].sales.actual - p.sites[a].sales.actual;
+      });
+      return bandRow(p, cl) + ordered.map(function (c) { return siteRow(p, c); }).join('');
     }).join('');
-    elTab.innerHTML = head + rows;
+    elTab.innerHTML = head + body;
 
     var g = p.gaps || {};
     var blocks = '';
@@ -4981,11 +5048,23 @@ const MEETING_RISK = {
             + ' of its labour cost)</li>';
         }).join('') + '</ul>';
     }
+    var missed = codes.filter(function (c) {
+      var s = p.sites[c].sales;
+      return s.target != null && s.actual < s.target;
+    }).sort(function (a, b) {
+      return p.sites[a].sales.vs_target_pct - p.sites[b].sales.vs_target_pct;
+    });
+    if (missed.length) {
+      blocks += '<b class="sec">Missed sales target</b><ul style="margin:4px 0 10px;padding-left:18px;"><li>'
+        + missed.map(function (c) {
+          return '<b>' + esc(c) + '</b> ' + fmtSigned(p.sites[c].sales.vs_target_pct);
+        }).join(' &nbsp;·&nbsp; ') + '</li></ul>';
+    }
     if ((g.no_sales || []).length) {
       blocks += '<b class="sec">No cash-up received</b><ul style="margin:4px 0 10px;padding-left:18px;"><li>'
         + g.no_sales.map(esc).join(', ') + '</li></ul>';
     }
-    if (!blocks) blocks = '<li style="list-style:none;font-size:12px;color:var(--ink-2);">Every site cashed up and every shift was assigned to a department. Nothing outstanding.</li>';
+    if (!blocks) blocks = '<li style="list-style:none;font-size:12px;color:var(--ink-2);">Every site cashed up, hit target and assigned every shift to a department. Nothing outstanding.</li>';
     elGaps.innerHTML = '<h3>Gaps to chase</h3>' + blocks
       + '<p style="font-size:11.5px;color:var(--ink-3);margin:8px 0 0;">Owner for the assignment gap: Ziang Lin — every staff member to be assigned a position in the system each shift, so labour tracks automatically between FOH and BOH.</p>';
 
@@ -4993,8 +5072,9 @@ const MEETING_RISK = {
       '<span class="dly-key"><i style="background:var(--foh)"></i>FOH</span>'
       + '<span class="dly-key"><i style="background:var(--boh)"></i>BOH</span>'
       + '<span class="dly-key"><i style="background:var(--unal)"></i>Unallocated</span><br>'
+      + 'Target is Sit In target plus Delivery Target — the same figure as the Day before Auto tabs. '
       + 'FOH and BOH are actual completed shifts, shown in £ and as a share of the final total labour cost. '
-      + 'Wage % is total labour ÷ net sales. Sorted by net sales, highest first. '
+      + 'Wage % is total labour ÷ sales. Grouped by region, then sales highest first. '
       + 'Source: Auto Cash Up workbook, <b>Raw Data 2</b>. Refreshed daily at 12:15 Dubai.';
   }
 
