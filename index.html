@@ -1004,8 +1004,8 @@
 </header>
 <div class="wrap">
   <nav class="tabbar">
-    <button class="tabbtn" data-tab="daily">Daily</button>
-    <button class="tabbtn active" data-tab="week">This Week</button>
+    <button class="tabbtn active" data-tab="daily">Daily</button>
+    <button class="tabbtn" data-tab="week">This Week</button>
     <button class="tabbtn" data-tab="deliveroo">Deliveroo RAG</button>
     <button class="tabbtn" data-tab="redlight">Red Light <span class="tb-badge" id="tb-red">0</span></button>
     <!-- 6-tab trim (2026-06-22): OKRs / Governance / Risk Register / Roadmap tab buttons hidden.
@@ -1020,7 +1020,7 @@
   </nav>
 
   <!-- ============ TAB: DAILY ============ -->
-  <div class="tabpanel" id="tab-daily">
+  <div class="tabpanel active" id="tab-daily">
     <style>
       #tab-daily { --foh:#2E6F8E; --boh:#E94E1B; --unal:#9AA3AB; --band:#E94E1B; }
       #tab-daily .dly-nav { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 16px; }
@@ -1104,7 +1104,7 @@
   </div>
 
   <!-- ============ TAB: THIS WEEK ============ -->
-  <div class="tabpanel active" id="tab-week">
+  <div class="tabpanel" id="tab-week">
 
   <!-- CLUSTER QUICK-NAV (sticky under tab bar; built dynamically from SITES) -->
   <div class="cluster-nav" id="cluster-nav" aria-label="Cluster quick-navigation"></div>
