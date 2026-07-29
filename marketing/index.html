@@ -458,9 +458,9 @@ tr.hiddenrow { display: none; }
       <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">override in sheet ↗</a>
     </div>
     <div class="notice plain">
-      <strong>What this page does:</strong> every morning at 8am the system checks every paid ad (last 30 days) and every post (last 28 days), and sorts each one into three buckets — <span class="rag KILL">KILL</span> it's wasting money, turn it off · <span class="rag SCALE">SCALE</span> it's working, put more behind it · <span class="rag KEEP">KEEP</span> it's fine, leave it alone.<br>
+      <strong>What this page does:</strong> twice a day — early morning and midday UK — the system checks every paid ad (last 30 days) and every post (last 28 days), and sorts each one into three buckets — <span class="rag KILL">KILL</span> it's wasting money, turn it off · <span class="rag SCALE">SCALE</span> it's working, put more behind it · <span class="rag KEEP">KEEP</span> it's fine, leave it alone.<br>
       <strong>Only things still running appear here.</strong> Once an ad is paused in Meta it drops out of this list and moves to the decision history below, so what you see is what still needs doing.<br>
-      <strong>"Building" means it isn't sure yet.</strong> One bad morning proves nothing, so it waits until it sees the same signal 3 days in a row before committing. "2 more days" = it has an opinion and is double-checking it.<br>
+      <strong>"Building" means it isn't sure yet.</strong> One bad reading proves nothing, so it waits until it has seen the same signal on 3 separate days before committing. Running twice a day doesn't shorten that — it counts days, not checks. "2 more days" = it has an opinion and is double-checking it.<br>
       <strong>Nothing is switched off by itself.</strong> The system only decides — a person still has to pause or boost the ad in the ad account.<br>
       <strong>Think it's wrong?</strong> Type KILL, SCALE or KEEP next to that row in <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">the sheet ↗</a> — your word beats the machine's, immediately and without conditions.<br>
       <strong>Click any row</strong> to see the full story: what it's costing, the trend, the content itself and the exact rule it tripped.
@@ -1779,7 +1779,7 @@ function decisionOf(r) {
     // is almost always the bar that actually bites. Show whichever is longer.
     var held = daysSince(r.flagged_since) || 0;
     if (r.entity_type === 'paid_campaign') held = Math.max(held, evidenceOf(r));
-    var runs = Number(r.streak_runs) || 0;
+    var runs = Number(r.days_flagged != null && r.days_flagged !== '' ? r.days_flagged : r.streak_runs) || 0;
     var daysToGo = Math.max(0, 3 - held), runsToGo = Math.max(0, 3 - runs);
     return {label: v || 'PENDING', verdict: v, status: st, building: true,
             held: held, daysToGo: Math.max(daysToGo, runsToGo)};
@@ -1867,7 +1867,7 @@ function renderMatrix() {
     if (d.building) {
       cell = '<span class="rag ' + (d.verdict || 'PENDING') + ' prov">' + (d.verdict || 'PENDING') + '</span>' +
         '<span class="srcbadge">not agreed yet · ' + (d.daysToGo != null
-          ? (d.daysToGo === 0 ? 'decides next run' : d.daysToGo + ' more morning' + (d.daysToGo === 1 ? '' : 's'))
+          ? (d.daysToGo === 0 ? 'decides next run' : d.daysToGo + ' more day' + (d.daysToGo === 1 ? '' : 's'))
           : 'not yet') + '</span>';
     } else {
       cell = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
