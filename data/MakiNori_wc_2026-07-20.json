@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-28",
+  "generated_at": "2026-07-29",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-20 \u2013 2026-07-26",
@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 19.65,
+          "actual": 22.55,
           "target": 23.0,
           "gated": false
         },
@@ -62,7 +62,8 @@
         "food": {
           "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": null,
+          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
         },
         "week_commencing": "2026-07-20"
       },
@@ -87,7 +88,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "19.65% vs 25% baseline, -8/pp over"
+            "basis": "22.55% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,

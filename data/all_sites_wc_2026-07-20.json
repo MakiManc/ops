@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-28",
+  "generated_at": "2026-07-29",
   "week": {
     "label": "Week of 2026-07-20 \u2013 2026-07-26",
     "commencing": "2026-07-20",
@@ -466,7 +466,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 21.91,
+          "actual": 22.75,
           "target": 23.0,
           "gated": false
         },
@@ -479,12 +479,12 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.6,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": -2.7,
+          "variance_pct": 2.4,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -516,7 +516,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "21.91% vs 25% baseline, -8/pp over"
+            "basis": "22.75% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -531,7 +531,7 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-2.70% inside \u00b15% band"
+            "basis": "2.40% inside \u00b15% band"
           }
         },
         "components_dropped": [],
@@ -671,7 +671,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 21.39,
+          "actual": 22.15,
           "target": 23.0,
           "gated": false
         },
@@ -721,7 +721,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "21.39% vs 25% baseline, -8/pp over"
+            "basis": "22.15% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1070,7 +1070,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 25.21,
+          "actual": 29.02,
           "target": 23.0,
           "gated": false
         },
@@ -1095,8 +1095,8 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 87,
-        "rag": "amber",
+        "score": 78,
+        "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1119,8 +1119,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 98.32,
-            "basis": "25.21% vs 25% baseline, -8/pp over"
+            "value": 67.84,
+            "basis": "29.02% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1144,7 +1144,7 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "food 25.2%"
+          "food 29.0%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -1499,7 +1499,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 25.08,
+          "actual": 24.85,
           "target": 23.0,
           "gated": false
         },
@@ -1548,8 +1548,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 99.36,
-            "basis": "25.08% vs 25% baseline, -8/pp over"
+            "value": 100.0,
+            "basis": "24.85% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1568,10 +1568,8 @@
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "red",
-        "triggers": [
-          "food 25.1%"
-        ],
+        "status": "green",
+        "triggers": [],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -2716,7 +2714,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 14.27,
+          "actual": 14.74,
           "target": 23.0,
           "gated": false
         },
@@ -2766,7 +2764,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "14.27% vs 25% baseline, -8/pp over"
+            "basis": "14.74% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2911,7 +2909,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": null,
+          "actual": 20.97,
           "target": 23.0,
           "gated": false
         },
@@ -2936,7 +2934,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 90,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2958,6 +2956,11 @@
             "value": 100.0,
             "basis": "\u00a325.29 vs \u00a322 tgt \u2014 level 100, WoW +14.85% \u2192 mom 100"
           },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "20.97% vs 25% baseline, -8/pp over"
+          },
           "wage": {
             "weight": 30,
             "value": 70.3,
@@ -2974,9 +2977,7 @@
             "basis": "4.70% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -3053,9 +3054,7 @@
         "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Food % \u2014 no entry in the Mona Lisa Food Cost % table this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Review rating slipped over takeaway food handling and presentation; new tubs bought and ratings starting to recover.",
@@ -3319,7 +3318,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 32.02,
+          "actual": 29.32,
           "target": 23.0,
           "gated": false
         },
@@ -3337,14 +3336,15 @@
           "within_band": null
         },
         "food": {
-          "variance_pct": -2.4,
+          "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": true
+          "within_band": null,
+          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
         },
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 49,
+        "score": 53,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3368,8 +3368,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 43.84,
-            "basis": "32.02% vs 25% baseline, -8/pp over"
+            "value": 65.44,
+            "basis": "29.32% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -3380,21 +3380,18 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
-          },
-          "food_var": {
-            "weight": 5,
-            "value": 100,
-            "basis": "-2.40% inside \u00b15% band"
           }
         },
-        "components_dropped": [],
+        "components_dropped": [
+          "food_var"
+        ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "wage 36.6%",
-          "food 32.0%"
+          "food 29.3%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -3456,7 +3453,9 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [],
+      "gaps": [
+        "Stock-take \u2014 no variance entered this week"
+      ],
       "notes": {
         "issues": [
           "Labour running well above the site's own target and a stock gap still open, despite covers and sales beating target.",
@@ -3516,7 +3515,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 18.23,
+          "actual": 19.61,
           "target": 23.0,
           "gated": false
         },
@@ -3536,7 +3535,8 @@
         "food": {
           "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": null,
+          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
         },
         "week_commencing": "2026-07-20"
       },
@@ -3566,7 +3566,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "18.23% vs 25% baseline, -8/pp over"
+            "basis": "19.61% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -3694,7 +3694,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 19.65,
+          "actual": 22.55,
           "target": 23.0,
           "gated": false
         },
@@ -3714,7 +3714,8 @@
         "food": {
           "variance_pct": null,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": null,
+          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
         },
         "week_commencing": "2026-07-20"
       },
@@ -3739,7 +3740,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "19.65% vs 25% baseline, -8/pp over"
+            "basis": "22.55% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
