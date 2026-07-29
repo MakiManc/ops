@@ -1,0 +1,484 @@
+{
+ "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
+ "_generated_at": "2026-07-29T09:32:16",
+ "date": "2026-07-27",
+ "day": "Monday",
+ "sites_reported": 19,
+ "sites_expected": 19,
+ "foh_boh_reported": 18,
+ "unallocated_labour_total": 128.18,
+ "gaps": {
+  "no_sales": [],
+  "no_foh_boh_split": [
+   "IKI2"
+  ],
+  "warnings": []
+ },
+ "sites": {
+  "IKI2": {
+   "name": "Ikigai 2",
+   "sales": {
+    "actual": 4027.88,
+    "sit_in": 3692.62,
+    "delivery": 335.27,
+    "tips": 312.98,
+    "target": 2990.0
+   },
+   "covers": 179,
+   "avg_spend": 20.63,
+   "labour": {
+    "total": 566.91,
+    "hours": 36.9,
+    "wage_pct": 14.07,
+    "foh": null,
+    "foh_pct": null,
+    "boh": null,
+    "boh_pct": null,
+    "unallocated": null,
+    "unallocated_pct": null,
+    "split_status": "absent"
+   }
+  },
+  "M1": {
+   "name": "Maki 1",
+   "sales": {
+    "actual": 2879.3,
+    "sit_in": 1263.31,
+    "delivery": 1615.99,
+    "tips": 103.07,
+    "target": 2800.0
+   },
+   "covers": 65,
+   "avg_spend": 19.44,
+   "labour": {
+    "total": 528.2,
+    "hours": 37.3,
+    "wage_pct": 18.34,
+    "foh": 166.45,
+    "foh_pct": 31.51,
+    "boh": 361.75,
+    "boh_pct": 68.49,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M10": {
+   "name": "Maki 10",
+   "sales": {
+    "actual": 3550.97,
+    "sit_in": 2875.46,
+    "delivery": 675.5,
+    "tips": 256.91,
+    "target": 3455.76
+   },
+   "covers": 123,
+   "avg_spend": 23.38,
+   "labour": {
+    "total": 845.8,
+    "hours": 54.6,
+    "wage_pct": 23.82,
+    "foh": 396.69,
+    "foh_pct": 46.9,
+    "boh": 449.12,
+    "boh_pct": 53.1,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M11": {
+   "name": "Maki 11",
+   "sales": {
+    "actual": 2886.95,
+    "sit_in": 2515.48,
+    "delivery": 371.47,
+    "tips": 183.79,
+    "target": 2925.0
+   },
+   "covers": 126,
+   "avg_spend": 19.96,
+   "labour": {
+    "total": 654.08,
+    "hours": 46.6,
+    "wage_pct": 22.66,
+    "foh": 228.82,
+    "foh_pct": 34.98,
+    "boh": 425.26,
+    "boh_pct": 65.02,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M12": {
+   "name": "Maki 12",
+   "sales": {
+    "actual": 3398.77,
+    "sit_in": 2972.8,
+    "delivery": 425.98,
+    "tips": 177.89,
+    "target": 3465.0
+   },
+   "covers": 145,
+   "avg_spend": 20.5,
+   "labour": {
+    "total": 975.11,
+    "hours": 66.5,
+    "wage_pct": 28.69,
+    "foh": 405.33,
+    "foh_pct": 41.57,
+    "boh": 569.78,
+    "boh_pct": 58.43,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M13": {
+   "name": "Maki 13",
+   "sales": {
+    "actual": 5178.12,
+    "sit_in": 4613.87,
+    "delivery": 564.25,
+    "tips": 427.3,
+    "target": 3871.25
+   },
+   "covers": 229,
+   "avg_spend": 20.15,
+   "labour": {
+    "total": 947.14,
+    "hours": 70.0,
+    "wage_pct": 18.29,
+    "foh": 416.68,
+    "foh_pct": 43.99,
+    "boh": 530.46,
+    "boh_pct": 56.01,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M14": {
+   "name": "Maki 14",
+   "sales": {
+    "actual": 4120.52,
+    "sit_in": 4026.12,
+    "delivery": 94.4,
+    "tips": 218.57,
+    "target": 4750.0
+   },
+   "covers": 186,
+   "avg_spend": 21.65,
+   "labour": {
+    "total": 1005.93,
+    "hours": 68.5,
+    "wage_pct": 24.41,
+    "foh": 434.75,
+    "foh_pct": 43.22,
+    "boh": 571.18,
+    "boh_pct": 56.78,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M15": {
+   "name": "Maki 15",
+   "sales": {
+    "actual": 8658.31,
+    "sit_in": 8402.05,
+    "delivery": 256.26,
+    "tips": 610.16,
+    "target": 5491.06
+   },
+   "covers": 397,
+   "avg_spend": 21.16,
+   "labour": {
+    "total": 1475.55,
+    "hours": 105.3,
+    "wage_pct": 17.04,
+    "foh": 728.06,
+    "foh_pct": 49.34,
+    "boh": 747.49,
+    "boh_pct": 50.66,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M16": {
+   "name": "Maki 16",
+   "sales": {
+    "actual": 4484.33,
+    "sit_in": 4083.06,
+    "delivery": 401.27,
+    "tips": 169.83,
+    "target": 3325.0
+   },
+   "covers": 181,
+   "avg_spend": 22.56,
+   "labour": {
+    "total": 938.06,
+    "hours": 63.2,
+    "wage_pct": 20.92,
+    "foh": 379.91,
+    "foh_pct": 40.5,
+    "boh": 558.15,
+    "boh_pct": 59.5,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M17": {
+   "name": "Maki 17",
+   "sales": {
+    "actual": 2413.86,
+    "sit_in": 2389.06,
+    "delivery": 24.8,
+    "tips": 206.43,
+    "target": 2850.0
+   },
+   "covers": 92,
+   "avg_spend": 25.97,
+   "labour": {
+    "total": 647.94,
+    "hours": 45.7,
+    "wage_pct": 26.84,
+    "foh": 360.94,
+    "foh_pct": 55.71,
+    "boh": 287.0,
+    "boh_pct": 44.29,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M18": {
+   "name": "Maki 18",
+   "sales": {
+    "actual": 3770.56,
+    "sit_in": 3548.38,
+    "delivery": 222.18,
+    "tips": 424.31,
+    "target": 3400.0
+   },
+   "covers": 171,
+   "avg_spend": 20.75,
+   "labour": {
+    "total": 1033.61,
+    "hours": 69.1,
+    "wage_pct": 27.41,
+    "foh": 346.8,
+    "foh_pct": 33.55,
+    "boh": 600.1,
+    "boh_pct": 58.06,
+    "unallocated": 86.71,
+    "unallocated_pct": 8.39,
+    "split_status": "ok"
+   }
+  },
+  "M19": {
+   "name": "Maki 19",
+   "sales": {
+    "actual": 2072.4,
+    "sit_in": 2001.4,
+    "delivery": 71.0,
+    "tips": 190.81,
+    "target": 2612.5
+   },
+   "covers": 102,
+   "avg_spend": 19.62,
+   "labour": {
+    "total": 1163.49,
+    "hours": 82.6,
+    "wage_pct": 56.14,
+    "foh": 549.09,
+    "foh_pct": 47.19,
+    "boh": 614.39,
+    "boh_pct": 52.81,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M20": {
+   "name": "Maki 20",
+   "sales": {
+    "actual": 5575.48,
+    "sit_in": 5349.89,
+    "delivery": 225.59,
+    "tips": 545.36,
+    "target": 5250.0
+   },
+   "covers": 283,
+   "avg_spend": 18.9,
+   "labour": {
+    "total": 1566.85,
+    "hours": 117.8,
+    "wage_pct": 28.1,
+    "foh": 823.72,
+    "foh_pct": 52.57,
+    "boh": 699.55,
+    "boh_pct": 44.65,
+    "unallocated": 43.58,
+    "unallocated_pct": 2.78,
+    "split_status": "ok"
+   }
+  },
+  "M3": {
+   "name": "Maki 3",
+   "sales": {
+    "actual": 4401.76,
+    "sit_in": 3763.36,
+    "delivery": 638.4,
+    "tips": 357.18,
+    "target": 3750.0
+   },
+   "covers": 167,
+   "avg_spend": 22.54,
+   "labour": {
+    "total": 1277.11,
+    "hours": 86.7,
+    "wage_pct": 29.01,
+    "foh": 610.04,
+    "foh_pct": 47.77,
+    "boh": 667.08,
+    "boh_pct": 52.23,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M6": {
+   "name": "Maki 6",
+   "sales": {
+    "actual": 3516.11,
+    "sit_in": 3185.3,
+    "delivery": 330.8,
+    "tips": 261.06,
+    "target": 2595.0
+   },
+   "covers": 149,
+   "avg_spend": 21.38,
+   "labour": {
+    "total": 723.29,
+    "hours": 47.5,
+    "wage_pct": 20.57,
+    "foh": 456.77,
+    "foh_pct": 63.15,
+    "boh": 266.53,
+    "boh_pct": 36.85,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M7": {
+   "name": "Maki 7",
+   "sales": {
+    "actual": 10582.98,
+    "sit_in": 10582.98,
+    "delivery": null,
+    "tips": 994.18,
+    "target": 10000.0
+   },
+   "covers": 466,
+   "avg_spend": 22.71,
+   "labour": {
+    "total": 2075.72,
+    "hours": 141.0,
+    "wage_pct": 19.61,
+    "foh": 846.99,
+    "foh_pct": 40.8,
+    "boh": 1228.72,
+    "boh_pct": 59.19,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M8": {
+   "name": "Maki 8",
+   "sales": {
+    "actual": 4258.64,
+    "sit_in": 3948.84,
+    "delivery": 309.8,
+    "tips": 364.15,
+    "target": 4500.0
+   },
+   "covers": 181,
+   "avg_spend": 21.82,
+   "labour": {
+    "total": 1159.31,
+    "hours": 80.4,
+    "wage_pct": 27.22,
+    "foh": 575.16,
+    "foh_pct": 49.61,
+    "boh": 586.26,
+    "boh_pct": 50.57,
+    "unallocated": -2.11,
+    "unallocated_pct": -0.18,
+    "split_status": "ok"
+   }
+  },
+  "M9": {
+   "name": "Maki 9",
+   "sales": {
+    "actual": 7045.14,
+    "sit_in": 6491.57,
+    "delivery": 553.57,
+    "tips": 558.71,
+    "target": 7040.0
+   },
+   "covers": 312,
+   "avg_spend": 20.81,
+   "labour": {
+    "total": 1484.04,
+    "hours": 103.2,
+    "wage_pct": 21.06,
+    "foh": 682.57,
+    "foh_pct": 45.99,
+    "boh": 801.47,
+    "boh_pct": 54.01,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "MakiNori": {
+   "name": "Maki Nori",
+   "sales": {
+    "actual": 2221.25,
+    "sit_in": 2221.25,
+    "delivery": 0.0,
+    "tips": 277.72,
+    "target": 2500.0
+   },
+   "covers": 56,
+   "avg_spend": 39.67,
+   "labour": {
+    "total": 825.62,
+    "hours": 54.7,
+    "wage_pct": 37.17,
+    "foh": 274.8,
+    "foh_pct": 33.28,
+    "boh": 550.82,
+    "boh_pct": 66.72,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  }
+ },
+ "totals": {
+  "sales": 85043.33,
+  "covers": 3610,
+  "labour": 19893.76,
+  "foh": 8683.57,
+  "boh": 10515.11,
+  "wage_pct": 23.39,
+  "avg_spend": 23.56
+ }
+}
