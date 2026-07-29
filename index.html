@@ -1022,15 +1022,32 @@
   <!-- ============ TAB: DAILY ============ -->
   <div class="tabpanel" id="tab-daily">
     <style>
+      #tab-daily { --foh:#2E6F8E; --boh:#E94E1B; --unal:#9AA3AB; }
+      #tab-daily .dly-nav { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 16px; }
+      #tab-daily .dly-navbtn { font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 14px; cursor:pointer; box-shadow:var(--shadow); }
+      #tab-daily .dly-navbtn:hover:not(:disabled) { border-color:var(--maki-orange); color:var(--maki-orange); }
+      #tab-daily .dly-navbtn:disabled { opacity:.38; cursor:default; }
+      #tab-daily .dly-datesel { font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 12px; box-shadow:var(--shadow); }
+      #tab-daily .dly-today { font-size:11.5px; color:var(--ink-3); }
       #tab-daily .dly-totals { display:grid; grid-template-columns:repeat(auto-fill, minmax(195px, 1fr)); gap:10px; margin-bottom:16px; }
       #tab-daily .dly-chip { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+      #tab-daily .dly-chip.foh { border-left:4px solid var(--foh); }
+      #tab-daily .dly-chip.boh { border-left:4px solid var(--boh); }
+      #tab-daily .dly-chip.unal { border-left:4px solid var(--unal); }
       #tab-daily .dly-chip .lbl { font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--ink-3); }
       #tab-daily .dly-chip .val { font-size:19px; font-weight:800; color:var(--ink); margin-top:3px; font-variant-numeric:tabular-nums; }
       #tab-daily .dly-chip .sub { font-size:11px; color:var(--ink-3); margin-top:2px; }
+      /* these need to out-specify `.dly-chip .val` / `.dly-chip .sub` above,
+         otherwise the RAG colour silently loses and every tile renders ink */
+      #tab-daily .dly-chip .val.dly-g, #tab-daily .dly-chip .sub.dly-g { color:var(--green); }
+      #tab-daily .dly-chip .val.dly-a, #tab-daily .dly-chip .sub.dly-a { color:var(--amber); }
+      #tab-daily .dly-chip .val.dly-r, #tab-daily .dly-chip .sub.dly-r { color:var(--red); }
       #tab-daily .dly-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:14px; box-shadow:var(--shadow); }
-      #tab-daily table.dly { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:12.5px; min-width:1040px; }
+      #tab-daily table.dly { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:12.5px; min-width:1080px; }
       #tab-daily table.dly th { background:var(--ink); color:#fff; text-align:right; padding:9px 8px; white-space:nowrap; font-weight:600; }
       #tab-daily table.dly th:first-child { text-align:left; }
+      #tab-daily table.dly th.foh { background:var(--foh); }
+      #tab-daily table.dly th.boh { background:var(--boh); }
       #tab-daily table.dly td { padding:8px; border-top:1px solid var(--line); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; vertical-align:top; }
       #tab-daily table.dly td:first-child { text-align:left; }
       #tab-daily table.dly td .sub { display:block; font-size:10.5px; font-weight:600; }
@@ -1038,22 +1055,40 @@
       #tab-daily .dly-a { color:var(--amber); font-weight:700; }
       #tab-daily .dly-r { color:var(--red); font-weight:700; }
       #tab-daily .dly-m { color:var(--ink-3); font-weight:500; }
+      #tab-daily .dly-fohv { color:var(--foh); font-weight:800; }
+      #tab-daily .dly-bohv { color:var(--boh); font-weight:800; }
       #tab-daily .dly-site { font-weight:800; color:var(--ink); }
       #tab-daily .dly-site .sub { color:var(--ink-3); font-weight:500; }
+      #tab-daily .dly-bar { display:flex; width:132px; height:9px; border-radius:5px; overflow:hidden; background:var(--line); margin-left:auto; }
+      #tab-daily .dly-bar i { display:block; height:100%; }
+      #tab-daily .dly-bar i.f { background:var(--foh); }
+      #tab-daily .dly-bar i.b { background:var(--boh); }
+      #tab-daily .dly-bar i.u { background:var(--unal); }
+      #tab-daily .dly-barnote { display:block; font-size:10.5px; font-weight:600; margin-top:4px; }
       #tab-daily .dly-gaps { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--maki-orange); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow); margin-top:16px; }
       #tab-daily .dly-gaps h3 { margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--maki-orange); }
       #tab-daily .dly-gaps li { font-size:12px; color:var(--ink-2); margin:4px 0; }
+      #tab-daily .dly-gaps b.sec { font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.3px; }
+      #tab-daily .dly-foot { font-size:11.5px; color:var(--ink-3); margin-top:12px; line-height:1.55; }
+      #tab-daily .dly-key { display:inline-flex; align-items:center; gap:5px; margin-right:12px; font-weight:700; }
+      #tab-daily .dly-key i { width:10px; height:10px; border-radius:3px; display:inline-block; }
     </style>
     <div class="mini-hero">
       <h2 id="daily-title">Daily Cash-Up</h2>
-      <p id="daily-sub"></p>
+      <p id="daily-sub">Loading&hellip;</p>
+    </div>
+    <div class="dly-nav">
+      <button class="dly-navbtn" id="daily-prev" type="button">&#9664;&nbsp; Previous day</button>
+      <select class="dly-datesel" id="daily-datesel" aria-label="Choose a day"></select>
+      <button class="dly-navbtn" id="daily-next" type="button">Next day &nbsp;&#9654;</button>
+      <span class="dly-today" id="daily-latest"></span>
     </div>
     <div class="dly-totals" id="daily-totals"></div>
     <div class="dly-wrap">
       <table class="dly" id="daily-table"></table>
     </div>
     <div class="dly-gaps" id="daily-gaps"></div>
-    <p style="font-size:11.5px;color:var(--ink-3);margin-top:12px;">Source: daily_data_2026-06-11.json (Kobas cash-ups + Mona Lisa targets). Wage % = labour cost incl. employer NI &divide; net sales. Sorted by day net sales, highest first.</p>
+    <p class="dly-foot" id="daily-foot"></p>
   </div>
 
   <!-- ============ TAB: THIS WEEK ============ -->
@@ -3804,7 +3839,7 @@ function openSite(code) {
       </div>
 
       ${((REVIEWS[s.code]||{}).negativeReviews||[]).length ? `
-      <div class="panel" id="neg-panel-${s.code}" style="display:block;">
+      <div class="panel" id="neg-panel-${s.code}" style="display:none;">
         <div class="panel-head" style="color:var(--red);"><span class="dot" style="background:var(--red);"></span>≤3★ reviews this week (${(REVIEWS[s.code]).negativeReviews.length})</div>
         ${(REVIEWS[s.code]).negativeReviews.map(r => `<div class="item" style="border-left-color:var(--red);">
           <div style="font-size:12px; font-weight:700; color:var(--red); margin-bottom:4px;">${r.stars}★ &middot; ${r.author || 'Anonymous'} &middot; ${r.date || ''}</div>
@@ -4762,791 +4797,250 @@ const MEETING_RISK = {
 })();
 </script>
 <script>
-// ===================== DAILY CASH-UP (data: daily_data_2026-06-11.json) =====================
-const DAILY = {
- "date": "2026-06-17",
- "updated": "2026-06-18",
- "monthDay": 17,
- "monthDays": 30,
- "monthPacePct": 56.7,
- "weekDays": "Wed 17 Jun (week 25 day 3 \u2013 WTD = Mon 15 + Tue 16 + Wed 17 Jun)",
- "sites": {
-  "M1/2": {
-   "kobasName": "Maki 1/2 (Nicolson St)",
-   "monaLisa": "Maki 1",
-   "day": {
-    "netSales": 2306.2,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 81,
-    "wagePct": 25.1,
-    "labourBudget": null,
-    "cashVarGBP": -32.4,
-    "cashVarPct": -1.1
-   },
-   "wtd": {
-    "netSales": 6294.1,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 26.3,
-    "labourCost": 1657.32,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 44058.41,
-    "monthTarget": null,
-    "completionPct": null,
-    "wagePct": 24.5,
-    "labourCost": 10810.81,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "M3": {
-   "kobasName": "Maki Fountainbridge",
-   "monaLisa": "Maki 3",
-   "day": {
-    "netSales": 2918.35,
-    "target": 4000,
-    "vsTargetPct": -27.0,
-    "covers": 104,
-    "wagePct": 33.7,
-    "labourBudget": 860,
-    "cashVarGBP": 0.04,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 9638.22,
-    "target": 12000.0,
-    "completionPct": 80.3,
-    "wagePct": 34.0,
-    "labourCost": 3275.32,
-    "labourBudget": 2580.0,
-    "labourBurnPct": 127.0
-   },
-   "mtd": {
-    "netSales": 73116.95,
-    "monthTarget": 146600.0,
-    "completionPct": 49.9,
-    "wagePct": 28.3,
-    "labourCost": 20660.43,
-    "labourBudgetMTD": 17479.5,
-    "monthLabourBudget": 31519.0,
-    "burnPct": 65.5,
-    "burnPaceMTD": 118.2
-   }
-  },
-  "M6": {
-   "kobasName": "Maki Bath Street",
-   "monaLisa": "Maki 6",
-   "day": {
-    "netSales": 2734.08,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 132,
-    "wagePct": 26.7,
-    "labourBudget": null,
-    "cashVarGBP": 5.99,
-    "cashVarPct": 0.2
-   },
-   "wtd": {
-    "netSales": 8778.77,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 24.8,
-    "labourCost": 2173.69,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 49342.29,
-    "monthTarget": null,
-    "completionPct": null,
-    "wagePct": 27.2,
-    "labourCost": 13434.9,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "M7": {
-   "kobasName": "Maki SJQ",
-   "monaLisa": "Maki 7",
-   "day": {
-    "netSales": 5525.6,
-    "target": 6479.55,
-    "vsTargetPct": -14.7,
-    "covers": 288,
-    "wagePct": 30.0,
-    "labourBudget": null,
-    "cashVarGBP": -0.2,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 17320.26,
-    "target": 19438.65,
-    "completionPct": 89.1,
-    "wagePct": 30.0,
-    "labourCost": 5199.5,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 121048.01,
-    "monthTarget": 246222.89999999994,
-    "completionPct": 49.2,
-    "wagePct": 27.2,
-    "labourCost": 32918.92,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "M8": {
-   "kobasName": "Maki Renfield",
-   "monaLisa": "Maki 8",
-   "day": {
-    "netSales": 4484.91,
-    "target": 5000,
-    "vsTargetPct": -10.3,
-    "covers": 184,
-    "wagePct": 24.8,
-    "labourBudget": 1100,
-    "cashVarGBP": -0.4,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 11602.76,
-    "target": 15000.0,
-    "completionPct": 77.4,
-    "wagePct": 29.8,
-    "labourCost": 3457.67,
-    "labourBudget": 3300.0,
-    "labourBurnPct": 104.8
-   },
-   "mtd": {
-    "netSales": 85283.84,
-    "monthTarget": 181000.0,
-    "completionPct": 47.1,
-    "wagePct": 28.6,
-    "labourCost": 24419.63,
-    "labourBudgetMTD": 22110.0,
-    "monthLabourBudget": 39820.0,
-    "burnPct": 61.3,
-    "burnPaceMTD": 110.4
-   }
-  },
-  "M9": {
-   "kobasName": "Maki Manchester",
-   "monaLisa": "Maki 9",
-   "day": {
-    "netSales": 6008.77,
-    "target": 8500,
-    "vsTargetPct": -29.3,
-    "covers": 257,
-    "wagePct": 24.8,
-    "labourBudget": 1785,
-    "cashVarGBP": -0.03,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 20004.39,
-    "target": 25500.0,
-    "completionPct": 78.4,
-    "wagePct": 23.6,
-    "labourCost": 4722.77,
-    "labourBudget": 5355.0,
-    "labourBurnPct": 88.2
-   },
-   "mtd": {
-    "netSales": 138893.73,
-    "monthTarget": 287000.0,
-    "completionPct": 48.4,
-    "wagePct": 23.5,
-    "labourCost": 32658.87,
-    "labourBudgetMTD": 33705.0,
-    "monthLabourBudget": 60270.0,
-    "burnPct": 54.2,
-    "burnPaceMTD": 96.9
-   }
-  },
-  "NQ": {
-   "kobasName": "Maki Manchester NQ",
-   "monaLisa": null,
-   "day": {
-    "netSales": 1829.98,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 67,
-    "wagePct": 41.3,
-    "labourBudget": null,
-    "cashVarGBP": 0.01,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 6475.76,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 33.9,
-    "labourCost": 2193.77,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 49215.18,
-    "monthTarget": null,
-    "completionPct": null,
-    "wagePct": 30.1,
-    "labourCost": 14812.25,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "M10": {
-   "kobasName": "Maki Leeds",
-   "monaLisa": "Maki 10",
-   "day": {
-    "netSales": 2809.22,
-    "target": 3927.0,
-    "vsTargetPct": -28.5,
-    "covers": 133,
-    "wagePct": 31.1,
-    "labourBudget": null,
-    "cashVarGBP": 0.8,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 8417.89,
-    "target": 11781.0,
-    "completionPct": 71.5,
-    "wagePct": 29.7,
-    "labourCost": 2498.73,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 63842.49,
-    "monthTarget": 149226.0,
-    "completionPct": 42.8,
-    "wagePct": 27.1,
-    "labourCost": 17305.04,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "M11": {
-   "kobasName": "Maki Leicester",
-   "monaLisa": "Maki 11",
-   "day": {
-    "netSales": 880.8,
-    "target": 3850,
-    "vsTargetPct": -77.1,
-    "covers": 41,
-    "wagePct": 54.9,
-    "labourBudget": 808.5,
-    "cashVarGBP": 0.0,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 4229.47,
-    "target": 11550.0,
-    "completionPct": 36.6,
-    "wagePct": 38.8,
-    "labourCost": 1639.26,
-    "labourBudget": 2425.5,
-    "labourBurnPct": 67.6
-   },
-   "mtd": {
-    "netSales": 47129.06,
-    "monthTarget": 146300.0,
-    "completionPct": 32.2,
-    "wagePct": 28.0,
-    "labourCost": 13175.24,
-    "labourBudgetMTD": 16978.5,
-    "monthLabourBudget": 30723.0,
-    "burnPct": 42.9,
-    "burnPaceMTD": 77.6
-   }
-  },
-  "M12": {
-   "kobasName": "Maki Newcastle",
-   "monaLisa": "Maki 12",
-   "day": {
-    "netSales": 2667.02,
-    "target": 3850,
-    "vsTargetPct": -30.7,
-    "covers": 103,
-    "wagePct": 36.9,
-    "labourBudget": 808.5,
-    "cashVarGBP": 0.02,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 7691.38,
-    "target": 11550.0,
-    "completionPct": 66.6,
-    "wagePct": 36.4,
-    "labourCost": 2799.87,
-    "labourBudget": 2425.5,
-    "labourBurnPct": 115.4
-   },
-   "mtd": {
-    "netSales": 55087.19,
-    "monthTarget": 146300.0,
-    "completionPct": 37.7,
-    "wagePct": 33.1,
-    "labourCost": 18223.75,
-    "labourBudgetMTD": 16978.5,
-    "monthLabourBudget": 30723.0,
-    "burnPct": 59.3,
-    "burnPaceMTD": 107.3
-   }
-  },
-  "M13": {
-   "kobasName": "Maki Aberdeen",
-   "monaLisa": "Maki 13",
-   "day": {
-    "netSales": 2548.08,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 119,
-    "wagePct": 39.6,
-    "labourBudget": null,
-    "cashVarGBP": -2.75,
-    "cashVarPct": -0.1
-   },
-   "wtd": {
-    "netSales": 9524.95,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 35.0,
-    "labourCost": 3333.23,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 79433.31,
-    "monthTarget": null,
-    "completionPct": null,
-    "wagePct": 29.1,
-    "labourCost": 23084.32,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "M14": {
-   "kobasName": "Maki Yorkshire",
-   "monaLisa": "Maki 14",
-   "day": {
-    "netSales": 2057.6,
-    "target": 7000,
-    "vsTargetPct": -70.6,
-    "covers": 110,
-    "wagePct": 41.9,
-    "labourBudget": 1470,
-    "cashVarGBP": -0.19,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 7995.4,
-    "target": 21000.0,
-    "completionPct": 38.1,
-    "wagePct": 33.8,
-    "labourCost": 2703.5,
-    "labourBudget": 4410.0,
-    "labourBurnPct": 61.3
-   },
-   "mtd": {
-    "netSales": 82043.36,
-    "monthTarget": 242000.0,
-    "completionPct": 33.9,
-    "wagePct": 25.3,
-    "labourCost": 20758.17,
-    "labourBudgetMTD": 28350.0,
-    "monthLabourBudget": 50820.0,
-    "burnPct": 40.8,
-    "burnPaceMTD": 73.2
-   }
-  },
-  "M15": {
-   "kobasName": "Maki Metro",
-   "monaLisa": "Maki 15",
-   "day": {
-    "netSales": 4201.98,
-    "target": 6737.5,
-    "vsTargetPct": -37.6,
-    "covers": 213,
-    "wagePct": 35.5,
-    "labourBudget": 1482.25,
-    "cashVarGBP": -19.8,
-    "cashVarPct": -0.4
-   },
-   "wtd": {
-    "netSales": 14355.42,
-    "target": 20212.5,
-    "completionPct": 71.0,
-    "wagePct": 30.4,
-    "labourCost": 4363.7,
-    "labourBudget": 4446.75,
-    "labourBurnPct": 98.1
-   },
-   "mtd": {
-    "netSales": 120785.83,
-    "monthTarget": 256025.0,
-    "completionPct": 47.2,
-    "wagePct": 25.9,
-    "labourCost": 31281.98,
-    "labourBudgetMTD": 31127.25,
-    "monthLabourBudget": 56325.5,
-    "burnPct": 55.5,
-    "burnPaceMTD": 100.5
-   }
-  },
-  "M16": {
-   "kobasName": "Maki Nottingham",
-   "monaLisa": "Maki 16",
-   "day": {
-    "netSales": 2293.55,
-    "target": 5400,
-    "vsTargetPct": -57.5,
-    "covers": 101,
-    "wagePct": 36.9,
-    "labourBudget": 1134,
-    "cashVarGBP": 2.79,
-    "cashVarPct": 0.1
-   },
-   "wtd": {
-    "netSales": 8668.87,
-    "target": 16200.0,
-    "completionPct": 53.5,
-    "wagePct": 31.9,
-    "labourCost": 2769.07,
-    "labourBudget": 3402.0,
-    "labourBurnPct": 81.4
-   },
-   "mtd": {
-    "netSales": 72645.83,
-    "monthTarget": 203600.0,
-    "completionPct": 35.7,
-    "wagePct": 27.7,
-    "labourCost": 20138.87,
-    "labourBudgetMTD": 23646.0,
-    "monthLabourBudget": 42756.0,
-    "burnPct": 47.1,
-    "burnPaceMTD": 85.2
-   }
-  },
-  "M17": {
-   "kobasName": "Maki Lakeside",
-   "monaLisa": "Maki 17",
-   "day": {
-    "netSales": 2321.42,
-    "target": 4250,
-    "vsTargetPct": -45.4,
-    "covers": 72,
-    "wagePct": 34.4,
-    "labourBudget": 892.5,
-    "cashVarGBP": 2.8,
-    "cashVarPct": 0.1
-   },
-   "wtd": {
-    "netSales": 6219.66,
-    "target": 12750.0,
-    "completionPct": 48.8,
-    "wagePct": 32.7,
-    "labourCost": 2035.61,
-    "labourBudget": 2677.5,
-    "labourBurnPct": 76.0
-   },
-   "mtd": {
-    "netSales": 56587.63,
-    "monthTarget": 160500.0,
-    "completionPct": 35.3,
-    "wagePct": 28.1,
-    "labourCost": 15897.18,
-    "labourBudgetMTD": 18637.5,
-    "monthLabourBudget": 33705.0,
-    "burnPct": 47.2,
-    "burnPaceMTD": 85.3
-   }
-  },
-  "M18": {
-   "kobasName": "Maki SOHO",
-   "monaLisa": "Maki 18",
-   "day": {
-    "netSales": 3204.27,
-    "target": 9000,
-    "vsTargetPct": -64.4,
-    "covers": 187,
-    "wagePct": 50.3,
-    "labourBudget": 1890,
-    "cashVarGBP": 1.32,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 10036.7,
-    "target": 27000.0,
-    "completionPct": 37.2,
-    "wagePct": 40.4,
-    "labourCost": 4054.59,
-    "labourBudget": 5670.0,
-    "labourBurnPct": 71.5
-   },
-   "mtd": {
-    "netSales": 75679.97,
-    "monthTarget": 318000.0,
-    "completionPct": 23.8,
-    "wagePct": 37.2,
-    "labourCost": 28159.14,
-    "labourBudgetMTD": 37170.0,
-    "monthLabourBudget": 66780.0,
-    "burnPct": 42.2,
-    "burnPaceMTD": 75.8
-   }
-  },
-  "Maki Nori": {
-   "kobasName": "Maki NORI",
-   "monaLisa": "Maki Nori",
-   "day": {
-    "netSales": 2871.88,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 94,
-    "wagePct": null,
-    "labourBudget": null,
-    "cashVarGBP": 0.01,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 6798.13,
-    "target": null,
-    "completionPct": null,
-    "wagePct": null,
-    "labourCost": null,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 52707.8,
-    "monthTarget": 40000.0,
-    "completionPct": 131.8,
-    "wagePct": 32.7,
-    "labourCost": 17253.77,
-    "labourBudgetMTD": 8400.0,
-    "monthLabourBudget": 8400.0,
-    "burnPct": 205.4,
-    "burnPaceMTD": 205.4
-   }
-  },
-  "MAF1": {
-   "kobasName": "Maki West End",
-   "monaLisa": null,
-   "day": {
-    "netSales": 668.32,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 0,
-    "wagePct": 117.8,
-    "labourBudget": null,
-    "cashVarGBP": 0.0,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 2149.63,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 115.0,
-    "labourCost": 2472.42,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 16829.0,
-    "monthTarget": null,
-    "completionPct": null,
-    "wagePct": 95.5,
-    "labourCost": 16079.41,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "MAF3": {
-   "kobasName": "Maki O2 Arena",
-   "monaLisa": "Maki O2",
-   "day": {
-    "netSales": 2516.96,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 123,
-    "wagePct": 32.2,
-    "labourBudget": null,
-    "cashVarGBP": 0.0,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 4548.54,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 43.4,
-    "labourCost": 1975.47,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 51809.83,
-    "monthTarget": null,
-    "completionPct": null,
-    "wagePct": 31.2,
-    "labourCost": 16149.5,
-    "labourBudgetMTD": null,
-    "monthLabourBudget": null,
-    "burnPct": null,
-    "burnPaceMTD": null
-   }
-  },
-  "IKI2": {
-   "kobasName": "Ikigai Ramen South Bridge",
-   "monaLisa": "Ikigai 2",
-   "day": {
-    "netSales": 1873.61,
-    "target": null,
-    "vsTargetPct": null,
-    "covers": 101,
-    "wagePct": 25.2,
-    "labourBudget": null,
-    "cashVarGBP": 0.02,
-    "cashVarPct": 0.0
-   },
-   "wtd": {
-    "netSales": 5445.88,
-    "target": null,
-    "completionPct": null,
-    "wagePct": 27.3,
-    "labourCost": 1486.06,
-    "labourBudget": null,
-    "labourBurnPct": null
-   },
-   "mtd": {
-    "netSales": 39732.84,
-    "monthTarget": 43100.0,
-    "completionPct": 92.2,
-    "wagePct": 27.8,
-    "labourCost": 11040.89,
-    "labourBudgetMTD": 9051.0,
-    "monthLabourBudget": 9051.0,
-    "burnPct": 122.0,
-    "burnPaceMTD": 122.0
-   }
+// ===================== DAILY CASH-UP (live fetch + FOH/BOH split) =====================
+// Rebuilt 29/07/2026. The previous version baked a `const DAILY = {...}` literal
+// into this file and froze on 17/06/2026 while still rendering as the first tab,
+// with no staleness indicator. It now fetches per-day files so that cannot recur.
+//
+//   <DATA_DIR>/daily/daily_index.json   -> { latest, dates: [newest .. oldest] }
+//   <DATA_DIR>/daily/daily_<date>.json  -> one trading day, 19 sites
+//
+// Written by am_rebuild/builders/pull_daily_cashup.py (Pipe 8) from the Auto Cash
+// Up workbook's `Raw Data 2` tab. FOH/BOH are ACTUAL completed shifts, and the
+// percentages are each department's share of the FINAL total labour cost -- not a
+// comparison against the rota, and not the sheet's own % columns, which use
+// different denominators at different sites.
+(function () {
+  var DIR = (typeof DATA_DIR === 'string' ? DATA_DIR : './data/') + 'daily/';
+  var elTitle = document.getElementById('daily-title');
+  var elSub = document.getElementById('daily-sub');
+  var elSel = document.getElementById('daily-datesel');
+  var elPrev = document.getElementById('daily-prev');
+  var elNext = document.getElementById('daily-next');
+  var elLatest = document.getElementById('daily-latest');
+  var elTot = document.getElementById('daily-totals');
+  var elTab = document.getElementById('daily-table');
+  var elGaps = document.getElementById('daily-gaps');
+  var elFoot = document.getElementById('daily-foot');
+
+  var DATES = [];
+  var cache = {};
+
+  var fmtG = function (n) {
+    if (n == null) return '—';
+    return (n < 0 ? '-' : '') + '£' + Math.round(Math.abs(n)).toLocaleString('en-GB');
+  };
+  var fmtG2 = function (n) {
+    if (n == null) return '—';
+    return (n < 0 ? '-' : '') + '£' + Math.abs(n).toFixed(2);
+  };
+  var fmtP = function (n, dp) { return n == null ? '—' : n.toFixed(dp == null ? 1 : dp) + '%'; };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  };
+  var longDate = function (iso) {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB',
+      { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(',', '');
+  };
+  var shortDate = function (iso) {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB',
+      { weekday: 'short', day: '2-digit', month: 'short' });
+  };
+
+  // Wage % thresholds carried over unchanged from the previous Daily tab.
+  var ragWage = function (w) { return w == null ? 'dly-m' : (w <= 25 ? 'dly-g' : (w <= 30 ? 'dly-a' : 'dly-r')); };
+  // Unallocated labour: shifts worked but never assigned to FOH or BOH in the
+  // rota system. Anything past 5% of a site's labour is a real reporting fault.
+  var ragUnal = function (p) {
+    if (p == null) return 'dly-m';
+    p = Math.abs(p);
+    return p < 1 ? 'dly-m' : (p < 5 ? 'dly-a' : 'dly-r');
+  };
+
+  function fail(msg) {
+    elSub.textContent = '';
+    elTot.innerHTML = '';
+    elTab.innerHTML = '';
+    elGaps.innerHTML = '<h3>Daily cash-up unavailable</h3><li style="list-style:none">' + esc(msg) + '</li>';
+    elFoot.textContent = '';
   }
- },
- "missingEmails": [],
- "targetGaps": [
-  "M1/2, M6 Bath St, M13 Aberdeen, MAF1 West End, MAF3 O2: no sales target in Mona Lisa (zero/absent)",
-  "NQ Manchester NQ: Mona Lisa venue unconfirmed \u2014 targets not mapped",
-  "M7 SJQ & M10 Leeds: sales target present but no labour budget in Mona Lisa"
- ],
- "notes": [
-  "Wed 17 Jun = week 25 day 3; WTD = Mon 15 + Tue 16 + Wed 17 Jun",
-  "MTD = ledger through 16 Jun + Wed 17 Jun day figures",
-  "Wage % = labour cost incl. employer NI \u00f7 net sales",
-  "Maki NORI: no rota in Kobas \u2014 no labour data 17 Jun; MTD labour excludes this day (netSales added, labour not)",
-  "MAF1 West End: delivery-only, 0 covers \u2014 day wage % 117.8% unreliable",
-  "M11 Leicester: very low day sales \u00a3880.80 with 41 covers \u2192 day wage % 54.9% (genuine low-trade Wednesday, not a data error)",
-  "M18 SOHO: day wage % 50.3% on \u00a33,204 sales \u2014 over-staffed vs trade",
-  "Cash variance flags: M1/2 -\u00a332.40/-1.1% (order cancel); M15 Metro -\u00a319.80/-0.4%",
-  "Targets from Mona Lisa export 21 May 2026 (June pre-filled); refresh export for July"
- ]
-};
 
-(function renderDaily() {
-  const fmtG = n => (n < 0 ? '-' : '') + '\u00a3' + Math.round(Math.abs(n)).toLocaleString('en-GB');
-  const fmtPct = (n, dp) => (n >= 0 ? '+' : '') + n.toFixed(dp == null ? 1 : dp) + '%';
-  const NOTGT = '<span class="dly-m" title="no target">\u2014</span>';
+  function splitBar(s) {
+    var l = s.labour, tot = l.total;
+    if (!tot || l.foh == null) {
+      return '<div class="dly-bar" title="FOH/BOH not recorded"><i class="u" style="width:100%"></i></div>'
+        + '<span class="dly-barnote dly-m">not recorded</span>';
+    }
+    var f = Math.max(0, l.foh / tot * 100);
+    var b = Math.max(0, l.boh / tot * 100);
+    var u = Math.max(0, 100 - f - b);
+    var note = (l.unallocated && Math.abs(l.unallocated) >= 1)
+      ? '<span class="dly-barnote ' + ragUnal(l.unallocated_pct) + '">' + fmtG2(l.unallocated) + ' unallocated</span>'
+      : '<span class="dly-barnote dly-g">fully allocated</span>';
+    return '<div class="dly-bar" title="FOH ' + f.toFixed(1) + '% · BOH ' + b.toFixed(1) + '% · unallocated ' + u.toFixed(1) + '%">'
+      + '<i class="f" style="width:' + f.toFixed(2) + '%"></i>'
+      + '<i class="b" style="width:' + b.toFixed(2) + '%"></i>'
+      + '<i class="u" style="width:' + u.toFixed(2) + '%"></i></div>' + note;
+  }
 
-  // RAG helpers (Daily-tab thresholds)
-  const ragWage = w => w == null ? 'dly-m' : (w <= 25 ? 'dly-g' : (w <= 30 ? 'dly-a' : 'dly-r'));
-  const ragDayVs = p => p == null ? 'dly-m' : (p >= 0 ? 'dly-g' : (p >= -25 ? 'dly-a' : 'dly-r'));
-  const ragPace = c => c == null ? 'dly-m' : (c >= DAILY.monthPacePct ? 'dly-g' : (c >= DAILY.monthPacePct - 5 ? 'dly-a' : 'dly-r'));
-  const ragBurn = b => b == null ? 'dly-m' : (b <= 100 ? 'dly-g' : (b <= 110 ? 'dly-a' : 'dly-r'));
-  const ragCash = (g, p) => (Math.abs(g || 0) > 20 || Math.abs(p || 0) > 0.5) ? 'dly-r' : 'dly-g';
+  function render(p) {
+    var codes = Object.keys(p.sites);
+    var t = p.totals || {};
 
-  // Header strip
-  const d = new Date(DAILY.date + 'T12:00:00');
-  const dayLong = d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(',', '');
-  const u = new Date(DAILY.updated + 'T12:00:00');
-  const updShort = u.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  const codes = Object.keys(DAILY.sites);
-  const missing = (DAILY.missingEmails || []).length;
-  const reported = missing === 0
-    ? 'all ' + codes.length + ' sites reported'
-    : (codes.length - missing) + ' of ' + codes.length + ' sites reported (' + DAILY.missingEmails.join(', ') + ' missing)';
-  document.getElementById('daily-title').textContent = 'Daily Cash-Up \u2014 ' + dayLong;
-  document.getElementById('daily-sub').textContent = 'updated ' + updShort + ', ' + reported;
+    elTitle.textContent = 'Daily Cash-Up — ' + longDate(p.date);
+    var gen = p._generated_at || '';
+    var pulled = gen ? gen.slice(8, 10) + '/' + gen.slice(5, 7) + ' ' + gen.slice(11, 16) : '—';
+    elSub.textContent = p.sites_reported + ' of ' + p.sites_expected + ' sites cashed up · '
+      + 'FOH/BOH split recorded at ' + p.foh_boh_reported + ' · pulled ' + pulled;
 
-  // Group totals (day vs target ONLY across sites with a day target)
-  let totSales = 0, totCovers = 0, tgtSales = 0, tgtTarget = 0, tgtN = 0;
-  codes.forEach(c => {
-    const day = DAILY.sites[c].day;
-    totSales += day.netSales; totCovers += day.covers;
-    if (day.target != null) { tgtSales += day.netSales; tgtTarget += day.target; tgtN++; }
-  });
-  const grpVs = tgtTarget > 0 ? (tgtSales / tgtTarget - 1) * 100 : null;
-  document.getElementById('daily-totals').innerHTML = [
-    ['Group day net sales', fmtG(totSales), codes.length + ' sites', ''],
-    ['Group covers', totCovers.toLocaleString('en-GB'), 'day total', ''],
-    ['Day vs target', grpVs == null ? '\u2014' : fmtPct(grpVs), 'of sites with targets (' + tgtN + ' of ' + codes.length + ')', ragDayVs(grpVs)]
-  ].map(t => '<div class="dly-chip"><div class="lbl">' + t[0] + '</div><div class="val ' + t[3] + '">' + t[1] + '</div><div class="sub">' + t[2] + '</div></div>').join('');
+    // The FOH/BOH shares are taken over the sites that ACTUALLY recorded a
+    // split, not over all labour. Dividing by total labour would fold the three
+    // sites with no split at all into the same bucket as genuinely unassigned
+    // shifts, and the two are different problems with different owners: one is
+    // "nobody recorded anything", the other is "shifts were worked but never
+    // attributed". They get separate tiles.
+    var splitCodes = codes.filter(function (c) { return p.sites[c].labour.split_status === 'ok'; });
+    var splitLabour = 0, unrecLabour = 0;
+    codes.forEach(function (c) {
+      var l = p.sites[c].labour;
+      if (l.split_status === 'ok') { splitLabour += (l.total || 0); }
+      else { unrecLabour += (l.total || 0); }
+    });
+    var share = function (v) { return splitLabour ? v / splitLabour * 100 : null; };
+    var unal = splitLabour - (t.foh || 0) - (t.boh || 0);
+    var denom = ' of ' + fmtG(splitLabour) + ' split labour';
 
-  // Per-site table, day net sales desc
-  const head = '<tr><th>Site</th><th>\u00a3 Day</th><th>Covers</th><th>Wage % day</th><th>WTD \u00a3</th><th>Wage % WTD</th><th>MTD \u00a3</th><th>Labour burn %</th><th>Cash var \u00a3</th></tr>';
-  const rows = codes
-    .slice().sort((a, b) => DAILY.sites[b].day.netSales - DAILY.sites[a].day.netSales)
-    .map(code => {
-      const s = DAILY.sites[code], day = s.day, wtd = s.wtd, mtd = s.mtd;
-      const dayVs = day.vsTargetPct == null ? NOTGT
-        : '<span class="sub ' + ragDayVs(day.vsTargetPct) + '">' + fmtPct(day.vsTargetPct) + ' vs tgt</span>';
-      const wtdPct = wtd.completionPct == null ? NOTGT
-        : '<span class="sub ' + (wtd.completionPct >= 100 ? 'dly-g' : 'dly-m') + '">' + wtd.completionPct.toFixed(1) + '% of WTD tgt</span>';
-      const mtdPct = mtd.completionPct == null ? NOTGT
-        : '<span class="sub ' + ragPace(mtd.completionPct) + '">' + mtd.completionPct.toFixed(1) + '% vs ' + DAILY.monthPacePct + '% pace</span>';
-      const burn = mtd.burnPct == null ? NOTGT
-        : '<span class="' + ragBurn(mtd.burnPaceMTD) + '">' + mtd.burnPct.toFixed(1) + '%</span><span class="sub ' + ragBurn(mtd.burnPaceMTD) + '">pace ' + (mtd.burnPaceMTD == null ? '\u2014' : mtd.burnPaceMTD.toFixed(1)) + '</span>';
-      const cashCls = ragCash(day.cashVarGBP, day.cashVarPct);
-      const cash = '<span class="' + cashCls + '">' + (day.cashVarGBP < 0 ? '-' : '') + '\u00a3' + Math.abs(day.cashVarGBP).toFixed(2) + '</span>';
-      return '<tr>' +
-        '<td class="dly-site">' + code + '<span class="sub">' + (s.kobasName || '') + '</span></td>' +
-        '<td><b>' + fmtG(day.netSales) + '</b>' + dayVs + '</td>' +
-        '<td>' + day.covers.toLocaleString('en-GB') + '</td>' +
-        '<td><span class="' + ragWage(day.wagePct) + '">' + (day.wagePct == null ? '\u2014' : day.wagePct.toFixed(1) + '%') + '</span></td>' +
-        '<td>' + fmtG(wtd.netSales) + wtdPct + '</td>' +
-        '<td><span class="' + ragWage(wtd.wagePct) + '">' + (wtd.wagePct == null ? '\u2014' : wtd.wagePct.toFixed(1) + '%') + '</span></td>' +
-        '<td>' + fmtG(mtd.netSales) + mtdPct + '</td>' +
-        '<td>' + burn + '</td>' +
-        '<td>' + cash + '</td></tr>';
+    // [borderClass, label, value, sub, valueClass, subClass]
+    var chips = [
+      ['', 'Net sales', fmtG(t.sales), codes.length + ' sites', '', ''],
+      ['', 'Covers', (t.covers || 0).toLocaleString('en-GB'), 'avg spend ' + fmtG2(t.avg_spend), '', ''],
+      ['', 'Labour cost', fmtG(t.labour), 'wage ' + fmtP(t.wage_pct), '', ragWage(t.wage_pct)],
+      ['foh', 'FOH labour', fmtG(t.foh), fmtP(share(t.foh)) + denom, '', ''],
+      ['boh', 'BOH labour', fmtG(t.boh), fmtP(share(t.boh)) + denom, '', ''],
+      ['unal', 'Unassigned', fmtG(unal), fmtP(share(unal)) + denom, ragUnal(share(unal)), '']
+    ];
+    if (unrecLabour > 0) {
+      var n = codes.length - splitCodes.length;
+      chips.push(['unal', 'No split recorded', fmtG(unrecLabour),
+        n + ' site' + (n === 1 ? '' : 's') + ' — cannot be split', 'dly-r', '']);
+    }
+    elTot.innerHTML = chips.map(function (c) {
+      return '<div class="dly-chip ' + c[0] + '"><div class="lbl">' + c[1] + '</div>'
+        + '<div class="val ' + c[4] + '">' + c[2] + '</div>'
+        + '<div class="sub ' + c[5] + '">' + c[3] + '</div></div>';
     }).join('');
-  document.getElementById('daily-table').innerHTML = head + rows;
 
-  // Gaps & notes (verbatim)
-  document.getElementById('daily-gaps').innerHTML =
-    '<h3>Gaps &amp; notes</h3>' +
-    '<b style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.3px;">Target gaps</b>' +
-    '<ul style="margin:4px 0 10px;padding-left:18px;">' + DAILY.targetGaps.map(g => '<li>' + g + '</li>').join('') + '</ul>' +
-    '<b style="font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.3px;">Notes</b>' +
-    '<ul style="margin:4px 0 0;padding-left:18px;">' + DAILY.notes.map(n => '<li>' + n + '</li>').join('') + '</ul>';
+    var head = '<tr><th>Site</th><th>Net sales</th><th>Covers</th><th>Labour</th><th>Wage %</th>'
+      + '<th class="foh">FOH</th><th class="boh">BOH</th><th>Split of labour cost</th></tr>';
+
+    var rows = codes.slice().sort(function (a, b) {
+      return p.sites[b].sales.actual - p.sites[a].sales.actual;
+    }).map(function (code) {
+      var s = p.sites[code], l = s.labour;
+      var deliv = s.sales.delivery ? fmtG(s.sales.delivery) + ' delivery' : 'no delivery';
+      var foh = l.foh == null
+        ? '<span class="dly-m">—</span>'
+        : '<span class="dly-fohv">' + fmtG(l.foh) + '</span><span class="sub dly-fohv">' + fmtP(l.foh_pct) + '</span>';
+      var boh = l.boh == null
+        ? '<span class="dly-m">—</span>'
+        : '<span class="dly-bohv">' + fmtG(l.boh) + '</span><span class="sub dly-bohv">' + fmtP(l.boh_pct) + '</span>';
+      return '<tr>'
+        + '<td class="dly-site">' + esc(code) + '<span class="sub">' + esc(s.name) + '</span></td>'
+        + '<td><b>' + fmtG(s.sales.actual) + '</b><span class="sub dly-m">' + deliv + '</span></td>'
+        + '<td>' + (s.covers == null ? '—' : s.covers.toLocaleString('en-GB'))
+        + '<span class="sub dly-m">' + fmtG2(s.avg_spend) + ' avg</span></td>'
+        + '<td>' + fmtG(l.total) + '<span class="sub dly-m">' + (l.hours == null ? '—' : l.hours.toFixed(1) + ' hrs') + '</span></td>'
+        + '<td><span class="' + ragWage(l.wage_pct) + '">' + fmtP(l.wage_pct) + '</span></td>'
+        + '<td>' + foh + '</td><td>' + boh + '</td>'
+        + '<td>' + splitBar(s) + '</td></tr>';
+    }).join('');
+    elTab.innerHTML = head + rows;
+
+    var g = p.gaps || {};
+    var blocks = '';
+    if ((g.no_foh_boh_split || []).length) {
+      blocks += '<b class="sec">FOH / BOH split not recorded</b><ul style="margin:4px 0 10px;padding-left:18px;">'
+        + g.no_foh_boh_split.map(function (c) {
+          return '<li>' + esc(c) + ' — ' + esc((p.sites[c] || {}).name || '') + ': shifts were not assigned to a department, so '
+            + fmtG((p.sites[c] || { labour: {} }).labour.total) + ' of labour cannot be split.</li>';
+        }).join('') + '</ul>';
+    }
+    var unalSites = codes.filter(function (c) {
+      var u = p.sites[c].labour.unallocated;
+      return u != null && Math.abs(u) >= 20;
+    }).sort(function (a, b) {
+      return Math.abs(p.sites[b].labour.unallocated) - Math.abs(p.sites[a].labour.unallocated);
+    });
+    if (unalSites.length) {
+      blocks += '<b class="sec">Labour worked but not assigned to FOH or BOH</b><ul style="margin:4px 0 10px;padding-left:18px;">'
+        + unalSites.map(function (c) {
+          var l = p.sites[c].labour;
+          return '<li><b>' + esc(c) + '</b> ' + fmtG2(l.unallocated) + ' (' + fmtP(l.unallocated_pct)
+            + ' of its labour cost)</li>';
+        }).join('') + '</ul>';
+    }
+    if ((g.no_sales || []).length) {
+      blocks += '<b class="sec">No cash-up received</b><ul style="margin:4px 0 10px;padding-left:18px;"><li>'
+        + g.no_sales.map(esc).join(', ') + '</li></ul>';
+    }
+    if (!blocks) blocks = '<li style="list-style:none;font-size:12px;color:var(--ink-2);">Every site cashed up and every shift was assigned to a department. Nothing outstanding.</li>';
+    elGaps.innerHTML = '<h3>Gaps to chase</h3>' + blocks
+      + '<p style="font-size:11.5px;color:var(--ink-3);margin:8px 0 0;">Owner for the assignment gap: Ziang Lin — every staff member to be assigned a position in the system each shift, so labour tracks automatically between FOH and BOH.</p>';
+
+    elFoot.innerHTML =
+      '<span class="dly-key"><i style="background:var(--foh)"></i>FOH</span>'
+      + '<span class="dly-key"><i style="background:var(--boh)"></i>BOH</span>'
+      + '<span class="dly-key"><i style="background:var(--unal)"></i>Unallocated</span><br>'
+      + 'FOH and BOH are actual completed shifts, shown in £ and as a share of the final total labour cost. '
+      + 'Wage % is total labour ÷ net sales. Sorted by net sales, highest first. '
+      + 'Source: Auto Cash Up workbook, <b>Raw Data 2</b>. Refreshed daily at 12:15 Dubai.';
+  }
+
+  function show(date) {
+    if (!date) return;
+    elSel.value = date;
+    var i = DATES.indexOf(date);
+    elPrev.disabled = (i >= DATES.length - 1);
+    elNext.disabled = (i <= 0);
+    if (cache[date]) { render(cache[date]); return; }
+    elSub.textContent = 'Loading ' + shortDate(date) + '…';
+    fetch(DIR + 'daily_' + date + '.json?cb=' + Date.now())
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (p) { cache[date] = p; render(p); })
+      .catch(function (e) { fail('Could not load ' + date + ' (' + e.message + ').'); });
+  }
+
+  function step(n) {
+    var i = DATES.indexOf(elSel.value);
+    if (i < 0) return;
+    var j = i + n;
+    if (j >= 0 && j < DATES.length) show(DATES[j]);
+  }
+
+  elPrev.addEventListener('click', function () { step(1); });   // older
+  elNext.addEventListener('click', function () { step(-1); });  // newer
+  elSel.addEventListener('change', function () { show(elSel.value); });
+
+  fetch(DIR + 'daily_index.json?cb=' + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (ix) {
+      DATES = ix.dates || [];
+      if (!DATES.length) throw new Error('no days available');
+      elSel.innerHTML = DATES.map(function (d) {
+        return '<option value="' + d + '">' + shortDate(d) + '</option>';
+      }).join('');
+      elLatest.textContent = DATES.length + ' day' + (DATES.length === 1 ? '' : 's')
+        + ' available, back to ' + shortDate(DATES[DATES.length - 1]);
+      show(ix.latest || DATES[0]);
+    })
+    .catch(function (e) {
+      fail('The daily index could not be loaded (' + e.message + '). '
+        + 'The 12:15 Dubai pull may not have run yet.');
+    });
 })();
+
 </script>
 <script>
 // ---------- ACTION TRACKER (AM Manual Sec 14 Master Task List) ----------
