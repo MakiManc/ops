@@ -164,10 +164,35 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-07-26",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 973.29,
+        "orders": 34,
+        "aov": 28.63,
+        "new_customers": null,
+        "rating": null,
+        "open_hours_pct": null,
+        "avg_prep_min": null,
+        "rejection_pct": null,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": null,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "Deliveroo weekly Tax Invoice (Total Order Value) \u2014 w/c 2026-07-20 [sales/orders/AOV]",
+        "orders_estimated": false
+      },
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Stock-take \u2014 no variance entered this week"
       ],
       "notes": {
         "issues": [

@@ -155,9 +155,9 @@
         "week_ending": "2026-07-26",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
+        "sales": 1017.83,
+        "orders": 34,
+        "aov": 29.94,
         "new_customers": null,
         "rating": 5.0,
         "open_hours_pct": 100.0,
@@ -174,7 +174,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo weekly Tax Invoice (Total Order Value) \u2014 w/c 2026-07-20 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": [
