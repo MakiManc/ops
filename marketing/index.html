@@ -126,6 +126,11 @@ tr.clusterrow td { background: #EEF2F7; font-weight: 700; font-size: 10px; text-
 .mdl-why.ADD, .mdl-why.SCALE { border-left-color: #16A34A; background: #F0FDF4; }
 .mdl-why.KILL { border-left-color: #DC2626; background: #FEF2F2; }
 .histstate.actioned { background: #DCFCE7; color: #15803D; }
+.doneline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #15803D; margin-bottom: 10px; }
+.doneline b { color: #14532D; }
+.doneline .none { color: #64748B; }
+.offdate { font-weight: 600; color: #15803D; }
+.offdate small { display: block; font-weight: 400; font-size: 9px; color: #94A3B8; text-transform: uppercase; letter-spacing: .04em; }
 .mdl-why.PENDING { border-left-color: #94A3B8; }
 .mdl-why.KEEP { border-left-color: #D97706; background: #FFFBEB; }
 .mdl-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; margin-bottom: 12px; }
@@ -478,10 +483,11 @@ tr.hiddenrow { display: none; }
   </div>
   <div class="section">
     <h2>Decision history</h2>
-    <div class="src">Everything agreed as KILL or SCALE — and why. Rows stay here after the ad is paused and drops off the live list, so this is the record of what was actually done. Ledger starts 28 Jul 2026; kills before then weren't recorded.</div>
+    <div class="src">Everything agreed as KILL or SCALE — and why, and whether it was actually done. Rows stay here after the ad is paused and drops off the live list. Ledger starts 28 Jul 2026; kills before then weren't recorded.</div>
+    <div class="doneline" id="matrix-done"></div>
     <table>
-      <thead><tr><th>Decided</th><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="ctr">Metric 1</th><th class="ctr">Metric 2</th><th>Why</th><th>Status</th></tr></thead>
-      <tbody id="matrix-hist-table"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+      <thead><tr><th>Decided</th><th class="ctr">Switched off</th><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="ctr">Metric 1</th><th class="ctr">Metric 2</th><th>Why</th><th>Status</th></tr></thead>
+      <tbody id="matrix-hist-table"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -1721,6 +1727,21 @@ function statusOf(r) {
   if (src === 'auto') return verdictOf(r) === 'KEEP' ? 'settled' : 'confirmed';
   return 'building';
 }
+// WHEN it was actually switched off. The sheet records actioned_on from the
+// last day the ad spent money — Meta's feed has no pause event, so that is the
+// closest honest answer. Older ledger rows only carry it inside the reason text.
+function actionedOn(r) {
+  var v = String(r.actioned_on || '').slice(0, 10);
+  if (v) return v;
+  var m = String(r.reason || '').match(/last spend (\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : '';
+}
+function fmtDayMon(v) {
+  if (!v) return '';
+  var d = new Date(String(v).slice(0, 10));
+  if (isNaN(d)) return String(v).slice(0, 10);
+  return d.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+}
 function evidenceOf(r) {
   var v = r.evidence_days_or_posts;
   if (v == null || v === '') v = r.sample_size;
@@ -1734,7 +1755,7 @@ function evidenceLabel(r) {
   var unit = r.entity_type === 'format_series' ? (n === 1 ? 'post' : 'posts') : (n === 1 ? 'day' : 'days');
   return '<span class="mval">' + n + '</span><span class="mlabel">' + unit + ' of data</span>';
 }
-var METRIC_LABELS = {CPA_gbp: 'Cost per sale', CPC_gbp: 'Cost per click',
+var METRIC_LABELS = {CPA_gbp: 'CPA', CPC_gbp: 'CPC',
   median_eng_on_reach: 'Engagement', median_saves_shares_on_reach: 'Saves + shares'};
 function metricCell(name, value) {
   name = String(name || '');
@@ -1912,8 +1933,27 @@ function renderMatrixHistory() {
            String(a.r.entity_name).localeCompare(String(b.r.entity_name));
   });
   matrixHistView = list;
+  // What has actually been DONE — the question Michael kept having to ask by
+  // hand: was it killed, and when.
+  var doneEl = document.getElementById('matrix-done');
+  if (doneEl) {
+    var done = list.filter(function(x) { return statusOf(x.r) === 'actioned'; });
+    var outstanding = list.filter(function(x) {
+      return verdictOf(x.r) === 'KILL' && statusOf(x.r) !== 'actioned' && statusOf(x.r) !== 'stopped';
+    });
+    doneEl.innerHTML = done.length
+      ? '<b>' + done.length + ' kill' + (done.length === 1 ? '' : 's') + ' actioned</b>' +
+        done.slice(0, 6).map(function(x) {
+          return '<span class="pill">' + escAttr(String(x.r.entity_name).slice(0, 34)) +
+                 ' · off ' + fmtDayMon(actionedOn(x.r)) + '</span>';
+        }).join('') +
+        (done.length > 6 ? '<span class="subtle">+' + (done.length - 6) + ' more below</span>' : '') +
+        (outstanding.length ? '<span class="subtle">· ' + outstanding.length + ' agreed kill' +
+          (outstanding.length === 1 ? '' : 's') + ' still running</span>' : '<span class="subtle">· nothing outstanding</span>')
+      : '<span class="none">No kills confirmed as actioned yet. Once an ad is paused in Meta it lands here with the date it stopped spending.</span>';
+  }
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="subtle">Nothing agreed yet — decisions land here as the system (or you) agrees them. The ledger starts 28 Jul 2026.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="subtle">Nothing agreed yet — decisions land here as the system (or you) agrees them. The ledger starts 28 Jul 2026.</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(function(x, idx) {
@@ -1922,8 +1962,12 @@ function renderMatrixHistory() {
     var m1 = metricCell(r.key_metric_1_name, r.key_metric_1_value);
     var m2 = metricCell(r.key_metric_2_name, r.key_metric_2_value);
     var hstatus = statusOf(r);
+    var offOn = actionedOn(r);
     return '<tr class="clickable" data-h="' + idx + '" title="Click for the full story">' +
       '<td class="subtle">' + String(r.decided_on || '').slice(0, 10) + '</td>' +
+      '<td class="ctr">' + (offOn
+        ? '<span class="offdate">' + fmtDayMon(offOn) + '<small>' + (hstatus === 'actioned' ? 'switched off' : 'ended') + '</small></span>'
+        : '<span class="subtle">still running</span>') + '</td>' +
       '<td><span class="rag ' + verdictOf(r) + '">' + verdictOf(r) + '</span>' +
         (statusOf(r) === 'overruled' ? '<span class="srcbadge override">your call</span>' : '') + '</td>' +
       '<td>' + escAttr(matrixDisplayName(r)) + '</td>' +
@@ -2167,8 +2211,8 @@ function openMatrixModal(r, dRaw, fromHistory) {
   } else if (isPaid) {
     var fb = statsFromReason(r.reason);
     if (fb) { stats.push(mstat('final spend', fmtGbp2(fb.spend))); stats.push(mstat('final sales', fmtN(fb.conv))); }
-    if (r.key_metric_1_value) stats.push(mstat('cost per sale', fmtGbp2(r.key_metric_1_value)));
-    if (r.key_metric_2_value) stats.push(mstat('cost per click', fmtGbp2(r.key_metric_2_value)));
+    if (r.key_metric_1_value) stats.push(mstat('CPA', fmtGbp2(r.key_metric_1_value)));
+    if (r.key_metric_2_value) stats.push(mstat('CPC', fmtGbp2(r.key_metric_2_value)));
     stats.push(mstat('status', 'aged out of the 30-day data'));
   } else {
     stats.push(mstat('posts judged', fmtN(evidenceOf(r))));
@@ -2214,8 +2258,8 @@ function openMatrixModal(r, dRaw, fromHistory) {
   if (r.flagged_since) tl.push('First flagged: <b>' + String(r.flagged_since).slice(0, 10) + '</b>');
   if (r.streak_runs) tl.push('Seen <b>' + r.streak_runs + '</b> morning' + (Number(r.streak_runs) === 1 ? '' : 's') + ' in a row');
   if (r.decided_on) tl.push('Agreed: <b>' + String(r.decided_on).slice(0, 10) + '</b> (' + (statusOf(r) === 'overruled' ? 'your override' : 'automatic') + ')');
-  if (statusOf(r) === 'actioned') tl.push('Switched off in Meta — no longer spending');
-  if (statusOf(r) === 'stopped') tl.push('Ended in Meta before a decision was agreed');
+  if (statusOf(r) === 'actioned') tl.push('Switched off in Meta: <b>' + (fmtDayMon(actionedOn(r)) || 'date unknown') + '</b> (last day it spent)');
+  if (statusOf(r) === 'stopped') tl.push('Stopped spending: <b>' + (fmtDayMon(actionedOn(r)) || 'date unknown') + '</b> — ended before a decision was agreed');
   if (tl.length) body += '<div class="mdl-days">' + tl.join('<span class="subtle">·</span>') + '</div>';
 
   document.getElementById('mdl-body').innerHTML = body;
