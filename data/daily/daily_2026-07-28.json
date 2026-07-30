@@ -1,12 +1,12 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-07-29T10:40:53",
+ "_generated_at": "2026-07-30T12:51:18",
  "date": "2026-07-28",
  "day": "Tuesday",
  "sites_reported": 19,
  "sites_expected": 19,
- "foh_boh_reported": 16,
- "unallocated_labour_total": 369.15,
+ "foh_boh_reported": 18,
+ "unallocated_labour_total": 572.3,
  "clusters": [
   {
    "name": "Scotland & Newcastle",
@@ -52,14 +52,9 @@
  "gaps": {
   "no_sales": [],
   "no_foh_boh_split": [
-   "IKI2",
-   "M14",
-   "M19"
+   "IKI2"
   ],
-  "warnings": [
-   "2026-07-28 M14: FOH £388.77/39.42% and BOH £597.37/60.58% do not resolve against total labour £1,075.71 - looks like projected, not actual - split rejected",
-   "2026-07-28 M19: FOH £665.59/54.19% and BOH £562.76/45.81% do not resolve against total labour £1,079.05 - looks like projected, not actual - split rejected"
-  ]
+  "warnings": []
  },
  "sites": {
   "IKI2": {
@@ -235,13 +230,13 @@
     "total": 1075.71,
     "hours": 72.1,
     "wage_pct": 20.25,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "failed_validation"
+    "foh": 421.18,
+    "foh_pct": 39.15,
+    "boh": 553.63,
+    "boh_pct": 51.47,
+    "unallocated": 100.9,
+    "unallocated_pct": 9.38,
+    "split_status": "ok"
    }
   },
   "M15": {
@@ -365,13 +360,13 @@
     "total": 1079.05,
     "hours": 72.8,
     "wage_pct": 29.78,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "failed_validation"
+    "foh": 461.06,
+    "foh_pct": 42.73,
+    "boh": 515.74,
+    "boh_pct": 47.8,
+    "unallocated": 102.25,
+    "unallocated_pct": 9.48,
+    "split_status": "ok"
    }
   },
   "M20": {
@@ -417,10 +412,10 @@
     "total": 1152.82,
     "hours": 79.0,
     "wage_pct": 22.52,
-    "foh": 628.89,
-    "foh_pct": 54.55,
-    "boh": 523.93,
-    "boh_pct": 45.45,
+    "foh": 523.93,
+    "foh_pct": 45.45,
+    "boh": 628.89,
+    "boh_pct": 54.55,
     "unallocated": 0.0,
     "unallocated_pct": 0.0,
     "split_status": "ok"
@@ -562,8 +557,8 @@
   "target": 87264.5,
   "covers": 3757,
   "labour": 20358.86,
-  "foh": 7968.86,
-  "boh": 9303.05,
+  "foh": 8746.14,
+  "boh": 10477.38,
   "wage_pct": 22.99,
   "avg_spend": 23.57
  }
