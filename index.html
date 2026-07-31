@@ -1044,7 +1044,7 @@
       #tab-daily .dly-chip .val.dly-a, #tab-daily .dly-chip .sub.dly-a { color:var(--amber); }
       #tab-daily .dly-chip .val.dly-r, #tab-daily .dly-chip .sub.dly-r { color:var(--red); }
       #tab-daily .dly-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:14px; box-shadow:var(--shadow); }
-      #tab-daily table.dly { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:12.5px; min-width:1240px; }
+      #tab-daily table.dly { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:12.5px; min-width:1400px; }
       /* Maki-orange header band, and EVERY cell centred */
       #tab-daily table.dly th { background:var(--band); color:#fff; text-align:center; padding:10px 8px; white-space:nowrap; font-weight:700; letter-spacing:.2px; }
       #tab-daily table.dly th.acc-foh { box-shadow:inset 0 -4px 0 var(--foh); }
@@ -1084,6 +1084,32 @@
       #tab-daily .dly-foot { font-size:11.5px; color:var(--ink-3); margin-top:12px; line-height:1.55; }
       #tab-daily .dly-key { display:inline-flex; align-items:center; gap:5px; margin-right:12px; font-weight:700; }
       #tab-daily .dly-key i { width:10px; height:10px; border-radius:3px; display:inline-block; }
+      /* ---- Google reviews column (v3) ---------------------------------- */
+      #tab-daily .dly-rv { font:inherit; display:inline-block; min-width:112px; text-align:center; cursor:pointer; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:5px 9px; line-height:1.3; }
+      #tab-daily .dly-rv:hover:not([disabled]) { border-color:var(--band); }
+      #tab-daily .dly-rv.open { border-color:var(--band); box-shadow:inset 0 0 0 1px var(--band); }
+      #tab-daily .dly-rv[disabled] { cursor:default; opacity:.7; }
+      #tab-daily .dly-rv .rv-star { display:block; font-size:13.5px; font-weight:800; font-variant-numeric:tabular-nums; }
+      #tab-daily .dly-rv .rv-n { display:block; font-size:10px; font-weight:600; color:var(--ink-3); }
+      #tab-daily .dly-rv .rv-neg { display:block; font-size:10px; font-weight:800; color:var(--red); }
+      #tab-daily .dly-rv .rv-day { display:block; font-size:10px; font-weight:700; color:var(--band); }
+      #tab-daily tr.dly-rvrow > td { background:#FAFAFA; padding:0; border-top:0; }
+      #tab-daily .rv-panel { padding:12px 16px 15px; text-align:left; white-space:normal; }
+      #tab-daily .rv-panel h4 { margin:8px 0 6px; font-size:11px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; }
+      #tab-daily .rv-panel h4:first-child { margin-top:0; }
+      #tab-daily .rv-panel h4.neg { color:var(--red); }
+      #tab-daily .rv-panel h4.pos { color:var(--green); }
+      #tab-daily .rv-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:8px; }
+      #tab-daily .rv-card { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--green); border-radius:10px; padding:8px 11px; }
+      #tab-daily .rv-card.neg { border-left-color:var(--red); }
+      #tab-daily .rv-card .rv-head { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; font-size:11px; }
+      #tab-daily .rv-card .rv-stars { font-weight:800; letter-spacing:1.5px; }
+      #tab-daily .rv-card.neg .rv-stars { color:var(--red); }
+      #tab-daily .rv-card .rv-who { font-weight:700; color:var(--ink-2); }
+      #tab-daily .rv-card .rv-when { color:var(--ink-3); margin-left:auto; }
+      #tab-daily .rv-card p { margin:5px 0 0; font-size:12px; line-height:1.5; color:var(--ink); white-space:normal; }
+      #tab-daily .rv-note { font-size:11px; color:var(--ink-3); margin:10px 0 0; line-height:1.5; }
+      #tab-daily .dly-bandrv { font-size:11.5px; font-weight:700; color:var(--ink-2); font-variant-numeric:tabular-nums; }
     </style>
     <div class="mini-hero">
       <h2 id="daily-title">Daily Cash-Up</h2>
@@ -4814,8 +4840,20 @@ const MEETING_RISK = {
 // and froze on 17/06/2026 while still rendering as the first tab, with no
 // staleness indicator. It now fetches per-day files so that cannot recur.
 //
-//   <DATA_DIR>/daily/daily_index.json   -> { latest, dates: [newest .. oldest] }
-//   <DATA_DIR>/daily/daily_<date>.json  -> one trading day, 19 sites
+//   <DATA_DIR>/daily/daily_index.json           -> { latest, dates: [newest..oldest] }
+//   <DATA_DIR>/daily/daily_<date>.json          -> one trading day, 19 sites
+//   <DATA_DIR>/daily/daily_reviews_<date>.json  -> Google reviews, same day (Pipe 8b)
+//
+// v3, 31/07/2026 -- Google reviews column. The reviews file is fetched
+// ALONGSIDE the cash-up file and is treated as OPTIONAL: if it 404s or fails
+// to parse, the reviews column degrades to a dash and every cash-up number on
+// the tab still renders. Reviews must never be able to take the tab down.
+//
+// The chip leads on the 7-DAY figure, not the day. Roughly 65 Google reviews
+// arrive per day across 19 sites -- about 3 per site -- which is far too thin
+// to colour a per-site daily chip. The day count is shown only when it is
+// non-zero, and is labelled `that day` because a review is RECEIVED days after
+// the visit: it is a feedback inbox, not a same-day quality score.
 //
 // Written by am_rebuild/builders/pull_daily_cashup.py (Pipe 8) from the Auto Cash
 // Up workbook's `Raw Data 2` tab. FOH/BOH are ACTUAL completed shifts, and the
@@ -4839,9 +4877,10 @@ const MEETING_RISK = {
   var elGaps = document.getElementById('daily-gaps');
   var elFoot = document.getElementById('daily-foot');
 
-  var NCOL = 10;
+  var NCOL = 11;
   var DATES = [];
   var cache = {};
+  var rvCache = {};   // reviews payload per date; null means 'tried, not available'
 
   var fmtG = function (n) {
     if (n == null) return '—';
@@ -4876,6 +4915,83 @@ const MEETING_RISK = {
     p = Math.abs(p);
     return p < 1 ? 'dly-m' : (p < 5 ? 'dly-a' : 'dly-r');
   };
+
+  // ---- Google reviews (Pipe 8b) --------------------------------------
+  // RAG on the 7-day average. 4.5 is the fleet's working expectation; below 4.0
+  // is a site with a real problem, not noise.
+  var ragStars = function (a) { return a == null ? 'dly-m' : (a >= 4.5 ? 'dly-g' : (a >= 4.0 ? 'dly-a' : 'dly-r')); };
+  var starStr = function (n) { return '\u2605'.repeat(n) + '\u2606'.repeat(5 - n); };
+  var plural = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
+
+  function rvChip(rv, code) {
+    var s = rv && rv.sites ? rv.sites[code] : null;
+    if (!s) {
+      return '<span class="dly-rv" style="cursor:default;opacity:.7">'
+        + '<span class="rv-star dly-m">\u2014</span><span class="rv-n">no review data</span></span>';
+    }
+    var w = s.window, d = s.day;
+    if (!w.n) {
+      return '<span class="dly-rv" style="cursor:default;opacity:.7" title="No Google reviews received at this site in the 7 days to '
+        + esc(rv.date) + '.">'
+        + '<span class="rv-star dly-m">\u2014</span><span class="rv-n">none in 7 days</span></span>';
+    }
+    var readable = (s.reviews || []).length;
+    var tip = plural(w.n, 'review') + ' received ' + shortDate(rv.window_from) + ' \u2013 ' + shortDate(rv.window_to)
+      + ' \u00b7 average ' + w.avg.toFixed(2) + '\u2605 \u00b7 ' + w.neg + ' negative (\u2264' + rv.neg_threshold + '\u2605)'
+      + (d.n ? ' \u00b7 ' + plural(d.n, 'review') + ' received on ' + shortDate(rv.date) : '')
+      + (readable ? ' \u2014 click to read ' + plural(readable, 'comment') : ' \u2014 no written comments to read');
+    return '<button type="button" class="dly-rv" data-rv="' + esc(code) + '" aria-expanded="false" title="' + esc(tip) + '"'
+      + (readable ? '' : ' disabled') + '>'
+      + '<span class="rv-star ' + ragStars(w.avg) + '">' + w.avg.toFixed(2) + '\u2605</span>'
+      + '<span class="rv-n">' + plural(w.n, 'review') + ' \u00b7 7 days</span>'
+      + (w.neg ? '<span class="rv-neg">' + w.neg + ' negative</span>' : '')
+      + (d.n ? '<span class="rv-day">+' + d.n + ' that day</span>' : '')
+      + '</button>';
+  }
+
+  function rvCard(r) {
+    var neg = r.stars <= 3;
+    return '<div class="rv-card' + (neg ? ' neg' : '') + '">'
+      + '<div class="rv-head"><span class="rv-stars">' + starStr(r.stars) + '</span>'
+      + '<span class="rv-who">' + esc(r.author || 'Anonymous') + '</span>'
+      + '<span class="rv-when">' + shortDate(r.date) + '</span></div>'
+      + '<p>' + esc(r.text) + '</p></div>';
+  }
+
+  // The expandable panel, rendered hidden under each site row. Negatives first,
+  // always -- they are the reason this column exists.
+  function rvRow(rv, code) {
+    var s = rv && rv.sites ? rv.sites[code] : null;
+    if (!s || !(s.reviews || []).length) return '';
+    var negs = s.reviews.filter(function (r) { return r.stars <= rv.neg_threshold; });
+    var poss = s.reviews.filter(function (r) { return r.stars > rv.neg_threshold; });
+    var html = '';
+    if (negs.length) {
+      html += '<h4 class="neg">Negative \u2014 ' + plural(negs.length, 'comment') + '</h4>'
+        + '<div class="rv-grid">' + negs.map(rvCard).join('') + '</div>';
+    }
+    if (poss.length) {
+      html += '<h4 class="pos">Positive \u2014 ' + plural(poss.length, 'comment') + '</h4>'
+        + '<div class="rv-grid">' + poss.map(rvCard).join('') + '</div>';
+    }
+    // Be explicit about what is NOT on screen. A star rating with no words still
+    // counts against the average, and the positives list is capped.
+    var notes = [];
+    var silentNeg = s.window.neg - negs.length;
+    if (silentNeg > 0) {
+      notes.push(plural(silentNeg, 'further negative rating') + ' in the 7 days carried no written comment.');
+    }
+    var cap = ((rv.gaps || {}).positives_capped || {})[code];
+    if (cap) {
+      notes.push('Showing the ' + cap.positives_shown + ' most recent of ' + cap.positives_total
+        + ' positive comments.');
+    }
+    notes.push('Received ' + shortDate(rv.window_from) + ' \u2013 ' + shortDate(rv.window_to)
+      + '. A review lands days after the visit, so this is a feedback inbox, not that day\u2019s score.');
+    html += '<p class="rv-note">' + notes.map(esc).join(' ') + '</p>';
+    return '<tr class="dly-rvrow" id="rvrow-' + esc(code) + '" style="display:none"><td colspan="' + NCOL + '">'
+      + '<div class="rv-panel">' + html + '</div></td></tr>';
+  }
 
   function hitCell(sales, target, pct) {
     if (target == null) {
@@ -4912,7 +5028,7 @@ const MEETING_RISK = {
       + '<i class="u" style="width:' + u.toFixed(2) + '%"></i></div>' + note;
   }
 
-  function siteRow(p, code) {
+  function siteRow(p, code, rv) {
     var s = p.sites[code], l = s.labour;
     var deliv = s.sales.delivery ? fmtG(s.sales.delivery) + ' delivery' : 'no delivery';
     var foh = l.foh == null
@@ -4931,10 +5047,12 @@ const MEETING_RISK = {
       + '<td>' + fmtG(l.total) + '<span class="sub dly-m">' + (l.hours == null ? '—' : l.hours.toFixed(1) + ' hrs') + '</span></td>'
       + '<td><span class="' + ragWage(l.wage_pct) + '">' + fmtP(l.wage_pct) + '</span></td>'
       + '<td>' + foh + '</td><td>' + boh + '</td>'
-      + '<td>' + splitBar(s) + '</td></tr>';
+      + '<td>' + splitBar(s) + '</td>'
+      + '<td>' + rvChip(rv, code) + '</td></tr>'
+      + rvRow(rv, code);
   }
 
-  function bandRow(p, cl) {
+  function bandRow(p, cl, rv) {
     var sales = 0, target = 0, labour = 0;
     cl.codes.forEach(function (c) {
       var s = p.sites[c];
@@ -4947,15 +5065,53 @@ const MEETING_RISK = {
     var sum = fmtG(sales) + ' vs ' + fmtG(target) + ' target '
       + '<span class="' + (vs == null ? 'dly-m' : (vs >= 0 ? 'dly-g' : 'dly-r')) + '">' + fmtSigned(vs) + '</span>'
       + ' &nbsp;·&nbsp; wage <span class="' + ragWage(wage) + '">' + fmtP(wage) + '</span>';
+
+    // Negative reviews for the region over the 7-day window. Summed from the
+    // site payloads, not from rv.regions, so the band can never disagree with
+    // the chips sitting directly beneath it.
+    var rvBand = '';
+    if (rv && rv.sites) {
+      var rn = 0, rneg = 0, rsum = 0;
+      cl.codes.forEach(function (c) {
+        var w = (rv.sites[c] || {}).window;
+        if (!w || !w.n) return;
+        rn += w.n; rneg += w.neg; rsum += w.avg * w.n;
+      });
+      if (rn) {
+        rvBand = '<span class="dly-bandrv">reviews <span class="' + ragStars(rsum / rn) + '">'
+          + (rsum / rn).toFixed(2) + '\u2605</span> &nbsp;·&nbsp; '
+          + (rneg ? '<span class="dly-r">' + plural(rneg, 'negative review') + '</span>'
+                  : '<span class="dly-g">no negatives</span>')
+          + ' <span style="font-weight:600;color:var(--ink-3)">(7 days)</span></span>';
+      }
+    }
     return '<tr class="dly-band"><td colspan="' + NCOL + '"><div class="dly-bandrow">'
       + '<span class="dly-bandname">' + esc(cl.name) + '</span>'
       + '<span class="dly-bandwho">AM <b>' + esc(cl.am) + '</b> &nbsp;·&nbsp; DAM <b>' + esc(cl.dam) + '</b>'
       + ' &nbsp;·&nbsp; ' + cl.codes.length + ' sites</span>'
-      + '<span class="dly-bandsum">' + sum + '</span>'
+      + (rvBand ? '<span class="dly-bandsum" style="margin-left:auto">' + rvBand + '</span>' : '')
+      + '<span class="dly-bandsum"' + (rvBand ? ' style="margin-left:14px"' : '') + '>' + sum + '</span>'
       + '</div></td></tr>';
   }
 
-  function render(p) {
+  // Fleet-level review tile for the chip row. Returns null when there is no
+  // reviews payload, and chips are filtered for null before rendering.
+  function rvChipTile(p, rv) {
+    if (!rv || !rv.sites) return null;
+    var n = 0, neg = 0, sum = 0, day = 0;
+    Object.keys(p.sites).forEach(function (c) {
+      var s = rv.sites[c];
+      if (!s || !s.window.n) return;
+      n += s.window.n; neg += s.window.neg; sum += s.window.avg * s.window.n; day += s.day.n;
+    });
+    if (!n) return null;
+    return ['rv', 'Google reviews', (sum / n).toFixed(2) + '\u2605',
+      plural(n, 'review') + ' in 7 days' + (day ? ' \u00b7 ' + day + ' that day' : '')
+      + ' \u00b7 ' + neg + ' negative',
+      ragStars(sum / n), neg ? 'dly-r' : 'dly-g'];
+  }
+
+  function render(p, rv) {
     var codes = Object.keys(p.sites);
     var t = p.totals || {};
 
@@ -4987,6 +5143,7 @@ const MEETING_RISK = {
       ['', 'Sales', fmtG(t.sales), 'vs target ' + fmtSigned(grpVs), '',
         grpVs == null ? '' : (grpVs >= 0 ? 'dly-g' : 'dly-r')],
       ['', 'Covers', (t.covers || 0).toLocaleString('en-GB'), 'avg spend ' + fmtG2(t.avg_spend), '', ''],
+      rvChipTile(p, rv),
       ['', 'Labour cost', fmtG(t.labour), 'wage ' + fmtP(t.wage_pct), '', ragWage(t.wage_pct)],
       ['foh', 'FOH labour', fmtG(t.foh), fmtP(share(t.foh)) + denom, '', ''],
       ['boh', 'BOH labour', fmtG(t.boh), fmtP(share(t.boh)) + denom, '', ''],
@@ -4997,7 +5154,7 @@ const MEETING_RISK = {
       chips.push(['unal', 'No split recorded', fmtG(unrecLabour),
         n + ' site' + (n === 1 ? '' : 's') + ' — cannot be split', 'dly-r', '']);
     }
-    elTot.innerHTML = chips.map(function (c) {
+    elTot.innerHTML = chips.filter(Boolean).map(function (c) {
       return '<div class="dly-chip ' + c[0] + '"><div class="lbl">' + c[1] + '</div>'
         + '<div class="val ' + c[4] + '">' + c[2] + '</div>'
         + '<div class="sub ' + c[5] + '">' + c[3] + '</div></div>';
@@ -5005,7 +5162,7 @@ const MEETING_RISK = {
 
     var head = '<tr><th>Site</th><th>Target</th><th>Sales</th><th>Target hit?</th><th>Covers</th>'
       + '<th>Labour</th><th>Wage %</th><th class="acc-foh">FOH</th><th class="acc-boh">BOH</th>'
-      + '<th>Split of labour cost</th></tr>';
+      + '<th>Split of labour cost</th><th>Google reviews<span class="sub" style="display:block;font-size:10px;font-weight:600;opacity:.85">7 days · click to read</span></th></tr>';
 
     // Group by region. Any site not in a cluster still gets rendered, under a
     // catch-all band, so a new site can never silently vanish from the tab.
@@ -5021,7 +5178,7 @@ const MEETING_RISK = {
       var ordered = cl.codes.slice().sort(function (a, b) {
         return p.sites[b].sales.actual - p.sites[a].sales.actual;
       });
-      return bandRow(p, cl) + ordered.map(function (c) { return siteRow(p, c); }).join('');
+      return bandRow(p, cl, rv) + ordered.map(function (c) { return siteRow(p, c, rv); }).join('');
     }).join('');
     elTab.innerHTML = head + body;
 
@@ -5060,6 +5217,22 @@ const MEETING_RISK = {
           return '<b>' + esc(c) + '</b> ' + fmtSigned(p.sites[c].sales.vs_target_pct);
         }).join(' &nbsp;·&nbsp; ') + '</li></ul>';
     }
+    // Sites where NOTHING arrives. This is an ingestion fault upstream of the
+    // dashboard, not a site performance problem, so it gets its own owner.
+    var rvDead = rv ? ((rv.gaps || {}).no_reviews_in_window || []).filter(function (c) {
+      return p.sites[c];
+    }) : [];
+    if (rvDead.length) {
+      blocks += '<b class="sec">No Google reviews arriving</b><ul style="margin:4px 0 10px;padding-left:18px;">'
+        + rvDead.map(function (c) {
+          return '<li><b>' + esc(c) + '</b> ' + esc((p.sites[c] || {}).name || '')
+            + ' \u2014 not one review has reached the reviews workbook in the last 7 days. '
+            + 'This is a feed problem, not a site problem: no dashboard change can fix it.</li>';
+        }).join('')
+        + '<li style="list-style:none;margin-left:-18px;font-size:11.5px;color:var(--ink-3)">'
+        + 'Owner: Becca Cuthbertson / Vidya Damodaran Vijayan \u2014 the Google Business Profile '
+        + 'connector that feeds the reviews workbook.</li></ul>';
+    }
     if ((g.no_sales || []).length) {
       blocks += '<b class="sec">No cash-up received</b><ul style="margin:4px 0 10px;padding-left:18px;"><li>'
         + g.no_sales.map(esc).join(', ') + '</li></ul>';
@@ -5075,7 +5248,15 @@ const MEETING_RISK = {
       + 'Target is Sit In target plus Delivery Target — the same figure as the Day before Auto tabs. '
       + 'FOH and BOH are actual completed shifts, shown in £ and as a share of the final total labour cost. '
       + 'Wage % is total labour ÷ sales. Grouped by region, then sales highest first. '
-      + 'Source: Auto Cash Up workbook, <b>Raw Data 2</b>. Refreshed daily at 12:15 Dubai.';
+      + 'Source: Auto Cash Up workbook, <b>Raw Data 2</b>. Refreshed daily at 12:15 Dubai.'
+      + (rv
+        ? '<br><b>Google reviews</b> lead on the rolling <b>7 days</b> to ' + shortDate(rv.window_to)
+          + ' \u2014 about 65 reviews a day arrive across 19 sites, too few to judge a site on one day. '
+          + 'The <span style="color:var(--band);font-weight:700">+n that day</span> line appears only when reviews '
+          + 'were received on the selected day. \u2264' + rv.neg_threshold + '\u2605 counts as negative. Reviews are '
+          + 'shown by the day they were <b>received</b>, which is days after the visit \u2014 treat the column as a '
+          + 'feedback inbox, not that day\u2019s score. Click any chip to read the comments.'
+        : '<br>Google reviews are not available for this day.');
   }
 
   function show(date) {
@@ -5084,11 +5265,23 @@ const MEETING_RISK = {
     var i = DATES.indexOf(date);
     elPrev.disabled = (i >= DATES.length - 1);
     elNext.disabled = (i <= 0);
-    if (cache[date]) { render(cache[date]); return; }
+    if (cache[date]) { render(cache[date], rvCache[date]); return; }
     elSub.textContent = 'Loading ' + shortDate(date) + '…';
-    fetch(DIR + 'daily_' + date + '.json?cb=' + Date.now())
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (p) { cache[date] = p; render(p); })
+    var cb = '?cb=' + Date.now();
+    var pMain = fetch(DIR + 'daily_' + date + '.json' + cb)
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    // Reviews are OPTIONAL. A missing or malformed reviews file resolves to null
+    // and the cash-up table still renders in full -- Pipe 8b must never be able
+    // to take Pipe 8's tab down.
+    var pRv = fetch(DIR + 'daily_reviews_' + date + '.json' + cb)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+    Promise.all([pMain, pRv])
+      .then(function (a) {
+        cache[date] = a[0];
+        rvCache[date] = (a[1] && a[1].sites) ? a[1] : null;
+        render(a[0], rvCache[date]);
+      })
       .catch(function (e) { fail('Could not load ' + date + ' (' + e.message + ').'); });
   }
 
@@ -5102,6 +5295,24 @@ const MEETING_RISK = {
   elPrev.addEventListener('click', function () { step(1); });   // older
   elNext.addEventListener('click', function () { step(-1); });  // newer
   elSel.addEventListener('change', function () { show(elSel.value); });
+
+  // Expand / collapse a site's review cards. Delegated and bound ONCE, because
+  // render() replaces the whole table body on every day change.
+  elTab.addEventListener('click', function (ev) {
+    var el = ev.target;
+    while (el && el !== elTab && !(el.className && String(el.className).indexOf('dly-rv') === 0)) {
+      el = el.parentNode;
+    }
+    if (!el || el === elTab) return;
+    var code = el.getAttribute && el.getAttribute('data-rv');
+    if (!code) return;
+    var row = document.getElementById('rvrow-' + code);
+    if (!row) return;
+    var isOpen = row.style.display !== 'none';
+    row.style.display = isOpen ? 'none' : '';
+    el.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    el.className = isOpen ? 'dly-rv' : 'dly-rv open';
+  });
 
   fetch(DIR + 'daily_index.json?cb=' + Date.now())
     .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
