@@ -1,11 +1,11 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-07-30T12:51:18",
+ "_generated_at": "2026-07-31T08:55:34",
  "date": "2026-07-29",
  "day": "Wednesday",
  "sites_reported": 19,
  "sites_expected": 19,
- "foh_boh_reported": 16,
+ "foh_boh_reported": 17,
  "unallocated_labour_total": 637.22,
  "clusters": [
   {
@@ -53,11 +53,9 @@
   "no_sales": [],
   "no_foh_boh_split": [
    "IKI2",
-   "M15",
    "M19"
   ],
   "warnings": [
-   "2026-07-29 M15: FOH £769.94/58.51% and BOH £778.41/48.4% do not resolve against total labour £1,608.31 - looks like projected, not actual - split rejected",
    "2026-07-29 M19: FOH £679.05/47.47% and BOH £751.49/52.53% do not resolve against total labour £1,539.53 - looks like projected, not actual - split rejected"
   ]
  },
@@ -125,8 +123,8 @@
     "target": 3927.0,
     "vs_target_pct": 3.95
    },
-   "covers": 190,
-   "avg_spend": 19.17,
+   "covers": 180,
+   "avg_spend": 20.24,
    "labour": {
     "total": 850.2,
     "hours": 56.7,
@@ -261,13 +259,13 @@
     "total": 1608.31,
     "hours": 108.1,
     "wage_pct": 19.95,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "failed_validation"
+    "foh": 829.9,
+    "foh_pct": 51.6,
+    "boh": 778.41,
+    "boh_pct": 48.4,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
    }
   },
   "M16": {
@@ -560,11 +558,11 @@
  "totals": {
   "sales": 92016.81,
   "target": 87764.5,
-  "covers": 3780,
+  "covers": 3770,
   "labour": 20721.17,
-  "foh": 7245.76,
-  "boh": 9183.85,
+  "foh": 8075.66,
+  "boh": 9962.26,
   "wage_pct": 22.52,
-  "avg_spend": 24.34
+  "avg_spend": 24.41
  }
 }
