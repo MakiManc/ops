@@ -1,7 +1,7 @@
 {
- "date": "2026-08-01",
- "window_from": "2026-07-26",
- "window_to": "2026-08-01",
+ "date": "2026-08-02",
+ "window_from": "2026-07-27",
+ "window_to": "2026-08-02",
  "window_days": 7,
  "_generated_at": "2026-08-03T12:12:53Z",
  "source": "Google Reviews workbook 1aFGfbGr… — 'Raw Data' tab (gid 284143046). Reviews RECEIVED on the date shown; a review lands days after the visit.",
@@ -10,20 +10,27 @@
   "M1": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 0,
-    "avg": null,
+    "n": 1,
+    "avg": 5.0,
     "neg": 0,
-    "pos": 0,
-    "with_comment": 0
+    "pos": 1,
+    "with_comment": 1
    },
    "window": {
-    "n": 4,
-    "avg": 4.0,
+    "n": 5,
+    "avg": 4.2,
     "neg": 1,
-    "pos": 3,
-    "with_comment": 2
+    "pos": 4,
+    "with_comment": 3
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Roporygon",
+     "text": "The best restaurant experience in Scotland we had. The vegan options were the best we ever had. Vegan Katsu Curry was 10 / 10. Staff was very friendly. Perfect experience.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 1,
      "author": "Sabiha Shahid",
@@ -61,32 +68,32 @@
   "M6": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 1,
-    "avg": 3.0,
+    "n": 4,
+    "avg": 4.5,
     "neg": 1,
-    "pos": 0,
-    "with_comment": 0
+    "pos": 3,
+    "with_comment": 1
    },
    "window": {
-    "n": 5,
-    "avg": 3.8,
+    "n": 7,
+    "avg": 4.43,
     "neg": 2,
-    "pos": 3,
+    "pos": 5,
     "with_comment": 2
    },
    "reviews": [
+    {
+     "stars": 3,
+     "author": "Justyna P",
+     "text": "Food started coming in a very weird order, in such long intervals. Please be aware they add a tip which is a first time I saw that here.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Greeshma",
      "text": "Tried Ramen while visiting Glasgow and had a very good experience here. Everything was just exactly as we expected. Would visit again.",
      "date": "2026-07-28",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Leo Q",
-     "text": "Really great huge portion sizes and super tasty food, I recommend the tamago sushi and also the hell ramen. The service could be a little quicker but it’s usually much faster in the larger locations compared to the smaller one on Buchanan street, and the overall decor and atmosphere is great!",
-     "date": "2026-07-26",
      "has_comment": true
     }
    ]
@@ -94,10 +101,10 @@
   "M7": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 2,
+    "n": 1,
     "avg": 5.0,
     "neg": 0,
-    "pos": 2,
+    "pos": 1,
     "with_comment": 1
    },
    "window": {
@@ -108,6 +115,13 @@
     "with_comment": 5
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Thorhallur Haukur Thorvaldsson",
+     "text": "great versatile food with a chill vibe and great service the staff was very nice and welcoming with great energy the place was clean and had cool decorations it is one of the best places i’ve been to",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Sergey Cherkasov",
@@ -135,13 +149,6 @@
      "text": "(Translated by Google) Just a heads-up: this restaurant also has another branch called Ramen Ramen. It's the same restaurant, just with a different name! The ramen, may God bless the food, was awful! The side dishes were delicious, and one of the main reasons we chose this place was because they confirmed that the food is halal! However, I wouldn't repeat the experience; the ramen was below average. Just a heads-up: this restaurant also has another branch called Ramen Ramen. As far as I could tell, it's the same restaurant with a different name. The side dishes were actually very tasty, and one of the main reasons we chose this place was because they confirmed that the food is halal. Unfortunately, the ramen itself was very disappointing. It was below average in terms of flavor and didn't live up to expectations at all. I was expecting something much better. Overall, I enjoyed the side dishes more than the main course, but I wouldn't come back for the ramen. It simply wasn't worth repeating the experience. (Original) للتنبيه هذا المطعم يوجد له فرع أخر أسمه رامن رامن ،، نفس المطعم بس اسماء مختلفه !!الرامن الله يعز النعمه ما يسوى !! الاطباق الجانبيه لذيذه ،، ميزته حسب كلامهم انه حلال!! لكن ما اكرر التجربه ، الرامن طعم أقل من عادي. Just a heads-up: this restaurant also has another branch called Ramen Ramen. As far as I could tell, it’s the same restaurant with a different name. The side dishes were actually very tasty, and one of the main reasons we chose this place was because they confirmed that the food is halal. Unfortunately, the ramen itself was very disappointing. It was below average in terms of flavor and didn’t live up to the expectations at all. I was expecting something much better. Overall, I enjoyed the side dishes more than the main course, but I wouldn’t come back for the ramen. It simply wasn’t worth repeating the experience.",
      "date": "2026-07-28",
      "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Ewan McCurdy",
-     "text": "I totally love this place so darn much. No complaints from me, service was outstanding, food was even better and the atmosphere was exceptional.",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   },
@@ -149,19 +156,26 @@
    "cluster": "Scotland & Newcastle",
    "day": {
     "n": 2,
-    "avg": 4.5,
+    "avg": 5.0,
     "neg": 0,
     "pos": 2,
     "with_comment": 1
    },
    "window": {
     "n": 12,
-    "avg": 4.42,
-    "neg": 1,
-    "pos": 11,
-    "with_comment": 9
+    "avg": 4.75,
+    "neg": 0,
+    "pos": 12,
+    "with_comment": 8
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Asma Khan",
+     "text": "Amazing, fresh sushi! Great staff and delicious food.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Jelilah",
@@ -210,20 +224,6 @@
      "text": "Excellent service! The Tenten Ramen was our special. Consider me Ramenpressed!",
      "date": "2026-07-27",
      "has_comment": true
-    },
-    {
-     "stars": 1,
-     "author": "Nathaniel hogan",
-     "text": "Foods class, I went to the wrong one",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Jillian Clayton",
-     "text": "My daughter has been here before with her aunt, and asked if we could go because she really liked it. Omg, the food was amazing! I can see why my daughter likes it so much. The staff were also very lovely polite. Will definitely be back!",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   },
@@ -248,20 +248,27 @@
   "M12": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 3,
+    "n": 1,
     "avg": 5.0,
     "neg": 0,
-    "pos": 3,
-    "with_comment": 3
+    "pos": 1,
+    "with_comment": 1
    },
    "window": {
-    "n": 9,
+    "n": 8,
     "avg": 5.0,
     "neg": 0,
-    "pos": 9,
+    "pos": 8,
     "with_comment": 8
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Olha Anoshko",
+     "text": "(Translated by Google) I visited this restaurant. I really enjoyed the main courses and the sushi. Everything was fresh, delicious, and well-prepared. The service was also pleasant. However, the desserts were disappointing. They weren't very tasty and, in my opinion, didn't match the standard of the main course. I would like to see them improve in quality. Otherwise, my impression of the restaurant was positive. (Original) Посетила этот ресторан. Основные блюда и суши действительно понравились. Всё было свежим, вкусным и хорошо приготовленным. Обслуживание также оставило приятное впечатление. А вот десерты разочаровали. Они оказались не очень вкусными и, на мой взгляд, не соответствуют уровню основной кухни. Хотелось бы, чтобы их качество улучшили. В остальном впечатление от ресторана осталось положительным.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Mélodie St-Arnaud",
@@ -310,23 +317,16 @@
      "text": "What a fantastic experience! The staff Harry, Emma and Georgia were extremely kind, helpful and attentive. The food was out of this world and we will definitely be back soon",
      "date": "2026-07-28",
      "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Joanna Chan",
-     "text": "We really enjoyed the food and service here. Alicia was especially attentive as we have a son with several allergies and she made sure to check what was suitable and kept the kitchen informed. We ordered the salmon set, hell ramen and black garlic tonkatsu broth which were all delicious. We were offered a swap from ramen to rice due to allergies and it was no hassle at all. The atmosphere in the restaurant was lovely and service pretty quick despite it being a busy lunchtime. Will definitely be back.",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   },
   "M13": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 4,
-    "avg": 4.75,
+    "n": 1,
+    "avg": 5.0,
     "neg": 0,
-    "pos": 4,
+    "pos": 1,
     "with_comment": 1
    },
    "window": {
@@ -334,9 +334,16 @@
     "avg": 4.69,
     "neg": 1,
     "pos": 12,
-    "with_comment": 7
+    "with_comment": 8
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Graeme Ross",
+     "text": "Been to Maki and Ramen in different cities across the U.K. and as always the food is very good standard. Always tasty and staff helpful. Love it",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Nicole Ratliff",
@@ -391,20 +398,27 @@
   "M15": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 4,
-    "avg": 5.0,
+    "n": 1,
+    "avg": 4.0,
     "neg": 0,
-    "pos": 4,
-    "with_comment": 2
+    "pos": 1,
+    "with_comment": 1
    },
    "window": {
-    "n": 13,
-    "avg": 4.62,
+    "n": 12,
+    "avg": 4.58,
     "neg": 0,
-    "pos": 13,
+    "pos": 12,
     "with_comment": 7
    },
    "reviews": [
+    {
+     "stars": 4,
+     "author": "Charlotte Fox",
+     "text": "Yumy",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Lily Wood",
@@ -446,33 +460,33 @@
      "text": "Ramen was very tasty although the squid I had was tasteless and like rubber, still recommend otherwise",
      "date": "2026-07-27",
      "has_comment": true
-    },
-    {
-     "stars": 4,
-     "author": "maricel puse",
-     "text": "Very good",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   },
   "M9": {
    "cluster": "North England & Midlands",
    "day": {
-    "n": 3,
+    "n": 2,
     "avg": 5.0,
     "neg": 0,
-    "pos": 3,
+    "pos": 2,
     "with_comment": 1
    },
    "window": {
-    "n": 23,
-    "avg": 4.96,
+    "n": 12,
+    "avg": 4.92,
     "neg": 0,
-    "pos": 23,
-    "with_comment": 14
+    "pos": 12,
+    "with_comment": 6
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Faye Slattery",
+     "text": "We came with friends and small children and it was a fantastic ! Amazing food and very helpful staff . The children tried sushi for the first time and loved it!",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "U Alam",
@@ -507,75 +521,33 @@
      "text": "1000/100 ❤️🙌🫶🏾",
      "date": "2026-07-27",
      "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Matthew McCormack",
-     "text": "Delicious Ramen and top tier beer",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "sophie porter",
-     "text": "Food was delicious. Harvey was fantastic! He was attentive, friendly and very professional. Thanks!",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Daniel Britton",
-     "text": "Yum",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Nicola Steven",
-     "text": "Server Harvey was very knowledgeable informing us of different dishes on the menu … really enjoyed meal thanks :)",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Poppy Hale",
-     "text": "Great service by Harvey P",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Gen P",
-     "text": "Amazing ramen, we had the steak one and Tan Tan. Sushi was unbelievable! Even better service, thanks Harvey!",
-     "date": "2026-07-26",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Emanuel Monteiro",
-     "text": "Amazing service from Kai",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   },
   "M10": {
    "cluster": "North England & Midlands",
    "day": {
-    "n": 0,
-    "avg": null,
+    "n": 1,
+    "avg": 5.0,
     "neg": 0,
-    "pos": 0,
-    "with_comment": 0
+    "pos": 1,
+    "with_comment": 1
    },
    "window": {
-    "n": 8,
-    "avg": 4.75,
+    "n": 7,
+    "avg": 4.86,
     "neg": 0,
-    "pos": 8,
-    "with_comment": 3
+    "pos": 7,
+    "with_comment": 4
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "naomi zong",
+     "text": "😋 and thank you Gaby for her fantastic service",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Ahlam Hussain",
@@ -606,16 +578,30 @@
     "avg": 5.0,
     "neg": 0,
     "pos": 2,
-    "with_comment": 1
+    "with_comment": 2
    },
    "window": {
-    "n": 12,
+    "n": 13,
     "avg": 4.92,
     "neg": 0,
-    "pos": 12,
-    "with_comment": 10
+    "pos": 13,
+    "with_comment": 12
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Shaan Subramaniam",
+     "text": "Caroline did a great job looking after us! Great selection for veggies!",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Ashwyn Subramaniam",
+     "text": "Caroline was amazing! Amazing service & aura",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Natalie Weetman",
@@ -717,20 +703,27 @@
   "M16": {
    "cluster": "North England & Midlands",
    "day": {
-    "n": 4,
-    "avg": 5.0,
+    "n": 1,
+    "avg": 4.0,
     "neg": 0,
-    "pos": 4,
-    "with_comment": 3
+    "pos": 1,
+    "with_comment": 1
    },
    "window": {
-    "n": 26,
-    "avg": 4.73,
+    "n": 18,
+    "avg": 4.61,
     "neg": 1,
-    "pos": 25,
-    "with_comment": 22
+    "pos": 17,
+    "with_comment": 16
    },
    "reviews": [
+    {
+     "stars": 4,
+     "author": "Random person",
+     "text": "The vegan black garlic tonkatsu ramen is good and flavourful. Only the top of the ramen has black garlic oil, so the bottom would only be soy sauce flavour. Pros: Quiet and comfy Cons: Not enough vegetable, Not really tonkatsu but rather salty vegan bacon, Understaffed",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "ghalia khan",
@@ -809,13 +802,6 @@
      "has_comment": true
     },
     {
-     "stars": 5,
-     "author": "Paris-star Mckillop",
-     "text": "Was a great first experience! me and my partner loved it!!",
-     "date": "2026-07-29",
-     "has_comment": true
-    },
-    {
      "stars": 1,
      "author": "Phil Ellis",
      "text": "Sadly very disappointing. Especially considering the reviews they have. Which drew me in to prebook. This wasn't a walk in and we didn't know better. And wow... the food was really poor. Expected the food to be much better. Table service was excellent. Two staff looked after us and both were spot on and super friendly. The later staff member even removing an item from the bill as it was inedible. Food was not great. Looked insipid on arrival. No taste or real texture. Rushed and bland. Did not look anything like recent photos posted by other customers. Our table was sticky around the sides. Toilets needed a clean and the floor a mop (rather sticky) and the kitchen floors did not look clean either. Leave you doors open and public will look in. It just was sad that somewhere that had potential and such a 'bigged up website' of how they came to be and the owners philosophy fell very flat. Bad experience maybe on a bad day. 3 Nice beers for 80 quid. Real shame but wouldn't consider M&R again sadly...",
@@ -827,20 +813,34 @@
   "M17": {
    "cluster": "South England",
    "day": {
-    "n": 9,
-    "avg": 4.78,
+    "n": 3,
+    "avg": 5.0,
     "neg": 0,
-    "pos": 9,
-    "with_comment": 8
+    "pos": 3,
+    "with_comment": 2
    },
    "window": {
-    "n": 59,
-    "avg": 4.8,
-    "neg": 2,
-    "pos": 57,
-    "with_comment": 54
+    "n": 47,
+    "avg": 4.87,
+    "neg": 1,
+    "pos": 46,
+    "with_comment": 42
    },
    "reviews": [
+    {
+     "stars": 5,
+     "author": "Ande Collins-Quirk",
+     "text": "Service is 10/10, Zahara and Sarah were brilliant and attentive throughout the evening Food is good hearty ramen and delicious fresh sushi for a very reasonable price I am vegan and there's so many vegan options that don't compromise on flavour",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Ishrath Khan",
+     "text": "Had a great experience here the food was amazing! thank you to the staff (Aayusha)",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Banti Sidhu",
@@ -917,27 +917,6 @@
      "text": "Amazing and lovely place, will be coming back to eat here again. The food was delicious, the waitress Maddison M was so sweet and lovely .",
      "date": "2026-07-31",
      "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "ben knell",
-     "text": "Leria is amazing and great services.",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Ren Nogara",
-     "text": "Experience was amazing, food was beautiful ⭐️⭐️⭐️⭐️⭐️",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 1,
-     "author": "N A",
-     "text": "Visited and decided we were going to sit outside. All the staff were inside huddled together in a corner chatting and didn't even notice I was standing by the door waiting for someone to hand me a menu and ask whether they accepted cash. It actually took one of the chefs to notice me and tell them there was a customer waiting. I honestly didn't even realise they were the staff because the atmosphere made it seem like they were just a group of friends sitting around laughing and talking together. Very unprofessional. I was told cash was accepted, but when the same staff member came to take our order, she said that because we were sitting outside we'd have to scan the QR code on the table and pay by card. I reminded her that I'd already said we'd be paying cash, which really should have been explained from the beginning. She then said she could take our order, but we'd have to pay straight after ordering, which was absolutely fine. However, when she told me the total, it was higher than what I'd worked out from the menu prices. She hadn't mentioned that a service charge had been added, and I had to ask twice before she explained what the extra charge was. Considering the service we'd already received, I asked for the service charge to be removed. From that point on, her attitude noticeably changed and the customer service became even worse. When we finished eating, I thanked her and got no response at all. The food itself tasted good, but for the price, the portion sizes were very small and definitely need improving. Overall, a very disappointing experience. The lack of professionalism, poor communication and unfriendly service completely overshadowed the food. Unfortunately, I won't be returning.",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   },
@@ -945,19 +924,40 @@
    "cluster": "South England",
    "day": {
     "n": 3,
-    "avg": 4.67,
-    "neg": 0,
-    "pos": 3,
+    "avg": 3.67,
+    "neg": 1,
+    "pos": 2,
     "with_comment": 3
    },
    "window": {
-    "n": 22,
-    "avg": 4.27,
-    "neg": 4,
+    "n": 23,
+    "avg": 4.13,
+    "neg": 5,
     "pos": 18,
-    "with_comment": 18
+    "with_comment": 19
    },
    "reviews": [
+    {
+     "stars": 1,
+     "author": "Oscar",
+     "text": "Food looked nothing like the menu photos, price is outrageous for the quality of what you’re eating. Ramen broth is bland and tastes boring, sides are extortionately expensive for what you receive. Wouldn’t recommend if you actually want to enjoy your meal whilst spending decent money.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Franco Caruzzo",
+     "text": "(Translated by Google) Excellent Japanese restaurant. I tried the calamari tempura and garlic ramen, which were truly delicious. Excellent value for money. Kudos also to Ginger, who welcomed me professionally and advised me on my choice of dish. Thank you. (Original) Ottimo ristorante giapponese. Ho assaggiato la tempura di calamari e il ramen all'aglio, veramente molto buone. Ottimo rapporto qualità prezzom Complimenti anche a Ginger che mi ha accolto in modo professionale e mi ha consigliato la scelta del piatto. Grazie",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Bruno Almeida",
+     "text": "The food was good as always and the manager Dish was excellent",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Rosa Morais",
@@ -1050,23 +1050,9 @@
      "has_comment": true
     },
     {
-     "stars": 5,
-     "author": "Sophie Barloc",
-     "text": "I’ve been with my son here several times and since the first time we were delighted. My son is 9 and we found options in the menu for both of us. The atmosphere is great, it’s interesting, it’s fun yet cozy and comfortable. Especially the big tables for 4 people. We were treated so well by everyone, everytime. We’ve been here many times and things were not always perfect, like we had to ask for a dessert to be sent back again as it was split and everyone from management to the chef were so professional about it! They made sure we left happy every time. I’ve worked in hospitality and I know things don’t need to be perfect, to be treated like this is everything! Well done to the whole team. The food is delicious and being at your restaurant is such a treat for grownups and even for kids.",
-     "date": "2026-07-28",
-     "has_comment": true
-    },
-    {
      "stars": 1,
      "author": "Tano D'Amore",
      "text": "We booked a table but when we showed up they told us that they didn't have any broth available... The lady told me that they have only vegan options...They could have tell us before we travel there. So not a good experience for us, we have to leave without eating.",
-     "date": "2026-07-27",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Musa Ali",
-     "text": "Really good!! Yummy food, and nice atmosphere. The song playlist was pretty good too.",
      "date": "2026-07-27",
      "has_comment": true
     }
@@ -1075,20 +1061,55 @@
   "M19": {
    "cluster": "South England",
    "day": {
-    "n": 6,
-    "avg": 4.83,
-    "neg": 0,
-    "pos": 6,
+    "n": 5,
+    "avg": 4.0,
+    "neg": 1,
+    "pos": 4,
     "with_comment": 5
    },
    "window": {
-    "n": 42,
-    "avg": 4.93,
-    "neg": 0,
-    "pos": 42,
-    "with_comment": 36
+    "n": 45,
+    "avg": 4.82,
+    "neg": 1,
+    "pos": 44,
+    "with_comment": 39
    },
    "reviews": [
+    {
+     "stars": 1,
+     "author": "Angelina c",
+     "text": "This is one of the worst foods I had in London. The karaage chicken did not have a crispy skin as a karaage chicken should but instead tasted like chicken nuggets from McDonald’s and it was way too salty. The ramen had not depth of flavour but salt. The charsiu was inedible due to toughness (seen in picture) caused by either poor reheating or cooking. Could not eat much because of the salt. Not worth your stomach space for this awful establishment. Even bone daddies is better and I think they’re toeing the line of acceptabliy. Do not try your tastebuds here, they will die.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Thanh Trúc Lê",
+     "text": "It was a pleasant experience we had in Maki & Ramen Shoreditch. Ren was extremely helpful and always asked if we needed something. We had Tantan ramen and Seafood Hell which were amazing. Also highly recommend Black Dragon Roll with eel tempura!!!",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Мумтоза Мирвалиева",
+     "text": "Food is really good and spicy. Ren was really kind 👍",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Rachel Zanghi",
+     "text": "The food was great and The service was phenomenal. Ren and Mahak were kind and very attentive. 10/10!",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 4,
+     "author": "Bea",
+     "text": "ren was a lovely server x",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "delle&lack",
@@ -1144,54 +1165,89 @@
      "text": "Ren was great :) We had a lovely dinner in the garden.",
      "date": "2026-07-31",
      "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Kevin Xu",
-     "text": "Lovely food and Abbas was a great host!",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Nishil Amin",
-     "text": "Abbas and Ren did a great job at providing us with great service and great food! The ramen arrived very quickly and was very flavourful and well cooked. We are very happy with this establishment and wish to return soon!",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Jimizinho",
-     "text": "Thank you Navin, made us feel very welcome and the food was delicious!",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "T M",
-     "text": "⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ 10/10 – Outstanding Experience at Maki Ramen Old Street! I left Maki Ramen on Old Street completely full, so satisfied, and so thoroughly impressed by the incredible flavours! As a solo diner, going out alone can sometimes feel intimidating, but the team here made me feel so comfortable, welcomed, and confident from the moment I walked in. I honestly wouldn't have had such a fantastic dining experience if it weren't for them. A huge, heartfelt thank you to the whole team: Hajora for the warm welcome and setting such a wonderful vibe right away. Navin for making sure everything was running seamlessly. Maria for her attentive care and fantastic energy. Amidu for the efficient and friendly service throughout the meal. Jannat for going the extra mile with those thoughtful touches that make a huge difference. If you’re looking for rich, comforting, flavour-packed ramen and top-tier hospitality—especially if you're dining solo—Maki Ramen Old Street is an absolute must-visit. I'll definitely be back!",
-     "date": "2026-07-30",
-     "has_comment": true
     }
    ]
   },
   "M20": {
    "cluster": "South England",
    "day": {
-    "n": 10,
-    "avg": 5.0,
-    "neg": 0,
+    "n": 11,
+    "avg": 4.82,
+    "neg": 1,
     "pos": 10,
-    "with_comment": 6
+    "with_comment": 9
    },
    "window": {
-    "n": 108,
-    "avg": 4.92,
-    "neg": 1,
-    "pos": 107,
-    "with_comment": 89
+    "n": 95,
+    "avg": 4.91,
+    "neg": 2,
+    "pos": 93,
+    "with_comment": 79
    },
    "reviews": [
+    {
+     "stars": 3,
+     "author": "Daniel Redknap-Neely",
+     "text": "My wife and I visited your location at West Quay tonight for her birthday. Overall we had a good night and enjoyed the food. But there were a couple small things I wanted to mention. On the website it says the restaurant is open until 10pm Monday to Sunday. But we arrived just before 7:30 and were told the kitchen was closing in three minutes and we had to make an order before sitting down if we wanted to eat. This would be fine if it was mentioned on the website as we had driven 40mins to get there and almost missed out. Secondly, we were offered free mochi or a glass of Prosecco for my wife’s birthday (and maybe partially to apologise for the rushed ordering process) but when we got home and checked the bill (the restaurant was closing at 8pm as we left so we didn’t get to check properly there) that were were in fact charged for the (free) mochi.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Jenny Cheng",
+     "text": "Maki & Ramen is the best restaurant in Southampton. The ramen and sushi are both amazing. There are plenty of ramen choices, and all the ingredients are fresh and tasty. The restaurant has a great atmosphere, and the staff are always friendly and welcoming. The service is excellent. Highly recommended!",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Mao Lee",
+     "text": "Good experience, staff are nice, food quality reached expectations",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "samantha godfrey",
+     "text": "Absolutely amazing food and amazing staff 10/10 🩷",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Penny Fung",
+     "text": "This is the second time I've come to this restaurant — the food is delicious and the staff are lovely. I'll definitely be back for a third time.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Cagan Is",
+     "text": "Very high quality food and great service!",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Sara Galoni",
+     "text": "Fantastic authentic tasty food. The staff are great.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "roxanne nejarda",
+     "text": "Aesthetic place, lovely food. Mia was the one who serve us and she gave us good service. Would highly recommend",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Ansari",
+     "text": "Good halal ramen with plenty of options.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Tara-lei Furmedge",
@@ -1221,62 +1277,6 @@
      "has_comment": true
     },
     {
-     "stars": 5,
-     "author": "Joannie Elnar",
-     "text": "Great staff very hospitable and great food too!",
-     "date": "2026-08-01",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Tisha Latkar",
-     "text": "Came here for my brother’s birthday and was very impressed. We found all dishes very delicious; the service was very quick and the staff were so friendly. Thank you to Mia particularly for being making the experience memorable and welcoming for us all. Will def intently be coming again!",
-     "date": "2026-08-01",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Niaz Miah",
-     "text": "Tinky was a very friendly staff member and the food was amazing",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Lukas Riley",
-     "text": "Absolutely beautiful!!! Tinky was lovely",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "nazmul miah",
-     "text": "Tiny was an amazing customer service rep",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Taylor Knight",
-     "text": "Thank you tinky for the service",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Edgel Batoon",
-     "text": "Excellent authentic Japanese sushi/ramen experience. Tinky our waitress has been very helpful and welcoming to us. We really enjoyed our time and definitely coming back next time with our friends and family.",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Kris Pawelek",
-     "text": "Amazing food and Mia S was fantastic",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
      "stars": 1,
      "author": "Phyllis",
      "text": "The food was great but unfortunately the overall experience was disappointing. We ordered the lunch deal yet we were still overcharged. When checking the bill we were told that the drinks we chose were “premium drinks” with a £2 surcharge each and therefore not included in the lunch deal. Even though the staff member who served us had clearly confirmed that those drinks were not listed as premium on the lunch deal menu. As we were in a rush to leave she offered to remove the service charge, but somehow we still ended up paying the extra drink charges anyway (not sure what’s happened here..) On top of that, we tried to order the chicken karaage and the bone broth ramen but were told that neither was available… which was surprising for a ramen restaurant. Also, when we asked for takeaway containers we were given paper bowls and told that the soup would likely spill if we used them..?",
@@ -1288,20 +1288,41 @@
   "MakiNori": {
    "cluster": "South England",
    "day": {
-    "n": 2,
-    "avg": 4.5,
-    "neg": 0,
+    "n": 3,
+    "avg": 3.33,
+    "neg": 1,
     "pos": 2,
-    "with_comment": 2
+    "with_comment": 3
    },
    "window": {
-    "n": 12,
-    "avg": 4.58,
-    "neg": 1,
-    "pos": 11,
-    "with_comment": 10
+    "n": 14,
+    "avg": 4.29,
+    "neg": 2,
+    "pos": 12,
+    "with_comment": 12
    },
    "reviews": [
+    {
+     "stars": 1,
+     "author": "jamaisvus2",
+     "text": "What a terrible place lol. Service was bad and it’s so so so overpriced and food was just mid.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "ASP",
+     "text": "If it was any fresher, it would still be swimming! Absolutely fabulous, what a treat.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
+    {
+     "stars": 4,
+     "author": "Divya Singhal",
+     "text": "We had a good meal at Maki Nori and the space is very calming.",
+     "date": "2026-08-02",
+     "has_comment": true
+    },
     {
      "stars": 5,
      "author": "Mo Sin",
@@ -1364,13 +1385,6 @@
      "text": "(Translated by Google) Maki Nori was absolutely delicious! The medium fatty tuna hand roll was especially superb. Every dish had an authentic Japanese flavor that reminded me of Japan. The sushi chefs were highly skilled and had extensive knowledge of the origins of the ingredients and sushi in general, allowing me to enjoy truly authentic sushi. It was fantastic to be able to eat such delicious sushi even overseas. I definitely want to go back to this restaurant! (Original) Maki Nori、とても美味しかったです！特に中とろ手巻きが絶品でした。どの料理も本格的な日本の味で、日本を思い出しました。寿司職人の方々もとても技術が高く、ネタの産地やお寿司に関する知識も豊富で、本格的なお寿司を楽しむことができました。海外でもおいしいお寿司が食べれて最高でした。ぜひまた行きたいお店です！",
      "date": "2026-07-27",
      "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Nahshon",
-     "text": "Quite a nice restaurant with a very pristine and bright lighting. It is much more expensive than your typical sushi restaurant and portion sizes are on the smaller side. We really loved the scallop crudo, sea bream crudo, akemi crudo. The sauce accompanying it was superb and well conceived, and it definitely is our most favorite. We also got the 15 pcs Chef’s selection, black dragon roll, green dragon roll, soft shell crab roll, spicy tuna roll. Soft shell crab roll and black dragon roll were definitely our favourites.",
-     "date": "2026-07-26",
-     "has_comment": true
     }
    ]
   }
@@ -1391,18 +1405,18 @@
     "M15"
    ],
    "day": {
-    "n": 16,
-    "avg": 4.75,
+    "n": 11,
+    "avg": 4.73,
     "neg": 1,
-    "pos": 15,
-    "with_comment": 8
+    "pos": 10,
+    "with_comment": 7
    },
    "window": {
-    "n": 67,
-    "avg": 4.48,
-    "neg": 7,
-    "pos": 60,
-    "with_comment": 40
+    "n": 68,
+    "avg": 4.57,
+    "neg": 6,
+    "pos": 62,
+    "with_comment": 41
    }
   },
   "North England & Midlands": {
@@ -1416,18 +1430,18 @@
     "M16"
    ],
    "day": {
-    "n": 9,
-    "avg": 5.0,
+    "n": 6,
+    "avg": 4.83,
     "neg": 0,
-    "pos": 9,
+    "pos": 6,
     "with_comment": 5
    },
    "window": {
-    "n": 70,
-    "avg": 4.84,
+    "n": 51,
+    "avg": 4.8,
     "neg": 1,
-    "pos": 69,
-    "with_comment": 50
+    "pos": 50,
+    "with_comment": 39
    }
   },
   "South England": {
@@ -1441,18 +1455,18 @@
     "MakiNori"
    ],
    "day": {
-    "n": 30,
-    "avg": 4.83,
-    "neg": 0,
-    "pos": 30,
-    "with_comment": 24
+    "n": 25,
+    "avg": 4.36,
+    "neg": 4,
+    "pos": 21,
+    "with_comment": 22
    },
    "window": {
-    "n": 243,
-    "avg": 4.81,
-    "neg": 8,
-    "pos": 235,
-    "with_comment": 207
+    "n": 224,
+    "avg": 4.76,
+    "neg": 11,
+    "pos": 213,
+    "with_comment": 191
    }
   }
  },
@@ -1465,16 +1479,12 @@
    "Leith": 9
   },
   "positives_capped": {
-   "M9": {
-    "positives_total": 14,
-    "positives_shown": 12
-   },
    "M16": {
-    "positives_total": 21,
+    "positives_total": 15,
     "positives_shown": 12
    },
    "M17": {
-    "positives_total": 52,
+    "positives_total": 41,
     "positives_shown": 12
    },
    "M18": {
@@ -1482,15 +1492,15 @@
     "positives_shown": 12
    },
    "M19": {
-    "positives_total": 36,
+    "positives_total": 38,
     "positives_shown": 12
    },
    "M20": {
-    "positives_total": 88,
+    "positives_total": 77,
     "positives_shown": 12
    }
   },
-  "duplicates_dropped": 33,
+  "duplicates_dropped": 32,
   "rows_without_date": 0,
   "rows_scanned": 879
  }

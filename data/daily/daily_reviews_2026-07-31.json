@@ -3,7 +3,7 @@
  "window_from": "2026-07-25",
  "window_to": "2026-07-31",
  "window_days": 7,
- "_generated_at": "2026-08-01T14:44:25Z",
+ "_generated_at": "2026-08-03T12:12:53Z",
  "source": "Google Reviews workbook 1aFGfbGr… — 'Raw Data' tab (gid 284143046). Reviews RECEIVED on the date shown; a review lands days after the visit.",
  "neg_threshold": 3,
  "sites": {
@@ -169,11 +169,11 @@
     "with_comment": 1
    },
    "window": {
-    "n": 10,
-    "avg": 4.8,
-    "neg": 0,
+    "n": 11,
+    "avg": 4.45,
+    "neg": 1,
     "pos": 10,
-    "with_comment": 7
+    "with_comment": 8
    },
    "reviews": [
     {
@@ -216,6 +216,13 @@
      "author": "Crazy GuyYo",
      "text": "Excellent service! The Tenten Ramen was our special. Consider me Ramenpressed!",
      "date": "2026-07-27",
+     "has_comment": true
+    },
+    {
+     "stars": 1,
+     "author": "Nathaniel hogan",
+     "text": "Foods class, I went to the wrong one",
+     "date": "2026-07-26",
      "has_comment": true
     },
     {
@@ -836,15 +843,15 @@
     },
     {
      "stars": 5,
-     "author": "Stef Macarie",
-     "text": "Amazing and lovely place, will be coming back to eat here again. The food was delicious, the waitress Maddison M was so sweet and lovely .",
+     "author": "liam birch",
+     "text": "Kai was phenomenal. Sorted me out a kimono, absolutely brilliant cant fault there Services",
      "date": "2026-07-31",
      "has_comment": true
     },
     {
      "stars": 5,
-     "author": "liam birch",
-     "text": "Kai was phenomenal. Sorted me out a kimono, absolutely brilliant cant fault there Services",
+     "author": "Stef Macarie",
+     "text": "Amazing and lovely place, will be coming back to eat here again. The food was delicious, the waitress Maddison M was so sweet and lovely .",
      "date": "2026-07-31",
      "has_comment": true
     },
@@ -1084,6 +1091,13 @@
    "reviews": [
     {
      "stars": 5,
+     "author": "Risa Fatema",
+     "text": "Great food and friendly staff.",
+     "date": "2026-07-31",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
      "author": "Pooja Sant",
      "text": "Good food, great taste! Quite a lot of great vegetarian options. The staff members, especially Hajar, Ren and Abbas were very friendly and attentive! Would highly recommend visiting Maki & Ramen!",
      "date": "2026-07-31",
@@ -1114,13 +1128,6 @@
      "stars": 5,
      "author": "Jimizinho",
      "text": "Thank you Navin, made us feel very welcome and the food was delicious!",
-     "date": "2026-07-31",
-     "has_comment": true
-    },
-    {
-     "stars": 5,
-     "author": "Risa Fatema",
-     "text": "I’m a regular",
      "date": "2026-07-31",
      "has_comment": true
     },
@@ -1305,7 +1312,7 @@
     {
      "stars": 1,
      "author": "Rosana Anunciacao",
-     "text": "I genuinely don't understand how this restaurant has such a high rating. We walked past it a few days earlier and decided to give it a try because it had great reviews and looked like a really nice place. Unfortunately, it turned out to be a huge disappointment. The service was embarrassingly poor and completely below the standard the restaurant claims to offer. The place itself looked dirty and gave the impression of very poor hygiene. The most shocking part was the sushi. It was absolutely awful – worse than cheap supermarket sushi. It certainly didn't taste fresh and definitely didn't seem like it had been made that day. The only decent thing we had was the fried chicken, which was actually quite good. Sadly, that wasn't enough to make up for the rest of the experience. Overall, it was a complete disappointment from beginning to end, and I wouldn't recommend it.",
+     "text": "I genuinely don't understand how this restaurant has such a high rating. We walked past it a few days earlier and decided to give it a try because it had great reviews and looked like a really nice place. Unfortunately, it turned out to be a huge disappointment. The service was embarrassingly poor and completely below the standard the restaurant claims to offer. The place itself looked dirty and gave the impression of very poor hygiene. The most shocking part was the sushi. It was absolutely awful—worse than cheap supermarket sushi. It certainly didn't taste fresh and definitely didn't seem like it had been made that day. The only decent thing we had was the fried chicken, which was actually quite good. Sadly, that wasn't enough to make up for the rest of the experience. After leaving my review, I did a quick Google search and discovered that the restaurant only opened on 10 April 2026. What I found even more surprising was that it already had over 400 reviews, the vast majority of them positive. Given the quality of our experience, I genuinely struggle to understand how that is possible. While I can't say why this is the case, the numbers simply don't seem to add up from my perspective. Overall, it was a complete disappointment from beginning to end, and I certainly wouldn't recommend it.",
      "date": "2026-07-31",
      "has_comment": true
     },
@@ -1367,7 +1374,7 @@
     },
     {
      "stars": 5,
-     "author": "YI HU",
+     "author": "Alice",
      "text": "amazing premium dining experience",
      "date": "2026-07-25",
      "has_comment": true
@@ -1405,11 +1412,11 @@
     "with_comment": 5
    },
    "window": {
-    "n": 64,
-    "avg": 4.48,
-    "neg": 7,
+    "n": 65,
+    "avg": 4.43,
+    "neg": 8,
     "pos": 57,
-    "with_comment": 35
+    "with_comment": 36
    }
   },
   "North England & Midlands": {
@@ -1495,6 +1502,6 @@
   },
   "duplicates_dropped": 37,
   "rows_without_date": 0,
-  "rows_scanned": 757
+  "rows_scanned": 879
  }
 }
