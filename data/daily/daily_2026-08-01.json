@@ -1,12 +1,12 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-08-03T12:11:06",
+ "_generated_at": "2026-08-04T09:03:14",
  "date": "2026-08-01",
  "day": "Saturday",
  "sites_reported": 19,
  "sites_expected": 19,
- "foh_boh_reported": 16,
- "unallocated_labour_total": 77.29,
+ "foh_boh_reported": 17,
+ "unallocated_labour_total": 76.58,
  "clusters": [
   {
    "name": "Scotland & Newcastle",
@@ -52,12 +52,10 @@
  "gaps": {
   "no_sales": [],
   "no_foh_boh_split": [
-   "M16",
    "M19",
    "MakiNori"
   ],
   "warnings": [
-   "2026-08-01 M16: FOH £918.11/58.3% and BOH £710.18/52.37% do not resolve against total labour £1,356.16 - looks like projected, not actual - split rejected",
    "2026-08-01 MakiNori: FOH £414.05/32.14% and BOH £874.39/67.86% do not resolve against total labour £1,142.42 - looks like projected, not actual - split rejected",
    "2026-08-01 M19: FOH £470.27 + BOH £642.17 exceeds total labour £1,103.39 - split rejected"
   ]
@@ -288,13 +286,13 @@
     "total": 1356.16,
     "hours": 92.8,
     "wage_pct": 18.13,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "failed_validation"
+    "foh": 710.18,
+    "foh_pct": 52.37,
+    "boh": 646.69,
+    "boh_pct": 47.69,
+    "unallocated": -0.71,
+    "unallocated_pct": -0.05,
+    "split_status": "ok"
    }
   },
   "M17": {
@@ -563,8 +561,8 @@
   "target": 156987.5,
   "covers": 6358,
   "labour": 30681.93,
-  "foh": 12229.29,
-  "boh": 14773.37,
+  "foh": 12939.47,
+  "boh": 15420.06,
   "wage_pct": 19.46,
   "avg_spend": 24.8
  }
