@@ -150,6 +150,7 @@ tr.clusterrow td { background: #EEF2F7; font-weight: 700; font-size: 10px; text-
 .copybtn { border: 1px solid #CBD5E1; background: #fff; border-radius: 7px; padding: 5px 10px; font-size: 11px; cursor: pointer; color: #334155; }
 .copybtn:hover { background: #F1F5F9; }
 .mdl .cardgrid { max-height: 340px; overflow-y: auto; }
+.adthumb { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; background: #F1F5F9; display: block; }
 .barchart { width: 100%; height: 90px; display: block; }
 .warn { background: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; border-radius: 8px; padding: 8px 12px; font-size: 11px; margin-bottom: 10px; }
 footer { color: #9CA3AF; font-size: 11px; text-align: center; padding: 8px 0 2px; }
@@ -366,10 +367,10 @@ tr.hiddenrow { display: none; }
   </div>
   <div class="section">
     <h2>Google Ads — last 30 days</h2>
-    <div class="src">By campaign · Google Ads Script → GOOGLE_ADS_DAILY (AUTO)</div>
+    <div class="src">By campaign · Google Ads Script → GOOGLE_ADS_DAILY (AUTO) · kill/scale/keep from ADD_REMOVE_MATRIX (own Google bars, Search vs PMax) · click a judged row for the full story</div>
     <table>
-      <thead><tr><th>Campaign</th><th class="num">Spend</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Conv.</th><th class="num">CPA</th></tr></thead>
-      <tbody id="gads-table"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+      <thead><tr><th>Campaign</th><th>Decision</th><th class="num">Spend</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Conv.</th><th class="num">CPA</th></tr></thead>
+      <tbody id="gads-table"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
   <div class="notice"><strong>Search Console:</strong> not yet connected in Windsor — connect it (windsor.ai → searchconsole) to see the search queries driving clicks. On the action list.</div>
@@ -1335,13 +1336,23 @@ function channelGroup(source, medium) {
 }
 
 async function loadGoogle() {
-  var [ga428, gads30, gbp28, sources28, pages28] = await Promise.all([
+  var [ga428, gads30, gbp28, sources28, pages28, matrixCsv] = await Promise.all([
     getWindsor('googleanalytics4', ['date','sessions','totalusers','conversions'], {date_preset: 'last_28d'}),
     getWindsor('google_ads', ['campaign','spend','impressions','clicks','conversions'], {date_preset: 'last_30d'}),
     getWindsor('google_my_business', ['website_clicks','call_clicks','direction_requests'], {date_preset: 'last_28d'}),
     getWindsor('googleanalytics4', ['source','medium','sessions'], {date_preset: 'last_28d'}),
-    getWindsor('googleanalytics4', ['pagetitle','sessions'], {date_preset: 'last_28d'})
+    getWindsor('googleanalytics4', ['pagetitle','sessions'], {date_preset: 'last_28d'}),
+    readSheetCsv(SHEETS.ADD_REMOVE_MATRIX).catch(function() { return ''; })
   ]);
+  // Google campaigns are judged in the same matrix as Meta (4 Aug 2026) —
+  // platform='google' rows. Live rows win over ledger rows for the same name.
+  gadsMatrixByName = {};
+  csvToObjects(matrixCsv).forEach(function(r) {
+    if (r.platform !== 'google') return;
+    if (r.entity_type === 'paid_campaign') gadsMatrixByName[r.entity_name] = r;
+    else if (r.entity_type === 'HISTORY' && !gadsMatrixByName[r.entity_name]) gadsMatrixByName[r.entity_name] = r;
+  });
+  wireMatrixModal();
   drawGa4(ga428);
   drawGbp(gbp28);
   drawGadsTable(gads30);
@@ -1415,6 +1426,27 @@ function drawPages(rows) {
   }).join('');
 }
 
+var gadsMatrixByName = {};
+var gadsTableWired = false;
+function gadsDecisionCell(r) {
+  if (!r) return '<td><span class="subtle" title="Not judged yet — needs £20+ and 5+ days of spend in the last 30 days">—</span></td>';
+  var d = decisionOf(r);
+  var st = statusOf(r);
+  var inner;
+  if (st === 'actioned' || st === 'stopped') {
+    inner = '<span class="rag ' + (d.verdict || 'KEEP') + '">' + (d.verdict || '') + '</span>' +
+      '<span class="srcbadge">' + (st === 'actioned' ? 'done' : 'ended') +
+      (actionedOn(r) ? ' · off ' + fmtDayMon(actionedOn(r)) : '') + '</span>';
+  } else if (d.building) {
+    inner = '<span class="rag ' + (d.verdict || 'PENDING') + ' prov">' + (d.verdict || 'PENDING') + '</span>' +
+      '<span class="srcbadge">not agreed yet' + (d.daysToGo ? ' · ' + d.daysToGo + 'd to go' : '') + '</span>';
+  } else {
+    inner = '<span class="rag ' + d.label + '">' + d.label + '</span>' +
+      '<span class="srcbadge ' + (d.source === 'override' ? 'override' : '') + '">' +
+      (d.source === 'override' ? 'your call' : STATUS_WORDS[d.status] || d.status) + '</span>';
+  }
+  return '<td>' + inner + '</td>';
+}
 function drawGadsTable(rows) {
   var byCamp = {};
   rows.forEach(function(r) {
@@ -1433,12 +1465,23 @@ function drawGadsTable(rows) {
     return {c: c, v: v, ctr: ctr, cpc: cpc, cpa: cpa};
   }).sort(function(a, b) { return b.v.spend - a.v.spend; });
   var tbody = document.getElementById('gads-table');
-  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" class="subtle">No campaign data</td></tr>'; return; }
+  if (!tbody.dataset.wired) {
+    tbody.dataset.wired = '1';
+    tbody.addEventListener('click', function(e) {
+      var tr = e.target.closest('tr.clickable');
+      if (!tr) return;
+      var mr = gadsMatrixByName[tr.dataset.camp];
+      if (mr) openMatrixModal(mr, decisionOf(mr), mr.entity_type === 'HISTORY');
+    });
+  }
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="9" class="subtle">No campaign data</td></tr>'; return; }
   var maxSpend = list.length ? list[0].v.spend : 0;
   var maxClicks = list.reduce(function(m, x) { return Math.max(m, x.v.clicks); }, 0);
   tbody.innerHTML = list.map(function(x) {
-    return '<tr>' +
+    var mr = gadsMatrixByName[x.c];
+    return '<tr' + (mr ? ' class="clickable" data-camp="' + escAttr(x.c) + '" title="Click for the full story"' : '') + '>' +
       '<td>' + x.c + '</td>' +
+      gadsDecisionCell(mr) +
       barCell(x.v.spend, maxSpend, fmtGbp(x.v.spend), 'rgba(22,163,74,.16)') +
       '<td class="num">' + fmtN(x.v.impr) + '</td>' +
       barCell(x.v.clicks, maxClicks, fmtN(x.v.clicks), 'rgba(15,23,42,.10)') +
@@ -1670,6 +1713,7 @@ function renderHistory(paid, budgets) {
 var matrixRowsCache = null;   // live rows (what the table shows)
 var matrixHistCache = null;   // HISTORY ledger rows from the sheet
 var matrixMeta30 = null;      // per-campaign daily Meta rows for the detail popup
+var matrixAds30 = null;       // per-AD creative rows (thumbnail, copy, IG link) for the popup
 var matrixLibRows = null;     // content library for the detail popup
 var matrixAnnById = {};
 
@@ -1683,6 +1727,7 @@ async function loadMatrix() {
   matrixRowsCache = all.filter(function(r) { return r.entity_type !== 'HISTORY'; });
   matrixHistCache = all.filter(function(r) { return r.entity_type === 'HISTORY'; });
   matrixMeta30 = res[1] || [];
+  matrixAds30 = (DATA && DATA.metaAds30) || [];
   matrixLibRows = (res[2] && res[2].lib) || [];
   matrixAnnById = annotationMaps((res[2] && res[2].ann) || []);
   document.getElementById('matrix-showall').addEventListener('change', renderMatrix);
@@ -1818,16 +1863,22 @@ function renderMatrix() {
     if (x.d.building) counts.BUILDING++;
     else if (counts[x.d.label] != null) counts[x.d.label]++;
   });
-  var toSwitchOff = view.filter(function(x) {
-    return !x.d.building && x.d.label === 'KILL' && x.r.entity_type === 'paid_campaign';
-  }).length;
+  var killsMeta = 0, killsGoogle = 0;
+  view.forEach(function(x) {
+    if (x.d.building || x.d.label !== 'KILL' || x.r.entity_type !== 'paid_campaign') return;
+    if (x.r.platform === 'google') killsGoogle++; else killsMeta++;
+  });
+  var toSwitchOff = killsMeta + killsGoogle;
+  var whereTxt = killsMeta && killsGoogle
+    ? ' (' + killsMeta + ' in Meta Ads Manager, ' + killsGoogle + ' in Google Ads)'
+    : killsGoogle ? ' in Google Ads' : ' in Meta Ads Manager';
   var sumEl = document.getElementById('matrix-summary');
   if (sumEl) {
     sumEl.innerHTML =
       '<span class="rag KILL">KILL ' + counts.KILL + '</span>' +
       '<span class="rag SCALE">SCALE ' + counts.SCALE + '</span>' +
       '<span class="rag PENDING">still deciding ' + counts.BUILDING + '</span>' +
-      (toSwitchOff ? '<span class="subtle" style="align-self:center">→ ' + toSwitchOff + (toSwitchOff === 1 ? ' ad is still running and needs' : ' ads are still running and need') + ' switching off in Meta Ads Manager</span>'
+      (toSwitchOff ? '<span class="subtle" style="align-self:center">→ ' + toSwitchOff + (toSwitchOff === 1 ? ' ad is still running and needs' : ' ads are still running and need') + ' switching off' + whereTxt + '</span>'
                    : '<span class="subtle" style="align-self:center">→ nothing left to switch off — every agreed kill is already paused</span>');
   }
 
@@ -1992,8 +2043,31 @@ function renderMatrixHistory() {
 var MRULES = {
   ORG_KILL_ENG: 0.02, ORG_KILL_SS: 0.005, ORG_KILL_FLOOR: 0.01, ORG_SCALE_ENG: 0.06, ORG_SCALE_MULT: 3,
   PAID_SCALE_CPA: 5, PAID_SCALE_MINCONV: 5, PAID_KILL_CPA: 12, PAID_KILL_MINSPEND: 50, PAID_ZERO_MINSPEND: 75,
-  AW_KILL_CTR: 0.008, AW_KILL_CPC: 1.5, AW_SCALE_CTR: 0.015, AW_SCALE_CPC: 0.6
+  AW_KILL_CTR: 0.008, AW_KILL_CPC: 1.5, AW_SCALE_CTR: 0.015, AW_SCALE_CPC: 0.6,
+  // Google bars (4 Aug 2026) — own thresholds, split Search vs PMax, because
+  // PMax counts store visits/calls as conversions and Search counts bookings.
+  GADS_SEARCH_SCALE_CPA: 1.25, GADS_SEARCH_SCALE_MINCONV: 25, GADS_SEARCH_KILL_CPA: 5,
+  GADS_PMAX_SCALE_CPA: 0.5, GADS_PMAX_SCALE_MINCONV: 100, GADS_PMAX_KILL_CPA: 2,
+  GADS_KILL_MINSPEND: 50, GADS_ZERO_MINSPEND: 30
 };
+function isPmaxName(name) { return /p\s*max|performance\s*max/i.test(String(name)); }
+
+// 30-day totals for one Google campaign from the payload's gads30 (per-campaign
+// totals read from GOOGLE_ADS_DAILY — no daily series available here).
+function gadsAgg(name) {
+  var rows = (DATA && DATA.gads30) || [];
+  var spend = 0, impr = 0, clicks = 0, conv = 0, matched = 0;
+  rows.forEach(function(r) {
+    if (String(r.campaign || '') !== String(name)) return;
+    matched++;
+    spend += Number(r.spend) || 0; impr += Number(r.impressions) || 0;
+    clicks += Number(r.clicks) || 0; conv += Number(r.conversions) || 0;
+  });
+  if (!matched) return null;
+  return {spend: spend, impr: impr, clicks: clicks, conv: conv, daily: {}, dates: [],
+          ctr: impr > 0 ? clicks / impr : 0, cpc: clicks > 0 ? spend / clicks : 0,
+          cpa: conv > 0 ? spend / conv : null};
+}
 function isAwarenessName(name) { return /awareness|boost|instagram post/i.test(String(name)); }
 
 // 30-day totals + daily series for one Meta campaign, from the payload we
@@ -2073,7 +2147,8 @@ function mstat(label, val) { return '<div class="mdl-stat"><b>' + val + '</b><sp
 // The plain-English story for one row. x = {r, d} like the table rows.
 function matrixWhyHtml(r, d, agg) {
   var dec = d.label, parts = [];
-  var isPaid = r.entity_type === 'paid_campaign' || (r.entity_type === 'HISTORY' && r.platform === 'meta');
+  var isGoogle = r.platform === 'google';
+  var isPaid = r.entity_type === 'paid_campaign' || (r.entity_type === 'HISTORY' && (r.platform === 'meta' || isGoogle));
   var flag = verdictOf(r);
   var fallback = statsFromReason(r.reason);
   var spend = agg ? agg.spend : (fallback ? fallback.spend : null);
@@ -2082,7 +2157,21 @@ function matrixWhyHtml(r, d, agg) {
   if (!agg && !cpa && Number(r.key_metric_1_value)) cpa = Number(r.key_metric_1_value);
   var ctr = agg ? agg.ctr : null, cpc = agg ? agg.cpc : (Number(r.key_metric_2_value) || null);
 
-  if (isPaid && isAwarenessName(r.entity_name)) {
+  if (isGoogle) {
+    var gwPm = isPmaxName(r.entity_name);
+    var gwScale = gwPm ? MRULES.GADS_PMAX_SCALE_CPA : MRULES.GADS_SEARCH_SCALE_CPA;
+    var gwKill = gwPm ? MRULES.GADS_PMAX_KILL_CPA : MRULES.GADS_SEARCH_KILL_CPA;
+    parts.push('This is a <b>Google ' + (gwPm ? 'Performance Max' : 'Search') + ' campaign</b>' +
+      (gwPm ? ' — its "conversions" include cheap actions like store visits and calls, so it is held to tighter bars than Search.' : ' — its conversions are real booking and website actions.'));
+    if (spend != null && conv != null && conv > 0) {
+      parts.push('In the last 30 days it spent <b>' + fmtGbp2(spend) + '</b> and produced <b>' + fmtN(conv, 1) + ' conversions</b> — that\'s <b>' + fmtGbp2(cpa) + ' per conversion</b>.');
+    } else if (spend != null && conv === 0) {
+      parts.push('In the last 30 days it spent <b>' + fmtGbp2(spend) + '</b> and produced <b>no conversions at all</b>.');
+    } else if (cpa != null) {
+      parts.push('Each conversion costs <b>' + fmtGbp2(cpa) + '</b>.');
+    }
+    parts.push('<span class="subtle">The ' + (gwPm ? 'PMax' : 'Search') + ' bars: under £' + gwScale + ' a conversion (with enough volume) = scale it up · over £' + gwKill + ' a conversion after £' + MRULES.GADS_KILL_MINSPEND + ' spent (or £' + MRULES.GADS_ZERO_MINSPEND + '+ with zero conversions) = kill it.</span>');
+  } else if (isPaid && isAwarenessName(r.entity_name)) {
     parts.push('This is an <b>awareness / boost ad</b>, so it\'s judged on attention, not sales.');
     if (ctr != null || cpc != null) {
       parts.push((ctr != null ? '<b>' + fmtPct(ctr) + '</b> of the people who saw it clicked (the "good" bar is ' + fmtPct(MRULES.AW_SCALE_CTR) + ')' : '') +
@@ -2114,21 +2203,25 @@ function matrixWhyHtml(r, d, agg) {
   }
 
   // status line
-  if (dec === 'REMOVE' || dec === 'ADD') {
-    var who = d.source === 'override' ? 'You (or the team) overrode the machine in the sheet' : 'The system saw the same picture 3 mornings in a row';
+  if (d.building) {
+    var leaning = flag === 'KILL' ? 'turn it off' : flag === 'SCALE' ? 'put more behind it' : 'keep it';
+    parts.push('The system currently thinks: <b>' + leaning + '</b> — but it won\'t commit until it has seen the same signal <b>3 days in a row</b>. ' +
+      (d.daysToGo === 0 ? 'It decides on the next run.' : '<b>' + d.daysToGo + ' more day' + (d.daysToGo === 1 ? '' : 's') + '</b> to go.'));
+  } else if (dec === 'KILL' || dec === 'SCALE' || dec === 'REMOVE' || dec === 'ADD') {
+    var isKillDec = dec === 'KILL' || dec === 'REMOVE';
+    var who = d.source === 'override' ? 'You (or the team) overrode the machine in the sheet' : 'The system saw the same picture 3 days in a row';
     parts.push(who + ', so on <b>' + String(d.on || r.decided_on || '').slice(0, 10) + '</b> this was confirmed: <b>' +
-      (dec === 'REMOVE' ? 'turn it off' : 'put more behind it') + '</b>.');
-    if (dec === 'REMOVE') parts.push('⚠ Nothing switches off by itself — someone has to pause it in Meta Ads Manager.');
+      (isKillDec ? 'turn it off' : 'put more behind it') + '</b>.');
+    if (isKillDec && d.status !== 'actioned' && d.status !== 'stopped') {
+      parts.push('⚠ Nothing switches off by itself — someone has to pause it in ' + (isGoogle ? 'Google Ads' : 'Meta Ads Manager') + '.');
+    }
   } else if (dec === 'KEEP') {
-    if (conv === 0 && spend != null && spend < MRULES.PAID_ZERO_MINSPEND && isPaid && !isAwarenessName(r.entity_name)) {
-      parts.push('No sales yet, but it\'s only spent ' + fmtGbp2(spend) + ' — still under the £' + MRULES.PAID_ZERO_MINSPEND + ' line where the system calls time. <b>Being watched, not condemned.</b>');
+    var zeroLine = isGoogle ? MRULES.GADS_ZERO_MINSPEND : MRULES.PAID_ZERO_MINSPEND;
+    if (conv === 0 && spend != null && spend < zeroLine && isPaid && !isAwarenessName(r.entity_name)) {
+      parts.push('No ' + (isGoogle ? 'conversions' : 'sales') + ' yet, but it\'s only spent ' + fmtGbp2(spend) + ' — still under the £' + zeroLine + ' line where the system calls time. <b>Being watched, not condemned.</b>');
     } else {
       parts.push('It\'s neither wasting money nor clearly outperforming, so the call is: <b>leave it alone</b>.');
     }
-  } else if (dec === 'PENDING') {
-    var leaning = flag === 'KILL' ? 'turn it off' : flag === 'SCALE' ? 'put more behind it' : 'keep it';
-    parts.push('The system currently thinks: <b>' + leaning + '</b> — but it won\'t commit until it has seen the same signal <b>3 mornings in a row</b>. ' +
-      (d.daysToGo === 0 ? 'It decides on the next morning run.' : '<b>' + d.daysToGo + ' more morning' + (d.daysToGo === 1 ? '' : 's') + '</b> to go.'));
   }
   if (isUntagged(r)) {
     parts.push('<b>Why this row is vague:</b> nobody has tagged posts into formats/series yet, so the system can only judge ALL ' +
@@ -2137,9 +2230,20 @@ function matrixWhyHtml(r, d, agg) {
   return parts.join(' ');
 }
 
+function adCardHtml(a) {
+  var thumb = a.thumbnail_url
+    ? '<img class="adthumb" src="' + escAttr(a.thumbnail_url) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">'
+    : '';
+  return '<div class="ccard">' + thumb +
+    '<div class="toprow"><span class="tag image">AD</span><span class="date">' + fmtGbp2(Number(a.spend) || 0) + ' · 30d</span>' +
+    (a.instagram_permalink_url ? '<a class="postlink" href="' + escAttr(a.instagram_permalink_url) + '" target="_blank">view post ↗</a>' : '') + '</div>' +
+    '<div class="cap" title="' + escAttr(a.body || '') + '"><b>' + escAttr(shortCaption(a.ad_name)) + '</b>' +
+    (a.body ? '<br>' + escAttr(shortCaption(a.body)) : '') + '</div></div>';
+}
+
 function matrixContentHtml(r) {
   var html = '';
-  if (r.entity_type === 'format_series' || (r.entity_type === 'HISTORY' && r.platform !== 'meta')) {
+  if (r.entity_type === 'format_series' || (r.entity_type === 'HISTORY' && r.platform !== 'meta' && r.platform !== 'google')) {
     var isTt = r.platform === 'tiktok';
     var cutoff = new Date(Date.now() - 28 * 864e5).toISOString().slice(0, 10);
     var series = String(r.entity_name).trim();
@@ -2158,8 +2262,23 @@ function matrixContentHtml(r) {
       html += '<div class="mdl-sec"><h4>The ' + posts.length + ' post' + (posts.length === 1 ? '' : 's') + ' behind this judgement (last 28 days)</h4>' +
         '<div class="cardgrid">' + posts.slice(0, 30).map(isTt ? ttCardHtml : igCardHtml).join('') + '</div></div>';
     }
+  } else if (r.platform === 'google') {
+    // Google Search/PMax ads are text + asset mixes — no single creative to show.
+    html += '<div class="mdl-sec"><h4>Find it in the ad account</h4>' +
+      '<button class="copybtn" data-copy="' + escAttr(r.entity_name) + '">Copy campaign name</button> ' +
+      '<a class="sheetlink" href="https://ads.google.com/aw/campaigns?ocid=586264737" target="_blank">open Google Ads ↗</a>' +
+      '<span class="subtle" style="font-size:10px"> — paste the name into its search box. Search and PMax ads assemble text + assets on the fly, so there is no one creative to preview here.</span></div>';
   } else {
-    // paid: boosts carry the post caption in the campaign name — find the post
+    // meta paid: show the ads actually circulating in this campaign (4 Aug 2026 —
+    // Michael: "I really want to see the content that is circulating if I click it")
+    var ads = (matrixAds30 || []).filter(function(a) { return String(a.campaign || '') === String(r.entity_name); });
+    ads.sort(function(a, b) { return (Number(b.spend) || 0) - (Number(a.spend) || 0); });
+    if (ads.length) {
+      html += '<div class="mdl-sec"><h4>What\'s circulating — ' + ads.length + ' ad' + (ads.length === 1 ? '' : 's') + ' in this campaign, last 30 days</h4>' +
+        '<div class="cardgrid">' + ads.slice(0, 12).map(adCardHtml).join('') + '</div>' +
+        (ads.length > 12 ? '<div class="subtle" style="font-size:10px">Showing the 12 biggest by spend of ' + ads.length + '.</div>' : '') + '</div>';
+    }
+    // boosts carry the post caption in the campaign name — find the post
     var name = String(r.entity_name || '');
     var m = name.match(/^instagram post:\s*(.*)$/i);
     if (m) {
@@ -2184,15 +2303,16 @@ function matrixContentHtml(r) {
 
 function openMatrixModal(r, dRaw, fromHistory) {
   var d = dRaw || decisionOf(r);
-  var isPaid = r.platform === 'meta';
-  var agg = isPaid ? campaignAgg(r.entity_name) : null;
+  var isGoogle = r.platform === 'google';
+  var isPaid = r.platform === 'meta' || isGoogle;
+  var agg = r.platform === 'meta' ? campaignAgg(r.entity_name) : (isGoogle ? gadsAgg(r.entity_name) : null);
   var title = escAttr(matrixDisplayName(r));
   var badge = d.label === 'PENDING'
     ? '<span class="rag PENDING">building</span>'
     : '<span class="rag ' + d.label + '">' + d.label + '</span>';
   document.getElementById('mdl-title').innerHTML = badge + ' ' + title +
     '<div class="subtle" style="font-size:10px;font-weight:400;margin-top:3px">' +
-    (isPaid ? 'paid · meta' : 'organic · ' + (r.platform || '')) +
+    (isPaid ? 'paid · ' + r.platform + (isGoogle ? (isPmaxName(r.entity_name) ? ' · PMax' : ' · Search') : '') : 'organic · ' + (r.platform || '')) +
     (fromHistory ? ' · from the decision history' : '') + '</div>';
 
   var body = '<div class="mdl-why ' + (d.label || '') + '">' + matrixWhyHtml(r, d, agg) + '</div>';
@@ -2201,8 +2321,8 @@ function openMatrixModal(r, dRaw, fromHistory) {
   var stats = [];
   if (isPaid && agg) {
     stats.push(mstat('spend · 30d', fmtGbp2(agg.spend)));
-    stats.push(mstat('sales/leads', fmtN(agg.conv)));
-    stats.push(mstat('cost per sale', agg.cpa != null ? fmtGbp2(agg.cpa) : '—'));
+    stats.push(mstat(isGoogle ? 'conversions' : 'sales/leads', fmtN(agg.conv, isGoogle ? 1 : 0)));
+    stats.push(mstat(isGoogle ? 'cost per conversion' : 'cost per sale', agg.cpa != null ? fmtGbp2(agg.cpa) : '—'));
     stats.push(mstat('clicks', fmtN(agg.clicks)));
     stats.push(mstat('click rate', fmtPct(agg.ctr)));
     stats.push(mstat('cost per click', fmtGbp2(agg.cpc)));
@@ -2222,7 +2342,19 @@ function openMatrixModal(r, dRaw, fromHistory) {
   body += '<div class="mdl-stats">' + stats.join('') + '</div>';
 
   // threshold meter
-  if (isPaid && !isAwarenessName(r.entity_name)) {
+  if (isGoogle) {
+    var gPm = isPmaxName(r.entity_name);
+    var gScale = gPm ? MRULES.GADS_PMAX_SCALE_CPA : MRULES.GADS_SEARCH_SCALE_CPA;
+    var gKill = gPm ? MRULES.GADS_PMAX_KILL_CPA : MRULES.GADS_SEARCH_KILL_CPA;
+    var gCpaV = agg && agg.cpa != null ? agg.cpa : Number(r.key_metric_1_value) || null;
+    if (gCpaV != null) {
+      var gMaxC = Math.max(gKill * 1.6, gCpaV * 1.15);
+      body += '<div class="mdl-sec"><h4>Where it sits — cost per conversion (' + (gPm ? 'PMax' : 'Search') + ' bars)</h4>' +
+        meterHtml(gCpaV, gMaxC,
+          [{upTo: gScale, color: '#DCFCE7'}, {upTo: gKill, color: '#FEF3C7'}, {upTo: gMaxC, color: '#FEE2E2'}],
+          [{v: gScale, t: '£' + gScale + ' scale'}, {v: gKill, t: '£' + gKill + ' kill'}]) + '</div>';
+    }
+  } else if (isPaid && !isAwarenessName(r.entity_name)) {
     var cpaV = agg && agg.cpa != null ? agg.cpa : Number(r.key_metric_1_value) || null;
     if (cpaV != null) {
       var maxC = Math.max(16, cpaV * 1.15);
@@ -2258,7 +2390,7 @@ function openMatrixModal(r, dRaw, fromHistory) {
   if (r.flagged_since) tl.push('First flagged: <b>' + String(r.flagged_since).slice(0, 10) + '</b>');
   if (r.streak_runs) tl.push('Seen <b>' + r.streak_runs + '</b> morning' + (Number(r.streak_runs) === 1 ? '' : 's') + ' in a row');
   if (r.decided_on) tl.push('Agreed: <b>' + String(r.decided_on).slice(0, 10) + '</b> (' + (statusOf(r) === 'overruled' ? 'your override' : 'automatic') + ')');
-  if (statusOf(r) === 'actioned') tl.push('Switched off in Meta: <b>' + (fmtDayMon(actionedOn(r)) || 'date unknown') + '</b> (last day it spent)');
+  if (statusOf(r) === 'actioned') tl.push('Switched off in ' + (isGoogle ? 'Google Ads' : 'Meta') + ': <b>' + (fmtDayMon(actionedOn(r)) || 'date unknown') + '</b> (last day it spent)');
   if (statusOf(r) === 'stopped') tl.push('Stopped spending: <b>' + (fmtDayMon(actionedOn(r)) || 'date unknown') + '</b> — ended before a decision was agreed');
   if (tl.length) body += '<div class="mdl-days">' + tl.join('<span class="subtle">·</span>') + '</div>';
 
