@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 27.07,
+          "actual": 27.33,
           "target": 23.0,
           "gated": false
         },
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 78,
+        "score": 77,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -91,8 +91,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 83.44,
-            "basis": "27.07% vs 25% baseline, -8/pp over"
+            "value": 81.36,
+            "basis": "27.33% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -117,7 +117,7 @@
         "status": "red",
         "triggers": [
           "sales -14.4% vs target",
-          "food 27.1%"
+          "food 27.3%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },

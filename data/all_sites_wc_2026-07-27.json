@@ -397,9 +397,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 3.1,
@@ -564,7 +564,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 24.91,
+          "actual": 25.36,
           "target": 23.0,
           "gated": false
         },
@@ -589,7 +589,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 97,
+        "score": 96,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -613,8 +613,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "24.91% vs 25% baseline, -8/pp over"
+            "value": 97.12,
+            "basis": "25.36% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -636,8 +636,10 @@
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
-        "status": "green",
-        "triggers": [],
+        "status": "red",
+        "triggers": [
+          "food 25.4%"
+        ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
@@ -1042,7 +1044,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 27.07,
+          "actual": 27.33,
           "target": 23.0,
           "gated": false
         },
@@ -1067,7 +1069,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 78,
+        "score": 77,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1091,8 +1093,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 83.44,
-            "basis": "27.07% vs 25% baseline, -8/pp over"
+            "value": 81.36,
+            "basis": "27.33% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -1117,7 +1119,7 @@
         "status": "red",
         "triggers": [
           "sales -14.4% vs target",
-          "food 27.1%"
+          "food 27.3%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -1228,9 +1230,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -28.6,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": -1.3,
@@ -2420,7 +2422,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 14.26,
+          "actual": 18.72,
           "target": 23.0,
           "gated": false
         },
@@ -2470,7 +2472,7 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "14.26% vs 25% baseline, -8/pp over"
+            "basis": "18.72% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -2611,7 +2613,7 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": 0.0,
+          "variance_pct": 1.3,
           "target": "\u00b15%",
           "within_band": true
         },
@@ -2817,7 +2819,7 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": -187.0,
+          "variance_pct": 8.2,
           "target": "\u00b15%",
           "within_band": false
         },
@@ -3126,7 +3128,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 22.77,
+          "actual": 29.5,
           "target": 23.0,
           "gated": false
         },
@@ -3151,7 +3153,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 58,
+        "score": 46,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3170,8 +3172,8 @@
           },
           "food": {
             "weight": 30,
-            "value": 100.0,
-            "basis": "22.77% vs 25% baseline, -8/pp over"
+            "value": 64.0,
+            "basis": "29.50% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
@@ -3197,7 +3199,8 @@
       "red_light": {
         "status": "red",
         "triggers": [
-          "wage 32.0%"
+          "wage 32.0%",
+          "food 29.5%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
