@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-03",
+  "generated_at": "2026-08-04",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -99,15 +99,18 @@
             "value": 100.0,
             "basis": "20.14% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "2.40% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -116,9 +119,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": null,
-        "star_breakdown": null,
+        "week_avg_rating": 4.75,
+        "new_reviews": 12,
+        "star_breakdown": {
+          "5": 9,
+          "4": 3,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -145,31 +154,29 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 4503.08,
+        "orders": 129,
+        "aov": 34.91,
+        "new_customers": 39,
         "rating": 4.5,
         "open_hours_pct": 99.8,
         "avg_prep_min": 15.9,
         "rejection_pct": 0.0,
         "inaccuracy_pct": 0.8,
         "rider_wait_5min_pct": 2.3,
-        "conversion_pct": null,
+        "conversion_pct": 10.2,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": 17.7,
+          "orders_abs": 23,
+          "prev_gmv": 3825.04,
+          "prev_orders": 106
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "gmv_vs_4wk_pct": 8.5,
+        "gmv_vs_ly_pct": 25.8,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+      "gaps": []
     }
   }
 }

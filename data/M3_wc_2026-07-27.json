@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-03",
+  "generated_at": "2026-08-04",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -117,7 +117,7 @@
       },
       "reviews": {
         "week_avg_rating": null,
-        "new_reviews": null,
+        "new_reviews": 0,
         "star_breakdown": null,
         "negatives": null,
         "negative_reviews": [],
@@ -145,26 +145,26 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 9094.62,
+        "orders": 259,
+        "aov": 35.11,
+        "new_customers": 53,
         "rating": 4.42,
         "open_hours_pct": 99.8,
         "avg_prep_min": 15.3,
         "rejection_pct": 0.0,
         "inaccuracy_pct": 1.6,
         "rider_wait_5min_pct": 1.2,
-        "conversion_pct": null,
+        "conversion_pct": 12.5,
         "wow": {
-          "gmv_pct": null,
-          "orders_abs": null,
-          "prev_gmv": null,
-          "prev_orders": null
+          "gmv_pct": 32,
+          "orders_abs": 55,
+          "prev_gmv": 6890.43,
+          "prev_orders": 204
         },
-        "gmv_vs_4wk_pct": null,
-        "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "gmv_vs_4wk_pct": 2.3,
+        "gmv_vs_ly_pct": -14.2,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [

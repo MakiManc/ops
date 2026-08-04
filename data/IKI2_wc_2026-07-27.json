@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-03",
+  "generated_at": "2026-08-04",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -119,7 +119,7 @@
       },
       "reviews": {
         "week_avg_rating": null,
-        "new_reviews": null,
+        "new_reviews": 0,
         "star_breakdown": null,
         "negatives": null,
         "negative_reviews": [],
@@ -142,10 +142,34 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-08-02",
+        "resolution": "weekly",
+        "partial": false,
+        "sales": 1618.33,
+        "orders": 56,
+        "aov": 28.9,
+        "new_customers": 23,
+        "rating": 5,
+        "open_hours_pct": 93.1,
+        "avg_prep_min": 9.2,
+        "rejection_pct": 0,
+        "inaccuracy_pct": null,
+        "rider_wait_5min_pct": 5.4,
+        "conversion_pct": 4.6,
+        "wow": {
+          "gmv_pct": 28.4,
+          "orders_abs": 13,
+          "prev_gmv": 1259.92,
+          "prev_orders": 43
+        },
+        "gmv_vs_4wk_pct": 26.9,
+        "gmv_vs_ly_pct": -13.5,
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+      },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Reviews \u2014 no week rating in source"
       ]
     }
   }
