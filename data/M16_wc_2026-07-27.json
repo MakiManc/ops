@@ -55,14 +55,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 4.8,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-27"
       },
@@ -103,11 +103,14 @@
             "weight": 10,
             "value": 95.24,
             "basis": "4.67\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "4.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -183,9 +186,7 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.7
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     }
   }
 }

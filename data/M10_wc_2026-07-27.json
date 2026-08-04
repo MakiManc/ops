@@ -55,9 +55,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -2.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 2.5,

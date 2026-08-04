@@ -1568,9 +1568,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.9,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 0.7,
@@ -1738,9 +1738,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -2.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 2.5,
@@ -1911,19 +1911,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 0.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 2.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 83,
+        "score": 84,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1959,11 +1959,14 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.92\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "2.00% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2031,9 +2034,7 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     },
     "M14": {
       "code": "M14",
@@ -2082,9 +2083,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 1.9,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 2.6,
@@ -2252,14 +2253,14 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.5,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 4.8,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-07-27"
       },
@@ -2300,11 +2301,14 @@
             "weight": 10,
             "value": 95.24,
             "basis": "4.67\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "4.80% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2380,9 +2384,7 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.7
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     },
     "M17": {
       "code": "M17",
@@ -2431,9 +2433,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 10.9,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
           "variance_pct": 3.7,
@@ -2609,9 +2611,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 0.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 3.1,
@@ -2815,20 +2817,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -187.0,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": false
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 3.5,
           "target": "\u00b15%",
-          "within_band": null,
-          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
+          "within_band": true
         },
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 28,
+        "score": 31,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2864,11 +2865,14 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "3.50% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -2938,9 +2942,7 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Stock-take \u2014 no variance entered this week"
-      ]
+      "gaps": []
     },
     "M20": {
       "code": "M20",
@@ -2989,20 +2991,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.4,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 5.0,
           "target": "\u00b15%",
-          "within_band": null,
-          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
+          "within_band": true
         },
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 62,
+        "score": 64,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3038,11 +3039,14 @@
             "weight": 10,
             "value": 100.0,
             "basis": "4.96\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "5.00% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "food_var"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -3085,7 +3089,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     },
@@ -3136,20 +3139,19 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -2.4,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 3.8,
           "target": "\u00b15%",
-          "within_band": null,
-          "_override": "Food variance ambiguous \u2014 left blank on Michael instruction 29/07/2026 (not entered, not zero)"
+          "within_band": true
         },
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 56,
+        "score": 58,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3180,11 +3182,15 @@
             "weight": 10,
             "value": 71.43,
             "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "3.80% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "sales",
-          "food_var"
+          "sales"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
@@ -3236,7 +3242,6 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
         "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ]
     }
