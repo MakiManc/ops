@@ -3,7 +3,7 @@
  "window_from": "2026-07-26",
  "window_to": "2026-08-01",
  "window_days": 7,
- "_generated_at": "2026-08-03T12:12:53Z",
+ "_generated_at": "2026-08-04T10:29:09Z",
  "source": "Google Reviews workbook 1aFGfbGr… — 'Raw Data' tab (gid 284143046). Reviews RECEIVED on the date shown; a review lands days after the visit.",
  "neg_threshold": 3,
  "sites": {
@@ -1295,11 +1295,11 @@
     "with_comment": 2
    },
    "window": {
-    "n": 12,
-    "avg": 4.58,
-    "neg": 1,
+    "n": 13,
+    "avg": 4.38,
+    "neg": 2,
     "pos": 11,
-    "with_comment": 10
+    "with_comment": 11
    },
    "reviews": [
     {
@@ -1356,6 +1356,13 @@
      "author": "Daniel Z",
      "text": "Excellent Japanese restaurant! The 15-course sushi and sashimi set was outstanding—fresh, delicious, and great value for money. The plum wine was also highly recommended. Everything was beautifully presented with great service. I’ll definitely be back!",
      "date": "2026-07-28",
+     "has_comment": true
+    },
+    {
+     "stars": 2,
+     "author": "David Mikaelson",
+     "text": "Food was ok but seaweed in the hand roll is chewy. Good quality fish like many other high end places in London but service could be improved a lot. The waitress got our order wrong, service was very slow and it was difficult to get the attention from the waitresses. All the items I ordered came first while my partner had to wait more than 20 mins later to get any handrolls. We went for early dinner and the place was not even half full. The toilet is not clean and they use fake aesop (refill with a different hand wash). Overall quite a disappointing experience and would not come back. For this price point, you’re better off going to Nobu, Chotto Matte, Sushi Samba, Sushinoen, Kokin, etc.",
+     "date": "2026-07-27",
      "has_comment": true
     },
     {
@@ -1448,11 +1455,11 @@
     "with_comment": 24
    },
    "window": {
-    "n": 243,
-    "avg": 4.81,
-    "neg": 8,
+    "n": 244,
+    "avg": 4.8,
+    "neg": 9,
     "pos": 235,
-    "with_comment": 207
+    "with_comment": 208
    }
   }
  },
@@ -1492,6 +1499,6 @@
   },
   "duplicates_dropped": 33,
   "rows_without_date": 0,
-  "rows_scanned": 879
+  "rows_scanned": 890
  }
 }
