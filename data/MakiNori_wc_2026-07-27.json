@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-08-05",
-  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-07-27 \u2013 2026-08-02",
+    "label": "Week of 2026-07-27 – 2026-08-02",
     "commencing": "2026-07-27",
     "ending": "2026-08-02"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -2.4,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 46,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,7 +82,7 @@
           "sph": {
             "weight": 15,
             "value": 70.0,
-            "basis": "\u00a338.93 vs \u00a335 tgt \u2014 level 100, WoW -6.51% \u2192 mom 0"
+            "basis": "£38.93 vs £35 tgt — level 100, WoW -6.51% → mom 0"
           },
           "food": {
             "weight": 30,
@@ -97,18 +97,18 @@
           "weekly_star": {
             "weight": 10,
             "value": 71.43,
-            "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.50★ vs 4.7★ OKR (0 at 4.0★)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.80% inside \u00b15% band"
+            "basis": "3.80% inside ±5% band"
           }
         },
         "components_dropped": [
           "sales"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -116,7 +116,7 @@
           "wage 32.0%",
           "food 29.5%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.5,
@@ -133,7 +133,7 @@
           {
             "stars": 1,
             "author": "jamaisvus2",
-            "text": "What a terrible place lol. Service was bad and it\u2019s so so so overpriced and food was just mid.",
+            "text": "What a terrible place lol. Service was bad and it’s so so so overpriced and food was just mid.",
             "date": "2026-08-02",
             "url": null
           }
@@ -141,7 +141,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -151,7 +151,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -159,35 +159,42 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ],
       "notes": {
         "issues": [
           "Service issues identified in recent customer reviews.",
           "Management have stopped wearing the correct uniform.",
           "Night staffing is not sufficient to close the restaurant down properly.",
-          "Cleanliness and pest control need tightening \u2014 end-of-day deep cleans and morning sweeps are not consistently done.",
+          "Cleanliness and pest control need tightening — end-of-day deep cleans and morning sweeps are not consistently done.",
           "Google review performance is a condition of the Westfield opportunity and the site lead needs to understand what rests on it.",
           "The site lead has not had EHO training.",
+          "The Nori initiative underperforming — low customer turnout and booking confusion.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
-          "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites."
+          "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
+          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Investigate the service complaints raised in recent customer reviews \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Return management to the correct uniform standard \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Hold team levels high enough at night to close the restaurant properly \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Reinstate end-of-day deep cleans and morning sweeps for pest control \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Brief the site lead on why Google review performance determines the Westfield opportunity \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Deliver EHO training to the site lead \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)"
+          "Investigate the service complaints raised in recent customer reviews — Owner: Ziang Lin (04/08/2026)",
+          "Return management to the correct uniform standard — Owner: Ziang Lin (04/08/2026)",
+          "Hold team levels high enough at night to close the restaurant properly — Owner: Ziang Lin (04/08/2026)",
+          "Reinstate end-of-day deep cleans and morning sweeps for pest control — Owner: Ziang Lin (04/08/2026)",
+          "Brief the site lead on why Google review performance determines the Westfield opportunity — Owner: Ziang Lin (04/08/2026)",
+          "Deliver EHO training to the site lead — Owner: Ziang Lin (04/08/2026)",
+          "Advertise the Nori offer properly, make booking communication clear, and keep the area clean and professional — Owner: Ziang Lin (04/08/2026)",
+          "Luca remains in post until the Westfield site opens, with the option of part-time hours if needed — Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
