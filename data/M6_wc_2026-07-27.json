@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -165,8 +165,8 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 2576.07,
-        "orders": 73,
-        "aov": 35.29,
+        "orders": 80,
+        "aov": 32.2,
         "new_customers": 20,
         "rating": 4.67,
         "open_hours_pct": 98.8,
@@ -183,7 +183,8 @@
         },
         "gmv_vs_4wk_pct": -13.8,
         "gmv_vs_ly_pct": -29.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": []
