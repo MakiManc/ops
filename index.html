@@ -4247,7 +4247,7 @@ function _delivPaintRows(host, rows, wkLabel, fallbackNote){
     const cells = DELIV_METRIC_DEFS.map(d => cell(d[0], d[2], d[3], d[4])).join('');
     const pill = `<span style="display:inline-block; min-width:52px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.04em; ${bandStyle[r.rag]}">${r.rag.toUpperCase()}</span>`;
     return `<tr>
-      <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:left; font-size:12px; white-space:nowrap;"><strong>${r.code}</strong> <span style="color:var(--ink-soft,#888); font-weight:500;">${r.name}</span>${r.handKeyed ? ' <span title="Hand-keyed from the Deliveroo RAG sheet — this site is in no Deliveroo export this week. Unverified." style="display:inline-block; margin-left:4px; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:.03em; background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd;">HAND-KEYED</span>' : ''}</td>
+      <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:left; font-size:12px; white-space:normal; overflow:hidden;"><strong>${r.code}</strong> <span style="color:var(--ink-soft,#888); font-weight:500;">${r.name}</span>${r.handKeyed ? ' <span title="Hand-keyed from the Deliveroo RAG sheet — this site is in no Deliveroo export this week. Unverified." style="display:inline-block; margin-left:4px; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:.03em; background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd;">HAND-KEYED</span>' : ''}</td>
       ${cells}
       <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:center;">${pill}</td>
     </tr>`;
@@ -4255,6 +4255,7 @@ function _delivPaintRows(host, rows, wkLabel, fallbackNote){
   const matrix = `
     <div style="overflow-x:auto; margin-bottom:12px;">
       <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+        <colgroup><col style="width:26%"><col style="width:11.2%"><col style="width:11.2%"><col style="width:11.2%"><col style="width:11.2%"><col style="width:11.2%"><col style="width:18%"></colgroup>
         <thead>${tableHead}</thead>
         <tbody>${rows.map(tableRow).join('')}</tbody>
       </table>
