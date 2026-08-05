@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-08-05",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-07-27 – 2026-08-02",
+    "label": "Week of 2026-07-27 \u2013 2026-08-02",
     "commencing": "2026-07-27",
     "ending": "2026-08-02"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 10.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": false
         },
         "food": {
           "variance_pct": 3.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 95,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+2.88) + 30% (£gap +951 vs ±£50k cal)"
+            "basis": "70% (100+2.88) + 30% (\u00a3gap +951 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 70.0,
-            "basis": "£23.66 vs £22 tgt — level 100, WoW -6.45% → mom 0"
+            "basis": "\u00a323.66 vs \u00a322 tgt \u2014 level 100, WoW -6.45% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -102,21 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.90★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.90\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.70% inside ±5% band"
+            "basis": "3.70% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.897436,
@@ -133,7 +133,7 @@
           {
             "stars": 3,
             "author": "Taher Hamza",
-            "text": "The food was worse than average! We ordered different noodles and they all were so plain, no flavour and just didn’t taste nice. It was like noodles were added that were boiled. There was no synchrony in the dish. The drinks were bad. Only nice thing was sushi and that was only average too with a high price tag. Would definitely not recommend then place.",
+            "text": "The food was worse than average! We ordered different noodles and they all were so plain, no flavour and just didn\u2019t taste nice. It was like noodles were added that were boiled. There was no synchrony in the dish. The drinks were bad. Only nice thing was sushi and that was only average too with a high price tag. Would definitely not recommend then place.",
             "date": "2026-07-31",
             "url": null
           }
@@ -141,7 +141,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -151,7 +151,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -162,7 +162,7 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
+        "sales": 1115.13,
         "orders": null,
         "aov": null,
         "new_customers": null,
@@ -181,42 +181,45 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "sales_estimated": true,
         "busy_mode_pct": 0.0
       },
-      "gaps": [],
+      "gaps": [
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
+      ],
       "notes": {
         "issues": [
           "Weekly target hit, with covers up and many returning customers noticed.",
-          "Deliveroo sales and rating dipped — traced to broth spills in transit; new packaging ordered and vouchers issued to affected customers.",
+          "Deliveroo sales and rating dipped \u2014 traced to broth spills in transit; new packaging ordered and vouchers issued to affected customers.",
           "Chinese cooker still faulty after a repair attempt.",
           "A bathroom check was missed on Saturday despite otherwise strong compliance.",
           "Labour ran slightly over target covering a busy Friday.",
-          "Food variance issue resolved — caused by an incorrectly dated invoice.",
+          "Food variance issue resolved \u2014 caused by an incorrectly dated invoice.",
           "Outdoor seating area very popular; influencer filming requests handled with discretion to protect the site's reputation.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Implement the summer drinks — Yuzu iced tea and homemade lemonade; get the lemonade recipe from Nori — Owner: Kaitlin Docherty (04/08/2026)",
-          "Launch the approved sushi pop-up as soon as the cups are sourced — coordinate with Sophie Wang — Owner: Kaitlin Docherty (04/08/2026)",
-          "See the Chinese cooker repair through at Thursday's follow-up visit — Owner: Kaitlin Docherty (06/08/2026)",
-          "Monitor the new delivery packaging in and confirm the Deliveroo rating recovers — Owner: Kaitlin Docherty (04/08/2026)",
-          "Reinstate the weekend bathroom-check discipline — Owner: Kaitlin Docherty (04/08/2026)",
-          "Keep vetting influencer filming requests, prioritising significant followings — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Implement the summer drinks \u2014 Yuzu iced tea and homemade lemonade; get the lemonade recipe from Nori \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Launch the approved sushi pop-up as soon as the cups are sourced \u2014 coordinate with Sophie Wang \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "See the Chinese cooker repair through at Thursday's follow-up visit \u2014 Owner: Kaitlin Docherty (06/08/2026)",
+          "Monitor the new delivery packaging in and confirm the Deliveroo rating recovers \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Reinstate the weekend bathroom-check discipline \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Keep vetting influencer filming requests, prioritising significant followings \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,

@@ -2519,7 +2519,7 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
+        "sales": 812.26,
         "orders": null,
         "aov": null,
         "new_customers": null,
@@ -2538,10 +2538,13 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "sales_estimated": true,
         "busy_mode_pct": 0.1
       },
-      "gaps": [],
+      "gaps": [
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
+      ],
       "notes": {
         "issues": [
           "Back-of-house rota gaps affecting cover for the sushi master class.",
@@ -2931,7 +2934,7 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
+        "sales": 1115.13,
         "orders": null,
         "aov": null,
         "new_customers": null,
@@ -2950,10 +2953,13 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "sales_estimated": true,
         "busy_mode_pct": 0.0
       },
-      "gaps": [],
+      "gaps": [
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
+      ],
       "notes": {
         "issues": [
           "Weekly target hit, with covers up and many returning customers noticed.",
@@ -3392,7 +3398,7 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
+        "sales": 330.58,
         "orders": null,
         "aov": null,
         "new_customers": null,
@@ -3411,10 +3417,13 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
+        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "sales_estimated": true,
         "busy_mode_pct": 0.0
       },
-      "gaps": [],
+      "gaps": [
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
+      ],
       "notes": {
         "issues": [
           "Deliveroo tablet downtime caused lost sales \u2014 the device was not being kept charged; a new charging setup is now in place.",
