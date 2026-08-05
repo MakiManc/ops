@@ -2,7 +2,7 @@
   "schema_version": "1.2",
   "generated_at": "2026-08-05",
   "week": {
-    "label": "Week of 2026-07-27 – 2026-08-02",
+    "label": "Week of 2026-07-27 \u2013 2026-08-02",
     "commencing": "2026-07-27",
     "ending": "2026-08-02"
   },
@@ -55,12 +55,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.1,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -68,7 +68,7 @@
       "efficiency_score": {
         "score": 84,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -81,12 +81,12 @@
           "sales": {
             "weight": 10,
             "value": 80.36,
-            "basis": "70% (100-22.37) + 30% (£gap -6631 vs ±£50k cal)"
+            "basis": "70% (100-22.37) + 30% (\u00a3gap -6631 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 55.18,
-            "basis": "£20.73 vs £22 tgt — level 79, WoW -5.77% → mom 0"
+            "basis": "\u00a320.73 vs \u00a322 tgt \u2014 level 79, WoW -5.77% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -101,23 +101,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 28.57,
-            "basis": "4.20★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.20\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.20% inside ±5% band"
+            "basis": "4.20% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -22.4% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.2,
@@ -134,7 +134,7 @@
           {
             "stars": 1,
             "author": "Sabiha Shahid",
-            "text": "The ramen was really tasty. I had the beef steak ramen and it was spot on. The main problem was the server with pink hair wearing glasses it was me and my husband. The restaurant wasn’t busy either but when I finished my meal she was literally rushing us to get the bill. When we said she can bring the bill on table and asked whether it’s gonna be cash or card we said to give a couple of minutes but she came back 2 times 2 to ask whether we are ready to pay or not which seemed like she was trying to kick us out of the place. People are paying £15 to £20 for having a bowl of ramen but getting this type of horrible service is disgusting.",
+            "text": "The ramen was really tasty. I had the beef steak ramen and it was spot on. The main problem was the server with pink hair wearing glasses it was me and my husband. The restaurant wasn\u2019t busy either but when I finished my meal she was literally rushing us to get the bill. When we said she can bring the bill on table and asked whether it\u2019s gonna be cash or card we said to give a couple of minutes but she came back 2 times 2 to ask whether we are ready to pay or not which seemed like she was trying to kick us out of the place. People are paying \u00a315 to \u00a320 for having a bowl of ramen but getting this type of horrible service is disgusting.",
             "date": "2026-07-30",
             "url": null
           }
@@ -142,7 +142,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -152,7 +152,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -182,7 +182,7 @@
         },
         "gmv_vs_4wk_pct": 9.7,
         "gmv_vs_ly_pct": 2.6,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) — w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
@@ -202,13 +202,13 @@
           "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
         ],
         "actions": [
-          "Photograph all Deliveroo orders before dispatch to support future order disputes — Owner: Óisín Darragh (04/08/2026)",
-          "Keep up-to-date drink allergen sheets printed and available front of house — Owner: Óisín Darragh (04/08/2026)",
-          "Prepare the upcoming student promotions and staff incentives, and keep working on delivery accuracy — Owner: Óisín Darragh (11/08/2026)",
-          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately — Owner: Óisín Darragh (18/08/2026)",
-          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August — Owner: Óisín Darragh (01/09/2026)"
+          "Photograph all Deliveroo orders before dispatch to support future order disputes \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Keep up-to-date drink allergen sheets printed and available front of house \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Prepare the upcoming student promotions and staff incentives, and keep working on delivery accuracy \u2014 Owner: \u00d3is\u00edn Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -263,12 +263,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.8,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.4,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -276,7 +276,7 @@
       "efficiency_score": {
         "score": 87,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -289,12 +289,12 @@
           "sales": {
             "weight": 10,
             "value": 98.1,
-            "basis": "70% (100-2.00) + 30% (£gap -841 vs ±£50k cal)"
+            "basis": "70% (100-2.00) + 30% (\u00a3gap -841 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 77.8,
-            "basis": "£22.77 vs £22 tgt — level 100, WoW -2.40% → mom 26"
+            "basis": "\u00a322.77 vs \u00a322 tgt \u2014 level 100, WoW -2.40% \u2192 mom 26"
           },
           "food": {
             "weight": 30,
@@ -309,18 +309,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.40% inside ±5% band"
+            "basis": "2.40% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -331,7 +331,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -341,7 +341,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -371,42 +371,42 @@
         },
         "gmv_vs_4wk_pct": 2.3,
         "gmv_vs_ly_pct": -14.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews — no week rating in source"
+        "Reviews \u2014 no week rating in source"
       ],
       "notes": {
         "issues": [
           "Covers up week on week but still behind the same period last year.",
           "Sales grew yet the site finished short of its weekly target.",
-          "Friday delivery delays — connectivity problems stopped orders printing in the kitchen and left drivers waiting.",
+          "Friday delivery delays \u2014 connectivity problems stopped orders printing in the kitchen and left drivers waiting.",
           "Labour missed target.",
           "A low-rated review received, which the site considers in line with the service style.",
           "A team member returns overseas after this week and a P45 needs processing.",
           "A second leaver has asked to finish a week early, pending review of the final rotas.",
-          "Outstanding maintenance — the kitchen sink needs resealing and old shelves downstairs need removing.",
+          "Outstanding maintenance \u2014 the kitchen sink needs resealing and old shelves downstairs need removing.",
           "Region-wide (Scotland & Newcastle): Wi-Fi and connectivity failures are stopping delivery orders printing in the kitchen across several sites, driving refunds and leaving drivers waiting.",
           "Region-wide (Scotland & Newcastle): Delivery refund disputes are being lost because sites hold no photographic evidence of what was dispatched.",
           "Region-wide (Scotland & Newcastle): Concerns raised over a recent back-of-house hire with a history of insubordination; the Head Chef advocated for him, the DAM flagged prior conduct issues under certain supervisors.",
           "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
         ],
         "actions": [
-          "Reseal the kitchen sink — Owner: Chris (04/08/2026)",
-          "Remove the old shelving from the downstairs kitchen area — Owner: Óisín Darragh (04/08/2026)",
-          "Complete the budget report of accounts through to the end of the Fringe — Owner: Óisín Darragh (04/08/2026)",
-          "Monitor labour against trade and adjust the rota down if sales targets are not being met — Owner: Óisín Darragh (04/08/2026)",
-          "Confirm the leaver's final employment date once the budget report is complete — Owner: Óisín Darragh (04/08/2026)",
-          "Keep the focus on spend per head — the team is responding well to the current incentives — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately — Owner: Óisín Darragh (18/08/2026)",
-          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August — Owner: Óisín Darragh (01/09/2026)"
+          "Reseal the kitchen sink \u2014 Owner: Chris (04/08/2026)",
+          "Remove the old shelving from the downstairs kitchen area \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Complete the budget report of accounts through to the end of the Fringe \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Monitor labour against trade and adjust the rota down if sales targets are not being met \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Confirm the leaver's final employment date once the budget report is complete \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Keep the focus on spend per head \u2014 the team is responding well to the current incentives \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
         ],
         "carryover": [
-          "Kitchen sink resealing and downstairs shelf removal still open from previous weeks — Owner: Óisín Darragh (04/08/2026)",
-          "Closed out this week: weekend Wi-Fi fixed, card machines integrated, new ramen fridge installed to stop fuse trips, and Fringe opening hours updated on Google — Owner: Óisín Darragh (04/08/2026)"
+          "Kitchen sink resealing and downstairs shelf removal still open from previous weeks \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Closed out this week: weekend Wi-Fi fixed, card machines integrated, new ramen fridge installed to stop fuse trips, and Fringe opening hours updated on Google \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)"
         ],
         "empty": false,
         "docId": ""
@@ -460,12 +460,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 2.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.1,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -473,7 +473,7 @@
       "efficiency_score": {
         "score": 90,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -486,12 +486,12 @@
           "sales": {
             "weight": 10,
             "value": 98.63,
-            "basis": "70% (100-1.61) + 30% (£gap -401 vs ±£50k cal)"
+            "basis": "70% (100-1.61) + 30% (\u00a3gap -401 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 92.89,
-            "basis": "£24.23 vs £22 tgt — level 100, WoW +2.63% → mom 76"
+            "basis": "\u00a324.23 vs \u00a322 tgt \u2014 level 100, WoW +2.63% \u2192 mom 76"
           },
           "food": {
             "weight": 30,
@@ -506,23 +506,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 61.22,
-            "basis": "4.43★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.43\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.10% inside ±5% band"
+            "basis": "3.10% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 25.2%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.428571,
@@ -547,7 +547,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -557,7 +557,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -587,7 +587,7 @@
         },
         "gmv_vs_4wk_pct": -13.8,
         "gmv_vs_ly_pct": -29.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) — w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
@@ -596,21 +596,21 @@
         "issues": [
           "Delivery refund raised for a missing bag, identified as a driver error rather than a packing fault.",
           "July front-of-house audit passed, with only minor floor wear and tear noted.",
-          "Administrative workload sits with the GM rather than being spread across the supervisor team — stock counts and platform uploads cited as examples.",
+          "Administrative workload sits with the GM rather than being spread across the supervisor team \u2014 stock counts and platform uploads cited as examples.",
           "Region-wide (Scotland & Newcastle): Deliveroo integration errors affecting multiple sites.",
           "Region-wide (Scotland & Newcastle): Temporary card-payment outage over the weekend from a WorldPay incident.",
           "Region-wide (Scotland & Newcastle): Poor internet connectivity and ageing hardware across sites.",
           "Region-wide (Scotland & Newcastle): Supplier warehouse picking errors identified as a systemic logistics failure, with a supplier switch under consideration."
         ],
         "actions": [
-          "Meet the GM to clarify role expectations and management responsibilities — Owner: Ka Ho (04/08/2026)",
-          "Delegate operational tasks such as stock counts to supervisors, with clear deadlines for accountability — Owner: Ka Ho (04/08/2026)",
-          "Staple bag handles together when several bags go on one delivery, so drivers cannot leave one behind — Owner: Ka Ho (04/08/2026)",
-          "Agreed: the site runs without an AGM, with operational tasks delegated across the existing supervisor team — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume — Owner: Ka Ho (04/08/2026)"
+          "Meet the GM to clarify role expectations and management responsibilities \u2014 Owner: Ka Ho (04/08/2026)",
+          "Delegate operational tasks such as stock counts to supervisors, with clear deadlines for accountability \u2014 Owner: Ka Ho (04/08/2026)",
+          "Staple bag handles together when several bags go on one delivery, so drivers cannot leave one behind \u2014 Owner: Ka Ho (04/08/2026)",
+          "Agreed: the site runs without an AGM, with operational tasks delegated across the existing supervisor team \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume \u2014 Owner: Ka Ho (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -665,12 +665,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -1.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 0.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -678,7 +678,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -691,12 +691,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+9.26) + 30% (£gap +6712 vs ±£50k cal)"
+            "basis": "70% (100+9.26) + 30% (\u00a3gap +6712 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 81.83,
-            "basis": "£21.61 vs £22 tgt — level 93, WoW +0.46% → mom 55"
+            "basis": "\u00a321.61 vs \u00a322 tgt \u2014 level 93, WoW +0.46% \u2192 mom 55"
           },
           "food": {
             "weight": 30,
@@ -711,23 +711,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.75★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "0.70% inside ±5% band"
+            "basis": "0.70% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 25.4%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.75,
@@ -744,7 +744,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -754,7 +754,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -766,7 +766,7 @@
         "issues": [
           "Covers up strongly and close to the site's best-ever week, but still short of the overall sales target.",
           "Food cost missed target for the week.",
-          "Staffing churn — two leavers out and two starters in.",
+          "Staffing churn \u2014 two leavers out and two starters in.",
           "Mixed reviews, including a complaint about staff manner and another about dish timing and seasoning.",
           "The lunch menu is currently suspended.",
           "Spend per head still has room to improve.",
@@ -777,15 +777,15 @@
           "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
         ],
         "actions": [
-          "Follow up with the service provider on the status of the fire panel certificates — Owner: Óisín Darragh (04/08/2026)",
-          "Counter the negative reviews by driving five-star feedback and growing weekly covers — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately — Owner: Óisín Darragh (18/08/2026)",
-          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August — Owner: Óisín Darragh (01/09/2026)"
+          "Follow up with the service provider on the status of the fire panel certificates \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Counter the negative reviews by driving five-star feedback and growing weekly covers \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
         ],
         "carryover": [
-          "Fire panel and maintenance certificates outstanding from completed work — Owner: Óisín Darragh (04/08/2026)"
+          "Fire panel and maintenance certificates outstanding from completed work \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)"
         ],
         "empty": false,
         "docId": ""
@@ -839,12 +839,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.4,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -852,7 +852,7 @@
       "efficiency_score": {
         "score": 97,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -865,12 +865,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+13.34) + 30% (£gap +5705 vs ±£50k cal)"
+            "basis": "70% (100+13.34) + 30% (\u00a3gap +5705 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 79.87,
-            "basis": "£23.56 vs £22 tgt — level 100, WoW -1.71% → mom 33"
+            "basis": "\u00a323.56 vs \u00a322 tgt \u2014 level 100, WoW -1.71% \u2192 mom 33"
           },
           "food": {
             "weight": 30,
@@ -885,21 +885,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.75★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.40% inside ±5% band"
+            "basis": "2.40% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.75,
@@ -916,7 +916,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -926,7 +926,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -956,7 +956,7 @@
         },
         "gmv_vs_4wk_pct": 8.5,
         "gmv_vs_ly_pct": 25.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -974,18 +974,18 @@
           "Region-wide (Scotland & Newcastle): Supplier warehouse picking errors identified as a systemic logistics failure, with a supplier switch under consideration."
         ],
         "actions": [
-          "Brief the manager on the drop in opening-time accuracy and require early closures to be reported so the system can be adjusted — Owner: Ka Ho (04/08/2026)",
-          "Arrange temporary cover for Thursday and Saturday shifts over the next two weeks — Owner: Ka Ho (18/08/2026)",
-          "Agreed: cover comes from the West End site for the next fortnight rather than hiring new part-time staff — Owner: Ka Ho (18/08/2026)",
-          "Keep monitoring the supplier picking failures and move to the alternative supplier if unresolved — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume — Owner: Ka Ho (04/08/2026)"
+          "Brief the manager on the drop in opening-time accuracy and require early closures to be reported so the system can be adjusted \u2014 Owner: Ka Ho (04/08/2026)",
+          "Arrange temporary cover for Thursday and Saturday shifts over the next two weeks \u2014 Owner: Ka Ho (18/08/2026)",
+          "Agreed: cover comes from the West End site for the next fortnight rather than hiring new part-time staff \u2014 Owner: Ka Ho (18/08/2026)",
+          "Keep monitoring the supplier picking failures and move to the alternative supplier if unresolved \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume \u2014 Owner: Ka Ho (04/08/2026)"
         ],
         "carryover": [
-          "Supplier picking errors raised previously — warehouse cause now confirmed, but the issue remains open and under monitoring — Owner: Ka Ho (04/08/2026)",
-          "Closed out: the outstanding licensing exam issue is now resolved — Owner: Ka Ho (04/08/2026)"
+          "Supplier picking errors raised previously \u2014 warehouse cause now confirmed, but the issue remains open and under monitoring \u2014 Owner: Ka Ho (04/08/2026)",
+          "Closed out: the outstanding licensing exam issue is now resolved \u2014 Owner: Ka Ho (04/08/2026)"
         ],
         "empty": false,
         "docId": "1sNq-0bloYhtkIJCaZvuy-OTMQ1LLc03kXQwuwMhMq7c"
@@ -1039,12 +1039,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -3.4,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": -4.6,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -1052,7 +1052,7 @@
       "efficiency_score": {
         "score": 86,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1065,12 +1065,12 @@
           "sales": {
             "weight": 10,
             "value": 94.73,
-            "basis": "70% (100-6.24) + 30% (£gap -1509 vs ±£50k cal)"
+            "basis": "70% (100-6.24) + 30% (\u00a3gap -1509 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 87.67,
-            "basis": "£21.65 vs £21 tgt — level 100, WoW +0.89% → mom 59"
+            "basis": "\u00a321.65 vs \u00a321 tgt \u2014 level 100, WoW +0.89% \u2192 mom 59"
           },
           "food": {
             "weight": 30,
@@ -1085,20 +1085,20 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-4.60% inside ±5% band"
+            "basis": "-4.60% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 29.2%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1109,7 +1109,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1119,7 +1119,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1149,10 +1149,10 @@
         },
         "gmv_vs_4wk_pct": 26.9,
         "gmv_vs_ly_pct": -13.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
       },
       "gaps": [
-        "Reviews — no week rating in source"
+        "Reviews \u2014 no week rating in source"
       ],
       "notes": {
         "issues": [],
@@ -1210,12 +1210,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -1223,7 +1223,7 @@
       "efficiency_score": {
         "score": 77,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1236,12 +1236,12 @@
           "sales": {
             "weight": 10,
             "value": 86.96,
-            "basis": "70% (100-14.36) + 30% (£gap -4977 vs ±£50k cal)"
+            "basis": "70% (100-14.36) + 30% (\u00a3gap -4977 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 100.0,
-            "basis": "£22.93 vs £22 tgt — level 100, WoW +6.35% → mom 100"
+            "basis": "\u00a322.93 vs \u00a322 tgt \u2014 level 100, WoW +6.35% \u2192 mom 100"
           },
           "food": {
             "weight": 30,
@@ -1256,16 +1256,16 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.20% inside ±5% band"
+            "basis": "4.20% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -1273,7 +1273,7 @@
           "sales -14.4% vs target",
           "food 27.3%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -1290,7 +1290,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1300,7 +1300,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1311,10 +1311,11 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 3230.38,
+        "orders": 99,
+        "orders_estimated": true,
+        "aov": 32.63,
+        "new_customers": 35,
         "rating": 4.6,
         "open_hours_pct": 98.8,
         "avg_prep_min": 14.5,
@@ -1330,7 +1331,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -1348,15 +1349,15 @@
           "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
         ],
         "actions": [
-          "Update the onboarding tracker to remove the front-of-house leavers — Owner: Óisín Darragh (04/08/2026)",
-          "Advertise for the full-time back-of-house vacancy — Owner: Óisín Darragh (04/08/2026)",
-          "Replace the faulty glass wash machine using parts from the unused unit — Owner: Óisín Darragh (04/08/2026)",
-          "Package extra broth in separate containers to support delivery dispute evidence — Owner: Óisín Darragh (04/08/2026)",
-          "Keep pushing Restaurant Week bookings while demand is strong — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately — Owner: Óisín Darragh (18/08/2026)",
-          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August — Owner: Óisín Darragh (01/09/2026)"
+          "Update the onboarding tracker to remove the front-of-house leavers \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Advertise for the full-time back-of-house vacancy \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Replace the faulty glass wash machine using parts from the unused unit \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Package extra broth in separate containers to support delivery dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Keep pushing Restaurant Week bookings while demand is strong \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -1411,12 +1412,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -28.6,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": false
         },
         "food": {
           "variance_pct": -1.3,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -1424,7 +1425,7 @@
       "efficiency_score": {
         "score": 94,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1437,12 +1438,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+8.08) + 30% (£gap +3393 vs ±£50k cal)"
+            "basis": "70% (100+8.08) + 30% (\u00a3gap +3393 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 64.83,
-            "basis": "£21.50 vs £22 tgt — level 92, WoW -4.78% → mom 2"
+            "basis": "\u00a321.50 vs \u00a322 tgt \u2014 level 92, WoW -4.78% \u2192 mom 2"
           },
           "food": {
             "weight": 30,
@@ -1457,21 +1458,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 90.91,
-            "basis": "4.64★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.64\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-1.30% inside ±5% band"
+            "basis": "-1.30% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.636364,
@@ -1488,7 +1489,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1498,7 +1499,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1509,10 +1510,11 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 4885.83,
+        "orders": 135,
+        "orders_estimated": true,
+        "aov": 36.19,
+        "new_customers": 41,
         "rating": 4.0,
         "open_hours_pct": 98.6,
         "avg_prep_min": 14.3,
@@ -1528,7 +1530,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -1538,7 +1540,7 @@
           "An unexplained Wednesday closure hit opening-time compliance.",
           "A meal deal item was cooked incorrectly; refunds traced to trial shift incidents and a takeaway order mishandled during a busy period.",
           "Toilet facility maintenance still unresolved, with a dispute with the plumber over the dates on the video evidence supplied.",
-          "Front-of-house staffing gap — a supervisor and possibly an additional team member needed, depending on availability and university schedules.",
+          "Front-of-house staffing gap \u2014 a supervisor and possibly an additional team member needed, depending on availability and university schedules.",
           "Service standards feedback that team members are not acknowledging customers at the door or when moving through sections.",
           "The GM raised concern about staying objective through an upcoming hearing.",
           "Region-wide (Scotland & Newcastle): Deliveroo integration errors affecting multiple sites.",
@@ -1547,31 +1549,31 @@
           "Region-wide (Scotland & Newcastle): Supplier warehouse picking errors identified as a systemic logistics failure, with a supplier switch under consideration."
         ],
         "actions": [
-          "Study all screenshots and evidence supplied so the position is fully understood before the hearing — Owner: Joe Herrera (04/08/2026)",
-          "Stick strictly to the factual evidence at the hearing and answer only what is asked — Owner: Joe Herrera (04/08/2026)",
-          "Establish the reason behind the unexplained Wednesday closure and report back — Owner: Joe Herrera (04/08/2026)",
-          "Investigate the incorrectly cooked meal deal item — Owner: Joe Herrera (04/08/2026)",
-          "Email the metadata to the plumber to unblock the toilet repair — Owner: Joe Herrera (04/08/2026)",
-          "Message the team with the mitigation steps for the draught machine until the engineer attends — Owner: Joe Herrera (04/08/2026)",
-          "Arrive early Thursday to deep clean the toilet facilities and assess whether they can reopen — Owner: Joe Herrera (06/08/2026)",
-          "Reach out to customers who left reviews as part of the standard feedback process — Owner: Joe Herrera (04/08/2026)",
-          "Agreed: toilets may reopen subject to a daily hot water washdown at the end of each night — Owner: Ka Ho (04/08/2026)",
-          "Agreed: the draft machine stays on at all times — the proposal to power it down off-peak to save gas was rejected — Owner: Ka Ho (04/08/2026)",
-          "Use a petty cash supplier route for emergency stock so replenishment does not distort variance or restrict sales — Owner: Joe Herrera (04/08/2026)",
-          "Check with the duty manager what happened on the shift where opening-time compliance slipped — Owner: Joe Herrera (04/08/2026)",
-          "Contact the women's hockey partnership to maintain the relationship and check for logo or membership changes — Owner: Joe Herrera (04/08/2026)",
-          "Reinforce that greeting and acknowledging customers is a standard, even at the busiest times — Owner: Ka Ho (04/08/2026)",
-          "Keep front-of-house communication with the GM and leave back-of-house team management with the BOH lead — Owner: Joe Herrera (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites — Owner: Ka Ho (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume — Owner: Ka Ho (04/08/2026)"
+          "Study all screenshots and evidence supplied so the position is fully understood before the hearing \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Stick strictly to the factual evidence at the hearing and answer only what is asked \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Establish the reason behind the unexplained Wednesday closure and report back \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Investigate the incorrectly cooked meal deal item \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Email the metadata to the plumber to unblock the toilet repair \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Message the team with the mitigation steps for the draught machine until the engineer attends \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Arrive early Thursday to deep clean the toilet facilities and assess whether they can reopen \u2014 Owner: Joe Herrera (06/08/2026)",
+          "Reach out to customers who left reviews as part of the standard feedback process \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Agreed: toilets may reopen subject to a daily hot water washdown at the end of each night \u2014 Owner: Ka Ho (04/08/2026)",
+          "Agreed: the draft machine stays on at all times \u2014 the proposal to power it down off-peak to save gas was rejected \u2014 Owner: Ka Ho (04/08/2026)",
+          "Use a petty cash supplier route for emergency stock so replenishment does not distort variance or restrict sales \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Check with the duty manager what happened on the shift where opening-time compliance slipped \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Contact the women's hockey partnership to maintain the relationship and check for logo or membership changes \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Reinforce that greeting and acknowledging customers is a standard, even at the busiest times \u2014 Owner: Ka Ho (04/08/2026)",
+          "Keep front-of-house communication with the GM and leave back-of-house team management with the BOH lead \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume \u2014 Owner: Ka Ho (04/08/2026)"
         ],
         "carryover": [
-          "Toilet facilities still out of use, maintenance unresolved and the plumber dispute live; metadata now supplied and reopening targeted this week — Owner: Joe Herrera (04/08/2026)",
-          "Draft machine fault logged; the engineer visit is still outstanding with mitigation in place until then — Owner: Joe Herrera (04/08/2026)",
-          "The hearing is still pending, with preparation outstanding — Owner: Joe Herrera (04/08/2026)",
-          "Marketing instructions on the women's hockey partnership received previously; the outreach has not yet been made — Owner: Joe Herrera (04/08/2026)"
+          "Toilet facilities still out of use, maintenance unresolved and the plumber dispute live; metadata now supplied and reopening targeted this week \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Draft machine fault logged; the engineer visit is still outstanding with mitigation in place until then \u2014 Owner: Joe Herrera (04/08/2026)",
+          "The hearing is still pending, with preparation outstanding \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Marketing instructions on the women's hockey partnership received previously; the outreach has not yet been made \u2014 Owner: Joe Herrera (04/08/2026)"
         ],
         "empty": false,
         "docId": "1xZzGaOfltWlvXBWNTSZTxmqSj4k4b1ytDblhhqob_s0"
@@ -1625,12 +1627,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -3.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 0.3,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -1638,7 +1640,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1651,12 +1653,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+19.74) + 30% (£gap +11968 vs ±£50k cal)"
+            "basis": "70% (100+19.74) + 30% (\u00a3gap +11968 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 87.07,
-            "basis": "£23.51 vs £22 tgt — level 100, WoW +0.69% → mom 57"
+            "basis": "\u00a323.51 vs \u00a322 tgt \u2014 level 100, WoW +0.69% \u2192 mom 57"
           },
           "food": {
             "weight": 30,
@@ -1671,21 +1673,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 83.33,
-            "basis": "4.58★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.58\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "0.30% inside ±5% band"
+            "basis": "0.30% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.583333,
@@ -1702,7 +1704,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1712,7 +1714,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1725,8 +1727,9 @@
         "partial": false,
         "sales": 1363.22,
         "orders": 35,
+        "orders_estimated": false,
         "aov": 38.95,
-        "new_customers": null,
+        "new_customers": 13,
         "rating": 5.0,
         "open_hours_pct": 99.8,
         "avg_prep_min": 15.8,
@@ -1742,8 +1745,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo weekly Invoice Statement (order-level, summed) — w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
-        "orders_estimated": false,
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.5
       },
       "gaps": [],
@@ -1758,13 +1760,13 @@
           "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
         ],
         "actions": [
-          "Source and fit a replacement bolt so the fire exit door closes securely — Owner: Óisín Darragh (04/08/2026)",
-          "Keep the PAT test certificate uploaded and current — Owner: Óisín Darragh (04/08/2026)",
-          "Run the XOXO promotion and push to challenge the top-performing sites as trade builds — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence — Owner: Óisín Darragh (04/08/2026)",
-          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately — Owner: Óisín Darragh (18/08/2026)",
-          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August — Owner: Óisín Darragh (01/09/2026)"
+          "Source and fit a replacement bolt so the fire exit door closes securely \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Keep the PAT test certificate uploaded and current \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Run the XOXO promotion and push to challenge the top-performing sites as trade builds \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -1819,12 +1821,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 0.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -1832,7 +1834,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1845,12 +1847,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+9.30) + 30% (£gap +6275 vs ±£50k cal)"
+            "basis": "70% (100+9.30) + 30% (\u00a3gap +6275 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 88.81,
-            "basis": "£23.05 vs £22 tgt — level 100, WoW +1.27% → mom 63"
+            "basis": "\u00a323.05 vs \u00a322 tgt \u2014 level 100, WoW +1.27% \u2192 mom 63"
           },
           "food": {
             "weight": 30,
@@ -1865,21 +1867,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.92★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.92\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "0.70% inside ±5% band"
+            "basis": "0.70% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.916667,
@@ -1896,7 +1898,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1906,7 +1908,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1936,7 +1938,7 @@
         },
         "gmv_vs_4wk_pct": 4.6,
         "gmv_vs_ly_pct": -0.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) — w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
@@ -1951,21 +1953,21 @@
           "Region-wide (North England & Midlands): Staffing levels need monitoring to ensure cover through the busy period ahead.",
           "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region.",
           "Two full-time kitchen assistants needed; recent postings have not yet produced suitable candidates (advert reposted).",
-          "Felicia transfers to Birmingham on 17/08 — a staffing transition to manage into the busy September period."
+          "Felicia transfers to Birmingham on 17/08 \u2014 a staffing transition to manage into the busy September period."
         ],
         "actions": [
-          "Upload the maintenance logs and escalate the CCTV storage fault to the maintenance lead — Owner: Amy Tang (04/08/2026)",
-          "Buy a high chair and arrange for it to be installed — Owner: Amy Tang (04/08/2026)",
-          "Draw the petty cash and settle the outstanding staff incentive — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs — Owner: Amy Tang (04/08/2026)",
-          "See Monday's kitchen extraction clean through — Owner: Amy Tang (10/08/2026)",
-          "Start Patrick's kitchen-assistant training next week — Owner: Amy Tang (11/08/2026)",
-          "Plan cover for Felicia's 17/08 transfer and monitor staffing into the September rush — Owner: Amy Tang (17/08/2026)",
-          "Region-wide (North England & Midlands): Adopt the new cleaning standard — weekly beer-line and glass renovation cleaning plus a deep clean twice a month — Owner: Amy Tang (04/08/2026)"
+          "Upload the maintenance logs and escalate the CCTV storage fault to the maintenance lead \u2014 Owner: Amy Tang (04/08/2026)",
+          "Buy a high chair and arrange for it to be installed \u2014 Owner: Amy Tang (04/08/2026)",
+          "Draw the petty cash and settle the outstanding staff incentive \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "See Monday's kitchen extraction clean through \u2014 Owner: Amy Tang (10/08/2026)",
+          "Start Patrick's kitchen-assistant training next week \u2014 Owner: Amy Tang (11/08/2026)",
+          "Plan cover for Felicia's 17/08 transfer and monitor staffing into the September rush \u2014 Owner: Amy Tang (17/08/2026)",
+          "Region-wide (North England & Midlands): Adopt the new cleaning standard \u2014 weekly beer-line and glass renovation cleaning plus a deep clean twice a month \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "carryover": [
-          "Staff incentive payment still outstanding; the budget withdrawal is approved to close it out — Owner: Amy Tang (04/08/2026)"
+          "Staff incentive payment still outstanding; the budget withdrawal is approved to close it out \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "empty": false,
         "docId": "1YWkfICnnEWFYitAykefqEWRfAtDZQwlQzU926b7qfJM"
@@ -2019,12 +2021,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -2.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -2032,7 +2034,7 @@
       "efficiency_score": {
         "score": 86,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2045,12 +2047,12 @@
           "sales": {
             "weight": 10,
             "value": 83.89,
-            "basis": "70% (100-17.66) + 30% (£gap -6240 vs ±£50k cal)"
+            "basis": "70% (100-17.66) + 30% (\u00a3gap -6240 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.15,
-            "basis": "£22.03 vs £22 tgt — level 100, WoW -2.95% → mom 20"
+            "basis": "\u00a322.03 vs \u00a322 tgt \u2014 level 100, WoW -2.95% \u2192 mom 20"
           },
           "food": {
             "weight": 30,
@@ -2065,16 +2067,16 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.86★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.86\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.50% inside ±5% band"
+            "basis": "2.50% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -2082,7 +2084,7 @@
           "sales -17.7% vs target",
           "food 26.1%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.857143,
@@ -2099,7 +2101,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2109,7 +2111,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2139,7 +2141,7 @@
         },
         "gmv_vs_4wk_pct": -27.3,
         "gmv_vs_ly_pct": -38.7,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -2153,12 +2155,12 @@
           "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region."
         ],
         "actions": [
-          "Write to HR to confirm the site transfer and holiday status for the team member concerned — Owner: Amy Tang (04/08/2026)",
-          "Correct the Saturday target in the rota guidance from next week so labour projections are accurate — Owner: Amy Tang (11/08/2026)",
-          "Confirm to the DAM once the corrected rota guidance is uploaded — Owner: Amy Tang (11/08/2026)",
-          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Adopt the new cleaning standard — weekly beer-line and glass renovation cleaning plus a deep clean twice a month — Owner: Amy Tang (04/08/2026)"
+          "Write to HR to confirm the site transfer and holiday status for the team member concerned \u2014 Owner: Amy Tang (04/08/2026)",
+          "Correct the Saturday target in the rota guidance from next week so labour projections are accurate \u2014 Owner: Amy Tang (11/08/2026)",
+          "Confirm to the DAM once the corrected rota guidance is uploaded \u2014 Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Adopt the new cleaning standard \u2014 weekly beer-line and glass renovation cleaning plus a deep clean twice a month \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -2213,12 +2215,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -2226,7 +2228,7 @@
       "efficiency_score": {
         "score": 84,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2239,12 +2241,12 @@
           "sales": {
             "weight": 10,
             "value": 86.45,
-            "basis": "70% (100-15.72) + 30% (£gap -4245 vs ±£50k cal)"
+            "basis": "70% (100-15.72) + 30% (\u00a3gap -4245 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 69.5,
-            "basis": "£20.88 vs £22 tgt — level 81, WoW -0.81% → mom 42"
+            "basis": "\u00a320.88 vs \u00a322 tgt \u2014 level 81, WoW -0.81% \u2192 mom 42"
           },
           "food": {
             "weight": 30,
@@ -2259,23 +2261,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.92★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.92\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.00% inside ±5% band"
+            "basis": "2.00% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "sales -15.7% vs target"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.916667,
@@ -2292,7 +2294,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2302,7 +2304,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2313,10 +2315,11 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 2642.97,
+        "orders": 74,
+        "orders_estimated": true,
+        "aov": 35.72,
+        "new_customers": 25,
         "rating": 4.67,
         "open_hours_pct": 97.0,
         "avg_prep_min": 15.0,
@@ -2332,7 +2335,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -2341,29 +2344,29 @@
           "The store reopening needs marketing support and promotional video coverage.",
           "Competitor pressure from a nearby Korean buffet running a two-for-one promotion.",
           "Weekly rota not yet finalised.",
-          "Team recognition outstanding — the staff party has not been arranged.",
+          "Team recognition outstanding \u2014 the staff party has not been arranged.",
           "Region-wide (North England & Midlands): Kitchen vacancies and staff turnover across several sites.",
           "Region-wide (North England & Midlands): Staffing levels need monitoring to ensure cover through the busy period ahead.",
           "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region.",
-          "Prep times high — the site is overwhelmed on weekdays running delivery and front of house with two people.",
+          "Prep times high \u2014 the site is overwhelmed on weekdays running delivery and front of house with two people.",
           "Competitor pressure building: Umami nearby, and a Korean buffet opening on 26/08.",
           "Team morale dipped over limited hours for one team member.",
           "A brief gas shut-off disrupted the day; repair handled, watching for recurrence."
         ],
         "actions": [
-          "Email marketing about the reopening and schedule their return visit for a promotional video — Owner: Amy Tang (04/08/2026)",
-          "Finalise the weekly rota and confirm to the DAM once complete — Owner: Amy Tang (04/08/2026)",
-          "Record the competitor's two-for-one promotion details in the meeting notes for tracking — Owner: Amy Tang (04/08/2026)",
-          "Organise the team party for next week — Owner: Amy Tang (11/08/2026)",
-          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs — Owner: Amy Tang (04/08/2026)",
-          "Review the rota after Thursday and add a third person on dinner shifts if trade holds — Owner: Amy Tang (06/08/2026)",
-          "Keep enforcing the driver-cancellation policy so waiting drivers don't distort delivery times — Owner: Amy Tang (04/08/2026)",
-          "Prepare a counter-promotion (e.g. two-for-one) for the buffet opening later this month — Owner: Amy Tang (26/08/2026)",
-          "Use the available budget to lift Harley's hours and settle morale — Owner: Amy Tang (04/08/2026)",
-          "Rebook the deferred sushi training for Yash once labour balances — Owner: Amy Tang (11/08/2026)",
-          "Return the site to a five-day working week as trade builds — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Adopt the new cleaning standard — weekly beer-line and glass renovation cleaning plus a deep clean twice a month — Owner: Amy Tang (04/08/2026)"
+          "Email marketing about the reopening and schedule their return visit for a promotional video \u2014 Owner: Amy Tang (04/08/2026)",
+          "Finalise the weekly rota and confirm to the DAM once complete \u2014 Owner: Amy Tang (04/08/2026)",
+          "Record the competitor's two-for-one promotion details in the meeting notes for tracking \u2014 Owner: Amy Tang (04/08/2026)",
+          "Organise the team party for next week \u2014 Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "Review the rota after Thursday and add a third person on dinner shifts if trade holds \u2014 Owner: Amy Tang (06/08/2026)",
+          "Keep enforcing the driver-cancellation policy so waiting drivers don't distort delivery times \u2014 Owner: Amy Tang (04/08/2026)",
+          "Prepare a counter-promotion (e.g. two-for-one) for the buffet opening later this month \u2014 Owner: Amy Tang (26/08/2026)",
+          "Use the available budget to lift Harley's hours and settle morale \u2014 Owner: Amy Tang (04/08/2026)",
+          "Rebook the deferred sushi training for Yash once labour balances \u2014 Owner: Amy Tang (11/08/2026)",
+          "Return the site to a five-day working week as trade builds \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Adopt the new cleaning standard \u2014 weekly beer-line and glass renovation cleaning plus a deep clean twice a month \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -2418,12 +2421,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.6,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -2431,7 +2434,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2444,12 +2447,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+4.73) + 30% (£gap +2036 vs ±£50k cal)"
+            "basis": "70% (100+4.73) + 30% (\u00a3gap +2036 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 85.27,
-            "basis": "£22.20 vs £22 tgt — level 100, WoW +0.09% → mom 51"
+            "basis": "\u00a322.20 vs \u00a322 tgt \u2014 level 100, WoW +0.09% \u2192 mom 51"
           },
           "food": {
             "weight": 30,
@@ -2464,21 +2467,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.60% inside ±5% band"
+            "basis": "2.60% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 5.0,
@@ -2495,7 +2498,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2505,7 +2508,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2535,7 +2538,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.1
       },
       "gaps": [],
@@ -2546,18 +2549,18 @@
           "Region-wide (North England & Midlands): Kitchen vacancies and staff turnover across several sites.",
           "Region-wide (North England & Midlands): Staffing levels need monitoring to ensure cover through the busy period ahead.",
           "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region.",
-          "Sushi chef resigned — a potential replacement is on trial; a front-of-house team member has also resigned.",
-          "Jimmy is covering the site ahead of his Birmingham transfer — payroll, holiday and P45 handling in motion.",
-          "Festival on 29–31/08 needs prep and cover."
+          "Sushi chef resigned \u2014 a potential replacement is on trial; a front-of-house team member has also resigned.",
+          "Jimmy is covering the site ahead of his Birmingham transfer \u2014 payroll, holiday and P45 handling in motion.",
+          "Festival on 29\u201331/08 needs prep and cover."
         ],
         "actions": [
-          "Send this week's back-of-house rota to the DAM so the master class cover gaps can be identified — Owner: Amy Tang (04/08/2026)",
-          "Hold and document the performance conversation next week — Owner: Amy Tang (11/08/2026)",
-          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs — Owner: Amy Tang (04/08/2026)",
-          "Assess whether extra front-of-house hiring is needed for midweek absence cover — Owner: Amy Tang (04/08/2026)",
-          "Prepare the rota and stock for the 29–31/08 festival — Owner: Amy Tang (29/08/2026)",
-          "Region-wide (North England & Midlands): Adopt the new cleaning standard — weekly beer-line and glass renovation cleaning plus a deep clean twice a month — Owner: Amy Tang (04/08/2026)"
+          "Send this week's back-of-house rota to the DAM so the master class cover gaps can be identified \u2014 Owner: Amy Tang (04/08/2026)",
+          "Hold and document the performance conversation next week \u2014 Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "Assess whether extra front-of-house hiring is needed for midweek absence cover \u2014 Owner: Amy Tang (04/08/2026)",
+          "Prepare the rota and stock for the 29\u201331/08 festival \u2014 Owner: Amy Tang (29/08/2026)",
+          "Region-wide (North England & Midlands): Adopt the new cleaning standard \u2014 weekly beer-line and glass renovation cleaning plus a deep clean twice a month \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -2612,12 +2615,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 2.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.8,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -2625,7 +2628,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2638,12 +2641,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+18.07) + 30% (£gap +5413 vs ±£50k cal)"
+            "basis": "70% (100+18.07) + 30% (\u00a3gap +5413 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 93.13,
-            "basis": "£22.70 vs £22 tgt — level 100, WoW +2.71% → mom 77"
+            "basis": "\u00a322.70 vs \u00a322 tgt \u2014 level 100, WoW +2.71% \u2192 mom 77"
           },
           "food": {
             "weight": 30,
@@ -2658,23 +2661,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 95.24,
-            "basis": "4.67★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.67\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.80% inside ±5% band"
+            "basis": "4.80% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 25.2%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.666667,
@@ -2699,7 +2702,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2709,7 +2712,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2720,10 +2723,11 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 2997.97,
+        "orders": 91,
+        "orders_estimated": true,
+        "aov": 32.94,
+        "new_customers": 39,
         "rating": 4.42,
         "open_hours_pct": 99.7,
         "avg_prep_min": 14.8,
@@ -2739,35 +2743,35 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.7
       },
       "gaps": [],
       "notes": {
         "issues": [
           "Multiple reviews cite food-quality concerns and the specific cause has not yet been pinpointed.",
-          "Chinese cooker installation incomplete — waiting on parts (the legs) and an update from Ross Ward.",
-          "GM away for four days with James covering — the handover needs documenting before she leaves.",
+          "Chinese cooker installation incomplete \u2014 waiting on parts (the legs) and an update from Ross Ward.",
+          "GM away for four days with James covering \u2014 the handover needs documenting before she leaves.",
           "Weekly roster still in draft, with changes to be confirmed.",
-          "Discrepancy between the Kobas food-variance report and the site's local report — source not yet identified.",
+          "Discrepancy between the Kobas food-variance report and the site's local report \u2014 source not yet identified.",
           "Two new team members needed to carry the site through the Christmas period.",
           "Region-wide (North England & Midlands): Kitchen vacancies and staff turnover across several sites.",
           "Region-wide (North England & Midlands): Staffing levels need monitoring to ensure cover through the busy period ahead.",
           "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region."
         ],
         "actions": [
-          "Log food-quality complaints by frequency and specific item, weekly or daily, so the audit can pinpoint the cause — Owner: M16 GM (04/08/2026)",
-          "Add Ross Ward to the group chat for an update on the cooker legs installation — Owner: M16 GM (04/08/2026)",
-          "Send James a handover message in the group chat covering the incomplete admin tasks, expectations for the days ahead, and the food-cost input instructions — Owner: M16 GM (04/08/2026)",
-          "Confirm roster changes with James once the draft is ready — Owner: M16 GM (04/08/2026)",
-          "Check with whoever places the orders to trace the variance-report discrepancy — Owner: M16 GM (04/08/2026)",
-          "Run trial shifts off the current advert for the two Christmas hires, and train new starters on the allergy service menus with James assisting — Owner: M16 GM (04/08/2026)",
-          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Adopt the new cleaning standard — weekly beer-line and glass renovation cleaning plus a deep clean twice a month — Owner: Amy Tang (04/08/2026)"
+          "Log food-quality complaints by frequency and specific item, weekly or daily, so the audit can pinpoint the cause \u2014 Owner: M16 GM (04/08/2026)",
+          "Add Ross Ward to the group chat for an update on the cooker legs installation \u2014 Owner: M16 GM (04/08/2026)",
+          "Send James a handover message in the group chat covering the incomplete admin tasks, expectations for the days ahead, and the food-cost input instructions \u2014 Owner: M16 GM (04/08/2026)",
+          "Confirm roster changes with James once the draft is ready \u2014 Owner: M16 GM (04/08/2026)",
+          "Check with whoever places the orders to trace the variance-report discrepancy \u2014 Owner: M16 GM (04/08/2026)",
+          "Run trial shifts off the current advert for the two Christmas hires, and train new starters on the allergy service menus with James assisting \u2014 Owner: M16 GM (04/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Adopt the new cleaning standard \u2014 weekly beer-line and glass renovation cleaning plus a deep clean twice a month \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "carryover": [
-          "Cooker legs installation raised previously and still awaiting Ross Ward's update — Owner: M16 GM (04/08/2026)"
+          "Cooker legs installation raised previously and still awaiting Ross Ward's update \u2014 Owner: M16 GM (04/08/2026)"
         ],
         "empty": false,
         "docId": "1YWkfICnnEWFYitAykefqEWRfAtDZQwlQzU926b7qfJM"
@@ -2821,12 +2825,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 10.9,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": false
         },
         "food": {
           "variance_pct": 3.7,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -2834,7 +2838,7 @@
       "efficiency_score": {
         "score": 95,
         "rag": "green",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2847,12 +2851,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+2.88) + 30% (£gap +951 vs ±£50k cal)"
+            "basis": "70% (100+2.88) + 30% (\u00a3gap +951 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 70.0,
-            "basis": "£23.66 vs £22 tgt — level 100, WoW -6.45% → mom 0"
+            "basis": "\u00a323.66 vs \u00a322 tgt \u2014 level 100, WoW -6.45% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -2867,21 +2871,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.90★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.90\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.70% inside ±5% band"
+            "basis": "3.70% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.897436,
@@ -2898,7 +2902,7 @@
           {
             "stars": 3,
             "author": "Taher Hamza",
-            "text": "The food was worse than average! We ordered different noodles and they all were so plain, no flavour and just didn’t taste nice. It was like noodles were added that were boiled. There was no synchrony in the dish. The drinks were bad. Only nice thing was sushi and that was only average too with a high price tag. Would definitely not recommend then place.",
+            "text": "The food was worse than average! We ordered different noodles and they all were so plain, no flavour and just didn\u2019t taste nice. It was like noodles were added that were boiled. There was no synchrony in the dish. The drinks were bad. Only nice thing was sushi and that was only average too with a high price tag. Would definitely not recommend then place.",
             "date": "2026-07-31",
             "url": null
           }
@@ -2906,7 +2910,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2916,7 +2920,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2946,42 +2950,42 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
           "Weekly target hit, with covers up and many returning customers noticed.",
-          "Deliveroo sales and rating dipped — traced to broth spills in transit; new packaging ordered and vouchers issued to affected customers.",
+          "Deliveroo sales and rating dipped \u2014 traced to broth spills in transit; new packaging ordered and vouchers issued to affected customers.",
           "Chinese cooker still faulty after a repair attempt.",
           "A bathroom check was missed on Saturday despite otherwise strong compliance.",
           "Labour ran slightly over target covering a busy Friday.",
-          "Food variance issue resolved — caused by an incorrectly dated invoice.",
+          "Food variance issue resolved \u2014 caused by an incorrectly dated invoice.",
           "Outdoor seating area very popular; influencer filming requests handled with discretion to protect the site's reputation.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Implement the summer drinks — Yuzu iced tea and homemade lemonade; get the lemonade recipe from Nori — Owner: Kaitlin Docherty (04/08/2026)",
-          "Launch the approved sushi pop-up as soon as the cups are sourced — coordinate with Sophie Wang — Owner: Kaitlin Docherty (04/08/2026)",
-          "See the Chinese cooker repair through at Thursday's follow-up visit — Owner: Kaitlin Docherty (06/08/2026)",
-          "Monitor the new delivery packaging in and confirm the Deliveroo rating recovers — Owner: Kaitlin Docherty (04/08/2026)",
-          "Reinstate the weekend bathroom-check discipline — Owner: Kaitlin Docherty (04/08/2026)",
-          "Keep vetting influencer filming requests, prioritising significant followings — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Implement the summer drinks \u2014 Yuzu iced tea and homemade lemonade; get the lemonade recipe from Nori \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Launch the approved sushi pop-up as soon as the cups are sourced \u2014 coordinate with Sophie Wang \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "See the Chinese cooker repair through at Thursday's follow-up visit \u2014 Owner: Kaitlin Docherty (06/08/2026)",
+          "Monitor the new delivery packaging in and confirm the Deliveroo rating recovers \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Reinstate the weekend bathroom-check discipline \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Keep vetting influencer filming requests, prioritising significant followings \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -3036,12 +3040,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.3,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.1,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -3049,7 +3053,7 @@
       "efficiency_score": {
         "score": 69,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3062,12 +3066,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+7.88) + 30% (£gap +2523 vs ±£50k cal)"
+            "basis": "70% (100+7.88) + 30% (\u00a3gap +2523 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 75.7,
-            "basis": "£21.37 vs £22 tgt — level 90, WoW -0.65% → mom 44"
+            "basis": "\u00a321.37 vs \u00a322 tgt \u2014 level 90, WoW -0.65% \u2192 mom 44"
           },
           "food": {
             "weight": 30,
@@ -3082,21 +3086,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 7.14,
-            "basis": "4.05★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.05\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.10% inside ±5% band"
+            "basis": "3.10% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.05,
@@ -3113,7 +3117,7 @@
           {
             "stars": 1,
             "author": "Oscar",
-            "text": "Food looked nothing like the menu photos, price is outrageous for the quality of what you’re eating. Ramen broth is bland and tastes boring, sides are extortionately expensive for what you receive. Wouldn’t recommend if you actually want to enjoy your meal whilst spending decent money.",
+            "text": "Food looked nothing like the menu photos, price is outrageous for the quality of what you\u2019re eating. Ramen broth is bland and tastes boring, sides are extortionately expensive for what you receive. Wouldn\u2019t recommend if you actually want to enjoy your meal whilst spending decent money.",
             "date": "2026-08-02",
             "url": null
           },
@@ -3127,7 +3131,7 @@
           {
             "stars": 1,
             "author": "Salma Xx",
-            "text": "Food was overpriced £15/£19 for a bowl of noodles that dont have flavour apart from chili the portions are small and food is just basic. Service was not great food took ages to come and everyones foods were given at different times. The whole place stinks like damp and very stuffy. Dont recommend",
+            "text": "Food was overpriced \u00a315/\u00a319 for a bowl of noodles that dont have flavour apart from chili the portions are small and food is just basic. Service was not great food took ages to come and everyones foods were given at different times. The whole place stinks like damp and very stuffy. Dont recommend",
             "date": "2026-07-30",
             "url": null
           },
@@ -3149,7 +3153,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3159,7 +3163,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3170,10 +3174,11 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 1484.84,
+        "orders": 40,
+        "orders_estimated": true,
+        "aov": 37.12,
+        "new_customers": 29,
         "rating": 4.0,
         "open_hours_pct": 99.0,
         "avg_prep_min": 14.6,
@@ -3189,7 +3194,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 8.5
       },
       "gaps": [],
@@ -3202,35 +3207,35 @@
           "A negative guest review received and awaiting a response.",
           "An unexplained smell reported in the basement area.",
           "A run of one-star reviews citing food quality, portions and pricing; overcharging allegations need direct investigation.",
-          "Kitchen prep consistency slipping (e.g. cut thickness) — supervisor oversight needs to step up.",
+          "Kitchen prep consistency slipping (e.g. cut thickness) \u2014 supervisor oversight needs to step up.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Require staff to photograph delivery bags and slips so refund claims carry evidence — Owner: Ziang Lin (04/08/2026)",
-          "Forward all partnership enquiries directly to the DAM — Owner: Ziang Lin (04/08/2026)",
-          "Send photo and video of the broken dishwasher to maintenance — Owner: Ziang Lin (04/08/2026)",
-          "Raise the recurring gas cylinder issues with maintenance — Owner: Ziang Lin (04/08/2026)",
-          "Respond to the negative review and invite the guest back — Owner: Ziang Lin (04/08/2026)",
-          "Investigate the source of the smell in the basement — Owner: Ross Ward (04/08/2026)",
-          "Visit the site to assess the reported odour — Owner: Ziang Lin (04/08/2026)",
-          "Hold Friday and Saturday closing at 11pm to balance labour against late trade — Owner: Ziang Lin (04/08/2026)",
-          "Keep admin and invoicing out of service hours — complete them during closing so managers stay on the floor — Owner: Ziang Lin (04/08/2026)",
-          "Tighten kitchen supervision on prep consistency, starting with cut standards — Owner: Ziang Lin (04/08/2026)",
-          "Investigate the overcharging complaints directly with the customers concerned — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Require staff to photograph delivery bags and slips so refund claims carry evidence \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Forward all partnership enquiries directly to the DAM \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Send photo and video of the broken dishwasher to maintenance \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Raise the recurring gas cylinder issues with maintenance \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Respond to the negative review and invite the guest back \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Investigate the source of the smell in the basement \u2014 Owner: Ross Ward (04/08/2026)",
+          "Visit the site to assess the reported odour \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Hold Friday and Saturday closing at 11pm to balance labour against late trade \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Keep admin and invoicing out of service hours \u2014 complete them during closing so managers stay on the floor \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Tighten kitchen supervision on prep consistency, starting with cut standards \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Investigate the overcharging complaints directly with the customers concerned \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -3285,12 +3290,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 8.2,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": false
         },
         "food": {
           "variance_pct": 3.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -3298,7 +3303,7 @@
       "efficiency_score": {
         "score": 31,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3311,12 +3316,12 @@
           "sales": {
             "weight": 10,
             "value": 90.63,
-            "basis": "70% (100-11.14) + 30% (£gap -2618 vs ±£50k cal)"
+            "basis": "70% (100-11.14) + 30% (\u00a3gap -2618 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 44.1,
-            "basis": "£19.78 vs £22 tgt — level 63, WoW -13.96% → mom 0"
+            "basis": "\u00a319.78 vs \u00a322 tgt \u2014 level 63, WoW -13.96% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -3331,16 +3336,16 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.91★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.50% inside ±5% band"
+            "basis": "3.50% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -3349,7 +3354,7 @@
           "wage 46.0%",
           "food 37.2%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.914286,
@@ -3366,7 +3371,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3376,7 +3381,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3406,37 +3411,37 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
       "notes": {
         "issues": [
-          "Deliveroo tablet downtime caused lost sales — the device was not being kept charged; a new charging setup is now in place.",
+          "Deliveroo tablet downtime caused lost sales \u2014 the device was not being kept charged; a new charging setup is now in place.",
           "Labour projections skewed by incorrect hour logging.",
           "Site management structure unstable; routines being reset with closer supervision.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Close the site 3:00–5:00pm Monday to Thursday for dedicated admin time — Owner: Ziang Lin (04/08/2026)",
-          "Management restructure: Hajura moves off the management team; Mavis comes in as supervisor — Owner: Ziang Lin (04/08/2026)",
-          "Run close supervision of site management through the stabilisation period before settling the long-term shape of the role — Owner: Ziang Lin (04/08/2026)",
-          "Audit how labour hours and coverage shifts are recorded and correct the projections — Owner: Ziang Lin (04/08/2026)",
-          "Keep the Deliveroo device on its new charging routine to prevent further downtime — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Close the site 3:00\u20135:00pm Monday to Thursday for dedicated admin time \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Management restructure: Hajura moves off the management team; Mavis comes in as supervisor \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Run close supervision of site management through the stabilisation period before settling the long-term shape of the role \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Audit how labour hours and coverage shifts are recorded and correct the projections \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Keep the Deliveroo device on its new charging routine to prevent further downtime \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -3491,12 +3496,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 2.4,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 5.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -3504,7 +3509,7 @@
       "efficiency_score": {
         "score": 64,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3517,12 +3522,12 @@
           "sales": {
             "weight": 10,
             "value": 96.8,
-            "basis": "70% (100-3.32) + 30% (£gap -1460 vs ±£50k cal)"
+            "basis": "70% (100-3.32) + 30% (\u00a3gap -1460 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 60.6,
-            "basis": "£20.77 vs £22 tgt — level 80, WoW -3.35% → mom 16"
+            "basis": "\u00a320.77 vs \u00a322 tgt \u2014 level 80, WoW -3.35% \u2192 mom 16"
           },
           "food": {
             "weight": 30,
@@ -3537,23 +3542,23 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.96★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.96\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "5.00% inside ±5% band"
+            "basis": "5.00% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "wage 28.5%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.964706,
@@ -3570,7 +3575,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3580,7 +3585,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3588,7 +3593,7 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ],
       "notes": {
         "issues": [
@@ -3602,44 +3607,44 @@
           "Sales trending down, with covers and average spend both softening even though labour is well controlled.",
           "Google review growth has plateaued since reaching the site's review milestone.",
           "Maintenance outstanding: disabled-toilet sink, a pipe leak and a problematic freezer.",
-          "The recurring foul odour traced to nappy disposal in food court bins directly beneath the restaurant — not plumbing.",
+          "The recurring foul odour traced to nappy disposal in food court bins directly beneath the restaurant \u2014 not plumbing.",
           "Bird droppings affecting window seats in the E section (E5/E6).",
           "The neighbouring tenant has reported rodent sightings on their surveillance cameras.",
           "Two new supervisors (Sinki and Dave) promoted to strengthen the site team.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Email the centre marketing team to get the staff discount and lunch menu added to the website listing — Owner: Kaitlin Docherty (04/08/2026)",
-          "Screenshot the website listing showing the missing staff discount and lunch menu, and add it to the KPI report — Owner: Kaitlin Docherty (04/08/2026)",
-          "Run local outreach to nearby businesses, distributing lunch menus and offering the staff discount — Owner: Kaitlin Docherty (04/08/2026)",
-          "Follow up on the status of the centre staff app discount — Owner: Kaitlin Docherty (04/08/2026)",
-          "Arrange a meeting with the centre marketing team on promotional opportunities — Owner: Kaitlin Docherty (04/08/2026)",
-          "Conduct a site audit to confirm compliance — Owner: Kaitlin Docherty (04/08/2026)",
-          "Inspect the hole near the display fridge to establish the cause — Owner: Kaitlin Docherty (04/08/2026)",
-          "Book a professional pest control inspection for the suspected rodent activity — Owner: Kaitlin Docherty (04/08/2026)",
-          "Loop the DAM into the port marketing discussion and share the feedback afterwards — Owner: Ziang Lin (05/08/2026)",
-          "Forward all centre marketing correspondence to management for oversight — Owner: Ziang Lin (04/08/2026)",
-          "Buy and install a lunch menu board at the site — Owner: Ziang Lin (04/08/2026)",
-          "Push for customer feedback on-site to restart review growth — Owner: Kaitlin Docherty (04/08/2026)",
-          "Seat customers in the E section and window areas first so the restaurant reads busy to passers-by — Owner: Kaitlin Docherty (04/08/2026)",
-          "Hold seats E5 and E6 back until the restaurant is full, and keep that floor spotless given the bird droppings — Owner: Kaitlin Docherty (04/08/2026)",
-          "Target port passengers with promotional offers — the weekly footfall through the port makes even a small capture rate significant — Owner: Ziang Lin (04/08/2026)",
-          "Chase the outstanding maintenance: disabled-toilet sink, pipe leak and freezer — Owner: Kaitlin Docherty (04/08/2026)",
-          "Follow up with the centre so promotional discounts display correctly on the retail app — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Email the centre marketing team to get the staff discount and lunch menu added to the website listing \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Screenshot the website listing showing the missing staff discount and lunch menu, and add it to the KPI report \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Run local outreach to nearby businesses, distributing lunch menus and offering the staff discount \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Follow up on the status of the centre staff app discount \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Arrange a meeting with the centre marketing team on promotional opportunities \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Conduct a site audit to confirm compliance \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Inspect the hole near the display fridge to establish the cause \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Book a professional pest control inspection for the suspected rodent activity \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Loop the DAM into the port marketing discussion and share the feedback afterwards \u2014 Owner: Ziang Lin (05/08/2026)",
+          "Forward all centre marketing correspondence to management for oversight \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Buy and install a lunch menu board at the site \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Push for customer feedback on-site to restart review growth \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Seat customers in the E section and window areas first so the restaurant reads busy to passers-by \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Hold seats E5 and E6 back until the restaurant is full, and keep that floor spotless given the bird droppings \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Target port passengers with promotional offers \u2014 the weekly footfall through the port makes even a small capture rate significant \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Chase the outstanding maintenance: disabled-toilet sink, pipe leak and freezer \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Follow up with the centre so promotional discounts display correctly on the retail app \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
@@ -3694,12 +3699,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -2.4,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.8,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -3707,7 +3712,7 @@
       "efficiency_score": {
         "score": 46,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3720,7 +3725,7 @@
           "sph": {
             "weight": 15,
             "value": 70.0,
-            "basis": "£38.93 vs £35 tgt — level 100, WoW -6.51% → mom 0"
+            "basis": "\u00a338.93 vs \u00a335 tgt \u2014 level 100, WoW -6.51% \u2192 mom 0"
           },
           "food": {
             "weight": 30,
@@ -3735,18 +3740,18 @@
           "weekly_star": {
             "weight": 10,
             "value": 71.43,
-            "basis": "4.50★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.80% inside ±5% band"
+            "basis": "3.80% inside \u00b15% band"
           }
         },
         "components_dropped": [
           "sales"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -3754,7 +3759,7 @@
           "wage 32.0%",
           "food 29.5%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.5,
@@ -3771,7 +3776,7 @@
           {
             "stars": 1,
             "author": "jamaisvus2",
-            "text": "What a terrible place lol. Service was bad and it’s so so so overpriced and food was just mid.",
+            "text": "What a terrible place lol. Service was bad and it\u2019s so so so overpriced and food was just mid.",
             "date": "2026-08-02",
             "url": null
           }
@@ -3779,7 +3784,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3789,7 +3794,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3797,42 +3802,42 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
       ],
       "notes": {
         "issues": [
           "Service issues identified in recent customer reviews.",
           "Management have stopped wearing the correct uniform.",
           "Night staffing is not sufficient to close the restaurant down properly.",
-          "Cleanliness and pest control need tightening — end-of-day deep cleans and morning sweeps are not consistently done.",
+          "Cleanliness and pest control need tightening \u2014 end-of-day deep cleans and morning sweeps are not consistently done.",
           "Google review performance is a condition of the Westfield opportunity and the site lead needs to understand what rests on it.",
           "The site lead has not had EHO training.",
-          "The Nori initiative underperforming — low customer turnout and booking confusion.",
+          "The Nori initiative underperforming \u2014 low customer turnout and booking confusion.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Investigate the service complaints raised in recent customer reviews — Owner: Ziang Lin (04/08/2026)",
-          "Return management to the correct uniform standard — Owner: Ziang Lin (04/08/2026)",
-          "Hold team levels high enough at night to close the restaurant properly — Owner: Ziang Lin (04/08/2026)",
-          "Reinstate end-of-day deep cleans and morning sweeps for pest control — Owner: Ziang Lin (04/08/2026)",
-          "Brief the site lead on why Google review performance determines the Westfield opportunity — Owner: Ziang Lin (04/08/2026)",
-          "Deliver EHO training to the site lead — Owner: Ziang Lin (04/08/2026)",
-          "Advertise the Nori offer properly, make booking communication clear, and keep the area clean and professional — Owner: Ziang Lin (04/08/2026)",
-          "Luca remains in post until the Westfield site opens, with the option of part-time hours if needed — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Investigate the service complaints raised in recent customer reviews \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Return management to the correct uniform standard \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Hold team levels high enough at night to close the restaurant properly \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Reinstate end-of-day deep cleans and morning sweeps for pest control \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Brief the site lead on why Google review performance determines the Westfield opportunity \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Deliver EHO training to the site lead \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Advertise the Nori offer properly, make booking communication clear, and keep the area clean and professional \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Luca remains in post until the Westfield site opens, with the option of part-time hours if needed \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,

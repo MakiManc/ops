@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-08-05",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-07-27 – 2026-08-02",
+    "label": "Week of 2026-07-27 \u2013 2026-08-02",
     "commencing": "2026-07-27",
     "ending": "2026-08-02"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.3,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.1,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 69,
         "rag": "red",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+7.88) + 30% (£gap +2523 vs ±£50k cal)"
+            "basis": "70% (100+7.88) + 30% (\u00a3gap +2523 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 75.7,
-            "basis": "£21.37 vs £22 tgt — level 90, WoW -0.65% → mom 44"
+            "basis": "\u00a321.37 vs \u00a322 tgt \u2014 level 90, WoW -0.65% \u2192 mom 44"
           },
           "food": {
             "weight": 30,
@@ -102,21 +102,21 @@
           "weekly_star": {
             "weight": 10,
             "value": 7.14,
-            "basis": "4.05★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "4.05\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.10% inside ±5% band"
+            "basis": "3.10% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": 4.05,
@@ -133,7 +133,7 @@
           {
             "stars": 1,
             "author": "Oscar",
-            "text": "Food looked nothing like the menu photos, price is outrageous for the quality of what you’re eating. Ramen broth is bland and tastes boring, sides are extortionately expensive for what you receive. Wouldn’t recommend if you actually want to enjoy your meal whilst spending decent money.",
+            "text": "Food looked nothing like the menu photos, price is outrageous for the quality of what you\u2019re eating. Ramen broth is bland and tastes boring, sides are extortionately expensive for what you receive. Wouldn\u2019t recommend if you actually want to enjoy your meal whilst spending decent money.",
             "date": "2026-08-02",
             "url": null
           },
@@ -147,7 +147,7 @@
           {
             "stars": 1,
             "author": "Salma Xx",
-            "text": "Food was overpriced £15/£19 for a bowl of noodles that dont have flavour apart from chili the portions are small and food is just basic. Service was not great food took ages to come and everyones foods were given at different times. The whole place stinks like damp and very stuffy. Dont recommend",
+            "text": "Food was overpriced \u00a315/\u00a319 for a bowl of noodles that dont have flavour apart from chili the portions are small and food is just basic. Service was not great food took ages to come and everyones foods were given at different times. The whole place stinks like damp and very stuffy. Dont recommend",
             "date": "2026-07-30",
             "url": null
           },
@@ -169,7 +169,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -179,7 +179,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -190,10 +190,11 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": null,
-        "orders": null,
-        "aov": null,
-        "new_customers": null,
+        "sales": 1484.84,
+        "orders": 40,
+        "orders_estimated": true,
+        "aov": 37.12,
+        "new_customers": 29,
         "rating": 4.0,
         "open_hours_pct": 99.0,
         "avg_prep_min": 14.6,
@@ -209,7 +210,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Summary sheet (ops table) — no sales row this week + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 8.5
       },
       "gaps": [],
@@ -222,35 +223,35 @@
           "A negative guest review received and awaiting a response.",
           "An unexplained smell reported in the basement area.",
           "A run of one-star reviews citing food quality, portions and pricing; overcharging allegations need direct investigation.",
-          "Kitchen prep consistency slipping (e.g. cut thickness) — supervisor oversight needs to step up.",
+          "Kitchen prep consistency slipping (e.g. cut thickness) \u2014 supervisor oversight needs to step up.",
           "Region-wide (South England): Cleanliness standards need to be stricter across the region, with closer oversight of service consistency and brand reputation.",
           "Region-wide (South England): Management teams have not been trained on EHO procedures.",
-          "Region-wide (South England): The B2B outreach tracker is not being maintained — leads are not colour-coded and entries carry no timestamps.",
+          "Region-wide (South England): The B2B outreach tracker is not being maintained \u2014 leads are not colour-coded and entries carry no timestamps.",
           "Region-wide (South England): B2B activity across the region is too low, and the DAM and AM are not copied on all partner communication.",
           "Region-wide (South England): Summer menu changes and pest-control protocols still to be rolled out across sites.",
-          "Region-wide (South England): Supervisor-team leadership needs lifting — too little delegation, accountability and proactive guest-service behaviour."
+          "Region-wide (South England): Supervisor-team leadership needs lifting \u2014 too little delegation, accountability and proactive guest-service behaviour."
         ],
         "actions": [
-          "Require staff to photograph delivery bags and slips so refund claims carry evidence — Owner: Ziang Lin (04/08/2026)",
-          "Forward all partnership enquiries directly to the DAM — Owner: Ziang Lin (04/08/2026)",
-          "Send photo and video of the broken dishwasher to maintenance — Owner: Ziang Lin (04/08/2026)",
-          "Raise the recurring gas cylinder issues with maintenance — Owner: Ziang Lin (04/08/2026)",
-          "Respond to the negative review and invite the guest back — Owner: Ziang Lin (04/08/2026)",
-          "Investigate the source of the smell in the basement — Owner: Ross Ward (04/08/2026)",
-          "Visit the site to assess the reported odour — Owner: Ziang Lin (04/08/2026)",
-          "Hold Friday and Saturday closing at 11pm to balance labour against late trade — Owner: Ziang Lin (04/08/2026)",
-          "Keep admin and invoicing out of service hours — complete them during closing so managers stay on the floor — Owner: Ziang Lin (04/08/2026)",
-          "Tighten kitchen supervision on prep consistency, starting with cut standards — Owner: Ziang Lin (04/08/2026)",
-          "Investigate the overcharging complaints directly with the customers concerned — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Copy the AM and DAM on all B2B communication — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive — Owner: Ziang Lin (04/08/2026)",
-          "Region-wide (South England): Hold the new weekly coordination meeting — Mondays 2:00pm — for B2B outreach and KPI alignment — Owner: Ziang Lin (10/08/2026)",
-          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service — Owner: Kaitlin Docherty (04/08/2026)",
-          "Region-wide (South England): Adopt the Leeds-style B2B approach — take food platters to nearby offices with discount cards, and log every contact in the master tracker — Owner: Ziang Lin (04/08/2026)"
+          "Require staff to photograph delivery bags and slips so refund claims carry evidence \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Forward all partnership enquiries directly to the DAM \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Send photo and video of the broken dishwasher to maintenance \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Raise the recurring gas cylinder issues with maintenance \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Respond to the negative review and invite the guest back \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Investigate the source of the smell in the basement \u2014 Owner: Ross Ward (04/08/2026)",
+          "Visit the site to assess the reported odour \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Hold Friday and Saturday closing at 11pm to balance labour against late trade \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Keep admin and invoicing out of service hours \u2014 complete them during closing so managers stay on the floor \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Tighten kitchen supervision on prep consistency, starting with cut standards \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Investigate the overcharging complaints directly with the customers concerned \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Organise an online session to train the management teams on EHO procedures \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Send calendar invites for the B2B catch-up to the region \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Run additional B2B outreach and record every activity in the tracker \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Colour-code lead contacts in the tracker and timestamp every entry \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Copy the AM and DAM on all B2B communication \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Hold supervisory staff to stricter accountability and professional standards as the region's primary directive \u2014 Owner: Ziang Lin (04/08/2026)",
+          "Region-wide (South England): Hold the new weekly coordination meeting \u2014 Mondays 2:00pm \u2014 for B2B outreach and KPI alignment \u2014 Owner: Ziang Lin (10/08/2026)",
+          "Region-wide (South England): Deliver additional supervisor training on delegation, accountability and leading guest service \u2014 Owner: Kaitlin Docherty (04/08/2026)",
+          "Region-wide (South England): Adopt the Leeds-style B2B approach \u2014 take food platters to nearby offices with discount cards, and log every contact in the master tracker \u2014 Owner: Ziang Lin (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,
