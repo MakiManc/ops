@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -176,7 +176,37 @@
         "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Delivery refund for a missing item, attributed to a driver not collecting all bags, though the site accepts packing could be tighter when busy.",
+          "Opening-time accuracy dropped after an unreported early close on a Saturday.",
+          "Three-star reviews driven by the service charge policy and the site's inability to accept American Express, rather than by service behaviour.",
+          "Temporary cover needed for Thursday and Saturday shifts over the next fortnight due to holidays.",
+          "Ongoing slow internet and fluctuating card machine performance.",
+          "Consistent picking errors from the supplier, traced to the warehouse misidentifying items.",
+          "Region-wide (Scotland & Newcastle): Deliveroo integration errors affecting multiple sites.",
+          "Region-wide (Scotland & Newcastle): Temporary card-payment outage over the weekend from a WorldPay incident.",
+          "Region-wide (Scotland & Newcastle): Poor internet connectivity and ageing hardware across sites.",
+          "Region-wide (Scotland & Newcastle): Supplier warehouse picking errors identified as a systemic logistics failure, with a supplier switch under consideration."
+        ],
+        "actions": [
+          "Brief the manager on the drop in opening-time accuracy and require early closures to be reported so the system can be adjusted \u2014 Owner: Ka Ho (04/08/2026)",
+          "Arrange temporary cover for Thursday and Saturday shifts over the next two weeks \u2014 Owner: Ka Ho (18/08/2026)",
+          "Agreed: cover comes from the West End site for the next fortnight rather than hiring new part-time staff \u2014 Owner: Ka Ho (18/08/2026)",
+          "Keep monitoring the supplier picking failures and move to the alternative supplier if unresolved \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume \u2014 Owner: Ka Ho (04/08/2026)"
+        ],
+        "carryover": [
+          "Supplier picking errors raised previously \u2014 warehouse cause now confirmed, but the issue remains open and under monitoring \u2014 Owner: Ka Ho (04/08/2026)",
+          "Closed out: the outstanding licensing exam issue is now resolved \u2014 Owner: Ka Ho (04/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1sNq-0bloYhtkIJCaZvuy-OTMQ1LLc03kXQwuwMhMq7c"
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -176,7 +176,27 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.1
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Back-of-house rota gaps affecting cover for the sushi master class.",
+          "Performance concerns about a team member that need formal documentation.",
+          "Region-wide (North England & Midlands): Kitchen vacancies and staff turnover across several sites.",
+          "Region-wide (North England & Midlands): Staffing levels need monitoring to ensure cover through the busy period ahead.",
+          "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region.",
+          "Region-wide (North England & Midlands): Food quality complaints are occurring but are not tracked by frequency or by item, so no pattern can be seen."
+        ],
+        "actions": [
+          "Send this week's back-of-house rota to the DAM so the master class cover gaps can be identified \u2014 Owner: Amy Tang (04/08/2026)",
+          "Hold and document the performance conversation next week \u2014 Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Log food quality complaints by frequency and by item so recurring faults become visible \u2014 Owner: Amy Tang (04/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1YWkfICnnEWFYitAykefqEWRfAtDZQwlQzU926b7qfJM"
+      }
     }
   }
 }

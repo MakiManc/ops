@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -152,7 +152,35 @@
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
       "deliveroo": null,
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Covers up strongly and close to the site's best-ever week, but still short of the overall sales target.",
+          "Food cost missed target for the week.",
+          "Staffing churn \u2014 two leavers out and two starters in.",
+          "Mixed reviews, including a complaint about staff manner and another about dish timing and seasoning.",
+          "The lunch menu is currently suspended.",
+          "Spend per head still has room to improve.",
+          "Certificates for completed maintenance work still not received.",
+          "Region-wide (Scotland & Newcastle): Wi-Fi and connectivity failures are stopping delivery orders printing in the kitchen across several sites, driving refunds and leaving drivers waiting.",
+          "Region-wide (Scotland & Newcastle): Delivery refund disputes are being lost because sites hold no photographic evidence of what was dispatched.",
+          "Region-wide (Scotland & Newcastle): Concerns raised over a recent back-of-house hire with a history of insubordination; the Head Chef advocated for him, the DAM flagged prior conduct issues under certain supervisors.",
+          "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
+        ],
+        "actions": [
+          "Follow up with the service provider on the status of the fire panel certificates \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Counter the negative reviews by driving five-star feedback and growing weekly covers \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
+        ],
+        "carryover": [
+          "Fire panel and maintenance certificates outstanding from completed work \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)"
+        ],
+        "empty": false,
+        "docId": ""
+      }
     }
   }
 }

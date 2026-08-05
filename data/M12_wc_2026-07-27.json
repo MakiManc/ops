@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -179,7 +179,35 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Sales up week on week but still short of target.",
+          "Drinks and sides trending the right way while sushi continues to underperform.",
+          "Delivery refund disputes lost for want of photographic evidence, including on extra broth supplied with ramen.",
+          "Labour remains a challenge, with extra hours used despite the sales increase.",
+          "Food cost slightly over budget.",
+          "The bar flooded from a faulty glass wash machine.",
+          "Region-wide (Scotland & Newcastle): Wi-Fi and connectivity failures are stopping delivery orders printing in the kitchen across several sites, driving refunds and leaving drivers waiting.",
+          "Region-wide (Scotland & Newcastle): Delivery refund disputes are being lost because sites hold no photographic evidence of what was dispatched.",
+          "Region-wide (Scotland & Newcastle): Concerns raised over a recent back-of-house hire with a history of insubordination; the Head Chef advocated for him, the DAM flagged prior conduct issues under certain supervisors.",
+          "Region-wide (Scotland & Newcastle): Several sites grew sales volume but still missed financial targets on labour and food cost variance."
+        ],
+        "actions": [
+          "Update the onboarding tracker to remove the front-of-house leavers \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Advertise for the full-time back-of-house vacancy \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Replace the faulty glass wash machine using parts from the unused unit \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Package extra broth in separate containers to support delivery dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Keep pushing Restaurant Week bookings while demand is strong \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Photograph every Deliveroo order before dispatch so refund disputes can be evidenced \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Package extra ramen broth in a separate container to improve order accuracy and support dispute evidence \u2014 Owner: \u00d3is\u00edn Darragh (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Retain the new back-of-house hire on a two-week probation with close monitoring; any conduct or performance issue ends the placement immediately \u2014 Owner: \u00d3is\u00edn Darragh (18/08/2026)",
+          "Region-wide (Scotland & Newcastle): Hand audit management to Penny from September; Newcastle sites move off Matt Polak, with Nabina assisting on back-of-house audits through August \u2014 Owner: \u00d3is\u00edn Darragh (01/09/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": ""
+      }
     }
   }
 }

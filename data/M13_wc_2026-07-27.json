@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -176,7 +176,51 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [
+          "Draft machine failure forced unauthorised last-minute stock purchases, distorting drink variance.",
+          "An unexplained Wednesday closure hit opening-time compliance.",
+          "A meal deal item was cooked incorrectly; refunds traced to trial shift incidents and a takeaway order mishandled during a busy period.",
+          "Toilet facility maintenance still unresolved, with a dispute with the plumber over the dates on the video evidence supplied.",
+          "Front-of-house staffing gap \u2014 a supervisor and possibly an additional team member needed, depending on availability and university schedules.",
+          "Service standards feedback that team members are not acknowledging customers at the door or when moving through sections.",
+          "The GM raised concern about staying objective through an upcoming hearing.",
+          "Region-wide (Scotland & Newcastle): Deliveroo integration errors affecting multiple sites.",
+          "Region-wide (Scotland & Newcastle): Temporary card-payment outage over the weekend from a WorldPay incident.",
+          "Region-wide (Scotland & Newcastle): Poor internet connectivity and ageing hardware across sites.",
+          "Region-wide (Scotland & Newcastle): Supplier warehouse picking errors identified as a systemic logistics failure, with a supplier switch under consideration."
+        ],
+        "actions": [
+          "Study all screenshots and evidence supplied so the position is fully understood before the hearing \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Stick strictly to the factual evidence at the hearing and answer only what is asked \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Establish the reason behind the unexplained Wednesday closure and report back \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Investigate the incorrectly cooked meal deal item \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Email the metadata to the plumber to unblock the toilet repair \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Message the team with the mitigation steps for the draught machine until the engineer attends \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Arrive early Thursday to deep clean the toilet facilities and assess whether they can reopen \u2014 Owner: Joe Herrera (06/08/2026)",
+          "Reach out to customers who left reviews as part of the standard feedback process \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Agreed: toilets may reopen subject to a daily hot water washdown at the end of each night \u2014 Owner: Ka Ho (04/08/2026)",
+          "Agreed: the draft machine stays on at all times \u2014 the proposal to power it down off-peak to save gas was rejected \u2014 Owner: Ka Ho (04/08/2026)",
+          "Use a petty cash supplier route for emergency stock so replenishment does not distort variance or restrict sales \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Check with the duty manager what happened on the shift where opening-time compliance slipped \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Contact the women's hockey partnership to maintain the relationship and check for logo or membership changes \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Reinforce that greeting and acknowledging customers is a standard, even at the busiest times \u2014 Owner: Ka Ho (04/08/2026)",
+          "Keep front-of-house communication with the GM and leave back-of-house team management with the BOH lead \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Communicate the agreed network upgrades to the site teams once confirmed with IT \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Agree a standing workaround for integration outages so service continues when the system drops \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Coordinate with the IT lead to replace ageing hardware and improve connectivity across sites \u2014 Owner: Ka Ho (04/08/2026)",
+          "Region-wide (Scotland & Newcastle): Trial proactive outreach to local offices offering group catering and holiday-party discounts to add volume \u2014 Owner: Ka Ho (04/08/2026)"
+        ],
+        "carryover": [
+          "Toilet facilities still out of use, maintenance unresolved and the plumber dispute live; metadata now supplied and reopening targeted this week \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Draft machine fault logged; the engineer visit is still outstanding with mitigation in place until then \u2014 Owner: Joe Herrera (04/08/2026)",
+          "The hearing is still pending, with preparation outstanding \u2014 Owner: Joe Herrera (04/08/2026)",
+          "Marketing instructions on the women's hockey partnership received previously; the outreach has not yet been made \u2014 Owner: Joe Herrera (04/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1xZzGaOfltWlvXBWNTSZTxmqSj4k4b1ytDblhhqob_s0"
+      }
     }
   }
 }

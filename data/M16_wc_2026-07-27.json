@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-04",
+  "generated_at": "2026-08-05",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -186,7 +186,14 @@
         "source": "Deliveroo Weekly Summary sheet (ops table) \u2014 no sales row this week + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.7
       },
-      "gaps": []
+      "gaps": [],
+      "notes": {
+        "issues": [],
+        "actions": [],
+        "carryover": [],
+        "empty": true,
+        "docId": ""
+      }
     }
   }
 }
