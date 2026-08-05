@@ -4176,7 +4176,11 @@ function _delivRollup(d){
 }
 // Ops sites = those carrying the Weekly Summary ops-table overlay (source marker),
 // NOT sites that merely have rating/open from the sales-consolidation pipe (e.g. IKI2).
-const DELIV_OPS_SRC_RE = /ops from Weekly Summary|Weekly Summary sheet \(ops table\)/;
+const DELIV_OPS_SRC_RE = /ops from Weekly Summary|Weekly Summary sheet \(ops table\)|HAND-KEYED ops/;
+// `HAND-KEYED ops` = pipe 6f. A site trading on Deliveroo that appears in no
+// Deliveroo export at all (M20 Southampton, w/c 2026-07-27) — figures typed from
+// Matthew's RAG sheet. It rolls up on the same thresholds as everyone else but is
+// marked in the table so nobody mistakes it for a Deliveroo-verified number.
 function _delivHasOps(d){
   return !!d && typeof d.source === 'string' && DELIV_OPS_SRC_RE.test(d.source)
          && DELIV_METRIC_DEFS.some(m => d[m[0]] != null);
@@ -4192,7 +4196,8 @@ function _delivBuildRows(siteEntries){
       // source as the tiles (incl. the fallback path).
       const metrics = {};
       DELIV_METRIC_DEFS.forEach(m => { metrics[m[0]] = (d[m[0]] == null ? null : d[m[0]]); });
-      return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers, metrics };
+      return { code: s.code, name: s.name, rag: r.rag, drivers: r.drivers, metrics,
+               handKeyed: !!d.ops_hand_keyed };
     });
   const order = { red:0, amber:1, green:2 };
   rows.sort((a, b) => order[a.rag] - order[b.rag] || a.code.localeCompare(b.code, undefined, { numeric:true }));
@@ -4242,7 +4247,7 @@ function _delivPaintRows(host, rows, wkLabel, fallbackNote){
     const cells = DELIV_METRIC_DEFS.map(d => cell(d[0], d[2], d[3], d[4])).join('');
     const pill = `<span style="display:inline-block; min-width:52px; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.04em; ${bandStyle[r.rag]}">${r.rag.toUpperCase()}</span>`;
     return `<tr>
-      <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:left; font-size:12px; white-space:nowrap;"><strong>${r.code}</strong> <span style="color:var(--ink-soft,#888); font-weight:500;">${r.name}</span></td>
+      <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:left; font-size:12px; white-space:nowrap;"><strong>${r.code}</strong> <span style="color:var(--ink-soft,#888); font-weight:500;">${r.name}</span>${r.handKeyed ? ' <span title="Hand-keyed from the Deliveroo RAG sheet — this site is in no Deliveroo export this week. Unverified." style="display:inline-block; margin-left:4px; padding:1px 5px; border-radius:4px; font-size:9px; font-weight:800; letter-spacing:.03em; background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd;">HAND-KEYED</span>' : ''}</td>
       ${cells}
       <td style="padding:6px 8px; border:0.5px solid var(--line,#e3e3e3); text-align:center;">${pill}</td>
     </tr>`;
@@ -4267,6 +4272,9 @@ function _delivPaintRows(host, rows, wkLabel, fallbackNote){
     <div style="font-size:12px; color:var(--ink-soft,#555); padding:0 2px;">
       <strong>${counts.red} red · ${counts.amber} amber · ${counts.green} green</strong> across ${rows.length} sites on Deliveroo this week.
       Thresholds — rating ≥4.7/≥4.0 · open-hrs ≥98/≥95 · prep ≤15/≤18 · inaccuracy ≤2/≤3 · rider-wait ≤2/≤4. RED if any metric red; GREEN if all five green; a missing metric ⇒ AMBER.
+      <div style="margin-top:7px; padding-top:7px; border-top:1px dotted var(--line,#e3e3e3); color:var(--ink-soft,#777);">
+        <strong>Note — these are our bands, not Deliveroo's.</strong> Deliveroo's own RAG key (the &ldquo;Deliveroo RAG&rdquo; sheet) is harsher on rating (red at ≤4.50, not below 4.0) and on open hours (green needs ≥99), and far softer on rider wait (green under 5%, red above 10%). Sites can therefore show a different colour here than in that sheet — for w/c 27/07 that was M3, M8, M12 and M17 (amber here, red there) and M6 (red here, amber there). A colour clash is a difference of key, not a data fault. Ours are the canonical AM bands, locked 23/06.
+      </div>
     </div>`;
 }
 
