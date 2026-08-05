@@ -3600,9 +3600,36 @@
         "items": [],
         "note": "Separate stream; needs the GM-notes email pull wired in."
       },
-      "deliveroo": null,
+      "deliveroo": {
+        "store": null,
+        "week_ending": "2026-08-02",
+        "resolution": "weekly",
+        "partial": true,
+        "sales": null,
+        "orders": null,
+        "aov": null,
+        "new_customers": null,
+        "rating": null,
+        "open_hours_pct": 100.0,
+        "avg_prep_min": 19.67,
+        "rejection_pct": null,
+        "inaccuracy_pct": 5.71,
+        "rider_wait_5min_pct": 9.38,
+        "conversion_pct": null,
+        "wow": {
+          "gmv_pct": null,
+          "orders_abs": null,
+          "prev_gmv": null,
+          "prev_orders": null
+        },
+        "gmv_vs_4wk_pct": null,
+        "gmv_vs_ly_pct": null,
+        "source": "HAND-KEYED ops from the Deliveroo RAG sheet (1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI, tab 27072026) \u2014 NOT from any Deliveroo export; unverified against Deliveroo. See data_weekly_deliveroo/manual_ops_2026-07-27.csv for provenance.",
+        "busy_mode_pct": null,
+        "ops_hand_keyed": true
+      },
       "gaps": [
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+        "Deliveroo ops are HAND-KEYED from the RAG sheet \u2014 this site is in no Deliveroo export for this week; figures are unverified"
       ],
       "notes": {
         "issues": [
