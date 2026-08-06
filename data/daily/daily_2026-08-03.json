@@ -1,12 +1,12 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-08-04T09:03:14",
+ "_generated_at": "2026-08-06T09:06:53",
  "date": "2026-08-03",
  "day": "Monday",
  "sites_reported": 19,
  "sites_expected": 19,
  "foh_boh_reported": 18,
- "unallocated_labour_total": 78.17,
+ "unallocated_labour_total": 76.37,
  "clusters": [
   {
    "name": "Scotland & Newcastle",
@@ -412,12 +412,12 @@
     "total": 1353.0,
     "hours": 91.0,
     "wage_pct": 25.19,
-    "foh": 578.31,
-    "foh_pct": 42.74,
-    "boh": 774.69,
-    "boh_pct": 57.26,
-    "unallocated": 0.0,
-    "unallocated_pct": 0.0,
+    "foh": 575.64,
+    "foh_pct": 42.55,
+    "boh": 779.16,
+    "boh_pct": 57.59,
+    "unallocated": -1.8,
+    "unallocated_pct": -0.13,
     "split_status": "ok"
    }
   },
@@ -557,8 +557,8 @@
   "target": 90514.5,
   "covers": 3970,
   "labour": 21179.94,
-  "foh": 8737.22,
-  "boh": 11257.47,
+  "foh": 8734.55,
+  "boh": 11261.94,
   "wage_pct": 22.55,
   "avg_spend": 23.66
  }

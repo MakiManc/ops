@@ -1,12 +1,12 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-08-05T09:03:30",
+ "_generated_at": "2026-08-06T09:06:53",
  "date": "2026-08-04",
  "day": "Tuesday",
  "sites_reported": 19,
  "sites_expected": 19,
- "foh_boh_reported": 15,
- "unallocated_labour_total": 421.17,
+ "foh_boh_reported": 16,
+ "unallocated_labour_total": 391.39,
  "clusters": [
   {
    "name": "Scotland & Newcastle",
@@ -54,7 +54,6 @@
   "no_foh_boh_split": [
    "M17",
    "M19",
-   "M6",
    "MakiNori"
   ],
   "warnings": [
@@ -417,12 +416,12 @@
     "total": 1459.64,
     "hours": 97.1,
     "wage_pct": 24.23,
-    "foh": 560.47,
-    "foh_pct": 38.4,
-    "boh": 730.36,
-    "boh_pct": 50.04,
-    "unallocated": 168.81,
-    "unallocated_pct": 11.57,
+    "foh": 716.74,
+    "foh_pct": 49.1,
+    "boh": 725.27,
+    "boh_pct": 49.69,
+    "unallocated": 17.63,
+    "unallocated_pct": 1.21,
     "split_status": "ok"
    }
   },
@@ -443,13 +442,13 @@
     "total": 786.53,
     "hours": 52.0,
     "wage_pct": 21.71,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "absent"
+    "foh": 240.76,
+    "foh_pct": 30.61,
+    "boh": 424.37,
+    "boh_pct": 53.95,
+    "unallocated": 121.4,
+    "unallocated_pct": 15.43,
+    "split_status": "ok"
    }
   },
   "M7": {
@@ -562,8 +561,8 @@
   "target": 91014.5,
   "covers": 4074,
   "labour": 21747.49,
-  "foh": 7743.09,
-  "boh": 9855.09,
+  "foh": 8140.12,
+  "boh": 10274.37,
   "wage_pct": 22.5,
   "avg_spend": 23.73
  }
