@@ -975,6 +975,66 @@
     .heatmap, .cg-grid { grid-template-columns: 1fr; }
   }
 </style>
+<style>
+/* ===== EC Budget Burn tab (ported from /ops/ec/) ===== */
+#tab-ecbudget{
+  color-scheme: light;
+  --maki-red:#E8730C; --maki-red-deep:#B5470B;
+  --maki-black:#171717; --maki-ink:#262626; --maki-muted:#6B7280;
+  --maki-cream:#FBF7F0; --maki-paper:#FFFFFF; --maki-line:#E7E1D6; --maki-soft:#F5EEE0;
+  --rag-green:#1F8A4C; --rag-amber:#E2A813; --rag-red:#C2410C; --rag-grey:#9CA3AF; --rag-low:#2563EB;
+  --low-bg:#E0ECFF; --low-ink:#1E40AF;
+  --green-bg:#E5F4EC; --green-ink:#0E5A30;
+  --amber-bg:#FBF1D6; --amber-ink:#7A5A04;
+  --red-bg:#FBE4D5;   --red-ink:#9A3412;
+  --grey-bg:#EEEEF0;  --grey-ink:#4B5563;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -12px rgba(23,23,23,.08);
+  --shadow-lg: 0 12px 32px -10px rgba(23,23,23,.20);
+  --radius: 12px;
+}
+#tab-ecbudget .ecb-hero{background:linear-gradient(135deg,#B5470B 0%,#E8730C 55%,#D9620A 100%);border-radius:18px;color:#fff;padding:22px 26px;margin:4px 0 16px;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+#tab-ecbudget .ecb-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.07)}
+#tab-ecbudget .ecb-hero .ecb-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:rgba(255,255,255,.78);font-weight:600}
+#tab-ecbudget .ecb-hero h2{color:#fff;font-size:24px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}
+#tab-ecbudget .ecb-hero .ecb-hero-sub{color:rgba(255,255,255,.88);font-size:12.5px;max-width:800px}
+#tab-ecbudget .ecb-hero-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+#tab-ecbudget .tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);font-size:13px}
+#tab-ecbudget .tbl th{text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--maki-muted);background:var(--maki-soft);padding:10px 12px;border-bottom:1px solid var(--maki-line)}
+#tab-ecbudget .tbl td{padding:10px 12px;border-bottom:1px solid #F4F0E8;vertical-align:top}
+#tab-ecbudget .tbl tr:last-child td{border-bottom:none}
+#tab-ecbudget .tbl tr:hover td{background:#FCF7EF}
+#tab-ecbudget .tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+#tab-ecbudget .tbl .site-code{font-weight:600;font-family:"SF Mono","SF Pro Mono",Menlo,Consolas,monospace;color:var(--maki-black)}
+#tab-ecbudget .tbl .delta{font-size:11px;font-weight:500}
+#tab-ecbudget .tbl .delta.up{color:var(--rag-red)}
+#tab-ecbudget .tbl .delta.down{color:var(--rag-green)}
+#tab-ecbudget .tbl .delta.flat{color:var(--maki-muted)}
+#tab-ecbudget .tbl tr.nodata td{color:var(--maki-muted);background:#FCFBF7}
+#tab-ecbudget .section-intro{font-size:12.5px;color:var(--maki-muted);margin-bottom:10px;max-width:840px}
+#tab-ecbudget .note{background:#FFF8E1;border-left:3px solid var(--rag-amber);padding:10px 14px;border-radius:6px;font-size:12.5px;color:#5A4400;margin:12px 0}
+#tab-ecbudget .note.red{background:#FCEFE7;border-left-color:var(--rag-red);color:#7A2E0C}
+#tab-ecbudget .note.info{background:#EAF2FB;border-left-color:#2B6CB0;color:#1A365D}
+#tab-ecbudget .source-chip{display:inline-flex;align-items:center;gap:4px;background:#F5EEE0;padding:2px 8px;border-radius:6px;font-size:10.5px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+#tab-ecbudget .source-chip::before{content:"📊";font-size:10px}
+#tab-ecbudget .source-chip.drive::before{content:"📁"}
+#tab-ecbudget .source-chip.manual::before{content:"✏️"}
+#tab-ecbudget .pill-row{display:inline-flex;gap:4px;background:#F5EEE0;padding:3px;border-radius:8px;margin-bottom:12px}
+#tab-ecbudget .pill{padding:6px 12px;font-size:12px;font-weight:500;color:var(--maki-muted);background:none;border:none;border-radius:6px;cursor:pointer;font-family:inherit}
+#tab-ecbudget .pill:hover{color:var(--maki-ink)}
+#tab-ecbudget .pill.active{background:#fff;color:var(--maki-red-deep);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
+#tab-ecbudget .delivery-tile{background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin:6px 0 10px;border-top:3px solid var(--maki-red)}
+#tab-ecbudget .delivery-tile h2{margin:0 0 4px;font-size:16px}
+#tab-ecbudget .delivery-tile .tile-sub{font-size:11.5px;color:var(--maki-muted);margin-bottom:10px}
+#tab-ecbudget .delivery-tile .tile-stats{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 12px;padding:8px 12px;background:#FCF7EF;border-radius:6px}
+#tab-ecbudget .delivery-tile .tile-stat{display:flex;flex-direction:column;font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.06em}
+#tab-ecbudget .delivery-tile .tile-stat strong{font-size:16px;color:var(--maki-black);font-family:"SF Pro Display",sans-serif;letter-spacing:-0.01em;text-transform:none}
+#tab-ecbudget .delivery-tile table.tbl{margin-top:6px}
+#tab-ecbudget .delivery-tile .spark{display:inline-flex;align-items:flex-end;gap:1.5px;height:22px}
+#tab-ecbudget .delivery-tile .spark .bar{width:5px;background:var(--maki-red);opacity:.55;border-radius:1px 1px 0 0}
+#tab-ecbudget .delivery-tile .spark .bar.empty{background:var(--maki-line);opacity:.8;height:2px !important}
+#tab-ecbudget .delivery-tile .spark .bar.latest{opacity:1;background:var(--maki-red-deep)}
+#tab-ecbudget .delivery-tile .venue-name{font-weight:500;color:var(--maki-ink)}
+</style>
 </head>
 <body>
 <header class="maki-brand-bar" role="banner">
@@ -1007,6 +1067,7 @@
     <button class="tabbtn active" data-tab="daily">Daily</button>
     <button class="tabbtn" data-tab="week">This Week</button>
     <button class="tabbtn" data-tab="deliveroo">Deliveroo RAG</button>
+    <button class="tabbtn" data-tab="ecbudget">Budget Burn</button>
     <button class="tabbtn" data-tab="redlight">Red Light <span class="tb-badge" id="tb-red">0</span></button>
     <!-- 6-tab trim (2026-06-22): OKRs / Governance / Risk Register / Roadmap tab buttons hidden.
          Their .tabpanel panels + all JS/data are left intact below; un-comment to restore.
@@ -1404,6 +1465,58 @@
     <div class="section-head"><h2 id="deliveroo-section-week">Deliveroo RAG</h2><div class="hint">5-metric greens roll-up from the raw Deliveroo ops report</div></div>
     <div id="rl-deliveroo"></div>
   </div><!-- /tab-deliveroo -->
+
+  <!-- ============ TAB: BUDGET BURN (ported from EC control centre) ============ -->
+  <div class="tabpanel" id="tab-ecbudget">
+  <div class="ecb-hero" style="background:linear-gradient(135deg,#0E5A30 0%,#1F8A4C 60%,#27A35C 100%)">
+    <div class="ecb-eyebrow">BOH food spend · budget control</div>
+    <h2 id="budgetHeroTitle">Budget burn</h2>
+    <div class="ecb-hero-sub">Opens on the current live week — pick another week or scrub the day slider to look back. Bars: week-to-date vs HC weekly budget · month-to-date vs the month cap. Delta compares the same point last week.</div>
+    <div class="ecb-hero-stats" id="budgetHeroStats"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin:-2px 0 12px;font-size:11.5px;color:var(--maki-muted)"><span id="ecbLiveDot" style="width:9px;height:9px;border-radius:50%;background:#9CA3AF;flex:none"></span><span id="ecbLiveText">Loading…</span><span style="margin-left:auto">From the EC control centre · same ledger sheet, read live</span></div>
+  <div id="budgetMissed" style="margin-bottom:12px"></div>
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:12px 18px;box-shadow:var(--shadow);margin-bottom:12px">
+    <span style="font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Week</span>
+    <select id="budgetWeekSelect" style="min-width:240px;font-size:14px;font-weight:600;padding:7px 12px;border:1px solid var(--maki-line);border-radius:8px;background:#fff;color:var(--maki-ink);cursor:pointer"></select>
+    <strong id="budgetWeekDelta" style="font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--maki-muted)"></strong>
+  </div>
+  <div id="budgetStatusStrip" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:2px 0 10px"></div>
+  <div id="budgetOverview" class="note info" style="margin:0 0 14px"></div>
+  <div style="background:#fff;border:1px solid var(--maki-line);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--shadow);margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--maki-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600">Day</span>
+      <input type="range" id="budgetSlider" min="0" max="0" value="0" step="1" style="flex:1;min-width:200px;accent-color:var(--rag-green)">
+      <strong id="budgetSliderLabel" style="font-size:14px;min-width:170px;font-variant-numeric:tabular-nums"></strong>
+    </div>
+  </div>
+  <div class="pill-row" id="budgetClusterPills">
+    <button class="pill active" data-cluster="all">All clusters</button>
+    <button class="pill" data-cluster="scotland_newcastle">Scotland &amp; Newcastle</button>
+    <button class="pill" data-cluster="north_midlands">North England &amp; Midlands</button>
+    <button class="pill" data-cluster="south">South England</button>
+  </div>
+  <div style="overflow-x:auto"><table class="tbl" id="budgetBurnTbl">
+    <thead><tr><th>Site</th><th class="num">Spent Yesterday £</th><th class="num">Weekly Spend £</th><th class="num">Weekly Budget £</th><th style="min-width:130px">Week Usage</th><th class="num">Monthly Spend £</th><th class="num">Month Cap £</th><th style="min-width:130px">Month Pace</th></tr></thead><tbody></tbody></table></div>
+  <div class="section-intro" style="margin-top:10px">Week Usage = spend Sun→selected day vs the HC weekly budget (red &gt;100% · amber &gt;85%). Month Pace = monthly spend vs the month cap (interim: 23% × Mar–May avg revenue) pro-rated to the selected day (red &gt;110% · amber &gt;100%). Only filed reports count — the ledger starts 9 Jun 2026.</div>
+  <div class="delivery-tile" id="dailySpendTile" style="border-top-color:#1F8A4C">
+    <h2>Daily Spend Skim · BOH food spend vs budget</h2>
+    <div class="tile-sub">From the Mapal <strong>Head Chef Daily Report</strong> emails, parsed each morning. Figures and filing status refresh live from the ledger sheet on every load. <span class="source-chip manual">Mapal Compliance emails</span></div>
+    <div class="tile-stats" id="dailySpendStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="dailySpendTbl">
+      <thead><tr><th>Site</th><th class="num">Spend (last filed) £</th><th class="num">HC WTD £</th><th class="num">HC left £</th><th class="num">Weekly budget £</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    <div id="dailySpendNote" style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"></div>
+  </div>
+  <div class="delivery-tile" id="closedWeeksTile" style="border-top-color:#0E5A30">
+    <h2>Closed weeks · week-on-week</h2>
+    <div class="tile-sub">Every completed trading week (Sun&rarr;Sat): final BOH food spend vs that week's <strong>locked</strong> budget, variance, and the two-stage close &mdash; <strong>Budget (Mon)</strong> then <strong>Issues (Wed)</strong>. Each week's budget is the <strong>HC weekly base</strong> (WTD + Budget Left) recorded in that week's daily reports, so it locks to that week and never shifts when a later week changes. Responds to the cluster pills above. <span class="source-chip manual">HC base · daily ledger</span></div>
+    <div class="tile-stats" id="closedWeeksStats"></div>
+    <div style="overflow-x:auto"><table class="tbl" id="closedWeeksTbl">
+      <thead><tr><th>Week</th><th class="num">Spend £</th><th class="num">Budget £</th><th class="num">Variance £</th><th style="min-width:120px">vs Budget</th><th>Budget · Mon</th><th>Issues · Wed</th></tr></thead>
+      <tbody></tbody></table></div>
+    <div id="closedWeeksNote" style="margin-top:10px;padding:8px 12px;font-size:11px;color:var(--maki-muted);border-top:1px solid var(--maki-line);line-height:1.5"></div>
+  </div>
+</div><!-- /tab-ecbudget -->
 
   <!-- ============ TAB: OKRS ============ -->
   <div class="tabpanel" id="tab-okrs">
@@ -5442,6 +5555,509 @@ function renderActionTracker(){
 }
 
 renderActionTracker();
+</script>
+<script>
+/* ===== EC BUDGET BURN TAB — ported from /ops/ec/ (source of truth: EC ledger sheet, read live) =====
+   Fallback snapshot: ./data/ec_budget_snapshot.json (committed in the AM folder).
+   All code scoped in an IIFE — nothing leaks into the AM page namespace. */
+(function(){
+let DATA = { clusters:{}, sites:[], daily_spend:null };
+const STATE = { cluster:"all", budgetCluster:"all", budgetWeek:null, budgetIdx:null, budgetDayTouched:false, budgetWeekTouched:false };
+
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRC4SJ8J2YEB0FML2jxQV5W2D8QoKiqiBUIVUTTUbJ4z4n38yoYMpMl-NSE9NfzeocIrBD3ddBVkBeb/pub?output=csv";
+
+function parseCSVLine(line){
+  const out=[]; let cur="", inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else inQ=!inQ; }
+    else if(c===',' && !inQ){ out.push(cur); cur=""; }
+    else cur+=c;
+  }
+  out.push(cur); return out;
+}
+function parseSheetCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.length>0);
+  if(lines.length<2) return [];
+  const header=parseCSVLine(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(line=>{
+    const v=parseCSVLine(line); const o={};
+    header.forEach((h,i)=>o[h]=v[i]!=null?v[i].trim():"");
+    return o;
+  });
+}
+function applySheetRows(rows){
+  const ds=DATA.daily_spend; if(!ds) return;
+  const newLedger={}; const newBaseline={}; const newWeeksBudget={}; const newWeekClose={}; const newHcBase={};
+  let latestDate=null;
+  for(const r of rows){
+    if(!r.date) continue;
+    if(((r.notes||"")+"").trim().toUpperCase().startsWith("VOID")) continue;   // mislabelled rows voided in the ledger
+    if(r.site_code==="SHO") r.site_code="M19";   // legacy skim codes for Shoreditch/Southampton
+    if(r.site_code==="SOT") r.site_code="M20";
+    const val=(r.daily_total===""||r.daily_total==null)?null:parseFloat(r.daily_total);
+    if(r.source==="weekly_budget_lock"){           // per-week locked 23% basis · date = w/c Sunday
+      if(!r.site_code) continue;
+      if(!newWeeksBudget[r.date]) newWeeksBudget[r.date]={_locked:true};
+      newWeeksBudget[r.date][r.site_code]=val;
+      continue;
+    }
+    if(r.source==="week_close"){                    // optional Wed close status · date = w/c Sunday
+      newWeekClose[r.date]=Object.assign(newWeekClose[r.date]||{}, { issues_status:(r.wtd_actual||"").toString().trim().toLowerCase()||"filed" });
+      continue;
+    }
+    if(!r.site_code) continue;
+    if(r.source==="mona_lisa_baseline"){
+      newBaseline[r.site_code]=val;
+    } else {
+      if(!newLedger[r.date]) newLedger[r.date]={};
+      newLedger[r.date][r.site_code]=val;
+      if(!latestDate || r.date>latestDate) latestDate=r.date;
+      // HC weekly base = WTD + Budget-Left (the source Michael adopts); freeze per week, latest filed day wins
+      const wa=parseFloat(r.wtd_actual), wl=parseFloat(r.wtd_left);
+      if(isFinite(wa)&&isFinite(wl)){
+        const wk=weekSunISO(r.date);
+        if(!newHcBase[wk]) newHcBase[wk]={};
+        const prev=newHcBase[wk][r.site_code];
+        if(!prev || r.date>=prev.d) newHcBase[wk][r.site_code]={v:wa+wl,d:r.date};
+      }
+    }
+  }
+  if(Object.keys(newLedger).length) ds.ledger=newLedger;
+  if(Object.keys(newBaseline).length && ds.june_baseline) ds.june_baseline.by_code=newBaseline;
+  if(Object.keys(newHcBase).length){
+    ds.weeks_budget = ds.weeks_budget || {};
+    // REPLACE each derived week wholesale so stale provisional placeholders for non-filing sites don't linger
+    for(const wk in newHcBase){ const obj={_derived:true}; for(const code in newHcBase[wk]) obj[code]=newHcBase[wk][code].v; ds.weeks_budget[wk]=obj; }
+  }
+  // merge locks PER SITE into the week (a lock covering only some sites must not wipe the rest)
+  if(Object.keys(newWeeksBudget).length){
+    ds.weeks_budget = ds.weeks_budget || {};
+    for(const wk in newWeeksBudget){
+      const tgt = ds.weeks_budget[wk] = ds.weeks_budget[wk] || {};
+      for(const k in newWeeksBudget[wk]) tgt[k] = newWeeksBudget[wk][k];
+    }
+  }
+  if(Object.keys(newWeekClose).length){ ds.week_close=Object.assign(ds.week_close||{}, newWeekClose); }
+  if(latestDate){ ds.as_at=latestDate; ds.through=latestDate; }
+  // Refresh sites[] for the latest date. Filed sites get live figures; non-filers are nulled
+  // and get a LIVE-computed status (never the baked snapshot note — those go stale).
+  if(latestDate && Array.isArray(ds.sites)){
+    const HC_CHASE = { M10:"Sebastian Przekop / Drew" };
+    const fmtShortDate = iso => new Date(iso+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+    const ledgerDatesDesc = Object.keys(newLedger).sort().reverse();
+    const curWkSun = weekSunISO(latestDate);
+    for(const site of ds.sites){
+      const r=rows.find(x=>x.date===latestDate && x.site_code===site.code && x.source!=="mona_lisa_baseline" && x.source!=="weekly_budget_lock" && x.source!=="week_close");
+      if(r){
+        site.yday=(r.daily_total===""||r.daily_total==null)?null:parseFloat(r.daily_total);
+        site.hc_wtd=(r.wtd_actual===""||r.wtd_actual==null)?null:parseFloat(r.wtd_actual);
+        site.hc_left=(r.wtd_left===""||r.wtd_left==null)?null:parseFloat(r.wtd_left);
+        if(site.hc_wtd!=null && site.hc_left!=null) site.wk_budget = site.hc_wtd + site.hc_left;  // weekly budget = HC base (the source)
+        site.note = "";
+      } else {
+        site.yday=null; site.hc_wtd=null; site.hc_left=null;
+        const wb=(ds.weeks_budget && ds.weeks_budget[curWkSun])||null;
+        site.wk_budget = (wb && wb[site.code]!=null) ? wb[site.code] : null;
+        let lastFiled=null;
+        for(const dt of ledgerDatesDesc){ const v=(newLedger[dt]||{})[site.code]; if(v!=null && isFinite(v)){ lastFiled=dt; break; } }
+        site.note = "NOT FILED — chase " + (HC_CHASE[site.code]||"site HC") + (lastFiled ? (". Last filed "+fmtShortDate(lastFiled)+".") : ". Never filed.");
+      }
+    }
+  }
+}
+async function loadSheetData(){
+  try{
+    const r=await fetch(SHEET_CSV_URL+"&_cb="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const csv=await r.text();
+    const rows=parseSheetCSV(csv);
+    if(rows.length===0) throw new Error("Empty CSV");
+    applySheetRows(rows);
+    // Live sheet loaded fresh — clear any stale "pull failed" banner (baked or prior).
+    try{
+      if(DATA.daily_spend) DATA.daily_spend.data_pull_alert="";
+      if(typeof FALLBACK_DATA!=="undefined" && FALLBACK_DATA.daily_spend) FALLBACK_DATA.daily_spend.data_pull_alert="";
+      var _b=document.getElementById("ecPullAlert"); if(_b) _b.remove();
+    }catch(_e){}
+    console.log("[ECB] Loaded "+rows.length+" rows from Sheet · latest="+DATA.daily_spend.as_at);
+    return true;
+  } catch(e){
+    console.warn("[ECB] Sheet fetch failed, using baked fallback:",e);
+    return false;
+  }
+}
+// ---- /LIVE SHEET WIRING ----
+function esc(t){ return (t==null?"":String(t)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmtGBP(n){ if(n==null) return "—"; return "£" + Math.round(n).toLocaleString("en-GB"); }
+function fmtMonthShort(ym){ if(!ym) return ""; const [y,m]=ym.split("-"); const names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return `${names[parseInt(m,10)-1]} ${y.slice(2)}`; }
+function renderDailySpend(){
+  const d = DATA.daily_spend; if(!d) return;
+  let view = d.sites;
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle"; codeCluster["M19"]="south"; codeCluster["M20"]="south";
+  const effC = budgetEffCluster();
+  if(effC!=="all") view = view.filter(r=>codeCluster[r.code]===effC);  const filed = d.sites.filter(r=>r.hc_wtd!=null).length;
+  const ydaySum = d.sites.reduce((a,r)=>a+(r.yday||0),0);
+  const dot = rag => `<span class="rag-dot ${rag}"></span>`;
+  const ragWk = r => { if(r.hc_wtd==null) return "grey"; if(r.wk_budget==null) return "amber"; const used=r.hc_wtd/r.wk_budget; if(used>1) return "red"; if(used>0.85) return "amber"; return "green"; };
+  const asAtNice = d.as_at ? new Date(d.as_at+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}) : "—";
+  const stats = [
+    {label:"Data as at", value: asAtNice},
+    {label:"Spend · last filed day", value: fmtGBP(ydaySum)},
+    {label:"Sites filed", value: `${filed} / ${d.sites.length}`},
+    {label:"Non-filers", value: d.sites.filter(r=>r.hc_wtd==null).map(r=>r.code).join(", ")||"—"}
+  ];
+  document.getElementById("dailySpendStats").innerHTML = stats.map(x=>`<div class="tile-stat"><span>${x.label}</span><strong>${x.value}</strong></div>`).join("");
+  document.querySelector("#dailySpendTbl tbody").innerHTML = view.map(r=>{
+    const rag = ragWk(r);
+    const status = r.hc_wtd==null
+      ? `<span style="color:var(--rag-red);font-weight:600">${esc(r.note||"NOT FILED")}</span>`
+      : `<span style="color:var(--rag-green);font-weight:600">&#10003; Filed</span>${r.note?`<span style="color:var(--maki-muted)"> · ${esc(r.note)}</span>`:""}`;
+    return `<tr${r.hc_wtd==null?' class="nodata"':''}>
+      <td class="site-code">${dot(rag)} ${r.code}</td>
+      <td class="num">${r.yday==null?"—":fmtGBP(r.yday)}</td>
+      <td class="num">${r.hc_wtd==null?"—":fmtGBP(r.hc_wtd)}</td>
+      <td class="num">${r.hc_left==null?"—":fmtGBP(r.hc_left)}</td>
+      <td class="num">${r.wk_budget==null?"—":fmtGBP(r.wk_budget)}</td>
+      <td style="font-size:11.5px">${status}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("dailySpendNote").innerHTML = `Weekly budget = <strong>HC weekly base</strong> (Total Spend From Sunday + Budget Left This Week), from each chef's latest filed report. Row RAG = HC week-to-date vs weekly budget (red &gt;100% · amber &gt;85%). Filing status is recomputed live from the ledger on every load. Month-to-date and caps live in the Budget burn table above.`;
+}
+function weekSunISO(dateISO){ const x=new Date(dateISO+"T12:00:00"); x.setDate(x.getDate()-x.getDay()); return x.toISOString().slice(0,10); }
+function weekSatISO(sunISO){ const x=new Date(sunISO+"T12:00:00"); x.setDate(x.getDate()+6); return x.toISOString().slice(0,10); }
+function weekLabel(sunISO){ const s=new Date(sunISO+"T12:00:00"); return "w/c "+s.toLocaleDateString("en-GB",{day:"numeric",month:"short"}); }
+function liveWeekSun(d){ const dates=Object.keys(d.ledger||{}); if(!dates.length) return null; const last=(d.as_at && dates.includes(d.as_at))?d.as_at:dates.slice().sort().slice(-1)[0]; return weekSunISO(last); }
+function seedWeekBudgets(d){
+  d.weeks_budget = d.weeks_budget || {};   // persisted locks arrive via applySheetRows (source=weekly_budget_lock); marked _locked
+  d.week_close   = d.week_close   || {};   // optional Wed close status (source=week_close)
+  d._provisionalWeeks = d._provisionalWeeks || {};
+  if(!Array.isArray(d.sites)) return;
+  const dates=Object.keys(d.ledger||{}); if(!dates.length) return;
+  [...new Set(dates.map(weekSunISO))].forEach(sun=>{
+    if(d.weeks_budget[sun] && (d.weeks_budget[sun]._locked || d.weeks_budget[sun]._derived)){ delete d._provisionalWeeks[sun]; return; }
+    d.weeks_budget[sun] = d.weeks_budget[sun] || {};
+    d.sites.forEach(s=>{ if(d.weeks_budget[sun][s.code]==null && s.wk_budget!=null) d.weeks_budget[sun][s.code]=s.wk_budget; });
+    d._provisionalWeeks[sun]=true;   // current 23% basis applied to a week that was never contemporaneously locked
+  });
+  applyStandingBudgets(d);
+  applyBudgetOverride(d);
+}
+function applyStandingBudgets(d){
+  const sb=d.standing_budget; if(!sb) return;
+  const dates=Object.keys(d.ledger||{}); if(!dates.length) return;
+  d._standingWeeks={};
+  [...new Set(dates.map(weekSunISO))].forEach(sun=>{
+    for(const code in sb){
+      const s=sb[code]; if(!s || s.amount==null) continue;
+      if(s.from && sun < weekSunISO(s.from)) continue;
+      d.weeks_budget[sun]=d.weeks_budget[sun]||{};
+      d.weeks_budget[sun][code]=s.amount;
+      (d._standingWeeks[sun]=d._standingWeeks[sun]||{})[code]=true;
+    }
+  });
+  if(Array.isArray(d.sites)) d.sites.forEach(x=>{ if(sb[x.code] && sb[x.code].amount!=null) x.wk_budget=sb[x.code].amount; });
+}
+function isStanding(sunISO, code, d){ return !!(d._standingWeeks && d._standingWeeks[sunISO] && d._standingWeeks[sunISO][code]); }
+function applyBudgetOverride(d){
+  const ov = d.budget_override; if(!ov) return;
+  d._overrideWeeks = {};
+  for(const sun in ov){
+    const o = ov[sun]; if(!o || !o.by_code) continue;
+    const obj = { _locked:true, _override:true };
+    for(const code in o.by_code) obj[code] = o.by_code[code];
+    // keep any HC-derived figure for a site the override does not cover (e.g. MN)
+    const prev = (d.weeks_budget||{})[sun];
+    if(prev) for(const code in prev){ if(code.charAt(0)!=="_" && obj[code]==null) obj[code]=prev[code]; }
+    d.weeks_budget = d.weeks_budget || {};
+    d.weeks_budget[sun] = obj;
+    if(d._provisionalWeeks) delete d._provisionalWeeks[sun];
+    d._overrideWeeks[sun] = o;
+  }
+  // the live tiles read sites[].wk_budget — align them when the live week is an overridden one
+  const live = liveWeekSun(d);
+  if(live && d._overrideWeeks[live] && Array.isArray(d.sites)){
+    const b = d.weeks_budget[live];
+    d.sites.forEach(s=>{ if(b[s.code]!=null) s.wk_budget = b[s.code]; });
+  }
+}
+function weekIsOverride(sunISO, d){ return !!(d._overrideWeeks && d._overrideWeeks[sunISO]); }
+function weekBudgetFor(sunISO, code, d){ const wb=d.weeks_budget && d.weeks_budget[sunISO]; return (wb && wb[code]!=null)?wb[code]:null; }
+function weekIsProvisional(sunISO, d){ return !!(d._provisionalWeeks && d._provisionalWeeks[sunISO]); }
+function budStChip(txt,state){ const c={ok:"var(--rag-green)",prov:"var(--rag-amber)",pend:"var(--rag-grey)",none:"var(--maki-muted)",info:"var(--maki-red-deep)"}[state]||"var(--maki-muted)"; return `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:#fff;border:1px solid var(--maki-line);font-size:11.5px;font-weight:600;color:${c}"><span style="width:8px;height:8px;border-radius:50%;background:${c}"></span>${txt}</span>`; }
+function renderBudgetStatusAndOverview(d, dates, view, selSun, selThrough){
+  const strip=document.getElementById("budgetStatusStrip"); const ov=document.getElementById("budgetOverview"); if(!strip||!ov) return;
+  const liveSun=liveWeekSun(d);
+  const sun = selSun || liveSun;
+  const isLive = sun===liveSun;
+  const label = sun?weekLabel(sun):"—";
+  const provis = sun?weekIsProvisional(sun,d):false;
+  const ovr = sun?(d._overrideWeeks||{})[sun]:null;
+  const wc = sun?d.week_close[sun]:null;
+  const issuesFiled = wc && (wc.issues_status==="filed"||wc.issues_status==="closed");
+  strip.innerHTML =
+    budStChip((isLive?"Current week · ":"Closed week · ")+label,"info") +
+    budStChip(ovr?("Budget ✦ set at "+ovr.pct+"% of target sales"):(provis?"Budget ◑ provisional basis":"Budget ✓ HC base · Mon"), ovr?"info":"ok") +
+    budStChip(issuesFiled?"Issues ✓ filed · Wed":(isLive?"Issues ⧗ due Wed":"Issues — n/a"),"pend");
+  const sat=sun?weekSatISO(sun):null;
+  const sumRange=(code,a,b)=>dates.filter(dt=>dt>=a&&dt<=b).reduce((s,dt)=>s+((d.ledger[dt]||{})[code]||0),0);
+  const inWk=sun?dates.filter(dt=>dt>=sun&&dt<=sat):[];
+  const through = selThrough || (inWk.length?inWk[inWk.length-1]:null);
+  let gSpend=0,gBud=0,over=0; const burners=[];
+  if(sun) view.forEach(r=>{ const sp=sumRange(r.code,sun,through||sun); const bd=weekBudgetFor(sun,r.code,d); gSpend+=sp; gBud+=bd||0; const p=bd?sp/bd*100:null; if(p!=null){ burners.push({code:r.code,p}); if(p>85)over++; } });
+  burners.sort((a,b)=>b.p-a.p);
+  const top=burners.slice(0,3).map(b=>`${b.code} ${b.p.toFixed(0)}%`).join(" · ")||"—";
+  const pct=gBud>0?gSpend/gBud*100:null;
+  const dn=through?new Date(through+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}):"—";
+  const col=pct==null?"var(--maki-ink)":pct>100?"var(--rag-red)":pct>85?"var(--amber-ink)":"var(--rag-green)";
+  ov.innerHTML = `<strong>Overview · ${label} ${isLive?"(current)":"(closed)"} — through ${dn}.</strong> Group spend <strong>${fmtGBP(gSpend)}</strong> vs weekly budget <strong>${fmtGBP(gBud)}</strong>${pct!=null?` — <strong style="color:${col}">${pct.toFixed(0)}%</strong> used`:""}. ${over} site${over===1?"":"s"} past 85%. Hottest: ${top}.${provis?' <em>Basis provisional until the HC weekly base is filed for this week.</em>':''}${ovr?' <strong style="color:var(--maki-red-deep)">Budget override: '+esc(ovr.note)+'</strong>':''}`;
+}
+function renderClosedWeeks(d, dates){
+  const tb=document.querySelector("#closedWeeksTbl tbody"); if(!tb) return;
+  const liveSun=liveWeekSun(d);
+  const codeCluster={}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle"; codeCluster["M19"]="south"; codeCluster["M20"]="south";
+  const effC=budgetEffCluster();
+  const sites=d.sites.filter(r=> effC==="all" || codeCluster[r.code]===effC);
+  const sumRange=(code,a,b)=>dates.filter(dt=>dt>=a&&dt<=b).reduce((s,dt)=>s+((d.ledger[dt]||{})[code]||0),0);
+  const weeks=[...new Set(dates.map(weekSunISO))].sort().reverse().filter(s=>s!==liveSun);
+  const bar=(pct)=>{ if(pct==null) return '<span style="color:var(--maki-muted)">—</span>'; const col=pct>100?"var(--rag-red)":pct>85?"var(--rag-amber)":"var(--rag-green)"; return `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--maki-soft);border-radius:4px;overflow:hidden"><div style="width:${Math.min(100,pct).toFixed(0)}%;height:100%;background:${col}"></div></div><span style="font-size:11px;font-weight:600;min-width:38px;text-align:right;color:${col}">${pct.toFixed(0)}%</span></div>`; };
+  const st=(txt,state)=>{ const c={ok:"var(--rag-green)",prov:"var(--rag-amber)",pend:"var(--rag-amber)",none:"var(--maki-muted)"}[state]; return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:${c}"><span style="width:7px;height:7px;border-radius:50%;background:${c}"></span>${txt}</span>`; };
+  if(!weeks.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--maki-muted)">No closed weeks yet — the current week is still live.</td></tr>'; document.getElementById("closedWeeksStats").innerHTML=""; document.getElementById("closedWeeksNote").innerHTML=""; return; }
+  let rows="",tot=0,n=0,provAny=false;
+  weeks.forEach(sun=>{
+    const sat=weekSatISO(sun); let spend=0,bud=0,anyBud=false;
+    sites.forEach(r=>{ spend+=sumRange(r.code,sun,sat); const b=weekBudgetFor(sun,r.code,d); if(b!=null){bud+=b;anyBud=true;} });
+    const pct=anyBud&&bud>0?spend/bud*100:null;
+    const variance=anyBud?spend-bud:null;
+    const prov=weekIsProvisional(sun,d); if(prov)provAny=true;
+    const wc=d.week_close[sun]||{};
+    const issuesFiled=wc.issues_status==="filed"||wc.issues_status==="closed";
+    tot+=spend; n++;
+    rows+=`<tr>
+      <td><strong>${weekLabel(sun)}</strong><div style="font-size:10.5px;color:var(--maki-muted)">${new Date(sun+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"})}–${new Date(sat+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div></td>
+      <td class="num">${fmtGBP(spend)}</td>
+      <td class="num">${anyBud?fmtGBP(bud):"—"}</td>
+      <td class="num">${variance==null?"—":(variance>0?`<span style="color:var(--rag-red)">+£${Math.round(variance).toLocaleString("en-GB")}</span>`:`<span style="color:var(--rag-green)">−£${Math.round(Math.abs(variance)).toLocaleString("en-GB")}</span>`)}</td>
+      <td>${bar(pct)}</td>
+      <td>${anyBud?(weekIsOverride(sun,d)?st("✦ "+(d._overrideWeeks[sun].pct)+"% set","ok"):st(prov?"◑ provisional":"✓ Mon",prov?"prov":"ok")):st("⧗ pending","pend")}</td>
+      <td>${issuesFiled?st("✓ Wed","ok"):(wc.issues_status==="pending"?st("⧗ due","pend"):st("— n/a","none"))}</td>
+    </tr>`;
+  });
+  tb.innerHTML=rows;
+  document.getElementById("closedWeeksStats").innerHTML =
+    `<div class="tile-stat"><span>Closed weeks</span><strong>${n}</strong></div>`+
+    `<div class="tile-stat"><span>Total spend (range)</span><strong>${fmtGBP(tot)}</strong></div>`+
+    `<div class="tile-stat"><span>Cluster</span><strong>${effC==="all"?"All":(DATA.clusters[effC]?DATA.clusters[effC].name:effC)}</strong></div>`;
+  document.getElementById("closedWeeksNote").innerHTML = `Spend is final Sun&rarr;Sat from the daily ledger. Budget = that week's <strong>HC weekly base</strong> (WTD + Budget Left), frozen in that week's daily rows; ${provAny?"weeks marked &ldquo;provisional&rdquo; have no HC base on file yet and fall back to the current basis":"all shown weeks are on the HC base"}. Issues stage reflects the Wednesday BOH close (source=week_close).`;
+}
+function renderBudget(){
+  const d = DATA.daily_spend; if(!d || !d.ledger) return;
+  seedWeekBudgets(d);
+  const dates = Object.keys(d.ledger).sort();
+  if(!dates.length) return;
+  // ---- WEEK SELECTOR: scope the day slider to one Sun→Sat week ----
+  const weeks = [...new Set(dates.map(weekSunISO))].sort().reverse();   // newest first
+  const liveSun = liveWeekSun(d) || weeks[0];
+  if(!STATE.budgetWeekTouched || !STATE.budgetWeek || !weeks.includes(STATE.budgetWeek)) STATE.budgetWeek = liveSun;   // always open on the current live week
+  const sunISO = STATE.budgetWeek;
+  const satISO = weekSatISO(sunISO);
+  const wsel = document.getElementById("budgetWeekSelect");
+  if(wsel){
+    wsel.innerHTML = weeks.map(w=>{ const a=new Date(w+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}); const b=new Date(weekSatISO(w)+"T12:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}); return `<option value="${w}"${w===sunISO?" selected":""}>${weekLabel(w)}  (${a}–${b})${w===liveSun?"  · current":"  · closed"}</option>`; }).join("");
+  }
+  const weekDates = dates.filter(dt=>dt>=sunISO && dt<=satISO);
+  if(!weekDates.length) return;
+  if(!STATE.budgetDayTouched || STATE.budgetIdx==null || STATE.budgetIdx > weekDates.length-1) STATE.budgetIdx = weekDates.length-1;
+  const slider = document.getElementById("budgetSlider");
+  slider.max = weekDates.length-1; slider.value = STATE.budgetIdx;
+  const date = weekDates[STATE.budgetIdx];
+  const dObj = new Date(date+"T12:00:00");
+  const isLiveWeek = (sunISO===liveSun);
+  document.getElementById("budgetSliderLabel").textContent = dObj.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+  document.getElementById("budgetHeroTitle").textContent = `Budget burn · ${weekLabel(sunISO)}${isLiveWeek?" (current)":""} · ${dObj.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`;
+  const month = date.slice(0,7);
+  const dayOfMonth = parseInt(date.slice(8,10),10);
+  const codeCluster = {}; DATA.sites.forEach(x=>codeCluster[x.code]=x.cluster); codeCluster["IK2"]="scotland_newcastle"; codeCluster["M19"]="south"; codeCluster["M20"]="south";
+  const sumRange = (code, fromISO, toISO) => dates.filter(dt=>dt>=fromISO&&dt<=toISO).reduce((a,dt)=>a+((d.ledger[dt]||{})[code]||0),0);
+  const bar = (pct, warn, crit) => {
+    if(pct==null) return '<span style="color:var(--maki-muted)">—</span>';
+    const col = pct>crit?"var(--rag-red)":pct>warn?"var(--rag-amber)":"var(--rag-green)";
+    return `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;background:var(--maki-soft);border-radius:4px;overflow:hidden"><div style="width:${Math.min(100,pct).toFixed(0)}%;height:100%;background:${col}"></div></div><span style="font-size:11px;font-weight:600;min-width:38px;text-align:right;color:${col}">${pct.toFixed(0)}%</span></div>`;
+  };
+  let view = d.sites;
+  const effCluster = budgetEffCluster();
+  if(effCluster!=="all") view = view.filter(r=>codeCluster[r.code]===effCluster);
+  let gDay=0,gWtd=0,gMtd=0,gWkB=0,gCap=0;
+  const calc = r => {
+    const day = (d.ledger[date]||{})[r.code];
+    const wtd = sumRange(r.code, sunISO, date);
+    const jb = d.june_baseline;
+    const baseAmt = (jb && month===jb.through.slice(0,7) && date>=jb.through) ? (jb.by_code[r.code]||0) : 0;
+    const mtd = baseAmt + dates.filter(dt=>dt.slice(0,7)===month&&dt<=date&&(!jb||dt>jb.through)).reduce((a,dt)=>a+((d.ledger[dt]||{})[r.code]||0),0);
+    const wkBud = weekBudgetFor(sunISO, r.code, d);
+    return { day, wtd, mtd, wkBud };
+  };
+  const siteRow = (r,c) => {
+    const wkPct = c.wkBud? c.wtd/c.wkBud*100 : null;
+    const paceBase = r.cap? r.cap*dayOfMonth/30 : null;
+    const pacePct = paceBase? c.mtd/paceBase*100 : null;
+    return `<tr>
+      <td class="site-code">${r.code}</td>
+      <td class="num">${c.day==null?"—":fmtGBP(c.day)}</td>
+      <td class="num">${fmtGBP(c.wtd)}</td>
+      <td class="num">${c.wkBud==null?"—":fmtGBP(c.wkBud)}</td>
+      <td>${bar(wkPct,85,100)}</td>
+      <td class="num">${fmtGBP(c.mtd)}</td>
+      <td class="num">${r.cap==null?"—":fmtGBP(r.cap)}</td>
+      <td>${bar(pacePct,100,110)}</td>
+    </tr>`;
+  };
+  const subRow = (label,t) => {
+    const wkPct = t.wkB? t.wtd/t.wkB*100 : null;
+    const paceBase = t.cap? t.cap*dayOfMonth/30 : null;
+    const pacePct = paceBase? t.mtd/paceBase*100 : null;
+    return `<tr style="background:var(--maki-soft);font-weight:700">
+      <td style="font-size:11px;letter-spacing:.04em">${label} · TOTAL</td>
+      <td class="num">${fmtGBP(t.day)}</td>
+      <td class="num">${fmtGBP(t.wtd)}</td>
+      <td class="num">${fmtGBP(t.wkB)}</td>
+      <td>${bar(wkPct,85,100)}</td>
+      <td class="num">${fmtGBP(t.mtd)}</td>
+      <td class="num">${fmtGBP(t.cap)}</td>
+      <td>${bar(pacePct,100,110)}</td>
+    </tr>`;
+  };
+  const CLUSTER_ORDER = ["scotland_newcastle","north_midlands","south"];
+  let rows = "";
+  const _bh="font-weight:700;font-size:10px;letter-spacing:.04em;color:var(--maki-muted);text-transform:uppercase;border-bottom:1px solid var(--maki-line);padding:6px 10px;background:#fff";
+  const colHeaderRow=`<tr><td style="${_bh}">Site</td><td class="num" style="${_bh}">Spent Yesterday £</td><td class="num" style="${_bh}">Weekly Spend £</td><td class="num" style="${_bh}">Weekly Budget £</td><td style="${_bh};min-width:130px">Week Usage</td><td class="num" style="${_bh}">Monthly Spend £</td><td class="num" style="${_bh}">Month Cap £</td><td style="${_bh};min-width:130px">Month Pace</td></tr>`;
+  if(effCluster==="all"){
+    CLUSTER_ORDER.forEach(ck=>{
+      const grp = view.filter(r=>codeCluster[r.code]===ck);
+      if(!grp.length) return;
+      const cl = DATA.clusters[ck];
+      rows += `<tr><td colspan="8" style="background:var(--maki-soft);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--maki-red-deep);text-transform:uppercase">${cl?cl.name:ck}${cl&&cl.ec?` · EC ${cl.ec}`:""}${cl&&cl.dec?` · DEC ${cl.dec}`:""}</td></tr>`;
+      rows += colHeaderRow;
+      const t={day:0,wtd:0,mtd:0,wkB:0,cap:0};
+      grp.forEach(r=>{
+        const c=calc(r);
+        t.day+=c.day||0; t.wtd+=c.wtd; t.mtd+=c.mtd; t.wkB+=c.wkBud||0; t.cap+=r.cap||0;
+        gDay+=c.day||0; gWtd+=c.wtd; gMtd+=c.mtd; gWkB+=c.wkBud||0; gCap+=r.cap||0;
+        rows += siteRow(r,c);
+      });
+      rows += subRow(cl?cl.name:ck, t);
+    });
+    view.filter(r=>!CLUSTER_ORDER.includes(codeCluster[r.code])).forEach(r=>{
+      const c=calc(r); gDay+=c.day||0; gWtd+=c.wtd; gMtd+=c.mtd; gWkB+=c.wkBud||0; gCap+=r.cap||0; rows += siteRow(r,c);
+    });
+  } else {
+    const t={day:0,wtd:0,mtd:0,wkB:0,cap:0};
+    view.forEach(r=>{
+      const c=calc(r);
+      t.day+=c.day||0; t.wtd+=c.wtd; t.mtd+=c.mtd; t.wkB+=c.wkBud||0; t.cap+=r.cap||0;
+      gDay+=c.day||0; gWtd+=c.wtd; gMtd+=c.mtd; gWkB+=c.wkBud||0; gCap+=r.cap||0;
+      rows += siteRow(r,c);
+    });
+    if(rows) rows += subRow(DATA.clusters[effCluster]?DATA.clusters[effCluster].name:effCluster, t);
+  }
+  document.querySelector("#budgetBurnTbl tbody").innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:var(--maki-muted)">No sites for this cluster</td></tr>';
+  { const _bt=document.querySelector("#budgetBurnTbl thead"); if(_bt) _bt.style.display=(effCluster==="all")?"none":""; }
+  const hero = [
+    { l:"Spend this day", n: fmtGBP(gDay), cls:"" },
+    { l:"WTD", n: fmtGBP(gWtd), cls:"" },
+    { l:"Weekly budget", n: fmtGBP(gWkB), cls:"green" },
+    { l:"MTD", n: fmtGBP(gMtd), cls:"" },
+    { l:"June caps", n: fmtGBP(gCap), cls:"green" }
+  ];
+  document.getElementById("budgetHeroStats").innerHTML = hero.map(h=>`<div class="hstat ${h.cls}"><div class="n" style="font-size:19px">${h.n}</div><div class="l">${h.l}</div></div>`).join("");
+  // ---- previous-week like-for-like delta (same number of days into the week) ----
+  const wkDelEl = document.getElementById("budgetWeekDelta");
+  if(wkDelEl){
+    const dayOffset = Math.round((new Date(date+"T12:00:00") - new Date(sunISO+"T12:00:00"))/86400000); // 0..6
+    const prevSunISO = new Date(new Date(sunISO+"T12:00:00").getTime()-7*86400000).toISOString().slice(0,10);
+    const prevThroughISO = new Date(new Date(prevSunISO+"T12:00:00").getTime()+dayOffset*86400000).toISOString().slice(0,10);
+    const prevHasData = dates.some(dt=>dt>=prevSunISO && dt<=prevThroughISO);
+    let prevWtd=0; view.forEach(r=>{ prevWtd += sumRange(r.code, prevSunISO, prevThroughISO); });
+    if(prevHasData){
+      const diff = gWtd - prevWtd;
+      const pc = prevWtd>0 ? diff/prevWtd*100 : null;
+      const up = diff>0; const col = up?"var(--rag-red)":"var(--rag-green)";
+      const arrow = Math.abs(diff)<1 ? "—" : (up?"▲":"▼");
+      wkDelEl.innerHTML = `vs same point last week (${weekLabel(prevSunISO)}): <strong style="color:${col}">${arrow} £${Math.round(Math.abs(diff)).toLocaleString("en-GB")}${pc!=null?` (${up?"+":"−"}${Math.abs(pc).toFixed(0)}%)`:""}</strong> &middot; last wk ${fmtGBP(prevWtd)} at this point`;
+    } else {
+      wkDelEl.innerHTML = `<span style="color:var(--maki-muted)">no prior-week data to compare</span>`;
+    }
+  }
+  renderMissedFilings(d, dates);
+  renderBudgetStatusAndOverview(d, dates, view, sunISO, date);
+  renderClosedWeeks(d, dates);
+  renderDailySpend();
+}
+function renderMissedFilings(d, dates){
+  const el=document.getElementById("budgetMissed"); if(!el) return;
+  if(!d || !d.ledger || !dates || !dates.length){ el.innerHTML=""; return; }
+  const latest = dates[dates.length-1];
+  const roster = (d.sites||[]).map(s=>s.code);
+  if(!roster.length){ el.innerHTML=""; return; }
+  // first day each site ever filed — so we don't count pre-onboarding days as misses
+  const firstFiled={};
+  roster.forEach(code=>{ for(const dt of dates){ const v=(d.ledger[dt]||{})[code]; if(v!=null && isFinite(v)){ firstFiled[code]=dt; break; } } });
+  const missCount={};
+  roster.forEach(code=>{ const start=firstFiled[code]||dates[0]; missCount[code]=dates.filter(dt=>dt>=start && ((d.ledger[dt]||{})[code]==null)).length; });
+  const missedLatest = roster.filter(code=>((d.ledger[latest]||{})[code]==null));
+  const dLabel = new Date(latest+"T12:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  if(!missedLatest.length){
+    el.innerHTML = `<div class="note" style="background:#E9F8EF;border:1px solid #B7E4C7;color:#0E5A30;padding:10px 14px;border-radius:var(--radius);font-size:12.5px">&#10003; <strong>All ${roster.length} sites filed</strong> the daily input for ${dLabel}.</div>`;
+    return;
+  }
+  missedLatest.sort((a,b)=>(missCount[b]||0)-(missCount[a]||0));
+  const chips = missedLatest.map(code=>{
+    const n=missCount[code]||0;
+    const sev = n>=3?"var(--rag-red)":n>=1?"var(--rag-amber)":"var(--maki-muted)";
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--maki-line);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--maki-ink)">${code}<span style="background:${sev};color:#fff;border-radius:999px;padding:1px 7px;font-size:10.5px;font-variant-numeric:tabular-nums">missed ${n}&times;</span></span>`;
+  }).join(" ");
+  el.innerHTML = `<div class="note red" style="padding:12px 14px;border-radius:var(--radius)">
+    <div style="font-weight:700;font-size:13px;margin-bottom:7px">&#9888; ${missedLatest.length} site${missedLatest.length>1?"s":""} missed the ${dLabel} daily input</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px">${chips}</div>
+    <div style="margin-top:7px;font-size:11px;opacity:.85">Tally = total missed daily reports per site since it started filing. Chase the chefs above; red badge = 3+ misses.</div>
+  </div>`;
+}
+function budgetEffCluster(){ return (STATE.budgetCluster && STATE.budgetCluster!=="all") ? STATE.budgetCluster : STATE.cluster; }
+function initBudgetClusterPills(){ document.querySelectorAll("#budgetClusterPills .pill").forEach(p => { p.addEventListener("click", () => { document.querySelectorAll("#budgetClusterPills .pill").forEach(x=>x.classList.remove("active")); p.classList.add("active"); STATE.budgetCluster=p.dataset.cluster; renderBudget(); }); }); }
+function initBudgetSlider(){ const el=document.getElementById("budgetSlider"); if(el) el.addEventListener("input", e => { STATE.budgetIdx=parseInt(e.target.value,10); STATE.budgetDayTouched=true; renderBudget(); }); }
+function initBudgetWeekSelect(){ const el=document.getElementById("budgetWeekSelect"); if(el) el.addEventListener("change", e => { STATE.budgetWeekTouched=true; STATE.budgetWeek=e.target.value; STATE.budgetIdx=null; STATE.budgetDayTouched=false; renderBudget(); }); }
+
+function ecbSetLive(state, txt){
+  const dot=document.getElementById("ecbLiveDot"), t=document.getElementById("ecbLiveText");
+  if(!dot||!t) return;
+  dot.style.background = state==="live" ? "var(--rag-green, #1F8A4C)" : state==="stale" ? "#D97706" : "#9CA3AF";
+  t.textContent = txt;
+}
+async function ecbRefresh(){
+  ecbSetLive("loading","Refreshing…");
+  let snapshotLoaded=false;
+  try{
+    const r=await fetch("./data/ec_budget_snapshot.json",{cache:"no-store"});
+    if(r.ok){ const j=await r.json(); if(j && j.daily_spend){ DATA=j; snapshotLoaded=true; } }
+  }catch(_e){}
+  const sheetLoaded = await loadSheetData();
+  if(sheetLoaded){
+    ecbSetLive("live", "Live · EC ledger sheet · through "+(DATA.daily_spend&&DATA.daily_spend.as_at||"?")+" · refreshed "+new Date().toLocaleString("en-GB"));
+  } else if(snapshotLoaded){
+    ecbSetLive("stale", "Sheet unreachable · showing committed snapshot through "+(DATA.daily_spend&&DATA.daily_spend.as_at||"?"));
+  } else {
+    ecbSetLive("offline", "No data — sheet and snapshot both unreachable");
+    return;
+  }
+  try{ renderBudget(); }catch(e){ console.warn("[ECB] render failed:",e); }
+}
+function ecbInit(){
+  if(!document.getElementById("tab-ecbudget")) return;
+  initBudgetClusterPills(); initBudgetSlider(); initBudgetWeekSelect();
+  ecbRefresh();
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", ecbInit); else ecbInit();
+})();
 </script>
 </body>
 </html>
