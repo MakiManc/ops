@@ -1,6 +1,6 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-08-06T13:46:02",
+ "_generated_at": "2026-08-07T09:04:20",
  "date": "2026-08-04",
  "day": "Tuesday",
  "sites_reported": 19,
@@ -57,7 +57,8 @@
    "MakiNori"
   ],
   "warnings": [
-   "2026-08-04 M17: FOH £252.66 + BOH £733.66 exceeds total labour £733.66 - split rejected"
+   "2026-08-04 M17: FOH £252.66 + BOH £733.66 exceeds total labour £733.66 - split rejected",
+   "2026-08-04 M19: FOH £172.05/20.11% and BOH £683.51/79.89% do not resolve against total labour £1,307.40 - looks like projected, not actual - split rejected"
   ]
  },
  "sites": {
@@ -370,7 +371,7 @@
     "boh_pct": null,
     "unallocated": null,
     "unallocated_pct": null,
-    "split_status": "absent"
+    "split_status": "failed_validation"
    }
   },
   "M20": {

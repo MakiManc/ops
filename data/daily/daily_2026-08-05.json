@@ -1,11 +1,11 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-08-06T13:46:02",
+ "_generated_at": "2026-08-07T09:04:20",
  "date": "2026-08-05",
  "day": "Wednesday",
  "sites_reported": 19,
  "sites_expected": 19,
- "foh_boh_reported": 17,
+ "foh_boh_reported": 18,
  "unallocated_labour_total": 254.37,
  "clusters": [
   {
@@ -52,12 +52,10 @@
  "gaps": {
   "no_sales": [],
   "no_foh_boh_split": [
-   "M13",
-   "M17"
+   "M13"
   ],
   "warnings": [
-   "2026-08-05 M13: FOH £441.65 + BOH £696.63 exceeds total labour £1,126.59 - split rejected",
-   "2026-08-05 M17: FOH £389.94/45.42% and BOH £468.55/54.58% do not resolve against total labour £844.62 - looks like projected, not actual - split rejected"
+   "2026-08-05 M13: FOH £441.65 + BOH £696.63 exceeds total labour £1,126.59 - split rejected"
   ]
  },
  "sites": {
@@ -312,13 +310,13 @@
     "total": 844.62,
     "hours": 59.0,
     "wage_pct": 23.14,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "failed_validation"
+    "foh": 357.79,
+    "foh_pct": 42.36,
+    "boh": 486.84,
+    "boh_pct": 57.64,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
    }
   },
   "M18": {
@@ -362,7 +360,7 @@
    "avg_spend": 25.09,
    "labour": {
     "total": 1260.78,
-    "hours": null,
+    "hours": 83.6,
     "wage_pct": 28.55,
     "foh": 489.58,
     "foh_pct": 38.83,
@@ -561,8 +559,8 @@
   "target": 91514.5,
   "covers": 4331,
   "labour": 22176.5,
-  "foh": 8639.81,
-  "boh": 11311.13,
+  "foh": 8997.6,
+  "boh": 11797.97,
   "wage_pct": 21.7,
   "avg_spend": 23.6
  }

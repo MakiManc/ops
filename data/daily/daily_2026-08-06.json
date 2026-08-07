@@ -1,0 +1,563 @@
+{
+ "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
+ "_generated_at": "2026-08-07T09:04:20",
+ "date": "2026-08-06",
+ "day": "Thursday",
+ "sites_reported": 19,
+ "sites_expected": 19,
+ "foh_boh_reported": 19,
+ "unallocated_labour_total": 245.9,
+ "clusters": [
+  {
+   "name": "Scotland & Newcastle",
+   "am": "Ka Ho",
+   "dam": "Óisín Patrick Darragh",
+   "codes": [
+    "M1",
+    "M3",
+    "M6",
+    "M7",
+    "M8",
+    "IKI2",
+    "M12",
+    "M13",
+    "M15"
+   ]
+  },
+  {
+   "name": "North England & Midlands",
+   "am": "Inka Cheung",
+   "dam": "Amy Tang",
+   "codes": [
+    "M9",
+    "M10",
+    "M11",
+    "M14",
+    "M16"
+   ]
+  },
+  {
+   "name": "South England",
+   "am": "Lincoln (Ziang)",
+   "dam": "Kaitlin Dorcherty",
+   "codes": [
+    "M17",
+    "M18",
+    "M19",
+    "M20",
+    "MakiNori"
+   ]
+  }
+ ],
+ "gaps": {
+  "no_sales": [],
+  "no_foh_boh_split": [],
+  "warnings": []
+ },
+ "sites": {
+  "IKI2": {
+   "name": "Ikigai 2",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 5233.56,
+    "sit_in": 4984.37,
+    "delivery": 249.19,
+    "tips": 444.89,
+    "target": 4500.0,
+    "vs_target_pct": 16.3
+   },
+   "covers": 235,
+   "avg_spend": 21.21,
+   "labour": {
+    "total": 849.82,
+    "hours": 58.4,
+    "wage_pct": 16.24,
+    "foh": 375.62,
+    "foh_pct": 44.2,
+    "boh": 474.2,
+    "boh_pct": 55.8,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M1": {
+   "name": "Maki 1",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 4532.76,
+    "sit_in": 3787.38,
+    "delivery": 745.38,
+    "tips": 350.01,
+    "target": 4500.0,
+    "vs_target_pct": 0.73
+   },
+   "covers": 199,
+   "avg_spend": 19.03,
+   "labour": {
+    "total": 863.23,
+    "hours": 58.5,
+    "wage_pct": 19.04,
+    "foh": 305.9,
+    "foh_pct": 35.44,
+    "boh": 557.33,
+    "boh_pct": 64.56,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M10": {
+   "name": "Maki 10",
+   "cluster": "North England & Midlands",
+   "sales": {
+    "actual": 3124.31,
+    "sit_in": 2615.6,
+    "delivery": 508.7,
+    "tips": 214.65,
+    "target": 3927.0,
+    "vs_target_pct": -20.44
+   },
+   "covers": 113,
+   "avg_spend": 23.15,
+   "labour": {
+    "total": 766.6,
+    "hours": 49.6,
+    "wage_pct": 24.54,
+    "foh": 369.15,
+    "foh_pct": 48.15,
+    "boh": 397.44,
+    "boh_pct": 51.84,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M11": {
+   "name": "Maki 11",
+   "cluster": "North England & Midlands",
+   "sales": {
+    "actual": 2867.54,
+    "sit_in": 2537.27,
+    "delivery": 330.28,
+    "tips": 167.97,
+    "target": 3250.0,
+    "vs_target_pct": -11.77
+   },
+   "covers": 115,
+   "avg_spend": 22.06,
+   "labour": {
+    "total": 716.68,
+    "hours": 48.0,
+    "wage_pct": 24.99,
+    "foh": 272.36,
+    "foh_pct": 38.0,
+    "boh": 444.32,
+    "boh_pct": 62.0,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M12": {
+   "name": "Maki 12",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 5195.24,
+    "sit_in": 4806.67,
+    "delivery": 388.57,
+    "tips": 425.34,
+    "target": 3850.0,
+    "vs_target_pct": 34.94
+   },
+   "covers": 238,
+   "avg_spend": 20.2,
+   "labour": {
+    "total": 1150.17,
+    "hours": 75.7,
+    "wage_pct": 22.14,
+    "foh": 534.84,
+    "foh_pct": 46.5,
+    "boh": 615.33,
+    "boh_pct": 53.5,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M13": {
+   "name": "Maki 13",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 5000.41,
+    "sit_in": 4575.43,
+    "delivery": 424.98,
+    "tips": 406.55,
+    "target": 4750.0,
+    "vs_target_pct": 5.27
+   },
+   "covers": 217,
+   "avg_spend": 21.08,
+   "labour": {
+    "total": 1066.53,
+    "hours": 72.1,
+    "wage_pct": 21.33,
+    "foh": 459.45,
+    "foh_pct": 43.08,
+    "boh": 607.08,
+    "boh_pct": 56.92,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M14": {
+   "name": "Maki 14",
+   "cluster": "North England & Midlands",
+   "sales": {
+    "actual": 5319.65,
+    "sit_in": 5277.85,
+    "delivery": 41.8,
+    "tips": 201.88,
+    "target": 5000.0,
+    "vs_target_pct": 6.39
+   },
+   "covers": 241,
+   "avg_spend": 21.9,
+   "labour": {
+    "total": 1059.21,
+    "hours": 70.9,
+    "wage_pct": 19.91,
+    "foh": 433.06,
+    "foh_pct": 40.89,
+    "boh": 512.83,
+    "boh_pct": 48.42,
+    "unallocated": 113.32,
+    "unallocated_pct": 10.7,
+    "split_status": "ok"
+   }
+  },
+  "M15": {
+   "name": "Maki 15",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 8353.84,
+    "sit_in": 8263.63,
+    "delivery": 90.2,
+    "tips": 588.87,
+    "target": 6737.5,
+    "vs_target_pct": 23.99
+   },
+   "covers": 374,
+   "avg_spend": 22.1,
+   "labour": {
+    "total": 1691.51,
+    "hours": 114.7,
+    "wage_pct": 20.25,
+    "foh": 698.15,
+    "foh_pct": 41.27,
+    "boh": 993.35,
+    "boh_pct": 58.73,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M16": {
+   "name": "Maki 16",
+   "cluster": "North England & Midlands",
+   "sales": {
+    "actual": 4216.68,
+    "sit_in": 4006.38,
+    "delivery": 210.3,
+    "tips": 329.15,
+    "target": 3750.0,
+    "vs_target_pct": 12.44
+   },
+   "covers": 188,
+   "avg_spend": 21.31,
+   "labour": {
+    "total": 831.47,
+    "hours": 57.7,
+    "wage_pct": 19.72,
+    "foh": 342.04,
+    "foh_pct": 41.14,
+    "boh": 489.44,
+    "boh_pct": 58.86,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M17": {
+   "name": "Maki 17",
+   "cluster": "South England",
+   "sales": {
+    "actual": 4018.43,
+    "sit_in": 3710.05,
+    "delivery": 308.38,
+    "tips": 304.29,
+    "target": 3000.0,
+    "vs_target_pct": 33.95
+   },
+   "covers": 162,
+   "avg_spend": 22.9,
+   "labour": {
+    "total": 841.18,
+    "hours": 59.5,
+    "wage_pct": 20.93,
+    "foh": 329.67,
+    "foh_pct": 39.19,
+    "boh": 511.52,
+    "boh_pct": 60.81,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M18": {
+   "name": "Maki 18",
+   "cluster": "South England",
+   "sales": {
+    "actual": 4434.16,
+    "sit_in": 4327.08,
+    "delivery": 107.08,
+    "tips": 533.45,
+    "target": 4500.0,
+    "vs_target_pct": -1.46
+   },
+   "covers": 216,
+   "avg_spend": 20.03,
+   "labour": {
+    "total": 1163.52,
+    "hours": 77.1,
+    "wage_pct": 26.24,
+    "foh": 521.32,
+    "foh_pct": 44.81,
+    "boh": 582.69,
+    "boh_pct": 50.08,
+    "unallocated": 59.51,
+    "unallocated_pct": 5.11,
+    "split_status": "ok"
+   }
+  },
+  "M19": {
+   "name": "Maki 19",
+   "cluster": "South England",
+   "sales": {
+    "actual": 4061.08,
+    "sit_in": 3987.9,
+    "delivery": 73.18,
+    "tips": 359.98,
+    "target": 2750.0,
+    "vs_target_pct": 47.68
+   },
+   "covers": 172,
+   "avg_spend": 23.19,
+   "labour": {
+    "total": 1081.29,
+    "hours": 71.7,
+    "wage_pct": 26.63,
+    "foh": 503.87,
+    "foh_pct": 46.6,
+    "boh": 577.42,
+    "boh_pct": 53.4,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M20": {
+   "name": "Maki 20",
+   "cluster": "South England",
+   "sales": {
+    "actual": 5100.07,
+    "sit_in": 5053.18,
+    "delivery": 46.9,
+    "tips": 488.01,
+    "target": 5500.0,
+    "vs_target_pct": -7.27
+   },
+   "covers": 251,
+   "avg_spend": 20.13,
+   "labour": {
+    "total": 1665.19,
+    "hours": 115.3,
+    "wage_pct": 32.65,
+    "foh": 790.67,
+    "foh_pct": 47.48,
+    "boh": 812.8,
+    "boh_pct": 48.81,
+    "unallocated": 61.72,
+    "unallocated_pct": 3.71,
+    "split_status": "ok"
+   }
+  },
+  "M3": {
+   "name": "Maki 3",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 5221.15,
+    "sit_in": 4631.02,
+    "delivery": 590.14,
+    "tips": 449.63,
+    "target": 6000.0,
+    "vs_target_pct": -12.98
+   },
+   "covers": 219,
+   "avg_spend": 21.15,
+   "labour": {
+    "total": 1363.87,
+    "hours": 91.2,
+    "wage_pct": 26.12,
+    "foh": 622.38,
+    "foh_pct": 45.63,
+    "boh": 741.49,
+    "boh_pct": 54.37,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M6": {
+   "name": "Maki 6",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 3470.14,
+    "sit_in": 3138.06,
+    "delivery": 332.08,
+    "tips": 217.88,
+    "target": 3500.0,
+    "vs_target_pct": -0.85
+   },
+   "covers": 107,
+   "avg_spend": 29.33,
+   "labour": {
+    "total": 767.94,
+    "hours": 52.0,
+    "wage_pct": 22.13,
+    "foh": 246.49,
+    "foh_pct": 32.1,
+    "boh": 521.45,
+    "boh_pct": 67.9,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M7": {
+   "name": "Maki 7",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 10751.94,
+    "sit_in": 10751.94,
+    "delivery": null,
+    "tips": 971.43,
+    "target": 10000.0,
+    "vs_target_pct": 7.52
+   },
+   "covers": 487,
+   "avg_spend": 22.08,
+   "labour": {
+    "total": 2185.82,
+    "hours": 145.3,
+    "wage_pct": 20.33,
+    "foh": 997.74,
+    "foh_pct": 45.65,
+    "boh": 1188.08,
+    "boh_pct": 54.35,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "M8": {
+   "name": "Maki 8",
+   "cluster": "Scotland & Newcastle",
+   "sales": {
+    "actual": 6780.42,
+    "sit_in": 6094.24,
+    "delivery": 686.18,
+    "tips": 588.36,
+    "target": 5000.0,
+    "vs_target_pct": 35.61
+   },
+   "covers": 277,
+   "avg_spend": 22.0,
+   "labour": {
+    "total": 1187.33,
+    "hours": 83.2,
+    "wage_pct": 17.51,
+    "foh": 507.11,
+    "foh_pct": 42.71,
+    "boh": 679.74,
+    "boh_pct": 57.25,
+    "unallocated": 0.48,
+    "unallocated_pct": 0.04,
+    "split_status": "ok"
+   }
+  },
+  "M9": {
+   "name": "Maki 9",
+   "cluster": "North England & Midlands",
+   "sales": {
+    "actual": 8156.71,
+    "sit_in": 7548.13,
+    "delivery": 608.58,
+    "tips": 578.39,
+    "target": 8500.0,
+    "vs_target_pct": -4.04
+   },
+   "covers": 347,
+   "avg_spend": 21.75,
+   "labour": {
+    "total": 1675.07,
+    "hours": 114.5,
+    "wage_pct": 20.54,
+    "foh": 679.11,
+    "foh_pct": 40.54,
+    "boh": 995.95,
+    "boh_pct": 59.46,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
+   }
+  },
+  "MakiNori": {
+   "name": "Maki Nori",
+   "cluster": "South England",
+   "sales": {
+    "actual": 2662.2,
+    "sit_in": 2662.2,
+    "delivery": 0.0,
+    "tips": 333.45,
+    "target": 3000.0,
+    "vs_target_pct": -11.26
+   },
+   "covers": 67,
+   "avg_spend": 39.73,
+   "labour": {
+    "total": 1005.26,
+    "hours": 65.9,
+    "wage_pct": 37.76,
+    "foh": 402.09,
+    "foh_pct": 40.0,
+    "boh": 592.3,
+    "boh_pct": 58.92,
+    "unallocated": 10.87,
+    "unallocated_pct": 1.08,
+    "split_status": "ok"
+   }
+  }
+ },
+ "totals": {
+  "sales": 98500.29,
+  "target": 92014.5,
+  "covers": 4225,
+  "labour": 21931.69,
+  "foh": 9391.02,
+  "boh": 12294.76,
+  "wage_pct": 22.27,
+  "avg_spend": 23.31
+ }
+}
