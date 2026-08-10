@@ -3,7 +3,7 @@
  "window_from": "2026-07-31",
  "window_to": "2026-08-06",
  "window_days": 7,
- "_generated_at": "2026-08-07T09:15:54Z",
+ "_generated_at": "2026-08-10T05:34:50Z",
  "source": "Google Reviews workbook 1aFGfbGr… — 'Raw Data' tab (gid 284143046). Reviews RECEIVED on the date shown; a review lands days after the visit.",
  "neg_threshold": 3,
  "sites": {
@@ -75,10 +75,10 @@
     "with_comment": 0
    },
    "window": {
-    "n": 7,
-    "avg": 4.29,
+    "n": 6,
+    "avg": 4.17,
     "neg": 2,
-    "pos": 5,
+    "pos": 4,
     "with_comment": 2
    },
    "reviews": [
@@ -202,7 +202,7 @@
     {
      "stars": 2,
      "author": "Adrien Massonnet",
-     "text": "(Translated by Google) A mall restaurant where the service is supposed to be very rushed. There were inconsistencies in the service: we received our miso soup and gyoza before our drinks (cocktails), and the dishes arrived at different times (including a sushi/sashimi dish that could have waited). Avoid the gyoza and the miso soup, which were tasteless. The maki, nigiri, and sashimi were quite good. The value for money is rather poor for the basic quality. (Original) Restaurant de centre commercial où le service doit etre très expéditif. Des incohérences dans le service : nous avons eu notre soupe miso et des gyozas avant d avoir nos boissons (cocktails), les plats sont arrivés en décalé (dont un plat de sushi/sashimi qui pouvait attendre avant d etre servi). Evitez les gyozas et la soupe miso qui n ont pas de gouts. Les makis, nigiri, et sashimi etaient plutot bons. Un rapport qualité prix assez mauvais pour la qualité basique.",
+     "text": "(Translated by Google) A mall restaurant where the service is supposed to be very rushed. There were inconsistencies in the service: we received our miso soup and gyoza before our drinks (cocktails), and the dishes arrived at different times (including a sushi/sashimi dish that could have waited). Avoid the gyoza and the miso soup, which were tasteless. The maki, nigiri, and sashimi were quite good. Overall, the value for money is rather poor for the basic quality. (Original) Restaurant de centre commercial où le service doit etre très expéditif. Des incohérences dans le service : nous avons eu notre soupe miso et des gyozas avant d avoir nos boissons (cocktails), les plats sont arrivés en décalé (dont un plat de sushi/sashimi qui pouvait attendre avant d etre servi). Evitez les gyozas et la soupe miso qui n ont pas de gouts. Les makis, nigiri, et sashimi etaient plutot bons. Un rapport qualité prix assez mauvais pour la qualité basique.",
      "date": "2026-07-31",
      "has_comment": true
     }
@@ -456,11 +456,11 @@
     "with_comment": 0
    },
    "window": {
-    "n": 10,
-    "avg": 4.6,
-    "neg": 1,
+    "n": 11,
+    "avg": 4.45,
+    "neg": 2,
     "pos": 9,
-    "with_comment": 6
+    "with_comment": 7
    },
    "reviews": [
     {
@@ -482,6 +482,13 @@
      "author": "charlie ormiston",
      "text": "Second time here at Maki and Ramen. Food again very flavoursome with substantial portions. Service was slow to begin with but soon picked up. The atmosphere was very loud, this was because it was so busy. Had to shout to make ourselves heard above the din. I will use here again mainly because of the food.",
      "date": "2026-08-04",
+     "has_comment": true
+    },
+    {
+     "stars": 3,
+     "author": "Patrick W",
+     "text": "Nice city centre Japanese and Asian spot. Nice interior and staff friendly, good if you want a quick meal but not somewhere you will stay for ages. Katsu curry a solid bet and sushi was good.",
+     "date": "2026-08-02",
      "has_comment": true
     },
     {
@@ -1409,11 +1416,11 @@
     "with_comment": 10
    },
    "window": {
-    "n": 75,
+    "n": 73,
     "avg": 4.89,
     "neg": 1,
-    "pos": 74,
-    "with_comment": 61
+    "pos": 72,
+    "with_comment": 60
    },
    "reviews": [
     {
@@ -1644,10 +1651,10 @@
    },
    "window": {
     "n": 99,
-    "avg": 4.7,
-    "neg": 7,
-    "pos": 92,
-    "with_comment": 65
+    "avg": 4.68,
+    "neg": 8,
+    "pos": 91,
+    "with_comment": 66
    }
   },
   "North England & Midlands": {
@@ -1693,11 +1700,11 @@
     "with_comment": 18
    },
    "window": {
-    "n": 205,
-    "avg": 4.74,
+    "n": 203,
+    "avg": 4.73,
     "neg": 11,
-    "pos": 194,
-    "with_comment": 167
+    "pos": 192,
+    "with_comment": 166
    }
   }
  },
@@ -1739,12 +1746,12 @@
     "positives_shown": 12
    },
    "M20": {
-    "positives_total": 60,
+    "positives_total": 59,
     "positives_shown": 12
    }
   },
   "duplicates_dropped": 35,
   "rows_without_date": 0,
-  "rows_scanned": 801
+  "rows_scanned": 623
  }
 }
