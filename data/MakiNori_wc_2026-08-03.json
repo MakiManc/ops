@@ -1,0 +1,148 @@
+{
+  "schema_version": "1.2",
+  "generated_at": "2026-08-10",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "week": {
+    "label": "Week of 2026-08-03 \u2013 2026-08-09",
+    "commencing": "2026-08-03",
+    "ending": "2026-08-09"
+  },
+  "sites": {
+    "MakiNori": {
+      "code": "MakiNori",
+      "name": "Maki Nori",
+      "gm": "(confirm)",
+      "gm_confirm": false,
+      "am": "Lincoln",
+      "cluster": "South England",
+      "kpis": {
+        "sales": {
+          "actual": 20289.23,
+          "target": null,
+          "var_pct": null,
+          "prev": 21684.14,
+          "wow_abs": -1394.91,
+          "wow_pct": -6.43
+        },
+        "covers": {
+          "actual": 516,
+          "prev": 557,
+          "wow_abs": -41,
+          "wow_pct": -7.36
+        },
+        "sph": {
+          "actual": 39.32,
+          "prev": 38.93,
+          "wow_abs": 0.39,
+          "wow_pct": 1.0,
+          "label": "Spend Per Head (covers-weighted Avg Spend)"
+        },
+        "wage_pct": {
+          "actual": 34.25,
+          "target": null
+        },
+        "food_pct": {
+          "actual": 23.17,
+          "target": 23.0,
+          "gated": false
+        },
+        "labour_hours": {
+          "actual": 462.7
+        },
+        "waste": {
+          "actual": 158.8
+        }
+      },
+      "stock_take": {
+        "drinks": {
+          "variance_pct": null,
+          "target": "\u00b15%",
+          "within_band": null
+        },
+        "food": {
+          "variance_pct": -5.9,
+          "target": "\u00b15%",
+          "within_band": false
+        },
+        "week_commencing": "2026-08-03"
+      },
+      "efficiency_score": {
+        "score": 60,
+        "rag": "red",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "weights": {
+          "wage": 30,
+          "food": 30,
+          "sph": 15,
+          "sales": 10,
+          "weekly_star": 10,
+          "food_var": 5
+        },
+        "components": {
+          "sph": {
+            "weight": 15,
+            "value": 88.0,
+            "basis": "\u00a339.32 vs \u00a335 tgt \u2014 level 100, WoW +1.00% \u2192 mom 60"
+          },
+          "food": {
+            "weight": 30,
+            "value": 100.0,
+            "basis": "23.17% vs 25% baseline, -8/pp over"
+          },
+          "wage": {
+            "weight": 30,
+            "value": 0.0,
+            "basis": "34.25% vs 21% target, -15/pp over"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 92.8,
+            "basis": "-5.90% outside \u00b15% band"
+          }
+        },
+        "components_dropped": [
+          "sales",
+          "weekly_star"
+        ],
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+      },
+      "red_light": {
+        "status": "red",
+        "triggers": [
+          "wage 34.2%"
+        ],
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+      },
+      "reviews": {
+        "week_avg_rating": null,
+        "new_reviews": null,
+        "star_breakdown": null,
+        "negatives": null,
+        "negative_reviews": [],
+        "venue_rating": null,
+        "venue_review_count": null,
+        "response_rate": null,
+        "response_rate_note": "No automated source \u2014 left open.",
+        "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
+      },
+      "maintenance": {
+        "source": "automation/data/maintenance_2026-08-03.json (AGMM Task List Status). Open items only.",
+        "outstanding_count": 0,
+        "tasks": [],
+        "note": "0 outstanding"
+      },
+      "issues_solutions": {
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "status": "pending",
+        "live": false,
+        "items": [],
+        "note": "Separate stream; needs the GM-notes email pull wired in."
+      },
+      "deliveroo": null,
+      "gaps": [
+        "Reviews \u2014 no week rating in source",
+        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+      ]
+    }
+  }
+}
