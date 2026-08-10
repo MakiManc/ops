@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-05",
+  "generated_at": "2026-08-10",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -67,8 +67,8 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 96,
-        "rag": "green",
+        "score": 89,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -101,8 +101,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 100.0,
-            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 25.97,
+            "basis": "4.18\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -121,17 +121,32 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.75,
-        "new_reviews": 8,
+        "week_avg_rating": 4.181818182,
+        "new_reviews": 11,
         "star_breakdown": {
-          "5": 6,
+          "5": 7,
           "4": 2,
           "3": 0,
-          "2": 0,
-          "1": 0
+          "2": 1,
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Adrien Massonnet",
+            "text": "(Translated by Google) A mall restaurant where the service is supposed to be very rushed. There were inconsistencies in the service: we received our miso soup and gyoza before our drinks (cocktails), and the dishes arrived at different times (including a sushi/sashimi dish that could have waited). Avoid the gyoza and the miso soup, which were tasteless. The maki, nigiri, and sashimi were quite good. Overall, the value for money is rather poor for the basic quality.\n\n(Original)\nRestaurant de centre commercial o\u00f9 le service doit etre tr\u00e8s exp\u00e9ditif. Des incoh\u00e9rences dans le service : nous avons eu notre soupe miso et des gyozas avant d avoir nos boissons (cocktails), les plats sont arriv\u00e9s en d\u00e9cal\u00e9 (dont un plat de sushi/sashimi qui pouvait attendre avant d etre servi). Evitez les gyozas et la soupe miso qui n ont pas de gouts. Les makis, nigiri, et sashimi etaient plutot bons. Un rapport qualit\u00e9 prix assez mauvais pour la qualit\u00e9 basique.",
+            "date": "2026-07-31",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Traveler",
+            "text": "(Translated by Google) Just a heads-up: this restaurant also has another branch called Ramen Ramen. It's the same restaurant, just with a different name! The ramen, may God bless the food, was awful! The side dishes were delicious, and one of the main reasons we chose this place was because they confirmed that the food is halal! However, I wouldn't repeat the experience; the ramen was below average.\n\nJust a heads-up: this restaurant also has another branch called Ramen Ramen. As far as I could tell, it's the same restaurant with a different name.\n\nThe side dishes were actually very tasty, and one of the main reasons we chose this place was because they confirmed that the food is halal.\n\nUnfortunately, the ramen itself was very disappointing. It was below average in terms of flavor and didn't live up to expectations at all. I was expecting something much better.\n\nOverall, I enjoyed the side dishes more than the main course, but I wouldn't come back for the ramen. It simply wasn't worth repeating the experience.\n\n(Original)\n\u0644\u0644\u062a\u0646\u0628\u064a\u0647 \u0647\u0630\u0627 \u0627\u0644\u0645\u0637\u0639\u0645 \u064a\u0648\u062c\u062f \u0644\u0647 \u0641\u0631\u0639 \u0623\u062e\u0631 \u0623\u0633\u0645\u0647 \u0631\u0627\u0645\u0646 \u0631\u0627\u0645\u0646 \u060c\u060c \u0646\u0641\u0633 \u0627\u0644\u0645\u0637\u0639\u0645 \u0628\u0633 \u0627\u0633\u0645\u0627\u0621 \u0645\u062e\u062a\u0644\u0641\u0647 !!\u0627\u0644\u0631\u0627\u0645\u0646 \u0627\u0644\u0644\u0647 \u064a\u0639\u0632 \u0627\u0644\u0646\u0639\u0645\u0647 \u0645\u0627 \u064a\u0633\u0648\u0649 !! \u0627\u0644\u0627\u0637\u0628\u0627\u0642 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0647 \u0644\u0630\u064a\u0630\u0647 \u060c\u060c \u0645\u064a\u0632\u062a\u0647 \u062d\u0633\u0628 \u0643\u0644\u0627\u0645\u0647\u0645 \u0627\u0646\u0647 \u062d\u0644\u0627\u0644!! \u0644\u0643\u0646 \u0645\u0627 \u0627\u0643\u0631\u0631 \u0627\u0644\u062a\u062c\u0631\u0628\u0647 \u060c \u0627\u0644\u0631\u0627\u0645\u0646 \u0637\u0639\u0645 \u0623\u0642\u0644 \u0645\u0646 \u0639\u0627\u062f\u064a.\n\nJust a heads-up: this restaurant also has another branch called Ramen Ramen. As far as I could tell, it\u2019s the same restaurant with a different name.\n\nThe side dishes were actually very tasty, and one of the main reasons we chose this place was because they confirmed that the food is halal.\n\nUnfortunately, the ramen itself was very disappointing. It was below average in terms of flavor and didn\u2019t live up to the expectations at all. I was expecting something much better.\n\nOverall, I enjoyed the side dishes more than the main course, but I wouldn\u2019t come back for the ramen. It simply wasn\u2019t worth repeating the experience.",
+            "date": "2026-07-28",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -140,9 +155,38 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 4,
+        "tasks": [
+          {
+            "task": "ticket machine has connection issue, ticket time to time delay",
+            "priority": "\u2014",
+            "logged_week": "Pending",
+            "owner": "Chris",
+            "status": "open"
+          },
+          {
+            "task": "Booth Seats needing reupholstered",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Lincoln/Ross",
+            "status": "open"
+          },
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "4 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",

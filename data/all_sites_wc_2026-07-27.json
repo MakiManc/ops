@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-05",
+  "generated_at": "2026-08-10",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
     "commencing": "2026-07-27",
@@ -49,7 +49,7 @@
           "actual": 311.7
         },
         "waste": {
-          "actual": 10.75
+          "actual": 44.58
         }
       },
       "stock_take": {
@@ -147,9 +147,17 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 1,
+        "tasks": [
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          }
+        ],
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -164,8 +172,8 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 6348.03,
-        "orders": 194,
-        "aov": 32.72,
+        "orders": 182,
+        "aov": 34.88,
         "new_customers": 46,
         "rating": 4.56,
         "open_hours_pct": 96.9,
@@ -182,7 +190,7 @@
         },
         "gmv_vs_4wk_pct": 9.7,
         "gmv_vs_ly_pct": 2.6,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
@@ -257,7 +265,7 @@
           "actual": 636.7
         },
         "waste": {
-          "actual": 38.4
+          "actual": 144.82
         }
       },
       "stock_take": {
@@ -274,7 +282,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 87,
+        "score": 88,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -306,15 +314,18 @@
             "value": 72.25,
             "basis": "22.85% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.79\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "2.40% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -323,9 +334,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
-        "new_reviews": 0,
-        "star_breakdown": null,
+        "week_avg_rating": 4.785714286,
+        "new_reviews": 14,
+        "star_breakdown": {
+          "5": 13,
+          "4": 0,
+          "3": 0,
+          "2": 1,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -336,9 +353,31 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 3,
+        "tasks": [
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          },
+          {
+            "task": "WiFi still inconsistent",
+            "priority": "\u2014",
+            "logged_week": "Pending",
+            "owner": "Chris",
+            "status": "open"
+          }
+        ],
+        "note": "3 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -353,8 +392,8 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 9094.62,
-        "orders": 259,
-        "aov": 35.11,
+        "orders": 260,
+        "aov": 34.98,
         "new_customers": 53,
         "rating": 4.42,
         "open_hours_pct": 99.8,
@@ -371,12 +410,11 @@
         },
         "gmv_vs_4wk_pct": 2.3,
         "gmv_vs_ly_pct": -14.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Covers up week on week but still behind the same period last year.",
@@ -471,7 +509,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 90,
+        "score": 94,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -505,8 +543,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 61.22,
-            "basis": "4.43\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 100.0,
+            "basis": "4.70\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -525,7 +563,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.428571,
+        "week_avg_rating": 4.7,
         "new_reviews": 7,
         "star_breakdown": {
           "5": 5,
@@ -552,9 +590,17 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 1,
+        "tasks": [
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          }
+        ],
+        "note": "1 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -569,8 +615,8 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 2576.07,
-        "orders": 80,
-        "aov": 32.2,
+        "orders": 73,
+        "aov": 35.29,
         "new_customers": 20,
         "rating": 4.67,
         "open_hours_pct": 98.8,
@@ -587,7 +633,7 @@
         },
         "gmv_vs_4wk_pct": -13.8,
         "gmv_vs_ly_pct": -29.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
@@ -676,8 +722,8 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 96,
-        "rag": "green",
+        "score": 89,
+        "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -710,8 +756,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 100.0,
-            "basis": "4.75\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 25.97,
+            "basis": "4.18\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -730,17 +776,32 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.75,
-        "new_reviews": 8,
+        "week_avg_rating": 4.181818182,
+        "new_reviews": 11,
         "star_breakdown": {
-          "5": 6,
+          "5": 7,
           "4": 2,
           "3": 0,
-          "2": 0,
-          "1": 0
+          "2": 1,
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 2,
+            "author": "Adrien Massonnet",
+            "text": "(Translated by Google) A mall restaurant where the service is supposed to be very rushed. There were inconsistencies in the service: we received our miso soup and gyoza before our drinks (cocktails), and the dishes arrived at different times (including a sushi/sashimi dish that could have waited). Avoid the gyoza and the miso soup, which were tasteless. The maki, nigiri, and sashimi were quite good. Overall, the value for money is rather poor for the basic quality.\n\n(Original)\nRestaurant de centre commercial o\u00f9 le service doit etre tr\u00e8s exp\u00e9ditif. Des incoh\u00e9rences dans le service : nous avons eu notre soupe miso et des gyozas avant d avoir nos boissons (cocktails), les plats sont arriv\u00e9s en d\u00e9cal\u00e9 (dont un plat de sushi/sashimi qui pouvait attendre avant d etre servi). Evitez les gyozas et la soupe miso qui n ont pas de gouts. Les makis, nigiri, et sashimi etaient plutot bons. Un rapport qualit\u00e9 prix assez mauvais pour la qualit\u00e9 basique.",
+            "date": "2026-07-31",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Traveler",
+            "text": "(Translated by Google) Just a heads-up: this restaurant also has another branch called Ramen Ramen. It's the same restaurant, just with a different name! The ramen, may God bless the food, was awful! The side dishes were delicious, and one of the main reasons we chose this place was because they confirmed that the food is halal! However, I wouldn't repeat the experience; the ramen was below average.\n\nJust a heads-up: this restaurant also has another branch called Ramen Ramen. As far as I could tell, it's the same restaurant with a different name.\n\nThe side dishes were actually very tasty, and one of the main reasons we chose this place was because they confirmed that the food is halal.\n\nUnfortunately, the ramen itself was very disappointing. It was below average in terms of flavor and didn't live up to expectations at all. I was expecting something much better.\n\nOverall, I enjoyed the side dishes more than the main course, but I wouldn't come back for the ramen. It simply wasn't worth repeating the experience.\n\n(Original)\n\u0644\u0644\u062a\u0646\u0628\u064a\u0647 \u0647\u0630\u0627 \u0627\u0644\u0645\u0637\u0639\u0645 \u064a\u0648\u062c\u062f \u0644\u0647 \u0641\u0631\u0639 \u0623\u062e\u0631 \u0623\u0633\u0645\u0647 \u0631\u0627\u0645\u0646 \u0631\u0627\u0645\u0646 \u060c\u060c \u0646\u0641\u0633 \u0627\u0644\u0645\u0637\u0639\u0645 \u0628\u0633 \u0627\u0633\u0645\u0627\u0621 \u0645\u062e\u062a\u0644\u0641\u0647 !!\u0627\u0644\u0631\u0627\u0645\u0646 \u0627\u0644\u0644\u0647 \u064a\u0639\u0632 \u0627\u0644\u0646\u0639\u0645\u0647 \u0645\u0627 \u064a\u0633\u0648\u0649 !! \u0627\u0644\u0627\u0637\u0628\u0627\u0642 \u0627\u0644\u062c\u0627\u0646\u0628\u064a\u0647 \u0644\u0630\u064a\u0630\u0647 \u060c\u060c \u0645\u064a\u0632\u062a\u0647 \u062d\u0633\u0628 \u0643\u0644\u0627\u0645\u0647\u0645 \u0627\u0646\u0647 \u062d\u0644\u0627\u0644!! \u0644\u0643\u0646 \u0645\u0627 \u0627\u0643\u0631\u0631 \u0627\u0644\u062a\u062c\u0631\u0628\u0647 \u060c \u0627\u0644\u0631\u0627\u0645\u0646 \u0637\u0639\u0645 \u0623\u0642\u0644 \u0645\u0646 \u0639\u0627\u062f\u064a.\n\nJust a heads-up: this restaurant also has another branch called Ramen Ramen. As far as I could tell, it\u2019s the same restaurant with a different name.\n\nThe side dishes were actually very tasty, and one of the main reasons we chose this place was because they confirmed that the food is halal.\n\nUnfortunately, the ramen itself was very disappointing. It was below average in terms of flavor and didn\u2019t live up to the expectations at all. I was expecting something much better.\n\nOverall, I enjoyed the side dishes more than the main course, but I wouldn\u2019t come back for the ramen. It simply wasn\u2019t worth repeating the experience.",
+            "date": "2026-07-28",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -749,9 +810,38 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 4,
+        "tasks": [
+          {
+            "task": "ticket machine has connection issue, ticket time to time delay",
+            "priority": "\u2014",
+            "logged_week": "Pending",
+            "owner": "Chris",
+            "status": "open"
+          },
+          {
+            "task": "Booth Seats needing reupholstered",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Lincoln/Ross",
+            "status": "open"
+          },
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "4 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -921,9 +1011,31 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 3,
+        "tasks": [
+          {
+            "task": "Recarpeting at front of store, potentially with company logo",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "\u2014",
+            "status": "open"
+          },
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "3 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -956,7 +1068,8 @@
         },
         "gmv_vs_4wk_pct": 8.5,
         "gmv_vs_ly_pct": 25.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -1050,7 +1163,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 86,
+        "score": 88,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -1082,15 +1195,18 @@
             "value": 100.0,
             "basis": "20.02% vs 21% target, -15/pp over"
           },
+          "weekly_star": {
+            "weight": 10,
+            "value": 100.0,
+            "basis": "4.85\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+          },
           "food_var": {
             "weight": 5,
             "value": 100,
             "basis": "-4.60% inside \u00b15% band"
           }
         },
-        "components_dropped": [
-          "weekly_star"
-        ],
+        "components_dropped": [],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
@@ -1101,9 +1217,15 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": null,
+        "week_avg_rating": 4.846153846,
         "new_reviews": 0,
-        "star_breakdown": null,
+        "star_breakdown": {
+          "5": 11,
+          "4": 2,
+          "3": 0,
+          "2": 0,
+          "1": 0
+        },
         "negatives": null,
         "negative_reviews": [],
         "venue_rating": null,
@@ -1114,9 +1236,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "canopy above stairs leaking and needs serviced",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          },
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1149,11 +1286,10 @@
         },
         "gmv_vs_4wk_pct": 26.9,
         "gmv_vs_ly_pct": -13.5,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV]",
+        "orders_estimated": false
       },
-      "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [],
         "actions": [],
@@ -1277,9 +1413,9 @@
       },
       "reviews": {
         "week_avg_rating": 5.0,
-        "new_reviews": 6,
+        "new_reviews": 8,
         "star_breakdown": {
-          "5": 6,
+          "5": 8,
           "4": 0,
           "3": 0,
           "2": 0,
@@ -1295,9 +1431,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1312,9 +1463,9 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 3230.38,
-        "orders": 99,
-        "orders_estimated": true,
-        "aov": 32.63,
+        "orders": 100,
+        "orders_estimated": false,
+        "aov": 32.3,
         "new_customers": 35,
         "rating": 4.6,
         "open_hours_pct": 98.8,
@@ -1331,7 +1482,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -1423,8 +1574,8 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 94,
-        "rag": "amber",
+        "score": 95,
+        "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
@@ -1457,8 +1608,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 90.91,
-            "basis": "4.64\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 100.0,
+            "basis": "4.70\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -1475,10 +1626,10 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.636364,
-        "new_reviews": 11,
+        "week_avg_rating": 4.7,
+        "new_reviews": 13,
         "star_breakdown": {
-          "5": 8,
+          "5": 10,
           "4": 2,
           "3": 1,
           "2": 0,
@@ -1494,9 +1645,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "Roof tiles needing replaced.",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          },
+          {
+            "task": "Cracked wall tiles need replacing.",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1512,7 +1678,7 @@
         "partial": false,
         "sales": 4885.83,
         "orders": 135,
-        "orders_estimated": true,
+        "orders_estimated": false,
         "aov": 36.19,
         "new_customers": 41,
         "rating": 4.0,
@@ -1530,7 +1696,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -1690,11 +1856,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.583333,
-        "new_reviews": 12,
+        "week_avg_rating": 4.583333333,
+        "new_reviews": 24,
         "star_breakdown": {
-          "5": 7,
-          "4": 5,
+          "5": 14,
+          "4": 10,
           "3": 0,
           "2": 0,
           "1": 0
@@ -1709,9 +1875,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "Paint needing touched up in all Scotland/Newcastle sites",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris/Rafal",
+            "status": "open"
+          },
+          {
+            "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Kris",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -1745,7 +1926,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.5
       },
       "gaps": [],
@@ -1815,7 +1996,7 @@
           "actual": 921.1
         },
         "waste": {
-          "actual": 69.76
+          "actual": 112.18
         }
       },
       "stock_take": {
@@ -1884,7 +2065,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.916667,
+        "week_avg_rating": 4.916666667,
         "new_reviews": 12,
         "star_breakdown": {
           "5": 11,
@@ -1920,8 +2101,8 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 6009.79,
-        "orders": 179,
-        "aov": 33.57,
+        "orders": 165,
+        "aov": 36.42,
         "new_customers": 55,
         "rating": 4.59,
         "open_hours_pct": 98.9,
@@ -1938,7 +2119,7 @@
         },
         "gmv_vs_4wk_pct": 4.6,
         "gmv_vs_ly_pct": -0.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-27 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
@@ -2015,7 +2196,7 @@
           "actual": 432.38
         },
         "waste": {
-          "actual": 0.0
+          "actual": 14.58
         }
       },
       "stock_take": {
@@ -2067,7 +2248,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.86\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -2087,11 +2268,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.857143,
-        "new_reviews": 7,
+        "week_avg_rating": 5.0,
+        "new_reviews": 16,
         "star_breakdown": {
-          "5": 6,
-          "4": 1,
+          "5": 12,
+          "4": 4,
           "3": 0,
           "2": 0,
           "1": 0
@@ -2106,9 +2287,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "Wifi Consistency",
+            "priority": "\u2014",
+            "logged_week": "Pending",
+            "owner": "Chris",
+            "status": "open"
+          },
+          {
+            "task": "Front Door (Left) Stopper smashed",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "\u2014",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -2141,7 +2337,8 @@
         },
         "gmv_vs_4wk_pct": -27.3,
         "gmv_vs_ly_pct": -38.7,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -2280,11 +2477,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.916667,
-        "new_reviews": 12,
+        "week_avg_rating": 4.923076923,
+        "new_reviews": 26,
         "star_breakdown": {
-          "5": 11,
-          "4": 1,
+          "5": 24,
+          "4": 2,
           "3": 0,
           "2": 0,
           "1": 0
@@ -2299,9 +2496,24 @@
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "Wifi are slow in some areas",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "Chris/Amy",
+            "status": "open"
+          },
+          {
+            "task": "Griddle where we cook gyoza steak and pork is broken",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "\u2014",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
         "source": "GM KPI meeting notes \u2014 email pull not built.",
@@ -2317,7 +2529,7 @@
         "partial": false,
         "sales": 2642.97,
         "orders": 74,
-        "orders_estimated": true,
+        "orders_estimated": false,
         "aov": 35.72,
         "new_customers": 25,
         "rating": 4.67,
@@ -2335,7 +2547,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -2467,7 +2679,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.80\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -2484,7 +2696,7 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 5.0,
+        "week_avg_rating": 4.8,
         "new_reviews": 1,
         "star_breakdown": {
           "5": 1,
@@ -2519,9 +2731,9 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": 812.26,
-        "orders": null,
-        "aov": null,
+        "sales": 794.35,
+        "orders": 26,
+        "aov": 30.55,
         "new_customers": null,
         "rating": 5.0,
         "open_hours_pct": 99.9,
@@ -2538,13 +2750,11 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
-        "sales_estimated": true,
+        "source": "Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.1
       },
-      "gaps": [
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Back-of-house rota gaps affecting cover for the sushi master class.",
@@ -2629,7 +2839,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 98,
+        "score": 97,
         "rag": "green",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -2663,8 +2873,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 95.24,
-            "basis": "4.67\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 87.3,
+            "basis": "4.61\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -2683,11 +2893,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.666667,
-        "new_reviews": 15,
+        "week_avg_rating": 4.611111111,
+        "new_reviews": 18,
         "star_breakdown": {
-          "5": 13,
-          "4": 1,
+          "5": 14,
+          "4": 3,
           "3": 0,
           "2": 0,
           "1": 1
@@ -2728,7 +2938,7 @@
         "partial": false,
         "sales": 2997.97,
         "orders": 91,
-        "orders_estimated": true,
+        "orders_estimated": false,
         "aov": 32.94,
         "new_customers": 39,
         "rating": 4.42,
@@ -2746,7 +2956,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.7
       },
       "gaps": [],
@@ -2874,7 +3084,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.90\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.87\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -2891,11 +3101,11 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.897436,
-        "new_reviews": 39,
+        "week_avg_rating": 4.872340426,
+        "new_reviews": 47,
         "star_breakdown": {
-          "5": 36,
-          "4": 2,
+          "5": 42,
+          "4": 4,
           "3": 1,
           "2": 0,
           "1": 0
@@ -2934,9 +3144,9 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": 1115.13,
-        "orders": null,
-        "aov": null,
+        "sales": 1136.23,
+        "orders": 37,
+        "aov": 30.71,
         "new_customers": null,
         "rating": 4.5,
         "open_hours_pct": 99.8,
@@ -2953,13 +3163,11 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
-        "sales_estimated": true,
+        "source": "Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Weekly target hit, with covers up and many returning customers noticed.",
@@ -3057,7 +3265,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 69,
+        "score": 78,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3091,8 +3299,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 7.14,
-            "basis": "4.05\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 100.0,
+            "basis": "4.71\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -3109,14 +3317,14 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.05,
-        "new_reviews": 20,
+        "week_avg_rating": 4.714285714,
+        "new_reviews": 7,
         "star_breakdown": {
-          "5": 15,
-          "4": 0,
+          "5": 5,
+          "4": 2,
           "3": 0,
-          "2": 1,
-          "1": 4
+          "2": 0,
+          "1": 0
         },
         "negatives": 5,
         "negative_reviews": [
@@ -3182,7 +3390,7 @@
         "partial": false,
         "sales": 1484.84,
         "orders": 40,
-        "orders_estimated": true,
+        "orders_estimated": false,
         "aov": 37.12,
         "new_customers": 29,
         "rating": 4.0,
@@ -3200,7 +3408,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 8.5
       },
       "gaps": [],
@@ -3342,7 +3550,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.82\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -3363,17 +3571,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.914286,
-        "new_reviews": 35,
+        "week_avg_rating": 4.822222222,
+        "new_reviews": 45,
         "star_breakdown": {
-          "5": 32,
-          "4": 3,
+          "5": 40,
+          "4": 4,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Angelina c",
+            "text": "This is one of the worst foods I had in London. The karaage chicken did not have a crispy skin as a karaage chicken should but instead tasted like chicken nuggets from McDonald\u2019s and it was way too salty.\n\nThe ramen had not depth of flavour but salt. The charsiu was inedible due to toughness (seen in picture) caused by either poor reheating or cooking. Could not eat much because of the salt. Not worth your stomach space for this awful establishment. Even bone daddies is better and I think they\u2019re toeing the line of acceptabliy.\n\nDo not try your tastebuds here, they will die.",
+            "date": "2026-08-02",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -3398,9 +3614,9 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": 330.58,
-        "orders": null,
-        "aov": null,
+        "sales": 396.38,
+        "orders": 15,
+        "aov": 26.43,
         "new_customers": null,
         "rating": 1.0,
         "open_hours_pct": 100.0,
@@ -3417,13 +3633,11 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
-        "sales_estimated": true,
+        "source": "Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Deliveroo tablet downtime caused lost sales \u2014 the device was not being kept charged; a new charging setup is now in place.",
@@ -3551,7 +3765,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.96\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -3570,17 +3784,32 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.964706,
-        "new_reviews": 85,
+        "week_avg_rating": 4.905263158,
+        "new_reviews": 95,
         "star_breakdown": {
-          "5": 82,
+          "5": 90,
           "4": 3,
-          "3": 0,
+          "3": 1,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Daniel Redknap-Neely",
+            "text": "My wife and I visited your location at West Quay tonight for her birthday. Overall we had a good night and enjoyed the food. But there were a couple small things I wanted to mention. On the website it says the restaurant is open until 10pm Monday to Sunday. But we arrived just before 7:30 and were told the kitchen was closing in three minutes and we had to make an order before sitting down if we wanted to eat. This would be fine if it was mentioned on the website as we had driven 40mins to get there and almost missed out.\n\nSecondly, we were offered free mochi or a glass of Prosecco for my wife\u2019s birthday (and maybe partially to apologise for the rushed ordering process) but when we got home and checked the bill (the restaurant was closing at 8pm as we left so we didn\u2019t get to check properly there) that were were in fact charged for the (free) mochi.",
+            "date": "2026-08-02",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Phyllis",
+            "text": "The food was great but unfortunately the overall experience was disappointing.\n\nWe ordered the lunch deal yet we were still overcharged. When checking the bill we were told that the drinks we chose were \u201cpremium drinks\u201d with a \u00a32 surcharge each and therefore not included in the lunch deal. Even though the staff member who served us had clearly confirmed that those drinks were not listed as premium on the lunch deal menu.\n\nAs we were in a rush to leave she offered to remove the service charge, but somehow we still ended up paying the extra drink charges anyway (not sure what\u2019s happened here..)\n\nOn top of that, we tried to order the chicken karaage and the bone broth ramen but were told that neither was available\u2026 which was surprising for a ramen restaurant.\n\nAlso, when we asked for takeaway containers we were given paper bowls and told that the soup would likely spill if we used them..?",
+            "date": "2026-07-29",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -3604,10 +3833,10 @@
         "store": null,
         "week_ending": "2026-08-02",
         "resolution": "weekly",
-        "partial": true,
-        "sales": null,
-        "orders": null,
-        "aov": null,
+        "partial": false,
+        "sales": 1135.77,
+        "orders": 32,
+        "aov": 35.49,
         "new_customers": null,
         "rating": null,
         "open_hours_pct": 100.0,
@@ -3624,7 +3853,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "HAND-KEYED ops from the Deliveroo RAG sheet (1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI, tab 27072026) \u2014 NOT from any Deliveroo export; unverified against Deliveroo. See data_weekly_deliveroo/manual_ops_2026-07-27.csv for provenance.",
+        "source": "Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV] | HAND-KEYED ops from the Deliveroo RAG sheet (1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI, tab 27072026) \u2014 NOT from any Deliveroo export; unverified against Deliveroo. See data_weekly_deliveroo/manual_ops_2026-07-27.csv for provenance.",
+        "orders_estimated": false,
         "busy_mode_pct": null,
         "ops_hand_keyed": true
       },
@@ -3746,7 +3976,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 46,
+        "score": 41,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -3775,8 +4005,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 71.43,
-            "basis": "4.50\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 19.05,
+            "basis": "4.13\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -3798,22 +4028,36 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.5,
-        "new_reviews": 10,
+        "week_avg_rating": 4.133333333,
+        "new_reviews": 15,
         "star_breakdown": {
-          "5": 8,
-          "4": 1,
+          "5": 10,
+          "4": 2,
           "3": 0,
-          "2": 0,
-          "1": 1
+          "2": 1,
+          "1": 2
         },
-        "negatives": 1,
+        "negatives": 3,
         "negative_reviews": [
           {
             "stars": 1,
             "author": "jamaisvus2",
             "text": "What a terrible place lol. Service was bad and it\u2019s so so so overpriced and food was just mid.",
             "date": "2026-08-02",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Rosana Anunciacao",
+            "text": "I genuinely don't understand how this restaurant has such a high rating.\n\nWe walked past it a few days earlier and decided to give it a try because it had great reviews and looked like a really nice place. Unfortunately, it turned out to be a huge disappointment.\n\nThe service was embarrassingly poor and completely below the standard the restaurant claims to offer. The place itself looked dirty and gave the impression of very poor hygiene.\n\nThe most shocking part was the sushi. It was absolutely awful\u2014worse than cheap supermarket sushi. It certainly didn't taste fresh and definitely didn't seem like it had been made that day. The only decent thing we had was the fried chicken, which was actually quite good. Sadly, that wasn't enough to make up for the rest of the experience.\n\nAfter leaving my review, I did a quick Google search and discovered that the restaurant only opened on 10 April 2026. What I found even more surprising was that it already had over 400 reviews, the vast majority of them positive. Given the quality of our experience, I genuinely struggle to understand how that is possible. While I can't say why this is the case, the numbers simply don't seem to add up from my perspective.\n\nOverall, it was a complete disappointment from beginning to end, and I certainly wouldn't recommend it.",
+            "date": "2026-07-31",
+            "url": null
+          },
+          {
+            "stars": 2,
+            "author": "David Mikaelson",
+            "text": "Food was ok but seaweed in the hand roll is chewy. Good quality fish like many other high end places in London but service could be improved a lot.\n\nThe waitress got our order wrong, service was very slow and it was difficult to get the attention from the waitresses. All the items I ordered came first while my partner had to wait more than 20 mins later to get any handrolls. We went for early dinner and the place was not even half full. The toilet is not clean and they use fake aesop (refill with a different hand wash).\n\nOverall quite a disappointing experience and would not come back. For this price point, you\u2019re better off going to Nobu, Chotto Matte, Sushi Samba, Sushinoen, Kokin, etc.",
+            "date": "2026-07-27",
             "url": null
           }
         ],

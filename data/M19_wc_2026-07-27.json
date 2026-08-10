@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-05",
+  "generated_at": "2026-08-10",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.82\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -123,17 +123,25 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.914286,
-        "new_reviews": 35,
+        "week_avg_rating": 4.822222222,
+        "new_reviews": 45,
         "star_breakdown": {
-          "5": 32,
-          "4": 3,
+          "5": 40,
+          "4": 4,
           "3": 0,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 1,
+        "negative_reviews": [
+          {
+            "stars": 1,
+            "author": "Angelina c",
+            "text": "This is one of the worst foods I had in London. The karaage chicken did not have a crispy skin as a karaage chicken should but instead tasted like chicken nuggets from McDonald\u2019s and it was way too salty.\n\nThe ramen had not depth of flavour but salt. The charsiu was inedible due to toughness (seen in picture) caused by either poor reheating or cooking. Could not eat much because of the salt. Not worth your stomach space for this awful establishment. Even bone daddies is better and I think they\u2019re toeing the line of acceptabliy.\n\nDo not try your tastebuds here, they will die.",
+            "date": "2026-08-02",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -158,9 +166,9 @@
         "week_ending": "2026-08-02",
         "resolution": "weekly",
         "partial": false,
-        "sales": 330.58,
-        "orders": null,
-        "aov": null,
+        "sales": 396.38,
+        "orders": 15,
+        "aov": 26.43,
         "new_customers": null,
         "rating": 1.0,
         "open_hours_pct": 100.0,
@@ -177,13 +185,11 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
-        "sales_estimated": true,
+        "source": "Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
-      "gaps": [
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ],
+      "gaps": [],
       "notes": {
         "issues": [
           "Deliveroo tablet downtime caused lost sales \u2014 the device was not being kept charged; a new charging setup is now in place.",

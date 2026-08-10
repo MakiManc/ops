@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-05",
-  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
+  "generated_at": "2026-08-10",
+  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-07-27 – 2026-08-02",
+    "label": "Week of 2026-07-27 \u2013 2026-08-02",
     "commencing": "2026-07-27",
     "ending": "2026-08-02"
   },
@@ -50,18 +50,18 @@
           "actual": 432.38
         },
         "waste": {
-          "actual": 0.0
+          "actual": 14.58
         }
       },
       "stock_take": {
         "drinks": {
           "variance_pct": -2.0,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.5,
-          "target": "±5%",
+          "target": "\u00b15%",
           "within_band": true
         },
         "week_commencing": "2026-07-27"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 86,
         "rag": "amber",
-        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
+        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 83.89,
-            "basis": "70% (100-17.66) + 30% (£gap -6240 vs ±£50k cal)"
+            "basis": "70% (100-17.66) + 30% (\u00a3gap -6240 vs \u00b1\u00a350k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.15,
-            "basis": "£22.03 vs £22 tgt — level 100, WoW -2.95% → mom 20"
+            "basis": "\u00a322.03 vs \u00a322 tgt \u2014 level 100, WoW -2.95% \u2192 mom 20"
           },
           "food": {
             "weight": 30,
@@ -102,16 +102,16 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.86★ vs 4.7★ OKR (0 at 4.0★)"
+            "basis": "5.00\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.50% inside ±5% band"
+            "basis": "2.50% inside \u00b15% band"
           }
         },
         "components_dropped": [],
-        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
@@ -119,14 +119,14 @@
           "sales -17.7% vs target",
           "food 26.1%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.857143,
-        "new_reviews": 7,
+        "week_avg_rating": 5.0,
+        "new_reviews": 16,
         "star_breakdown": {
-          "5": 6,
-          "4": 1,
+          "5": 12,
+          "4": 4,
           "3": 0,
           "2": 0,
           "1": 0
@@ -136,17 +136,32 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source — left open.",
+        "response_rate_note": "No automated source \u2014 left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
         "source": "automation/data/maintenance_2026-07-27.json (AGMM Task List Status). Open items only.",
-        "outstanding_count": 0,
-        "tasks": [],
-        "note": "0 outstanding"
+        "outstanding_count": 2,
+        "tasks": [
+          {
+            "task": "Wifi Consistency",
+            "priority": "\u2014",
+            "logged_week": "Pending",
+            "owner": "Chris",
+            "status": "open"
+          },
+          {
+            "task": "Front Door (Left) Stopper smashed",
+            "priority": "\u2014",
+            "logged_week": "Ongoing",
+            "owner": "\u2014",
+            "status": "open"
+          }
+        ],
+        "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes — email pull not built.",
+        "source": "GM KPI meeting notes \u2014 email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -176,7 +191,8 @@
         },
         "gmv_vs_4wk_pct": -27.3,
         "gmv_vs_ly_pct": -38.7,
-        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": [],
@@ -190,12 +206,12 @@
           "Region-wide (North England & Midlands): Extraction and cooker repairs outstanding across the region."
         ],
         "actions": [
-          "Write to HR to confirm the site transfer and holiday status for the team member concerned — Owner: Amy Tang (04/08/2026)",
-          "Correct the Saturday target in the rota guidance from next week so labour projections are accurate — Owner: Amy Tang (11/08/2026)",
-          "Confirm to the DAM once the corrected rota guidance is uploaded — Owner: Amy Tang (11/08/2026)",
-          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs — Owner: Amy Tang (04/08/2026)",
-          "Region-wide (North England & Midlands): Adopt the new cleaning standard — weekly beer-line and glass renovation cleaning plus a deep clean twice a month — Owner: Amy Tang (04/08/2026)"
+          "Write to HR to confirm the site transfer and holiday status for the team member concerned \u2014 Owner: Amy Tang (04/08/2026)",
+          "Correct the Saturday target in the rota guidance from next week so labour projections are accurate \u2014 Owner: Amy Tang (11/08/2026)",
+          "Confirm to the DAM once the corrected rota guidance is uploaded \u2014 Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North England & Midlands): Confirm with the COO whether budget is available for staff awards \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Schedule the outstanding extraction and cooker repairs \u2014 Owner: Amy Tang (04/08/2026)",
+          "Region-wide (North England & Midlands): Adopt the new cleaning standard \u2014 weekly beer-line and glass renovation cleaning plus a deep clean twice a month \u2014 Owner: Amy Tang (04/08/2026)"
         ],
         "carryover": [],
         "empty": false,

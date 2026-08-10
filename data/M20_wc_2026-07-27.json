@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-05",
+  "generated_at": "2026-08-10",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -102,7 +102,7 @@
           "weekly_star": {
             "weight": 10,
             "value": 100.0,
-            "basis": "4.96\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "basis": "4.91\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -121,17 +121,32 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.964706,
-        "new_reviews": 85,
+        "week_avg_rating": 4.905263158,
+        "new_reviews": 95,
         "star_breakdown": {
-          "5": 82,
+          "5": 90,
           "4": 3,
-          "3": 0,
+          "3": 1,
           "2": 0,
-          "1": 0
+          "1": 1
         },
-        "negatives": null,
-        "negative_reviews": [],
+        "negatives": 2,
+        "negative_reviews": [
+          {
+            "stars": 3,
+            "author": "Daniel Redknap-Neely",
+            "text": "My wife and I visited your location at West Quay tonight for her birthday. Overall we had a good night and enjoyed the food. But there were a couple small things I wanted to mention. On the website it says the restaurant is open until 10pm Monday to Sunday. But we arrived just before 7:30 and were told the kitchen was closing in three minutes and we had to make an order before sitting down if we wanted to eat. This would be fine if it was mentioned on the website as we had driven 40mins to get there and almost missed out.\n\nSecondly, we were offered free mochi or a glass of Prosecco for my wife\u2019s birthday (and maybe partially to apologise for the rushed ordering process) but when we got home and checked the bill (the restaurant was closing at 8pm as we left so we didn\u2019t get to check properly there) that were were in fact charged for the (free) mochi.",
+            "date": "2026-08-02",
+            "url": null
+          },
+          {
+            "stars": 1,
+            "author": "Phyllis",
+            "text": "The food was great but unfortunately the overall experience was disappointing.\n\nWe ordered the lunch deal yet we were still overcharged. When checking the bill we were told that the drinks we chose were \u201cpremium drinks\u201d with a \u00a32 surcharge each and therefore not included in the lunch deal. Even though the staff member who served us had clearly confirmed that those drinks were not listed as premium on the lunch deal menu.\n\nAs we were in a rush to leave she offered to remove the service charge, but somehow we still ended up paying the extra drink charges anyway (not sure what\u2019s happened here..)\n\nOn top of that, we tried to order the chicken karaage and the bone broth ramen but were told that neither was available\u2026 which was surprising for a ramen restaurant.\n\nAlso, when we asked for takeaway containers we were given paper bowls and told that the soup would likely spill if we used them..?",
+            "date": "2026-07-29",
+            "url": null
+          }
+        ],
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
@@ -155,10 +170,10 @@
         "store": null,
         "week_ending": "2026-08-02",
         "resolution": "weekly",
-        "partial": true,
-        "sales": null,
-        "orders": null,
-        "aov": null,
+        "partial": false,
+        "sales": 1135.77,
+        "orders": 32,
+        "aov": 35.49,
         "new_customers": null,
         "rating": null,
         "open_hours_pct": 100.0,
@@ -175,7 +190,8 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "HAND-KEYED ops from the Deliveroo RAG sheet (1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI, tab 27072026) \u2014 NOT from any Deliveroo export; unverified against Deliveroo. See data_weekly_deliveroo/manual_ops_2026-07-27.csv for provenance.",
+        "source": "Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. [sales/orders/AOV] | HAND-KEYED ops from the Deliveroo RAG sheet (1RCucNd33ixEvEdlu3dn7P6F1iCDd6KpwbzX0_R0WqWI, tab 27072026) \u2014 NOT from any Deliveroo export; unverified against Deliveroo. See data_weekly_deliveroo/manual_ops_2026-07-27.csv for provenance.",
+        "orders_estimated": false,
         "busy_mode_pct": null,
         "ops_hand_keyed": true
       },

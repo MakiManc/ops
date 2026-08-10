@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-05",
+  "generated_at": "2026-08-10",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-27 \u2013 2026-08-02",
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-27"
       },
       "efficiency_score": {
-        "score": 69,
+        "score": 78,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -101,8 +101,8 @@
           },
           "weekly_star": {
             "weight": 10,
-            "value": 7.14,
-            "basis": "4.05\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
+            "value": 100.0,
+            "basis": "4.71\u2605 vs 4.7\u2605 OKR (0 at 4.0\u2605)"
           },
           "food_var": {
             "weight": 5,
@@ -119,14 +119,14 @@
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
-        "week_avg_rating": 4.05,
-        "new_reviews": 20,
+        "week_avg_rating": 4.714285714,
+        "new_reviews": 7,
         "star_breakdown": {
-          "5": 15,
-          "4": 0,
+          "5": 5,
+          "4": 2,
           "3": 0,
-          "2": 1,
-          "1": 4
+          "2": 0,
+          "1": 0
         },
         "negatives": 5,
         "negative_reviews": [
@@ -192,7 +192,7 @@
         "partial": false,
         "sales": 1484.84,
         "orders": 40,
-        "orders_estimated": true,
+        "orders_estimated": false,
         "aov": 37.12,
         "new_customers": 29,
         "rating": 4.0,
@@ -210,7 +210,7 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. | Deliveroo weekly Tax Invoice PDF (Drive, Invoicing/<entity>/Uploads/Deliveroo, Deliveroo_2026-08-03_*.pdf = period END; w/c = END-7d) \u2014 'Deliveroo Commission' Total row: Total Order Value = GMV, Quantity = orders. Read 2026-08-10. | new_customers from Weekly Dash PDF (pipe 6), drop 2026-08-03. [sales/orders/AOV] + ops from Weekly Summary sheet",
         "busy_mode_pct": 8.5
       },
       "gaps": [],
