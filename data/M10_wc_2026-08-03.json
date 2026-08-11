@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-08-11",
-  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-08-03 \u2013 2026-08-09",
+    "label": "Week of 2026-08-03 – 2026-08-09",
     "commencing": "2026-08-03",
     "ending": "2026-08-09"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 12.4,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": false
         },
         "week_commencing": "2026-08-03"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 84,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 78.32,
-            "basis": "70% (100-23.77) + 30% (\u00a3gap -8401 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-23.77) + 30% (£gap -8401 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 99.04,
-            "basis": "\u00a323.06 vs \u00a322 tgt \u2014 level 100, WoW +4.68% \u2192 mom 97"
+            "basis": "£23.06 vs £22 tgt — level 100, WoW +4.68% → mom 97"
           },
           "food": {
             "weight": 30,
@@ -102,13 +102,13 @@
           "food_var": {
             "weight": 5,
             "value": 40.8,
-            "basis": "12.40% outside \u00b15% band"
+            "basis": "12.40% outside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -116,7 +116,7 @@
           "sales -23.8% vs target",
           "food 26.0%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -127,7 +127,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -136,23 +136,23 @@
         "tasks": [
           {
             "task": "Wifi Consistency",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Front Door (Left) Stopper smashed",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -182,12 +182,35 @@
         },
         "gmv_vs_4wk_pct": -7.4,
         "gmv_vs_ly_pct": -11.9,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Weekly sales down ~23% — described as the lowest week on record, with a very quiet Sunday.",
+          "New competitor restaurants across the road discounting aggressively (40-50% off) with long queues, pulling covers away.",
+          "Labour and food costs above budget; high prep times persist.",
+          "Incorrect broth quantities received and inconsistent recipe execution (sauce and ingredient amounts) hurting food cost.",
+          "Staff member Ammon relocating to London over insufficient hours; front-of-house trials underway to cover the end of August."
+        ],
+        "actions": [
+          "Send the list of local competitor restaurants and their active discount offers — Owner: Amy Tang (11/08/2026)",
+          "Discuss the food cost and stock inventory discrepancies with Rob at the upcoming head chef meeting — Owner: Amy Tang (11/08/2026)",
+          "Work with Arthur to identify who is not following recipes and retrain them — Owner: Amy Tang (11/08/2026)",
+          "GM to work the floor over the weekend — extending to Sunday if the crowd stays low — to boost sales — Owner: Amy Tang (15/08/2026)",
+          "Launch the B2B strategy on student accommodation and nearby workspaces, including free tasting events; recruit from other Japanese restaurants to minimise training — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     }
   }
 }

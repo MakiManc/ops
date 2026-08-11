@@ -1,9 +1,9 @@
 {
   "schema_version": "1.2",
   "generated_at": "2026-08-11",
-  "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
+  "source": "build_site_json.py — per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
-    "label": "Week of 2026-08-03 \u2013 2026-08-09",
+    "label": "Week of 2026-08-03 – 2026-08-09",
     "commencing": "2026-08-03",
     "ending": "2026-08-09"
   },
@@ -56,12 +56,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.3,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -69,7 +69,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -82,12 +82,12 @@
           "sales": {
             "weight": 10,
             "value": 95.66,
-            "basis": "70% (100-4.53) + 30% (\u00a3gap -1950 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-4.53) + 30% (£gap -1950 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 92.44,
-            "basis": "\u00a322.75 vs \u00a322 tgt \u2014 level 100, WoW +2.48% \u2192 mom 75"
+            "basis": "£22.75 vs £22 tgt — level 100, WoW +2.48% → mom 75"
           },
           "food": {
             "weight": 30,
@@ -102,18 +102,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.30% inside \u00b15% band"
+            "basis": "3.30% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -124,7 +124,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -134,7 +134,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -164,14 +164,34 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "source": "ESTIMATE — internal Auto Cash Up Delivery (£) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
         "sales_estimated": true,
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ]
+        "Reviews — no week rating in source",
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) — no Deliveroo source for this site this week"
+      ],
+      "notes": {
+        "issues": [
+          "Sales declined — ongoing tram route construction making access difficult for the student demographic.",
+          "Persistent pest control issues, with holes near the fuse box area needing urgent repair.",
+          "Delivery performance good (no late prep orders) and labour managed by trimming quiet weekend shifts."
+        ],
+        "actions": [
+          "Photograph the maintenance holes near the fuse box, post to the group chat and submit an urgent maintenance request — Owner: Amy Tang (11/08/2026)",
+          "Handle the food festival onboarding and coordinate with Sophie on the menu and equipment needs — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [
+          "Pest control issues persisting despite ongoing treatment — deep clean and repairs to close entry points — Owner: Amy Tang (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     }
   }
 }

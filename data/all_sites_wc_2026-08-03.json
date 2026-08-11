@@ -2,7 +2,7 @@
   "schema_version": "1.2",
   "generated_at": "2026-08-11",
   "week": {
-    "label": "Week of 2026-08-03 \u2013 2026-08-09",
+    "label": "Week of 2026-08-03 – 2026-08-09",
     "commencing": "2026-08-03",
     "ending": "2026-08-09"
   },
@@ -55,12 +55,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 1.6,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -68,7 +68,7 @@
       "efficiency_score": {
         "score": 93,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -81,12 +81,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+2.53) + 30% (\u00a3gap +888 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+2.53) + 30% (£gap +888 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 55.73,
-            "basis": "\u00a320.09 vs \u00a322 tgt \u2014 level 68, WoW -2.33% \u2192 mom 27"
+            "basis": "£20.09 vs £22 tgt — level 68, WoW -2.33% → mom 27"
           },
           "food": {
             "weight": 30,
@@ -101,18 +101,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "1.60% inside \u00b15% band"
+            "basis": "1.60% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -123,7 +123,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -132,7 +132,7 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
@@ -141,7 +141,7 @@
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -171,12 +171,37 @@
         },
         "gmv_vs_4wk_pct": 10.3,
         "gmv_vs_ly_pct": -8.9,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Covers almost doubled week on week as the Fringe began, but still slightly down year on year after the festival's one-week-later start.",
+          "Drinks sales rose but missed target; sushi and sides sales lower, partly attributed to waste issues.",
+          "Delivery targets missed — persistent street Wi-Fi connectivity problems caused order rejections.",
+          "Staff not checking delivery tickets properly, driving missing-item complaints even though extras (rice, noodles, eggs) are packed in separate containers.",
+          "Tantan Ramen removed from Deliveroo over minced pork supply issues; Derek escalated to the ECS team.",
+          "Ice machine broke on Saturday — repaired in-house by Derek, needs a proper inspection to stop recurrence."
+        ],
+        "actions": [
+          "Text Chris directly to schedule a follow-up maintenance visit on the ice machine, and submit the maintenance request — Owner: Derrick Cheung (11/08/2026)",
+          "Log the ongoing internet issues and raise them with Line Us for a permanent resolution — Owner: Derrick Cheung (11/08/2026)",
+          "Re-brief the team on checking delivery tickets before hand-off to stop missing-item complaints — Owner: Derrick Cheung (11/08/2026)",
+          "Prepare for Irene's return to the team — Owner: Derrick Cheung (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Monthly GM / Head Chef meetings implemented from September — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Labour budget constraints relaxed for the duration of the Fringe to protect staff wellbeing and coverage — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Source chairs and tablet cases from spare internal inventory at other branches rather than buying new — Owner: Óisín Darragh (11/08/2026)"
+        ],
+        "carryover": [
+          "Recurring street connectivity problems still disrupting delivery orders — engineer attended in previous weeks; permanent fix now being pursued through Line Us — Owner: Derrick Cheung (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M3": {
       "code": "M3",
@@ -226,12 +251,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.6,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -239,7 +264,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -252,12 +277,12 @@
           "sales": {
             "weight": 10,
             "value": 92.38,
-            "basis": "70% (100-7.74) + 30% (\u00a3gap -3678 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-7.74) + 30% (£gap -3678 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 93.04,
-            "basis": "\u00a323.38 vs \u00a322 tgt \u2014 level 100, WoW +2.68% \u2192 mom 77"
+            "basis": "£23.38 vs £22 tgt — level 100, WoW +2.68% → mom 77"
           },
           "food": {
             "weight": 30,
@@ -272,18 +297,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.50% inside \u00b15% band"
+            "basis": "3.50% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -294,7 +319,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -303,21 +328,21 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
           },
           {
             "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           },
           {
             "task": "WiFi still inconsistent",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
@@ -326,7 +351,7 @@
         "note": "3 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -356,12 +381,37 @@
         },
         "gmv_vs_4wk_pct": 9.7,
         "gmv_vs_ly_pct": -14.1,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Only Scotland & Newcastle site to miss last week's green-light sales target (short by ~6.5-7%), noted at the regional round-up.",
+          "Delivery performance poor early in the week on connectivity and ticket-printing faults, since resolved; best spend per head since March (+66p) on the sit-in side.",
+          "High volume of delivery inaccuracies — roughly 45% disputed so far; prep times being worked down.",
+          "Two leavers: Sam finished to return to Hong Kong, Rachel leaves on the 19th — one front-of-house recruit needed by the end of August.",
+          "EHO re-inspection pending: old rusty fridge shelves being replaced with stainless steel to satisfy requirements.",
+          "Ventilation work completed Thursday; certificates still awaited."
+        ],
+        "actions": [
+          "Contact the Environmental Health Officer to organise the return inspection once the new shelving arrives — Owner: Rory Ferguson (11/08/2026)",
+          "Message Ben about transporting the three spare chairs (plus iPad case) over to St James — Owner: Rory Ferguson (11/08/2026)",
+          "Keep disputing delivery inaccuracy claims and continue reducing delivery preparation times — Owner: Rory Ferguson (11/08/2026)",
+          "Recruit one front-of-house team member before the end of August — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Monthly GM / Head Chef meetings implemented from September — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Labour budget constraints relaxed for the duration of the Fringe to protect staff wellbeing and coverage — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Source chairs and tablet cases from spare internal inventory at other branches rather than buying new — Owner: Óisín Darragh (11/08/2026)"
+        ],
+        "carryover": [
+          "Ventilation certificates outstanding after Thursday's completed works — chase until received — Owner: Rory Ferguson (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M6": {
       "code": "M6",
@@ -411,12 +461,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 1.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -424,7 +474,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -437,12 +487,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+4.23) + 30% (\u00a3gap +1052 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+4.23) + 30% (£gap +1052 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 74.59,
-            "basis": "\u00a323.39 vs \u00a322 tgt \u2014 level 100, WoW -3.47% \u2192 mom 15"
+            "basis": "£23.39 vs £22 tgt — level 100, WoW -3.47% → mom 15"
           },
           "food": {
             "weight": 30,
@@ -457,18 +507,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "1.20% inside \u00b15% band"
+            "basis": "1.20% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -479,7 +529,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -488,7 +538,7 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
@@ -497,7 +547,7 @@
         "note": "1 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -527,12 +577,32 @@
         },
         "gmv_vs_4wk_pct": 4.2,
         "gmv_vs_ly_pct": -15.4,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Delivery orders quiet since the buy-one-get-one-free promotion ended — a domino effect Ka Ho noted across multiple sites.",
+          "£25.89 refund claim on order 8789 alleging a missing steak — order was prepared, checked and photographed by three people; being challenged as unjustified.",
+          "Labour mapping at 94%, below the 95% minimum standard (a miss shared with M8 and M13 this week).",
+          "Covers down 8.41% versus 2025 even though sales beat target by ~£800 and spend per head rose ~7%.",
+          "Line supplier's late-delivery issue appears resolved, but the root cause was never confirmed back to the site."
+        ],
+        "actions": [
+          "Challenge the order 8789 refund on the platform with the order photos as evidence — Owner: Justyna Polak (11/08/2026)",
+          "Ensure staff check the 95% labour-mapping standard whenever the manager is off-site — Owner: Justyna Polak (11/08/2026)",
+          "Attend the Freshers planning meeting with Becca on managing September's 50% student discount volumes — Owner: Justyna Polak (12/08/2026)",
+          "Support Braehead franchise onboarding by hosting staff shadowing at the site, with advance notice — Owner: Justyna Polak (11/08/2026)",
+          "Record franchise cover-staff hours in Kobas; Akila to arrange the one-off payment through Hanna and Junna — Owner: Ka Ho (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1MmwYTDji8poXjiC6Oeh9_ApRpF1j_rYXJAe_9bGkF8Q",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M7": {
       "code": "M7",
@@ -582,12 +652,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 1.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -595,7 +665,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -608,12 +678,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+9.25) + 30% (\u00a3gap +6704 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+9.25) + 30% (£gap +6704 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 78.14,
-            "basis": "\u00a321.52 vs \u00a322 tgt \u2014 level 92, WoW -0.42% \u2192 mom 46"
+            "basis": "£21.52 vs £22 tgt — level 92, WoW -0.42% → mom 46"
           },
           "food": {
             "weight": 30,
@@ -628,18 +698,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.00% inside \u00b15% band"
+            "basis": "3.00% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -650,7 +720,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -659,28 +729,28 @@
         "tasks": [
           {
             "task": "ticket machine has connection issue, ticket time to time delay",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Booth Seats needing reupholstered",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Lincoln/Ross",
             "status": "open"
           },
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
           },
           {
             "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -689,7 +759,7 @@
         "note": "4 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -697,8 +767,32 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Covers up 16.4% but spend per head below the £22 minimum target — sides upselling weak, weekly sales target missed despite solid trade.",
+          "Inconsistent back-of-house order call-outs causing service problems; raised with the team before and recurring.",
+          "Interior seating relying on scruffy outside chairs — five new chairs needed and a new T3 table planned to lift capacity.",
+          "Chopsticks order delayed by a delivery-note error.",
+          "Staffing churn ahead: Danny potentially leaving in September; new starters Bethan and Claudia need front-of-house training; Winner to be trained on the Donburi section."
+        ],
+        "actions": [
+          "Hold a team chat on upselling sides to hit next week's target — Owner: Calum Heriot (11/08/2026)",
+          "Speak to the back-of-house team again about consistent order call-outs — Owner: Calum Heriot (11/08/2026)",
+          "Train Claudia (and Bethan) on the scripted steps of service to lift customer reviews — Owner: Calum Heriot (11/08/2026)",
+          "Order five new interior chairs; take the three spares plus an iPad case from Fountainbridge in the interim (Benny delivering this week) — Owner: Calum Heriot (11/08/2026)",
+          "Print more Fringe special menus for the holders; buy new iPad covers and wine glasses — Owner: Calum Heriot (11/08/2026)",
+          "Message Chris for an update on refreshing the Sakuras — Owner: Calum Heriot (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Monthly GM / Head Chef meetings implemented from September — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Labour budget constraints relaxed for the duration of the Fringe to protect staff wellbeing and coverage — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Source chairs and tablet cases from spare internal inventory at other branches rather than buying new — Owner: Óisín Darragh (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M8": {
       "code": "M8",
@@ -748,12 +842,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 5.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -761,7 +855,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -774,12 +868,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+24.45) + 30% (\u00a3gap +10452 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+24.45) + 30% (£gap +10452 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 76.09,
-            "basis": "\u00a322.86 vs \u00a322 tgt \u2014 level 100, WoW -2.97% \u2192 mom 20"
+            "basis": "£22.86 vs £22 tgt — level 100, WoW -2.97% → mom 20"
           },
           "food": {
             "weight": 30,
@@ -794,18 +888,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "5.00% inside \u00b15% band"
+            "basis": "5.00% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -816,7 +910,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -825,21 +919,21 @@
         "tasks": [
           {
             "task": "Recarpeting at front of store, potentially with company logo",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           },
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
           },
           {
             "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -848,7 +942,7 @@
         "note": "3 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -878,12 +972,20 @@
         },
         "gmv_vs_4wk_pct": -18.4,
         "gmv_vs_ly_pct": -30.3,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [],
+        "actions": [],
+        "carryover": [],
+        "empty": true,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "IKI2": {
       "code": "IKI2",
@@ -933,12 +1035,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -3.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -3.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -946,7 +1048,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -959,12 +1061,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+11.98) + 30% (\u00a3gap +4193 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+11.98) + 30% (£gap +4193 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 86.8,
-            "basis": "\u00a321.78 vs \u00a321 tgt \u2014 level 100, WoW +0.60% \u2192 mom 56"
+            "basis": "£21.78 vs £21 tgt — level 100, WoW +0.60% → mom 56"
           },
           "food": {
             "weight": 30,
@@ -979,18 +1081,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-3.80% inside \u00b15% band"
+            "basis": "-3.80% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1001,7 +1103,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1010,14 +1112,14 @@
         "tasks": [
           {
             "task": "canopy above stairs leaking and needs serviced",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           },
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
@@ -1026,7 +1128,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1056,11 +1158,33 @@
         },
         "gmv_vs_4wk_pct": 0.6,
         "gmv_vs_ly_pct": 1.2,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary."
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary."
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Building-wide leak requiring constant attention — manager unable to take time off.",
+          "Covers up almost 80% on Fringe trade and sales beat target by ~12%; Deliveroo weak, with sit-in deliberately prioritised.",
+          "Team on 12-hour shifts through the festival — extra staff member added for the week to prevent exhaustion.",
+          "Still waiting on the requested fans to improve kitchen ventilation.",
+          "Minor colour change in the Tantan paste from supply issues — no customer complaints received."
+        ],
+        "actions": [
+          "Chase Junna on the fan purchase request so the fans are bought today — Owner: Óisín Darragh (11/08/2026)",
+          "Increase drink orders and par levels to cover the higher Fringe volumes — Owner: Jesse / Rojambo (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Monthly GM / Head Chef meetings implemented from September — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Labour budget constraints relaxed for the duration of the Fringe to protect staff wellbeing and coverage — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Source chairs and tablet cases from spare internal inventory at other branches rather than buying new — Owner: Óisín Darragh (11/08/2026)"
+        ],
+        "carryover": [
+          "Building-wide leak ongoing and needing constant monitoring — Owner: Sujan (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M12": {
       "code": "M12",
@@ -1110,12 +1234,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 3.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 4.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -1123,7 +1247,7 @@
       "efficiency_score": {
         "score": 87,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1136,12 +1260,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+9.90) + 30% (\u00a3gap +3430 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+9.90) + 30% (£gap +3430 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 53.55,
-            "basis": "\u00a320.59 vs \u00a322 tgt \u2014 level 76, WoW -10.20% \u2192 mom 0"
+            "basis": "£20.59 vs £22 tgt — level 76, WoW -10.20% → mom 0"
           },
           "food": {
             "weight": 30,
@@ -1156,18 +1280,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.20% inside \u00b15% band"
+            "basis": "4.20% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1178,7 +1302,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1187,14 +1311,14 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
           },
           {
             "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -1203,7 +1327,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1234,12 +1358,37 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.8
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Sushi sales missed target for the third or fourth consecutive week.",
+          "Deliveroo sales up ~£600 week on week but prep times and late orders remain high.",
+          "One refund dispute lost over missing soy sauce; the rest disputed successfully.",
+          "Minor stock shortages during busy periods.",
+          "Maintenance backlog: front door, air conditioning, ice machine and planters all still outstanding.",
+          "Staffing: Joe expected to leave by September; Tommy's work permit expires in December; Drew back from leave and Ben moving to full-time back-of-house."
+        ],
+        "actions": [
+          "Discuss visa status with Tommy ahead of his December permit expiry — Owner: Matt Lee (11/08/2026)",
+          "Chase Chris for the outstanding planter work and verify the change-order status, reporting back — Owner: Matt Lee (11/08/2026)",
+          "Focus the delivery team on cutting prep times and late orders — Owner: Matt Lee (11/08/2026)",
+          "Comprehensive site audit visit with K and Nina next Wednesday — Owner: Óisín Darragh (19/08/2026)",
+          "Region-wide (Scotland & Newcastle): Monthly GM / Head Chef meetings implemented from September — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Labour budget constraints relaxed for the duration of the Fringe to protect staff wellbeing and coverage — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Source chairs and tablet cases from spare internal inventory at other branches rather than buying new — Owner: Óisín Darragh (11/08/2026)"
+        ],
+        "carryover": [
+          "Front door, air conditioning, ice machine and planter maintenance all outstanding — Owner: Matt Lee (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M13": {
       "code": "M13",
@@ -1289,12 +1438,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.4,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -2.1,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -1302,7 +1451,7 @@
       "efficiency_score": {
         "score": 95,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1315,12 +1464,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+2.31) + 30% (\u00a3gap +968 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+2.31) + 30% (£gap +968 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 68.65,
-            "basis": "\u00a321.09 vs \u00a322 tgt \u2014 level 85, WoW -1.91% \u2192 mom 31"
+            "basis": "£21.09 vs £22 tgt — level 85, WoW -1.91% → mom 31"
           },
           "food": {
             "weight": 30,
@@ -1335,18 +1484,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-2.10% inside \u00b15% band"
+            "basis": "-2.10% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1357,7 +1506,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1366,14 +1515,14 @@
         "tasks": [
           {
             "task": "Roof tiles needing replaced.",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
           },
           {
             "task": "Cracked wall tiles need replacing.",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -1382,7 +1531,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1413,12 +1562,37 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Spend per head down 3.87% and sales down 2.89% against two weeks prior; labour healthy at ~21%.",
+          "£44.60 refund caused by Deliveroo refusing to send a rider for a small order — partner support criticised as ineffective.",
+          "Minor order-accuracy errors on the grilled salmon and chicken items; photos needed so inaccurate reviews can be challenged.",
+          "Mapal platform problems: multiple devices syncing incorrectly and pH testing logs rejecting written figures despite photo evidence.",
+          "Daily team inputs behind — delivery records need a retroactive sweep.",
+          "Six chairs and 4-6 table toppers missing or needing replacement; ventilation pressure certification still outstanding with Ross.",
+          "Supervisor hire (Abigail) hinges on whether Daniel leaves — resolution expected today."
+        ],
+        "actions": [
+          "Sweep delivery records and retroactively update the missing daily inputs — Owner: Joe Herera (11/08/2026)",
+          "Clear tables promptly and acknowledge arriving customers to protect review scores — Owner: Joe Herera (11/08/2026)",
+          "Contact the Shetland ferry service and Viking cruise liners to negotiate a 15% discount footfall partnership — Owner: Joe Herera (11/08/2026)",
+          "Request six spare chairs from Francheska, obtain six table toppers, and procure a drinks menu board — Owner: Joe Herera (11/08/2026)",
+          "Follow up with Ross on the missing shop items and the ventilation pressure certification records — Owner: Joe Herera (11/08/2026)",
+          "Acquire a new Kobas printer via Jenner — Owner: Joe Herera (11/08/2026)",
+          "Allocate the approved 20 hours of training for Peter — Owner: Joe Herera (11/08/2026)",
+          "Monitor the soda-water tempura batter trial for cross-contamination with the soda gun — Owner: Joe Herera (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "1vSAQyh7cTvau8OYrGuRfofFzLIJBXNWrd3NO1OAtjbM",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M15": {
       "code": "M15",
@@ -1468,12 +1642,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -1.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -1481,7 +1655,7 @@
       "efficiency_score": {
         "score": 90,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1494,12 +1668,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+10.82) + 30% (\u00a3gap +6560 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+10.82) + 30% (£gap +6560 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 84.49,
-            "basis": "\u00a323.47 vs \u00a322 tgt \u2014 level 100, WoW -0.17% \u2192 mom 48"
+            "basis": "£23.47 vs £22 tgt — level 100, WoW -0.17% → mom 48"
           },
           "food": {
             "weight": 30,
@@ -1514,20 +1688,20 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.20% inside \u00b15% band"
+            "basis": "2.20% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 27.6%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1538,7 +1712,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1547,14 +1721,14 @@
         "tasks": [
           {
             "task": "Paint needing touched up in all Scotland/Newcastle sites",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris/Rafal",
             "status": "open"
           },
           {
             "task": "Look into purchasing a floor buffer to properly deep cleaning flooring {Shared between all sites}",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Kris",
             "status": "open"
@@ -1563,7 +1737,7 @@
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1593,13 +1767,36 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-08-03 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "source": "Deliveroo weekly Invoice Statement (order-level, summed) — w/c 2026-08-03 [sales/orders/AOV] + ops from Weekly Summary sheet",
         "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Covers down though spend per head up 63p; heat wave (and the solar eclipse) expected to dent trade this week.",
+          "Labour slightly high and food cost over budget after stocking for weekend trade that did not materialise — expected to balance out.",
+          "Food warmer tripping the electrics; replacement order awaiting confirmation from Junior.",
+          "Staffing gap: Andrew on holiday until 4 September, Eric leaves on the 13th; recruiting two full-time sushi staff; Jing's part-time status unresolved."
+        ],
+        "actions": [
+          "Run General Manager duties alongside a supervisor or assistant head chef on tomorrow's shift — Owner: Kieran Day (12/08/2026)",
+          "Speak to Jing to establish whether they stay part-time or leave entirely — Owner: Kieran Day (11/08/2026)",
+          "Confirm the food warmer replacement order status with Junior — Owner: Kieran Day (11/08/2026)",
+          "Order plain covers for the toilet windows — Owner: Kieran Day (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Monthly GM / Head Chef meetings implemented from September — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Labour budget constraints relaxed for the duration of the Fringe to protect staff wellbeing and coverage — Owner: Óisín Darragh (11/08/2026)",
+          "Region-wide (Scotland & Newcastle): Source chairs and tablet cases from spare internal inventory at other branches rather than buying new — Owner: Óisín Darragh (11/08/2026)"
+        ],
+        "carryover": [
+          "Fire door and sprinkler maintenance reports being tracked to ensure compliance — Owner: Kieran Day (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M9": {
       "code": "M9",
@@ -1649,12 +1846,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -0.6,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -1662,7 +1859,7 @@
       "efficiency_score": {
         "score": 92,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1675,12 +1872,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+0.61) + 30% (\u00a3gap +409 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+0.61) + 30% (£gap +409 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 81.22,
-            "basis": "\u00a322.76 vs \u00a322 tgt \u2014 level 100, WoW -1.26% \u2192 mom 37"
+            "basis": "£22.76 vs £22 tgt — level 100, WoW -1.26% → mom 37"
           },
           "food": {
             "weight": 30,
@@ -1695,20 +1892,20 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.20% inside \u00b15% band"
+            "basis": "2.20% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "food 26.7%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1719,7 +1916,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1729,7 +1926,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1759,12 +1956,37 @@
         },
         "gmv_vs_4wk_pct": -1.1,
         "gmv_vs_ly_pct": -19.8,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Food cost ~1% high after a JFC order was logged at ~£2k instead of ~£5k, leading to an oversized weekend fish order placed against budget that did not exist.",
+          "Five negative reviews in the week — hair found in a ramen, seafood broth taste complaint, limited gluten-free options, an over-spicy tantan and a missing chashu on a laksa — addressed with the staff on shift.",
+          "Two delivery refunds: the portion-size dispute was won; a missing-item claim was rejected by Deliveroo after a multi-rider collection mix-up.",
+          "Review volume relying on one or two individuals; check-backs and service standards inconsistent across the team.",
+          "Ice machine broken (interior fault, out of warranty ~14 months) and air-conditioning servicing due.",
+          "Esports partnership renewal quoted at a £3,000 sponsorship fee — referred to marketing as expensive."
+        ],
+        "actions": [
+          "Ensure Mario signs his contract for the confirmed early-September return, and confirm the role details with Abhinash — Owner: Amy Tang (11/08/2026)",
+          "Prepare management action plans and solutions for Friday's in-person catch-up (Ingrid and Samson welcome to join) — Owner: Amy Tang (14/08/2026)",
+          "Add the missing tantan review to the review screenshot document — Owner: Amy Tang (11/08/2026)",
+          "Balance Aiden's and Tom's shifts between bar and floor and use the review incentive to spread review generation across the team — Owner: Amy Tang (11/08/2026)",
+          "Submit the Nisbets repair form for the ice machine and obtain the quotation; Francheska arranging air-con servicing — Owner: Amy Tang (11/08/2026)",
+          "Forward the Esports renewal email to Amy for the marketing decision — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M10": {
       "code": "M10",
@@ -1814,12 +2036,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 12.4,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": false
         },
         "week_commencing": "2026-08-03"
@@ -1827,7 +2049,7 @@
       "efficiency_score": {
         "score": 84,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -1840,12 +2062,12 @@
           "sales": {
             "weight": 10,
             "value": 78.32,
-            "basis": "70% (100-23.77) + 30% (\u00a3gap -8401 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-23.77) + 30% (£gap -8401 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 99.04,
-            "basis": "\u00a323.06 vs \u00a322 tgt \u2014 level 100, WoW +4.68% \u2192 mom 97"
+            "basis": "£23.06 vs £22 tgt — level 100, WoW +4.68% → mom 97"
           },
           "food": {
             "weight": 30,
@@ -1860,13 +2082,13 @@
           "food_var": {
             "weight": 5,
             "value": 40.8,
-            "basis": "12.40% outside \u00b15% band"
+            "basis": "12.40% outside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -1874,7 +2096,7 @@
           "sales -23.8% vs target",
           "food 26.0%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -1885,7 +2107,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -1894,23 +2116,23 @@
         "tasks": [
           {
             "task": "Wifi Consistency",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Pending",
             "owner": "Chris",
             "status": "open"
           },
           {
             "task": "Front Door (Left) Stopper smashed",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -1940,12 +2162,35 @@
         },
         "gmv_vs_4wk_pct": -7.4,
         "gmv_vs_ly_pct": -11.9,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx — Weekly Summary. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Weekly sales down ~23% — described as the lowest week on record, with a very quiet Sunday.",
+          "New competitor restaurants across the road discounting aggressively (40-50% off) with long queues, pulling covers away.",
+          "Labour and food costs above budget; high prep times persist.",
+          "Incorrect broth quantities received and inconsistent recipe execution (sauce and ingredient amounts) hurting food cost.",
+          "Staff member Ammon relocating to London over insufficient hours; front-of-house trials underway to cover the end of August."
+        ],
+        "actions": [
+          "Send the list of local competitor restaurants and their active discount offers — Owner: Amy Tang (11/08/2026)",
+          "Discuss the food cost and stock inventory discrepancies with Rob at the upcoming head chef meeting — Owner: Amy Tang (11/08/2026)",
+          "Work with Arthur to identify who is not following recipes and retrain them — Owner: Amy Tang (11/08/2026)",
+          "GM to work the floor over the weekend — extending to Sunday if the crowd stays low — to boost sales — Owner: Amy Tang (15/08/2026)",
+          "Launch the B2B strategy on student accommodation and nearby workspaces, including free tasting events; recruit from other Japanese restaurants to minimise training — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M11": {
       "code": "M11",
@@ -1995,12 +2240,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": -0.9,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -2008,7 +2253,7 @@
       "efficiency_score": {
         "score": 96,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2021,12 +2266,12 @@
           "sales": {
             "weight": 10,
             "value": 96.88,
-            "basis": "70% (100-3.62) + 30% (\u00a3gap -977 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-3.62) + 30% (£gap -977 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 100.0,
-            "basis": "\u00a322.04 vs \u00a322 tgt \u2014 level 100, WoW +5.56% \u2192 mom 100"
+            "basis": "£22.04 vs £22 tgt — level 100, WoW +5.56% → mom 100"
           },
           "food": {
             "weight": 30,
@@ -2041,18 +2286,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-0.90% inside \u00b15% band"
+            "basis": "-0.90% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -2063,7 +2308,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2072,23 +2317,23 @@
         "tasks": [
           {
             "task": "Wifi are slow in some areas",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
             "owner": "Chris/Amy",
             "status": "open"
           },
           {
             "task": "Griddle where we cook gyoza steak and pork is broken",
-            "priority": "\u2014",
+            "priority": "—",
             "logged_week": "Ongoing",
-            "owner": "\u2014",
+            "owner": "—",
             "status": "open"
           }
         ],
         "note": "2 open item(s)"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2119,12 +2364,33 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Late prep time issues on busy evenings despite strong sales.",
+          "Extractor fan / gas valve fault shut off the gas supply — fan now working but not strong enough to clear the smoke.",
+          "Two negative reviews from slow service on a two-staff shift; an extra staff member has been added since.",
+          "Food cost artificially low this week because JFC did not deliver."
+        ],
+        "actions": [
+          "Prioritise delivery packaging standards and communicate the instructions to the team via the group chat — Owner: Jervin Johnjeyaranjan (11/08/2026)",
+          "Provide regular status updates in the group chat on the extraction fan and gas supply repair — Owner: Jervin Johnjeyaranjan (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [
+          "Extraction fan capacity issue ongoing — operational again after the gas shut-off but too weak to clear smoke; repair/upgrade being tracked — Owner: Jervin Johnjeyaranjan (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M14": {
       "code": "M14",
@@ -2174,12 +2440,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 0.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 3.3,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -2187,7 +2453,7 @@
       "efficiency_score": {
         "score": 98,
         "rag": "green",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2200,12 +2466,12 @@
           "sales": {
             "weight": 10,
             "value": 95.66,
-            "basis": "70% (100-4.53) + 30% (\u00a3gap -1950 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-4.53) + 30% (£gap -1950 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 92.44,
-            "basis": "\u00a322.75 vs \u00a322 tgt \u2014 level 100, WoW +2.48% \u2192 mom 75"
+            "basis": "£22.75 vs £22 tgt — level 100, WoW +2.48% → mom 75"
           },
           "food": {
             "weight": 30,
@@ -2220,18 +2486,18 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.30% inside \u00b15% band"
+            "basis": "3.30% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -2242,7 +2508,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2252,7 +2518,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2282,14 +2548,34 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "source": "ESTIMATE — internal Auto Cash Up Delivery (£) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
         "sales_estimated": true,
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ]
+        "Reviews — no week rating in source",
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) — no Deliveroo source for this site this week"
+      ],
+      "notes": {
+        "issues": [
+          "Sales declined — ongoing tram route construction making access difficult for the student demographic.",
+          "Persistent pest control issues, with holes near the fuse box area needing urgent repair.",
+          "Delivery performance good (no late prep orders) and labour managed by trimming quiet weekend shifts."
+        ],
+        "actions": [
+          "Photograph the maintenance holes near the fuse box, post to the group chat and submit an urgent maintenance request — Owner: Amy Tang (11/08/2026)",
+          "Handle the food festival onboarding and coordinate with Sophie on the menu and equipment needs — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [
+          "Pest control issues persisting despite ongoing treatment — deep clean and repairs to close entry points — Owner: Amy Tang (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M16": {
       "code": "M16",
@@ -2339,12 +2625,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": -6.8,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": false
         },
         "food": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "week_commencing": "2026-08-03"
@@ -2352,7 +2638,7 @@
       "efficiency_score": {
         "score": 89,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2365,12 +2651,12 @@
           "sales": {
             "weight": 10,
             "value": 95.52,
-            "basis": "70% (100-5.03) + 30% (\u00a3gap -1598 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-5.03) + 30% (£gap -1598 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 93.19,
-            "basis": "\u00a323.32 vs \u00a322 tgt \u2014 level 100, WoW +2.73% \u2192 mom 77"
+            "basis": "£23.32 vs £22 tgt — level 100, WoW +2.73% → mom 77"
           },
           "food": {
             "weight": 30,
@@ -2387,12 +2673,12 @@
           "weekly_star",
           "food_var"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "green",
         "triggers": [],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -2403,7 +2689,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2413,7 +2699,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2444,13 +2730,40 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Stock-take — no variance entered this week",
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Sales 5% under target with a quiet weekend.",
+          "Increase in inaccurate delivery orders; dispute claims (Vegan Katsu Curry, Firecracker Ramen) rejected with no visibility of the evidence — formal reinvestigation being requested.",
+          "Closing times drifting late — to be addressed with James on his return from holiday.",
+          "Par level system not reflecting real consumption — vodka and oat milk repeatedly out of stock before week end.",
+          "Vegetarian customer served meat broth — negative review, managed by the team.",
+          "Previous recruitment candidate ghosted; new bar hire secured but not yet met by management."
+        ],
+        "actions": [
+          "Verify the rejected delivery disputes for photo evidence and email to request formal reinvestigation — Owner: Amy Tang (11/08/2026)",
+          "Process the JFC invoice and update the food cost and target percentage in the shared sheet — Owner: Amy Tang (11/08/2026)",
+          "Adjust oat milk and vodka par levels to actual consumption, and confirm the correct oat milk supplier — Owner: Sharief (11/08/2026)",
+          "Conduct the performance review / improvement action plan with James on his return — Owner: Amy Tang (11/08/2026)",
+          "Hold Sharief's GM chat tomorrow and confirm the September kitchen porter and line chef hiring needs — Owner: Sharief (12/08/2026)",
+          "Arrange the new bar hire's first shift; Amy to attend next week to observe — Owner: Amy Tang (17/08/2026)",
+          "Deep clean the H toilet, then schedule pest control; assemble the newly arrived cooker parts — Owner: Amy Tang (11/08/2026)",
+          "Audit the front-of-house job advert so it is ready if the new hire does not work out — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Loyalty app launches 11:00 on 12/08 — every site's AGM to attend the training on the tiered visit-discount incentives — Owner: Amy Tang (12/08/2026)",
+          "Region-wide (North & Midlands): Stop requesting extra delivery prep time — it inflates prep metrics; prioritise packaging so orders are rider-ready on arrival — Owner: Amy Tang (11/08/2026)",
+          "Region-wide (North & Midlands): Raise inventory par levels on frequently depleted items to stop repeat out-of-stocks — Owner: Amy Tang (11/08/2026)"
+        ],
+        "carryover": [],
+        "empty": false,
+        "docId": "12u2jFhhHifH8flpiwt6ef8Ud-bSTG_lxGIfVLlonqB0",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M17": {
       "code": "M17",
@@ -2500,12 +2813,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": 4.5,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -2513,7 +2826,7 @@
       "efficiency_score": {
         "score": 87,
         "rag": "amber",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2526,12 +2839,12 @@
           "sales": {
             "weight": 10,
             "value": 89.89,
-            "basis": "70% (100-11.26) + 30% (\u00a3gap -3716 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-11.26) + 30% (£gap -3716 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 81.7,
-            "basis": "\u00a323.40 vs \u00a322 tgt \u2014 level 100, WoW -1.10% \u2192 mom 39"
+            "basis": "£23.40 vs £22 tgt — level 100, WoW -1.10% → mom 39"
           },
           "food": {
             "weight": 30,
@@ -2546,13 +2859,13 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "4.50% inside \u00b15% band"
+            "basis": "4.50% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -2560,7 +2873,7 @@
           "sales -11.3% vs target",
           "food 26.4%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -2571,7 +2884,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2581,7 +2894,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2612,12 +2925,38 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Covers fell by ~208 and spend per head dropped 26p — local events (festival and party in the park) took an estimated £4,000 off Saturday.",
+          "6.2% wet stock variance under investigation — supplier repeatedly delivering 750ml pineapple juice cartons against the 1-litre unit configured in the system, skewing inputs.",
+          "One two-star review, plus complaints about a sticky menu and perceived extra charges on the lunch deal (the £2 surcharge is stated on the menu).",
+          "Review rating recovering after a dip to 4.22 — back up to 4.31.",
+          "GM/Head Chef meeting documentation and Gmail inbox administration outstanding."
+        ],
+        "actions": [
+          "Complete the upload of the GM / Head Chef meeting documentation and finish the notes with Jerry — Owner: Kei Cannon (11/08/2026)",
+          "Organise the Gmail inbox and prepare the delivery photos — Owner: Kei Cannon (11/08/2026)",
+          "Adjust the rotas to reach the target labour percentage — Owner: Kei Cannon (11/08/2026)",
+          "Let the stock balance out, then correct the pineapple juice system entries — Owner: Kei Cannon (11/08/2026)",
+          "Region-wide (South England): Move front-of-house hiring to 30-40 hour weeks with split shifts to relieve burnout; training hours may run labour above the 24-25% target temporarily — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Photograph every delivery order and its packaging so inaccurate-order and rejected-delivery claims can be disputed with evidence — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Add the premium supplement charges for extra sides and ingredients to the till and update the PLUS system settings — Owner: Kaitlin Docherty (11/08/2026)",
+          "Region-wide (South England): Confirm GM system access for sales, labour and events monitoring during Kaitlin's leave 12-27/08 — Owner: Kaitlin Docherty (11/08/2026)"
+        ],
+        "carryover": [
+          "Recurring pineapple juice supply mismatch (750ml delivered vs 1L configured) driving stock variance errors — Owner: Kei Cannon (11/08/2026)",
+          "Continue rebuilding the review rating after the dip to 4.22 — Owner: Kei Cannon (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1tsBTLB673RvLgM0UVWFjcH2jC6rKDU_51XF5inBvLdk",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M18": {
       "code": "M18",
@@ -2667,12 +3006,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": -4.7,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -2680,7 +3019,7 @@
       "efficiency_score": {
         "score": 59,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2693,12 +3032,12 @@
           "sales": {
             "weight": 10,
             "value": 96.84,
-            "basis": "70% (100-3.46) + 30% (\u00a3gap -1228 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-3.46) + 30% (£gap -1228 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 57.87,
-            "basis": "\u00a320.60 vs \u00a322 tgt \u2014 level 77, WoW -3.60% \u2192 mom 14"
+            "basis": "£20.60 vs £22 tgt — level 77, WoW -3.60% → mom 14"
           },
           "food": {
             "weight": 30,
@@ -2713,13 +3052,13 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "-4.70% inside \u00b15% band"
+            "basis": "-4.70% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -2727,7 +3066,7 @@
           "wage 26.4%",
           "food 27.4%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -2738,7 +3077,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2748,7 +3087,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2779,12 +3118,39 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) \u2014 gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
+        "source": "Deliveroo Weekly Dash PDF overview (Sales Overview) — gap-site weekly sales; ops metrics not in this source. + ops from Weekly Summary sheet",
         "busy_mode_pct": 10.3
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source"
-      ]
+        "Reviews — no week rating in source"
+      ],
+      "notes": {
+        "issues": [
+          "Month-long 50% discount (Sunday-Friday through August) depressing spend per head, with customers defaulting to tap water instead of drinks.",
+          "Sales target missed by 3.46%.",
+          "Staff failed to photograph delivery packaging as instructed, so inaccurate delivery orders could not be disputed.",
+          "Negative reviews on food quality and a spilled soup; several reviews left unanswered since June.",
+          "13% drink variance requiring explanation to management.",
+          "A team member failed to show for work and others resigned; front-of-house fatigued from reliance on one or two 45-hour-week employees."
+        ],
+        "actions": [
+          "Respond to all pending customer reviews and invite dissatisfied customers back — Owner: Imre Balogh (11/08/2026)",
+          "Post an explanation for the 13% drink variance in the management chat — Owner: Imre Balogh (11/08/2026)",
+          "Advertise the vacant supervisor role to secure shift coverage — Owner: Imre Balogh (11/08/2026)",
+          "Recruit front-of-house staff at 30-40 hours per week with split shifts to relieve burnout, and coordinate 5-day leave blocks to stabilise the team — Owner: Imre Balogh (11/08/2026)",
+          "Call Sophie to establish why the team member failed to attend, and resolve the head chef / kitchen operations issues before she returns — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Move front-of-house hiring to 30-40 hour weeks with split shifts to relieve burnout; training hours may run labour above the 24-25% target temporarily — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Photograph every delivery order and its packaging so inaccurate-order and rejected-delivery claims can be disputed with evidence — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Add the premium supplement charges for extra sides and ingredients to the till and update the PLUS system settings — Owner: Kaitlin Docherty (11/08/2026)",
+          "Region-wide (South England): Confirm GM system access for sales, labour and events monitoring during Kaitlin's leave 12-27/08 — Owner: Kaitlin Docherty (11/08/2026)"
+        ],
+        "carryover": [
+          "Customer reviews unanswered since June — clear the backlog — Owner: Imre Balogh (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1tsBTLB673RvLgM0UVWFjcH2jC6rKDU_51XF5inBvLdk",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M19": {
       "code": "M19",
@@ -2834,12 +3200,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": 3.2,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -2847,7 +3213,7 @@
       "efficiency_score": {
         "score": 63,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -2860,12 +3226,12 @@
           "sales": {
             "weight": 10,
             "value": 100.0,
-            "basis": "70% (100+3.71) + 30% (\u00a3gap +872 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100+3.71) + 30% (£gap +872 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 100.0,
-            "basis": "\u00a323.34 vs \u00a322 tgt \u2014 level 100, WoW +18.00% \u2192 mom 100"
+            "basis": "£23.34 vs £22 tgt — level 100, WoW +18.00% → mom 100"
           },
           "food": {
             "weight": 30,
@@ -2880,13 +3246,13 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "3.20% inside \u00b15% band"
+            "basis": "3.20% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -2894,7 +3260,7 @@
           "wage 35.9%",
           "food 26.4%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -2905,7 +3271,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -2915,7 +3281,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -2945,14 +3311,38 @@
         },
         "gmv_vs_4wk_pct": null,
         "gmv_vs_ly_pct": null,
-        "source": "ESTIMATE \u2014 internal Auto Cash Up Delivery (\u00a3) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
+        "source": "ESTIMATE — internal Auto Cash Up Delivery (£) summed Mon-Sun; ALL aggregators, not Deliveroo-only. Accuracy +/-15% (measured -14% to +23% vs real Deliveroo figures, w/c 2026-07-27). Replace with the Deliveroo invoice statement when it lands. + ops from Weekly Summary sheet",
         "sales_estimated": true,
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) \u2014 no Deliveroo source for this site this week"
-      ]
+        "Reviews — no week rating in source",
+        "Deliveroo sales are an ESTIMATE from the internal all-aggregator Delivery line (+/-15%) — no Deliveroo source for this site this week"
+      ],
+      "notes": {
+        "issues": [
+          "Covers had been input per meal instead of per table, skewing spend-per-head data — now corrected, stabilising SPH at ~£23.",
+          "Delivery issues and rejected orders prompted a new rule that staff photograph all delivery packaging.",
+          "Site operating without a permanent GM and AGM — recruitment for both roles underway.",
+          "Daily food checks not reliably completed on time; alarms being introduced to enforce them."
+        ],
+        "actions": [
+          "Enforce the photographing of all delivery packaging — Owner: Dionne Baldock (11/08/2026)",
+          "Set the next rota at 25.8% labour after last week's 10% reduction — Owner: Dionne Baldock (11/08/2026)",
+          "Progress recruitment of the new General Manager and Assistant General Manager — Owner: Ziang Lin (11/08/2026)",
+          "Implement alarms so daily food checks are completed on time — Owner: Dionne Baldock (11/08/2026)",
+          "Region-wide (South England): Move front-of-house hiring to 30-40 hour weeks with split shifts to relieve burnout; training hours may run labour above the 24-25% target temporarily — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Photograph every delivery order and its packaging so inaccurate-order and rejected-delivery claims can be disputed with evidence — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Add the premium supplement charges for extra sides and ingredients to the till and update the PLUS system settings — Owner: Kaitlin Docherty (11/08/2026)",
+          "Region-wide (South England): Confirm GM system access for sales, labour and events monitoring during Kaitlin's leave 12-27/08 — Owner: Kaitlin Docherty (11/08/2026)"
+        ],
+        "carryover": [
+          "GM and AGM recruitment ongoing — Owner: Ziang Lin (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1tsBTLB673RvLgM0UVWFjcH2jC6rKDU_51XF5inBvLdk",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "M20": {
       "code": "M20",
@@ -3002,12 +3392,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": 4.0,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "food": {
           "variance_pct": 2.3,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": true
         },
         "week_commencing": "2026-08-03"
@@ -3015,7 +3405,7 @@
       "efficiency_score": {
         "score": 56,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3028,12 +3418,12 @@
           "sales": {
             "weight": 10,
             "value": 89.77,
-            "basis": "70% (100-10.61) + 30% (\u00a3gap -4668 vs \u00b1\u00a350k cal)"
+            "basis": "70% (100-10.61) + 30% (£gap -4668 vs ±£50k cal)"
           },
           "sph": {
             "weight": 15,
             "value": 68.04,
-            "basis": "\u00a320.67 vs \u00a322 tgt \u2014 level 78, WoW -0.48% \u2192 mom 45"
+            "basis": "£20.67 vs £22 tgt — level 78, WoW -0.48% → mom 45"
           },
           "food": {
             "weight": 30,
@@ -3048,13 +3438,13 @@
           "food_var": {
             "weight": 5,
             "value": 100,
-            "basis": "2.30% inside \u00b15% band"
+            "basis": "2.30% inside ±5% band"
           }
         },
         "components_dropped": [
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
@@ -3063,7 +3453,7 @@
           "wage 30.0%",
           "food 26.5%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -3074,7 +3464,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3084,7 +3474,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3092,9 +3482,38 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+        "Reviews — no week rating in source",
+        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+      ],
+      "notes": {
+        "issues": [
+          "Sales target missed by an estimated £2,000-2,500 despite an influencer night; spend per head and covers both down.",
+          "Two delivery refunds (one for missing meal extras) pushed inaccurate orders to 9.52% against target.",
+          "Labour running above the company target.",
+          "Walk-in freezer holding -16°C instead of -18°C despite defrost and restart attempts; frozen food temperature-checked and confirmed safe.",
+          "Team weak on farewells to customers; management-team communication needs improvement.",
+          "Shelf and fridge maintenance reported to Ross, still awaiting action.",
+          "Two staff leaving soon (China internship; September university start) and a supervisor stepping down to a front-of-house role."
+        ],
+        "actions": [
+          "Email the affected customer offering a free meal for the delivery failure — Owner: Chris B (11/08/2026)",
+          "Meet with the team on the importance of saying farewells to customers — Owner: Chris B (11/08/2026)",
+          "Submit the hygiene compliance screenshot to the system — Owner: Chris B (11/08/2026)",
+          "Set the upcoming week's rota at 27% labour, stepping down to 25% over the next two weeks — Owner: Chris B (25/08/2026)",
+          "Drive review generation towards 1,000 reviews by the end of September — Owner: Chris B (30/09/2026)",
+          "Region-wide (South England): Move front-of-house hiring to 30-40 hour weeks with split shifts to relieve burnout; training hours may run labour above the 24-25% target temporarily — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Photograph every delivery order and its packaging so inaccurate-order and rejected-delivery claims can be disputed with evidence — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Add the premium supplement charges for extra sides and ingredients to the till and update the PLUS system settings — Owner: Kaitlin Docherty (11/08/2026)",
+          "Region-wide (South England): Confirm GM system access for sales, labour and events monitoring during Kaitlin's leave 12-27/08 — Owner: Kaitlin Docherty (11/08/2026)"
+        ],
+        "carryover": [
+          "Walk-in freezer temperature fault ongoing despite defrost attempts — Owner: Chris B (11/08/2026)",
+          "Shelf and fridge maintenance reported to Ross, awaiting action — Owner: Ross Ward (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1tsBTLB673RvLgM0UVWFjcH2jC6rKDU_51XF5inBvLdk",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     },
     "MakiNori": {
       "code": "MakiNori",
@@ -3144,12 +3563,12 @@
       "stock_take": {
         "drinks": {
           "variance_pct": null,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": null
         },
         "food": {
           "variance_pct": -5.9,
-          "target": "\u00b15%",
+          "target": "±5%",
           "within_band": false
         },
         "week_commencing": "2026-08-03"
@@ -3157,7 +3576,7 @@
       "efficiency_score": {
         "score": 60,
         "rag": "red",
-        "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
+        "scale": "0–100, 100 = at target; bands: green ≥95, amber ≥80, red <80",
         "weights": {
           "wage": 30,
           "food": 30,
@@ -3170,7 +3589,7 @@
           "sph": {
             "weight": 15,
             "value": 88.0,
-            "basis": "\u00a339.32 vs \u00a335 tgt \u2014 level 100, WoW +1.00% \u2192 mom 60"
+            "basis": "£39.32 vs £35 tgt — level 100, WoW +1.00% → mom 60"
           },
           "food": {
             "weight": 30,
@@ -3185,21 +3604,21 @@
           "food_var": {
             "weight": 5,
             "value": 92.8,
-            "basis": "-5.90% outside \u00b15% band"
+            "basis": "-5.90% outside ±5% band"
           }
         },
         "components_dropped": [
           "sales",
           "weekly_star"
         ],
-        "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
+        "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
           "wage 34.2%"
         ],
-        "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
+        "basis": "computed from the dashboard's own KPIs (sales vs target ≤ -10%, wage > 26%, food > 25%); no external pull"
       },
       "reviews": {
         "week_avg_rating": null,
@@ -3210,7 +3629,7 @@
         "venue_rating": null,
         "venue_review_count": null,
         "response_rate": null,
-        "response_rate_note": "No automated source \u2014 left open.",
+        "response_rate_note": "No automated source — left open.",
         "source": "Reviews sheet 1aFGfbGr... per-site 'Maki N -' star tabs (weekly avg rating / counts) + 'Raw Data' tab (negative comment text, rating<=3 + comment). Cumulative venue rating not in sheet (null)."
       },
       "maintenance": {
@@ -3220,7 +3639,7 @@
         "note": "0 outstanding"
       },
       "issues_solutions": {
-        "source": "GM KPI meeting notes \u2014 email pull not built.",
+        "source": "GM KPI meeting notes — email pull not built.",
         "status": "pending",
         "live": false,
         "items": [],
@@ -3228,9 +3647,42 @@
       },
       "deliveroo": null,
       "gaps": [
-        "Reviews \u2014 no week rating in source",
-        "Deliveroo \u2014 no Weekly Summary row and not above PDF Sales Overview cutoff this week"
-      ]
+        "Reviews — no week rating in source",
+        "Deliveroo — no Weekly Summary row and not above PDF Sales Overview cutoff this week"
+      ],
+      "notes": {
+        "issues": [
+          "Lengthy written complaint from staff member Luca about head office support and operational organisation; supply chain queries being misdirected to head office instead of Ross.",
+          "Dress code (shirts and suspenders), uniform and waiter-station cleanliness standards acknowledged as neglected and inconsistently enforced.",
+          "Rating slid from ~4.8 (about 80 five-star reviews a week) to ~4.6 with recurring four-star reviews — flagged by Ziang Lin as a red light.",
+          "Kitchen labour cuts forced the handroll trolley out of service at times, occasionally used for storage instead.",
+          "AGM Jada overwhelmed by review volume and appearing disengaged; service attentiveness criticised in recent reviews.",
+          "Supervisor vacancy after Luka's departure; standards slip when the manager is off-site; only 12 influencer bookings confirmed for August.",
+          "Longstanding till gaps — 'tuna on the tail' button missing for weeks and no price values for premium sides/sauces causing manual-charge confusion; sushi bar fridge repair and menu reprints still outstanding."
+        ],
+        "actions": [
+          "Complete performance reviews for all 13 staff and hold the formal service-standards meetings — Owner: Sujan (17/08/2026)",
+          "Hold a one-on-one with Jada on performance, professionalism and motivation, and report the outcome to Ziang Lin and Kaitlin — Owner: Sujan (11/08/2026)",
+          "Analyse Luca's message for actionable operational concerns and redirect supply chain issues to Ross — Owner: Sujan (11/08/2026)",
+          "Send the till button list and add the requested tuna buttons to the system — Owner: Kaitlin Docherty (11/08/2026)",
+          "Contact marketing to request a higher volume of influencer visits — Owner: Sujan (11/08/2026)",
+          "Speak to Hanna to post the supervisor advert on the talent funnel — Owner: Sujan (11/08/2026)",
+          "Prepare stock and staffing for the Ariana Grande concert day, targeting £10,000 — Owner: Sujan (15/08/2026)",
+          "Region-wide (South England): Move front-of-house hiring to 30-40 hour weeks with split shifts to relieve burnout; training hours may run labour above the 24-25% target temporarily — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Photograph every delivery order and its packaging so inaccurate-order and rejected-delivery claims can be disputed with evidence — Owner: Ziang Lin (11/08/2026)",
+          "Region-wide (South England): Add the premium supplement charges for extra sides and ingredients to the till and update the PLUS system settings — Owner: Kaitlin Docherty (11/08/2026)",
+          "Region-wide (South England): Confirm GM system access for sales, labour and events monitoring during Kaitlin's leave 12-27/08 — Owner: Kaitlin Docherty (11/08/2026)"
+        ],
+        "carryover": [
+          "'Tuna on the tail' till button requested for several weeks and still missing — keep chasing until added — Owner: Kaitlin Docherty (11/08/2026)",
+          "Sushi bar fridge repair logged with maintenance, awaiting completion — Owner: Sujan (11/08/2026)",
+          "Menu reprints outstanding — tag Junna in the email chain to expedite payment and delivery by next week — Owner: Sujan (11/08/2026)",
+          "Bathroom repaint planned for quiet periods to improve facility presentation — Owner: Sujan (11/08/2026)"
+        ],
+        "empty": false,
+        "docId": "1tsBTLB673RvLgM0UVWFjcH2jC6rKDU_51XF5inBvLdk",
+        "source": "GM/AM KPI meeting notes 11/08/2026 (South: London Region KPI; North: Maki England KPI; Scotland/Newcastle: EDI/NEW KPI + M13 + M6/M8 Gemini notes)"
+      }
     }
   }
 }
