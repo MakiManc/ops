@@ -459,27 +459,19 @@ tr.hiddenrow { display: none; }
       <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">override in sheet ↗</a>
     </div>
     <div class="notice plain">
-      <strong>What this page does:</strong> twice a day — early morning and midday UK — the system checks every paid ad (last 30 days) and every post (last 28 days), and sorts each one into three buckets — <span class="rag KILL">KILL</span> it's wasting money, turn it off · <span class="rag SCALE">SCALE</span> it's working, put more behind it · <span class="rag KEEP">KEEP</span> it's fine, leave it alone.<br>
-      <strong>Only things still running appear here.</strong> Once an ad is paused in Meta it drops out of this list and moves to the decision history below, so what you see is what still needs doing.<br>
-      <strong>"Building" means it isn't sure yet.</strong> One bad reading proves nothing, so it waits until it has seen the same signal on 3 separate days before committing. Running twice a day doesn't shorten that — it counts days, not checks. "2 more days" = it has an opinion and is double-checking it.<br>
-      <strong>Nothing is switched off by itself.</strong> The system only decides — a person still has to pause or boost the ad in the ad account.<br>
-      <strong>Think it's wrong?</strong> Type KILL, SCALE or KEEP next to that row in <a class="sheetlink" href="https://docs.google.com/spreadsheets/d/1zpm8ixjmnCt60kUXu-SoDbXEua7obJ0XU_zt5jYSIGw/edit" target="_blank">the sheet ↗</a> — your word beats the machine's, immediately and without conditions.<br>
-      <strong>Click any row</strong> to see the full story: what it's costing, the trend, the content itself and the exact rule it tripped.
-      <details><summary>The exact rules, for reference</summary>
-        <div class="rules">
-          <strong>Posts (organic):</strong> KILL if typical engagement is under 2% of reach AND saves+shares are under 0.5% of reach — or engagement falls under 1% on its own (last 28 days, at least 3 posts). SCALE if typical engagement is 6%+ of reach, or one post reaches 3× the usual audience.<br>
-          <strong>Ads built to sell (CPA, approved 7 Jul):</strong> SCALE if a sale costs £5 or less (with 5+ sales) · KILL if a sale costs over £12 after £50+ spent, or there are no sales at all after £75+ (last 30 days).<br>
-          <strong>Ads built for attention (awareness/boosts):</strong> KILL if under 0.8% of viewers click AND each click costs over £1.50 · SCALE if over 1.5% click and each click costs under £0.60.
-        </div>
-      </details>
+      <strong>The four numbers, in plain English — and who fixes what:</strong><br>
+      <strong>£/RESULT</strong> — what one booking, purchase or lead costs us. £5 or under = scale it up · over £12 = kill it. <em>Owner: Vidya (paid media).</em><br>
+      <strong>£/CLICK</strong> — what one click costs. Expensive clicks mean the wrong audience or bidding. <em>Owner: Vidya (paid media).</em><br>
+      <strong>LPV %</strong> — of the people who clicked, how many actually saw the page load. <span style="color:#DC2626;font-weight:600">Red under 70%</span> = the landing page is slow or broken — fix the page before judging the ad. <em>Owner: Vidya (landing pages &amp; tracking).</em><br>
+      <strong>THRUPLAY %</strong> — of the people who started the video, how many watched it through. <span style="color:#DC2626;font-weight:600">Red under 60%</span> = creative problem — the video loses people, so change the video, not the budget. <em>Owner: Georgie (creative).</em>
     </div>
     <div class="ragsummary" id="matrix-summary"></div>
     <div class="controls">
       <label><input type="checkbox" id="matrix-showall"> Show settled KEEPs too</label>
     </div>
     <table>
-      <thead><tr><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="ctr">Evidence</th><th class="ctr">Metric 1</th><th class="ctr">Metric 2</th><th>Flagged</th><th>Reason</th></tr></thead>
-      <tbody id="matrix-table"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+      <thead><tr><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="ctr">Evidence</th><th class="ctr">£/result</th><th class="ctr">£/click</th><th class="ctr">LPV %</th><th class="ctr">ThruPlay %</th><th>Flagged</th><th>Reason</th></tr></thead>
+      <tbody id="matrix-table"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
   <div class="section">
@@ -487,7 +479,7 @@ tr.hiddenrow { display: none; }
     <div class="src">Everything agreed as KILL or SCALE — and why, and whether it was actually done. Rows stay here after the ad is paused and drops off the live list. Ledger starts 28 Jul 2026; kills before then weren't recorded.</div>
     <div class="doneline" id="matrix-done"></div>
     <table>
-      <thead><tr><th>Decided</th><th class="ctr">Switched off</th><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="ctr">Metric 1</th><th class="ctr">Metric 2</th><th>Why</th><th>Status</th></tr></thead>
+      <thead><tr><th>Decided</th><th class="ctr">Switched off</th><th>Decision</th><th>Name <span class="rowhint">· click for detail</span></th><th>Type</th><th class="ctr">£/result</th><th class="ctr">£/click</th><th>Why</th><th>Status</th></tr></thead>
       <tbody id="matrix-hist-table"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
@@ -1876,6 +1868,17 @@ function metricCell(name, value) {
 var STATUS_WORDS = {confirmed: 'agreed', overruled: 'your call', settled: 'settled',
   actioned: 'done', stopped: 'ended', building: 'deciding'};
 
+// 11 Aug pm: metrics 3+4 (Michael). LPV % = page loads ÷ link clicks (red
+// under 70% = landing page problem). ThruPlay % = watched-through ÷ 3-second
+// plays (red under 60% = creative problem). Meta paid rows only — organic and
+// Google rows show a dash.
+function ratePctCell(v, redBelow, hint) {
+  if (v === '' || v == null || isNaN(Number(v))) return '<td class="ctr"><span class="subtle">—</span></td>';
+  var n = Number(v);
+  return '<td class="ctr"' + (hint ? ' title="' + escAttr(hint) + '"' : '') + '><span class="mval"' +
+    (n < redBelow ? ' style="color:#DC2626;font-weight:700"' : '') + '>' + Math.round(n * 100) + '%</span></td>';
+}
+
 // A row's headline is its DECISION; `building` says it is not agreed yet.
 function decisionOf(r) {
   var v = verdictOf(r), st = statusOf(r);
@@ -1966,7 +1969,7 @@ function renderMatrix() {
 
   var tbody = document.getElementById('matrix-table');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="subtle">' +
+    tbody.innerHTML = '<tr><td colspan="10" class="subtle">' +
       (showAll ? 'ADD_REMOVE_MATRIX empty — run computeAddRemoveMatrix() in the Apps Script project'
                : 'Nothing to action — everything is settled on KEEP (tick the box to see them)') + '</td></tr>';
     return;
@@ -2007,6 +2010,8 @@ function renderMatrix() {
       '<td class="ctr">' + evidenceLabel(r) + '</td>' +
       '<td class="ctr">' + metricCell(r.key_metric_1_name, r.key_metric_1_value) + '</td>' +
       '<td class="ctr">' + metricCell(r.key_metric_2_name, r.key_metric_2_value) + '</td>' +
+      ratePctCell(r.lpv_rate, 0.70, 'Landing page views ÷ link clicks. Below 70% = the landing page is slow or broken — fix the page before judging the ad. Owner: Vidya.') +
+      ratePctCell(r.thruplay_rate, 0.60, 'Watched-through ÷ 3-second video plays. Below 60% = creative problem — change the video, not the budget. Owner: Georgie.') +
       '<td>' + flaggedCell + '</td>' +
       '<td class="caption">' + (r.reason || '') + '</td>' +
       '</tr>';
