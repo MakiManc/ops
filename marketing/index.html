@@ -1527,7 +1527,10 @@ async function loadMetaPaid() {
     // payload (WebApi V6), so campaigns UNDER the judge gate — no matrix row
     // to override from — still count real results. Same MAX-not-SUM rule as
     // the matrix: overlapping custom conversions fire together.
-    BOOKING_FIELDS.forEach(function(f) {
+    // The field list comes from the payload (booking_fields — the shared
+    // BOOKING_FIELDS_CSV property) so new conversions need NO page redeploy;
+    // the hard-coded list is only the fallback for old payloads.
+    ((DATA && Array.isArray(DATA.booking_fields) && DATA.booking_fields.length) ? DATA.booking_fields : BOOKING_FIELDS).forEach(function(f) {
       var n = Number(r[f]) || 0;
       if (n) byCamp[c].book[f] = (byCamp[c].book[f] || 0) + n;
     });
