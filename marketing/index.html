@@ -1518,11 +1518,19 @@ async function loadMetaPaid() {
   var totSpend = 0;
   meta30.forEach(function(r) {
     var c = r.campaign || '(unnamed)';
-    byCamp[c] = byCamp[c] || {spend: 0, impr: 0, clicks: 0, conv: 0};
+    byCamp[c] = byCamp[c] || {spend: 0, impr: 0, clicks: 0, conv: 0, book: {}};
     byCamp[c].spend += Number(r.spend) || 0;
     byCamp[c].impr += Number(r.impressions) || 0;
     byCamp[c].clicks += Number(r.clicks) || 0;
     byCamp[c].conv += (Number(r.actions_purchase) || 0) + (Number(r.actions_lead) || 0);
+    // 11 Aug pm: Book Now custom conversions now ride along in the meta30
+    // payload (WebApi V6), so campaigns UNDER the judge gate — no matrix row
+    // to override from — still count real results. Same MAX-not-SUM rule as
+    // the matrix: overlapping custom conversions fire together.
+    BOOKING_FIELDS.forEach(function(f) {
+      var n = Number(r[f]) || 0;
+      if (n) byCamp[c].book[f] = (byCamp[c].book[f] || 0) + n;
+    });
     totSpend += Number(r.spend) || 0;
   });
   var list = Object.keys(byCamp).map(function(c) {
@@ -1534,6 +1542,17 @@ async function loadMetaPaid() {
     if (f && f.row.conv_total !== undefined && f.row.conv_total !== '' && !isNaN(Number(f.row.conv_total))) {
       v.conv = Number(f.row.conv_total);
       v.convNote = f.row.conv_breakdown || '';
+    } else {
+      // Not judged yet — no matrix row to trust, so count bookings from the
+      // raw feed the same way the matrix would: MAX across the custom
+      // conversion fields, plus the purchases/leads already in v.conv.
+      var bk = 0;
+      Object.keys(v.book || {}).forEach(function(fld) { if (v.book[fld] > bk) bk = v.book[fld]; });
+      bk = Math.round(bk);
+      if (bk > 0) {
+        v.convNote = bk + ' Book Now action' + (bk === 1 ? '' : 's') + (v.conv ? ' + ' + v.conv + ' purchase/lead' + (v.conv === 1 ? '' : 's') : '');
+        v.conv += bk;
+      }
     }
     var ctr = v.impr > 0 ? v.clicks / v.impr : 0;
     var cpc = v.clicks > 0 ? v.spend / v.clicks : 0;
@@ -2111,6 +2130,10 @@ function isAwarenessName(name) { return /awareness|boost|instagram post/i.test(S
 // 11 Aug: sign-up campaigns (Birmingham TTJ) — results land in Klaviyo, which
 // the pixel can't see, so they're judged on click efficiency like awareness.
 function isSignupName(name) { return !isAwarenessName(name) && /sign\s*-?up/i.test(String(name)); }
+// 11 Aug pm: the Meta booking custom-conversion fields (must mirror
+// HUB2.PAID_BOOKING_FIELDS in ContentLibrary.gs and the meta30 field list in
+// WebApi.gs — all three lists change together).
+var BOOKING_FIELDS = ['actions_booking_conversion','actions_southampton_book_now','actions_soho_venue_booking','actions_manchester_northern_quarter_booking_conversions','actions_leeds_booking_conversion','actions_shoreditch_trip_to_japan_book_now','actions_meadowhall_sheffield_book_now','actions_lakeside_book_now','actions_newcastle_book_now','actions_leicester_book_now'];
 
 // 30-day totals + daily series for one Meta campaign, from the payload we
 // already hold. Returns null when the campaign has aged out of the window.
