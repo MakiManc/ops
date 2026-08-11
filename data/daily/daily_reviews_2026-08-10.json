@@ -3,7 +3,7 @@
  "window_from": "2026-08-04",
  "window_to": "2026-08-10",
  "window_days": 7,
- "_generated_at": "2026-08-11T11:03:21Z",
+ "_generated_at": "2026-08-11T16:33:07Z",
  "source": "Google Reviews workbook 1aFGfbGr… — 'Raw Data' tab (gid 284143046). Reviews RECEIVED on the date shown; a review lands days after the visit.",
  "neg_threshold": 3,
  "sites": {
@@ -50,20 +50,105 @@
   "M3": {
    "cluster": "Scotland & Newcastle",
    "day": {
-    "n": 0,
-    "avg": null,
+    "n": 1,
+    "avg": 5.0,
     "neg": 0,
-    "pos": 0,
-    "with_comment": 0
+    "pos": 1,
+    "with_comment": 1
    },
    "window": {
-    "n": 0,
-    "avg": null,
-    "neg": 0,
-    "pos": 0,
-    "with_comment": 0
+    "n": 15,
+    "avg": 4.8,
+    "neg": 1,
+    "pos": 14,
+    "with_comment": 12
    },
-   "reviews": []
+   "reviews": [
+    {
+     "stars": 5,
+     "author": "Marte Gallardo",
+     "text": "Tried The vegan black garlic tonkotsu ramen pumpkin roll and steak tataki ramen and a couple of cocktails; so tasty!! Love in the first bite you must to try! Special honour to our waiter David, we took all his recommendations and it was better than we expected!!",
+     "date": "2026-08-10",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Man ofBerlin",
+     "text": "(Translated by Google) A lovely restaurant with a delicious menu featuring dishes that are rarely found elsewhere. The staff are very friendly and efficient. (Original) Feines Restaurant mit einer leckeren Speisekarte mit Gerichten, die ma sonst so ehe selten findet. Die Leute sehr nett und schnell.",
+     "date": "2026-08-09",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Victoria Collins",
+     "text": "Omg it was so good I could eat tonnes of their food this food could be in my dreams it was amazing. The service was very nice and helpful, the food and drinks came in about 5-10 minutes within ordering whilst still being served hot. The staff were really friendly and helped sort out allergies. The atmosphere was peaceful, nice decorations around. I just would eat this food everyday, I wish I lived closer. The experience of eating Japanese food for the first time was great too. Maki and ramen is my favourite restaurant definitely. I will be coming again when I am nearby.",
+     "date": "2026-08-09",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "amelka",
+     "text": "Food was amazing, brilliant sushi, super delicious! The drinks were also phenomenal and the staff were also really kind and helpful 😁👍🏻",
+     "date": "2026-08-09",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Katherine Bracken",
+     "text": "Awesome vibes and awesome waiter",
+     "date": "2026-08-09",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Giuliano Marinella",
+     "text": "Finding someone like David as a waiter is the best there is, he helped us to understand the dishes well and make some modifications to be able to enjoy everything very well! Excellent vegan options!",
+     "date": "2026-08-08",
+     "has_comment": true
+    },
+    {
+     "stars": 3,
+     "author": "Dillon Downie",
+     "text": "Really like most Maki & Ramen places, however hopefully this meal was just a one off mistake. Tofu was cold when served in a bowl of Ramen that mostly contained noodles and stock without much of the add-ons. Wouldn’t have minded that too much except for the plum wine being far, far too diluted with soda. Service was friendly, but the quality of the product was quite subpar compared to other branches.",
+     "date": "2026-08-06",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Antonia Servera",
+     "text": "(Translated by Google) David treated us wonderfully, we really liked the food, and the sushi was also generous. (Original) David nos atendió de maravilla, la comida nos gustó bastante, y el sushi también era generoso.",
+     "date": "2026-08-06",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Joan Chapman",
+     "text": "We made a reservation here because we were so curious to know what the sushi was like here. Well, it was amazing. My son couldnt stop talking about how special it was. My toddler ate a plate of noodles and was food (and a few plastic zoo animals we brought)entertained the whole meal. The Ramen was very delicious as well. Not a speck of food was left on the plates. We highly recommend this place if you are craving an authentic feeling experience, even with an irashaimasse and pleasant gong on arrival. The staff was attentive and patient with our little one. Thank you for the wonderful meal!",
+     "date": "2026-08-05",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Kadu Corrêa",
+     "text": "Amazing Restaurant.",
+     "date": "2026-08-05",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Luka LeClair",
+     "text": "The sushi was SO GOOD. Definitely worth every penny we spent. Amazing staff and food. Come here if you want amazing service and the time of your life!!!",
+     "date": "2026-08-05",
+     "has_comment": true
+    },
+    {
+     "stars": 5,
+     "author": "Lara Aitken",
+     "text": "Great wee lunch here! I had the yuzu tom yum ramen and it was so tasty! Only downside was the octopus was a bit overcooked but thats to be expected really when its sitting in a hot broth! My boyfriend loved his chicken ramen said it was really tasty chicken. Staff were great very friendly, would definitely recommend to anyone wanting some ramen! 😋",
+     "date": "2026-08-05",
+     "has_comment": true
+    }
+   ]
   },
   "M6": {
    "cluster": "Scotland & Newcastle",
@@ -1706,18 +1791,18 @@
     "M15"
    ],
    "day": {
-    "n": 8,
-    "avg": 4.5,
+    "n": 9,
+    "avg": 4.56,
     "neg": 2,
-    "pos": 6,
-    "with_comment": 5
+    "pos": 7,
+    "with_comment": 6
    },
    "window": {
-    "n": 111,
-    "avg": 4.63,
-    "neg": 11,
-    "pos": 100,
-    "with_comment": 78
+    "n": 126,
+    "avg": 4.65,
+    "neg": 12,
+    "pos": 114,
+    "with_comment": 90
    }
   },
   "North England & Midlands": {
@@ -1773,11 +1858,9 @@
  },
  "gaps": {
   "no_reviews_in_window": [
-   "M3",
    "IKI2"
   ],
   "unmapped_labels": {
-   "Fountainbridge": 15,
    "Leith": 7
   },
   "positives_capped": {
