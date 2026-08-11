@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-10",
+  "generated_at": "2026-08-11",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-08-03 \u2013 2026-08-09",
@@ -42,7 +42,7 @@
           "target": null
         },
         "food_pct": {
-          "actual": 26.44,
+          "actual": 26.7,
           "target": 23.0,
           "gated": false
         },
@@ -50,24 +50,24 @@
           "actual": 927.7
         },
         "waste": {
-          "actual": 40.24
+          "actual": 49.32
         }
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -0.6,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 2.2,
           "target": "\u00b15%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-08-03"
       },
       "efficiency_score": {
-        "score": 93,
+        "score": 92,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -91,25 +91,29 @@
           },
           "food": {
             "weight": 30,
-            "value": 88.48,
-            "basis": "26.44% vs 25% baseline, -8/pp over"
+            "value": 86.4,
+            "basis": "26.70% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
             "value": 100.0,
             "basis": "19.98% vs 21% target, -15/pp over"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "2.20% inside \u00b15% band"
           }
         },
         "components_dropped": [
-          "weekly_star",
-          "food_var"
+          "weekly_star"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 \u2014 SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime\u2605 excluded"
       },
       "red_light": {
         "status": "red",
         "triggers": [
-          "food 26.4%"
+          "food 26.7%"
         ],
         "basis": "computed from the dashboard's own KPIs (sales vs target \u2264 -10%, wage > 26%, food > 25%); no external pull"
       },
@@ -166,7 +170,6 @@
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Stock-take \u2014 no variance entered this week",
         "Reviews \u2014 no week rating in source"
       ]
     }

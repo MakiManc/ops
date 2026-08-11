@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-10",
+  "generated_at": "2026-08-11",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-08-03 \u2013 2026-08-09",
@@ -38,11 +38,11 @@
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
-          "actual": 15.67,
+          "actual": 15.85,
           "target": null
         },
         "food_pct": {
-          "actual": 19.24,
+          "actual": 18.75,
           "target": 23.0,
           "gated": false
         },
@@ -92,12 +92,12 @@
           "food": {
             "weight": 30,
             "value": 100.0,
-            "basis": "19.24% vs 25% baseline, -8/pp over"
+            "basis": "18.75% vs 25% baseline, -8/pp over"
           },
           "wage": {
             "weight": 30,
             "value": 100.0,
-            "basis": "15.67% vs 21% target, -15/pp over"
+            "basis": "15.85% vs 21% target, -15/pp over"
           },
           "food_var": {
             "weight": 5,

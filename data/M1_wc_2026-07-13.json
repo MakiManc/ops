@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-28",
+  "generated_at": "2026-08-11",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-13 \u2013 2026-07-19",
@@ -25,16 +25,16 @@
           "wow_pct": -5.7
         },
         "covers": {
-          "actual": 1612,
-          "prev": 1647,
-          "wow_abs": -35,
-          "wow_pct": -2.13
+          "actual": 752,
+          "prev": 713,
+          "wow_abs": 39,
+          "wow_pct": 5.47
         },
         "sph": {
-          "actual": 20.96,
-          "prev": 22.21,
-          "wow_abs": -1.25,
-          "wow_pct": -5.63,
+          "actual": 20.27,
+          "prev": 20.86,
+          "wow_abs": -0.59,
+          "wow_pct": -2.83,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-13"
       },
       "efficiency_score": {
-        "score": 89,
+        "score": 88,
         "rag": "amber",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -86,8 +86,8 @@
           },
           "sph": {
             "weight": 15,
-            "value": 57.87,
-            "basis": "\u00a320.96 vs \u00a322 tgt \u2014 level 83, WoW -5.63% \u2192 mom 0"
+            "value": 56.33,
+            "basis": "\u00a320.27 vs \u00a322 tgt \u2014 level 71, WoW -2.83% \u2192 mom 22"
           },
           "food": {
             "weight": 30,
@@ -165,8 +165,8 @@
         "resolution": "weekly",
         "partial": false,
         "sales": 5320.76,
-        "orders": 187,
-        "aov": 28.45,
+        "orders": 224,
+        "aov": 23.75,
         "new_customers": 35,
         "rating": 4.38,
         "open_hours_pct": 99.9,
@@ -183,7 +183,8 @@
         },
         "gmv_vs_4wk_pct": -13.9,
         "gmv_vs_ly_pct": -30.1,
-        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. + ops from Weekly Summary sheet",
+        "source": "Deliveroo_Master_Consolidation.xlsx \u2014 Weekly Summary. | Deliveroo weekly Invoice Statement (order-level, summed) \u2014 w/c 2026-07-13 [sales/orders/AOV] + ops from Weekly Summary sheet",
+        "orders_estimated": false,
         "busy_mode_pct": 0.0
       },
       "gaps": [],

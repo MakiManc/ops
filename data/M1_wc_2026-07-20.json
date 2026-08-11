@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-07-29",
+  "generated_at": "2026-08-11",
   "source": "build_site_json.py \u2014 per-pipe slices (SYSTEMS_MAP contract).",
   "week": {
     "label": "Week of 2026-07-20 \u2013 2026-07-26",
@@ -25,16 +25,16 @@
           "wow_pct": -13.32
         },
         "covers": {
-          "actual": 1532,
-          "prev": 1612,
-          "wow_abs": -80,
-          "wow_pct": -4.96
+          "actual": 663,
+          "prev": 752,
+          "wow_abs": -89,
+          "wow_pct": -11.84
         },
         "sph": {
-          "actual": 22.0,
-          "prev": 20.96,
-          "wow_abs": 1.04,
-          "wow_pct": 4.96,
+          "actual": 21.17,
+          "prev": 20.27,
+          "wow_abs": 0.9,
+          "wow_pct": 4.44,
           "label": "Spend Per Head (covers-weighted Avg Spend)"
         },
         "wage_pct": {
@@ -50,7 +50,7 @@
           "actual": 295.76
         },
         "waste": {
-          "actual": 49.75
+          "actual": 61.83
         }
       },
       "stock_take": {
@@ -67,7 +67,7 @@
         "week_commencing": "2026-07-20"
       },
       "efficiency_score": {
-        "score": 79,
+        "score": 77,
         "rag": "red",
         "scale": "0\u2013100, 100 = at target; bands: green \u226595, amber \u226580, red <80",
         "weights": {
@@ -86,8 +86,8 @@
           },
           "sph": {
             "weight": 15,
-            "value": 99.88,
-            "basis": "\u00a322.00 vs \u00a322 tgt \u2014 level 100, WoW +4.96% \u2192 mom 100"
+            "value": 88.64,
+            "basis": "\u00a321.17 vs \u00a322 tgt \u2014 level 86, WoW +4.44% \u2192 mom 94"
           },
           "food": {
             "weight": 30,
