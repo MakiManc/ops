@@ -382,9 +382,9 @@ tr.hiddenrow { display: none; }
 <div id="tab-paid" class="tabpane">
   <div class="section">
     <h2>Meta Ads — last 30 days</h2>
-    <div class="src">Facebook + Instagram Ads by campaign · via Windsor · kill/keep/scale from ADD_REMOVE_MATRIX · conv = purchases + leads</div>
+    <div class="src">Facebook + Instagram Ads by campaign · via Windsor · kill/keep/scale from ADD_REMOVE_MATRIX · results = Book Now conversions + purchases + leads (matches Ads Manager) · paused/ended campaigns listed separately below</div>
     <table>
-      <thead><tr><th>Campaign</th><th class="num">Spend</th><th class="num">Share</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Conv.</th><th class="num">CPA</th><th>Auto flag</th></tr></thead>
+      <thead><tr><th>Campaign</th><th class="num">Spend</th><th class="num">Share</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">CPC</th><th class="num">Results</th><th class="num">£/result</th><th>Auto flag</th></tr></thead>
       <tbody id="meta-table"><tr><td colspan="10" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
@@ -1502,9 +1502,17 @@ async function loadMetaPaid() {
     readSheetCsv(SHEETS.ADD_REMOVE_MATRIX).catch(function() { return ''; })
   ]);
   var matrix = csvToObjects(matrixCsv);
-  var flagByCamp = {};
+  var flagByCamp = {}, histByCamp = {};
   matrix.forEach(function(r) {
     if (r.entity_type === 'paid_campaign' && r.platform === 'meta') flagByCamp[r.entity_name] = {row: r, d: decisionOf(r)};
+    // 11 Aug: the ledger knows which campaigns are paused/finished. A campaign
+    // in HISTORY with no live row shouldn't sit in the main table looking
+    // active — its spend is real (still inside the 30-day window) but the
+    // campaign isn't running.
+    if (r.entity_type === 'HISTORY' && r.platform === 'meta') {
+      var hst = String(r.status || '').trim();
+      if (hst === 'actioned' || hst === 'stopped') histByCamp[r.entity_name] = r;
+    }
   });
   var byCamp = {};
   var totSpend = 0;
@@ -1519,14 +1527,25 @@ async function loadMetaPaid() {
   });
   var list = Object.keys(byCamp).map(function(c) {
     var v = byCamp[c];
+    // 11 Aug: the matrix counts Book Now custom conversions (the same events
+    // Ads Manager calls results); the raw payload here still counts
+    // purchases+leads only. Trust the matrix's count wherever it has judged.
+    var f = flagByCamp[c];
+    if (f && f.row.conv_total !== undefined && f.row.conv_total !== '' && !isNaN(Number(f.row.conv_total))) {
+      v.conv = Number(f.row.conv_total);
+      v.convNote = f.row.conv_breakdown || '';
+    }
     var ctr = v.impr > 0 ? v.clicks / v.impr : 0;
     var cpc = v.clicks > 0 ? v.spend / v.clicks : 0;
     var cpa = v.conv > 0 ? v.spend / v.conv : null;
     var share = totSpend > 0 ? v.spend / totSpend : 0;
-    return {c: c, v: v, ctr: ctr, cpc: cpc, cpa: cpa, share: share, flag: flagByCamp[c]};
+    return {c: c, v: v, ctr: ctr, cpc: cpc, cpa: cpa, share: share, flag: f,
+            ended: !f && histByCamp[c] ? histByCamp[c] : null};
   }).sort(function(a, b) { return b.v.spend - a.v.spend; });
   var tbody = document.getElementById('meta-table');
   if (!list.length) { tbody.innerHTML = '<tr><td colspan="10" class="subtle">No Meta campaign data</td></tr>'; return; }
+  var endedList = list.filter(function(x) { return x.ended; });
+  list = list.filter(function(x) { return !x.ended; });
   var maxSpend = list.length ? list[0].v.spend : 0;
   var maxClicks = list.reduce(function(m, x) { return Math.max(m, x.v.clicks); }, 0);
   var maxConv = list.reduce(function(m, x) { return Math.max(m, x.v.conv); }, 0);
@@ -1545,7 +1564,7 @@ async function loadMetaPaid() {
       }
     }
     return '<tr>' +
-      '<td>' + x.c + '</td>' +
+      '<td>' + x.c + (x.v.convNote ? '<span class="rowsub">Results: ' + escAttr(x.v.convNote) + '</span>' : '') + '</td>' +
       barCell(x.v.spend, maxSpend, fmtGbp(x.v.spend), 'rgba(37,99,235,.14)') +
       '<td class="num">' + (x.share * 100).toFixed(1) + '%</td>' +
       '<td class="num">' + fmtN(x.v.impr) + '</td>' +
@@ -1556,7 +1575,27 @@ async function loadMetaPaid() {
       '<td class="num">' + (x.cpa != null ? fmtGbp2(x.cpa) : '—') + '</td>' +
       '<td>' + flagCell + '</td>' +
       '</tr>';
-  }).join('');
+  }).join('') + (endedList.length
+    ? '<tr><td colspan="10" style="background:#F8FAFC;font-weight:600;color:#64748B;font-size:11px;padding-top:10px">Paused / ended — no longer running, spend still inside the 30-day window (' + endedList.length + ')</td></tr>' +
+      endedList.map(function(x) {
+        var h = x.ended, st = String(h.status || '').trim();
+        var when = actionedOn(h);
+        var eCell = '<span class="rag ' + verdictOf(h) + '">' + verdictOf(h) + '</span>' +
+          '<span class="srcbadge">' + (st === 'actioned' ? 'switched off' : 'ended') + (when ? ' · ' + fmtDayMon(when) : '') + '</span>';
+        return '<tr style="opacity:.55">' +
+          '<td>' + x.c + '</td>' +
+          '<td class="num">' + fmtGbp(x.v.spend) + '</td>' +
+          '<td class="num">' + (x.share * 100).toFixed(1) + '%</td>' +
+          '<td class="num">' + fmtN(x.v.impr) + '</td>' +
+          '<td class="num">' + fmtN(x.v.clicks) + '</td>' +
+          '<td class="num">' + fmtPct(x.ctr) + '</td>' +
+          '<td class="num">' + fmtGbp2(x.cpc) + '</td>' +
+          '<td class="num">' + fmtN(x.v.conv) + '</td>' +
+          '<td class="num">' + (x.cpa != null ? fmtGbp2(x.cpa) : '—') + '</td>' +
+          '<td>' + eCell + '</td>' +
+          '</tr>';
+      }).join('')
+    : '');
 }
 
 // =====================================================================
@@ -2069,6 +2108,9 @@ function gadsAgg(name) {
           cpa: conv > 0 ? spend / conv : null};
 }
 function isAwarenessName(name) { return /awareness|boost|instagram post/i.test(String(name)); }
+// 11 Aug: sign-up campaigns (Birmingham TTJ) — results land in Klaviyo, which
+// the pixel can't see, so they're judged on click efficiency like awareness.
+function isSignupName(name) { return !isAwarenessName(name) && /sign\s*-?up/i.test(String(name)); }
 
 // 30-day totals + daily series for one Meta campaign, from the payload we
 // already hold. Returns null when the campaign has aged out of the window.
@@ -2171,6 +2213,13 @@ function matrixWhyHtml(r, d, agg) {
       parts.push('Each conversion costs <b>' + fmtGbp2(cpa) + '</b>.');
     }
     parts.push('<span class="subtle">The ' + (gwPm ? 'PMax' : 'Search') + ' bars: under £' + gwScale + ' a conversion (with enough volume) = scale it up · over £' + gwKill + ' a conversion after £' + MRULES.GADS_KILL_MINSPEND + ' spent (or £' + MRULES.GADS_ZERO_MINSPEND + '+ with zero conversions) = kill it.</span>');
+  } else if (isPaid && isSignupName(r.entity_name)) {
+    parts.push('This is a <b>sign-up campaign</b> — its results (database sign-ups) land in <b>Klaviyo</b>, which this dashboard can\'t see yet, so it\'s judged on click efficiency only.');
+    if (ctr != null || cpc != null) {
+      parts.push((ctr != null ? '<b>' + fmtPct(ctr) + '</b> of the people who saw it clicked' : '') +
+        (cpc != null ? (ctr != null ? ', and each' : 'Each') + ' click cost <b>£' + Number(cpc).toFixed(2) + '</b>' : '') + '.');
+    }
+    parts.push('<span class="subtle">Check the sign-up count in Klaviyo before acting on this row — the real success measure lives there.</span>');
   } else if (isPaid && isAwarenessName(r.entity_name)) {
     parts.push('This is an <b>awareness / boost ad</b>, so it\'s judged on attention, not sales.');
     if (ctr != null || cpc != null) {
@@ -2180,16 +2229,19 @@ function matrixWhyHtml(r, d, agg) {
     if (flag === 'SCALE') parts.push('That\'s cheap attention — worth putting more behind it.');
     if (flag === 'KILL') parts.push('That\'s weak attention at a high price — not worth the money.');
   } else if (isPaid) {
+    var bdown = String(r.conv_breakdown || (agg && agg.breakdown) || '').trim();
     if (spend != null && conv != null) {
       if (conv > 0) {
-        parts.push('In the last 30 days this ad spent <b>' + fmtGbp2(spend) + '</b> and produced <b>' + conv + ' sale' + (conv === 1 ? '' : 's') + '/lead' + (conv === 1 ? '' : 's') + '</b> — that\'s <b>' + fmtGbp2(cpa) + ' per sale</b>.');
+        parts.push('In the last 30 days this ad spent <b>' + fmtGbp2(spend) + '</b> and produced <b>' + fmtN(conv) + ' result' + (Number(conv) === 1 ? '' : 's') + '</b>' +
+          (bdown ? ' (' + escAttr(bdown) + ')' : ' (Book Now conversions + purchases + leads)') +
+          ' — that\'s <b>' + fmtGbp2(cpa) + ' per result</b>, the same counting Ads Manager shows.');
       } else {
-        parts.push('In the last 30 days this ad spent <b>' + fmtGbp2(spend) + '</b> and produced <b>no sales or leads at all</b>.');
+        parts.push('In the last 30 days this ad spent <b>' + fmtGbp2(spend) + '</b> and produced <b>no bookings, purchases or leads at all</b>.');
       }
     } else if (cpa != null) {
-      parts.push('Each sale from this ad costs <b>' + fmtGbp2(cpa) + '</b>.');
+      parts.push('Each result from this ad costs <b>' + fmtGbp2(cpa) + '</b>.');
     }
-    parts.push('<span class="subtle">The bars: under £' + MRULES.PAID_SCALE_CPA + ' a sale = scale it up · over £' + MRULES.PAID_KILL_CPA + ' a sale (or £' + MRULES.PAID_ZERO_MINSPEND + '+ spent with zero sales) = kill it.</span>');
+    parts.push('<span class="subtle">The bars: under £' + MRULES.PAID_SCALE_CPA + ' a result = scale it up · over £' + MRULES.PAID_KILL_CPA + ' a result (or £' + MRULES.PAID_ZERO_MINSPEND + '+ spent with zero results) = kill it.</span>');
   } else {
     // organic
     var eng = Number(r.key_metric_1_value) || 0, ss = Number(r.key_metric_2_value) || 0;
@@ -2306,6 +2358,13 @@ function openMatrixModal(r, dRaw, fromHistory) {
   var isGoogle = r.platform === 'google';
   var isPaid = r.platform === 'meta' || isGoogle;
   var agg = r.platform === 'meta' ? campaignAgg(r.entity_name) : (isGoogle ? gadsAgg(r.entity_name) : null);
+  // 11 Aug: the payload's per-day rows only carry purchases+leads; the sheet's
+  // conv_total counts Book Now custom conversions too. Trust the sheet.
+  if (agg && r.platform === 'meta' && r.conv_total !== undefined && r.conv_total !== '' && !isNaN(Number(r.conv_total))) {
+    agg.conv = Number(r.conv_total);
+    agg.cpa = agg.conv > 0 ? agg.spend / agg.conv : null;
+    agg.breakdown = r.conv_breakdown || '';
+  }
   var title = escAttr(matrixDisplayName(r));
   var badge = d.label === 'PENDING'
     ? '<span class="rag PENDING">building</span>'
@@ -2321,8 +2380,8 @@ function openMatrixModal(r, dRaw, fromHistory) {
   var stats = [];
   if (isPaid && agg) {
     stats.push(mstat('spend · 30d', fmtGbp2(agg.spend)));
-    stats.push(mstat(isGoogle ? 'conversions' : 'sales/leads', fmtN(agg.conv, isGoogle ? 1 : 0)));
-    stats.push(mstat(isGoogle ? 'cost per conversion' : 'cost per sale', agg.cpa != null ? fmtGbp2(agg.cpa) : '—'));
+    stats.push(mstat(isGoogle ? 'conversions' : 'results', fmtN(agg.conv, isGoogle ? 1 : 0)));
+    stats.push(mstat(isGoogle ? 'cost per conversion' : 'cost per result', agg.cpa != null ? fmtGbp2(agg.cpa) : '—'));
     stats.push(mstat('clicks', fmtN(agg.clicks)));
     stats.push(mstat('click rate', fmtPct(agg.ctr)));
     stats.push(mstat('cost per click', fmtGbp2(agg.cpc)));
@@ -2340,6 +2399,9 @@ function openMatrixModal(r, dRaw, fromHistory) {
     stats.push(mstat('typical saves+shares', fmtPct(r.key_metric_2_value)));
   }
   body += '<div class="mdl-stats">' + stats.join('') + '</div>';
+  if (agg && agg.breakdown) {
+    body += '<div class="subtle" style="font-size:11px;margin:-4px 0 8px">What "results" means here: ' + escAttr(agg.breakdown) + '</div>';
+  }
 
   // threshold meter
   if (isGoogle) {
@@ -2354,11 +2416,11 @@ function openMatrixModal(r, dRaw, fromHistory) {
           [{upTo: gScale, color: '#DCFCE7'}, {upTo: gKill, color: '#FEF3C7'}, {upTo: gMaxC, color: '#FEE2E2'}],
           [{v: gScale, t: '£' + gScale + ' scale'}, {v: gKill, t: '£' + gKill + ' kill'}]) + '</div>';
     }
-  } else if (isPaid && !isAwarenessName(r.entity_name)) {
+  } else if (isPaid && !isAwarenessName(r.entity_name) && !isSignupName(r.entity_name)) {
     var cpaV = agg && agg.cpa != null ? agg.cpa : Number(r.key_metric_1_value) || null;
     if (cpaV != null) {
       var maxC = Math.max(16, cpaV * 1.15);
-      body += '<div class="mdl-sec"><h4>Where it sits — cost per sale</h4>' +
+      body += '<div class="mdl-sec"><h4>Where it sits — cost per result</h4>' +
         meterHtml(cpaV, maxC,
           [{upTo: MRULES.PAID_SCALE_CPA, color: '#DCFCE7'}, {upTo: MRULES.PAID_KILL_CPA, color: '#FEF3C7'}, {upTo: maxC, color: '#FEE2E2'}],
           [{v: MRULES.PAID_SCALE_CPA, t: '£5 scale'}, {v: MRULES.PAID_KILL_CPA, t: '£12 kill'}]) + '</div>';
