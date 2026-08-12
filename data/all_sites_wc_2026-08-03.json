@@ -1,6 +1,6 @@
 {
   "schema_version": "1.2",
-  "generated_at": "2026-08-11",
+  "generated_at": "2026-08-12",
   "week": {
     "label": "Week of 2026-08-03 – 2026-08-09",
     "commencing": "2026-08-03",
@@ -2629,9 +2629,9 @@
           "within_band": false
         },
         "food": {
-          "variance_pct": null,
+          "variance_pct": 4.9,
           "target": "±5%",
-          "within_band": null
+          "within_band": true
         },
         "week_commencing": "2026-08-03"
       },
@@ -2667,11 +2667,15 @@
             "weight": 30,
             "value": 73.15,
             "basis": "22.79% vs 21% target, -15/pp over"
+          },
+          "food_var": {
+            "weight": 5,
+            "value": 100,
+            "basis": "4.90% inside ±5% band"
           }
         },
         "components_dropped": [
-          "weekly_star",
-          "food_var"
+          "weekly_star"
         ],
         "formula_ref": "control_centre efficiencyScore() v3 — SPH 15% (level vs per-format target + WoW momentum); each component hard-capped at 100; Lifetime★ excluded"
       },
@@ -2734,7 +2738,6 @@
         "busy_mode_pct": 0.0
       },
       "gaps": [
-        "Stock-take — no variance entered this week",
         "Reviews — no week rating in source"
       ],
       "notes": {
@@ -2812,9 +2815,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.6,
           "target": "±5%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 4.5,
@@ -3005,9 +3008,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 2.3,
           "target": "±5%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": -4.7,
@@ -3199,9 +3202,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": 3.6,
           "target": "±5%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": 3.2,
@@ -3562,9 +3565,9 @@
       },
       "stock_take": {
         "drinks": {
-          "variance_pct": null,
+          "variance_pct": -1.2,
           "target": "±5%",
-          "within_band": null
+          "within_band": true
         },
         "food": {
           "variance_pct": -5.9,
