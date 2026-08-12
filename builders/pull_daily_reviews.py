@@ -86,6 +86,10 @@ SITE_TO_CODE = {
     "soho": "M18", "meadowhall": "M14", "nori": "MakiNori",
     "maki shoreditch": "M19", "maki southampton": "M20",
     "west end": "MAF1", "maki o2": "MAF3", "nq": "MAF-NQ",
+    # ⭐ 11/08/2026: 'Fountainbridge' rows started arriving in Raw Data on
+    #    31/07/2026 — this is M3's feed coming alive under a new label.
+    #    Mapping approved by Michael 11/08/2026 (M3 = Fountainbridge, Edinburgh).
+    "fountainbridge": "M3",
 }
 RATING_WORD_TO_INT = {"five": 5, "four": 4, "three": 3, "two": 2, "one": 1}
 
