@@ -1,11 +1,11 @@
 {
  "_source": "Auto Cash Up workbook 1T4TtCs-SkBjinToxG45oKksUiPPPIllo2Pqrqbaix6w, tab 'Raw Data 2' gid=1549502863. FOH/BOH ACTUAL split located structurally by percentage anchor (the header carries duplicate `FOH % `/`BOH % ` names and individual venue rows are shifted against it), then cross-validated against % x total labour.",
- "_generated_at": "2026-08-11T10:47:25",
+ "_generated_at": "2026-08-12T15:43:02",
  "date": "2026-08-10",
  "day": "Monday",
  "sites_reported": 19,
  "sites_expected": 19,
- "foh_boh_reported": 14,
+ "foh_boh_reported": 17,
  "unallocated_labour_total": 14.96,
  "clusters": [
   {
@@ -53,14 +53,10 @@
   "no_sales": [],
   "no_foh_boh_split": [
    "IKI2",
-   "M16",
-   "M17",
-   "M8",
-   "MakiNori"
+   "M16"
   ],
   "warnings": [
-   "2026-08-10 IKI2: FOH £505.86 + BOH £521.80 exceeds total labour £1,018.82 - split rejected",
-   "2026-08-10 MakiNori: FOH £313.37/36.02% and BOH £556.62/63.98% do not resolve against total labour £841.10 - looks like projected, not actual - split rejected"
+   "2026-08-10 IKI2: FOH £505.86 + BOH £521.80 exceeds total labour £1,018.82 - split rejected"
   ]
  },
  "sites": {
@@ -315,13 +311,13 @@
     "total": 760.92,
     "hours": 53.2,
     "wage_pct": 23.19,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "absent"
+    "foh": 256.4,
+    "foh_pct": 33.7,
+    "boh": 504.52,
+    "boh_pct": 66.3,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
    }
   },
   "M18": {
@@ -497,13 +493,13 @@
     "total": 1259.75,
     "hours": 86.7,
     "wage_pct": 25.32,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "absent"
+    "foh": 642.13,
+    "foh_pct": 50.97,
+    "boh": 617.61,
+    "boh_pct": 49.03,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
    }
   },
   "M9": {
@@ -549,13 +545,13 @@
     "total": 841.1,
     "hours": 54.9,
     "wage_pct": 39.63,
-    "foh": null,
-    "foh_pct": null,
-    "boh": null,
-    "boh_pct": null,
-    "unallocated": null,
-    "unallocated_pct": null,
-    "split_status": "failed_validation"
+    "foh": 320.75,
+    "foh_pct": 38.13,
+    "boh": 520.35,
+    "boh_pct": 61.87,
+    "unallocated": 0.0,
+    "unallocated_pct": 0.0,
+    "split_status": "ok"
    }
   }
  },
@@ -564,8 +560,8 @@
   "target": 91664.5,
   "covers": 3814,
   "labour": 21195.41,
-  "foh": 7285.75,
-  "boh": 9095.39,
+  "foh": 8505.03,
+  "boh": 10737.87,
   "wage_pct": 23.61,
   "avg_spend": 23.54
  }
