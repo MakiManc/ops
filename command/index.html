@@ -27,6 +27,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system
 h1{margin:0;font-size:22px;letter-spacing:-.02em}
 h1 b{color:var(--maki-orange)}
 .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.meta input[type=date]{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:4px 6px;font-size:12px}
 .meta{color:var(--muted);font-size:12px;text-align:right;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 select,.rl{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:5px 9px;font-size:12px;cursor:pointer}
 .rl:hover,select:hover{border-color:var(--maki-orange)}
@@ -90,7 +91,14 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="sub">Baked daily from the Neon warehouse · shell carries no numbers</div></div>
   <div class="meta">
     <span>pull <b id="m-pull">—</b></span>
-    <select id="daysel" title="Roll back to an earlier snapshot"></select>
+    <span class="filters" style="margin:0" id="range-btns">
+      <button class="fbtn" aria-pressed="true" data-r="latest">Latest</button>
+      <button class="fbtn" aria-pressed="false" data-r="7">7 days</button>
+      <button class="fbtn" aria-pressed="false" data-r="30">30 days</button>
+      <button class="fbtn" aria-pressed="false" data-r="all">All</button>
+    </span>
+    <input type="date" id="d-from" title="From"><input type="date" id="d-to" title="To">
+    <select id="daysel" title="Snapshots in the selected range"></select>
     <button class="rl" onclick="location.reload()">Reload</button>
   </div>
 </div>
@@ -136,6 +144,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
     <div class="s">Delivery / supplier issue forms in GetCompliant</div></div>
     <div class="card-b" id="sp-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Issues by answered supplier</div>
+    <div class="s">From the form's own “Supplier?” answers — fills in once the answers feed lands</div></div>
+    <div class="card-b" id="sp-ans"></div></div>
   <div class="card"><div class="card-h"><div class="t">Form detail</div>
     <div class="s">Every delivery or supplier form, most open first</div></div>
     <div class="card-b" id="sp-tbl"></div></div>
@@ -292,11 +303,31 @@ function render(snap){
     areas.map(a=>[a.area,a.tasks,a.overdue,a.paused,a.procedures,
       a.overdue>0?chip('r','Overdue'):chip('g','Clear')]));
 
+  /* deltas vs the earliest snapshot in the selected range */
+  const pv=PREV&&PREV.pull_date!==snap.pull_date?PREV:null;
+  const delta=(cur,old)=>{
+    if(pv==null||cur==null||old==null) return '';
+    const d=cur-old; if(!d) return ' <span class="tag t-n">= since '+esc(pv.pull_date)+'</span>';
+    return ' <span class="tag '+(d>0?'t-r':'t-g')+'">'+(d>0?'+':'')+d+' since '+esc(pv.pull_date)+'</span>';
+  };
+
   /* suppliers */
   const sup=snap.suppliers||{};
   $('supp-note').innerHTML=sup.note?`<div class="warn"><b>Read this first.</b> ${esc(sup.note)}</div>`:'';
+  const pvTot={}; if(pv&&pv.suppliers) (pv.suppliers.totals||[]).forEach(t=>pvTot[t.supplier]=t.open);
   bars('sp-bars',(sup.totals||[]).map(t=>({k:t.supplier,v:t.open||0,
-    tip:`${t.supplier} — ${fmtN(t.open)} open across ${fmtN(t.forms)} form(s), ${fmtN(t.raised)} raised`})));
+    tip:`${t.supplier} — ${fmtN(t.open)} open across ${fmtN(t.forms)} form(s), ${fmtN(t.raised)} raised`+
+      (pv&&pvTot[t.supplier]!=null?` (was ${fmtN(pvTot[t.supplier])} on ${pv.pull_date})`:'')})));
+  const ans=sup.answered||[];
+  $('sp-ans').innerHTML=ans.length
+    ? '<table><thead><tr><th>Supplier (as answered)</th><th class="n">Answers</th></tr></thead><tbody>'+
+      ans.map(a=>`<tr><td>${esc(a.supplier)}</td><td class="n">${fmtN(a.answers)}</td></tr>`).join('')+
+      '</tbody></table><div class="prov">source feed: '+esc(sup.answered_source||'')+'</div>'
+    : '<div class="empty"><b>The supplier IS captured on every submission</b> — the form has a '+
+      '“Supplier?” question (verified in GC Central Form Tasks). Its answers feed, '+
+      '<code>GC Form Task Answers</code>, does not land in the warehouse yet, which is the only '+
+      'reason these issues read as Unattributed. Fixing that feed in maki-hospitality-etl '+
+      'unlocks issue-by-supplier reporting here automatically.</div>';
   table('sp-tbl',[{h:'Supplier'},{h:'Form'},{h:'Completed',n:1},{h:'Raised',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
     (sup.forms||[]).map(f=>[f.supplier,f.form,f.completed,f.raised,f.open,
       (f.open||0)>=20?chip('r','Escalate'):(f.open||0)>0?chip('a','Open'):chip('g','Clear')]));
@@ -318,7 +349,7 @@ function render(snap){
   /* feeds */
   const fh=snap.feed_health||[];
   const bad=fh.filter(r=>['MISSING','STALE'].includes(r.verdict)).length;
-  $('b-fh').outerHTML=bad?chip('r',bad+' need attention'):chip('g','all healthy');
+  $('b-fh').innerHTML=bad?chip('r',bad+' need attention'):chip('g','all healthy');
   table('fh-tbl',[{h:'Feed'},{h:'Rows',n:1},{h:'Latest pull'},{h:'Age (days)',n:1},{h:'Verdict',raw:1}],
     fh.map(r=>[r.feed,fmtN(r.rows),r.latest_pull||'—',r.age_days??'—',
       chip(r.verdict==='OK'?'g':r.verdict==='WATCH'?'a':r.verdict==='EMPTY'?'n':'r',r.verdict)]));
@@ -335,7 +366,8 @@ function render(snap){
     kpi(trPct==null?'n':trPct>=TARGET?'g':trPct>=70?'a':'r','Training complete',
         trPct==null?'—':trPct+'%',trPct==null?'waiting on the deep pull':fmtN(comp)+' of '+fmtN(mods)+' modules')+
     kpi(supOpen==null?'n':supOpen>10?'r':supOpen?'a':'g','Open supplier issues',
-        supOpen==null?'—':fmtN(supOpen),supOpen==null?'no data in this pull':'target is 10 or fewer per month')+
+        (supOpen==null?'—':fmtN(supOpen))+delta(supOpen,pv&&pv.suppliers?(pv.suppliers.totals||[]).reduce((x,t)=>x+(t.open||0),0):null),
+        supOpen==null?'no data in this pull':'target is 10 or fewer per month')+
     kpi(devOpen==null?'n':devOpen?'a':'g','Open deviations',devOpen==null?'—':fmtN(devOpen),
         devOpen==null?'no data in this pull':'all forms, unresolved')+
     kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected but absent from Postgres')+
@@ -366,13 +398,47 @@ async function fetchIndex(){
   }
   throw lastErr||new Error('no data source reachable');
 }
+let IDX=null, PREV=null;
+function datesInRange(){
+  const all=(IDX&&IDX.dates)||[];
+  const f=$('d-from').value, t=$('d-to').value;
+  if(f||t) return all.filter(d=>(!f||d>=f)&&(!t||d<=t));
+  const mode=[...$('range-btns').children].find(b=>b.getAttribute('aria-pressed')==='true')?.dataset.r||'latest';
+  if(mode==='all') return all;
+  if(mode==='latest') return all.slice(0,1);
+  const days=+mode, latest=all[0];
+  if(!latest) return [];
+  const cut=new Date(new Date(latest+'T00:00:00Z')-days*864e5).toISOString().slice(0,10);
+  return all.filter(d=>d>=cut);
+}
+async function applyRange(){
+  const ds=datesInRange();
+  const sel=$('daysel');
+  sel.innerHTML=ds.length?ds.map(d=>`<option value="${d}">${d}</option>`).join('')
+    :'<option>no snapshots in range</option>';
+  if(!ds.length){$('banner').innerHTML='<div class="warn"><b>No snapshots in that date range.</b> Data starts on '+esc((IDX.dates||[]).slice(-1)[0]||'?')+'.</div>';return;}
+  PREV=null;
+  if(ds.length>1){
+    try{const r=await fetch(BASE+'snapshot_'+ds[ds.length-1]+'.json'+cb(),{cache:'no-store'});
+        if(r.ok) PREV=await r.json();}catch(e){}
+  }
+  await loadSnap(ds[0]);
+}
 async function boot(){
   try{
-    const idx=await fetchIndex();
-    const sel=$('daysel');
-    sel.innerHTML=(idx.dates||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
-    sel.onchange=()=>loadSnap(sel.value).catch(e=>$('banner').innerHTML=`<div class="err">${esc(e.message)}</div>`);
-    await loadSnap(idx.latest||idx.dates[0]);
+    IDX=await fetchIndex();
+    $('daysel').onchange=e=>loadSnap(e.target.value).catch(er=>$('banner').innerHTML=`<div class="err">${esc(er.message)}</div>`);
+    $('range-btns').addEventListener('click',e=>{
+      const b=e.target.closest('.fbtn'); if(!b) return;
+      [...$('range-btns').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+      $('d-from').value=''; $('d-to').value='';
+      applyRange();
+    });
+    $('d-from').onchange=$('d-to').onchange=()=>{
+      [...$('range-btns').children].forEach(x=>x.setAttribute('aria-pressed','false'));
+      applyRange();
+    };
+    await applyRange();
   }catch(e){
     $('banner').innerHTML=`<div class="err"><b>Could not load the baked data.</b> ${esc(e.message||e)}<br>
       Expected <code>${esc(BASE)}snapshot_index.json</code> — if this is a fresh deploy, give GitHub Pages a minute.</div>`;
@@ -446,13 +512,13 @@ async function loadDay(){
 
   if(mailR.status==='fulfilled'){
     const raw=arr(mailR.value);
-    if(raw===null){$('d-mail').innerHTML=unparsed('Gmail',mailR.value);$('b-mail').outerHTML=chip('a','unreadable');}
+    if(raw===null){$('d-mail').innerHTML=unparsed('Gmail',mailR.value);$('b-mail').innerHTML=chip('a','unreadable');}
     else{
       const th=raw.map(t=>({subj:String(pick(t,['subject','title'])||'(no subject)'),
         from:String(pick(t,['from','sender'])||''),snip:String(pick(t,['snippet','preview'])||'')}))
         .map(t=>({...t,hot:/urgent|asap|fail|broken|missing|short|late|complaint|closure/i.test(t.subj+' '+t.snip)}))
         .sort((a,b)=>b.hot-a.hot);
-      $('b-mail').outerHTML=chip(th.some(t=>t.hot)?'a':'n',th.length+' threads');
+      $('b-mail').innerHTML=chip(th.some(t=>t.hot)?'a':'n',th.length+' threads');
       $('d-mail').innerHTML=th.length?th.slice(0,14).map(t=>
         `<div class="sig"><div class="bod">${chip(t.hot?'r':'b',t.hot?'Urgent':'Ops')}
           <div class="hd" style="margin-top:4px">${esc(t.subj.slice(0,90))}</div>
