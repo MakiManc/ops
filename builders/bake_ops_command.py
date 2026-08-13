@@ -32,6 +32,13 @@ TRAPS, WITH DATES (house rule: write them down where the next person will look)
   * Flow Certificates exposes NO expiry field (only certificate_url,
     module_name, trainee_id) (13/08/2026). Emitted as a `gaps` entry every run
     so the blind spot stays visible until the source improves.
+  * SUPPLIER ATTRIBUTION (13/08/2026). The Delivery/Supplier Issue Form HAS a
+    'Supplier?' task (free-text 'Supplier Name') - verified in GC Central Form
+    Tasks - so the supplier IS captured per submission. The per-submission
+    answers live in 'GC Form Task Answers', which does not land in the
+    warehouse (fetched empty / absent). This pipe PROBES for that feed and
+    attributes issues by answered supplier when it lands; until then the
+    aggregate stays 'Unattributed' with an explicit gap naming the fix.
   * "Sosltice" is a live typo in a GetCompliant form title (13/08/2026). Both
     spellings map to supplier Solstice here; fix at source when possible.
   * GC Forms Overview LocationGroupName/Id are entirely null (13/08/2026), so
@@ -197,7 +204,40 @@ def main():
         a_=agg.setdefault(s_["supplier"],{"forms":0,"completed":0,"raised":0,"open":0})
         a_["forms"]+=1
         for k in ("completed","raised","open"): a_[k]+=s_[k]
-    snap["suppliers"]={"note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
+    # -- per-answer supplier attribution, when the answers feed lands --------
+    answered=[]; ans_src=None
+    for ans_feed in ("GC Form Task Answers","GC Form Task Answers (prev day)",
+                     "GC Scheduled Task Answers"):
+        if has_feed(cur, ans_feed):
+            ans_src=ans_feed
+            cur.execute(
+              "SELECT data FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
+              " LIMIT 5000", (ans_feed, ans_feed))
+            rows=[r[0] for r in cur.fetchall()]
+            def pick(d,*cands):
+                low={k.lower().replace('_',''):k for k in d}
+                for c in cands:
+                    k=low.get(c.lower().replace('_',''))
+                    if k and d.get(k) not in (None,''): return str(d[k])
+                return None
+            agg2={}
+            for d in rows:
+                task=pick(d,'TaskName','task','question') or ''
+                if 'supplier' not in task.lower(): continue
+                val=pick(d,'Answer','AnswerValue','Value','TextAnswer','AnswerText','Comment')
+                if not val: continue
+                sup=supplier_of(val)
+                name=sup if sup!='Unattributed' else val.strip().title()[:40]
+                agg2[name]=agg2.get(name,0)+1
+            answered=[{"supplier":k,"answers":v} for k,v in
+                      sorted(agg2.items(), key=lambda kv:-kv[1])]
+            break
+    if not ans_src:
+        gaps.append("Supplier per-issue attribution blocked: the form's 'Supplier?' "
+            "answer is captured in GetCompliant, but 'GC Form Task Answers' does not "
+            "land in the warehouse - fixing that feed in maki-hospitality-etl "
+            "unlocks issue-by-supplier reporting")
+    snap["suppliers"]={"answered_source":ans_src,"answered":answered,"note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
       "feeds fail at fetch, so this is the only supplier signal that lands - self-reported, "
       "not a measured OTIF.","totals":[{"supplier":k,**v} for k,v in
       sorted(agg.items(),key=lambda kv:-kv[1]["open"])],"forms":sorted(sups,key=lambda r:-r["open"])}
