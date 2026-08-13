@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ops Command</title>
+<!--
+  Ops Command shell - reads baked JSON from data/ops_command/ (Pipe 9).
+  No numbers live in this file. A data refresh is a commit, not a redeploy.
+  Also shipped as the "ops-command" desktop artifact: identical file; the only
+  page that needs the artifact viewer is My day (Gmail/Calendar/Asana via MCP),
+  which degrades gracefully in a plain browser.
+-->
+<style>
+:root{
+  color-scheme:light;
+  /* Maki & Ramen brand palette - same tokens as the AM Control Centre */
+  --maki-orange:#E94E1B; --maki-orange-soft:#F47C24; --maki-orange-bg:#FFF1EA;
+  --bg:#f4f5f9; --card:#ffffff; --ink:#0f172a; --muted:#475569; --faint:#94a3b8;
+  --line:#e2e8f0; --track:#eef1f4;
+  --series:#E94E1B;
+  --g:#059669; --g-bg:#ecfdf5; --r:#dc2626; --r-bg:#fef2f2;
+  --a:#d97706; --a-bg:#fffbeb; --b:#4f46e5; --b-bg:#eef2ff; --n:#64748b; --n-bg:#f1f5f9;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 4px 12px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 60px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+h1{margin:0;font-size:22px;letter-spacing:-.02em}
+h1 b{color:var(--maki-orange)}
+.sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.meta{color:var(--muted);font-size:12px;text-align:right;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+select,.rl{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:5px 9px;font-size:12px;cursor:pointer}
+.rl:hover,select:hover{border-color:var(--maki-orange)}
+nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:18px}
+nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:9px 13px;font-size:13.5px;cursor:pointer;font-weight:500}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected="true"]{color:var(--maki-orange);border-bottom-color:var(--maki-orange)}
+.page{display:none}.page.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-h{padding:13px 15px 11px;border-bottom:1px solid var(--line)}
+.card-h .t{font-weight:650;font-size:14.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-h .s{color:var(--muted);font-size:12px;margin-top:2px}
+.card-b{padding:13px 15px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.cols{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:11px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-left-width:3px;border-radius:10px;padding:11px 13px;box-shadow:var(--shadow)}
+.kpi .lb{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.kpi .vl{font-size:26px;font-weight:680;letter-spacing:-.03em;margin:2px 0 1px;font-variant-numeric:tabular-nums}
+.kpi .sb{color:var(--muted);font-size:11.5px}
+.k-g{border-left-color:var(--g)}.k-r{border-left-color:var(--r)}.k-a{border-left-color:var(--a)}
+.k-b{border-left-color:var(--b)}.k-n{border-left-color:var(--n)}.k-o{border-left-color:var(--maki-orange)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:640;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.t-g{background:var(--g-bg);color:var(--g)}.t-r{background:var(--r-bg);color:var(--r)}
+.t-a{background:var(--a-bg);color:var(--a)}.t-b{background:var(--b-bg);color:var(--b)}.t-n{background:var(--n-bg);color:var(--n)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;padding:0 8px 7px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.tot td{font-weight:650;border-top:2px solid var(--line)}
+.brow{display:flex;align-items:center;gap:10px;padding:5px 0}
+.blab{flex:0 0 40%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.btrack{flex:1;background:var(--track);border-radius:4px;height:15px;position:relative;overflow:hidden}
+.btrack i{display:block;height:100%;border-radius:4px;background:var(--series);min-width:3px;position:relative;z-index:0}
+.btrack u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--muted);opacity:.55;z-index:1}
+.tgt{color:var(--muted);font-size:11.5px;margin:0 0 6px 40%;padding-left:10px}
+.bval{flex:0 0 68px;text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:600}
+.empty{color:var(--muted);font-size:13px;padding:14px 2px;text-align:center}
+.note{background:var(--b-bg);border:1px solid var(--line);border-left:3px solid var(--b);border-radius:9px;padding:11px 13px;font-size:12.5px;margin-bottom:14px}
+.warn{background:var(--a-bg);border:1px solid var(--line);border-left:3px solid var(--a);border-radius:9px;padding:11px 13px;font-size:12.5px;margin-bottom:14px}
+.err{background:var(--r-bg);border:1px solid var(--line);border-left:3px solid var(--r);border-radius:9px;padding:11px 13px;font-size:12.5px;margin-bottom:14px}
+.sig{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.sig:last-child{border-bottom:0}
+.sig .bod{flex:1;min-width:0}
+.sig .hd{font-weight:620;font-size:13.5px}
+.sig .dt{color:var(--muted);font-size:12.5px;margin-top:2px}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;padding:6px 9px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .1s;z-index:99;max-width:280px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters .fbtn{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--muted)}
+.filters .fbtn[aria-pressed="true"]{background:var(--maki-orange-bg);border-color:var(--maki-orange);color:var(--maki-orange);font-weight:600}
+.prov{color:var(--faint);font-size:11px;margin-top:8px}
+.foot{color:var(--muted);font-size:11.5px;margin-top:18px;text-align:center}
+code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
+</style></head><body>
+<div id="tip"></div>
+<div class="wrap">
+<div class="top">
+  <div><h1><b>Maki &amp; Ramen</b> · Ops Command</h1>
+    <div class="sub">Baked daily from the Neon warehouse · shell carries no numbers</div></div>
+  <div class="meta">
+    <span>pull <b id="m-pull">—</b></span>
+    <select id="daysel" title="Roll back to an earlier snapshot"></select>
+    <button class="rl" onclick="location.reload()">Reload</button>
+  </div>
+</div>
+<div id="banner"></div>
+<nav id="nav"></nav>
+
+<div class="page on" id="p-over">
+  <div class="kpis" id="kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">Needs attention</div>
+    <div class="s">Every signal carries its basis — hover to see how it was derived</div></div>
+    <div class="card-b" id="signals"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Known gaps in this pull</div>
+    <div class="s">Named explicitly by the builder — never silent zeros</div></div>
+    <div class="card-b" id="gaps"></div></div>
+</div>
+
+<div class="page" id="p-train">
+  <div class="filters" id="tr-filter"></div>
+  <div class="card"><div class="card-h"><div class="t">Module completion by site</div>
+    <div class="s" id="tr-sub"></div></div>
+    <div class="card-b" id="tr-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Detail</div>
+    <div class="s">Overdue is a flag on top of a state — it overlaps In progress and Not started</div></div>
+    <div class="card-b" id="tr-tbl"></div></div>
+</div>
+
+<div class="page" id="p-comp">
+  <div class="cols">
+    <div class="card"><div class="card-h"><div class="t">Form completion</div>
+      <div class="s">GetCompliant forms · completed vs ongoing</div></div>
+      <div class="card-b" id="fc-bars"></div></div>
+    <div class="card"><div class="card-h"><div class="t">Open deviations by form</div>
+      <div class="s">Unresolved items raised through forms</div></div>
+      <div class="card-b" id="dv-bars"></div></div>
+  </div>
+  <div class="card"><div class="card-h"><div class="t">Scheduled tasks by area</div>
+    <div class="s">Checklist areas · overdue deviations highlighted</div></div>
+    <div class="card-b" id="mt-tbl"></div></div>
+</div>
+
+<div class="page" id="p-supp">
+  <div id="supp-note"></div>
+  <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
+    <div class="s">Delivery / supplier issue forms in GetCompliant</div></div>
+    <div class="card-b" id="sp-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Form detail</div>
+    <div class="s">Every delivery or supplier form, most open first</div></div>
+    <div class="card-b" id="sp-tbl"></div></div>
+</div>
+
+<div class="page" id="p-sites">
+  <div class="filters" id="hc-filter"></div>
+  <div class="card"><div class="card-h"><div class="t">Headcount by site</div>
+    <div class="s" id="hc-sub">Flow roster, branch names resolved</div></div>
+    <div class="card-b" id="hc-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Site directory</div>
+    <div class="s">GetCompliant locations · active and paused</div></div>
+    <div class="card-b" id="sd-tbl"></div></div>
+</div>
+
+<div class="page" id="p-feeds">
+  <div class="card"><div class="card-h"><div class="t">Feed health <span id="b-fh"></span></div>
+    <div class="s">Measured against Postgres, the system of record — the legacy sheet status is not a health signal</div></div>
+    <div class="card-b" id="fh-tbl"></div></div>
+</div>
+
+<div class="page" id="p-day">
+  <div id="day-note"></div>
+  <div id="conn"></div>
+  <div class="cols">
+    <div class="card"><div class="card-h"><div class="t">Inbox signal <span id="b-mail"></span></div>
+      <div class="s">Supplier + maintenance threads, last 10 days</div></div>
+      <div class="card-b" id="d-mail"></div></div>
+    <div class="card"><div class="card-h"><div class="t">Next 7 days</div>
+      <div class="s">Your calendar</div></div>
+      <div class="card-b" id="d-cal"></div></div>
+  </div>
+  <div class="card"><div class="card-h"><div class="t">Your open tasks</div>
+    <div class="s">Asana, soonest due first</div></div>
+    <div class="card-b" id="d-asana"></div></div>
+</div>
+
+<div class="prov" id="prov"></div>
+<div class="foot" id="foot"></div>
+</div>
+<script>
+/* ------------ data plane: baked JSON on GitHub Pages ------------ */
+const BASE = window.OPS_BASE ||
+  (location.hostname.endsWith('github.io') ? '../data/ops_command/'
+                                           : 'https://makiramen.github.io/ops/data/ops_command/');
+const cb = () => '?cb=' + Date.now();   // hard-learned: a cached response served a day-old answer 29/07/2026
+const TARGET = 90;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
+
+const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
+  ['p-supp','Suppliers'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
+$('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
+$('nav').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-p]'); if(!b) return;
+  [...$('nav').children].forEach(x=>x.setAttribute('aria-selected',x===b));
+  PAGES.forEach(([id])=>$(id).classList.toggle('on',id===b.dataset.p));
+  window.scrollTo(0,0);
+});
+
+const tip=$('tip');
+function hover(el,txt){
+  el.addEventListener('mousemove',e=>{tip.textContent=txt;tip.style.opacity=1;
+    tip.style.left=Math.min(e.clientX+13,innerWidth-tip.offsetWidth-8)+'px';tip.style.top=(e.clientY+16)+'px';});
+  el.addEventListener('mouseleave',()=>tip.style.opacity=0);
+}
+function bars(host,items,fmt,target){
+  const el=$(host); if(!items.length){el.innerHTML='<div class="empty">Nothing to show</div>';return;}
+  const max=Math.max(...items.map(i=>i.v),target||1,1);
+  const tk=target?`<u style="left:${target/max*100}%"></u>`:'';
+  el.innerHTML=(target?`<div class="tgt">Target ${target}%</div>`:'')+items.map(i=>
+    `<div class="brow" data-t="${esc(i.tip||'')}"><div class="blab" title="${esc(i.k)}">${esc(i.k)}</div>
+     <div class="btrack">${tk}<i style="width:${Math.max(1.5,i.v/max*100)}%"></i></div>
+     <div class="bval">${fmt?fmt(i):fmtN(i.v)}</div></div>`).join('');
+  [...el.querySelectorAll('.brow')].forEach(r=>{if(r.dataset.t) hover(r,r.dataset.t);});
+}
+function table(host,cols,rows,empty){
+  const el=$(host);
+  if(!rows.length){el.innerHTML=`<div class="empty">${esc(empty||'Nothing to show')}</div>`;return;}
+  el.innerHTML='<table><thead><tr>'+cols.map(c=>`<th class="${c.n?'n':''}">${esc(c.h)}</th>`).join('')+
+    '</tr></thead><tbody>'+rows.map(r=>`<tr class="${r._tot?'tot':''}">`+cols.map((c,i)=>
+    `<td class="${c.n?'n':''}">${c.raw?r[i]:esc(r[i]??'—')}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+}
+function chip(kind,word){
+  const ic={g:'✓',a:'▲',r:'●',n:'–',b:'ℹ'}[kind]||'';
+  return `<span class="tag t-${kind}">${ic} ${esc(word)}</span>`;
+}
+const typeFilter=(host,onchange)=>{
+  const kinds=[['all','All'],['restaurant','Restaurants'],['factory','Factory'],['entity','Entities']];
+  $(host).innerHTML='<span style="color:var(--muted);font-size:12px">Show:</span>'+
+    kinds.map(([k,l],i)=>`<button class="fbtn" aria-pressed="${i===0}" data-k="${k}">${l}</button>`).join('');
+  $(host).addEventListener('click',e=>{
+    const b=e.target.closest('.fbtn'); if(!b) return;
+    [...$(host).querySelectorAll('.fbtn')].forEach(x=>x.setAttribute('aria-pressed',x===b));
+    onchange(b.dataset.k);
+  });
+};
+
+/* ------------ render from a structured snapshot ------------ */
+let SNAP=null;
+function render(snap){
+  SNAP=snap;
+  $('m-pull').textContent=snap.pull_date||'—';
+  $('prov').textContent='source: '+(snap.source||'')+' · generated '+(snap.generated_at||'');
+  $('foot').textContent='Ops Command · schema '+(snap.schema_version||'?')+' · Postgres is the system of record.';
+
+  const ageDays=(Date.now()-new Date(snap.generated_at))/864e5;
+  if(ageDays>1.5) $('banner').innerHTML=`<div class="warn"><b>This snapshot is ${Math.floor(ageDays)} days old</b> (generated ${esc(snap.generated_at)}). The daily bake may have failed — check the ops repo's Actions tab.</div>`;
+  else $('banner').innerHTML='';
+
+  /* training */
+  const trAll=(snap.training&&snap.training.sites)||[];
+  const trSrc=(snap.training&&snap.training.source_feed)||'';
+  const drawTrain=kind=>{
+    const rows=trAll.filter(r=>kind==='all'||r.site_type===kind);
+    const mods=rows.reduce((s,r)=>s+(r.modules||0),0), comp=rows.reduce((s,r)=>s+(r.complete||0),0);
+    $('tr-sub').textContent=rows.length+' sites · '+fmtN(mods)+' module assignments · source '+trSrc+' · sorted worst first';
+    bars('tr-bars',rows.map(r=>({k:r.site,v:r.pct_complete||0,
+      tip:`${r.site} — ${fmtN(r.complete)} of ${fmtN(r.modules)} complete, ${fmtN(r.overdue)} overdue, ${fmtN(r.people)} people`})),
+      i=>i.v+'%',TARGET);
+    const body=rows.map(r=>{
+      const p=r.pct_complete||0, ratio=r.modules?(r.overdue||0)/r.modules:0;
+      return [r.site,r.people,r.modules,r.complete,p+'%',r.overdue,r.not_started,
+        (p>=TARGET&&!r.overdue)?chip('g','On track'):(p<70||ratio>=0.15)?chip('r','At risk'):chip('a','Behind')];});
+    if(rows.length>1){
+      const t=['All '+(kind==='all'?'sites':kind+'s'),
+        rows.reduce((s,r)=>s+(r.people||0),0),mods,comp,(mods?Math.round(100*comp/mods):0)+'%',
+        rows.reduce((s,r)=>s+(r.overdue||0),0),rows.reduce((s,r)=>s+(r.not_started||0),0),''];
+      t._tot=true; body.push(t);
+    }
+    table('tr-tbl',[{h:'Site'},{h:'People',n:1},{h:'Modules',n:1},{h:'Complete',n:1},
+      {h:'Complete %',n:1},{h:'Overdue',n:1},{h:'Not started',n:1},{h:'Status',raw:1}],body,
+      trAll.length?'':'Waiting on the 03:00 deep pull — '+((snap.gaps||[]).find(g=>/trainee_id/.test(g))||''));
+  };
+  typeFilter('tr-filter',drawTrain); drawTrain('all');
+
+  /* compliance */
+  const forms=(snap.compliance&&snap.compliance.forms)||[];
+  bars('fc-bars',forms.filter(f=>f.pct_complete!=null)
+    .sort((a,b)=>b.pct_complete-a.pct_complete).slice(0,18)
+    .map(f=>({k:f.form,v:f.pct_complete,
+      tip:`${f.form} — ${fmtN(f.completed)} completed, ${fmtN(f.ongoing)} ongoing, ${fmtN(f.open)} open deviations`})),
+    i=>i.v+'%');
+  bars('dv-bars',forms.filter(f=>(f.open||0)>0).sort((a,b)=>b.open-a.open).slice(0,18)
+    .map(f=>({k:f.form,v:f.open,tip:`${f.form} — ${fmtN(f.open)} open of ${fmtN(f.deviations)} raised`})));
+  const areas=(snap.compliance&&snap.compliance.areas)||[];
+  table('mt-tbl',[{h:'Area'},{h:'Tasks',n:1},{h:'Overdue',n:1},{h:'Paused',n:1},{h:'Procedures',n:1},{h:'Status',raw:1}],
+    areas.map(a=>[a.area,a.tasks,a.overdue,a.paused,a.procedures,
+      a.overdue>0?chip('r','Overdue'):chip('g','Clear')]));
+
+  /* suppliers */
+  const sup=snap.suppliers||{};
+  $('supp-note').innerHTML=sup.note?`<div class="warn"><b>Read this first.</b> ${esc(sup.note)}</div>`:'';
+  bars('sp-bars',(sup.totals||[]).map(t=>({k:t.supplier,v:t.open||0,
+    tip:`${t.supplier} — ${fmtN(t.open)} open across ${fmtN(t.forms)} form(s), ${fmtN(t.raised)} raised`})));
+  table('sp-tbl',[{h:'Supplier'},{h:'Form'},{h:'Completed',n:1},{h:'Raised',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
+    (sup.forms||[]).map(f=>[f.supplier,f.form,f.completed,f.raised,f.open,
+      (f.open||0)>=20?chip('r','Escalate'):(f.open||0)>0?chip('a','Open'):chip('g','Clear')]));
+
+  /* sites */
+  const hcAll=(snap.sites&&snap.sites.headcount)||[];
+  const drawHc=kind=>{
+    const rows=hcAll.filter(r=>kind==='all'||r.site_type===kind);
+    $('hc-sub').textContent=rows.length+' sites · '+fmtN(rows.reduce((s,r)=>s+(r.people||0),0))+' people · Flow roster, branch names resolved';
+    bars('hc-bars',rows.map(r=>({k:r.site,v:r.people||0,tip:`${r.site} — ${fmtN(r.people)} on the roster (${r.site_type})`})));
+  };
+  typeFilter('hc-filter',drawHc); drawHc('all');
+  const hcMap={}; hcAll.forEach(r=>hcMap[(r.site||'').toLowerCase()]=r.people);
+  table('sd-tbl',[{h:'Site'},{h:'Headcount',n:1},{h:'Groups'},{h:'State',raw:1}],
+    ((snap.sites&&snap.sites.directory)||[]).map(d=>[d.site,
+      hcMap[(d.site||'').toLowerCase()]??'—',d.groups||'—',
+      d.paused?chip('a','Paused'):d.active?chip('g','Active'):chip('n','Inactive')]));
+
+  /* feeds */
+  const fh=snap.feed_health||[];
+  const bad=fh.filter(r=>['MISSING','STALE'].includes(r.verdict)).length;
+  $('b-fh').outerHTML=bad?chip('r',bad+' need attention'):chip('g','all healthy');
+  table('fh-tbl',[{h:'Feed'},{h:'Rows',n:1},{h:'Latest pull'},{h:'Age (days)',n:1},{h:'Verdict',raw:1}],
+    fh.map(r=>[r.feed,fmtN(r.rows),r.latest_pull||'—',r.age_days??'—',
+      chip(r.verdict==='OK'?'g':r.verdict==='WATCH'?'a':r.verdict==='EMPTY'?'n':'r',r.verdict)]));
+
+  /* overview */
+  const s=snap.summary||{};
+  const mods=trAll.reduce((x,r)=>x+(r.modules||0),0), comp=trAll.reduce((x,r)=>x+(r.complete||0),0);
+  const trPct=mods?Math.round(100*comp/mods):null;
+  const supOpen=(sup.totals||[]).length?sup.totals.reduce((x,t)=>x+(t.open||0),0):null;
+  const devOpen=forms.length?forms.reduce((x,f)=>x+(f.open||0),0):null;
+  const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
+  $('kpis').innerHTML=
+    kpi('o','Employees',fmtN(s.employees),'on the Flow roster')+
+    kpi(trPct==null?'n':trPct>=TARGET?'g':trPct>=70?'a':'r','Training complete',
+        trPct==null?'—':trPct+'%',trPct==null?'waiting on the deep pull':fmtN(comp)+' of '+fmtN(mods)+' modules')+
+    kpi(supOpen==null?'n':supOpen>10?'r':supOpen?'a':'g','Open supplier issues',
+        supOpen==null?'—':fmtN(supOpen),supOpen==null?'no data in this pull':'target is 10 or fewer per month')+
+    kpi(devOpen==null?'n':devOpen?'a':'g','Open deviations',devOpen==null?'—':fmtN(devOpen),
+        devOpen==null?'no data in this pull':'all forms, unresolved')+
+    kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected but absent from Postgres')+
+    kpi('g','Feeds healthy',fmtN(s.feeds_ok),'fresh in the warehouse');
+  $('signals').innerHTML=(snap.signals||[]).length?(snap.signals||[]).map(g=>
+    `<div class="sig" data-t="basis: ${esc(g.basis||'')}">${chip(g.severity==='red'?'r':g.severity==='amber'?'a':'b',
+      g.severity==='red'?'Escalate':g.severity==='amber'?'Review':'Note')}
+     <div class="bod"><div class="hd">${esc(g.text)}</div><div class="dt">${esc(g.basis||'')}</div></div></div>`).join('')
+    :'<div class="empty">Nothing flagged on this pull</div>';
+  $('gaps').innerHTML=(snap.gaps||[]).length?(snap.gaps||[]).map(g=>
+    `<div class="sig">${chip('n','Gap')}<div class="bod"><div class="dt" style="margin-top:2px">${esc(g)}</div></div></div>`).join('')
+    :'<div class="empty">No gaps declared</div>';
+}
+
+async function loadSnap(date){
+  const r=await fetch(BASE+'snapshot_'+date+'.json'+cb(),{cache:'no-store'});
+  if(!r.ok) throw new Error('snapshot_'+date+'.json → HTTP '+r.status);
+  render(await r.json());
+}
+async function boot(){
+  try{
+    const idx=await (await fetch(BASE+'snapshot_index.json'+cb(),{cache:'no-store'})).json();
+    const sel=$('daysel');
+    sel.innerHTML=(idx.dates||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
+    sel.onchange=()=>loadSnap(sel.value).catch(e=>$('banner').innerHTML=`<div class="err">${esc(e.message)}</div>`);
+    await loadSnap(idx.latest||idx.dates[0]);
+  }catch(e){
+    $('banner').innerHTML=`<div class="err"><b>Could not load the baked data.</b> ${esc(e.message||e)}<br>
+      Expected <code>${esc(BASE)}snapshot_index.json</code> — if this is a fresh deploy, give GitHub Pages a minute.</div>`;
+  }
+  loadDay().catch(()=>null);
+}
+
+/* ------------ My day: the one live page (MCP; degrades gracefully) ------------ */
+const MAIL='mcp__598036e9-89ad-45a1-8ef2-b85a1f625af1__search_threads';
+const CAL='mcp__d7c8cd5b-a2a7-42b7-95b5-71789965a6d2__list_events';
+const ASANA='mcp__3534415d-a90c-44e8-a60a-c8f5fc6fb5dc__get_my_tasks';
+const CONN={};
+function isPermErr(e){return /allowlist|not permitted|permission|denied|not granted|unauthori/i.test(String(e&&e.message||e));}
+function mcp(tool,args){
+  if(!window.cowork||typeof window.cowork.callMcpTool!=='function')
+    return Promise.reject(new Error('no-viewer'));
+  return Promise.race([window.cowork.callMcpTool(tool,args),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('Timed out after 120s')),120000))]);
+}
+function arr(raw,depth){
+  depth=depth||0;
+  if(raw==null||depth>6) return null;
+  if(Array.isArray(raw)) return raw;
+  if(typeof raw==='string'){const t=raw.trim();
+    if(t.startsWith('[')||t.startsWith('{')){try{return arr(JSON.parse(t),depth+1);}catch(e){return null;}}
+    return null;}
+  if(typeof raw==='object'){
+    for(const k of ['threads','messages','items','events','tasks','results','records','value'])
+      if(Array.isArray(raw[k])) return raw[k];
+    if(Array.isArray(raw.content))
+      for(const c of raw.content)
+        if(c&&typeof c.text==='string'){const r=arr(c.text,depth+1); if(r) return r;}
+    for(const k of ['data','result','body','content','response'])
+      if(raw[k]!=null&&raw[k]!==raw){const r=arr(raw[k],depth+1); if(r) return r;}
+    return null;
+  }
+  return null;
+}
+const shapeOf=r=>{try{
+  if(Array.isArray(r)) return 'array['+r.length+']';
+  if(r&&typeof r==='object') return 'object{'+Object.keys(r).slice(0,8).join(', ')+'}';
+  if(typeof r==='string') return 'string: '+r.slice(0,80);
+  return typeof r;}catch(e){return 'unknown';}};
+const unparsed=(what,raw)=>`<div class="warn"><b>${what} replied, but no list could be read from it.</b><br>`+
+  `Shape received: <code>${esc(shapeOf(raw))}</code><br>`+
+  `<span style="opacity:.75">A parsing gap, not a permissions problem — the call succeeded.</span></div>`;
+
+async function loadDay(){
+  if(!window.cowork||typeof window.cowork.callMcpTool!=='function'){
+    $('day-note').innerHTML='<div class="note"><b>This page is live-only.</b> Gmail, Calendar and Asana are personal and real-time, '+
+      'so they are never baked into the public repo. Open this dashboard from the Artifacts view in the Claude desktop app to see them; '+
+      'the other six pages work everywhere.</div>';
+    ['d-mail','d-cal','d-asana'].forEach(id=>$(id).innerHTML='<div class="empty">Not available in a plain browser</div>');
+    return;
+  }
+  const since=new Date(Date.now()-10*864e5).toISOString().slice(0,10).replace(/-/g,'/');
+  const now=new Date(), wk=new Date(Date.now()+7*864e5);
+  const [mailR,calR,asaR]=await Promise.allSettled([
+    mcp(MAIL,{q:`after:${since} (supplier OR delivery OR maintenance OR order OR invoice OR Lynas)`,maxResults:25}),
+    mcp(CAL,{timeMin:now.toISOString(),timeMax:wk.toISOString(),maxResults:25}),
+    mcp(ASANA,{completed_since:'now'})]);
+  CONN.mail=mailR.status==='fulfilled'?'ok':(isPermErr(mailR.reason)?'blocked':'error');
+  CONN.cal=calR.status==='fulfilled'?'ok':(isPermErr(calR.reason)?'blocked':'error');
+  CONN.asana=asaR.status==='fulfilled'?'ok':(isPermErr(asaR.reason)?'blocked':'error');
+  $('conn').innerHTML='<div class="card"><div class="card-h"><div class="t">Connector access</div>'+
+    '<div class="s">Granted once at artifact creation — this artifact is never updated, so grants stick</div></div>'+
+    '<div class="card-b"><div class="chips">'+[['Gmail','mail'],['Google Calendar','cal'],['Asana','asana']].map(([n,k])=>
+      chip(CONN[k]==='ok'?'g':CONN[k]==='blocked'?'a':'r',n+' · '+(CONN[k]==='ok'?'ok':CONN[k]==='blocked'?'not granted':'error'))).join('')+
+    '</div></div></div>';
+  const pick=(o,ks)=>{for(const k of ks) if(o&&o[k]!=null) return o[k]; return null;};
+
+  if(mailR.status==='fulfilled'){
+    const raw=arr(mailR.value);
+    if(raw===null){$('d-mail').innerHTML=unparsed('Gmail',mailR.value);$('b-mail').outerHTML=chip('a','unreadable');}
+    else{
+      const th=raw.map(t=>({subj:String(pick(t,['subject','title'])||'(no subject)'),
+        from:String(pick(t,['from','sender'])||''),snip:String(pick(t,['snippet','preview'])||'')}))
+        .map(t=>({...t,hot:/urgent|asap|fail|broken|missing|short|late|complaint|closure/i.test(t.subj+' '+t.snip)}))
+        .sort((a,b)=>b.hot-a.hot);
+      $('b-mail').outerHTML=chip(th.some(t=>t.hot)?'a':'n',th.length+' threads');
+      $('d-mail').innerHTML=th.length?th.slice(0,14).map(t=>
+        `<div class="sig"><div class="bod">${chip(t.hot?'r':'b',t.hot?'Urgent':'Ops')}
+          <div class="hd" style="margin-top:4px">${esc(t.subj.slice(0,90))}</div>
+          <div class="dt">${esc(t.from.replace(/<[^>]+>/g,'').slice(0,40))} — ${esc(t.snip.slice(0,90))}</div></div></div>`).join('')
+        :'<div class="empty">No supplier or maintenance signal</div>';
+    }
+  } else $('d-mail').innerHTML=`<div class="err">${mailR.reason&&mailR.reason.message==='no-viewer'?'Not available in a plain browser':'Gmail unavailable'}</div>`;
+
+  if(calR.status==='fulfilled'){
+    const evs=arr(calR.value);
+    if(evs===null) $('d-cal').innerHTML=unparsed('Google Calendar',calR.value);
+    else $('d-cal').innerHTML=evs.length?evs.slice(0,14).map(ev=>{
+      const st=pick(ev,['start','startTime'])||{}, iso=typeof st==='string'?st:(st.dateTime||st.date||'');
+      const d=new Date(iso), allDay=!!(st&&st.date&&!st.dateTime);
+      return `<div class="sig"><div class="bod"><div class="hd">${esc(String(ev.summary||ev.title||'(no title)').slice(0,60))}</div>
+        <div class="dt">${isNaN(d)?'':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
+        ${allDay?'· all day':(isNaN(d)?'':'· '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))}</div></div></div>`;
+    }).join(''):'<div class="empty">Nothing scheduled</div>';
+  } else $('d-cal').innerHTML=`<div class="err">${calR.reason&&calR.reason.message==='no-viewer'?'Not available in a plain browser':'Calendar unavailable'}</div>`;
+
+  if(asaR.status==='fulfilled'){
+    const ts=arr(asaR.value);
+    if(ts===null) $('d-asana').innerHTML=unparsed('Asana',asaR.value);
+    else $('d-asana').innerHTML=ts.length?ts.slice(0,25).map(t=>{
+      const due=String(pick(t,['due_on','due_at','dueOn'])||'');
+      const late=due&&new Date(due)<new Date(new Date().toDateString());
+      return `<div class="sig">${late?chip('r','Overdue'):chip('n',due||'no date')}
+        <div class="bod"><div class="hd">${esc(String(t.name||t.title||'(untitled)').slice(0,110))}</div></div></div>`;
+    }).join(''):'<div class="empty">No open tasks</div>';
+  } else $('d-asana').innerHTML=`<div class="err">${asaR.reason&&asaR.reason.message==='no-viewer'?'Not available in a plain browser':'Asana unavailable'}</div>`;
+}
+boot();
+</script></body></html>
