@@ -178,9 +178,13 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 </div>
 <script>
 /* ------------ data plane: baked JSON on GitHub Pages ------------ */
-const BASE = window.OPS_BASE ||
-  (location.hostname.endsWith('github.io') ? '../data/ops_command/'
-                                           : 'https://makiramen.github.io/ops/data/ops_command/');
+// Canonical first; the fork's Pages second (serves identical data until PR #1
+// merges into makiramen/ops, then the first entry simply wins).
+const BASES = window.OPS_BASE ? [window.OPS_BASE]
+  : location.hostname.endsWith('github.io') ? ['../data/ops_command/']
+  : ['https://makiramen.github.io/ops/data/ops_command/',
+     'https://ross440.github.io/ops/data/ops_command/'];
+let BASE = BASES[0];
 const cb = () => '?cb=' + Date.now();   // hard-learned: a cached response served a day-old answer 29/07/2026
 const TARGET = 90;
 
@@ -351,9 +355,20 @@ async function loadSnap(date){
   if(!r.ok) throw new Error('snapshot_'+date+'.json → HTTP '+r.status);
   render(await r.json());
 }
+async function fetchIndex(){
+  let lastErr;
+  for(const b of BASES){
+    try{
+      const r=await fetch(b+'snapshot_index.json'+cb(),{cache:'no-store'});
+      if(r.ok){ BASE=b; return await r.json(); }
+      lastErr=new Error('HTTP '+r.status+' from '+b);
+    }catch(e){ lastErr=e; }
+  }
+  throw lastErr||new Error('no data source reachable');
+}
 async function boot(){
   try{
-    const idx=await (await fetch(BASE+'snapshot_index.json'+cb(),{cache:'no-store'})).json();
+    const idx=await fetchIndex();
     const sel=$('daysel');
     sel.innerHTML=(idx.dates||[]).map(d=>`<option value="${d}">${d}</option>`).join('');
     sel.onchange=()=>loadSnap(sel.value).catch(e=>$('banner').innerHTML=`<div class="err">${esc(e.message)}</div>`);
