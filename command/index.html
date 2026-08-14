@@ -210,6 +210,12 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="card"><div class="card-h"><div class="t">Issues by answered supplier</div>
     <div class="s" id="sp-ans-sub">From the form's own “Supplier?” answers · filtered by the date range (answer dates, not pull dates)</div></div>
     <div class="card-b" id="sp-ans"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Supplier issues by site</div>
+    <div class="s" id="si-sub">Delivery / supplier issue forms in GetCompliant, by site · click a site for its form answers (issue date, supplier)</div></div>
+    <div class="card-b" id="si-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Site detail</div>
+    <div class="s">Click a row to view that site's issues — date, supplier, form answer</div></div>
+    <div class="card-b" id="si-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Issue nature (keyword heuristic)</div>
     <div class="s" id="ic-sub">Bucketed from each issue's free-text answer — not an official taxonomy</div></div>
     <div class="card-b" id="ic-bars"></div></div>
@@ -321,21 +327,41 @@ function chip(kind,word){
   const ic={g:'✓',a:'▲',r:'●',n:'–',b:'ℹ'}[kind]||'';
   return `<span class="tag t-${kind}">${ic} ${esc(word)}</span>`;
 }
+function openModal(title,bodyHtml){
+  $('task-modal-t').textContent=title;
+  $('task-modal-b').innerHTML=bodyHtml;
+  $('task-modal-ov').classList.add('on');
+}
 function openTaskModal(site){
   const tk=(SNAP&&SNAP.tasks)||{};
   const info=(tk.drilldown||{})[site];
-  $('task-modal-t').textContent=site;
   if(!info||!info.tasks||!info.tasks.length){
-    $('task-modal-b').innerHTML='<div class="empty">No completed tasks recorded for this site in this pull.</div>';
-  } else {
-    $('task-modal-b').innerHTML='<table><thead><tr><th>Answered</th><th>Form</th><th>Task</th><th>Answer</th></tr></thead><tbody>'+
-      info.tasks.map(t=>`<tr><td>${esc((t.answered||'').replace('T',' ').slice(0,16))}</td><td>${esc(t.form||'—')}</td>`+
-        `<td>${esc(t.task||'—')}</td><td>${esc(t.answer??'—')}</td></tr>`).join('')+
-      '</tbody></table><div class="prov">'+
-      (info.truncated?`showing the most recent ${info.tasks.length} of ${fmtN(info.total)} completed tasks`
-        :`${fmtN(info.total)} completed task${info.total===1?'':'s'}`)+'</div>';
+    openModal(site,'<div class="empty">No completed tasks recorded for this site in this pull.</div>');
+    return;
   }
-  $('task-modal-ov').classList.add('on');
+  const html='<table><thead><tr><th>Answered</th><th>Form</th><th>Task</th><th>Answer</th></tr></thead><tbody>'+
+    info.tasks.map(t=>`<tr><td>${esc((t.answered||'').replace('T',' ').slice(0,16))}</td><td>${esc(t.form||'—')}</td>`+
+      `<td>${esc(t.task||'—')}</td><td>${esc(t.answer??'—')}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">'+
+    (info.truncated?`showing the most recent ${info.tasks.length} of ${fmtN(info.total)} completed tasks`
+      :`${fmtN(info.total)} completed task${info.total===1?'':'s'}`)+'</div>';
+  openModal(site,html);
+}
+function openSiteIssuesModal(site){
+  const sup=(SNAP&&SNAP.suppliers)||{};
+  const rows=(sup.issues||[]).filter(i=>(i.site||'(no site)')===site && inEV(i.d)).slice()
+    .sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+  if(!rows.length){
+    openModal(site,'<div class="empty">No supplier issue form answers recorded for this site in this pull.</div>');
+    return;
+  }
+  const html='<table><thead><tr><th>Issue date</th><th>Supplier</th><th>Form</th><th>Issue</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(i=>`<tr><td>${esc(i.d||'—')}</td><td>${esc(i.supplier||'(no answer)')}</td>`+
+      `<td>${esc(i.form||'—')}</td><td>${esc(i.issue_text||'—')}</td>`+
+      `<td>${i.open?chip('a','Open'):chip('g','Closed')}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">'+fmtN(rows.length)+' issue form answer'+(rows.length===1?'':'s')+
+    ' · '+esc(sup.issues_basis||'')+'</div>';
+  openModal(site,html);
 }
 $('task-modal-x').onclick=()=>$('task-modal-ov').classList.remove('on');
 $('task-modal-ov').onclick=e=>{if(e.target.id==='task-modal-ov') $('task-modal-ov').classList.remove('on');};
@@ -507,6 +533,33 @@ function render(snap){
   table('sp-tbl',[{h:'Supplier'},{h:'Form'},{h:'Completed',n:1},{h:'Raised',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
     (sup.forms||[]).map(f=>[f.supplier,f.form,f.completed,f.raised,f.open,
       (f.open||0)>=20?chip('r','Escalate'):(f.open||0)>0?chip('a','Open'):chip('g','Clear')]));
+
+  /* supplier issues by site (click a site for its form answers) */
+  const siAgg={};
+  issues.forEach(i=>{
+    const k=i.site||'(no site)';
+    const a=siAgg[k]=siAgg[k]||{total:0,open:0};
+    a.total++; if(i.open) a.open++;
+  });
+  const siSites=Object.entries(siAgg).map(([site,a])=>({site,total:a.total,open:a.open}))
+    .sort((a,b)=>b.open-a.open||b.total-a.total);
+  $('si-sub').textContent=siSites.length
+    ? siSites.length+' site(s) with an issue in range · answer dates '+evLabel()+' · click a site for its form answers'
+    : 'Delivery / supplier issue forms in GetCompliant, by site · click a site for its form answers (issue date, supplier)';
+  bars('si-bars',siSites.map(r=>({k:r.site,v:r.total,
+    tip:`${r.site} — ${fmtN(r.open)} open of ${fmtN(r.total)} issue(s) in range · click for detail`})));
+  [...document.querySelectorAll('#si-bars .brow')].forEach((el,i)=>{
+    const r=siSites[i]; if(!r) return;
+    el.classList.add('clk'); el.addEventListener('click',()=>openSiteIssuesModal(r.site));
+  });
+  table('si-tbl',[{h:'Site'},{h:'Issues',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
+    siSites.map(r=>[r.site,fmtN(r.total),fmtN(r.open),
+      r.open>=5?chip('r','Escalate'):r.open>0?chip('a','Open'):chip('g','Clear')]),
+    'No supplier issues dated in this range');
+  [...document.querySelectorAll('#si-tbl tbody tr')].forEach((tr,i)=>{
+    const r=siSites[i]; if(!r) return;
+    tr.classList.add('clk'); tr.addEventListener('click',()=>openSiteIssuesModal(r.site));
+  });
 
   /* issue nature (keyword heuristic) */
   bars('ic-bars',(sup.issue_categories||[]).map(c=>({k:c.category,v:c.n})));
