@@ -179,6 +179,17 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="card-b" id="tk-tbl"></div></div>
 </div>
 
+<div class="page" id="p-maint">
+  <div id="maint-note"></div>
+  <div class="kpis" id="maint-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">Maintenance tasks — outstanding &amp; ongoing, by site</div>
+    <div class="s">Lincoln's maintenance/repair tracker · outstanding + ongoing tasks in range · click a site for task detail</div></div>
+    <div class="card-b" id="maint-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Detail</div>
+    <div class="s">Site, outstanding/ongoing vs resolved counts, status</div></div>
+    <div class="card-b" id="maint-tbl"></div></div>
+</div>
+
 <div class="page" id="p-qual">
   <div id="qual-note"></div>
   <div class="kpis" id="qual-kpis"></div>
@@ -289,7 +300,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
 
 const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
-  ['p-tasks','Task Completion'],
+  ['p-tasks','Task Completion'],['p-maint','Maintenance'],
   ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-cross','Cross-Reference'],
   ['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
 $('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
@@ -372,6 +383,20 @@ function openSiteIssuesModal(site){
       `<td>${i.open?chip('a','Open'):chip('g','Closed')}</td></tr>`).join('')+
     '</tbody></table><div class="prov">'+fmtN(rows.length)+' issue form answer'+(rows.length===1?'':'s')+
     ' · '+esc(sup.issues_basis||'')+'</div>';
+  openModal(site,html);
+}
+function openMaintModal(site){
+  const maint=(SNAP&&SNAP.maintenance)||{};
+  const rows=(maint.tasks||[]).filter(t=>t.site===site && inEV(t.d)).slice()
+    .sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+  if(!rows.length){
+    openModal(site,`<div class="empty">No maintenance tasks recorded for this site in ${esc(evLabel())}.</div>`);
+    return;
+  }
+  const html='<table><thead><tr><th>Date</th><th>Issue</th><th>Update</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(t=>`<tr><td>${esc(t.d||'—')}</td><td>${esc(t.issue||'—')}</td>`+
+      `<td>${esc(t.comment||'—')}</td><td>${t.status==='ongoing'?chip('a','Outstanding/Ongoing'):chip('g','Resolved')}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">'+fmtN(rows.length)+' maintenance task'+(rows.length===1?'':'s')+' in '+esc(evLabel())+'</div>';
   openModal(site,html);
 }
 $('task-modal-x').onclick=()=>$('task-modal-ov').classList.remove('on');
@@ -517,6 +542,50 @@ function render(snap){
     kpi('o','Missed',fmtN(tkSites.reduce((s,r)=>s+r.missed,0)),'not registered by their due time, across all sites')+
     kpi(tkWorst?(tkWorst.pct_on_time<70?'r':'a'):'n','Lowest site',
         tkWorst?tkWorst.pct_on_time+'%':'—',tkWorst?tkWorst.site:'no data in this range');
+
+  /* maintenance tasks — outstanding & ongoing, by site (event-dated on the
+     sheet's own Date column, sliced by the range above like every other
+     event-dated card; sourced from Lincoln's Google Sheet, NOT the Neon
+     warehouse or Pipe 9 — see basis/gaps for freshness and how it refreshes) */
+  const maint=snap.maintenance||{};
+  $('maint-note').innerHTML=(maint.gaps&&maint.gaps.length)
+    ?'<div class="warn"><b>Read this first.</b> '+maint.gaps.map(esc).join(' · ')+'</div>':'';
+  const maintTasksAll=maint.tasks||[];
+  const maintTasks=maintTasksAll.filter(t=>inEV(t.d));
+  const maintAgg={};
+  maintTasks.forEach(t=>{
+    const a=maintAgg[t.site]=maintAgg[t.site]||{ongoing:0,done:0};
+    if(t.status==='ongoing') a.ongoing++;
+    else if(t.status==='done') a.done++;
+  });
+  const maintSites=Object.entries(maintAgg).map(([site,a])=>({site,ongoing:a.ongoing,done:a.done}))
+    .sort((a,b)=>(b.ongoing-a.ongoing)||(b.done-a.done));
+  bars('maint-bars',maintSites.map(r=>({k:r.site,v:r.ongoing,
+    tip:`${r.site} — ${fmtN(r.ongoing)} outstanding/ongoing, ${fmtN(r.done)} resolved in range · click for detail`})),
+    i=>fmtN(i.v));
+  [...document.querySelectorAll('#maint-bars .brow')].forEach((el,i)=>{
+    const r=maintSites[i]; if(!r) return;
+    el.classList.add('clk'); el.addEventListener('click',()=>openMaintModal(r.site));
+  });
+  if(maint.basis) $('maint-bars').insertAdjacentHTML('beforeend','<div class="prov">'+esc(maint.basis)+' · '+esc(evLabel())+
+    (maint.source_as_of?' · sheet as of '+esc(maint.source_as_of):'')+'</div>');
+  table('maint-tbl',[{h:'Site'},{h:'Outstanding/Ongoing',n:1},{h:'Resolved',n:1},{h:'Status',raw:1}],
+    maintSites.map(r=>[r.site,fmtN(r.ongoing),fmtN(r.done),
+      r.ongoing===0?chip('g','Clear'):r.ongoing>=3?chip('r','Needs attention'):chip('a','In progress')]),
+    'No maintenance tasks dated in this range');
+  [...document.querySelectorAll('#maint-tbl tbody tr')].forEach((tr,i)=>{
+    const r=maintSites[i]; if(!r) return;
+    tr.classList.add('clk'); tr.addEventListener('click',()=>openMaintModal(r.site));
+  });
+  const maintOngoingTot=maintSites.reduce((s,r)=>s+r.ongoing,0);
+  const maintDoneTot=maintSites.reduce((s,r)=>s+r.done,0);
+  const maintOngoingList=maintTasks.filter(t=>t.status==='ongoing').slice().sort((a,b)=>(a.d||'').localeCompare(b.d||''));
+  const maintOldest=maintOngoingList[0];
+  $('maint-kpis').innerHTML=
+    kpi(maintOngoingTot===0?'g':maintOngoingTot>=8?'r':'a','Outstanding/ongoing',fmtN(maintOngoingTot),'maintenance tasks not yet resolved, in range')+
+    kpi('o','Sites affected',fmtN(maintSites.filter(r=>r.ongoing>0).length),'with an outstanding/ongoing task in range')+
+    kpi('o','Resolved',fmtN(maintDoneTot),'marked done, in range')+
+    kpi(maintOldest?'a':'n','Oldest open',maintOldest?maintOldest.d:'—',maintOldest?maintOldest.site:'no open tasks in range');
 
   /* suppliers */
   const sup=snap.suppliers||{};
