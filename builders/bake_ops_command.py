@@ -91,6 +91,67 @@ SITE_TYPES = {
 }
 SUPPLIER_MATCH = [("Lynas","Lynas"),("Solstice","Solstice"),("Solstice","Sosltice"),
                   ("TWF","TWF"),("M&R","M&R")]
+
+# Cross-reference join key (14/08/2026): site names differ across systems -
+# GC LocationNameLabel vs Kobas 'Venue Placed' vs 'Site' are spelled
+# differently for the same physical site ('Maki SJQ Ltd' vs 'Maki SJQ',
+# 'Maki METRO' vs 'Maki Metro'). Hand-built from the live distinct-value
+# lists, same house rule as SITE_TYPES: the site map lives in the builder,
+# not inferred by fuzzy matching in the shell. key -> (GC name, Kobas name,
+# display label). Sites seen on only one side are deliberately left out
+# (see the standing gap emitted in main()) rather than guessed.
+SITE_ALIASES = {
+    "aa_factory1":   ("AA Factory1 Limited",   "AA Factory1 Limited",        "AA Factory1"),
+    "aberdeen":      ("Maki Aberdeen Ltd",     "Maki Aberdeen",              "Maki Aberdeen"),
+    "bath_st":       ("Maki Bath St",          "Maki Bath Street",           "Maki Bath Street"),
+    "birmingham":    ("Maki Birmingham Ltd",   "Maki Birmingham",            "Maki Birmingham"),
+    "lakeside":      ("Maki Lakeside",         "Maki Lakeside",              "Maki Lakeside"),
+    "leeds":         ("Maki Leeds Ltd",        "Maki Leeds",                 "Maki Leeds"),
+    "leicester":     ("Maki Leicester Ltd",    "Maki Leicester",             "Maki Leicester"),
+    "metro":         ("Maki METRO",            "Maki Metro",                 "Maki Metro"),
+    "manchester":    ("Maki Manchester LTD",   "Maki Manchester",            "Maki Manchester"),
+    "newcastle":     ("Maki Newcastle Ltd",    "Maki Newcastle",             "Maki Newcastle"),
+    "nori":          ("Maki Nori",             "Maki NORI",                  "Maki Nori"),
+    "nottingham":    ("Maki Nottingham Ltd",   "Maki Nottingham",            "Maki Nottingham"),
+    "sjq":           ("Maki SJQ Ltd",          "Maki SJQ",                   "Maki SJQ"),
+    "shoreditch":    ("Maki Shoreditch",       "Maki Shoreditch",            "Maki Shoreditch"),
+    "soho":          ("Maki Soho",             "Maki SOHO",                  "Maki Soho"),
+    "southampton":   ("Maki Southampton",      "Maki Southampton",           "Maki Southampton"),
+    "o2_arena":      ("Maki O2 Arena",         "Maki O2 Arena",              "Maki O2 Arena"),
+    "renfield":      ("Renfield Good Food Ltd","Maki Renfield",              "Maki Renfield"),
+    "south_ikigai":  ("South Ikigai Ltd",      "Ikigai Ramen South Bridge",  "South Ikigai"),
+}
+# GC-side sites with no confirmed Kobas match (as of 14/08/2026): Fountain
+# Good Food Ltd, M1TOO Ltd, Maki Meadowhall, Maki Property Ltd. Kobas-side
+# sites with no GC broth-check match: Maki 1/2 (Nicolson St), Maki
+# Fountainbridge, Maki Leith, Maki Manchester NQ, Maki West End, Maki
+# Yorkshire, and the two 'OLD: ...' rows. These are excluded from
+# cross-referencing, not guessed at - see the gaps entry.
+
+# Issue-nature keyword heuristic (14/08/2026): the only feed with a REAL
+# category taxonomy is the 10-row Gmail 'Supplier Issues' feed. Everything
+# from GetCompliant delivery/supplier forms is free text in the 'Issue?'
+# task answer, so this buckets by keyword - labelled a heuristic everywhere
+# it surfaces, never presented as ground truth.
+ISSUE_KEYWORDS = [
+    ("shortage", ["missing", "lack of", "short delivery", "shortage", "didn't receive",
+                  "not received", "did not receive"]),
+    ("damage_quality", ["damage", "damaged", "bad quality", "mould", "mold",
+                        "black dots", "rotten", "spoiled", "off ", "quality"]),
+    ("wrong_item", ["wrong", "substitut", "incorrect item", "wrong order"]),
+    ("temperature", ["temperature", "frozen", "thawed", "warm delivery", "cold chain"]),
+    ("invoice_credit", ["invoice", "credit", "overcharge", "charged"]),
+]
+
+def classify_issue(text):
+    if not text: return None
+    t = text.strip().lower()
+    if t in ("n/a", "na", "none", "-", "nil"): return "no_issue_recorded"
+    for cat, kws in ISSUE_KEYWORDS:
+        for kw in kws:
+            if kw in t: return cat
+    return "other"
+
 EXPECTED_FEEDS = [
     "Flow Trainees","Flow Branches","Flow Modules","Flow Certificates",
     "Deep Flow Modules","Deep Flow Certificates",
@@ -270,14 +331,16 @@ def main():
           " ORDER BY data->>'FormId', data->>'TaskID', pull_date DESC) "
           "SELECT fid, max(tpl), min(d), "
           " max(CASE WHEN position('upplier' in task)>0 THEN ans END), "
-          " max(site), bool_or(opn IN ('true','1','yes')) "
+          " max(site), bool_or(opn IN ('true','1','yes')), "
+          " max(CASE WHEN task='Issue?' THEN ans END) "
           "FROM a WHERE position('eliver' in tpl)>0 OR position('upplier' in tpl)>0 "
           "GROUP BY fid ORDER BY 3 DESC LIMIT 2000")
-        for fid,tpl,d,ans,site,opn in cur.fetchall():
+        for fid,tpl,d,ans,site,opn,issue_text in cur.fetchall():
             sup=supplier_of(ans or "")
             if sup=="Unattributed" and ans: sup=ans.strip().title()[:40]
             if not ans: sup=None   # form has no supplier answer -> null, never a fake name
-            issues.append({"d":d,"supplier":sup,"site":site,"form":tpl,"open":bool(opn)})
+            issues.append({"d":d,"supplier":sup,"site":site,"form":tpl,"open":bool(opn),
+              "issue_text":issue_text,"category":classify_issue(issue_text)})
         agg2={}
         for i_ in issues:
             k=i_["supplier"] or "(no supplier answer)"
@@ -296,6 +359,193 @@ def main():
       "feeds fail at fetch, so this is the only supplier signal that lands - self-reported, "
       "not a measured OTIF.","totals":[{"supplier":k,**v} for k,v in
       sorted(agg.items(),key=lambda kv:-kv[1]["open"])],"forms":sorted(sups,key=lambda r:-r["open"])}
+    cat_agg={}
+    for i_ in issues:
+        c=i_.get("category") or "uncategorized"
+        cat_agg[c]=cat_agg.get(c,0)+1
+    snap["suppliers"]["issue_categories"]=[{"category":k,"n":v} for k,v in
+      sorted(cat_agg.items(),key=lambda kv:-kv[1])]
+    snap["suppliers"]["issue_categories_basis"]=("keyword heuristic over each issue's free-"
+      "text 'Issue?' answer, not an official taxonomy - only the 10-row Gmail 'Supplier "
+      "Issues' feed has a real Issue Category field; buckets: shortage, damage_quality, "
+      "wrong_item, temperature, invoice_credit, no_issue_recorded, other")
+
+    # ---- quality / broth checks (GC Scheduled Task Answers; event-dated) ----
+    # Ross, verbatim: a top-level view where broth quality check scores can be
+    # seen "broken down by site (branch) at a glance". These do NOT live in
+    # Flow Appraisals (checked: 0 of 672 appraisal rows mention broth) - they
+    # are numeric density readings in GetCompliant's scheduled tasks.
+    BROTH_TASKS={"Chicken Broth Check":"chicken","Tonkotsu Broth Check":"tonkotsu"}
+    broth_cells=[]; broth_deviations=[]
+    if has_feed(cur,"GC Scheduled Task Answers"):
+        cur.execute(
+          "WITH a AS (SELECT DISTINCT ON (data->>'AnswerID') "
+          "   data->>'TaskName' task, nullif(data->>'LocationNameLabel','') site, "
+          "   left(data->>'AnsweredDateTime',10) d, nullif(data->>'Answer','') ans, "
+          "   lower(coalesce(data->>'IsOpenDeviation','')) opn, "
+          "   lower(coalesce(data->>'IsDeviation','')) dev "
+          " FROM etl_feed_rows WHERE feed='GC Scheduled Task Answers' "
+          "  AND data->>'TaskName' IN ('Chicken Broth Check','Tonkotsu Broth Check') "
+          " ORDER BY data->>'AnswerID', pull_date DESC) "
+          "SELECT task, site, d, ans, opn, dev FROM a WHERE d IS NOT NULL AND site IS NOT NULL")
+        cell_agg={}
+        for task,site,d,ans,opn,dev in cur.fetchall():
+            kind=BROTH_TASKS.get(task)
+            if not kind: continue
+            val=None
+            if ans is not None:
+                try: val=float(ans)
+                except ValueError: val=None
+            key=(site,kind,d)
+            c=cell_agg.setdefault(key,{"vals":[],"missed":0,"n":0})
+            c["n"]+=1
+            if val is not None: c["vals"].append(val)
+            else: c["missed"]+=1
+            if dev in ("true","1","yes"):
+                broth_deviations.append({"site":site,"kind":kind,"d":d,"value":val,
+                  "open":opn in ("true","1","yes")})
+        for (site,kind,d),c in cell_agg.items():
+            broth_cells.append({"site":site,"kind":kind,"d":d,
+              "value":round(sum(c["vals"])/len(c["vals"]),2) if c["vals"] else None,
+              "checks":c["n"],"checks_missed":c["missed"]})
+        broth_deviations.sort(key=lambda r:r["d"],reverse=True)
+    else:
+        gaps.append("'GC Scheduled Task Answers' absent from the warehouse - broth quality "
+            "checks (Chicken/Tonkotsu Broth Check) unavailable")
+    gaps.append("Broth heatmap colours are scaled to the OBSERVED reading range in this "
+        "snapshot, not an official spec band - no chicken/tonkotsu density target exists in "
+        "the data yet (needs a small reference table of min/target/max from Ross's par "
+        "standards)")
+    snap["quality"]={"broth":{"cells":broth_cells,"deviations":broth_deviations[:200],
+      "tasks":BROTH_TASKS,
+      "basis":"one cell per site + check-type + day from GC Scheduled Task Answers, "
+      "deduped by AnswerID across pulls, averaged if >1 reading landed that day; "
+      "'checks_missed' counts non-numeric answers (e.g. 'Not registered on time') "
+      "separately from checks_missed==checks meaning value is null (no numeric reading "
+      "that day); event-dated on AnsweredDateTime, never pull_date"}}
+
+    # ---- supply / fulfilment aging (Kobas Outstanding Stock Orders) ----
+    FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
+    fulfil=[]; price_watch=[]
+    if has_feed(cur,FULFIL_FEED):
+        cur.execute(
+          "WITH o AS (SELECT DISTINCT ON (data->>'Order ID') "
+          "   data->>'Order ID' oid, nullif(data->>'Supplier/Sending Venue','') sup, "
+          "   nullif(data->>'Venue Placed','') site, nullif(data->>'Order Value','') val, "
+          "   nullif(data->>'Target Delivery Date','') target "
+          " FROM etl_feed_rows WHERE feed=%s ORDER BY data->>'Order ID', pull_date DESC) "
+          "SELECT oid, sup, site, val, target, "
+          " CASE WHEN target IS NOT NULL THEN (current_date - target::date) END "
+          "FROM o", (FULFIL_FEED,))
+        agg3={}
+        for oid,sup,site,val,target,overdue_days in cur.fetchall():
+            if not oid: continue
+            k=sup or "(no supplier)"
+            a_=agg3.setdefault(k,{"open":0,"value":0.0,"overdue_n":0,"on_target_n":0,
+                                   "overdue_days_worst":0})
+            a_["open"]+=1
+            try: v=float(val)
+            except (TypeError,ValueError): v=0.0
+            a_["value"]+=v
+            od=int(overdue_days) if overdue_days is not None else None
+            if od is not None and od>0:
+                a_["overdue_n"]+=1
+                a_["overdue_days_worst"]=max(a_["overdue_days_worst"],od)
+            elif od is not None:
+                a_["on_target_n"]+=1
+        for sup,a_ in agg3.items():
+            fulfil.append({"supplier":sup,"open_orders":a_["open"],
+              "value_gbp":round(a_["value"],2),"overdue_orders":a_["overdue_n"],
+              "on_target_pct":round(100.0*a_["on_target_n"]/a_["open"],1) if a_["open"] else None,
+              "worst_overdue_days":a_["overdue_days_worst"]})
+        fulfil.sort(key=lambda r:-r["value_gbp"])
+    else:
+        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse - fulfilment aging unavailable")
+    gaps.append("Fulfilment aging is a proxy, not true OTIF: the Mapal Supplier Orders/Smart "
+        "Delivery/Invoices To Receive feeds fail at fetch (credentials), so there is no "
+        "delivered-vs-ordered signal - fixing Mapal is the single highest-value data unlock "
+        "for this dashboard")
+    gaps.append("Some 'outstanding' orders in the Kobas report carry Order Placed dates back "
+        "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
+        "in the source system rather than a live backlog; the aging table includes them as-is")
+
+    PRICE_FEED="Kobas Report - Weekly Ingredient Price Changes Report"
+    if has_feed(cur,PRICE_FEED):
+        cur.execute(
+          "SELECT nullif(data->>'Ingredient Name','') i, nullif(data->>'Old Price','') op, "
+          " nullif(data->>'New Price','') np FROM etl_feed_rows WHERE feed=%s "
+          " AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed=%s)",
+          (PRICE_FEED,PRICE_FEED))
+        for i,op,np in cur.fetchall():
+            try: npf=float(np)
+            except (TypeError,ValueError): continue
+            try: opf=float(op)
+            except (TypeError,ValueError): opf=None
+            pct=round(100.0*(npf-opf)/opf,1) if opf else None
+            price_watch.append({"ingredient":i,"old_price":opf,"new_price":npf,
+              "pct_change":pct,"is_new":opf is None})
+        price_watch.sort(key=lambda r:(r["pct_change"] is None, -(r["pct_change"] or 0)))
+    else:
+        gaps.append(f"'{PRICE_FEED}' absent from the warehouse")
+    gaps.append("Ingredient price changes carry no supplier or site field in the source "
+        "report, so price rises cannot be joined to a specific supplier or location - shown "
+        "as a standalone watchlist, not cross-referenced to suppliers.issues")
+
+    snap["supply"]={"fulfilment":fulfil,
+      "fulfilment_basis":"one row per Order ID (deduped across weekly pulls, latest pull "
+      "wins) from the Kobas Outstanding Stock Orders report; value_gbp/overdue counts are a "
+      "proxy for OTIF, not a measured fulfilment rate",
+      "price_watch":price_watch[:100],
+      "price_watch_basis":"latest pull of the Kobas Weekly Ingredient Price Changes report; "
+      "pct_change = (new-old)/old*100; is_new=true when there is no prior price on file"}
+
+    # ---- cross-reference: broth quality x supplier issues, by site+date ----
+    gc_to_key={v[0]:k for k,v in SITE_ALIASES.items()}
+    events=[]
+    for dv in broth_deviations:
+        key=gc_to_key.get(dv["site"])
+        if not key: continue
+        events.append({"site_key":key,"d":dv["d"],"kind":"broth_deviation",
+          "detail":f"{dv['kind']} broth deviation"+(" (open)" if dv["open"] else "")})
+    for i_ in issues:
+        key=gc_to_key.get(i_["site"])
+        if not key or not i_["d"]: continue
+        events.append({"site_key":key,"d":i_["d"],"kind":"supplier_issue",
+          "detail":f"{i_['supplier'] or '(no supplier answer)'} issue"+
+                   (" (open)" if i_["open"] else "")})
+    events.sort(key=lambda r:(r["site_key"],r["d"]))
+    def _pd(s):
+        try: return datetime.date.fromisoformat(s)
+        except Exception: return None
+    by_site={}
+    for e in events: by_site.setdefault(e["site_key"],[]).append(e)
+    coincidences=[]
+    for site_key,evs in by_site.items():
+        bds=[e for e in evs if e["kind"]=="broth_deviation"]
+        sis=[e for e in evs if e["kind"]=="supplier_issue"]
+        for bd in bds:
+            bdd=_pd(bd["d"])
+            if not bdd: continue
+            near=[si for si in sis if _pd(si["d"]) and abs((_pd(si["d"])-bdd).days)<=3]
+            if near:
+                coincidences.append({"site":SITE_ALIASES[site_key][2],"site_key":site_key,
+                  "broth_date":bd["d"],"broth_detail":bd["detail"],
+                  "supplier_issues":[{"d":si["d"],"detail":si["detail"]} for si in near]})
+    coincidences.sort(key=lambda r:r["broth_date"],reverse=True)
+    gaps.append("Cross-reference site-alias map does not cover every site: 'Fountain Good "
+        "Food Ltd', 'M1TOO Ltd', 'Maki Meadowhall' and 'Maki Property Ltd' appear in "
+        "GetCompliant with no confirmed Kobas venue match, and 'Maki 1/2 (Nicolson St)', "
+        "'Maki Fountainbridge', 'Maki Leith', 'Maki Manchester NQ', 'Maki West End' and "
+        "'Maki Yorkshire' appear in Kobas with no GetCompliant broth-check match - these "
+        "sites are excluded from cross-referencing until the alias map is extended, never "
+        "guessed at")
+    snap["cross_ref"]={"events":events,"coincidences":coincidences,
+      "site_aliases":{k:{"gc":v[0],"kobas":v[1],"label":v[2]} for k,v in SITE_ALIASES.items()},
+      "basis":"coincidence, NOT causation: every broth deviation (GC Scheduled Task "
+      "Answers, IsDeviation=true) paired with any supplier issue (GC Form Task Answers, "
+      "delivery/supplier forms) at the SAME site within +/-3 days by event date; join key "
+      "is site+date via the hand-built SITE_ALIASES map, since site names differ across "
+      "systems (e.g. 'Maki SJQ Ltd' vs 'Maki SJQ')"}
 
     # ---- sites ----
     hc=[]
