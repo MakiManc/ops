@@ -424,6 +424,75 @@ def main():
       "separately from checks_missed==checks meaning value is null (no numeric reading "
       "that day); event-dated on AnsweredDateTime, never pull_date"}}
 
+    # ---- task completion by site (GC Form Task Answers; current state) ----
+    # Ross, verbatim: "task completion as another tab % by site" with a
+    # per-site drill-down of "tasks completed and their answers". Each row in
+    # GC Form Task Answers is one task-level answer within a form; a form's
+    # FormState (Open/Closed) is effectively constant across its own task
+    # rows (checked live: only 3 of ~1.9k forms in this snapshot disagree),
+    # so % complete per site = Closed forms / (Closed+Open forms), with the
+    # rare disagreement broken by the most-recently-answered task row.
+    # Deduped by AnswerID across overlapping pulls (latest pull wins),
+    # deleted rows excluded. This is a CURRENT-STATE snapshot (open vs closed
+    # right now), not an event-dated series like compliance/quality above.
+    TASK_DRILLDOWN_CAP=100
+    task_sites=[]; task_drilldown={}
+    if has_feed(cur,"GC Form Task Answers"):
+        cur.execute(
+          "WITH a AS (SELECT DISTINCT ON (data->>'AnswerID') "
+          "   nullif(data->>'LocationNameLabel','') site, "
+          "   nullif(data->>'PublicId','') pid, nullif(data->>'FormState','') fs, "
+          "   coalesce(data->>'FormTemplateName',data->>'FormName','') form, "
+          "   coalesce(data->>'TaskName','') task, nullif(data->>'Answer','') ans, "
+          "   data->>'AnsweredDateTime' answered, "
+          "   lower(coalesce(data->>'IsDeleted','')) del "
+          " FROM etl_feed_rows WHERE feed='GC Form Task Answers' "
+          " ORDER BY data->>'AnswerID', pull_date DESC) "
+          "SELECT site, pid, fs, form, task, ans, answered FROM a "
+          "WHERE site IS NOT NULL AND pid IS NOT NULL "
+          "  AND del NOT IN ('true','1','yes')")
+        rows=cur.fetchall()
+        form_state={}
+        for site,pid,fs,form,task,ans,answered in rows:
+            key=(site,pid)
+            prev=form_state.get(key)
+            if prev is None or (answered or "")>=(prev["answered"] or ""):
+                form_state[key]={"site":site,"fs":fs,"answered":answered}
+        site_agg={}
+        for (site,pid),v in form_state.items():
+            a_=site_agg.setdefault(site,{"closed":0,"open":0,"other":0})
+            s=(v["fs"] or "").strip().lower()
+            if s=="closed": a_["closed"]+=1
+            elif s=="open": a_["open"]+=1
+            else: a_["other"]+=1
+        for site,a_ in site_agg.items():
+            tot=a_["closed"]+a_["open"]
+            task_sites.append({"site":site,"closed_forms":a_["closed"],
+              "open_forms":a_["open"],"other_forms":a_["other"],
+              "pct_complete":round(100.0*a_["closed"]/tot,1) if tot else None})
+        task_sites.sort(key=lambda r:(r["pct_complete"] is None,
+          r["pct_complete"] if r["pct_complete"] is not None else 0))
+        by_site={}
+        for site,pid,fs,form,task,ans,answered in rows:
+            if (fs or "").strip().lower()!="closed": continue
+            by_site.setdefault(site,[]).append({"form":form,"task":task,"answer":ans,
+              "answered":answered})
+        for site,items in by_site.items():
+            items.sort(key=lambda r:r["answered"] or "",reverse=True)
+            task_drilldown[site]={"tasks":items[:TASK_DRILLDOWN_CAP],"total":len(items),
+              "truncated":len(items)>TASK_DRILLDOWN_CAP}
+    else:
+        gaps.append("'GC Form Task Answers' absent from the warehouse - task completion "
+            "% by site unavailable")
+    snap["tasks"]={"sites":task_sites,"drilldown":task_drilldown,
+      "basis":"per-site % = Closed forms ÷ (Closed+Open forms) in GC Form Task "
+      "Answers, deduped by AnswerID across pulls (latest pull wins per answer); a form's "
+      "state is read off its most-recently-answered task row; deleted rows excluded; this "
+      "is a CURRENT-STATE snapshot (open/closed right now), not an event-dated series. "
+      f"Drill-down lists every task answer from that site's Closed forms, most recent "
+      f"first, capped at {TASK_DRILLDOWN_CAP} rows per site (see 'total'/'truncated' per "
+      "site for anything past the cap)"}
+
     # ---- supply / fulfilment aging (Kobas Outstanding Stock Orders) ----
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
     fulfil=[]; price_watch=[]
