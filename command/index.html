@@ -171,11 +171,11 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-tasks">
   <div id="tk-note"></div>
   <div class="kpis" id="tk-kpis"></div>
-  <div class="card"><div class="card-h"><div class="t">Task completion by site</div>
-    <div class="s">GC Form Task Answers · Closed ÷ (Closed + Open) forms · current state, not sliced by the date range above · click a site for its completed tasks and answers</div></div>
+  <div class="card"><div class="card-h"><div class="t">Scheduled task completion — on time, by site</div>
+    <div class="s">GC Scheduled Task Answers · On time ÷ (On time + Missed) · event-dated on each task's due date, sliced by the range above · click a site for its task detail</div></div>
     <div class="card-b" id="tk-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Detail</div>
-    <div class="s">Click a row to view that site's completed tasks and answers, filtered to the date range above by answered date</div></div>
+    <div class="s">Click a row to view that site's scheduled tasks — due date, answer, and on-time status</div></div>
     <div class="card-b" id="tk-tbl"></div></div>
 </div>
 
@@ -336,24 +336,24 @@ function openTaskModal(site){
   const tk=(SNAP&&SNAP.tasks)||{};
   const info=(tk.drilldown||{})[site];
   if(!info||!info.tasks||!info.tasks.length){
-    openModal(site,'<div class="empty">No completed tasks recorded for this site in this pull.</div>');
+    openModal(site,'<div class="empty">No scheduled tasks recorded for this site in this pull.</div>');
     return;
   }
-  /* sliced by the task's own answered date (never pull date) — same rule as every
+  /* sliced by each task's own due date (never pull date) — same rule as every
      other drill-down in this shell */
   const rows=info.tasks.filter(t=>inEV(t.d));
   if(!rows.length){
     const cap=info.truncated
       ? ` The server only holds the ${fmtN(info.tasks.length)} most recent of ${fmtN(info.total)} — an older range may include tasks not loaded here.`
       : '';
-    openModal(site,`<div class="empty">No completed tasks for this site answered in ${esc(evLabel())}.${cap}</div>`);
+    openModal(site,`<div class="empty">No scheduled tasks for this site due in ${esc(evLabel())}.${cap}</div>`);
     return;
   }
-  const html='<table><thead><tr><th>Answered</th><th>Form</th><th>Task</th><th>Answer</th></tr></thead><tbody>'+
-    rows.map(t=>`<tr><td>${esc((t.answered||'').replace('T',' ').slice(0,16))}</td><td>${esc(t.form||'—')}</td>`+
-      `<td>${esc(t.task||'—')}</td><td>${esc(t.answer??'—')}</td></tr>`).join('')+
+  const html='<table><thead><tr><th>Due</th><th>Task</th><th>Answer</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(t=>`<tr><td>${esc((t.due||'').replace('T',' ').slice(0,16))}</td><td>${esc(t.task||'—')}</td>`+
+      `<td>${esc(t.answer??'—')}</td><td>${t.late?chip('r','Missed'):chip('g','On time')}</td></tr>`).join('')+
     '</tbody></table><div class="prov">'+
-    rows.length+' of '+fmtN(info.total)+' completed task'+(info.total===1?'':'s')+' answered in '+esc(evLabel())+
+    rows.length+' of '+fmtN(info.total)+' scheduled task'+(info.total===1?'':'s')+' due in '+esc(evLabel())+
     (info.truncated?` (server holds the ${fmtN(info.tasks.length)} most recent of ${fmtN(info.total)} total — older ones aren't available to filter)`:'')+
     '</div>';
   openModal(site,html);
@@ -471,40 +471,52 @@ function render(snap){
     $('fa-sum').innerHTML='<div class="empty">This snapshot predates answer-date data — it appears on the next bake.</div>';
   }
 
-  /* task completion by site (current state, not event-dated) */
+  /* scheduled task completion — on time, by site (event-dated on DueDateTime,
+     sliced by the range filter above like every other event-dated card) */
   const tk=snap.tasks||{};
-  const tkSites=(tk.sites||[]).slice();
-  $('tk-note').innerHTML=tkSites.length?'':'<div class="empty">No task-completion data in this pull.</div>';
-  bars('tk-bars',tkSites.map(r=>({k:r.site,v:r.pct_complete??0,raw:r.pct_complete,
-    tip:`${r.site} — ${fmtN(r.closed_forms)} closed of ${fmtN((r.closed_forms||0)+(r.open_forms||0))} forms · click for detail`})),
+  const tkCellsAll=tk.cells||[];
+  const tkCells=tkCellsAll.filter(c=>inEV(c.d));
+  const tkAgg={};
+  tkCells.forEach(c=>{
+    const a=tkAgg[c.site]=tkAgg[c.site]||{on_time:0,missed:0};
+    a.on_time+=c.on_time||0; a.missed+=c.missed||0;
+  });
+  const tkSites=Object.entries(tkAgg).map(([site,a])=>{
+    const tot=a.on_time+a.missed;
+    return {site,on_time:a.on_time,missed:a.missed,
+      pct_on_time:tot?Math.round(1000*a.on_time/tot)/10:null};
+  }).sort((a,b)=>(a.pct_on_time??0)-(b.pct_on_time??0));
+  $('tk-note').innerHTML=tkCellsAll.length?'':'<div class="empty">No scheduled-task data in this pull.</div>';
+  bars('tk-bars',tkSites.map(r=>({k:r.site,v:r.pct_on_time??0,raw:r.pct_on_time,
+    tip:`${r.site} — ${fmtN(r.on_time)} on time of ${fmtN(r.on_time+r.missed)} scheduled tasks in range · click for detail`})),
     i=>i.raw==null?'—':i.raw+'%',TARGET);
   [...document.querySelectorAll('#tk-bars .brow')].forEach((el,i)=>{
     const r=tkSites[i]; if(!r) return;
     el.classList.add('clk'); el.addEventListener('click',()=>openTaskModal(r.site));
   });
-  if(tk.basis) $('tk-bars').insertAdjacentHTML('beforeend','<div class="prov">'+esc(tk.basis)+'</div>');
-  table('tk-tbl',[{h:'Site'},{h:'Closed forms',n:1},{h:'Open forms',n:1},{h:'Complete %',n:1},{h:'Status',raw:1}],
-    tkSites.map(r=>[r.site,fmtN(r.closed_forms),fmtN(r.open_forms),
-      r.pct_complete!=null?r.pct_complete+'%':'—',
-      r.pct_complete==null?chip('n','No data'):r.pct_complete>=TARGET?chip('g','On track'):
-        r.pct_complete>=70?chip('a','Behind'):chip('r','At risk')]),
-    'No task-completion data in this pull');
+  if(tk.basis) $('tk-bars').insertAdjacentHTML('beforeend','<div class="prov">'+esc(tk.basis)+' · '+esc(evLabel())+'</div>');
+  table('tk-tbl',[{h:'Site'},{h:'On time',n:1},{h:'Missed',n:1},{h:'On-time %',n:1},{h:'Status',raw:1}],
+    tkSites.map(r=>[r.site,fmtN(r.on_time),fmtN(r.missed),
+      r.pct_on_time!=null?r.pct_on_time+'%':'—',
+      r.pct_on_time==null?chip('n','No data'):r.pct_on_time>=TARGET?chip('g','On track'):
+        r.pct_on_time>=70?chip('a','Behind'):chip('r','At risk')]),
+    'No scheduled tasks dated in this range');
   [...document.querySelectorAll('#tk-tbl tbody tr')].forEach((tr,i)=>{
     const r=tkSites[i]; if(!r) return;
     tr.classList.add('clk'); tr.addEventListener('click',()=>openTaskModal(r.site));
   });
-  const tkTot=tkSites.reduce((s,r)=>s+(r.closed_forms||0)+(r.open_forms||0),0);
-  const tkClosed=tkSites.reduce((s,r)=>s+(r.closed_forms||0),0);
-  const tkPct=tkTot?Math.round(100*tkClosed/tkTot):null;
-  const tkRanked=tkSites.filter(r=>r.pct_complete!=null).sort((a,b)=>a.pct_complete-b.pct_complete);
+  const tkTot=tkSites.reduce((s,r)=>s+r.on_time+r.missed,0);
+  const tkOnTime=tkSites.reduce((s,r)=>s+r.on_time,0);
+  const tkPct=tkTot?Math.round(100*tkOnTime/tkTot):null;
+  const tkRanked=tkSites.filter(r=>r.pct_on_time!=null).sort((a,b)=>a.pct_on_time-b.pct_on_time);
   const tkWorst=tkRanked[0];
   $('tk-kpis').innerHTML=
-    kpi(tkPct==null?'n':tkPct>=TARGET?'g':tkPct>=70?'a':'r','Task completion',
-        tkPct==null?'—':tkPct+'%',tkTot?fmtN(tkClosed)+' of '+fmtN(tkTot)+' forms closed':'no data in this pull')+
-    kpi('o','Sites tracked',fmtN(tkSites.length),'with at least one form on file')+
-    kpi('o','Open forms',fmtN(tkSites.reduce((s,r)=>s+(r.open_forms||0),0)),'not yet closed, across all sites')+
-    kpi(tkWorst?(tkWorst.pct_complete<70?'r':'a'):'n','Lowest site',
-        tkWorst?tkWorst.pct_complete+'%':'—',tkWorst?tkWorst.site:'no data in this pull');
+    kpi(tkPct==null?'n':tkPct>=TARGET?'g':tkPct>=70?'a':'r','On-time completion',
+        tkPct==null?'—':tkPct+'%',tkTot?fmtN(tkOnTime)+' of '+fmtN(tkTot)+' scheduled tasks on time':'no data in this range')+
+    kpi('o','Sites tracked',fmtN(tkSites.length),'with a scheduled task in range')+
+    kpi('o','Missed',fmtN(tkSites.reduce((s,r)=>s+r.missed,0)),'not registered by their due time, across all sites')+
+    kpi(tkWorst?(tkWorst.pct_on_time<70?'r':'a'):'n','Lowest site',
+        tkWorst?tkWorst.pct_on_time+'%':'—',tkWorst?tkWorst.site:'no data in this range');
 
   /* suppliers */
   const sup=snap.suppliers||{};
