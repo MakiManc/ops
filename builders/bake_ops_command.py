@@ -626,6 +626,63 @@ def main():
       "is site+date via the hand-built SITE_ALIASES map, since site names differ across "
       "systems (e.g. 'Maki SJQ Ltd' vs 'Maki SJQ')"}
 
+    # ---- maintenance tasks by site (Google Sheet, NOT the Postgres warehouse) ----
+    # Ross, 15 Aug: wants a Maintenance tab - tasks by site, outstanding/ongoing
+    # tasks, with the comments/updates on each. There is no maintenance feed in
+    # the Neon warehouse (checked all 43 feeds), no structured tracker in Asana
+    # (checked live - only ad-hoc meeting-note tasks), and no GetCompliant form
+    # for it either (checked GC Forms - no maintenance/repair/facilities form
+    # exists). The real tracker is a Google Sheet Lincoln maintains by hand:
+    # "Required Maintenance/Repair (Responses)", confirmed as the source with
+    # Ross. That sheet has no live API wired into Pipe 9 (GitHub Actions has no
+    # Google credential, and adding one is a Ross-side credential step - see
+    # gaps note below) so this block reads a committed companion file,
+    # data/ops_command/maintenance_source.json, instead of querying Postgres.
+    # That file is produced by pulling the sheet's most recent curated section
+    # ("UPDATED AS OF <date>" - ON GOING/PENDING + DONE tables) via the Drive
+    # connector and normalizing site labels (the sheet uses short codes like
+    # M12/Maki 12 - mapped to the same canonical site names used everywhere
+    # else on this dashboard via a legend cross-checked against the internal
+    # "SITE OVERVIEW" directory doc). It is refreshed by re-running that pull,
+    # not by Pipe 9 itself - see the project doc for the refresh mechanism.
+    MAINT_SRC=os.path.join(OUT_DIR,"maintenance_source.json")
+    if os.path.exists(MAINT_SRC):
+        msrc=json.load(open(MAINT_SRC))
+        mtasks=msrc.get("tasks",[])
+        mcell={}
+        for t in mtasks:
+            key=t.get("site")
+            if not key: continue
+            c=mcell.setdefault(key,{"ongoing":0,"done":0})
+            if t.get("status")=="ongoing": c["ongoing"]+=1
+            elif t.get("status")=="done": c["done"]+=1
+        maint_sites=[{"site":s,"ongoing":c["ongoing"],"done":c["done"]}
+          for s,c in mcell.items()]
+        maint_sites.sort(key=lambda r:(-r["ongoing"],-r["done"]))
+        maint_gaps=[]
+        if msrc.get("unresolved_site_labels"):
+            maint_gaps.append("site label(s) not resolved to a canonical dashboard "
+              "site name, shown as-is rather than guessed: "
+              +", ".join(msrc["unresolved_site_labels"]))
+        snap["maintenance"]={"tasks":mtasks,"by_site":maint_sites,
+          "source_as_of":msrc.get("source_as_of"),"pulled_at":msrc.get("pulled_at"),
+          "gaps":maint_gaps,
+          "basis":"per maintenance/repair task from "+msrc.get("source","(unlabelled source)")
+          +"; status is 'ongoing' (outstanding/in-progress, per the sheet's own "
+          "ON GOING/PENDING section) or 'done' (per its DONE section) - the sheet "
+          "does not distinguish outstanding from in-progress any further than that; "
+          "event-dated on the sheet's own Date column, so the date-range filter "
+          "slices both the per-site bars/table and the drill-down; NOT sourced from "
+          "the Neon warehouse or Pipe 9 - see 'source_as_of'/'pulled_at' for "
+          "freshness, and the project doc for how this gets refreshed"}
+    else:
+        snap["maintenance"]={"tasks":[],"by_site":[],"gaps":[
+          "maintenance_source.json missing - Maintenance tab has no data this bake"],
+          "basis":"no data available this bake"}
+        gaps.append("data/ops_command/maintenance_source.json absent - Maintenance tab "
+          "empty. This file is not produced by Pipe 9; it's pulled from Lincoln's "
+          "Google Sheet by a separate refresh step - see project doc")
+
     # ---- sites ----
     hc=[]
     cur.execute(
