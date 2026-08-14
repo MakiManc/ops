@@ -476,7 +476,7 @@ def main():
         for site,pid,fs,form,task,ans,answered in rows:
             if (fs or "").strip().lower()!="closed": continue
             by_site.setdefault(site,[]).append({"form":form,"task":task,"answer":ans,
-              "answered":answered})
+              "answered":answered,"d":(answered or "")[:10]})
         for site,items in by_site.items():
             items.sort(key=lambda r:r["answered"] or "",reverse=True)
             task_drilldown[site]={"tasks":items[:TASK_DRILLDOWN_CAP],"total":len(items),
@@ -491,7 +491,10 @@ def main():
       "is a CURRENT-STATE snapshot (open/closed right now), not an event-dated series. "
       f"Drill-down lists every task answer from that site's Closed forms, most recent "
       f"first, capped at {TASK_DRILLDOWN_CAP} rows per site (see 'total'/'truncated' per "
-      "site for anything past the cap)"}
+      "site for anything past the cap); each drill-down row carries its own answered-date "
+      "('d') so the shell's date-range filter slices the drill-down list by submission date "
+      "- the per-site % complete figures above are the current-state snapshot and are not "
+      "sliced by that filter"}
 
     # ---- supply / fulfilment aging (Kobas Outstanding Stock Orders) ----
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
