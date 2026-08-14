@@ -131,7 +131,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page on" id="p-over">
   <div class="kpis" id="kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Needs attention</div>
-    <div class="s">Every signal carries its basis — hover to see how it was derived</div></div>
+    <div class="s">Every signal carries its basis — hover to see how it was derived · these are current-state figures, not sliced by the date range filter (the filter applies inside each tab, to submission/answer/completion dates — never pull dates)</div></div>
     <div class="card-b" id="signals"></div></div>
   <div class="card"><div class="card-h"><div class="t">Known gaps in this pull</div>
     <div class="s">Named explicitly by the builder — never silent zeros</div></div>
@@ -154,10 +154,10 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-comp">
   <div class="cols">
     <div class="card"><div class="card-h"><div class="t">Form completion</div>
-      <div class="s">GetCompliant forms · completed vs ongoing</div></div>
+      <div class="s">GetCompliant forms · completed vs ongoing · current state, not sliced by the date range above</div></div>
       <div class="card-b" id="fc-bars"></div></div>
     <div class="card"><div class="card-h"><div class="t">Open deviations by form</div>
-      <div class="s">Unresolved items raised through forms</div></div>
+      <div class="s">Unresolved items raised through forms · current state, not sliced by the date range above</div></div>
       <div class="card-b" id="dv-bars"></div></div>
   </div>
   <div class="card"><div class="card-h"><div class="t">Form answers in range</div>
@@ -172,10 +172,10 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div id="tk-note"></div>
   <div class="kpis" id="tk-kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Task completion by site</div>
-    <div class="s">GC Form Task Answers · Closed ÷ (Closed + Open) forms, current state · click a site for its completed tasks and answers</div></div>
+    <div class="s">GC Form Task Answers · Closed ÷ (Closed + Open) forms · current state, not sliced by the date range above · click a site for its completed tasks and answers</div></div>
     <div class="card-b" id="tk-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Detail</div>
-    <div class="s">Click a row to view that site's completed tasks and answers</div></div>
+    <div class="s">Click a row to view that site's completed tasks and answers, filtered to the date range above by answered date</div></div>
     <div class="card-b" id="tk-tbl"></div></div>
 </div>
 
@@ -202,10 +202,10 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div id="supp-note"></div>
   <div class="kpis" id="supp-kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Fulfilment aging by supplier</div>
-    <div class="s">Kobas Outstanding Stock Orders · sorted by £ at risk · a proxy for OTIF, not a measured fulfilment rate (see note)</div></div>
+    <div class="s">Kobas Outstanding Stock Orders · sorted by £ at risk · a proxy for OTIF, not a measured fulfilment rate (see note) · currently-outstanding orders, not sliced by the date range above</div></div>
     <div class="card-b" id="fa-aging"></div></div>
   <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
-    <div class="s">Delivery / supplier issue forms in GetCompliant</div></div>
+    <div class="s">Delivery / supplier issue forms in GetCompliant · current open backlog, not sliced by the date range above (see "Issues by answered supplier" below for the filtered view)</div></div>
     <div class="card-b" id="sp-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Issues by answered supplier</div>
     <div class="s" id="sp-ans-sub">From the form's own “Supplier?” answers · filtered by the date range (answer dates, not pull dates)</div></div>
@@ -220,7 +220,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="s" id="ic-sub">Bucketed from each issue's free-text answer — not an official taxonomy</div></div>
     <div class="card-b" id="ic-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Price change watch</div>
-    <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone</div></div>
+    <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · latest report pull, not sliced by the date range above</div></div>
     <div class="card-b" id="pw-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Form detail</div>
     <div class="s">Every delivery or supplier form, most open first</div></div>
@@ -339,12 +339,23 @@ function openTaskModal(site){
     openModal(site,'<div class="empty">No completed tasks recorded for this site in this pull.</div>');
     return;
   }
+  /* sliced by the task's own answered date (never pull date) — same rule as every
+     other drill-down in this shell */
+  const rows=info.tasks.filter(t=>inEV(t.d));
+  if(!rows.length){
+    const cap=info.truncated
+      ? ` The server only holds the ${fmtN(info.tasks.length)} most recent of ${fmtN(info.total)} — an older range may include tasks not loaded here.`
+      : '';
+    openModal(site,`<div class="empty">No completed tasks for this site answered in ${esc(evLabel())}.${cap}</div>`);
+    return;
+  }
   const html='<table><thead><tr><th>Answered</th><th>Form</th><th>Task</th><th>Answer</th></tr></thead><tbody>'+
-    info.tasks.map(t=>`<tr><td>${esc((t.answered||'').replace('T',' ').slice(0,16))}</td><td>${esc(t.form||'—')}</td>`+
+    rows.map(t=>`<tr><td>${esc((t.answered||'').replace('T',' ').slice(0,16))}</td><td>${esc(t.form||'—')}</td>`+
       `<td>${esc(t.task||'—')}</td><td>${esc(t.answer??'—')}</td></tr>`).join('')+
     '</tbody></table><div class="prov">'+
-    (info.truncated?`showing the most recent ${info.tasks.length} of ${fmtN(info.total)} completed tasks`
-      :`${fmtN(info.total)} completed task${info.total===1?'':'s'}`)+'</div>';
+    rows.length+' of '+fmtN(info.total)+' completed task'+(info.total===1?'':'s')+' answered in '+esc(evLabel())+
+    (info.truncated?` (server holds the ${fmtN(info.tasks.length)} most recent of ${fmtN(info.total)} total — older ones aren't available to filter)`:'')+
+    '</div>';
   openModal(site,html);
 }
 function openSiteIssuesModal(site){
@@ -396,7 +407,7 @@ function render(snap){
   const drawTrain=kind=>{
     const rows=trAll.filter(r=>kind==='all'||r.site_type===kind);
     const mods=rows.reduce((s,r)=>s+(r.modules||0),0), comp=rows.reduce((s,r)=>s+(r.complete||0),0);
-    $('tr-sub').textContent=rows.length+' sites · '+fmtN(mods)+' module assignments · source '+trSrc+' · sorted worst first';
+    $('tr-sub').textContent=rows.length+' sites · '+fmtN(mods)+' module assignments · source '+trSrc+' · sorted worst first · current state, not sliced by the date range above';
     bars('tr-bars',rows.map(r=>({k:r.site,v:r.pct_complete||0,
       tip:`${r.site} — ${fmtN(r.complete)} of ${fmtN(r.modules)} complete, ${fmtN(r.overdue)} overdue, ${fmtN(r.people)} people`})),
       i=>i.v+'%',TARGET);
@@ -561,9 +572,16 @@ function render(snap){
     tr.classList.add('clk'); tr.addEventListener('click',()=>openSiteIssuesModal(r.site));
   });
 
-  /* issue nature (keyword heuristic) */
-  bars('ic-bars',(sup.issue_categories||[]).map(c=>({k:c.category,v:c.n})));
-  if(sup.issue_categories_basis) $('ic-sub').textContent=sup.issue_categories_basis;
+  /* issue nature (keyword heuristic), sliced by the same answer-date range as
+     every other card on this page — was previously reading a static all-time
+     aggregate (sup.issue_categories) that ignored the range filter entirely;
+     recomputed here from the already-filtered `issues` array instead */
+  const catAgg={};
+  issues.forEach(i=>{const k=i.category||'other'; catAgg[k]=(catAgg[k]||0)+1;});
+  const catRows=Object.entries(catAgg).sort((a,b)=>b[1]-a[1]);
+  bars('ic-bars',catRows.map(([k,v])=>({k,v})));
+  $('ic-sub').textContent=(sup.issue_categories_basis||'Bucketed from each issue’s free-text answer — not an official taxonomy')+
+    (issuesAll.length?' · '+issues.length+' of '+issuesAll.length+' issues in range · answer dates '+evLabel():'');
 
   /* supply: fulfilment aging + price watch */
   const fulfil=(snap.supply&&snap.supply.fulfilment)||[];
@@ -685,7 +703,7 @@ function render(snap){
   const hcAll=(snap.sites&&snap.sites.headcount)||[];
   const drawHc=kind=>{
     const rows=hcAll.filter(r=>kind==='all'||r.site_type===kind);
-    $('hc-sub').textContent=rows.length+' sites · '+fmtN(rows.reduce((s,r)=>s+(r.people||0),0))+' people · Flow roster, branch names resolved';
+    $('hc-sub').textContent=rows.length+' sites · '+fmtN(rows.reduce((s,r)=>s+(r.people||0),0))+' people · Flow roster, branch names resolved · current roster, not sliced by the date range above';
     bars('hc-bars',rows.map(r=>({k:r.site,v:r.people||0,tip:`${r.site} — ${fmtN(r.people)} on the roster (${r.site_type})`})));
   };
   typeFilter('hc-filter',drawHc); drawHc('all');
