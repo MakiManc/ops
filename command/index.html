@@ -334,7 +334,7 @@ function render(snap){
       ? '<table><thead><tr><th>Date</th><th class="n">Answers</th><th class="n">Deviations</th></tr></thead><tbody>'+
         abd.slice().reverse().slice(0,31).map(a=>`<tr><td>${esc(a.d)}</td><td class="n">${fmtN(a.answers)}</td><td class="n">${fmtN(a.deviations)}</td></tr>`).join('')+
         `</tbody><tfoot><tr><td><b>Total in range</b></td><td class="n"><b>${fmtN(aTot)}</b></td><td class="n"><b>${fmtN(dTot)}</b></td></tr></tfoot></table>`
-      : '<div class="empty">No form answers dated in this range — answers history starts 13 Aug 2026</div>';
+      : '<div class="empty">No form answers dated in this range</div>';
   } else {
     $('fa-sum').innerHTML='<div class="empty">This snapshot predates answer-date data — it appears on the next bake.</div>';
   }
@@ -359,7 +359,7 @@ function render(snap){
       ? '<table><thead><tr><th>Supplier (as answered)</th><th class="n">Issues</th><th class="n">Still open</th></tr></thead><tbody>'+
         rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${fmtN(v.n)}</td><td class="n">${fmtN(v.open)}</td></tr>`).join('')+
         '</tbody></table>'
-      : '<div class="empty">No issues dated in this range — answers history starts 13 Aug 2026</div>')+
+      : '<div class="empty">No issues dated in this range</div>')+
       (issues.length
         ? '<table style="margin-top:10px"><thead><tr><th>Date</th><th>Supplier</th><th>Site</th><th>Form</th><th>Status</th></tr></thead><tbody>'+
           issues.slice(0,40).map(i=>`<tr><td>${esc(i.d||'—')}</td><td>${esc(i.supplier||'(no answer)')}</td><td>${esc(i.site||'—')}</td><td>${esc(i.form||'')}</td><td>${i.open?chip('a','Open'):chip('g','Closed')}</td></tr>`).join('')+
