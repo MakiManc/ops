@@ -83,6 +83,15 @@ tr.tot td{font-weight:650;border-top:2px solid var(--line)}
 .prov{color:var(--faint);font-size:11px;margin-top:8px}
 .foot{color:var(--muted);font-size:11.5px;margin-top:18px;text-align:center}
 code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
+.heat{border-collapse:separate;border-spacing:2px;margin-top:2px}
+.heat th{padding:2px 4px 6px;font-size:10px;font-weight:500;color:var(--muted);border:0}
+.heat td.hsite{padding:4px 8px 4px 2px;font-size:12px;white-space:nowrap;border:0}
+.heat td.hcell,.heat td.hblank,.heat td.hmiss{padding:0;text-align:center;font-size:11px;
+  font-variant-numeric:tabular-nums;border-radius:4px;min-width:28px;width:28px;height:24px;
+  border:1px solid var(--line)}
+.heat td.hblank{background:var(--track);color:var(--faint)}
+.heat td.hmiss{background:repeating-linear-gradient(45deg,var(--r-bg),var(--r-bg) 3px,#fff 3px,#fff 6px);
+  color:var(--r);font-weight:700;border-color:var(--r)}
 </style></head><body>
 <div id="tip"></div>
 <div class="wrap">
@@ -145,17 +154,56 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="card-b" id="mt-tbl"></div></div>
 </div>
 
+<div class="page" id="p-qual">
+  <div id="qual-note"></div>
+  <div class="kpis" id="qual-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">Chicken Broth Check — by site</div>
+    <div class="s" id="qh-chicken-sub">GC Scheduled Task Answers · colour scaled to the observed range in this snapshot, not an official spec band</div></div>
+    <div class="card-b" id="qh-chicken"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Tonkotsu Broth Check — by site</div>
+    <div class="s" id="qh-tonkotsu-sub">Same scale rule as above, tonkotsu readings only</div></div>
+    <div class="card-b" id="qh-tonkotsu"></div></div>
+  <div class="cols">
+    <div class="card"><div class="card-h"><div class="t">Check discipline</div>
+      <div class="s">% of checks with a numeric reading vs total attempted, per site, in range</div></div>
+      <div class="card-b" id="qh-disc"></div></div>
+    <div class="card"><div class="card-h"><div class="t">Open quality deviations</div>
+      <div class="s">IsOpenDeviation on a broth check, newest first</div></div>
+      <div class="card-b" id="qh-dev"></div></div>
+  </div>
+</div>
+
 <div class="page" id="p-supp">
   <div id="supp-note"></div>
+  <div class="kpis" id="supp-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">Fulfilment aging by supplier</div>
+    <div class="s">Kobas Outstanding Stock Orders · sorted by £ at risk · a proxy for OTIF, not a measured fulfilment rate (see note)</div></div>
+    <div class="card-b" id="fa-aging"></div></div>
   <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
     <div class="s">Delivery / supplier issue forms in GetCompliant</div></div>
     <div class="card-b" id="sp-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Issues by answered supplier</div>
     <div class="s" id="sp-ans-sub">From the form's own “Supplier?” answers · filtered by the date range (answer dates, not pull dates)</div></div>
     <div class="card-b" id="sp-ans"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Issue nature (keyword heuristic)</div>
+    <div class="s" id="ic-sub">Bucketed from each issue's free-text answer — not an official taxonomy</div></div>
+    <div class="card-b" id="ic-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Price change watch</div>
+    <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone</div></div>
+    <div class="card-b" id="pw-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Form detail</div>
     <div class="s">Every delivery or supplier form, most open first</div></div>
     <div class="card-b" id="sp-tbl"></div></div>
+</div>
+
+<div class="page" id="p-cross">
+  <div class="note">Cross-referencing quality and supply, by site and event date. <b>This is coincidence, not causation</b> — a broth deviation and a supplier issue at the same site within a few days is a place to look first, not proof of a link. Join key is site + date; site names differ across systems, so a hand-built alias map bridges GetCompliant and Kobas naming (see basis below).</div>
+  <div class="card"><div class="card-h"><div class="t">Broth deviations with a nearby supplier issue</div>
+    <div class="s" id="cr-sub">Same site, supplier issue within ±3 days of the broth deviation, by event date</div></div>
+    <div class="card-b" id="cr-coin"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Combined timeline by site</div>
+    <div class="s">Every mapped broth deviation and supplier issue, in range, most recent first</div></div>
+    <div class="card-b" id="cr-timeline"></div></div>
 </div>
 
 <div class="page" id="p-sites">
@@ -210,7 +258,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
 
 const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
-  ['p-supp','Suppliers'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
+  ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-cross','Cross-Reference'],
+  ['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
 $('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
 $('nav').addEventListener('click',e=>{
   const b=e.target.closest('button[data-p]'); if(!b) return;
@@ -261,6 +310,7 @@ const typeFilter=(host,onchange)=>{
 let SNAP=null;
 function render(snap){
   SNAP=snap;
+  const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
   $('m-pull').textContent=snap.pull_date||'—';
   $('prov').textContent='source: '+(snap.source||'')+' · generated '+(snap.generated_at||'');
   $('foot').textContent='Ops Command · schema '+(snap.schema_version||'?')+' · Postgres is the system of record.';
@@ -378,6 +428,126 @@ function render(snap){
     (sup.forms||[]).map(f=>[f.supplier,f.form,f.completed,f.raised,f.open,
       (f.open||0)>=20?chip('r','Escalate'):(f.open||0)>0?chip('a','Open'):chip('g','Clear')]));
 
+  /* issue nature (keyword heuristic) */
+  bars('ic-bars',(sup.issue_categories||[]).map(c=>({k:c.category,v:c.n})));
+  if(sup.issue_categories_basis) $('ic-sub').textContent=sup.issue_categories_basis;
+
+  /* supply: fulfilment aging + price watch */
+  const fulfil=(snap.supply&&snap.supply.fulfilment)||[];
+  table('fa-aging',[{h:'Supplier'},{h:'Open orders',n:1},{h:'£ at risk',n:1},{h:'Overdue',n:1},
+    {h:'On target %',n:1},{h:'Worst overdue (days)',n:1}],
+    fulfil.map(f=>[f.supplier,fmtN(f.open_orders),'£'+fmtN(Math.round(f.value_gbp||0)),fmtN(f.overdue_orders),
+      f.on_target_pct!=null?f.on_target_pct+'%':'—',fmtN(f.worst_overdue_days)]),
+    'No fulfilment data in this pull');
+  if(snap.supply&&snap.supply.fulfilment_basis)
+    $('fa-aging').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.fulfilment_basis)+'</div>');
+  const priceRows=(snap.supply&&snap.supply.price_watch)||[];
+  table('pw-tbl',[{h:'Ingredient'},{h:'Old £',n:1},{h:'New £',n:1},{h:'Change',n:1}],
+    priceRows.map(p=>[p.ingredient,p.old_price!=null?p.old_price.toFixed(2):'—',
+      p.new_price!=null?p.new_price.toFixed(2):'—',
+      p.pct_change!=null?(p.pct_change>0?'+':'')+p.pct_change+'%':(p.is_new?'new':'—')]),
+    'No price-change data in this pull');
+  if(snap.supply&&snap.supply.price_watch_basis)
+    $('pw-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.price_watch_basis)+'</div>');
+  const openN=fulfil.reduce((s,f)=>s+(f.open_orders||0),0);
+  const atRiskVal=fulfil.reduce((s,f)=>s+(f.value_gbp||0),0);
+  const overdueN=fulfil.reduce((s,f)=>s+(f.overdue_orders||0),0);
+  const overduePct=openN?Math.round(100*overdueN/openN):null;
+  $('supp-kpis').innerHTML=
+    kpi('o','Orders outstanding',fmtN(openN),'£'+Math.round(atRiskVal).toLocaleString('en-GB')+' at risk')+
+    kpi(overduePct==null?'n':overduePct>30?'r':overduePct>10?'a':'g','Past target date',
+        overduePct==null?'—':overduePct+'%','of outstanding orders')+
+    kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel())+
+    kpi('n','Suppliers shown',fmtN(fulfil.length),'see fulfilment aging basis for coverage');
+
+  /* quality: broth heatmaps, discipline, deviations */
+  const brothCells=(snap.quality&&snap.quality.broth&&snap.quality.broth.cells)||[];
+  const brothDevAll=(snap.quality&&snap.quality.broth&&snap.quality.broth.deviations)||[];
+  $('qual-note').innerHTML=brothCells.length?'':
+    '<div class="empty">No broth-check data in this pull yet.</div>';
+  function drawHeat(host,subHost,kind,label){
+    const inRange=brothCells.filter(c=>c.kind===kind&&inEV(c.d));
+    const days=[...new Set(inRange.map(c=>c.d))].sort();
+    if(!days.length){ $(host).innerHTML='<div class="empty">No '+label+' broth checks dated in this range</div>';
+      $(subHost).textContent='0 days in range · '+evLabel(); return; }
+    const bySite={}; inRange.forEach(c=>{(bySite[c.site]=bySite[c.site]||{})[c.d]=c;});
+    const sites=Object.keys(bySite).sort();
+    const vals=inRange.filter(c=>c.value!=null).map(c=>c.value);
+    const min=vals.length?Math.min(...vals):0, max=vals.length?Math.max(...vals):1;
+    let html='<div style="overflow-x:auto"><table class="heat"><thead><tr><th></th>'+
+      days.map(d=>`<th>${esc(d.slice(5))}</th>`).join('')+'</tr></thead><tbody>';
+    sites.forEach(s=>{
+      html+='<tr><td class="hsite">'+esc(s)+'</td>'+days.map(d=>{
+        const c=bySite[s][d];
+        if(!c) return '<td class="hblank">—</td>';
+        if(c.value==null) return `<td class="hmiss" title="${esc(s)} ${esc(d)} — not registered on time">×</td>`;
+        const t=max>min?(c.value-min)/(max-min):0.5;
+        const bg=`rgba(233,78,27,${(0.12+0.7*t).toFixed(2)})`;
+        return `<td class="hcell" style="background:${bg}" title="${esc(s)} ${esc(d)} — ${c.value}">${c.value}</td>`;
+      }).join('')+'</tr>';
+    });
+    html+='</tbody></table></div><div class="prov">'+sites.length+' site(s) · '+days.length+
+      ' day(s) in range · observed range '+(vals.length?(Math.min(...vals)+'–'+Math.max(...vals)):'—')+
+      ' (not an official spec band) · × = not registered on time</div>';
+    $(host).innerHTML=html;
+    $(subHost).textContent=days.length+' day(s), '+sites.length+' site(s) · '+evLabel();
+  }
+  drawHeat('qh-chicken','qh-chicken-sub','chicken','chicken');
+  drawHeat('qh-tonkotsu','qh-tonkotsu-sub','tonkotsu','tonkotsu');
+  const brothInRange=brothCells.filter(c=>inEV(c.d));
+  const discBySite={};
+  brothInRange.forEach(c=>{
+    const a=discBySite[c.site]=discBySite[c.site]||{checks:0,missed:0};
+    a.checks+=c.checks||0; a.missed+=c.checks_missed||0;
+  });
+  bars('qh-disc',Object.entries(discBySite).map(([k,v])=>({k,
+      v:v.checks?Math.round(100*(v.checks-v.missed)/v.checks):0,
+      tip:`${k} — ${v.checks-v.missed} of ${v.checks} checks registered on time`}))
+    .sort((a,b)=>a.v-b.v),i=>i.v+'%');
+  const brothDev=brothDevAll.filter(d=>inEV(d.d));
+  table('qh-dev',[{h:'Date'},{h:'Site'},{h:'Check'},{h:'Reading'},{h:'Status',raw:1}],
+    brothDev.slice().sort((a,b)=>b.d.localeCompare(a.d)).map(d=>
+      [d.d,d.site,d.kind,d.value??'not registered',d.open?chip('a','Open'):chip('g','Closed')]),
+    brothDevAll.length?'No quality deviations dated in this range':'No quality deviations in this snapshot');
+  const chickenN=brothInRange.filter(c=>c.kind==='chicken'&&c.value!=null).length;
+  const tonkN=brothInRange.filter(c=>c.kind==='tonkotsu'&&c.value!=null).length;
+  const totChecks=brothInRange.reduce((s,c)=>s+(c.checks||0),0), totMissed=brothInRange.reduce((s,c)=>s+(c.checks_missed||0),0);
+  const disc=totChecks?Math.round(100*(totChecks-totMissed)/totChecks):null;
+  const devOpenQ=brothDev.filter(d=>d.open).length;
+  $('qual-kpis').innerHTML=
+    kpi('o','Chicken checks',fmtN(chickenN),'in range, numeric readings')+
+    kpi('o','Tonkotsu checks',fmtN(tonkN),'in range, numeric readings')+
+    kpi(disc==null?'n':disc>=90?'g':disc>=75?'a':'r','Check discipline',disc==null?'—':disc+'%',
+        'checks with a numeric reading, in range')+
+    kpi(devOpenQ?'a':'g','Open quality deviations',fmtN(devOpenQ),'IsOpenDeviation on a broth check');
+
+  /* cross-reference */
+  const cross=snap.cross_ref||{};
+  const aliasLabel=k=>(cross.site_aliases&&cross.site_aliases[k]&&cross.site_aliases[k].label)||k;
+  const coinAll=cross.coincidences||[];
+  const coin=coinAll.filter(c=>inEV(c.broth_date));
+  $('cr-sub').textContent=coinAll.length
+    ?coin.length+' of '+coinAll.length+' in range · '+evLabel()
+    :'Same site, supplier issue within ±3 days of the broth deviation, by event date';
+  if(coin.length){
+    $('cr-coin').innerHTML=coin.map(c=>`<div class="sig"><div class="bod">
+      <div class="hd">${esc(aliasLabel(c.site_key||''))||esc(c.site)} — ${esc(c.broth_detail)} on ${esc(c.broth_date)}</div>
+      <div class="dt">${c.supplier_issues.map(si=>esc(si.d)+': '+esc(si.detail)).join('<br>')}</div></div></div>`).join('');
+  } else {
+    $('cr-coin').innerHTML=coinAll.length
+      ?'<div class="empty">No coincidences dated in this range</div>'
+      :'<div class="empty">No broth deviation and supplier issue landed at the same site within 3 days in this snapshot — a genuinely small-n absence, worth re-checking as more history accumulates.</div>';
+  }
+  if(cross.basis) $('cr-coin').insertAdjacentHTML('beforeend','<div class="prov">'+esc(cross.basis)+'</div>');
+  const evAll=(cross.events||[]).filter(e=>inEV(e.d));
+  const evSorted=evAll.slice().sort((a,b)=>b.d.localeCompare(a.d));
+  table('cr-timeline',[{h:'Date'},{h:'Site'},{h:'Kind',raw:1},{h:'Detail'}],
+    evSorted.slice(0,60).map(e=>[e.d,aliasLabel(e.site_key),
+      e.kind==='broth_deviation'?chip('r','Broth'):chip('a','Supplier'),e.detail]),
+    'No mapped events dated in this range');
+  if(evSorted.length>60) $('cr-timeline').insertAdjacentHTML('beforeend',
+    '<div class="prov">showing newest 60 of '+evSorted.length+'</div>');
+
   /* sites */
   const hcAll=(snap.sites&&snap.sites.headcount)||[];
   const drawHc=kind=>{
@@ -406,7 +576,6 @@ function render(snap){
   const trPct=mods?Math.round(100*comp/mods):null;
   const supOpen=(sup.totals||[]).length?sup.totals.reduce((x,t)=>x+(t.open||0),0):null;
   const devOpen=forms.length?forms.reduce((x,f)=>x+(f.open||0),0):null;
-  const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
   $('kpis').innerHTML=
     kpi('o','Employees',fmtN(s.employees),'on the Flow roster')+
     kpi(trPct==null?'n':trPct>=TARGET?'g':trPct>=70?'a':'r','Training complete',
