@@ -424,77 +424,84 @@ def main():
       "separately from checks_missed==checks meaning value is null (no numeric reading "
       "that day); event-dated on AnsweredDateTime, never pull_date"}}
 
-    # ---- task completion by site (GC Form Task Answers; current state) ----
-    # Ross, verbatim: "task completion as another tab % by site" with a
-    # per-site drill-down of "tasks completed and their answers". Each row in
-    # GC Form Task Answers is one task-level answer within a form; a form's
-    # FormState (Open/Closed) is effectively constant across its own task
-    # rows (checked live: only 3 of ~1.9k forms in this snapshot disagree),
-    # so % complete per site = Closed forms / (Closed+Open forms), with the
-    # rare disagreement broken by the most-recently-answered task row.
-    # Deduped by AnswerID across overlapping pulls (latest pull wins),
-    # deleted rows excluded. This is a CURRENT-STATE snapshot (open vs closed
-    # right now), not an event-dated series like compliance/quality above.
-    TASK_DRILLDOWN_CAP=100
-    task_sites=[]; task_drilldown={}
-    if has_feed(cur,"GC Form Task Answers"):
+    # ---- scheduled task completion rate ON TIME by site (GC Scheduled Task Answers) ----
+    # Ross, 15 Aug: the Task Completion page was reading GC Form Task Answers
+    # (Closed/Open FORM state - a current-state backlog snapshot). Ross asked
+    # for the SCHEDULED task on-time completion rate instead - a different
+    # feed, a different question ("did the recurring checklist get done by
+    # its deadline"), and it turns out to be naturally event-dated rather
+    # than a snapshot.
+    #
+    # GC Scheduled Task Answers carries every recurring checklist item
+    # (cleaning, prep, temperature, broth checks, etc: 40+ distinct TaskName
+    # values, ~36k rows per pull across 23 sites) with a genuine
+    # DueDateTime and a system-computed IsSystemOverdue flag. When a task
+    # is completed before its DueDateTime, IsSystemOverdue=false and Answer
+    # carries the real response. When nobody completes it in time,
+    # GetCompliant auto-closes the row at the deadline with
+    # Answer='Not registered on time' and IsSystemOverdue=true - checked
+    # live: 100% correlation between IsSystemOverdue=true and that exact
+    # Answer text, across every row in the latest pull.
+    #
+    # Cross-pull dedup by AnswerID (the pattern used everywhere else in this
+    # builder) does NOT work here: the auto-closed "missed" rows carry a
+    # BLANK AnswerID (verified live - all 1,463 of them in one pull
+    # collapsed to a single DISTINCT ON row, silently discarding the rest).
+    # TaskID+DueDateTime isn't a safe substitute either - the same task can
+    # recur more than once a day sharing an identical nominal due timestamp
+    # (checked live: 36,457 rows but only 2,625 distinct TaskID+DueDateTime
+    # pairs in one pull). Rather than invent a fragile synthetic key, this
+    # block reads the MOST RECENT PULL ONLY. Each pull already carries a
+    # trailing ~7-9 day window on its own (verified live), so this still
+    # gives a meaningful multi-day picture and refreshes cleanly every day
+    # Pipe 9 runs - it just doesn't accumulate a longer history the way the
+    # AnswerID-keyed feeds do.
+    TASK_DRILLDOWN_CAP=300
+    task_cells=[]; task_drilldown={}
+    if has_feed(cur,"GC Scheduled Task Answers"):
         cur.execute(
-          "WITH a AS (SELECT DISTINCT ON (data->>'AnswerID') "
-          "   nullif(data->>'LocationNameLabel','') site, "
-          "   nullif(data->>'PublicId','') pid, nullif(data->>'FormState','') fs, "
-          "   coalesce(data->>'FormTemplateName',data->>'FormName','') form, "
-          "   coalesce(data->>'TaskName','') task, nullif(data->>'Answer','') ans, "
-          "   data->>'AnsweredDateTime' answered, "
-          "   lower(coalesce(data->>'IsDeleted','')) del "
-          " FROM etl_feed_rows WHERE feed='GC Form Task Answers' "
-          " ORDER BY data->>'AnswerID', pull_date DESC) "
-          "SELECT site, pid, fs, form, task, ans, answered FROM a "
-          "WHERE site IS NOT NULL AND pid IS NOT NULL "
-          "  AND del NOT IN ('true','1','yes')")
+          "SELECT nullif(data->>'LocationNameLabel','') site, "
+          "  data->>'TaskName' task, left(data->>'DueDateTime',10) d, "
+          "  data->>'DueDateTime' due, data->>'AnsweredDateTime' answered, "
+          "  nullif(data->>'Answer','') ans, "
+          "  lower(coalesce(data->>'IsSystemOverdue','')) overdue, "
+          "  lower(coalesce(data->>'IsDeleted','')) del "
+          "FROM etl_feed_rows WHERE feed='GC Scheduled Task Answers' "
+          "  AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows "
+          "    WHERE feed='GC Scheduled Task Answers')")
         rows=cur.fetchall()
-        form_state={}
-        for site,pid,fs,form,task,ans,answered in rows:
-            key=(site,pid)
-            prev=form_state.get(key)
-            if prev is None or (answered or "")>=(prev["answered"] or ""):
-                form_state[key]={"site":site,"fs":fs,"answered":answered}
-        site_agg={}
-        for (site,pid),v in form_state.items():
-            a_=site_agg.setdefault(site,{"closed":0,"open":0,"other":0})
-            s=(v["fs"] or "").strip().lower()
-            if s=="closed": a_["closed"]+=1
-            elif s=="open": a_["open"]+=1
-            else: a_["other"]+=1
-        for site,a_ in site_agg.items():
-            tot=a_["closed"]+a_["open"]
-            task_sites.append({"site":site,"closed_forms":a_["closed"],
-              "open_forms":a_["open"],"other_forms":a_["other"],
-              "pct_complete":round(100.0*a_["closed"]/tot,1) if tot else None})
-        task_sites.sort(key=lambda r:(r["pct_complete"] is None,
-          r["pct_complete"] if r["pct_complete"] is not None else 0))
-        by_site={}
-        for site,pid,fs,form,task,ans,answered in rows:
-            if (fs or "").strip().lower()!="closed": continue
-            by_site.setdefault(site,[]).append({"form":form,"task":task,"answer":ans,
-              "answered":answered,"d":(answered or "")[:10]})
+        cell_agg={}; by_site={}
+        for site,task,d,due,answered,ans,overdue,del_ in rows:
+            if site is None or d is None: continue
+            if del_ in ("true","1","yes"): continue
+            late=overdue in ("true","1","yes")
+            key=(site,d)
+            c=cell_agg.setdefault(key,{"on_time":0,"missed":0})
+            if late: c["missed"]+=1
+            else: c["on_time"]+=1
+            by_site.setdefault(site,[]).append({"task":task,"due":due,
+              "answered":answered,"answer":ans,"late":late,"d":d})
+        for (site,d),c in cell_agg.items():
+            task_cells.append({"site":site,"d":d,"on_time":c["on_time"],
+              "missed":c["missed"]})
         for site,items in by_site.items():
-            items.sort(key=lambda r:r["answered"] or "",reverse=True)
+            items.sort(key=lambda r:r["due"] or "",reverse=True)
             task_drilldown[site]={"tasks":items[:TASK_DRILLDOWN_CAP],"total":len(items),
               "truncated":len(items)>TASK_DRILLDOWN_CAP}
     else:
-        gaps.append("'GC Form Task Answers' absent from the warehouse - task completion "
-            "% by site unavailable")
-    snap["tasks"]={"sites":task_sites,"drilldown":task_drilldown,
-      "basis":"per-site % = Closed forms ÷ (Closed+Open forms) in GC Form Task "
-      "Answers, deduped by AnswerID across pulls (latest pull wins per answer); a form's "
-      "state is read off its most-recently-answered task row; deleted rows excluded; this "
-      "is a CURRENT-STATE snapshot (open/closed right now), not an event-dated series. "
-      f"Drill-down lists every task answer from that site's Closed forms, most recent "
-      f"first, capped at {TASK_DRILLDOWN_CAP} rows per site (see 'total'/'truncated' per "
-      "site for anything past the cap); each drill-down row carries its own answered-date "
-      "('d') so the shell's date-range filter slices the drill-down list by submission date "
-      "- the per-site % complete figures above are the current-state snapshot and are not "
-      "sliced by that filter"}
+        gaps.append("'GC Scheduled Task Answers' absent from the warehouse - scheduled "
+            "task on-time completion by site unavailable")
+    snap["tasks"]={"cells":task_cells,"drilldown":task_drilldown,
+      "basis":"per scheduled-task instance from GC Scheduled Task Answers, most recent "
+      "pull only (cross-pull AnswerID dedup isn't reliable here - GetCompliant's "
+      "auto-generated 'missed' placeholder rows carry no AnswerID; see builder comments); "
+      "a task counts ON TIME when IsSystemOverdue=false (answered before its "
+      "DueDateTime) and MISSED when IsSystemOverdue=true (GetCompliant auto-closed it at "
+      "the deadline with Answer='Not registered on time'); event-dated on DueDateTime - "
+      "the scheduled day, not pull_date - so the date-range filter slices both the "
+      "per-site bars/table and the drill-down; deleted rows excluded; drill-down capped "
+      f"at {TASK_DRILLDOWN_CAP} rows per site, most recent due date first (see "
+      "'total'/'truncated' per site for anything past the cap)"}
 
     # ---- supply / fulfilment aging (Kobas Outstanding Stock Orders) ----
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
