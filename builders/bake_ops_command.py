@@ -32,13 +32,21 @@ TRAPS, WITH DATES (house rule: write them down where the next person will look)
   * Flow Certificates exposes NO expiry field (only certificate_url,
     module_name, trainee_id) (13/08/2026). Emitted as a `gaps` entry every run
     so the blind spot stays visible until the source improves.
-  * SUPPLIER ATTRIBUTION (13/08/2026). The Delivery/Supplier Issue Form HAS a
-    'Supplier?' task (free-text 'Supplier Name') - verified in GC Central Form
-    Tasks - so the supplier IS captured per submission. The per-submission
-    answers live in 'GC Form Task Answers', which does not land in the
-    warehouse (fetched empty / absent). This pipe PROBES for that feed and
-    attributes issues by answered supplier when it lands; until then the
-    aggregate stays 'Unattributed' with an explicit gap naming the fix.
+  * SUPPLIER ATTRIBUTION (13/08/2026, resolved same day). The Delivery/
+    Supplier Issue Form HAS a 'Supplier?' task (free-text 'Supplier Name').
+    'GC Form Task Answers' first LANDED in the warehouse with run #35 on
+    13/08/2026 (earlier probes found it absent - that was timing: the pg
+    dual-write was only added 12/08 and the sheet tab's idempotent skip
+    bypassed it). Each pull covers a rolling ~7-day window, so this pipe
+    dedupes by FormId/AnswerID ACROSS pull_dates - history accumulates from
+    13/08/2026 onward. First real data: Lynas 14 answered issues in 7 days
+    while form-TITLE attribution showed Lynas 0. Titles lie; answers don't.
+  * EVENT DATES vs PULL DATES (13/08/2026). Date-range filtering must slice
+    on the event's own date - AnsweredDateTime for form answers/issues,
+    module_completed_date for training - never on pull_date. pull_date is
+    when the ETL ran, not when the thing happened.
+  * module_completed_date is UK-format 'DD/MM/YYYY HH:MM' (13/08/2026);
+    AnsweredDateTime is ISO. Both parsed defensively, bad values skipped.
   * "Sosltice" is a live typo in a GetCompliant form title (13/08/2026). Both
     spellings map to supplier Solstice here; fix at source when possible.
   * GC Forms Overview LocationGroupName/Id are entirely null (13/08/2026), so
@@ -161,7 +169,30 @@ def main():
     else:
         gaps.append(f"{feed} exposes no trainee_id, so training cannot be attributed to a site "
                     "(resolves once the namespaced 03:00 deep pull has landed)")
-    snap["training"]={"source_feed":feed,"sites":training}
+    # Completion EVENTS by day+site, so ranges filter on when modules were
+    # actually completed, not on pull_date. module_completed_date is UK-format
+    # 'DD/MM/YYYY HH:MM' (13/08/2026); parsed defensively, bad values skipped.
+    completions=[]
+    if linked:
+        cur.execute(
+          "WITH m AS (SELECT data->>'trainee_id' tid, nullif(data->>'module_completed_date','') cd "
+          "  FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
+          "  AND data->>'module_status'='Complete' "
+          "  AND nullif(data->>'module_completed_date','') IS NOT NULL), "
+          "t AS (SELECT data->>'id' id, nullif(data->>'branch','') bid FROM etl_feed_rows "
+          "  WHERE feed='Flow Trainees' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Trainees')), "
+          "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows "
+          "  WHERE feed='Flow Branches' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')), "
+          "p AS (SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)') site, "
+          "  CASE WHEN length(m.cd)>=10 AND substr(m.cd,3,1)='/' AND substr(m.cd,6,1)='/' "
+          "       THEN substr(m.cd,7,4)||'-'||substr(m.cd,4,2)||'-'||substr(m.cd,1,2) END d "
+          "  FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid) "
+          "SELECT d, site, count(*) FROM p WHERE d IS NOT NULL "
+          "GROUP BY 1,2 ORDER BY 1 DESC LIMIT 4000", (feed, feed))
+        completions=[{"d":r[0],"site":r[1],"n":r[2]} for r in cur.fetchall()]
+    snap["training"]={"source_feed":feed,"sites":training,"completions":completions,
+      "completions_basis":"count of modules with module_status='Complete' grouped by "
+      "module_completed_date (the completion EVENT date) and site; capped at 4000 day-site rows"}
 
     # ---- compliance ----
     forms=[]
@@ -190,7 +221,22 @@ def main():
           "(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='GC Central Module Tasks') "
           "GROUP BY 1 ORDER BY 3 DESC, 2 DESC")
         areas=[{"area":r[0],"tasks":r[1],"overdue":r[2],"paused":r[3],"procedures":r[4]} for r in cur.fetchall()]
-    snap["compliance"]={"forms":forms,"areas":areas}
+    # Form-answer EVENTS by day (deduped by AnswerID across overlapping pulls)
+    # - lets the shell's date range slice by when forms were actually answered.
+    answers_by_day=[]
+    if has_feed(cur,"GC Form Task Answers"):
+        cur.execute(
+          "WITH a AS (SELECT DISTINCT ON (data->>'AnswerID') "
+          "   left(data->>'AnsweredDateTime',10) d, "
+          "   lower(coalesce(data->>'IsDeviation','')) dev "
+          " FROM etl_feed_rows WHERE feed='GC Form Task Answers' "
+          " ORDER BY data->>'AnswerID', pull_date DESC) "
+          "SELECT d, count(*), count(*) FILTER (WHERE dev IN ('true','1','yes')) "
+          "FROM a WHERE d IS NOT NULL GROUP BY 1 ORDER BY 1")
+        answers_by_day=[{"d":r[0],"answers":r[1],"deviations":r[2]} for r in cur.fetchall()]
+    snap["compliance"]={"forms":forms,"areas":areas,"answers_by_day":answers_by_day,
+      "answers_basis":"form task answers per AnsweredDateTime day, deduped by AnswerID "
+      "across pulls; history accumulates from 13/08/2026 (first landing of the answers feed)"}
 
     # ---- suppliers (delivery/supplier issue forms; NOT a measured OTIF) ----
     sups=[]
@@ -204,40 +250,49 @@ def main():
         a_=agg.setdefault(s_["supplier"],{"forms":0,"completed":0,"raised":0,"open":0})
         a_["forms"]+=1
         for k in ("completed","raised","open"): a_[k]+=s_[k]
-    # -- per-answer supplier attribution, when the answers feed lands --------
-    answered=[]; ans_src=None
-    for ans_feed in ("GC Form Task Answers","GC Form Task Answers (prev day)",
-                     "GC Scheduled Task Answers"):
-        if has_feed(cur, ans_feed):
-            ans_src=ans_feed
-            cur.execute(
-              "SELECT data FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
-              " LIMIT 5000", (ans_feed, ans_feed))
-            rows=[r[0] for r in cur.fetchall()]
-            def pick(d,*cands):
-                low={k.lower().replace('_',''):k for k in d}
-                for c in cands:
-                    k=low.get(c.lower().replace('_',''))
-                    if k and d.get(k) not in (None,''): return str(d[k])
-                return None
-            agg2={}
-            for d in rows:
-                task=pick(d,'TaskName','task','question') or ''
-                if 'supplier' not in task.lower(): continue
-                val=pick(d,'Answer','AnswerValue','Value','TextAnswer','AnswerText','Comment')
-                if not val: continue
-                sup=supplier_of(val)
-                name=sup if sup!='Unattributed' else val.strip().title()[:40]
-                agg2[name]=agg2.get(name,0)+1
-            answered=[{"supplier":k,"answers":v} for k,v in
-                      sorted(agg2.items(), key=lambda kv:-kv[1])]
-            break
-    if not ans_src:
-        gaps.append("Supplier per-issue attribution blocked: the form's 'Supplier?' "
-            "answer is captured in GetCompliant, but 'GC Form Task Answers' does not "
-            "land in the warehouse - fixing that feed in maki-hospitality-etl "
-            "unlocks issue-by-supplier reporting")
-    snap["suppliers"]={"answered_source":ans_src,"answered":answered,"note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
+    # -- per-issue supplier attribution from the answers feed ----------------
+    # 'GC Form Task Answers' landed 13/08/2026 (run #35). Each pull covers a
+    # rolling ~7-day window, so issues are deduped by FormId ACROSS pull_dates
+    # (latest row wins) and history accumulates day by day. The issue's own
+    # event date is min(AnsweredDateTime) per form - the shell's date-range
+    # filter slices on THAT, never on pull_date.
+    issues=[]; answered=[]; ans_src=None
+    if has_feed(cur, "GC Form Task Answers"):
+        ans_src="GC Form Task Answers"
+        cur.execute(
+          "WITH a AS (SELECT DISTINCT ON (data->>'FormId', data->>'TaskID') "
+          "   data->>'FormId' fid, coalesce(data->>'FormTemplateName',data->>'FormName','') tpl, "
+          "   coalesce(data->>'TaskName','') task, nullif(data->>'Answer','') ans, "
+          "   nullif(data->>'LocationNameLabel','') site, "
+          "   left(data->>'AnsweredDateTime',10) d, "
+          "   lower(coalesce(data->>'IsOpenDeviation','')) opn "
+          " FROM etl_feed_rows WHERE feed='GC Form Task Answers' "
+          " ORDER BY data->>'FormId', data->>'TaskID', pull_date DESC) "
+          "SELECT fid, max(tpl), min(d), "
+          " max(CASE WHEN position('upplier' in task)>0 THEN ans END), "
+          " max(site), bool_or(opn IN ('true','1','yes')) "
+          "FROM a WHERE position('eliver' in tpl)>0 OR position('upplier' in tpl)>0 "
+          "GROUP BY fid ORDER BY 3 DESC LIMIT 2000")
+        for fid,tpl,d,ans,site,opn in cur.fetchall():
+            sup=supplier_of(ans or "")
+            if sup=="Unattributed" and ans: sup=ans.strip().title()[:40]
+            if not ans: sup=None   # form has no supplier answer -> null, never a fake name
+            issues.append({"d":d,"supplier":sup,"site":site,"form":tpl,"open":bool(opn)})
+        agg2={}
+        for i_ in issues:
+            k=i_["supplier"] or "(no supplier answer)"
+            agg2[k]=agg2.get(k,0)+1
+        answered=[{"supplier":k,"answers":v} for k,v in
+                  sorted(agg2.items(), key=lambda kv:-kv[1])]
+    else:
+        gaps.append("'GC Form Task Answers' absent from the warehouse - per-issue "
+            "supplier attribution and answer-date filtering unavailable until the "
+            "daily export lands it")
+    snap["suppliers"]={"answered_source":ans_src,"answered":answered,"issues":issues,
+      "issues_basis":"one row per delivery/supplier issue form submission in GC Form Task "
+      "Answers, deduped by FormId across pulls; d = min(AnsweredDateTime); supplier = the "
+      "form's own 'Supplier?' answer, null when unanswered",
+      "note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
       "feeds fail at fetch, so this is the only supplier signal that lands - self-reported, "
       "not a measured OTIF.","totals":[{"supplier":k,**v} for k,v in
       sorted(agg.items(),key=lambda kv:-kv[1]["open"])],"forms":sorted(sups,key=lambda r:-r["open"])}
