@@ -9,7 +9,7 @@ name: Ops Command daily bake (Pipe 9)
 
 on:
   schedule:
-    - cron: "0 9 * * 1-5"   # 09:00 UTC weekdays
+    - cron: "0 9 * * *"   # 09:00 UTC every day (Mon-Sun)
   workflow_dispatch:
 
 concurrency:
