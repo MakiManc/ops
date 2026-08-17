@@ -503,9 +503,20 @@ def main():
       f"at {TASK_DRILLDOWN_CAP} rows per site, most recent due date first (see "
       "'total'/'truncated' per site for anything past the cap)"}
 
-    # ---- supply / fulfilment aging (Kobas Outstanding Stock Orders) ----
+    # ---- supply / projected spend this week, by site + supplier ----
+    # Ross, 17 Aug: replace the "orders outstanding" aging/backlog framing
+    # with a forward-looking view - what do we expect to SPEND this week,
+    # broken down by site and supplier - from the same Kobas Outstanding
+    # Stock Orders report. "This week" = the Mon-Sun week containing today
+    # (Postgres current_date), matched against each order's own Target
+    # Delivery Date. Site+supplier is a genuinely new cut: the old aging
+    # block only ever grouped by supplier (site was fetched but unused).
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
-    fulfil=[]; price_watch=[]
+    week_spend=[]; price_watch=[]
+    cur.execute("SELECT date_trunc('week',current_date)::date, "
+                "(date_trunc('week',current_date)+interval '6 day')::date")
+    week_start,week_end=cur.fetchone()
+    week_start,week_end=week_start.isoformat(),week_end.isoformat()
     if has_feed(cur,FULFIL_FEED):
         cur.execute(
           "WITH o AS (SELECT DISTINCT ON (data->>'Order ID') "
@@ -513,40 +524,35 @@ def main():
           "   nullif(data->>'Venue Placed','') site, nullif(data->>'Order Value','') val, "
           "   nullif(data->>'Target Delivery Date','') target "
           " FROM etl_feed_rows WHERE feed=%s ORDER BY data->>'Order ID', pull_date DESC) "
-          "SELECT oid, sup, site, val, target, "
-          " CASE WHEN target IS NOT NULL THEN (current_date - target::date) END "
-          "FROM o", (FULFIL_FEED,))
+          "SELECT oid, sup, site, val FROM o "
+          "WHERE target IS NOT NULL AND target::date BETWEEN %s AND %s",
+          (FULFIL_FEED,week_start,week_end))
         agg3={}
-        for oid,sup,site,val,target,overdue_days in cur.fetchall():
+        for oid,sup,site,val in cur.fetchall():
             if not oid: continue
-            k=sup or "(no supplier)"
-            a_=agg3.setdefault(k,{"open":0,"value":0.0,"overdue_n":0,"on_target_n":0,
-                                   "overdue_days_worst":0})
-            a_["open"]+=1
+            k=(site or "(no site)",sup or "(no supplier)")
+            a_=agg3.setdefault(k,{"orders":0,"value":0.0})
+            a_["orders"]+=1
             try: v=float(val)
             except (TypeError,ValueError): v=0.0
             a_["value"]+=v
-            od=int(overdue_days) if overdue_days is not None else None
-            if od is not None and od>0:
-                a_["overdue_n"]+=1
-                a_["overdue_days_worst"]=max(a_["overdue_days_worst"],od)
-            elif od is not None:
-                a_["on_target_n"]+=1
-        for sup,a_ in agg3.items():
-            fulfil.append({"supplier":sup,"open_orders":a_["open"],
-              "value_gbp":round(a_["value"],2),"overdue_orders":a_["overdue_n"],
-              "on_target_pct":round(100.0*a_["on_target_n"]/a_["open"],1) if a_["open"] else None,
-              "worst_overdue_days":a_["overdue_days_worst"]})
-        fulfil.sort(key=lambda r:-r["value_gbp"])
+        for (site,sup),a_ in agg3.items():
+            week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
+              "value_gbp":round(a_["value"],2)})
+        week_spend.sort(key=lambda r:-r["value_gbp"])
     else:
-        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse - fulfilment aging unavailable")
-    gaps.append("Fulfilment aging is a proxy, not true OTIF: the Mapal Supplier Orders/Smart "
-        "Delivery/Invoices To Receive feeds fail at fetch (credentials), so there is no "
-        "delivered-vs-ordered signal - fixing Mapal is the single highest-value data unlock "
-        "for this dashboard")
+        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse - projected spend this week unavailable")
+    gaps.append("Projected spend this week is a proxy, not a confirmed figure: it sums Order "
+        "Value on currently-outstanding orders whose Target Delivery Date falls in the "
+        "current Mon-Sun week - it will overstate spend for any order that later slips to a "
+        "different week, and it says nothing about orders not yet placed. The Mapal Supplier "
+        "Orders/Smart Delivery/Invoices To Receive feeds still fail at fetch (credentials), so "
+        "there is no delivered-vs-ordered signal to true this up against - fixing Mapal is the "
+        "single highest-value data unlock for this dashboard")
     gaps.append("Some 'outstanding' orders in the Kobas report carry Order Placed dates back "
         "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
-        "in the source system rather than a live backlog; the aging table includes them as-is")
+        "in the source system rather than a live backlog; if one of these happens to carry a "
+        "Target Delivery Date in the current week it is still included as-is")
 
     PRICE_FEED="Kobas Report - Weekly Ingredient Price Changes Report"
     if has_feed(cur,PRICE_FEED):
@@ -570,10 +576,11 @@ def main():
         "report, so price rises cannot be joined to a specific supplier or location - shown "
         "as a standalone watchlist, not cross-referenced to suppliers.issues")
 
-    snap["supply"]={"fulfilment":fulfil,
-      "fulfilment_basis":"one row per Order ID (deduped across weekly pulls, latest pull "
-      "wins) from the Kobas Outstanding Stock Orders report; value_gbp/overdue counts are a "
-      "proxy for OTIF, not a measured fulfilment rate",
+    snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
+      "week_spend_basis":"one row per site+supplier combination (deduped by Order ID across "
+      "weekly pulls, latest pull wins) from the Kobas Outstanding Stock Orders report, summing "
+      "Order Value for orders whose Target Delivery Date falls within the current Mon-Sun "
+      "week; a projection from outstanding orders, not a measured or confirmed spend figure",
       "price_watch":price_watch[:100],
       "price_watch_basis":"latest pull of the Kobas Weekly Ingredient Price Changes report; "
       "pct_change = (new-old)/old*100; is_new=true when there is no prior price on file"}
