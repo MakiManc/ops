@@ -212,8 +212,8 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-supp">
   <div id="supp-note"></div>
   <div class="kpis" id="supp-kpis"></div>
-  <div class="card"><div class="card-h"><div class="t">Fulfilment aging by supplier</div>
-    <div class="s">Kobas Outstanding Stock Orders · sorted by £ at risk · a proxy for OTIF, not a measured fulfilment rate (see note) · currently-outstanding orders, not sliced by the date range above</div></div>
+  <div class="card"><div class="card-h"><div class="t">Projected spend this week — by site &amp; supplier</div>
+    <div class="s" id="fa-aging-sub">Kobas Outstanding Stock Orders · orders due this Mon–Sun, by target delivery date · sorted by £ · a projection, not a confirmed spend figure (see note)</div></div>
     <div class="card-b" id="fa-aging"></div></div>
   <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
     <div class="s">Delivery / supplier issue forms in GetCompliant · current open backlog, not sliced by the date range above (see "Issues by answered supplier" below for the filtered view)</div></div>
@@ -664,15 +664,17 @@ function render(snap){
   $('ic-sub').textContent=(sup.issue_categories_basis||'Bucketed from each issue’s free-text answer — not an official taxonomy')+
     (issuesAll.length?' · '+issues.length+' of '+issuesAll.length+' issues in range · answer dates '+evLabel():'');
 
-  /* supply: fulfilment aging + price watch */
-  const fulfil=(snap.supply&&snap.supply.fulfilment)||[];
-  table('fa-aging',[{h:'Supplier'},{h:'Open orders',n:1},{h:'£ at risk',n:1},{h:'Overdue',n:1},
-    {h:'On target %',n:1},{h:'Worst overdue (days)',n:1}],
-    fulfil.map(f=>[f.supplier,fmtN(f.open_orders),'£'+fmtN(Math.round(f.value_gbp||0)),fmtN(f.overdue_orders),
-      f.on_target_pct!=null?f.on_target_pct+'%':'—',fmtN(f.worst_overdue_days)]),
-    'No fulfilment data in this pull');
-  if(snap.supply&&snap.supply.fulfilment_basis)
-    $('fa-aging').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.fulfilment_basis)+'</div>');
+  /* supply: projected spend this week (by site & supplier) + price watch */
+  const weekSpend=(snap.supply&&snap.supply.week_spend)||[];
+  const weekStart=(snap.supply&&snap.supply.week_start)||'', weekEnd=(snap.supply&&snap.supply.week_end)||'';
+  if($('fa-aging-sub')) $('fa-aging-sub').textContent='Kobas Outstanding Stock Orders · orders due '+
+    (weekStart&&weekEnd?weekStart+' – '+weekEnd:'this Mon–Sun')+
+    ' (target delivery date) · sorted by £ · a projection, not a confirmed spend figure (see note)';
+  table('fa-aging',[{h:'Site'},{h:'Supplier'},{h:'Orders',n:1},{h:'£ projected',n:1}],
+    weekSpend.map(f=>[f.site,f.supplier,fmtN(f.orders),'£'+fmtN(Math.round(f.value_gbp||0))]),
+    'No orders due this week in this pull');
+  if(snap.supply&&snap.supply.week_spend_basis)
+    $('fa-aging').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.week_spend_basis)+'</div>');
   const priceRows=(snap.supply&&snap.supply.price_watch)||[];
   table('pw-tbl',[{h:'Ingredient'},{h:'Old £',n:1},{h:'New £',n:1},{h:'Change',n:1}],
     priceRows.map(p=>[p.ingredient,p.old_price!=null?p.old_price.toFixed(2):'—',
@@ -681,16 +683,23 @@ function render(snap){
     'No price-change data in this pull');
   if(snap.supply&&snap.supply.price_watch_basis)
     $('pw-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.price_watch_basis)+'</div>');
-  const openN=fulfil.reduce((s,f)=>s+(f.open_orders||0),0);
-  const atRiskVal=fulfil.reduce((s,f)=>s+(f.value_gbp||0),0);
-  const overdueN=fulfil.reduce((s,f)=>s+(f.overdue_orders||0),0);
-  const overduePct=openN?Math.round(100*overdueN/openN):null;
+  const weekTotal=weekSpend.reduce((s,f)=>s+(f.value_gbp||0),0);
+  const weekOrders=weekSpend.reduce((s,f)=>s+(f.orders||0),0);
+  const bySiteTot={}, bySupTot={};
+  weekSpend.forEach(f=>{
+    bySiteTot[f.site]=(bySiteTot[f.site]||0)+(f.value_gbp||0);
+    bySupTot[f.supplier]=(bySupTot[f.supplier]||0)+(f.value_gbp||0);
+  });
+  const topSite=Object.entries(bySiteTot).sort((a,b)=>b[1]-a[1])[0];
+  const topSup=Object.entries(bySupTot).sort((a,b)=>b[1]-a[1])[0];
   $('supp-kpis').innerHTML=
-    kpi('o','Orders outstanding',fmtN(openN),'£'+Math.round(atRiskVal).toLocaleString('en-GB')+' at risk')+
-    kpi(overduePct==null?'n':overduePct>30?'r':overduePct>10?'a':'g','Past target date',
-        overduePct==null?'—':overduePct+'%','of outstanding orders')+
-    kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel())+
-    kpi('n','Suppliers shown',fmtN(fulfil.length),'see fulfilment aging basis for coverage');
+    kpi('o','Projected spend this week','£'+Math.round(weekTotal).toLocaleString('en-GB'),
+        fmtN(weekOrders)+' order'+(weekOrders===1?'':'s')+(weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:''))+
+    kpi(topSite?'o':'n','Top site this week',topSite?topSite[0]:'—',
+        topSite?'£'+Math.round(topSite[1]).toLocaleString('en-GB'):'no orders due this week')+
+    kpi(topSup?'o':'n','Top supplier this week',topSup?topSup[0]:'—',
+        topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
+    kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel());
 
   /* quality: broth heatmaps, discipline, deviations */
   const brothCells=(snap.quality&&snap.quality.broth&&snap.quality.broth.cells)||[];
