@@ -1,0 +1,671 @@
+{
+ "verifier_version": 1,
+ "generated_at": "2026-08-18T17:43:01Z",
+ "verified_date": "2026-08-18",
+ "overall": "amber",
+ "postgres_latest": "2026-08-18",
+ "snapshot_latest": "2026-08-18",
+ "counts": {
+  "expected_feeds": 46,
+  "known_broken": 14,
+  "criticals": 0,
+  "warnings": 1
+ },
+ "criticals": [],
+ "warnings": [
+  {
+   "check": "0-receipts",
+   "level": "warning",
+   "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt (expected on the first run after deploy). Checks 1-2 still verify the data directly."
+  }
+ ],
+ "results": [
+  {
+   "check": "0-receipts",
+   "level": "warning",
+   "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt (expected on the first run after deploy). Checks 1-2 still verify the data directly."
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Deep Flow Branch Resources",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Branch Resources",
+   "detail": "25930 rows (median 25930)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Deep Flow Certificates",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Certificates",
+   "detail": "2571 rows (median 2542)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Deep Flow Courses",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Courses",
+   "detail": "1452 rows (median 1438)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Deep Flow Modules",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Modules",
+   "detail": "4759 rows (median 4698)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Deep Flow Profile XT",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Profile XT",
+   "detail": "458 rows (median 458)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Deep Run Log",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Run Log",
+   "detail": "1 rows (median 1)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Appraisals",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Appraisals",
+   "detail": "677 rows (median 673)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Branch Resources",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Branch Resources",
+   "detail": "2316 rows (median 2308)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Branches",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Branches",
+   "detail": "25 rows (median 25)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Certificates",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Certificates",
+   "detail": "219 rows (median 231)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Courses",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Courses",
+   "detail": "130 rows (median 126)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Departments",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Departments",
+   "detail": "11 rows (median 11)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Modules",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Modules",
+   "detail": "408 rows (median 401)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Profile XT",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Profile XT",
+   "detail": "37 rows (median 44)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Trainees",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Trainees",
+   "detail": "676 rows (median 672)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Trainees Ext",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Trainees Ext",
+   "detail": "676 rows (median 672)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Trainees ReadOnly",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Trainees ReadOnly",
+   "detail": "866 rows (median 862)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Training",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Training",
+   "detail": "970 rows (median 918)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Flow Workbooks",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Flow Workbooks",
+   "detail": "677 rows (median 673)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Central Areas",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Central Areas",
+   "detail": "33 rows (median 33)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Central Form Tasks",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Central Form Tasks",
+   "detail": "12576 rows (median 12576)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Central Module Tasks",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Central Module Tasks",
+   "detail": "294 rows (median 293)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Deviations (prev day)",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Deviations (prev day)",
+   "detail": "7 rows (median 6)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Form Task Answers",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Form Task Answers",
+   "detail": "2174 rows (median 1910)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Form Task Answers (prev day)",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Form Task Answers (prev day)",
+   "detail": "575 rows (median 196)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Forms",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Forms",
+   "detail": "74 rows (median 74)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Forms Overview",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Forms Overview",
+   "detail": "422 rows (median 422)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Local Procedures",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Local Procedures",
+   "detail": "575 rows (median 575)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Location Groups",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Location Groups",
+   "detail": "13 rows (median 13)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Locations",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Locations",
+   "detail": "25 rows (median 25)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Modules",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Modules",
+   "detail": "6 rows (median 6)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Procedure Details",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Procedure Details",
+   "detail": "42 rows (median 55)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Procedures",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Procedures",
+   "detail": "25 rows (median 25)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Procedures Refactor",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Procedures Refactor",
+   "detail": "25 rows (median 25)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Processes",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Processes",
+   "detail": "37 rows (median 37)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Scheduled Task Answers",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Scheduled Task Answers",
+   "detail": "36787 rows (median 36622)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Scheduled Task Answers (prev day)",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Scheduled Task Answers (prev day)",
+   "detail": "4587 rows (median 4584)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Users",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Users",
+   "detail": "1221 rows (median 1218)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "GC Waste Module Settings",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Waste Module Settings",
+   "detail": "5 rows (median 5)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Kobas Orders",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Orders",
+   "detail": "24 rows (median 24)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
+   "detail": "2587 rows (median 2584)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
+   "detail": "711 rows (median 711)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "detail": "999 rows (median 995)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
+   "detail": "2034 rows (median 2034)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
+   "detail": "141 rows (median 141)"
+  },
+  {
+   "check": "1-landed",
+   "level": "ok",
+   "feed": "Supplier Issues",
+   "detail": "landed 2026-08-18"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Supplier Issues",
+   "detail": "3 rows (median 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Supplier Orders",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Smart Delivery",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Smart Yield",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Invoices To Receive",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Equipment",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Interventions",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Mapal Renewal Plans",
+   "detail": "not verified (known_broken: Mapal credentials - Phase 4)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "Flow Bookings Calendar",
+   "detail": "not verified (known_broken: fetch fails daily; cause not yet investigated)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "GC Local Module Tasks",
+   "detail": "not verified (known_broken: fetch fails daily; cause not yet investigated)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "GC Local Module Tasks v2",
+   "detail": "not verified (known_broken: fetch fails daily; cause not yet investigated)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "GC Deviations",
+   "detail": "not verified (known_broken: fetch fails daily; the (prev day) variant works)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "GC Waste Registered",
+   "detail": "not verified (known_broken: fetch fails daily; cause not yet investigated)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "GC Waste Registered (prev day)",
+   "detail": "not verified (known_broken: fetch fails daily)"
+  },
+  {
+   "check": "1-landed",
+   "level": "known_broken",
+   "feed": "GC Location Changelog",
+   "detail": "not verified (known_broken: fetch fails daily; cause not yet investigated)"
+  },
+  {
+   "check": "4a-snapshot",
+   "level": "ok",
+   "detail": "dashboard snapshot 2026-08-18 matches Postgres 2026-08-18"
+  }
+ ],
+ "basis": "verify_ops_data.py checks 0/1/2/4a against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18"
+}
