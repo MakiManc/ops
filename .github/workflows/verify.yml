@@ -1,0 +1,80 @@
+name: Ops data verification
+
+# The daily verification spine (approved self-testing plan, Phase 1).
+# Runs at 09:30 UTC - after the whole chain has had its say:
+#   03:00 deep pull -> 08:15 daily export -> 09:00 Pipe 9 bake -> 09:30 this.
+# builders/verify_ops_data.py measures at the DESTINATION (Neon Postgres,
+# the live snapshot index) and never trusts a workflow's exit code.
+#
+# CRITICAL failures: one ntfy push (from the script) + this workflow goes
+# red, which fires GitHub's failure email. WARNINGS: recorded in
+# data/ops_command/health_latest.json only - the push channel stays pure.
+# health_latest.json is committed every run (green or red) so the
+# dashboard's staleness banner always has a verifier verdict to read.
+#
+# (A second 12:00 UTC recheck pass - the false-alarm damper - arrives in
+# Phase 2.)
+
+on:
+  schedule:
+    - cron: "30 9 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ops-verify
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install driver
+        run: pip install psycopg2-binary
+      - name: Verify the ops data system
+        env:
+          WAREHOUSE_DSN: ${{ secrets.WAREHOUSE_DSN }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python builders/verify_ops_data.py
+      - name: Commit health_latest.json (green or red)
+        if: always()
+        run: |
+          git config user.name  "ops-verify"
+          git config user.email "ops@makiramen.com"
+          git add data/ops_command/health_latest.json
+          if git diff --cached --quiet; then
+            echo "health unchanged"
+          else
+            git commit -m "ops-verify: health $(date -u '+%F %H:%M')"
+            git pull --rebase origin main
+            git push
+          fi
+      # Backstop push: fires only if the job failed AND the script did not
+      # already send its own (crash before the push, driver install failed,
+      # commit step failed...). The verifier must never die silently.
+      - name: Backstop alert (ntfy push)
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -f .ntfy_sent ]; then
+            echo "script already pushed - no duplicate"
+            exit 0
+          fi
+          if [ -z "$NTFY_TOPIC" ]; then
+            echo "NTFY_TOPIC not set - skipping push"
+            exit 0
+          fi
+          curl -fsS -m 15 --retry 3 \
+            -H "Title: Ops data verifier CRASHED" \
+            -H "Priority: high" \
+            -H "Tags: rotating_light" \
+            -d "verify.yml went red without completing its checks on $(date -u '+%F %H:%M UTC'). The safety net itself needs looking at. https://github.com/ross440/ops/actions" \
+            "https://ntfy.sh/$NTFY_TOPIC" || echo "ntfy push itself failed - GitHub failure email is the backstop"
