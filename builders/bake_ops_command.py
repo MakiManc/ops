@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """
 bake_ops_command.py  -- Pipe 9 (Ops Command daily snapshot)
-
 Bakes one data/ops_command/snapshot_<pull_date>.json per day for the Ops Command
 dashboard (command/index.html + the desktop artifact), and prepends the date to
 snapshot_index.json. Structured JSON replaces the markdown-pipe-table SNAPSHOT
 string the artifact used to carry between SNAPSHOT-START/END markers.
-
 SOURCE
   Neon Postgres warehouse (system of record for all ETL feeds), table
   etl_feed_rows(feed, pull_date, row_num, data jsonb, loaded_at).
@@ -14,7 +12,6 @@ SOURCE
   This pipe reads the warehouse DIRECTLY -- the "Ops Command KPIs" Google Sheet
   is a serving layer for chat sessions, not a source, and reading it back as
   text was two lossy hops for data that started structured (13/08/2026).
-
 TRAPS, WITH DATES (house rule: write them down where the next person will look)
   * DEEP vs DAILY FEED NAMESPACES (13/08/2026). The 03:00 deep pull and the
     08:15 daily export both wrote feed 'Flow Modules' with the same pull_date,
@@ -57,13 +54,11 @@ TRAPS, WITH DATES (house rule: write them down where the next person will look)
     measured against Postgres row counts, which is the point of this pipe.
   * SQL uses position(x in y), never LIKE -- no literal '%' in query strings,
     so psycopg parameter substitution can't be tripped (13/08/2026).
-
 HOUSE RULES HONOURED
   nulls + a named entry in `gaps`, never silent zeros; every derived signal
   carries a `basis` string; independent data families are independent blocks;
   the site map lives in this builder, not the shell; history is append-only
   (dated files, index prepended, nothing rewritten).
-
 USAGE
   WAREHOUSE_DSN=postgres://... python3 builders/bake_ops_command.py [--date YYYY-MM-DD]
   Writes data/ops_command/snapshot_<date>.json and updates snapshot_index.json.
@@ -71,14 +66,11 @@ USAGE
 """
 from __future__ import annotations
 import argparse, datetime, json, os, re, sys
-
 try:
     import psycopg2
 except ImportError:
     sys.exit("psycopg2 is required: pip install psycopg2-binary")
-
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "ops_command")
-
 # Site map lives in the builder (house rule) -- classification, not presentation.
 # type: restaurant | factory | entity (non-trading legal vehicles on the roster)
 SITE_TYPES = {
@@ -89,9 +81,42 @@ SITE_TYPES = {
     "Renfield Good Food Ltd": "restaurant",
     "Fountain Good Food Ltd": "restaurant",
 }
+# Ross, 18 Aug 2026: the Show filter groups sites by AM REGION (replacing the
+# site-type split). Mapping follows the AM Manual's three clusters (Scotland &
+# Newcastle / North England & Midlands / South England), confirmed by Ross --
+# deliberately organisational, not geographic: Newcastle+METRO sit under
+# Scotland, Renfield (Glasgow) under North England, Birmingham under South
+# England, because that is who manages them. Best-fit for the three sites the
+# manual doesn't cover (also Ross-confirmed): O2 Arena -> south (London,
+# host-region AM), AA Factory1 + Maki Property -> scotland. Any site missing
+# from this map gets a named gap and shows under All only -- never guessed.
+SITE_REGIONS = {
+    "M1TOO Ltd": "scotland",              # M1 WR
+    "Fountain Good Food Ltd": "scotland", # M3 Fountainbridge
+    "South Ikigai Ltd": "scotland",       # M5 Iki 2
+    "Maki Bath St": "scotland",           # M6
+    "Maki SJQ Ltd": "scotland",           # M7
+    "Maki Newcastle Ltd": "scotland",     # M12 -- Scotland & Newcastle cluster
+    "Maki Aberdeen Ltd": "scotland",      # M13
+    "Maki METRO": "scotland",             # M15 -- Scotland & Newcastle cluster
+    "AA Factory1 Limited": "scotland",    # best-fit (factory)
+    "Maki Property Ltd": "scotland",      # best-fit (entity)
+    "Renfield Good Food Ltd": "north",    # M8 -- North England & Midlands cluster
+    "Maki Manchester LTD": "north",       # M9
+    "Maki Leeds Ltd": "north",            # M10
+    "Maki Leicester Ltd": "north",        # M11
+    "Maki Meadowhall": "north",           # M14
+    "Maki Nottingham Ltd": "north",       # M16
+    "Maki Lakeside": "south",             # M17
+    "Maki Soho": "south",                 # M18
+    "Maki Shoreditch": "south",           # M19
+    "Maki Southampton": "south",          # M20
+    "Maki Birmingham Ltd": "south",       # M21 -- South England cluster
+    "Maki Nori": "south",
+    "Maki O2 Arena": "south",             # best-fit (franchise MAF3, London)
+}
 SUPPLIER_MATCH = [("Lynas","Lynas"),("Solstice","Solstice"),("Solstice","Sosltice"),
                   ("TWF","TWF"),("M&R","M&R")]
-
 # Canonical supplier names + the needles that identify them (18/08/2026, for
 # the Supplier Issues tab). Two jobs, one map:
 #   1. Canonicalise the free-text 'Supplier?' ANSWER ('Jfc' / 'Breaks' /
@@ -128,7 +153,6 @@ SUPPLIERS = [
 ANSWER_ONLY_NEEDLES = {"breaks"}
 # Answers that mean "no supplier named", never a supplier called N/A:
 NONE_ANSWERS = {"n/a","na","none","-","nil","other supplier","other","unknown","?","tbc","x"}
-
 def canon_supplier(text, from_answer=False):
     """Canonical supplier name for a string, or None. from_answer=True treats
     the string as the form's 'Supplier?' answer (none-tokens -> None, and the
@@ -144,7 +168,6 @@ def canon_supplier(text, from_answer=False):
             elif nd in t:
                 return name
     return None
-
 # Cross-reference join key (14/08/2026): site names differ across systems -
 # GC LocationNameLabel vs Kobas 'Venue Placed' vs 'Site' are spelled
 # differently for the same physical site ('Maki SJQ Ltd' vs 'Maki SJQ',
@@ -180,7 +203,6 @@ SITE_ALIASES = {
 # Fountainbridge, Maki Leith, Maki Manchester NQ, Maki West End, Maki
 # Yorkshire, and the two 'OLD: ...' rows. These are excluded from
 # cross-referencing, not guessed at - see the gaps entry.
-
 # Issue-nature keyword heuristic (14/08/2026): the only feed with a REAL
 # category taxonomy is the 10-row Gmail 'Supplier Issues' feed. Everything
 # from GetCompliant delivery/supplier forms is free text in the 'Issue?'
@@ -195,7 +217,6 @@ ISSUE_KEYWORDS = [
     ("temperature", ["temperature", "frozen", "thawed", "warm delivery", "cold chain"]),
     ("invoice_credit", ["invoice", "credit", "overcharge", "charged"]),
 ]
-
 def classify_issue(text):
     if not text: return None
     t = text.strip().lower()
@@ -204,7 +225,27 @@ def classify_issue(text):
         for kw in kws:
             if kw in t: return cat
     return "other"
-
+# Ross, 18 Aug 2026: the Training tab's analyst view counts ONLY mandatory
+# compliance training. Confirmed set (safety & food core + region-specific
+# licensing + internal mandatory), matched on trim(module_name) against the
+# exact names observed live in Deep Flow Modules. Licensing region-fit is
+# handled naturally by assignment: a Scottish site has no 'Licensing England
+# & Wales' assignments, so its cell renders as no-data, never a penalty.
+# HR/people modules (Sexual Harassment, Data Privacy, D&I, Disability
+# Awareness, Anti-Modern Slavery) are deliberately NOT in this list.
+MANDATORY_MODULES = [
+    "COSHH: Working With Hazardous Substances - UK",
+    "First Aid Awareness",
+    "Health and Safety Level 2",
+    "Food Safety Level 2",
+    "Food Allergens",
+    "Fire Safety Awareness",
+    "Licensing Scotland",
+    "Licensing England & Wales",
+    "MRSOS Training Module",
+    "Mapal Run through",
+    "Mapal Run through Management",
+]
 EXPECTED_FEEDS = [
     "Flow Trainees","Flow Branches","Flow Modules","Flow Certificates",
     "Deep Flow Modules","Deep Flow Certificates",
@@ -213,18 +254,14 @@ EXPECTED_FEEDS = [
     "Mapal Supplier Orders","Mapal Smart Delivery","Mapal Invoices To Receive",
     "Kobas Orders",
 ]
-
 def supplier_of(form):
     for sup, needle in SUPPLIER_MATCH:
         if needle.lower() in (form or "").lower(): return sup
     return "Unattributed"
-
 def has_feed(cur, feed):
     cur.execute("SELECT 1 FROM etl_feed_rows WHERE feed=%s LIMIT 1", (feed,))
     return cur.fetchone() is not None
-
 L = "(SELECT max(pull_date) FROM etl_feed_rows WHERE feed=%s)"
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=None, help="pull date to stamp (default: max pull_date in warehouse)")
@@ -232,10 +269,8 @@ def main():
     dsn = os.environ.get("WAREHOUSE_DSN") or sys.exit("WAREHOUSE_DSN not set")
     conn = psycopg2.connect(dsn); cur = conn.cursor()
     gaps, snap = [], {}
-
     cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows")
     pull = a.date or (cur.fetchone() or [None])[0] or datetime.date.today().isoformat()
-
     # ---- feed health (Postgres truth) ----
     cur.execute(
         "SELECT feed, max(pull_date)::text, "
@@ -252,7 +287,6 @@ def main():
     order={"MISSING":0,"STALE":1,"EMPTY":2,"WATCH":3,"OK":4}
     fh.sort(key=lambda r:(order.get(r["verdict"],9),r["feed"]))
     snap["feed_health"]=fh
-
     # ---- training by site (Deep feed preferred; branch id -> name join) ----
     deep, base = "Deep Flow Modules", "Flow Modules"
     feed = deep if has_feed(cur, deep) else base
@@ -283,7 +317,6 @@ def main():
     else:
         gaps.append(f"{feed} exposes no trainee_id, so training cannot be attributed to a site "
                     "(resolves once the namespaced 03:00 deep pull has landed)")
-
     # ---- outstanding training by person, for the per-site drill-down ----
     # Every module row that isn't Complete (Not Yet Started / In Progress,
     # each optionally +", Overdue"), with the person's name and due date, so
@@ -313,7 +346,8 @@ def main():
           "FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid", (feed, feed))
         for site, person, module, status, due in cur.fetchall():
             outstanding.append({"site":site,"person":person or "(unnamed)","module":module,
-              "status":status,"overdue":bool(status and "Overdue" in status),"due":due})
+              "status":status,"overdue":bool(status and "Overdue" in status),"due":due,
+              "mand":(module or "").strip() in MANDATORY_MODULES})
         outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or ""))
     # Completion EVENTS by day+site, so ranges filter on when modules were
     # actually completed, not on pull_date. module_completed_date is UK-format
@@ -321,7 +355,8 @@ def main():
     completions=[]
     if linked:
         cur.execute(
-          "WITH m AS (SELECT data->>'trainee_id' tid, nullif(data->>'module_completed_date','') cd "
+          "WITH m AS (SELECT data->>'trainee_id' tid, nullif(data->>'module_completed_date','') cd, "
+          "  trim(coalesce(data->>'module_name','')) mn "
           "  FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
           "  AND data->>'module_status'='Complete' "
           "  AND nullif(data->>'module_completed_date','') IS NOT NULL), "
@@ -329,21 +364,100 @@ def main():
           "  WHERE feed='Flow Trainees' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Trainees')), "
           "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows "
           "  WHERE feed='Flow Branches' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')), "
-          "p AS (SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)') site, "
+          "p AS (SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)') site, m.mn, "
           "  CASE WHEN length(m.cd)>=10 AND substr(m.cd,3,1)='/' AND substr(m.cd,6,1)='/' "
           "       THEN substr(m.cd,7,4)||'-'||substr(m.cd,4,2)||'-'||substr(m.cd,1,2) END d "
           "  FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid) "
-          "SELECT d, site, count(*) FROM p WHERE d IS NOT NULL "
-          "GROUP BY 1,2 ORDER BY 1 DESC LIMIT 4000", (feed, feed))
-        completions=[{"d":r[0],"site":r[1],"n":r[2]} for r in cur.fetchall()]
+          "SELECT d, site, count(*), count(*) FILTER (WHERE mn=ANY(%s)) FROM p WHERE d IS NOT NULL "
+          "GROUP BY 1,2 ORDER BY 1 DESC LIMIT 4000", (feed, feed, MANDATORY_MODULES))
+        completions=[{"d":r[0],"site":r[1],"n":r[2],"nm":r[3]} for r in cur.fetchall()]
+    # ---- mandatory compliance heatmap (site x module) ----
+    # Ross, 18 Aug 2026: analyst view of MANDATORY compliance training only
+    # (see MANDATORY_MODULES above). Two grains from the same join:
+    #   cells -- per site x module {assigned, complete, overdue} for the
+    #            heatmap (a site with assigned=0 for a module simply has no
+    #            cell -- the shell renders a dash, never a penalty);
+    #   sites -- per-site rollup incl. people_overdue = DISTINCT people with
+    #            >=1 overdue mandatory module (the actionable number).
+    # Current-state snapshot like training.sites -- NOT sliced by the
+    # date-range filter client-side.
+    mandatory={}
+    if linked:
+        mand_cells=[]
+        cur.execute(
+          "WITH m AS (SELECT data->>'trainee_id' tid, trim(coalesce(data->>'module_name','')) mn, "
+          "  coalesce(data->>'module_status','') st "
+          "  FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
+          "  AND nullif(data->>'trainee_id','') IS NOT NULL "
+          "  AND trim(coalesce(data->>'module_name','')) = ANY(%s)), "
+          "t AS (SELECT data->>'id' id, nullif(data->>'branch','') bid FROM etl_feed_rows "
+          "  WHERE feed='Flow Trainees' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Trainees')), "
+          "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows "
+          "  WHERE feed='Flow Branches' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')) "
+          "SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)'), m.mn, count(*), "
+          " count(*) FILTER (WHERE m.st='Complete'), "
+          " count(*) FILTER (WHERE position('Overdue' in m.st)>0) "
+          "FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid GROUP BY 1,2",
+          (feed, feed, MANDATORY_MODULES))
+        for site, mn, assigned, comp, ovd in cur.fetchall():
+            mand_cells.append({"site":site,"module":mn,"assigned":assigned,
+              "complete":comp,"overdue":ovd})
+        mand_sites=[]
+        cur.execute(
+          "WITH m AS (SELECT data->>'trainee_id' tid, "
+          "  coalesce(data->>'module_status','') st "
+          "  FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
+          "  AND nullif(data->>'trainee_id','') IS NOT NULL "
+          "  AND trim(coalesce(data->>'module_name','')) = ANY(%s)), "
+          "t AS (SELECT data->>'id' id, nullif(data->>'branch','') bid FROM etl_feed_rows "
+          "  WHERE feed='Flow Trainees' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Trainees')), "
+          "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows "
+          "  WHERE feed='Flow Branches' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')) "
+          "SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)'), count(DISTINCT m.tid), "
+          " count(*), count(*) FILTER (WHERE m.st='Complete'), "
+          " count(DISTINCT m.tid) FILTER (WHERE position('Overdue' in m.st)>0) "
+          "FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid GROUP BY 1",
+          (feed, feed, MANDATORY_MODULES))
+        for site, ppl, assigned, comp, p_ovd in cur.fetchall():
+            mand_sites.append({"site":site,"site_type":SITE_TYPES.get(site,"restaurant"),
+              "people":ppl,"assigned":assigned,"complete":comp,
+              "pct":round(100.0*comp/assigned,1) if assigned else None,
+              "people_overdue":p_ovd})
+        mand_sites.sort(key=lambda r:(r["pct"] if r["pct"] is not None else 999))
+        seen_mods={c["module"] for c in mand_cells}
+        mandatory={
+          "modules":[mn for mn in MANDATORY_MODULES if mn in seen_mods],
+          "cells":mand_cells,"sites":mand_sites,
+          "basis":"mandatory compliance modules only ("+", ".join(MANDATORY_MODULES)+"); "
+          "matched on trim(module_name) in Deep Flow Modules; assigned = module rows for "
+          "people at the site, complete = module_status='Complete', people_overdue = "
+          "distinct people with >=1 overdue mandatory module -- current state, not sliced "
+          "by the date range above"}
+    else:
+        gaps.append("mandatory-compliance training block skipped: no per-trainee module rows "
+                    "in this pull (resolves once the namespaced 03:00 deep pull has landed)")
     snap["training"]={"source_feed":feed,"sites":training,"completions":completions,
       "completions_basis":"count of modules with module_status='Complete' grouped by "
-      "module_completed_date (the completion EVENT date) and site; capped at 4000 day-site rows",
+      "module_completed_date (the completion EVENT date) and site; capped at 4000 day-site rows; "
+      "nm = the mandatory-compliance subset of n (see training.mandatory.basis)",
+      "mandatory":mandatory,
       "outstanding":outstanding,
       "outstanding_basis":"every module row with module_status<>'Complete' (Not Yet Started / "
       "In Progress, each optionally +', Overdue'), joined to the trainee's name and site; "
       "due date is module_due_date -- current state, not sliced by the date range above"}
-
+    # ---- site -> AM region map for the shell's Show filter ----
+    # Single source of truth lives here per house rule (like SITE_TYPES); the
+    # shell reads snap.site_regions and never hardcodes a site list. Any site
+    # seen in training that isn't mapped is named in gaps, never guessed.
+    # Gotcha found live 18/08/2026: at least one Flow branch name ('Maki O2
+    # Arena') uses NON-BREAKING spaces (U+00A0), so both this check and the
+    # shell's lookup normalise NBSP->space before matching.
+    snap["site_regions"]=SITE_REGIONS
+    def _norm_site(s): return (s or "").replace("\xa0"," ").strip()
+    unmapped=sorted({r["site"] for r in training if _norm_site(r["site"]) not in SITE_REGIONS})
+    if unmapped:
+        gaps.append("sites with no AM region in SITE_REGIONS (they appear under the "
+                    "All filter only until the builder map is updated): "+", ".join(unmapped))
     # ---- compliance ----
     forms=[]
     if has_feed(cur,"GC Forms Overview"):
@@ -387,7 +501,6 @@ def main():
     snap["compliance"]={"forms":forms,"areas":areas,"answers_by_day":answers_by_day,
       "answers_basis":"form task answers per AnsweredDateTime day, deduped by AnswerID "
       "across pulls; history accumulates from 13/08/2026 (first landing of the answers feed)"}
-
     # ---- suppliers (delivery/supplier issue forms; NOT a measured OTIF) ----
     sups=[]
     for f in forms:
@@ -479,7 +592,6 @@ def main():
       "text 'Issue?' answer, not an official taxonomy - only the 10-row Gmail 'Supplier "
       "Issues' feed has a real Issue Category field; buckets: shortage, damage_quality, "
       "wrong_item, temperature, invoice_credit, no_issue_recorded, other")
-
     # ---- quality / broth checks (GC Scheduled Task Answers; event-dated) ----
     # Ross, verbatim: a top-level view where broth quality check scores can be
     # seen "broken down by site (branch) at a glance". These do NOT live in
@@ -533,7 +645,6 @@ def main():
       "'checks_missed' counts non-numeric answers (e.g. 'Not registered on time') "
       "separately from checks_missed==checks meaning value is null (no numeric reading "
       "that day); event-dated on AnsweredDateTime, never pull_date"}}
-
     # ---- scheduled task completion rate ON TIME by site (GC Scheduled Task Answers) ----
     # Ross, 15 Aug: the Task Completion page was reading GC Form Task Answers
     # (Closed/Open FORM state - a current-state backlog snapshot). Ross asked
@@ -612,7 +723,6 @@ def main():
       "per-site bars/table and the drill-down; deleted rows excluded; drill-down capped "
       f"at {TASK_DRILLDOWN_CAP} rows per site, most recent due date first (see "
       "'total'/'truncated' per site for anything past the cap)"}
-
     # ---- supply / projected spend this week, by site + supplier ----
     # Ross, 17 Aug: replace the "orders outstanding" aging/backlog framing
     # with a forward-looking view - what do we expect to SPEND this week,
@@ -667,7 +777,6 @@ def main():
         "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
         "in the source system rather than a live backlog; if one of these happens to carry a "
         "Target Delivery Date in the current week it is still included as-is")
-
     PRICE_FEED="Kobas Report - Weekly Ingredient Price Changes Report"
     if has_feed(cur,PRICE_FEED):
         cur.execute(
@@ -689,7 +798,6 @@ def main():
     gaps.append("Ingredient price changes carry no supplier or site field in the source "
         "report, so price rises cannot be joined to a specific supplier or location - shown "
         "as a standalone watchlist, not cross-referenced to suppliers.issues")
-
     snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
       "week_spend_basis":"one row per site+supplier combination (deduped by Order ID across "
       "weekly pulls, latest pull wins) from the Kobas Outstanding Stock Orders report, summing "
@@ -698,7 +806,6 @@ def main():
       "price_watch":price_watch[:100],
       "price_watch_basis":"latest pull of the Kobas Weekly Ingredient Price Changes report; "
       "pct_change = (new-old)/old*100; is_new=true when there is no prior price on file"}
-
     # ---- cross-reference: broth quality x supplier issues, by site+date ----
     gc_to_key={v[0]:k for k,v in SITE_ALIASES.items()}
     events=[]
@@ -746,7 +853,6 @@ def main():
       "delivery/supplier forms) at the SAME site within +/-3 days by event date; join key "
       "is site+date via the hand-built SITE_ALIASES map, since site names differ across "
       "systems (e.g. 'Maki SJQ Ltd' vs 'Maki SJQ')"}
-
     # ---- maintenance tasks by site (Google Sheet, NOT the Postgres warehouse) ----
     # Ross, 15 Aug: wants a Maintenance tab - tasks by site, outstanding/ongoing
     # tasks, with the comments/updates on each. There is no maintenance feed in
@@ -803,7 +909,6 @@ def main():
         gaps.append("data/ops_command/maintenance_source.json absent - Maintenance tab "
           "empty. This file is not produced by Pipe 9; it's pulled from Lincoln's "
           "Google Sheet by a separate refresh step - see project doc")
-
     # ---- sites ----
     hc=[]
     cur.execute(
@@ -827,7 +932,6 @@ def main():
           "paused":str(r[2]).lower() in ('true','1','yes'),"groups":r[3],"categories":r[4]}
           for r in cur.fetchall()]
     snap["sites"]={"headcount":hc,"directory":directory}
-
     # ---- summary + standing gaps ----
     cur.execute("SELECT count(DISTINCT data->>'id') FROM etl_feed_rows WHERE feed='Flow Trainees' AND pull_date="+L,("Flow Trainees",))
     employees=(cur.fetchone() or [None])[0]
@@ -839,7 +943,6 @@ def main():
         gaps.append("Flow Certificates exposes no expiry field (certificate_url, module_name, "
                     "trainee_id only) - statutory expiries are not visible from this feed")
     snap["gaps"]=gaps
-
     # ---- signals, each with basis ----
     sig=[]
     tot_sup=sum(t["open"] for t in snap["suppliers"]["totals"])
@@ -866,7 +969,6 @@ def main():
     snap["generated_at"]=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     snap["source"]="Neon Postgres warehouse via bake_ops_command.py (Pipe 9); feed health measured against Postgres, not the Sheets write"
     snap["pull_date"]=pull
-
     os.makedirs(OUT_DIR,exist_ok=True)
     out=os.path.join(OUT_DIR,f"snapshot_{pull}.json")
     json.dump(snap,open(out,"w"),separators=(",",":"))
@@ -878,6 +980,5 @@ def main():
     conn.close()
     print(f"baked {out}: {len(fh)} feeds, {len(training)} training sites, "
           f"{len(forms)} forms, {len(sig)} signals, {len(gaps)} gaps")
-
 if __name__=="__main__":
     main()
