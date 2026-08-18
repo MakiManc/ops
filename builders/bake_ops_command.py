@@ -70,7 +70,7 @@ USAGE
   Exit 0 on success, 1 on any failure (nothing partially written).
 """
 from __future__ import annotations
-import argparse, datetime, json, os, sys
+import argparse, datetime, json, os, re, sys
 
 try:
     import psycopg2
@@ -91,6 +91,59 @@ SITE_TYPES = {
 }
 SUPPLIER_MATCH = [("Lynas","Lynas"),("Solstice","Solstice"),("Solstice","Sosltice"),
                   ("TWF","TWF"),("M&R","M&R")]
+
+# Canonical supplier names + the needles that identify them (18/08/2026, for
+# the Supplier Issues tab). Two jobs, one map:
+#   1. Canonicalise the free-text 'Supplier?' ANSWER ('Jfc' / 'Breaks' /
+#      'Blue Ocean' / 'LYNAS FOODSERVICE' all -> one canonical name), so the
+#      supplier table doesn't split one supplier across spelling variants.
+#   2. TEXT-MATCH attribution (Ross's direction, 18/08): when the form has no
+#      usable 'Supplier?' answer, scan ALL the form's answers for a known
+#      supplier name and bucket the issue there. Merged silently with answered
+#      attribution in the UI, but every issue row carries an 'attribution'
+#      field ('answered'|'text'|None) so the evidence trail stays auditable.
+# Needles shorter than 4 chars only match as whole words (JFC inside a word
+# would be noise). Needles in ANSWER_ONLY_NEEDLES are trusted only when they
+# arrive as the answer to 'Supplier?' -- e.g. the common misspelling 'Breaks'
+# means Brakes as an answer, but 'breaks' inside free text usually doesn't.
+SUPPLIERS = [
+    ("Lynas",         ["lynas"]),
+    ("Harro",         ["harro"]),
+    ("Brakes",        ["brakes","breaks"]),
+    ("JFC",           ["jfc"]),
+    ("JFE",           ["jfe"]),
+    ("Blue Ocean",    ["blue ocean"]),
+    ("Solstice",      ["solstice","sosltice"]),
+    ("TWF",           ["twf","true world"]),
+    ("Perfect Ted",   ["perfect ted"]),
+    ("LWC",           ["lwc"]),
+    ("Hodgson Fish",  ["hodgson"]),
+    ("Dunster Farm",  ["dunster"]),
+    ("FreshFV",       ["freshfv","fresh fv"]),
+    ("Global Fruits", ["global fruit"]),
+    ("Boba Box",      ["boba box"]),
+    ("PCY",           ["pcy"]),
+    ("AA Factory",    ["aa factory"]),
+]
+ANSWER_ONLY_NEEDLES = {"breaks"}
+# Answers that mean "no supplier named", never a supplier called N/A:
+NONE_ANSWERS = {"n/a","na","none","-","nil","other supplier","other","unknown","?","tbc","x"}
+
+def canon_supplier(text, from_answer=False):
+    """Canonical supplier name for a string, or None. from_answer=True treats
+    the string as the form's 'Supplier?' answer (none-tokens -> None, and the
+    answer-only needles are allowed); otherwise it's a free-text scan."""
+    if not text: return None
+    t = text.strip().lower()
+    if from_answer and t in NONE_ANSWERS: return None
+    for name, needles in SUPPLIERS:
+        for nd in needles:
+            if not from_answer and nd in ANSWER_ONLY_NEEDLES: continue
+            if len(nd) < 4:
+                if re.search(r"(?<![a-z0-9])"+re.escape(nd)+r"(?![a-z0-9])", t): return name
+            elif nd in t:
+                return name
+    return None
 
 # Cross-reference join key (14/08/2026): site names differ across systems -
 # GC LocationNameLabel vs Kobas 'Venue Placed' vs 'Site' are spelled
@@ -368,14 +421,32 @@ def main():
           "SELECT fid, max(tpl), min(d), "
           " max(CASE WHEN position('upplier' in task)>0 THEN ans END), "
           " max(site), bool_or(opn IN ('true','1','yes')), "
-          " max(CASE WHEN task='Issue?' THEN ans END) "
+          " max(CASE WHEN task='Issue?' THEN ans END), "
+          " string_agg(ans,' ') "
           "FROM a WHERE position('eliver' in tpl)>0 OR position('upplier' in tpl)>0 "
           "GROUP BY fid ORDER BY 3 DESC LIMIT 2000")
-        for fid,tpl,d,ans,site,opn,issue_text in cur.fetchall():
-            sup=supplier_of(ans or "")
-            if sup=="Unattributed" and ans: sup=ans.strip().title()[:40]
-            if not ans: sup=None   # form has no supplier answer -> null, never a fake name
-            issues.append({"d":d,"supplier":sup,"site":site,"form":tpl,"open":bool(opn),
+        for fid,tpl,d,ans,site,opn,issue_text,alltext in cur.fetchall():
+            # Attribution ladder (18/08/2026, Ross's direction):
+            #   1. the form's own 'Supplier?' answer, canonicalised
+            #   2. a non-empty answer that isn't a known supplier or a
+            #      none-token is kept verbatim (title-cased) - a real answer
+            #      naming a supplier this map doesn't know yet
+            #   3. no usable answer -> text-search ALL the form's answers for
+            #      a known supplier name (attribution='text')
+            #   4. still nothing -> null, never a fake name
+            sup=None; attribution=None
+            c=canon_supplier(ans, from_answer=True)
+            if c:
+                sup,attribution=c,"answered"
+            else:
+                t=(ans or "").strip().lower()
+                if t and t not in NONE_ANSWERS:
+                    sup,attribution=ans.strip().title()[:40],"answered"
+                else:
+                    m=canon_supplier(alltext) or canon_supplier(issue_text)
+                    if m: sup,attribution=m,"text"
+            issues.append({"d":d,"supplier":sup,"attribution":attribution,
+              "site":site,"form":tpl,"open":bool(opn),
               "issue_text":issue_text,"category":classify_issue(issue_text)})
         agg2={}
         for i_ in issues:
@@ -390,7 +461,10 @@ def main():
     snap["suppliers"]={"answered_source":ans_src,"answered":answered,"issues":issues,
       "issues_basis":"one row per delivery/supplier issue form submission in GC Form Task "
       "Answers, deduped by FormId across pulls; d = min(AnsweredDateTime); supplier = the "
-      "form's own 'Supplier?' answer, null when unanswered",
+      "form's own 'Supplier?' answer canonicalised to a standard supplier name; when the "
+      "form names no supplier, a text search of all its answers for known supplier names "
+      "attributes it instead (attribution='text', a heuristic); null when neither finds "
+      "one, never a fake name",
       "note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
       "feeds fail at fetch, so this is the only supplier signal that lands - self-reported, "
       "not a measured OTIF.","totals":[{"supplier":k,**v} for k,v in
@@ -574,7 +648,11 @@ def main():
             a_["value"]+=v
         for (site,sup),a_ in agg3.items():
             week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
-              "value_gbp":round(a_["value"],2)})
+              "value_gbp":round(a_["value"],2),
+              # canonical supplier key so the Supplier Issues tab's profile
+              # modal can join this spend to issue attribution (18/08/2026);
+              # display keeps the Kobas name, the join uses supplier_canon
+              "supplier_canon":canon_supplier(sup)})
         week_spend.sort(key=lambda r:-r["value_gbp"])
     else:
         gaps.append(f"'{FULFIL_FEED}' absent from the warehouse - projected spend this week unavailable")
