@@ -1,0 +1,555 @@
+{
+ "version": 1,
+ "calibrated": "2026-08-18",
+ "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (ross440/ops) and their fetch failures turn the ETL run red (etl_receipt.py in ross440/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind.",
+ "feeds": [
+  {
+   "name": "Deep Flow Branch Resources",
+   "workflow": "deep-pull",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 10372,
+   "median_rows_at_calibration": 25930,
+   "status": "expected"
+  },
+  {
+   "name": "Deep Flow Certificates",
+   "workflow": "deep-pull",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1005,
+   "median_rows_at_calibration": 2550,
+   "status": "expected"
+  },
+  {
+   "name": "Deep Flow Courses",
+   "workflow": "deep-pull",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 574,
+   "median_rows_at_calibration": 1440,
+   "status": "expected"
+  },
+  {
+   "name": "Deep Flow Modules",
+   "workflow": "deep-pull",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1879,
+   "median_rows_at_calibration": 4710,
+   "status": "expected",
+   "event_date_field": "module_completed_date",
+   "event_fresh_days": 21
+  },
+  {
+   "name": "Deep Flow Profile XT",
+   "workflow": "deep-pull",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 183,
+   "median_rows_at_calibration": 458,
+   "status": "expected"
+  },
+  {
+   "name": "Deep Run Log",
+   "workflow": "deep-pull",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "median_rows_at_calibration": 1,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Appraisals",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 268,
+   "median_rows_at_calibration": 674,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Branch Resources",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 917,
+   "median_rows_at_calibration": 2312,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Branches",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 10,
+   "median_rows_at_calibration": 25,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Certificates",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 64,
+   "median_rows_at_calibration": 225,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Courses",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 46,
+   "median_rows_at_calibration": 127,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Departments",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 4,
+   "median_rows_at_calibration": 11,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Modules",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 150,
+   "median_rows_at_calibration": 404,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Profile XT",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 12,
+   "median_rows_at_calibration": 40,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Trainees",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 268,
+   "median_rows_at_calibration": 673,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Trainees Ext",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 268,
+   "median_rows_at_calibration": 673,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Trainees ReadOnly",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 344,
+   "median_rows_at_calibration": 863,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Training",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 362,
+   "median_rows_at_calibration": 925,
+   "status": "expected"
+  },
+  {
+   "name": "Flow Workbooks",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 268,
+   "median_rows_at_calibration": 674,
+   "status": "expected"
+  },
+  {
+   "name": "GC Central Areas",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 12,
+   "median_rows_at_calibration": 33,
+   "status": "expected"
+  },
+  {
+   "name": "GC Central Form Tasks",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 5018,
+   "median_rows_at_calibration": 12576,
+   "status": "expected"
+  },
+  {
+   "name": "GC Central Module Tasks",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 116,
+   "median_rows_at_calibration": 293,
+   "status": "expected"
+  },
+  {
+   "name": "GC Deviations (prev day)",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "median_rows_at_calibration": 6,
+   "status": "expected"
+  },
+  {
+   "name": "GC Form Task Answers",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 723,
+   "median_rows_at_calibration": 1910,
+   "status": "expected",
+   "event_date_field": "AnsweredDateTime",
+   "event_fresh_days": 4
+  },
+  {
+   "name": "GC Form Task Answers (prev day)",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 58,
+   "median_rows_at_calibration": 196,
+   "status": "expected"
+  },
+  {
+   "name": "GC Forms",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 29,
+   "median_rows_at_calibration": 74,
+   "status": "expected"
+  },
+  {
+   "name": "GC Forms Overview",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 166,
+   "median_rows_at_calibration": 422,
+   "status": "expected"
+  },
+  {
+   "name": "GC Local Procedures",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 230,
+   "median_rows_at_calibration": 575,
+   "status": "expected"
+  },
+  {
+   "name": "GC Location Groups",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 5,
+   "median_rows_at_calibration": 13,
+   "status": "expected"
+  },
+  {
+   "name": "GC Locations",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 10,
+   "median_rows_at_calibration": 25,
+   "status": "expected"
+  },
+  {
+   "name": "GC Modules",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 2,
+   "median_rows_at_calibration": 6,
+   "status": "expected"
+  },
+  {
+   "name": "GC Procedure Details",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 16,
+   "median_rows_at_calibration": 55,
+   "status": "expected"
+  },
+  {
+   "name": "GC Procedures",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 10,
+   "median_rows_at_calibration": 25,
+   "status": "expected"
+  },
+  {
+   "name": "GC Procedures Refactor",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 10,
+   "median_rows_at_calibration": 25,
+   "status": "expected"
+  },
+  {
+   "name": "GC Processes",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 14,
+   "median_rows_at_calibration": 37,
+   "status": "expected"
+  },
+  {
+   "name": "GC Scheduled Task Answers",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 14546,
+   "median_rows_at_calibration": 36622,
+   "status": "expected",
+   "event_date_field": "AnsweredDateTime",
+   "event_fresh_days": 2
+  },
+  {
+   "name": "GC Scheduled Task Answers (prev day)",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1795,
+   "median_rows_at_calibration": 4584,
+   "status": "expected"
+  },
+  {
+   "name": "GC Users",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 486,
+   "median_rows_at_calibration": 1219,
+   "status": "expected"
+  },
+  {
+   "name": "GC Waste Module Settings",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 2,
+   "median_rows_at_calibration": 5,
+   "status": "expected"
+  },
+  {
+   "name": "Kobas Orders",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 8,
+   "median_rows_at_calibration": 24,
+   "status": "expected"
+  },
+  {
+   "name": "Kobas Report - Daily EPoS Item Recipes Report",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1031,
+   "median_rows_at_calibration": 2584,
+   "status": "expected"
+  },
+  {
+   "name": "Kobas Report - Daily Stock Batch Recipes Report",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 284,
+   "median_rows_at_calibration": 711,
+   "status": "expected"
+  },
+  {
+   "name": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 398,
+   "median_rows_at_calibration": 995,
+   "status": "expected",
+   "event_date_field": "Order Placed",
+   "event_fresh_days": 10
+  },
+  {
+   "name": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 695,
+   "median_rows_at_calibration": 2034,
+   "status": "expected"
+  },
+  {
+   "name": "Kobas Report - Weekly Ingredient Price Changes Report",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 56,
+   "median_rows_at_calibration": 141,
+   "status": "expected"
+  },
+  {
+   "name": "Supplier Issues",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "median_rows_at_calibration": 4,
+   "status": "expected"
+  },
+  {
+   "name": "Mapal Supplier Orders",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Smart Delivery",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Smart Yield",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Invoices To Receive",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Equipment",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Interventions",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Renewal Plans",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Flow Bookings Calendar",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Local Module Tasks",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Local Module Tasks v2",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Deviations",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily; the (prev day) variant works"
+  },
+  {
+   "name": "GC Waste Registered",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Waste Registered (prev day)",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily"
+  },
+  {
+   "name": "GC Location Changelog",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 1,
+   "status": "known_broken",
+   "note": "fetch fails daily; cause not yet investigated"
+  }
+ ]
+}
