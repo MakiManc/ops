@@ -99,6 +99,11 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   font-variant-numeric:tabular-nums;border-radius:4px;min-width:28px;width:28px;height:24px;
   border:1px solid var(--line)}
 .heat td.hblank{background:var(--track);color:var(--faint)}
+/* mandatory-compliance heatmap: shrink-wrap the site column so the module
+   cells share the card's full width (11 wide columns, unlike broth's 14) */
+#tr-heat td.hsite{width:1%}
+#tr-heat td.hcell,#tr-heat td.hblank{min-width:46px;height:26px}
+#tr-heat td.hcell{color:var(--ink);font-weight:600}
 .heat td.hmiss{background:repeating-linear-gradient(45deg,var(--r-bg),var(--r-bg) 3px,#fff 3px,#fff 6px);
   color:var(--r);font-weight:700;border-color:var(--r)}
 .brow.clk,tr.clk{cursor:pointer}
@@ -148,15 +153,20 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 </div>
 
 <div class="page" id="p-train">
+  <div class="filters" id="tr-mode"></div>
   <div class="filters" id="tr-filter"></div>
-  <div class="card"><div class="card-h"><div class="t">Module completion by site</div>
+  <div class="kpis" id="tr-kpis"></div>
+  <div class="card" id="tr-heat-card"><div class="card-h"><div class="t">Mandatory compliance — site × module</div>
+    <div class="s" id="tr-heat-sub"></div></div>
+    <div class="card-b" id="tr-heat"></div></div>
+  <div class="card" id="tr-bars-card"><div class="card-h"><div class="t">Module completion by site</div>
     <div class="s" id="tr-sub"></div></div>
     <div class="card-b" id="tr-bars"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Modules completed in range</div>
+  <div class="card"><div class="card-h"><div class="t" id="tr-comp-t">Completions per week</div>
     <div class="s" id="tr-comp-sub">By completion date — the range filter above slices these</div></div>
     <div class="card-b" id="tr-comp"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Detail</div>
-    <div class="s">Overdue is a flag on top of a state — it overlaps In progress and Not started</div></div>
+  <div class="card"><div class="card-h"><div class="t">Detail <button class="fbtn" id="tr-csv" type="button">⇣ CSV</button></div>
+    <div class="s" id="tr-tbl-sub">Overdue is a flag on top of a state — it overlaps In progress and Not started</div></div>
     <div class="card-b" id="tr-tbl"></div></div>
 </div>
 
@@ -271,25 +281,6 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="card-b" id="sd-tbl"></div></div>
 </div>
 
-<div class="page" id="p-health">
-  <div class="kpis" id="hl-kpis"></div>
-  <div class="card"><div class="card-h"><div class="t">Last 7 days</div>
-    <div class="s">One verdict per day — the 12:00 UTC recheck wins over the 09:30 morning run</div></div>
-    <div class="card-b" id="hl-days"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Criticals, deferred &amp; warnings</div>
-    <div class="s">Criticals push to your phone; deferred items are timing-class failures being rechecked at 12:00 UTC; warnings live here and in the auto-updated GitHub issue only</div></div>
-    <div class="card-b" id="hl-issues"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Every expected feed, every check</div>
-    <div class="s" id="hl-tbl-sub">landed · row count · event freshness, from the latest verifier run</div></div>
-    <div class="card-b" id="hl-tbl"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Run receipts &amp; side channels</div>
-    <div class="s">ETL run receipts from etl_run_log · maintenance source age · warehouse size · aggregates archive</div></div>
-    <div class="card-b" id="hl-side"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Known broken — not under test</div>
-    <div class="s">These feeds never alert; flip status to "expected" in feeds_manifest.json the day the underlying fetch is fixed</div></div>
-    <div class="card-b" id="hl-kb"></div></div>
-</div>
-
 <div class="page" id="p-feeds">
   <div class="card"><div class="card-h"><div class="t">Feed health <span id="b-fh"></span></div>
     <div class="s">Measured against Postgres, the system of record — the legacy sheet status is not a health signal</div></div>
@@ -334,7 +325,7 @@ const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
 const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
   ['p-tasks','Task Completion'],['p-maint','Maintenance'],
   ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-supi','Supplier Issues'],
-  ['p-cross','Cross-Reference'],['p-sites','Sites'],['p-health','Data Health'],['p-feeds','Feeds'],['p-day','My day']];
+  ['p-cross','Cross-Reference'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
 $('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
 $('nav').addEventListener('click',e=>{
   const b=e.target.closest('button[data-p]'); if(!b) return;
@@ -553,12 +544,14 @@ function drawIssueTrend(set){
     (ranked.length>names.length?' · showing top '+names.length+' of '+ranked.length+' suppliers — the rest are in the tables above':'')+
     ' · history accumulates from 13 Aug 2026';
 }
-function openTrainingModal(site){
+function openTrainingModal(site,mandOnly){
   const outstanding=(SNAP&&SNAP.training&&SNAP.training.outstanding)||[];
-  const rows=outstanding.filter(o=>o.site===site).slice()
+  const rows=outstanding.filter(o=>o.site===site&&(!mandOnly||o.mand)).slice()
     .sort((a,b)=>(a.due?0:1)-(b.due?0:1)||(a.due||'').localeCompare(b.due||''));
+  const title=site+(mandOnly?' — mandatory compliance':'');
   if(!rows.length){
-    openModal(site,'<div class="empty">No outstanding training recorded for this site in this pull.</div>');
+    openModal(title,'<div class="empty">No outstanding '+(mandOnly?'mandatory compliance ':'')+
+      'training recorded for this site in this pull.</div>');
     return;
   }
   const statusChip=o=>o.overdue?chip('r','Overdue'):
@@ -566,9 +559,34 @@ function openTrainingModal(site){
   const html='<table><thead><tr><th>Person</th><th>Module</th><th>Status</th><th>Due</th></tr></thead><tbody>'+
     rows.map(o=>`<tr><td>${esc(o.person||'(unnamed)')}</td><td>${esc(o.module||'—')}</td>`+
       `<td>${statusChip(o)}</td><td>${esc(o.due||'—')}</td></tr>`).join('')+
-    '</tbody></table><div class="prov">'+fmtN(rows.length)+' outstanding module'+(rows.length===1?'':'s')+
+    '</tbody></table><div class="prov">'+fmtN(rows.length)+' outstanding '+(mandOnly?'mandatory ':'')+'module'+(rows.length===1?'':'s')+
     ' · '+fmtN(rows.filter(o=>o.overdue).length)+' overdue · sorted by due date, soonest first · current state, not sliced by the date range above</div>';
-  openModal(site,html);
+  openModal(title,html);
+}
+/* Cell drill-down: the people at one site who owe one specific mandatory
+   module (Ross, 18 Aug 2026) — the 6th consumer of the shared openModal. */
+function openMandCellModal(site,mod){
+  const outstanding=(SNAP&&SNAP.training&&SNAP.training.outstanding)||[];
+  const cells=(SNAP&&SNAP.training&&SNAP.training.mandatory&&SNAP.training.mandatory.cells)||[];
+  const cell=cells.find(c=>c.site===site&&c.module===mod);
+  const rows=outstanding.filter(o=>o.site===site&&(o.module||'').trim()===mod).slice()
+    .sort((a,b)=>(a.due?0:1)-(b.due?0:1)||(a.due||'').localeCompare(b.due||''));
+  const title=site+' — '+mod;
+  const ctx=cell?fmtN(cell.complete)+' of '+fmtN(cell.assigned)+' assigned people complete':'no assignment data';
+  if(!rows.length){
+    openModal(title,'<div class="empty">'+(cell&&cell.assigned&&cell.complete>=cell.assigned
+      ?'Everyone assigned this module here has completed it ('+esc(ctx)+').'
+      :'Nobody at this site currently owes this module in this pull.')+'</div>');
+    return;
+  }
+  const statusChip=o=>o.overdue?chip('r','Overdue'):
+    /In Progress/.test(o.status||'')?chip('a','In progress'):chip('n','Not started');
+  const html='<table><thead><tr><th>Person</th><th>Status</th><th>Due</th></tr></thead><tbody>'+
+    rows.map(o=>`<tr><td>${esc(o.person||'(unnamed)')}</td><td>${statusChip(o)}</td><td>${esc(o.due||'—')}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">'+fmtN(rows.length)+' outstanding · '+
+    fmtN(rows.filter(o=>o.overdue).length)+' overdue · '+esc(ctx)+
+    ' · sorted by due date, soonest first · current state, not sliced by the date range above</div>';
+  openModal(title,html);
 }
 function openWeekSpendModal(site){
   const weekSpend=(SNAP&&SNAP.supply&&SNAP.supply.week_spend)||[];
@@ -605,8 +623,60 @@ function openMaintModal(site){
 $('task-modal-x').onclick=()=>$('task-modal-ov').classList.remove('on');
 $('task-modal-ov').onclick=e=>{if(e.target.id==='task-modal-ov') $('task-modal-ov').classList.remove('on');};
 document.addEventListener('keydown',e=>{if(e.key==='Escape') $('task-modal-ov').classList.remove('on');});
-const typeFilter=(host,onchange)=>{
-  const kinds=[['all','All'],['restaurant','Restaurants'],['factory','Factory'],['entity','Entities']];
+/* Training-tab state (Ross, 18 Aug 2026): the analyst view counts ONLY
+   mandatory compliance modules; TR_MODE survives re-renders so a date-range
+   change doesn't kick the user off the All-modules view. MAND_TARGET is 95
+   for statutory compliance specifically — deliberately stricter than the
+   dashboard-wide TARGET of 90. */
+let TR_MODE='mand', TR_KIND='all';
+const MAND_TARGET=95;
+const MOD_SHORT={
+  'COSHH: Working With Hazardous Substances - UK':'COSHH',
+  'First Aid Awareness':'First Aid',
+  'Health and Safety Level 2':'H&S L2',
+  'Food Safety Level 2':'Food Safety L2',
+  'Food Allergens':'Allergens',
+  'Fire Safety Awareness':'Fire Safety',
+  'Licensing Scotland':'Lic. Scot',
+  'Licensing England & Wales':'Lic. E&W',
+  'MRSOS Training Module':'MRSOS',
+  'Mapal Run through':'Mapal',
+  'Mapal Run through Management':'Mapal Mgmt'};
+const modeFilter=(host,onchange)=>{
+  const modes=[['mand','Mandatory compliance'],['all','All modules']];
+  $(host).innerHTML='<span style="color:var(--muted);font-size:12px">View:</span>'+
+    modes.map(([k,l])=>`<button class="fbtn" aria-pressed="${k===TR_MODE}" data-k="${k}">${l}</button>`).join('');
+  $(host).addEventListener('click',e=>{
+    const b=e.target.closest('.fbtn'); if(!b) return;
+    [...$(host).querySelectorAll('.fbtn')].forEach(x=>x.setAttribute('aria-pressed',x===b));
+    onchange(b.dataset.k);
+  });
+};
+/* ⇣ CSV — person-level outstanding list for whatever is currently shown
+   (mandatory-only unless the All-modules toggle is on; region filter
+   honoured). Pure client-side; wired once, reads state at click time. */
+$('tr-csv').addEventListener('click',e=>{
+  e.stopPropagation();
+  const out=(SNAP&&SNAP.training&&SNAP.training.outstanding)||[];
+  const rows=out.filter(o=>(TR_MODE!=='mand'||o.mand)&&(TR_KIND==='all'||regionOf(o.site)===TR_KIND));
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const csv='site,person,module,status,due\n'+
+    rows.map(o=>[o.site,o.person,o.module,o.status,o.due||''].map(q).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=(TR_MODE==='mand'?'mandatory':'all')+'_training_outstanding_'+(TR_KIND!=='all'?TR_KIND+'_':'')+((SNAP&&SNAP.pull_date)||'latest')+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+});
+/* Show filter = AM REGION split (Ross, 18 Aug 2026 — replaced the old
+   site-type split). The site→region map is baked by the builder
+   (snap.site_regions, single source of truth); a site missing from it shows
+   under All only and the builder names it in gaps. */
+const REGION_LB={scotland:'Scotland',north:'North England',south:'South England'};
+/* NBSP normalisation matters: some Flow branch names (e.g. 'Maki O2 Arena')
+   use U+00A0, while the builder map uses plain spaces — found live 18/08. */
+const regionOf=site=>((SNAP&&SNAP.site_regions)||{})[String(site||'').replace(/\u00a0/g,' ').trim()]||null;
+const regionFilter=(host,onchange)=>{
+  const kinds=[['all','All'],['scotland','Scotland'],['north','North England'],['south','South England']];
   $(host).innerHTML='<span style="color:var(--muted);font-size:12px">Show:</span>'+
     kinds.map(([k,l],i)=>`<button class="fbtn" aria-pressed="${i===0}" data-k="${k}">${l}</button>`).join('');
   $(host).addEventListener('click',e=>{
@@ -624,16 +694,12 @@ const typeFilter=(host,onchange)=>{
    FAILED; a legit no-new-data day renders as a neutral note. If the
    verifier itself goes quiet for >30h, that is its own amber - silence is
    only healthy while the checker is provably alive. */
-let HEALTH=null, VHIST=null;
+let HEALTH=null;
 async function fetchHealth(){
   try{
     const r=await fetch(BASE+'health_latest.json'+cb(),{cache:'no-store'});
     if(r.ok) HEALTH=await r.json();
   }catch(e){/* no verdict published yet - bannerHtml degrades gracefully */}
-  try{
-    const r=await fetch(BASE+'verify_history.json'+cb(),{cache:'no-store'});
-    if(r.ok) VHIST=await r.json();
-  }catch(e){/* history is optional */}
 }
 function bannerHtml(snap){
   const ageDays=(Date.now()-new Date(snap.generated_at))/864e5;
@@ -662,90 +728,6 @@ function bannerHtml(snap){
   return '';
 }
 
-/* ------------ Data Health tab: the verifier's full verdict ------------
-   Renders health_latest.json + verify_history.json (fetched in
-   fetchHealth). Everything here is the verifier's output - the tab is a
-   window onto verify_ops_data.py, not a second opinion. */
-function renderHealth(){
-  const empty=msg=>`<div class="empty">${esc(msg)}</div>`;
-  if(!HEALTH){
-    $('hl-kpis').innerHTML='';
-    ['hl-days','hl-issues','hl-tbl','hl-side','hl-kb'].forEach(id=>
-      $(id).innerHTML=empty('No verifier verdict published yet — verify.yml runs at 09:30 and 12:00 UTC daily.'));
-    return;
-  }
-  const H=HEALTH, C=H.counts||{};
-  const oc=H.overall==='green'?'g':H.overall==='amber'?'a':'r';
-  const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
-  const landedOk=(H.results||[]).filter(r=>r.check==='1-landed'&&r.level==='ok').length;
-  $('hl-kpis').innerHTML=
-    kpi(oc,'Overall',esc((H.overall||'?').toUpperCase()),(H.mode||'')+' run, verified '+(H.verified_date||''))+
-    kpi(landedOk===C.expected_feeds?'g':'r','Feeds landed',landedOk+' / '+(C.expected_feeds??'?'),'expected feeds in Postgres today')+
-    kpi(C.criticals?'r':'g','Criticals',C.criticals??0,'push + email when > 0')+
-    kpi((C.warnings||C.deferred)?'a':'g','Warnings',(C.warnings??0)+(C.deferred?` (+${C.deferred} deferred)`:''),'no push — here and the GitHub issue')+
-    kpi((H.sizes&&H.sizes.db_mb>400)?'a':'g','Warehouse',(H.sizes&&H.sizes.db_mb!=null)?H.sizes.db_mb+' MB':'—','Neon free cap 512 MB · warn at 400')+
-    kpi('o','Verifier ran',esc((H.generated_at||'').replace('T',' ').replace('Z',' UTC')),'v'+(H.verifier_version||'?')+' · silence is only healthy while this is fresh');
-
-  /* 7-day strip: recheck verdict wins over morning */
-  const runs=(VHIST&&VHIST.runs)||[];
-  const byDay={};
-  runs.forEach(r=>{if(r.date&&(!(r.date in byDay)||r.mode==='recheck')) byDay[r.date]=r.overall;});
-  const days=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);
-    days.push([d,byDay[d]]);
-  }
-  $('hl-days').innerHTML=days.some(([,v])=>v)
-    ?'<div style="display:flex;gap:8px;flex-wrap:wrap">'+days.map(([d,v])=>
-      `<div style="text-align:center"><div>${chip(v==='green'?'g':v==='amber'?'a':v==='red'?'r':'n',v||'no run')}</div><div style="color:var(--muted);font-size:11px;margin-top:3px">${esc(d.slice(5))}</div></div>`).join('')+'</div>'
-    :empty('History accumulates from the first verifier run.');
-
-  /* criticals / deferred / warnings */
-  const item=(cls,r)=>`<div class="${cls}" style="margin-bottom:8px"><b>[${esc(r.check)}]</b> ${esc((r.feed?r.feed+' — ':'')+r.detail)}</div>`;
-  const iss=(H.criticals||[]).map(r=>item('err',r))
-    .concat((H.deferred||[]).map(r=>item('warn',r)))
-    .concat((H.warnings||[]).map(r=>item('warn',r))).join('');
-  $('hl-issues').innerHTML=iss||empty('Nothing to report — every check green.');
-
-  /* per-feed table from results */
-  const perFeed={};
-  (H.results||[]).forEach(r=>{
-    if(!r.feed||['0-receipts'].includes(r.check)) return;
-    const f=perFeed[r.feed]=perFeed[r.feed]||{};
-    f[r.check]=r;
-  });
-  const lvlChip=r=>!r?chip('n','—'):r.level==='ok'?chip('g','ok')
-    :r.level==='known_broken'?chip('n','not tested')
-    :r.level==='deferred'?chip('a','deferred')
-    :r.level==='critical'?chip('r','FAIL'):chip('a','warn');
-  const rows=Object.keys(perFeed).sort((a,b)=>{
-    const w=f=>{const p=perFeed[f];const lv=['critical','deferred','warning'];
-      for(const c of ['1-landed','2-rows','3-events']) if(p[c]&&lv.includes(p[c].level)) return lv.indexOf(p[c].level);
-      return p['1-landed']&&p['1-landed'].level==='known_broken'?8:5;};
-    return w(a)-w(b)||a.localeCompare(b);
-  }).map(f=>{const p=perFeed[f];
-    return [f,
-      lvlChip(p['1-landed']),
-      p['2-rows']?esc(p['2-rows'].detail.split(' - ')[0]):'—',
-      lvlChip(p['3-events']),
-      lvlChip(p['1-landed']&&p['1-landed'].level!=='ok'?p['1-landed']:(p['2-rows']&&p['2-rows'].level!=='ok'?p['2-rows']:(p['3-events']&&p['3-events'].level!=='ok'?p['3-events']:{level:'ok'})))];
-  });
-  $('hl-tbl-sub').textContent=rows.length+' feeds · landed / rows / events per the '+(H.mode||'')+' run · worst first';
-  table('hl-tbl',[{h:'Feed'},{h:'Landed',raw:1},{h:'Rows'},{h:'Events',raw:1},{h:'Status',raw:1}],rows,
-    'No per-feed results in the latest verdict.');
-
-  /* receipts + side channels */
-  const side=(H.results||[]).filter(r=>['0-receipts','6-side','aggregates','4b-consistency','4a-snapshot','5-unmanifested'].includes(r.check));
-  $('hl-side').innerHTML=side.length?side.map(r=>
-    `<div style="margin-bottom:7px">${lvlChip(r)} <b>[${esc(r.check)}]</b> ${esc((r.feed?r.feed+' — ':'')+r.detail)}</div>`).join('')
-    :empty('No receipt or side-channel results yet.');
-
-  /* known broken */
-  table('hl-kb',[{h:'Feed'},{h:'Why it is off the hook'}],
-    (H.known_broken||[]).map(k=>[k.name,k.note||'—']),
-    'Nothing is marked known_broken.');
-}
-
 /* ------------ render from a structured snapshot ------------ */
 let SNAP=null;
 function render(snap){
@@ -757,11 +739,21 @@ function render(snap){
 
   $('banner').innerHTML=bannerHtml(snap);
 
-  /* training */
+  /* training — mandatory compliance is the default analyst view (Ross, 18 Aug
+     2026); the All-modules toggle restores the pre-redesign tab exactly. */
   const trAll=(snap.training&&snap.training.sites)||[];
   const trSrc=(snap.training&&snap.training.source_feed)||'';
+  const mand=(snap.training&&snap.training.mandatory)||{};
+  const drawTrainTab=()=>{
+    const kind=TR_KIND, mode=TR_MODE;
+    $('tr-heat-card').style.display=mode==='mand'?'':'none';
+    $('tr-kpis').style.display=mode==='mand'?'':'none';
+    $('tr-bars-card').style.display=mode==='mand'?'none':'';
+    if(mode==='mand') drawMand(kind); else drawTrain(kind);
+    drawComp(mode);
+  };
   const drawTrain=kind=>{
-    const rows=trAll.filter(r=>kind==='all'||r.site_type===kind);
+    const rows=trAll.filter(r=>kind==='all'||regionOf(r.site)===kind);
     const mods=rows.reduce((s,r)=>s+(r.modules||0),0), comp=rows.reduce((s,r)=>s+(r.complete||0),0);
     $('tr-sub').textContent=rows.length+' sites · '+fmtN(mods)+' module assignments · source '+trSrc+' · sorted worst first · click a site for outstanding training · current state, not sliced by the date range above';
     bars('tr-bars',rows.map(r=>({k:r.site,v:r.pct_complete||0,
@@ -771,12 +763,13 @@ function render(snap){
       const r=rows[i]; if(!r) return;
       el.classList.add('clk'); el.addEventListener('click',()=>openTrainingModal(r.site));
     });
+    $('tr-tbl-sub').textContent='Overdue is a flag on top of a state — it overlaps In progress and Not started';
     const body=rows.map(r=>{
       const p=r.pct_complete||0, ratio=r.modules?(r.overdue||0)/r.modules:0;
       return [r.site,r.people,r.modules,r.complete,p+'%',r.overdue,r.not_started,
         (p>=TARGET&&!r.overdue)?chip('g','On track'):(p<70||ratio>=0.15)?chip('r','At risk'):chip('a','Behind')];});
     if(rows.length>1){
-      const t=['All '+(kind==='all'?'sites':kind+'s'),
+      const t=[kind==='all'?'All sites':REGION_LB[kind]||kind,
         rows.reduce((s,r)=>s+(r.people||0),0),mods,comp,(mods?Math.round(100*comp/mods):0)+'%',
         rows.reduce((s,r)=>s+(r.overdue||0),0),rows.reduce((s,r)=>s+(r.not_started||0),0),''];
       t._tot=true; body.push(t);
@@ -789,23 +782,118 @@ function render(snap){
       tr.classList.add('clk'); tr.addEventListener('click',()=>openTrainingModal(r.site));
     });
   };
-  typeFilter('tr-filter',drawTrain); drawTrain('all');
-  /* completions sliced by the COMPLETION date (never pull date) */
-  const compAll=(snap.training&&snap.training.completions)||[];
-  const compIn=compAll.filter(c=>inEV(c.d));
-  const compTot=compIn.reduce((s,c)=>s+(c.n||0),0);
-  $('tr-comp-sub').textContent=compAll.length
-    ? fmtN(compTot)+' modules completed · completion dates '+evLabel()
-    : 'By completion date — the range filter above slices these';
-  if(compAll.length){
-    const bySite={};
-    compIn.forEach(c=>{bySite[c.site||'(no branch)']=(bySite[c.site||'(no branch)']||0)+(c.n||0);});
-    const rows=Object.entries(bySite).sort((a,b)=>b[1]-a[1]);
-    if(rows.length) bars('tr-comp',rows.map(([k,v])=>({k,v,tip:`${k} — ${fmtN(v)} modules completed in range`})));
-    else $('tr-comp').innerHTML='<div class="empty">No modules completed in this range</div>';
-  } else {
-    $('tr-comp').innerHTML='<div class="empty">This snapshot predates completion-date data — it appears on the next bake (needs the Pipe 9 warehouse run).</div>';
-  }
+  const drawMand=kind=>{
+    const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
+    const allSites=(mand.sites||[]), modules=(mand.modules||[]), cells=(mand.cells||[]);
+    if(!allSites.length){
+      $('tr-kpis').innerHTML='';
+      $('tr-heat').innerHTML='<div class="empty">This snapshot predates the mandatory-compliance block — it appears on the next Pipe 9 bake.</div>';
+      $('tr-heat-sub').textContent='';
+      table('tr-tbl',[{h:'Site'}],[],'Waiting on the next bake for mandatory-compliance figures.');
+      return;
+    }
+    const rows=allSites.filter(r=>kind==='all'||regionOf(r.site)===kind);
+    const cellMap={}; cells.forEach(c=>{cellMap[c.site+'|'+c.module]=c;});
+    const asg=rows.reduce((s,r)=>s+(r.assigned||0),0), comp=rows.reduce((s,r)=>s+(r.complete||0),0);
+    const pOvd=rows.reduce((s,r)=>s+(r.people_overdue||0),0);
+    const pct=asg?Math.round(100*comp/asg):null;
+    const worstSite=rows.filter(r=>r.pct!=null).sort((a,b)=>a.pct-b.pct)[0];
+    const modAgg=modules.map(mn=>{
+      let a=0,c=0; rows.forEach(r=>{const x=cellMap[r.site+'|'+mn]; if(x){a+=x.assigned||0;c+=x.complete||0;}});
+      return {mn,a,c,pct:a?Math.round(100*c/a):null};
+    }).filter(m=>m.a>0);
+    const worstMod=modAgg.slice().sort((a,b)=>(a.pct??999)-(b.pct??999))[0];
+    $('tr-kpis').innerHTML=
+      kpi(pct==null?'n':pct>=MAND_TARGET?'g':pct>=70?'a':'r','Mandatory complete',
+        pct==null?'—':pct+'%',fmtN(comp)+' of '+fmtN(asg)+' assignments · target '+MAND_TARGET+'%')+
+      kpi(pOvd>0?'r':'g','People overdue',fmtN(pOvd),'people with ≥1 overdue mandatory module')+
+      kpi(worstSite&&worstSite.pct<70?'r':'a','Worst site',worstSite?esc(worstSite.site):'—',
+        worstSite?(worstSite.pct+'% · '+fmtN(worstSite.people_overdue)+' people overdue'):'')+
+      kpi(worstMod&&worstMod.pct<70?'r':'a','Worst module',worstMod?esc(MOD_SHORT[worstMod.mn]||worstMod.mn):'—',
+        worstMod?(worstMod.pct+'% complete '+(kind==='all'?'company-wide':'in '+(REGION_LB[kind]||kind))):'');
+    /* heatmap: rows = sites worst-first, cols = mandatory modules; colour =
+       % of assigned people complete vs the 95% target; '—' = nobody at the
+       site is assigned that module (region-fit, never a penalty). */
+    const heatCol=p=>p>=MAND_TARGET?`rgba(5,150,105,${(0.18+0.5*(p-MAND_TARGET)/(100-MAND_TARGET)).toFixed(2)})`
+      :p>=70?`rgba(217,119,6,${(0.14+0.4*(1-(p-70)/(MAND_TARGET-70))).toFixed(2)})`
+      :`rgba(220,38,38,${(0.16+0.5*(1-p/70)).toFixed(2)})`;
+    let html='<div style="overflow-x:auto"><table class="heat"><thead><tr><th></th>'+
+      modules.map(mn=>`<th title="${esc(mn)}">${esc(MOD_SHORT[mn]||mn)}</th>`).join('')+'</tr></thead><tbody>';
+    rows.forEach(r=>{
+      html+='<tr><td class="hsite clk" data-site="'+esc(r.site)+'">'+esc(r.site)+'</td>'+modules.map(mn=>{
+        const c=cellMap[r.site+'|'+mn];
+        if(!c||!c.assigned) return '<td class="hblank" title="'+esc(r.site)+' — nobody assigned '+esc(mn)+'">—</td>';
+        const p=Math.round(100*(c.complete||0)/c.assigned);
+        return `<td class="hcell clk" data-site="${esc(r.site)}" data-mod="${esc(mn)}" style="background:${heatCol(p)}" `+
+          `title="${esc(r.site)} — ${esc(mn)}: ${fmtN(c.complete)} of ${fmtN(c.assigned)} complete (${p}%), ${fmtN(c.overdue)} overdue · click for the people">${p}</td>`;
+      }).join('')+'</tr>';
+    });
+    html+='</tbody></table></div><div class="prov">Cell = % of assigned people complete · green ≥'+MAND_TARGET+
+      '%, amber 70–'+(MAND_TARGET-1)+'%, red &lt;70% · — = nobody assigned (e.g. the other region\'s licensing module) · click a cell for the exact people, a site name for its full list</div>';
+    $('tr-heat').innerHTML=html;
+    $('tr-heat-sub').textContent=rows.length+' sites × '+modules.length+' mandatory modules · sorted worst site first · source '+trSrc+' · current state, not sliced by the date range above';
+    [...document.querySelectorAll('#tr-heat td.hcell')].forEach(td=>
+      td.addEventListener('click',()=>openMandCellModal(td.dataset.site,td.dataset.mod)));
+    [...document.querySelectorAll('#tr-heat td.hsite')].forEach(td=>
+      td.addEventListener('click',()=>openTrainingModal(td.dataset.site,true)));
+    $('tr-tbl-sub').textContent='Mandatory compliance modules only · people overdue = people with ≥1 overdue mandatory module · click a site for its people';
+    const body=rows.map(r=>{
+      const p=r.pct==null?0:r.pct;
+      return [r.site,r.people,r.assigned,r.complete,(r.pct==null?'—':r.pct+'%'),r.people_overdue,
+        (p>=MAND_TARGET&&!r.people_overdue)?chip('g','On track'):(p<70||r.people_overdue>=3)?chip('r','At risk'):chip('a','Behind')];});
+    if(rows.length>1){
+      const t=[kind==='all'?'All sites':REGION_LB[kind]||kind,rows.reduce((s,r)=>s+(r.people||0),0),
+        asg,comp,(pct==null?'—':pct+'%'),pOvd,''];
+      t._tot=true; body.push(t);
+    }
+    table('tr-tbl',[{h:'Site'},{h:'People',n:1},{h:'Assigned',n:1},{h:'Complete',n:1},
+      {h:'Complete %',n:1},{h:'People overdue',n:1},{h:'Status',raw:1}],body);
+    [...document.querySelectorAll('#tr-tbl tbody tr')].forEach((tr,i)=>{
+      const r=rows[i]; if(!r) return;
+      tr.classList.add('clk'); tr.addEventListener('click',()=>openTrainingModal(r.site,true));
+    });
+  };
+  /* completions per WEEK sliced by the COMPLETION date (never pull date);
+     mandatory-only in the default view via the baked nm counter. */
+  const drawComp=mode=>{
+    const compAll=(snap.training&&snap.training.completions)||[];
+    const isMand=mode==='mand';
+    $('tr-comp-t').textContent=isMand?'Mandatory completions per week':'Completions per week (all modules)';
+    if(!compAll.length){
+      $('tr-comp').innerHTML='<div class="empty">This snapshot predates completion-date data — it appears on the next bake (needs the Pipe 9 warehouse run).</div>';
+      $('tr-comp-sub').textContent='By completion date — the range filter above slices these'; return;
+    }
+    if(isMand&&compAll.every(c=>c.nm==null)){
+      $('tr-comp').innerHTML='<div class="empty">This snapshot predates the mandatory-completions counter — the trend appears on the next Pipe 9 bake.</div>';
+      $('tr-comp-sub').textContent='By completion date — the range filter above slices these'; return;
+    }
+    const compIn=compAll.filter(c=>inEV(c.d)&&(TR_KIND==='all'||regionOf(c.site)===TR_KIND));
+    const byWeek={};
+    compIn.forEach(c=>{const w=weekOf(c.d); if(!w) return;
+      byWeek[w]=(byWeek[w]||0)+(isMand?(c.nm||0):(c.n||0));});
+    const weeks=Object.keys(byWeek).sort();
+    const tot=weeks.reduce((s,w)=>s+byWeek[w],0);
+    $('tr-comp-sub').textContent=fmtN(tot)+(isMand?' mandatory':'')+' modules completed'+
+      (TR_KIND==='all'?'':' in '+(REGION_LB[TR_KIND]||TR_KIND))+' · weekly (Mon-start) · completion dates '+evLabel();
+    if(!weeks.length){$('tr-comp').innerHTML='<div class="empty">No'+(isMand?' mandatory':'')+' modules completed in this range</div>';return;}
+    const W=860,H=200,PL=40,PB=26,PT=12,PR=14;
+    const maxV=Math.max(...weeks.map(w=>byWeek[w]),1);
+    const x=i=>weeks.length===1?PL+(W-PL-PR)/2:PL+(W-PL-PR)*i/(weeks.length-1);
+    const y=v=>H-PB-(H-PB-PT)*v/maxV;
+    const step=Math.max(1,Math.ceil(weeks.length/8));
+    const grid=[0,.5,1].map(f=>{const v=Math.round(maxV*f);
+      return `<line x1="${PL}" y1="${y(v)}" x2="${W-PR}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`+
+        `<text x="${PL-6}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--muted)">${v}</text>`;}).join('');
+    const xlab=weeks.map((w,i)=>i%step?'':`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(w.slice(5))}</text>`).join('');
+    const line='<polyline fill="none" stroke="var(--maki-orange)" stroke-width="2" points="'+
+      weeks.map((w,i)=>x(i)+','+y(byWeek[w])).join(' ')+'"/>';
+    const dots=weeks.map((w,i)=>`<circle cx="${x(i)}" cy="${y(byWeek[w])}" r="3.4" fill="var(--maki-orange)" data-t="wk ${esc(w)} — ${fmtN(byWeek[w])}${isMand?' mandatory':''} completions"/>`).join('');
+    $('tr-comp').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="${isMand?'Mandatory training':'Training'} completions per week">${grid}${xlab}${line}${dots}</svg>`;
+    [...$('tr-comp').querySelectorAll('circle[data-t]')].forEach(c=>hover(c,c.dataset.t));
+  };
+  modeFilter('tr-mode',m=>{TR_MODE=m;drawTrainTab();});
+  regionFilter('tr-filter',k=>{TR_KIND=k;drawTrainTab();});
+  TR_KIND='all'; drawTrainTab();
 
   /* compliance */
   const forms=(snap.compliance&&snap.compliance.forms)||[];
@@ -1146,11 +1234,11 @@ function render(snap){
   /* sites */
   const hcAll=(snap.sites&&snap.sites.headcount)||[];
   const drawHc=kind=>{
-    const rows=hcAll.filter(r=>kind==='all'||r.site_type===kind);
+    const rows=hcAll.filter(r=>kind==='all'||regionOf(r.site)===kind);
     $('hc-sub').textContent=rows.length+' sites · '+fmtN(rows.reduce((s,r)=>s+(r.people||0),0))+' people · Flow roster, branch names resolved · current roster, not sliced by the date range above';
     bars('hc-bars',rows.map(r=>({k:r.site,v:r.people||0,tip:`${r.site} — ${fmtN(r.people)} on the roster (${r.site_type})`})));
   };
-  typeFilter('hc-filter',drawHc); drawHc('all');
+  regionFilter('hc-filter',drawHc); drawHc('all');
   const hcMap={}; hcAll.forEach(r=>hcMap[(r.site||'').toLowerCase()]=r.people);
   table('sd-tbl',[{h:'Site'},{h:'Headcount',n:1},{h:'Groups'},{h:'State',raw:1}],
     ((snap.sites&&snap.sites.directory)||[]).map(d=>[d.site,
@@ -1164,8 +1252,6 @@ function render(snap){
   table('fh-tbl',[{h:'Feed'},{h:'Rows',n:1},{h:'Latest pull'},{h:'Age (days)',n:1},{h:'Verdict',raw:1}],
     fh.map(r=>[r.feed,fmtN(r.rows),r.latest_pull||'—',r.age_days??'—',
       chip(r.verdict==='OK'?'g':r.verdict==='WATCH'?'a':r.verdict==='EMPTY'?'n':'r',r.verdict)]));
-
-  renderHealth();
 
   /* overview */
   const s=snap.summary||{};
