@@ -218,32 +218,36 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 </div>
 
 <div class="page" id="p-supp">
-  <div id="supp-note"></div>
   <div class="kpis" id="supp-kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Projected spend this week — by site &amp; supplier</div>
     <div class="s" id="fa-aging-sub">Kobas Outstanding Stock Orders · orders due this Mon–Sun, by target delivery date · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)</div></div>
     <div class="card-b" id="fa-aging"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
-    <div class="s">Delivery / supplier issue forms in GetCompliant · current open backlog, not sliced by the date range above (see "Issues by answered supplier" below for the filtered view)</div></div>
-    <div class="card-b" id="sp-bars"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Issues by answered supplier</div>
-    <div class="s" id="sp-ans-sub">From the form's own “Supplier?” answers · filtered by the date range (answer dates, not pull dates)</div></div>
-    <div class="card-b" id="sp-ans"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Supplier issues by site</div>
-    <div class="s" id="si-sub">Delivery / supplier issue forms in GetCompliant, by site · click a site for its form answers (issue date, supplier)</div></div>
-    <div class="card-b" id="si-bars"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Site detail</div>
-    <div class="s">Click a row to view that site's issues — date, supplier, form answer</div></div>
-    <div class="card-b" id="si-tbl"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Issue nature (keyword heuristic)</div>
-    <div class="s" id="ic-sub">Bucketed from each issue's free-text answer — not an official taxonomy</div></div>
-    <div class="card-b" id="ic-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Price change watch</div>
     <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · latest report pull, not sliced by the date range above</div></div>
     <div class="card-b" id="pw-tbl"></div></div>
-  <div class="card"><div class="card-h"><div class="t">Form detail</div>
-    <div class="s">Every delivery or supplier form, most open first</div></div>
-    <div class="card-b" id="sp-tbl"></div></div>
+</div>
+
+<div class="page" id="p-supi">
+  <div id="sq-note"></div>
+  <div class="kpis" id="sq-kpis"></div>
+  <div class="filters" id="sq-toggle"></div>
+  <div class="cols">
+    <div class="card"><div class="card-h"><div class="t">By supplier</div>
+      <div class="s" id="sq-sup-sub">From the form's own “Supplier?” answer, plus a text search of form answers when unanswered · click a supplier for its full profile</div></div>
+      <div class="card-b" id="sq-sup"></div></div>
+    <div class="card"><div class="card-h"><div class="t">By site</div>
+      <div class="s" id="sq-site-sub">Click a site for its issues — date, supplier, days open</div></div>
+      <div class="card-b" id="sq-site"></div></div>
+  </div>
+  <div class="card"><div class="card-h"><div class="t">Issues per week</div>
+    <div class="s" id="sq-trend-sub">Weekly counts by supplier · history accumulates from 13 Aug 2026</div></div>
+    <div class="card-b" id="sq-trend"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Issue nature (keyword heuristic)</div>
+    <div class="s" id="sq-cat-sub">Bucketed from each issue's free-text answer — not an official taxonomy</div></div>
+    <div class="card-b" id="sq-cat"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Form backlog</div>
+    <div class="s">Every delivery or supplier form with its completed / raised / open counts — form-level backlog from GC Forms Overview, a different basis from the per-issue rows above · current state, not sliced by the date range</div></div>
+    <div class="card-b" id="sq-forms"></div></div>
 </div>
 
 <div class="page" id="p-cross">
@@ -309,8 +313,8 @@ const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
 
 const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
   ['p-tasks','Task Completion'],['p-maint','Maintenance'],
-  ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-cross','Cross-Reference'],
-  ['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
+  ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-supi','Supplier Issues'],
+  ['p-cross','Cross-Reference'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
 $('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
 $('nav').addEventListener('click',e=>{
   const b=e.target.closest('button[data-p]'); if(!b) return;
@@ -386,6 +390,29 @@ function openTaskModal(site){
     '</div>';
   openModal(site,html);
 }
+/* ---- Supplier Issues helpers (18/08/2026) ---- */
+const ESC_DAYS=7;                       // Ross's escalation threshold: an issue open >7 days
+const supNameOf=i=>i.supplier||'Unattributed';
+function dOpen(i){                      // days an OPEN issue has been open (null for closed / undated)
+  if(!i||!i.open||!i.d) return null;
+  const n=Math.floor((Date.now()-new Date(i.d+'T00:00:00Z'))/864e5);
+  return n<0?0:n;
+}
+const issueChip=i=>{const n=dOpen(i);
+  return i.open?(n!=null&&n>ESC_DAYS?chip('r','Escalate'):chip('a','Open')):chip('g','Closed');};
+function weekOf(d){                     // Monday of the week containing an ISO date
+  const dt=new Date(d+'T00:00:00Z'); if(isNaN(dt)) return null;
+  dt.setUTCDate(dt.getUTCDate()-((dt.getUTCDay()+6)%7));
+  return dt.toISOString().slice(0,10);
+}
+/* Categorical series palette for the weekly trend — the dataviz reference
+   palette, fixed slot order (never cycled), validated with
+   scripts/validate_palette.js: adjacent CVD ΔE 9.1, normal-vision ΔE 19.6,
+   all PASS on the light surface. Contrast WARN on slots 3–5 → relief is the
+   line-end direct labels + legend + tooltips. */
+const SQ_COLORS=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4'];
+let SQ_MODE='open';                     // open-first by default (Ross's direction)
+function gotoPage(id){const b=[...$('nav').children].find(x=>x.dataset.p===id); if(b) b.click();}
 function openSiteIssuesModal(site){
   const sup=(SNAP&&SNAP.suppliers)||{};
   const rows=(sup.issues||[]).filter(i=>(i.site||'(no site)')===site && inEV(i.d)).slice()
@@ -394,13 +421,117 @@ function openSiteIssuesModal(site){
     openModal(site,'<div class="empty">No supplier issue form answers recorded for this site in this pull.</div>');
     return;
   }
-  const html='<table><thead><tr><th>Issue date</th><th>Supplier</th><th>Form</th><th>Issue</th><th>Status</th></tr></thead><tbody>'+
-    rows.map(i=>`<tr><td>${esc(i.d||'—')}</td><td>${esc(i.supplier||'(no answer)')}</td>`+
+  const html='<table><thead><tr><th>Issue date</th><th>Supplier</th><th>Form</th><th>Issue</th><th class="n">Days open</th><th>Status</th></tr></thead><tbody>'+
+    rows.map(i=>{const n=dOpen(i);
+      return `<tr><td>${esc(i.d||'—')}</td><td>${esc(supNameOf(i))}</td>`+
       `<td>${esc(i.form||'—')}</td><td>${esc(i.issue_text||'—')}</td>`+
-      `<td>${i.open?chip('a','Open'):chip('g','Closed')}</td></tr>`).join('')+
+      `<td class="n">${n==null?'—':fmtN(n)}</td><td>${issueChip(i)}</td></tr>`;}).join('')+
     '</tbody></table><div class="prov">'+fmtN(rows.length)+' issue form answer'+(rows.length===1?'':'s')+
-    ' · '+esc(sup.issues_basis||'')+'</div>';
+    ' · escalate = open more than '+ESC_DAYS+' days · '+esc(sup.issues_basis||'')+'</div>';
   openModal(site,html);
+}
+function openSupplierProfileModal(name){
+  const sup=(SNAP&&SNAP.suppliers)||{};
+  const rows=(sup.issues||[]).filter(i=>supNameOf(i)===name && inEV(i.d)).slice()
+    .sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+  const open=rows.filter(r=>r.open);
+  const esc7=open.filter(r=>(dOpen(r)??-1)>ESC_DAYS).length;
+  const sites=new Set(rows.map(r=>r.site).filter(Boolean));
+  const ws=((SNAP&&SNAP.supply&&SNAP.supply.week_spend)||[]).filter(w=>w.supplier_canon===name)
+    .slice().sort((a,b)=>(b.value_gbp||0)-(a.value_gbp||0));
+  const spendTot=ws.reduce((s,w)=>s+(w.value_gbp||0),0);
+  const wk=(SNAP&&SNAP.supply&&SNAP.supply.week_start&&SNAP.supply.week_end)
+    ? SNAP.supply.week_start+' – '+SNAP.supply.week_end : 'this Mon–Sun';
+  const stat=(l,v,sb)=>`<div class="kpi k-o" style="padding:8px 11px"><div class="lb">${esc(l)}</div>`+
+    `<div class="vl" style="font-size:20px">${v}</div><div class="sb">${esc(sb||'')}</div></div>`;
+  let html='<div class="kpis" style="margin:10px 0 6px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))">'+
+    stat('Open',fmtN(open.length))+stat('Escalated',fmtN(esc7),'open >'+ESC_DAYS+' days')+
+    stat('In range',fmtN(rows.length))+stat('Sites',fmtN(sites.size))+
+    stat('£ due this week',ws.length?'£'+fmtN(Math.round(spendTot)):'—')+'</div>';
+  if(rows.length){
+    html+='<table><thead><tr><th>Date</th><th>Site</th><th>Issue</th><th class="n">Days open</th><th>Status</th></tr></thead><tbody>'+
+      rows.map(i=>{const n=dOpen(i);
+        return `<tr><td>${esc(i.d||'—')}</td><td>${esc(i.site||'—')}</td><td>${esc(i.issue_text||i.form||'—')}</td>`+
+        `<td class="n">${n==null?'—':fmtN(n)}</td><td>${issueChip(i)}</td></tr>`;}).join('')+
+      '</tbody></table>';
+  } else {
+    html+='<div class="empty">No issues for this supplier dated in '+esc(evLabel())+'.</div>';
+  }
+  if(ws.length){
+    html+='<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">Projected spend, '+esc(wk)+'</div>'+
+      '<table><thead><tr><th>Site</th><th class="n">Orders</th><th class="n">£ projected</th></tr></thead><tbody>'+
+      ws.map(w=>`<tr><td>${esc(w.site||'—')}</td><td class="n">${fmtN(w.orders)}</td>`+
+        `<td class="n">£${fmtN(Math.round(w.value_gbp||0))}</td></tr>`).join('')+
+      '</tbody></table><div class="prov">a projection from outstanding orders, not a confirmed spend figure</div>';
+  } else {
+    html+='<div class="prov" style="margin-top:12px">No outstanding orders due this week are attributed to this supplier'+
+      (name==='Unattributed'?'':' (older snapshots predate the supplier join)')+'.</div>';
+  }
+  html+='<div class="prov">Ingredient price changes carry no supplier field in the source report, so they cannot be shown per supplier — see Price change watch on Supply &amp; Fulfilment.</div>'+
+    '<div class="prov">'+esc(sup.issues_basis||'')+' · '+esc(evLabel())+'</div>';
+  openModal(name,html);
+}
+function drawIssueTrend(set){
+  /* Weekly issue counts as a small line chart — top suppliers + Unattributed,
+     fixed slot colours (SQ_COLORS, validated — see comment there), legend +
+     line-end direct labels + per-point tooltips so identity is never colour
+     alone. One axis. Caps are disclosed in the subtitle, never silent. */
+  const el=$('sq-trend'), sub=$('sq-trend-sub');
+  const pts=set.filter(i=>i.d&&weekOf(i.d));
+  if(!pts.length){
+    el.innerHTML='<div class="empty">No issues dated in this range</div>';
+    sub.textContent='Weekly counts by supplier · history accumulates from 13 Aug 2026';
+    return;
+  }
+  const weeks=[...new Set(pts.map(i=>weekOf(i.d)))].sort();
+  const totals={};
+  pts.forEach(i=>{const k=supNameOf(i);totals[k]=(totals[k]||0)+1;});
+  const ranked=Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
+  let names=ranked.slice(0,5);
+  if(ranked.includes('Unattributed')&&!names.includes('Unattributed'))
+    names=names.slice(0,4).concat('Unattributed');
+  const cnt={}; names.forEach(n=>cnt[n]=weeks.map(()=>0));
+  let plotted=0;
+  pts.forEach(i=>{const k=supNameOf(i);
+    if(cnt[k]!==undefined){cnt[k][weeks.indexOf(weekOf(i.d))]++;plotted++;}});
+  const ymax=Math.max(1,...names.map(n=>Math.max(...cnt[n])));
+  const W=720,H=210,L=30,R=124,T=10,B=26;
+  const X=i=>weeks.length>1?L+(W-L-R)*i/(weeks.length-1):L+(W-L-R)/2;
+  const Y=v=>T+(H-T-B)*(1-v/ymax);
+  const step=Math.max(1,Math.ceil(ymax/4));
+  let grid='';
+  for(let v=0;v<=ymax;v+=step)
+    grid+=`<line x1="${L}" y1="${Y(v).toFixed(1)}" x2="${W-R}" y2="${Y(v).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`+
+      `<text x="${L-6}" y="${(Y(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--faint)">${v}</text>`;
+  const wkLab=w=>new Date(w+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const xlab=weeks.map((w,i)=>`<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(wkLab(w))}</text>`).join('');
+  const ends=names.map((n,si)=>({si,y:Y(cnt[n][weeks.length-1])})).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<14) ends[i].y=ends[i-1].y+14;
+  /* keep nudged labels inside the plot: shift the stack up if it overflows the bottom */
+  const yFloor=H-B-4, yCeil=T+4;
+  const over=ends.length?ends[ends.length-1].y-yFloor:0;
+  if(over>0) ends.forEach(e=>{e.y-=over;});
+  ends.forEach(e=>{if(e.y<yCeil)e.y=yCeil;});
+  let series='';
+  names.forEach((n,si)=>{
+    const col=SQ_COLORS[si%SQ_COLORS.length];
+    if(weeks.length>1){
+      const path=cnt[n].map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
+      series+=`<path d="${path}" fill="none" stroke="${col}" stroke-width="2"/>`;
+    }
+    cnt[n].forEach((v,i)=>{
+      series+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4" fill="${col}" stroke="var(--card)" stroke-width="2" data-t="${esc(n)} — ${v} issue${v===1?'':'s'}, week of ${esc(wkLab(weeks[i]))}"/>`;});
+    const e=ends.find(x=>x.si===si);
+    series+=`<circle cx="${W-R+8}" cy="${e.y.toFixed(1)}" r="4" fill="${col}"/>`+
+      `<text x="${W-R+16}" y="${(e.y+3.5).toFixed(1)}" font-size="11" fill="var(--ink)">${esc(n.length>16?n.slice(0,15)+'…':n)}</text>`;
+  });
+  const legend='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px">'+names.map((n,si)=>
+    `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)"><i style="width:9px;height:9px;border-radius:50%;background:${SQ_COLORS[si%SQ_COLORS.length]};display:inline-block"></i>${esc(n)}</span>`).join('')+'</div>';
+  el.innerHTML=legend+`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Supplier issues per week">${grid}${xlab}${series}</svg>`;
+  [...el.querySelectorAll('circle[data-t]')].forEach(c=>hover(c,c.dataset.t));
+  sub.textContent=plotted+' of '+pts.length+' issue(s) across '+weeks.length+' week'+(weeks.length===1?'':'s')+' (Mon-start)'+
+    (ranked.length>names.length?' · showing top '+names.length+' of '+ranked.length+' suppliers — the rest are in the tables above':'')+
+    ' · history accumulates from 13 Aug 2026';
 }
 function openTrainingModal(site){
   const outstanding=(SNAP&&SNAP.training&&SNAP.training.outstanding)||[];
@@ -647,82 +778,86 @@ function render(snap){
     kpi('o','Resolved',fmtN(maintDoneTot),'marked done, in range')+
     kpi(maintOldest?'a':'n','Oldest open',maintOldest?maintOldest.d:'—',maintOldest?maintOldest.site:'no open tasks in range');
 
-  /* suppliers */
+  /* ---- Supplier Issues tab (18/08/2026) ----
+     The issue cards that used to live on Supply & Fulfilment moved here
+     wholesale, rebuilt as two side-by-side clickable tables (by supplier /
+     by site), open-first with 7-day aging escalation, a weekly trend, the
+     issue-nature bars, and the form-level backlog table. Sliced by the
+     ANSWER date (never pull date), like every event-dated card. */
   const sup=snap.suppliers||{};
-  $('supp-note').innerHTML=sup.note?`<div class="warn"><b>Read this first.</b> ${esc(sup.note)}</div>`:'';
-  bars('sp-bars',(sup.totals||[]).map(t=>({k:t.supplier,v:t.open||0,
-    tip:`${t.supplier} — ${fmtN(t.open)} open across ${fmtN(t.forms)} form(s), ${fmtN(t.raised)} raised`})));
-  /* per-issue attribution, sliced by the ANSWER date (never pull date) */
   const issuesAll=sup.issues||[];
   const issues=issuesAll.filter(i=>inEV(i.d));
-  $('sp-ans-sub').textContent='From the form’s own “Supplier?” answers · '+
-    (issuesAll.length?issues.length+' of '+issuesAll.length+' issues in range · answer dates '+evLabel()
-      :'answer dates, not pull dates');
-  if(issuesAll.length){
-    const cnt={};
-    issues.forEach(i=>{const k=i.supplier||'(no supplier answer)';
-      (cnt[k]=cnt[k]||{n:0,open:0}).n++; if(i.open)cnt[k].open++;});
-    const rows=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n);
-    $('sp-ans').innerHTML=(rows.length
-      ? '<table><thead><tr><th>Supplier (as answered)</th><th class="n">Issues</th><th class="n">Still open</th></tr></thead><tbody>'+
-        rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${fmtN(v.n)}</td><td class="n">${fmtN(v.open)}</td></tr>`).join('')+
-        '</tbody></table>'
-      : '<div class="empty">No issues dated in this range</div>')+
-      (issues.length
-        ? '<table style="margin-top:10px"><thead><tr><th>Date</th><th>Supplier</th><th>Site</th><th>Form</th><th>Status</th></tr></thead><tbody>'+
-          issues.slice(0,40).map(i=>`<tr><td>${esc(i.d||'—')}</td><td>${esc(i.supplier||'(no answer)')}</td><td>${esc(i.site||'—')}</td><td>${esc(i.form||'')}</td><td>${i.open?chip('a','Open'):chip('g','Closed')}</td></tr>`).join('')+
-          '</tbody></table>'+(issues.length>40?'<div class="prov">showing newest 40 of '+issues.length+'</div>':'')
-        : '')+
-      '<div class="prov">source feed: '+esc(sup.answered_source||'')+' · '+esc(sup.issues_basis||'')+'</div>';
-  } else if(sup.answered_source){
-    $('sp-ans').innerHTML='<div class="empty">The answers feed ('+esc(sup.answered_source)+
-      ') is in the warehouse but this snapshot carries no per-issue rows yet — they appear on the next bake.</div>';
-  } else {
-    $('sp-ans').innerHTML='<div class="empty"><b>This snapshot predates the answers feed.</b> '+
-      '<code>GC Form Task Answers</code> first landed in the warehouse on 13 Aug 2026; snapshots '+
-      'baked after that carry per-issue supplier attribution and answer-date filtering.</div>';
-  }
-  table('sp-tbl',[{h:'Supplier'},{h:'Form'},{h:'Completed',n:1},{h:'Raised',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
+  $('sq-note').innerHTML=(sup.note?`<div class="warn"><b>Read this first.</b> ${esc(sup.note)}</div>`:'')+
+    (!issuesAll.length&&!sup.answered_source
+      ?'<div class="empty"><b>This snapshot predates the answers feed.</b> <code>GC Form Task Answers</code> first landed 13 Aug 2026; later snapshots carry per-issue supplier attribution.</div>':'');
+  const sqOpen=issues.filter(i=>i.open);
+  const sqEsc=sqOpen.filter(i=>(dOpen(i)??-1)>ESC_DAYS);
+  $('sq-kpis').innerHTML=
+    kpi(sqEsc.length?'r':sqOpen.length?'a':'g','Open issues',fmtN(sqOpen.length),'unresolved · answer dates '+evLabel())+
+    kpi(sqEsc.length?'r':'g','Escalated',fmtN(sqEsc.length),'open more than '+ESC_DAYS+' days')+
+    kpi('o','Logged in range',fmtN(issues.length),'open + closed · answer dates '+evLabel())+
+    kpi('o','Suppliers affected',fmtN(new Set(sqOpen.map(supNameOf)).size),'with an open issue in range');
+  const rowChip=r=>r.oldest!=null&&r.oldest>ESC_DAYS?chip('r','Escalate'):r.open>0?chip('a','Open'):chip('g','Clear');
+  const drawSQ=()=>{
+    const set=SQ_MODE==='open'?sqOpen:issues;
+    /* by supplier — answered + text-matched attribution merged (each row still
+       carries `attribution` in the data for the evidence trail) */
+    const bs={};
+    set.forEach(i=>{const k=supNameOf(i);
+      const a=bs[k]=bs[k]||{total:0,open:0,sites:new Set(),oldest:null};
+      a.total++;
+      if(i.open){a.open++;const n=dOpen(i);if(n!=null&&(a.oldest==null||n>a.oldest))a.oldest=n;}
+      if(i.site)a.sites.add(i.site);});
+    const supRows=Object.entries(bs).map(([name,a])=>({name,total:a.total,open:a.open,sites:a.sites.size,oldest:a.oldest}))
+      .sort((a,b)=>b.open-a.open||b.total-a.total);
+    table('sq-sup',[{h:'Supplier'},{h:'Open',n:1},{h:'Issues',n:1},{h:'Sites',n:1},{h:'Status',raw:1}],
+      supRows.map(r=>[r.name,fmtN(r.open),fmtN(r.total),fmtN(r.sites),rowChip(r)]),
+      SQ_MODE==='open'?'No open supplier issues in this range':'No supplier issues dated in this range');
+    [...document.querySelectorAll('#sq-sup tbody tr')].forEach((tr,i)=>{
+      const r=supRows[i]; if(!r) return;
+      tr.classList.add('clk'); tr.addEventListener('click',()=>openSupplierProfileModal(r.name));
+    });
+    $('sq-sup-sub').textContent=supRows.length+' supplier(s) · '+set.length+' issue(s) '+
+      (SQ_MODE==='open'?'open':'in range')+' · answer dates '+evLabel()+
+      ' · Escalate = an issue open more than '+ESC_DAYS+' days · click a supplier for its full profile';
+    /* by site */
+    const st={};
+    set.forEach(i=>{const k=i.site||'(no site)';
+      const a=st[k]=st[k]||{total:0,open:0,sups:new Set(),oldest:null};
+      a.total++;
+      if(i.open){a.open++;const n=dOpen(i);if(n!=null&&(a.oldest==null||n>a.oldest))a.oldest=n;}
+      a.sups.add(supNameOf(i));});
+    const siteRows=Object.entries(st).map(([site,a])=>({site,total:a.total,open:a.open,sups:a.sups.size,oldest:a.oldest}))
+      .sort((a,b)=>b.open-a.open||b.total-a.total);
+    table('sq-site',[{h:'Site'},{h:'Open',n:1},{h:'Issues',n:1},{h:'Suppliers',n:1},{h:'Status',raw:1}],
+      siteRows.map(r=>[r.site,fmtN(r.open),fmtN(r.total),fmtN(r.sups),rowChip(r)]),
+      SQ_MODE==='open'?'No open supplier issues in this range':'No supplier issues dated in this range');
+    [...document.querySelectorAll('#sq-site tbody tr')].forEach((tr,i)=>{
+      const r=siteRows[i]; if(!r) return;
+      tr.classList.add('clk'); tr.addEventListener('click',()=>openSiteIssuesModal(r.site));
+    });
+    $('sq-site-sub').textContent=siteRows.length+' site(s) · click a site for its issues — date, supplier, days open';
+    /* weekly trend */
+    drawIssueTrend(set);
+    /* issue nature (keyword heuristic), from the same toggled + range-filtered set */
+    const catAgg={};
+    set.forEach(i=>{const k=i.category||'other'; catAgg[k]=(catAgg[k]||0)+1;});
+    bars('sq-cat',Object.entries(catAgg).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({k,v})));
+    $('sq-cat-sub').textContent=(sup.issue_categories_basis||'Bucketed from each issue’s free-text answer — not an official taxonomy')+
+      ' · '+set.length+' issue(s) '+(SQ_MODE==='open'?'open':'in range');
+  };
+  $('sq-toggle').innerHTML='<span style="color:var(--muted);font-size:12px">Show:</span>'+
+    [['open','Open issues'],['all','All in range']].map(([k,l])=>
+      `<button class="fbtn" aria-pressed="${k===SQ_MODE}" data-k="${k}">${l}</button>`).join('');
+  $('sq-toggle').onclick=e=>{const b=e.target.closest('.fbtn'); if(!b) return;
+    SQ_MODE=b.dataset.k;
+    [...$('sq-toggle').querySelectorAll('.fbtn')].forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.k===SQ_MODE)));
+    drawSQ();};
+  drawSQ();
+  /* form backlog (form-level counts from GC Forms Overview — current state) */
+  table('sq-forms',[{h:'Supplier'},{h:'Form'},{h:'Completed',n:1},{h:'Raised',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
     (sup.forms||[]).map(f=>[f.supplier,f.form,f.completed,f.raised,f.open,
       (f.open||0)>=20?chip('r','Escalate'):(f.open||0)>0?chip('a','Open'):chip('g','Clear')]));
-
-  /* supplier issues by site (click a site for its form answers) */
-  const siAgg={};
-  issues.forEach(i=>{
-    const k=i.site||'(no site)';
-    const a=siAgg[k]=siAgg[k]||{total:0,open:0};
-    a.total++; if(i.open) a.open++;
-  });
-  const siSites=Object.entries(siAgg).map(([site,a])=>({site,total:a.total,open:a.open}))
-    .sort((a,b)=>b.open-a.open||b.total-a.total);
-  $('si-sub').textContent=siSites.length
-    ? siSites.length+' site(s) with an issue in range · answer dates '+evLabel()+' · click a site for its form answers'
-    : 'Delivery / supplier issue forms in GetCompliant, by site · click a site for its form answers (issue date, supplier)';
-  bars('si-bars',siSites.map(r=>({k:r.site,v:r.total,
-    tip:`${r.site} — ${fmtN(r.open)} open of ${fmtN(r.total)} issue(s) in range · click for detail`})));
-  [...document.querySelectorAll('#si-bars .brow')].forEach((el,i)=>{
-    const r=siSites[i]; if(!r) return;
-    el.classList.add('clk'); el.addEventListener('click',()=>openSiteIssuesModal(r.site));
-  });
-  table('si-tbl',[{h:'Site'},{h:'Issues',n:1},{h:'Open',n:1},{h:'Status',raw:1}],
-    siSites.map(r=>[r.site,fmtN(r.total),fmtN(r.open),
-      r.open>=5?chip('r','Escalate'):r.open>0?chip('a','Open'):chip('g','Clear')]),
-    'No supplier issues dated in this range');
-  [...document.querySelectorAll('#si-tbl tbody tr')].forEach((tr,i)=>{
-    const r=siSites[i]; if(!r) return;
-    tr.classList.add('clk'); tr.addEventListener('click',()=>openSiteIssuesModal(r.site));
-  });
-
-  /* issue nature (keyword heuristic), sliced by the same answer-date range as
-     every other card on this page — was previously reading a static all-time
-     aggregate (sup.issue_categories) that ignored the range filter entirely;
-     recomputed here from the already-filtered `issues` array instead */
-  const catAgg={};
-  issues.forEach(i=>{const k=i.category||'other'; catAgg[k]=(catAgg[k]||0)+1;});
-  const catRows=Object.entries(catAgg).sort((a,b)=>b[1]-a[1]);
-  bars('ic-bars',catRows.map(([k,v])=>({k,v})));
-  $('ic-sub').textContent=(sup.issue_categories_basis||'Bucketed from each issue’s free-text answer — not an official taxonomy')+
-    (issuesAll.length?' · '+issues.length+' of '+issuesAll.length+' issues in range · answer dates '+evLabel():'');
 
   /* supply: projected spend this week (by site & supplier) + price watch */
   const weekSpend=(snap.supply&&snap.supply.week_spend)||[];
@@ -767,7 +902,10 @@ function render(snap){
         topSite?'£'+Math.round(topSite[1]).toLocaleString('en-GB'):'no orders due this week')+
     kpi(topSup?'o':'n','Top supplier this week',topSup?topSup[0]:'—',
         topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
-    kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel());
+    kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
+  /* the Issues KPI is the click-through to the dedicated tab (18/08/2026) */
+  const supTiles=$('supp-kpis').children, supLast=supTiles[supTiles.length-1];
+  if(supLast){supLast.style.cursor='pointer';supLast.addEventListener('click',()=>gotoPage('p-supi'));}
 
   /* quality: broth heatmaps, discipline, deviations */
   const brothCells=(snap.quality&&snap.quality.broth&&snap.quality.broth.cells)||[];
