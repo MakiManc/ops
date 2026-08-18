@@ -1,24 +1,17 @@
 {
  "verifier_version": 1,
- "generated_at": "2026-08-18T17:49:18Z",
+ "generated_at": "2026-08-18T18:01:46Z",
  "verified_date": "2026-08-18",
- "overall": "red",
+ "overall": "amber",
  "postgres_latest": "2026-08-18",
  "snapshot_latest": "2026-08-18",
  "counts": {
-  "expected_feeds": 47,
+  "expected_feeds": 46,
   "known_broken": 14,
-  "criticals": 1,
+  "criticals": 0,
   "warnings": 1
  },
- "criticals": [
-  {
-   "check": "1-landed",
-   "level": "critical",
-   "feed": "GC FIRE DRILL PROBE (deliberately broken - remove after drill)",
-   "detail": "feed has NEVER landed in Postgres"
-  }
- ],
+ "criticals": [],
  "warnings": [
   {
    "check": "0-receipts",
@@ -31,12 +24,6 @@
    "check": "0-receipts",
    "level": "warning",
    "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt (expected on the first run after deploy). Checks 1-2 still verify the data directly."
-  },
-  {
-   "check": "1-landed",
-   "level": "critical",
-   "feed": "GC FIRE DRILL PROBE (deliberately broken - remove after drill)",
-   "detail": "feed has NEVER landed in Postgres"
   },
   {
    "check": "1-landed",
