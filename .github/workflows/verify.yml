@@ -88,21 +88,30 @@ jobs:
           open("/tmp/warn_body.md", "w").write("\n".join(lines) + "\n")
           print(f"{len(warn)} warning(s) for the issue mirror")
           EOF
+          # The mirror is a convenience surface - its own failure must never
+          # fail the verify run (warnings always remain in health_latest.json
+          # and on the Data Health tab). Notably: GitHub disables Issues on
+          # forks by default; until Issues is enabled on this repo, this
+          # step just logs and moves on.
           WARN_N=$(python3 -c "import json;h=json.load(open('data/ops_command/health_latest.json'));print(len(h.get('warnings',[])+h.get('deferred',[])))")
-          gh label create data-health --description "Ops data verifier warnings" --color D93F0B --force || true
+          if ! gh label create data-health --description "Ops data verifier warnings" --color D93F0B --force 2>/tmp/gh_err; then
+            echo "issue mirror unavailable ($(cat /tmp/gh_err | head -1)) - warnings stay in health_latest.json / Data Health tab"
+            exit 0
+          fi
           NUM=$(gh issue list --label data-health --state open --json number --jq '.[0].number' 2>/dev/null || true)
           if [ "$WARN_N" -gt 0 ]; then
             if [ -n "$NUM" ]; then
-              gh issue edit "$NUM" --body-file /tmp/warn_body.md
-              echo "updated issue #$NUM"
+              gh issue edit "$NUM" --body-file /tmp/warn_body.md \
+                && echo "updated issue #$NUM" || echo "issue edit failed - non-fatal"
             else
               gh issue create --title "Ops data health — warnings" \
-                --label data-health --body-file /tmp/warn_body.md
+                --label data-health --body-file /tmp/warn_body.md \
+                || echo "issue create failed - non-fatal"
             fi
           else
             if [ -n "$NUM" ]; then
-              gh issue close "$NUM" --comment "All warnings cleared ($(date -u '+%F %H:%M UTC'))."
-              echo "closed issue #$NUM"
+              gh issue close "$NUM" --comment "All warnings cleared ($(date -u '+%F %H:%M UTC'))." \
+                && echo "closed issue #$NUM" || echo "issue close failed - non-fatal"
             else
               echo "no warnings, no open issue - nothing to do"
             fi
