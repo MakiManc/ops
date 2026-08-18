@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-verify_ops_data.py -- the daily verification spine (verify.yml, 09:30 UTC).
+verify_ops_data.py -- the daily verification spine (verify.yml).
 
 Every daily process in this system must either prove it worked or fail
 loudly, and "proved it worked" is always measured at the DESTINATION --
@@ -9,64 +9,108 @@ code. This script is the safety net under the ETL's own loud-failure
 receipts (etl_receipt.py in ross440/maki-hospitality-etl).
 
 Driven by data/ops_command/feeds_manifest.json -- the single home for the
-system's expectations. Phase 1 checks:
+system's expectations.
 
-  check 0  RUN RECEIPTS   etl_run_log has a receipt for today's
-                          daily-export and deep-pull runs, with exit 0.
-                          Distinguishes "never ran" from "ran and wrote
-                          nothing" without cross-repo API auth.
-  check 1  FEEDS LANDED   every status=expected feed's max(pull_date) is
-                          today (cadence_days tolerance). Measured in
-                          Postgres -- catches a green workflow whose
-                          writes went nowhere (the §13 failure class).
-  check 2  ROWS SANE      today's rows >= the manifest floor, and within
-                          a band (0.5x..3x) of the trailing 14-day median
-                          (self-calibrating; falls back to the manifest's
-                          calibration median while Neon history is thin
-                          post-trim). Floor breach on a priority domain is
-                          critical; band drift is always a warning.
-  check 4a SNAPSHOT FRESH the live dashboard's snapshot_index.json says
-                          the same latest data date as Postgres. A legit
-                          no-new-data day matches on both sides and stays
-                          quiet -- this kills the weekend false alarm at
-                          the root. Fetched from raw.githubusercontent.com
-                          (Pages CDN lag up to ~an hour is documented and
-                          normal, so Pages is checked second, informative
-                          only).
+CHECKS (v2, Phase 2 complete)
+  check 0  RUN RECEIPTS    etl_run_log has a receipt for today's
+                           daily-export and deep-pull runs, exit 0.
+  check 1  FEEDS LANDED    every status=expected feed's max(pull_date) is
+                           today. Measured in Postgres (the §13 class).
+  check 2  ROWS SANE       today's rows >= manifest floor and within a
+                           0.5x-3x band of the trailing 14-day median
+                           (falls back to the calibration median while
+                           post-trim Neon history is thin).
+  check 3  EVENTS FRESH    for manifest feeds with event_date_field: the
+                           max event date INSIDE the data is recent per
+                           the feed's event_fresh_days. Catches pulls that
+                           keep landing while the upstream API silently
+                           serves a frozen window. Always a warning tier.
+  check 4a SNAPSHOT FRESH  the live snapshot_index.json says the same
+                           latest data date as Postgres (raw GitHub
+                           primary; Pages CDN informative only).
+  check 4b CONSISTENT      the REAL builder (bake_ops_command.py, copied
+                           to a temp dir and run against today's
+                           warehouse -- same code, no drift) must produce
+                           the same headline aggregates as the live baked
+                           snapshot: scheduled-task on-time/missed totals,
+                           projected-spend GBP total, broth cell count,
+                           supplier-issue count, outstanding-training
+                           count. Catches a correct warehouse feeding a
+                           wrong dashboard.
+  check 5  NOTHING BLIND   feeds present in Postgres today but absent
+                           from the manifest raise warnings -- the
+                           manifest cannot quietly fall behind reality.
+  check 6  SIDE CHANNELS   maintenance_source.json age (>7 days without a
+                           refresh commit suggests the refresh chain is
+                           dead) and DB size (warn at 400 MB -- Neon free
+                           cap is 512 MB; the archive+trim keeps steady
+                           state near 300 MB).
 
-Severity policy (locked in the approved plan): CRITICAL -> one ntfy push +
-non-zero exit (GitHub failure email rides the red workflow); WARNING ->
-recorded in health_latest.json only, no push. Priority domains (GC
-compliance, Kobas supply) go critical; Training/Flow starts as warnings.
-Zero and unknown must never look alike: every check's result -- ok,
-warning, critical, or skipped-with-reason -- lands in health_latest.json,
-which the dashboard's staleness banner and (Phase 2) Data Health tab read.
+MORNING vs RECHECK (the false-alarm damper, plan §1)
+  09:30 UTC morning run: timing-deferrable criticals -- a feed missing
+  while its producing run has no receipt yet (may still be in flight),
+  a stale snapshot, a 4b mismatch or recompute crash -- are recorded as
+  "deferred" (overall amber, no push, exit 0). Everything genuinely
+  broken (receipt says exit!=0, feed missing though its run finished
+  fine, floor breach, DSN dead) still alerts immediately.
+  12:00 UTC recheck run: no deferral -- anything still failing pushes.
+  Mode is chosen by UTC hour (>= 11 -> recheck).
+
+ALSO WRITTEN EACH RUN
+  data/ops_command/health_latest.json   full verdict (banner + Data
+                                        Health tab read this)
+  data/ops_command/verify_history.json  rolling 60-entry run history
+                                        (7-day strip + alive-push source)
+  ops_daily_aggregates (Postgres)       per-site daily aggregates upserted
+                                        from the recompute snapshot --
+                                        tasks on-time/missed, broth cells,
+                                        supplier issues. This is the
+                                        approved history archive: it
+                                        accumulates beyond the feeds' own
+                                        rolling windows (open item 5).
+
+MONDAY ALIVE-PUSH: silence-as-healthy is only trustworthy while the
+checker is provably alive, so every Monday morning run sends one push --
+"verifier alive - N/7 days green" -- regardless of status.
 
 Env: WAREHOUSE_DSN (required), NTFY_TOPIC (optional -- degrades to log).
-Writes: data/ops_command/health_latest.json (committed by verify.yml).
 """
 
 from __future__ import annotations
 
 import json
 import os
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import urllib.request
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(HERE, "..", "data", "ops_command")
 MANIFEST_PATH = os.path.join(OUT_DIR, "feeds_manifest.json")
 HEALTH_PATH = os.path.join(OUT_DIR, "health_latest.json")
+HISTORY_PATH = os.path.join(OUT_DIR, "verify_history.json")
+MAINT_PATH = os.path.join(OUT_DIR, "maintenance_source.json")
 
-RAW_INDEX = ("https://raw.githubusercontent.com/ross440/ops/main/"
-             "data/ops_command/snapshot_index.json")
+RAW_BASE = ("https://raw.githubusercontent.com/ross440/ops/main/"
+            "data/ops_command/")
 PAGES_INDEX = ("https://ross440.github.io/ops/data/ops_command/"
                "snapshot_index.json")
 
-# Domain -> alert level for a missing/short feed. Priority domains are
-# critical from day one; Training starts as warnings (Ross's ranking).
+DB_SIZE_WARN_MB = 400          # Neon free cap is 512 MB
+MAINT_AGE_WARN_DAYS = 7        # a week with no refresh commit = dead chain
+
+# Timing-deferrable failure classes (morning run defers them to 12:00).
+# A missing receipt at 09:30 is indistinguishable from an export still in
+# flight (75-min timeout from 08:15 can outlast the morning run); by 12:00
+# it is unambiguous, so it defers alongside the other timing classes.
+DEFERRABLE = {"1-landed-inflight", "4a-snapshot", "4b-consistency",
+              "0-receipts-missing"}
+
+
 def domain_of(feed: str) -> str:
     if feed.startswith(("Flow", "Deep Flow", "Deep Profile", "Deep Run")):
         return "training"
@@ -81,9 +125,12 @@ PRIORITY_DOMAINS = {"gc-compliance", "kobas-supply"}
 RESULTS: list[dict] = []
 
 
-def add(check: str, level: str, detail: str, feed: str | None = None):
+def add(check: str, level: str, detail: str, feed: str | None = None,
+        klass: str | None = None):
     RESULTS.append({"check": check, "level": level,
-                    **({"feed": feed} if feed else {}), "detail": detail})
+                    **({"feed": feed} if feed else {}),
+                    **({"class": klass} if klass else {}),
+                    "detail": detail})
 
 
 def utcnow() -> str:
@@ -112,14 +159,17 @@ def connect():
         return None
 
 
-def check_receipts(cur, today: str):
+# --------------------------------------------------------------- check 0
+def check_receipts(cur, today: str) -> dict:
+    """Returns {run_kind: exit_code or None-if-missing} for deferral logic."""
+    states: dict = {}
     cur.execute("SELECT to_regclass('etl_run_log') IS NOT NULL")
     if not cur.fetchone()[0]:
         add("0-receipts", "warning",
             "etl_run_log does not exist yet - the loud-failure wrapper has "
-            "not produced its first receipt (expected on the first run "
-            "after deploy). Checks 1-2 still verify the data directly.")
-        return
+            "not produced its first receipt. Checks 1-2 still verify the "
+            "data directly.")
+        return states
     for kind, label in (("daily-export", "08:15 daily export"),
                         ("deep-pull", "03:00 deep pull")):
         cur.execute(
@@ -129,19 +179,20 @@ def check_receipts(cur, today: str):
             "ORDER BY finished_at DESC LIMIT 1", (kind, today))
         row = cur.fetchone()
         if row is None:
+            states[kind] = None
             cur.execute("SELECT count(*) FROM etl_run_log WHERE run_kind=%s",
                         (kind,))
-            ever = cur.fetchone()[0]
-            if ever:
+            if cur.fetchone()[0]:
                 add("0-receipts", "critical",
                     f"no receipt from the {label} today - the run either "
-                    "never started or died before writing anything", kind)
+                    "never started or died before writing anything",
+                    kind, klass="0-receipts-missing")
             else:
                 add("0-receipts", "warning",
-                    f"no {label} receipt yet (wrapper newly deployed - "
-                    "expected to appear after its next scheduled run)", kind)
+                    f"no {label} receipt yet (wrapper newly deployed)", kind)
             continue
         exit_code, feeds_failed, rows_written, finished = row
+        states[kind] = exit_code
         if exit_code:
             add("0-receipts", "critical",
                 f"{label} receipt says exit {exit_code} with "
@@ -150,9 +201,11 @@ def check_receipts(cur, today: str):
             add("0-receipts", "ok",
                 f"{label}: exit 0, {rows_written} rows written, "
                 f"finished {finished}", kind)
+    return states
 
 
-def check_feeds(cur, manifest: dict, today: str):
+# ----------------------------------------------------------- checks 1+2
+def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
     cur.execute("SELECT feed, max(pull_date)::text FROM etl_feed_rows "
                 "GROUP BY feed")
     latest = dict(cur.fetchall())
@@ -169,18 +222,22 @@ def check_feeds(cur, manifest: dict, today: str):
         dom = domain_of(name)
         sev = "critical" if dom in PRIORITY_DOMAINS else "warning"
         lp = latest.get(name)
+        wf = f.get("workflow", "daily-export")
+        # Feed missing while its producing run has no receipt today: the
+        # run may still be in flight -> timing-deferrable in the morning.
+        inflight = receipt_states.get(wf, "no-table") is None
         if lp is None:
-            add("1-landed", sev,
-                "feed has NEVER landed in Postgres", name)
+            add("1-landed", sev, "feed has NEVER landed in Postgres", name,
+                klass="1-landed-inflight" if inflight else "1-landed")
             continue
         age = (date.fromisoformat(today) - date.fromisoformat(lp)).days
         if age > f.get("cadence_days", 1) - 1:
             add("1-landed", sev,
-                f"last pull {lp} ({age}d old) - expected today", name)
+                f"last pull {lp} ({age}d old) - expected today", name,
+                klass="1-landed-inflight" if inflight else "1-landed")
             continue
         add("1-landed", "ok", f"landed {lp}", name)
 
-        # ---- check 2: row counts, only for feeds that landed today ----
         n = today_rows.get(name, 0)
         floor = f.get("min_rows", 1)
         if n < floor:
@@ -211,29 +268,84 @@ def check_feeds(cur, manifest: dict, today: str):
         else:
             add("2-rows", "ok", f"{n} rows (no median available)", name)
 
+    # ------------------------------------------------------- check 5
+    man_names = {f["name"] for f in manifest["feeds"]}
+    for feed in sorted(set(today_rows) - man_names):
+        add("5-unmanifested", "warning",
+            f"feed landed {today_rows[feed]} rows today but is NOT in the "
+            "manifest - add it (or mark known_broken) so it stops flying "
+            "blind", feed)
 
+
+# --------------------------------------------------------------- check 3
+def check_event_dates(cur, manifest: dict, today: str):
+    for f in manifest["feeds"]:
+        field = f.get("event_date_field")
+        if not field or f["status"] != "expected":
+            continue
+        name = f["name"]
+        window = int(f.get("event_fresh_days", 7))
+        try:
+            if f.get("event_date_format") == "uk":
+                cur.execute(
+                    "SELECT max(to_date(substring(data->>%s,1,10),"
+                    "'DD/MM/YYYY'))::text FROM etl_feed_rows "
+                    "WHERE feed=%s "
+                    "AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows"
+                    " WHERE feed=%s) "
+                    "AND data->>%s ~ %s",
+                    (field, name, name, field,
+                     r"^\d{2}/\d{2}/\d{4}"))
+            else:
+                cur.execute(
+                    "SELECT left(max(nullif(data->>%s,'')),10) "
+                    "FROM etl_feed_rows WHERE feed=%s "
+                    "AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows"
+                    " WHERE feed=%s)", (field, name, name))
+            mx = (cur.fetchone() or [None])[0]
+        except Exception as e:  # noqa: BLE001
+            add("3-events", "warning",
+                f"could not read max({field}): {e}", name)
+            continue
+        if not mx:
+            add("3-events", "warning",
+                f"no parseable {field} values in the latest pull", name)
+            continue
+        try:
+            age = (date.fromisoformat(today) - date.fromisoformat(mx)).days
+        except ValueError:
+            add("3-events", "warning",
+                f"unparseable max {field}: {mx!r}", name)
+            continue
+        if age > window:
+            add("3-events", "warning",
+                f"newest {field} is {mx} ({age}d old, window {window}d) - "
+                "pulls are landing but the content looks frozen", name)
+        else:
+            add("3-events", "ok", f"newest {field} {mx} ({age}d old)", name)
+
+
+# -------------------------------------------------------------- check 4a
 def check_snapshot(cur):
     cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows")
     pg_latest = cur.fetchone()[0]
     idx = None
     for attempt in range(3):
         try:
-            idx = fetch_json(RAW_INDEX)
+            idx = fetch_json(RAW_BASE + "snapshot_index.json")
             break
         except Exception as e:  # noqa: BLE001
             if attempt == 2:
                 add("4a-snapshot", "critical",
                     f"cannot fetch snapshot_index.json from raw GitHub "
-                    f"after 3 tries: {e}")
+                    f"after 3 tries: {e}", klass="4a-snapshot")
                 return pg_latest, None
             time.sleep(60)
     snap_latest = (idx or {}).get("latest")
     if snap_latest != pg_latest:
-        # One retry after a pause: Pipe 9 commits ~09:00-09:01; raw has a
-        # ~5-minute cache (documented in the architecture doc, §12).
-        time.sleep(120)
+        time.sleep(120)   # raw has a ~5-minute cache (architecture doc §12)
         try:
-            idx = fetch_json(RAW_INDEX)
+            idx = fetch_json(RAW_BASE + "snapshot_index.json")
             snap_latest = idx.get("latest")
         except Exception:  # noqa: BLE001
             pass
@@ -244,8 +356,7 @@ def check_snapshot(cur):
         add("4a-snapshot", "critical",
             f"dashboard says latest data is {snap_latest} but Postgres "
             f"says {pg_latest} - the bake failed, baked stale, or the "
-            "commit never landed")
-    # Pages CDN view - informative only, its lag is documented as normal.
+            "commit never landed", klass="4a-snapshot")
     try:
         pages = fetch_json(PAGES_INDEX)
         if pages.get("latest") != snap_latest:
@@ -257,103 +368,384 @@ def check_snapshot(cur):
     return pg_latest, snap_latest
 
 
-def push_ntfy(criticals: list[dict]) -> bool:
+# -------------------------------------------------------------- check 4b
+def _snapshot_aggregates(snap: dict) -> dict:
+    tasks = (snap.get("tasks") or {}).get("cells") or []
+    week = (snap.get("supply") or {}).get("week_spend") or []
+    broth = ((snap.get("quality") or {}).get("broth") or {}).get("cells") or []
+    issues = (snap.get("suppliers") or {}).get("issues") or []
+    outstanding = (snap.get("training") or {}).get("outstanding") or []
+    return {
+        "tasks_on_time": sum(c.get("on_time") or 0 for c in tasks),
+        "tasks_missed": sum(c.get("missed") or 0 for c in tasks),
+        "week_spend_gbp": round(sum(w.get("value_gbp") or 0 for w in week), 2),
+        "broth_cells": len(broth),
+        "supplier_issues": len(issues),
+        "training_outstanding": len(outstanding),
+    }
+
+
+def check_consistency(pg_latest: str, snap_latest: str):
+    """Run the REAL builder into a temp dir; compare aggregates with live.
+
+    Returns the recomputed snapshot dict (for the aggregates archive), or
+    None if the recompute failed.
+    """
+    if snap_latest != pg_latest:
+        add("4b-consistency", "info",
+            "skipped - check 4a already failing, nothing meaningful to "
+            "compare until the snapshot is fresh")
+        return None
+    tmp = tempfile.mkdtemp(prefix="verify_recompute_")
+    local_snap = None
+    try:
+        os.makedirs(os.path.join(tmp, "builders"), exist_ok=True)
+        shutil.copy(os.path.join(HERE, "bake_ops_command.py"),
+                    os.path.join(tmp, "builders", "bake_ops_command.py"))
+        # The builder reads maintenance_source.json from its OUT_DIR.
+        os.makedirs(os.path.join(tmp, "data", "ops_command"), exist_ok=True)
+        if os.path.exists(MAINT_PATH):
+            shutil.copy(MAINT_PATH, os.path.join(
+                tmp, "data", "ops_command", "maintenance_source.json"))
+        r = subprocess.run(
+            [sys.executable, os.path.join(tmp, "builders",
+                                          "bake_ops_command.py")],
+            capture_output=True, text=True, timeout=600)
+        if r.returncode != 0:
+            add("4b-consistency", "critical",
+                "recompute failed - the builder exited "
+                f"{r.returncode}: {(r.stderr or r.stdout)[-300:]}",
+                klass="4b-consistency")
+            return None
+        path = os.path.join(tmp, "data", "ops_command",
+                            f"snapshot_{pg_latest}.json")
+        with open(path, encoding="utf-8") as fh:
+            local_snap = json.load(fh)
+    except Exception as e:  # noqa: BLE001
+        add("4b-consistency", "critical",
+            f"recompute could not run: {e}", klass="4b-consistency")
+        return None
+    finally:
+        # keep the temp dir only long enough to read; the snapshot dict
+        # survives in memory for the aggregates archive
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    try:
+        live = fetch_json(RAW_BASE + f"snapshot_{pg_latest}.json", timeout=30)
+    except Exception as e:  # noqa: BLE001
+        add("4b-consistency", "critical",
+            f"could not fetch the live snapshot to compare: {e}",
+            klass="4b-consistency")
+        return local_snap
+
+    mine, theirs = _snapshot_aggregates(local_snap), _snapshot_aggregates(live)
+    diffs = [f"{k}: live {theirs[k]} vs recomputed {mine[k]}"
+             for k in mine if mine[k] != theirs[k]]
+    if diffs:
+        add("4b-consistency", "critical",
+            "live dashboard aggregates do not match a fresh recompute from "
+            "Postgres - " + "; ".join(diffs) + " (a builder deploy after "
+            "the 09:00 bake causes this legitimately - rebake via "
+            "workflow_dispatch if so)", klass="4b-consistency")
+    else:
+        add("4b-consistency", "ok",
+            "recomputed aggregates match the live snapshot exactly: " +
+            ", ".join(f"{k}={v}" for k, v in mine.items()))
+    return local_snap
+
+
+# --------------------------------------------------------------- check 6
+def check_side_channels(cur, today: str) -> dict:
+    sizes = {}
+    try:
+        with open(MAINT_PATH, encoding="utf-8") as fh:
+            m = json.load(fh)
+        pulled = (m.get("pulled_at") or "")[:10]
+        age = (date.fromisoformat(today) - date.fromisoformat(pulled)).days \
+            if pulled else None
+        sizes["maintenance_pulled_at"] = m.get("pulled_at")
+        sizes["maintenance_source_as_of"] = m.get("source_as_of")
+        if age is None:
+            add("6-side", "warning",
+                "maintenance_source.json has no pulled_at date")
+        elif age > MAINT_AGE_WARN_DAYS:
+            add("6-side", "warning",
+                f"maintenance_source.json last pulled {pulled} ({age}d ago) "
+                "- the refresh chain may be dead (its daily 08:00 task "
+                "skips commits when the sheet is unchanged, but a week of "
+                "silence is worth checking)")
+        else:
+            add("6-side", "ok",
+                f"maintenance source pulled {pulled} ({age}d ago), "
+                f"sheet content as of {m.get('source_as_of')}")
+    except FileNotFoundError:
+        add("6-side", "warning", "maintenance_source.json missing from the "
+            "repo - the Maintenance tab is dark")
+    except Exception as e:  # noqa: BLE001
+        add("6-side", "warning", f"maintenance_source.json unreadable: {e}")
+
+    cur.execute("SELECT pg_database_size(current_database())")
+    db_bytes = cur.fetchone()[0]
+    db_mb = round(db_bytes / 1e6)
+    sizes["db_mb"] = db_mb
+    if db_mb > DB_SIZE_WARN_MB:
+        add("6-side", "warning",
+            f"warehouse database is {db_mb} MB - Neon free cap is 512 MB; "
+            "check the archive+trim job (warehouse-archive.yml) and "
+            "consider a vacuum_full dispatch")
+    else:
+        add("6-side", "ok", f"warehouse database {db_mb} MB "
+            f"(warn at {DB_SIZE_WARN_MB}, Neon cap 512)")
+    return sizes
+
+
+# ------------------------------------------------- aggregates archive
+AGG_DDL = """
+CREATE TABLE IF NOT EXISTS ops_daily_aggregates (
+    metric_date date NOT NULL,
+    site text NOT NULL,
+    metric text NOT NULL,
+    v1 numeric,
+    v2 numeric,
+    v3 numeric,
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (metric_date, site, metric)
+);
+"""
+
+
+def archive_aggregates(conn, snap: dict | None) -> None:
+    """Upsert per-site daily aggregates from the recomputed snapshot.
+
+    This is the approved retention archive (plan §5): a few hundred tiny
+    rows a day that outlive the raw feeds' trimmed windows, so on-time %,
+    broth readings and issue counts finally accumulate real history.
+    Upserting every cell the snapshot carries (each covers a trailing
+    window) back-fills and self-heals after any gap.
+    """
+    if snap is None:
+        add("aggregates", "warning",
+            "no recomputed snapshot available - aggregates archive not "
+            "updated this run")
+        return
+    rows = []
+    for c in (snap.get("tasks") or {}).get("cells") or []:
+        if c.get("site") and c.get("d"):
+            rows.append((c["d"], c["site"], "tasks",
+                         c.get("on_time") or 0, c.get("missed") or 0, None))
+    for c in ((snap.get("quality") or {}).get("broth") or {}).get("cells") or []:
+        if c.get("site") and c.get("d") and c.get("kind"):
+            rows.append((c["d"], c["site"], f"broth_{c['kind']}",
+                         c.get("value"), c.get("checks") or 0,
+                         c.get("checks_missed") or 0))
+    per = {}
+    for i in (snap.get("suppliers") or {}).get("issues") or []:
+        if i.get("site") and i.get("d"):
+            k = (i["d"], i["site"])
+            tot, op = per.get(k, (0, 0))
+            per[k] = (tot + 1, op + (1 if i.get("open") else 0))
+    for (d, site), (tot, op) in per.items():
+        rows.append((d, site, "supplier_issues", tot, op, None))
+    if not rows:
+        add("aggregates", "warning",
+            "recomputed snapshot had no aggregatable cells - nothing "
+            "written to ops_daily_aggregates")
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute(AGG_DDL)
+            cur.executemany(
+                "INSERT INTO ops_daily_aggregates "
+                "(metric_date, site, metric, v1, v2, v3) "
+                "VALUES (%s,%s,%s,%s,%s,%s) "
+                "ON CONFLICT (metric_date, site, metric) DO UPDATE SET "
+                "v1=EXCLUDED.v1, v2=EXCLUDED.v2, v3=EXCLUDED.v3, "
+                "updated_at=now()", rows)
+        conn.commit()
+        add("aggregates", "ok",
+            f"{len(rows)} per-site daily aggregate rows upserted "
+            "(tasks, broth, supplier issues)")
+    except Exception as e:  # noqa: BLE001
+        try:
+            conn.rollback()
+        except Exception:  # noqa: BLE001
+            pass
+        add("aggregates", "warning",
+            f"ops_daily_aggregates upsert failed: {e}")
+
+
+# ------------------------------------------------------------ history
+def update_history(entry: dict) -> list:
+    try:
+        with open(HISTORY_PATH, encoding="utf-8") as fh:
+            hist = json.load(fh).get("runs", [])
+    except Exception:  # noqa: BLE001
+        hist = []
+    key = (entry["date"], entry["mode"])
+    hist = [h for h in hist if (h.get("date"), h.get("mode")) != key]
+    hist.append(entry)
+    hist = sorted(hist, key=lambda h: (h.get("date", ""),
+                                       h.get("mode", "")))[-60:]
+    with open(HISTORY_PATH, "w", encoding="utf-8") as fh:
+        json.dump({"runs": hist}, fh, indent=1)
+        fh.write("\n")
+    return hist
+
+
+def day_verdicts(hist: list) -> dict:
+    """date -> final overall for that day (recheck wins over morning)."""
+    out = {}
+    for h in hist:
+        d = h.get("date")
+        if not d:
+            continue
+        if d not in out or h.get("mode") == "recheck":
+            out[d] = h.get("overall", "unknown")
+    return out
+
+
+# --------------------------------------------------------------- ntfy
+def push_ntfy(title: str, body: str, priority: str = "high") -> bool:
     topic = (os.environ.get("NTFY_TOPIC") or "").strip()
     if not topic:
-        print("NTFY_TOPIC not set - no push (GitHub email still fires on "
-              "the red workflow)")
+        print(f"NTFY_TOPIC not set - no push ({title})")
         return False
-    lines = [f"{c.get('feed', c['check'])}: {c['detail']}"
-             for c in criticals[:5]]
-    if len(criticals) > 5:
-        lines.append(f"...and {len(criticals) - 5} more")
-    body = ("Ops data verification FAILED "
-            f"({date.today().isoformat()}):\n" + "\n".join(lines) +
-            "\nhttps://github.com/ross440/ops/actions")
     try:
         req = urllib.request.Request(
             f"https://ntfy.sh/{topic}", data=body.encode("utf-8"),
-            headers={"Title": "Ops data verification FAILED",
-                     "Priority": "high", "Tags": "rotating_light",
+            headers={"Title": title, "Priority": priority,
+                     "Tags": "rotating_light" if priority == "high"
+                             else "white_check_mark",
                      "User-Agent": "ops-verify"})
         urllib.request.urlopen(req, timeout=15).read()
-        print("ntfy push sent")
+        print(f"ntfy push sent: {title}")
         return True
     except Exception as e:  # noqa: BLE001
-        print(f"ntfy push FAILED ({e}) - GitHub failure email is the "
-              "backstop")
+        print(f"ntfy push FAILED ({e}) - GitHub email is the backstop")
         return False
 
 
+# ---------------------------------------------------------------- main
 def main() -> None:
     today = date.today().isoformat()
+    now = datetime.now(timezone.utc)
+    mode = "recheck" if now.hour >= 11 else "morning"
     with open(MANIFEST_PATH, encoding="utf-8") as f:
         manifest = json.load(f)
 
     conn = connect()
     pg_latest = snap_latest = None
+    sizes: dict = {}
     if conn is not None:
         try:
             with conn.cursor() as cur:
-                check_receipts(cur, today)
-                check_feeds(cur, manifest, today)
+                receipt_states = check_receipts(cur, today)
+                check_feeds(cur, manifest, today, receipt_states)
+                check_event_dates(cur, manifest, today)
                 pg_latest, snap_latest = check_snapshot(cur)
+                sizes = check_side_channels(cur, today)
+            recomputed = check_consistency(pg_latest, snap_latest)
+            archive_aggregates(conn, recomputed)
         finally:
             conn.close()
+
+    # ---- deferral: morning run parks timing-class criticals ----------
+    deferred = []
+    if mode == "morning":
+        for r in RESULTS:
+            if r["level"] == "critical" and r.get("class") in DEFERRABLE:
+                r["level"] = "deferred"
+                r["detail"] += "  [deferred - rechecked at 12:00 UTC]"
+                deferred.append(r)
 
     criticals = [r for r in RESULTS if r["level"] == "critical"]
     warnings = [r for r in RESULTS if r["level"] == "warning"]
     overall = ("red" if criticals else
-               "amber" if warnings else "green")
+               "amber" if (warnings or deferred) else "green")
 
+    known_broken = [{"name": f["name"], "note": f.get("note", "")}
+                    for f in manifest["feeds"]
+                    if f["status"] == "known_broken"]
     health = {
-        "verifier_version": 1,
+        "verifier_version": 2,
         "generated_at": utcnow(),
         "verified_date": today,
+        "mode": mode,
         "overall": overall,
         "postgres_latest": pg_latest,
         "snapshot_latest": snap_latest,
+        "sizes": sizes,
         "counts": {
             "expected_feeds": sum(1 for f in manifest["feeds"]
                                   if f["status"] == "expected"),
-            "known_broken": sum(1 for f in manifest["feeds"]
-                                if f["status"] == "known_broken"),
+            "known_broken": len(known_broken),
             "criticals": len(criticals),
             "warnings": len(warnings),
+            "deferred": len(deferred),
         },
         "criticals": criticals,
         "warnings": warnings,
+        "deferred": deferred,
+        "known_broken": known_broken,
         "results": RESULTS,
-        "basis": ("verify_ops_data.py checks 0/1/2/4a against Neon Postgres "
-                  "and raw.githubusercontent.com; manifest v"
+        "basis": ("verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against "
+                  "Neon Postgres and raw.githubusercontent.com; manifest v"
                   f"{manifest.get('version')} calibrated "
-                  f"{manifest.get('calibrated')}"),
+                  f"{manifest.get('calibrated')}; "
+                  f"{mode} run (morning defers timing-class failures to "
+                  "the 12:00 UTC recheck)"),
     }
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(HEALTH_PATH, "w", encoding="utf-8") as f:
         json.dump(health, f, indent=1, ensure_ascii=False)
         f.write("\n")
 
+    hist = update_history({
+        "date": today, "mode": mode, "overall": overall,
+        "criticals": len(criticals), "warnings": len(warnings),
+        "deferred": len(deferred), "at": health["generated_at"]})
+
     print("\n" + "=" * 70)
-    print(f"OPS DATA VERIFICATION  {today}  ->  {overall.upper()}")
+    print(f"OPS DATA VERIFICATION  {today}  ({mode})  ->  {overall.upper()}")
     print("=" * 70)
     for r in RESULTS:
-        if r["level"] in ("critical", "warning"):
+        if r["level"] in ("critical", "warning", "deferred"):
             print(f"  {r['level'].upper():<9} [{r['check']}] "
                   f"{r.get('feed', '')}: {r['detail']}")
     ok_n = sum(1 for r in RESULTS if r["level"] == "ok")
-    print(f"  ({ok_n} ok, {len(warnings)} warnings, "
-          f"{len(criticals)} criticals; full detail in health_latest.json)")
+    print(f"  ({ok_n} ok, {len(warnings)} warnings, {len(deferred)} "
+          f"deferred, {len(criticals)} criticals)")
     print("=" * 70)
 
+    # ---- Monday alive-push (morning run only) ------------------------
+    if mode == "morning" and now.weekday() == 0:
+        verdicts = day_verdicts(hist)
+        last7 = [verdicts.get((date.today() - timedelta(days=i)).isoformat())
+                 for i in range(1, 8)]
+        greens = sum(1 for v in last7 if v in ("green", "amber"))
+        counted = sum(1 for v in last7 if v)
+        exp = health["counts"]["expected_feeds"]
+        push_ntfy(
+            "Ops verifier alive",
+            f"verifier alive - {greens}/{counted or 7} days without a red "
+            f"verdict - {exp} feeds under test, "
+            f"{health['counts']['known_broken']} known_broken - today: "
+            f"{overall}", priority="default")
+
     if criticals:
-        if push_ntfy(criticals):
-            # Marker in the workspace root (NOT data/, so it is never
-            # committed): tells the workflow's backstop step a push has
-            # already gone out, so a red run doesn't double-push.
+        lines = [f"{c.get('feed', c['check'])}: {c['detail']}"
+                 for c in criticals[:5]]
+        if len(criticals) > 5:
+            lines.append(f"...and {len(criticals) - 5} more")
+        if push_ntfy("Ops data verification FAILED",
+                     f"({today}, {mode} run)\n" + "\n".join(lines) +
+                     "\nhttps://github.com/ross440/ops/actions"):
             with open(".ntfy_sent", "w", encoding="utf-8") as f:
                 f.write(utcnow())
         sys.exit(1)
+    if deferred:
+        print(f"{len(deferred)} timing-class failure(s) deferred to the "
+              "12:00 UTC recheck - no alert yet")
 
 
 if __name__ == "__main__":
