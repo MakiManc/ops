@@ -402,6 +402,23 @@ function openSiteIssuesModal(site){
     ' · '+esc(sup.issues_basis||'')+'</div>';
   openModal(site,html);
 }
+function openTrainingModal(site){
+  const outstanding=(SNAP&&SNAP.training&&SNAP.training.outstanding)||[];
+  const rows=outstanding.filter(o=>o.site===site).slice()
+    .sort((a,b)=>(a.due?0:1)-(b.due?0:1)||(a.due||'').localeCompare(b.due||''));
+  if(!rows.length){
+    openModal(site,'<div class="empty">No outstanding training recorded for this site in this pull.</div>');
+    return;
+  }
+  const statusChip=o=>o.overdue?chip('r','Overdue'):
+    /In Progress/.test(o.status||'')?chip('a','In progress'):chip('n','Not started');
+  const html='<table><thead><tr><th>Person</th><th>Module</th><th>Status</th><th>Due</th></tr></thead><tbody>'+
+    rows.map(o=>`<tr><td>${esc(o.person||'(unnamed)')}</td><td>${esc(o.module||'—')}</td>`+
+      `<td>${statusChip(o)}</td><td>${esc(o.due||'—')}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">'+fmtN(rows.length)+' outstanding module'+(rows.length===1?'':'s')+
+    ' · '+fmtN(rows.filter(o=>o.overdue).length)+' overdue · sorted by due date, soonest first · current state, not sliced by the date range above</div>';
+  openModal(site,html);
+}
 function openWeekSpendModal(site){
   const weekSpend=(SNAP&&SNAP.supply&&SNAP.supply.week_spend)||[];
   const rows=weekSpend.filter(f=>f.site===site).slice().sort((a,b)=>(b.value_gbp||0)-(a.value_gbp||0));
@@ -467,10 +484,14 @@ function render(snap){
   const drawTrain=kind=>{
     const rows=trAll.filter(r=>kind==='all'||r.site_type===kind);
     const mods=rows.reduce((s,r)=>s+(r.modules||0),0), comp=rows.reduce((s,r)=>s+(r.complete||0),0);
-    $('tr-sub').textContent=rows.length+' sites · '+fmtN(mods)+' module assignments · source '+trSrc+' · sorted worst first · current state, not sliced by the date range above';
+    $('tr-sub').textContent=rows.length+' sites · '+fmtN(mods)+' module assignments · source '+trSrc+' · sorted worst first · click a site for outstanding training · current state, not sliced by the date range above';
     bars('tr-bars',rows.map(r=>({k:r.site,v:r.pct_complete||0,
-      tip:`${r.site} — ${fmtN(r.complete)} of ${fmtN(r.modules)} complete, ${fmtN(r.overdue)} overdue, ${fmtN(r.people)} people`})),
+      tip:`${r.site} — ${fmtN(r.complete)} of ${fmtN(r.modules)} complete, ${fmtN(r.overdue)} overdue, ${fmtN(r.people)} people · click for detail`})),
       i=>i.v+'%',TARGET);
+    [...document.querySelectorAll('#tr-bars .brow')].forEach((el,i)=>{
+      const r=rows[i]; if(!r) return;
+      el.classList.add('clk'); el.addEventListener('click',()=>openTrainingModal(r.site));
+    });
     const body=rows.map(r=>{
       const p=r.pct_complete||0, ratio=r.modules?(r.overdue||0)/r.modules:0;
       return [r.site,r.people,r.modules,r.complete,p+'%',r.overdue,r.not_started,
@@ -484,6 +505,10 @@ function render(snap){
     table('tr-tbl',[{h:'Site'},{h:'People',n:1},{h:'Modules',n:1},{h:'Complete',n:1},
       {h:'Complete %',n:1},{h:'Overdue',n:1},{h:'Not started',n:1},{h:'Status',raw:1}],body,
       trAll.length?'':'Waiting on the 03:00 deep pull — '+((snap.gaps||[]).find(g=>/trainee_id/.test(g))||''));
+    [...document.querySelectorAll('#tr-tbl tbody tr')].forEach((tr,i)=>{
+      const r=rows[i]; if(!r) return;
+      tr.classList.add('clk'); tr.addEventListener('click',()=>openTrainingModal(r.site));
+    });
   };
   typeFilter('tr-filter',drawTrain); drawTrain('all');
   /* completions sliced by the COMPLETION date (never pull date) */
