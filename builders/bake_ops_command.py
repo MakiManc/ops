@@ -230,6 +230,38 @@ def main():
     else:
         gaps.append(f"{feed} exposes no trainee_id, so training cannot be attributed to a site "
                     "(resolves once the namespaced 03:00 deep pull has landed)")
+
+    # ---- outstanding training by person, for the per-site drill-down ----
+    # Every module row that isn't Complete (Not Yet Started / In Progress,
+    # each optionally +", Overdue"), with the person's name and due date, so
+    # clicking a site on the Training tab can show who owes what and by when.
+    # module_due_date is UK-format 'DD/MM/YYYY' (fixed length 10, checked live
+    # 18/08/2026 -- unlike module_completed_date it never carries a time and
+    # is either exactly 10 chars or absent, so no defensive length/slash check
+    # is needed here). This is a current-state snapshot like training.sites
+    # above (due dates are in the future, not an event that already
+    # happened), so it is NOT sliced by the date-range filter client-side.
+    outstanding=[]
+    if linked:
+        cur.execute(
+          "WITH m AS (SELECT data->>'trainee_id' tid, data->>'module_name' mn, "
+          "  data->>'module_status' st, nullif(data->>'module_due_date','') dd "
+          "  FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
+          "  AND nullif(data->>'trainee_id','') IS NOT NULL "
+          "  AND data->>'module_status'<>'Complete'), "
+          "t AS (SELECT data->>'id' id, nullif(data->>'forename','') fn, "
+          "  nullif(data->>'surname','') sn, nullif(data->>'branch','') bid FROM etl_feed_rows "
+          "  WHERE feed='Flow Trainees' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Trainees')), "
+          "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows "
+          "  WHERE feed='Flow Branches' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')) "
+          "SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)'), "
+          " trim(coalesce(t.fn,'')||' '||coalesce(t.sn,'')), m.mn, m.st, "
+          " CASE WHEN m.dd IS NOT NULL THEN substr(m.dd,7,4)||'-'||substr(m.dd,4,2)||'-'||substr(m.dd,1,2) END "
+          "FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid", (feed, feed))
+        for site, person, module, status, due in cur.fetchall():
+            outstanding.append({"site":site,"person":person or "(unnamed)","module":module,
+              "status":status,"overdue":bool(status and "Overdue" in status),"due":due})
+        outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or ""))
     # Completion EVENTS by day+site, so ranges filter on when modules were
     # actually completed, not on pull_date. module_completed_date is UK-format
     # 'DD/MM/YYYY HH:MM' (13/08/2026); parsed defensively, bad values skipped.
@@ -253,7 +285,11 @@ def main():
         completions=[{"d":r[0],"site":r[1],"n":r[2]} for r in cur.fetchall()]
     snap["training"]={"source_feed":feed,"sites":training,"completions":completions,
       "completions_basis":"count of modules with module_status='Complete' grouped by "
-      "module_completed_date (the completion EVENT date) and site; capped at 4000 day-site rows"}
+      "module_completed_date (the completion EVENT date) and site; capped at 4000 day-site rows",
+      "outstanding":outstanding,
+      "outstanding_basis":"every module row with module_status<>'Complete' (Not Yet Started / "
+      "In Progress, each optionally +', Overdue'), joined to the trainee's name and site; "
+      "due date is module_due_date -- current state, not sliced by the date range above"}
 
     # ---- compliance ----
     forms=[]
