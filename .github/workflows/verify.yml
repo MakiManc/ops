@@ -1,23 +1,28 @@
 name: Ops data verification
 
-# The daily verification spine (approved self-testing plan, Phase 1).
-# Runs at 09:30 UTC - after the whole chain has had its say:
-#   03:00 deep pull -> 08:15 daily export -> 09:00 Pipe 9 bake -> 09:30 this.
+# The daily verification spine (approved self-testing plan, Phases 1+2).
+# Two scheduled passes:
+#   09:30 UTC morning run - after the whole chain has had its say
+#     (03:00 deep pull -> 08:15 daily export -> 09:00 Pipe 9 bake).
+#     Timing-class failures (snapshot lag, a slow export, a consistency
+#     mismatch) are DEFERRED, not alerted.
+#   12:00 UTC recheck - the false-alarm damper: anything still failing
+#     now alerts for real. Mode is chosen inside the script by UTC hour.
+#
 # builders/verify_ops_data.py measures at the DESTINATION (Neon Postgres,
-# the live snapshot index) and never trusts a workflow's exit code.
+# the live snapshot) and never trusts a workflow's exit code. It also
+# upserts the ops_daily_aggregates history archive and sends the Monday
+# alive-push (silence is only healthy while the checker is provably alive).
 #
 # CRITICAL failures: one ntfy push (from the script) + this workflow goes
 # red, which fires GitHub's failure email. WARNINGS: recorded in
-# data/ops_command/health_latest.json only - the push channel stays pure.
-# health_latest.json is committed every run (green or red) so the
-# dashboard's staleness banner always has a verifier verdict to read.
-#
-# (A second 12:00 UTC recheck pass - the false-alarm damper - arrives in
-# Phase 2.)
+# data/ops_command/health_latest.json and mirrored to an auto-updated
+# GitHub issue - the push channel stays pure.
 
 on:
   schedule:
     - cron: "30 9 * * *"
+    - cron: "0 12 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -26,11 +31,12 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,18 +49,63 @@ jobs:
           WAREHOUSE_DSN: ${{ secrets.WAREHOUSE_DSN }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python builders/verify_ops_data.py
-      - name: Commit health_latest.json (green or red)
+      - name: Commit health + history (green or red)
         if: always()
         run: |
+          # The 4b recompute writes scratch snapshots into a temp dir, but
+          # belt-and-braces: discard ANY unstaged repo change that is not
+          # the two files this workflow owns, so the rebase below is clean.
           git config user.name  "ops-verify"
           git config user.email "ops@makiramen.com"
-          git add data/ops_command/health_latest.json
+          git add data/ops_command/health_latest.json data/ops_command/verify_history.json
+          git checkout -- . 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "health unchanged"
           else
             git commit -m "ops-verify: health $(date -u '+%F %H:%M')"
             git pull --rebase origin main
             git push
+          fi
+      # Warnings live on the Data Health page AND an auto-updated issue -
+      # no push, no email (plan §3).
+      - name: Mirror warnings to a GitHub issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'EOF'
+          import json
+          h = json.load(open("data/ops_command/health_latest.json"))
+          warn = h.get("warnings", []) + h.get("deferred", [])
+          lines = [f"_Auto-updated by verify.yml - {h['generated_at']} "
+                   f"({h.get('mode','?')} run, overall **{h['overall']}**)_",
+                   ""]
+          for w in warn:
+              lines.append(f"- **[{w['check']}]** "
+                           f"{w.get('feed','')} - {w['detail']}")
+          if not warn:
+              lines.append("No warnings - this issue closes automatically.")
+          open("/tmp/warn_body.md", "w").write("\n".join(lines) + "\n")
+          print(f"{len(warn)} warning(s) for the issue mirror")
+          EOF
+          WARN_N=$(python3 -c "import json;h=json.load(open('data/ops_command/health_latest.json'));print(len(h.get('warnings',[])+h.get('deferred',[])))")
+          gh label create data-health --description "Ops data verifier warnings" --color D93F0B --force || true
+          NUM=$(gh issue list --label data-health --state open --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ "$WARN_N" -gt 0 ]; then
+            if [ -n "$NUM" ]; then
+              gh issue edit "$NUM" --body-file /tmp/warn_body.md
+              echo "updated issue #$NUM"
+            else
+              gh issue create --title "Ops data health — warnings" \
+                --label data-health --body-file /tmp/warn_body.md
+            fi
+          else
+            if [ -n "$NUM" ]; then
+              gh issue close "$NUM" --comment "All warnings cleared ($(date -u '+%F %H:%M UTC'))."
+              echo "closed issue #$NUM"
+            else
+              echo "no warnings, no open issue - nothing to do"
+            fi
           fi
       # Backstop push: fires only if the job failed AND the script did not
       # already send its own (crash before the push, driver install failed,
