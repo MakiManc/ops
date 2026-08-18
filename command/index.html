@@ -271,6 +271,25 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="card-b" id="sd-tbl"></div></div>
 </div>
 
+<div class="page" id="p-health">
+  <div class="kpis" id="hl-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">Last 7 days</div>
+    <div class="s">One verdict per day — the 12:00 UTC recheck wins over the 09:30 morning run</div></div>
+    <div class="card-b" id="hl-days"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Criticals, deferred &amp; warnings</div>
+    <div class="s">Criticals push to your phone; deferred items are timing-class failures being rechecked at 12:00 UTC; warnings live here and in the auto-updated GitHub issue only</div></div>
+    <div class="card-b" id="hl-issues"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Every expected feed, every check</div>
+    <div class="s" id="hl-tbl-sub">landed · row count · event freshness, from the latest verifier run</div></div>
+    <div class="card-b" id="hl-tbl"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Run receipts &amp; side channels</div>
+    <div class="s">ETL run receipts from etl_run_log · maintenance source age · warehouse size · aggregates archive</div></div>
+    <div class="card-b" id="hl-side"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Known broken — not under test</div>
+    <div class="s">These feeds never alert; flip status to "expected" in feeds_manifest.json the day the underlying fetch is fixed</div></div>
+    <div class="card-b" id="hl-kb"></div></div>
+</div>
+
 <div class="page" id="p-feeds">
   <div class="card"><div class="card-h"><div class="t">Feed health <span id="b-fh"></span></div>
     <div class="s">Measured against Postgres, the system of record — the legacy sheet status is not a health signal</div></div>
@@ -315,7 +334,7 @@ const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
 const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
   ['p-tasks','Task Completion'],['p-maint','Maintenance'],
   ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-supi','Supplier Issues'],
-  ['p-cross','Cross-Reference'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
+  ['p-cross','Cross-Reference'],['p-sites','Sites'],['p-health','Data Health'],['p-feeds','Feeds'],['p-day','My day']];
 $('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
 $('nav').addEventListener('click',e=>{
   const b=e.target.closest('button[data-p]'); if(!b) return;
@@ -605,12 +624,16 @@ const typeFilter=(host,onchange)=>{
    FAILED; a legit no-new-data day renders as a neutral note. If the
    verifier itself goes quiet for >30h, that is its own amber - silence is
    only healthy while the checker is provably alive. */
-let HEALTH=null;
+let HEALTH=null, VHIST=null;
 async function fetchHealth(){
   try{
     const r=await fetch(BASE+'health_latest.json'+cb(),{cache:'no-store'});
     if(r.ok) HEALTH=await r.json();
   }catch(e){/* no verdict published yet - bannerHtml degrades gracefully */}
+  try{
+    const r=await fetch(BASE+'verify_history.json'+cb(),{cache:'no-store'});
+    if(r.ok) VHIST=await r.json();
+  }catch(e){/* history is optional */}
 }
 function bannerHtml(snap){
   const ageDays=(Date.now()-new Date(snap.generated_at))/864e5;
@@ -637,6 +660,90 @@ function bannerHtml(snap){
      missing rather than guessing the bake failed. */
   if(isLatest&&ageDays>2.5) return `<div class="warn"><b>This snapshot is ${Math.floor(ageDays)} days old</b> (generated ${esc(snap.generated_at)}) and no verifier verdict is available — check the ops repo's Actions tab.</div>`;
   return '';
+}
+
+/* ------------ Data Health tab: the verifier's full verdict ------------
+   Renders health_latest.json + verify_history.json (fetched in
+   fetchHealth). Everything here is the verifier's output - the tab is a
+   window onto verify_ops_data.py, not a second opinion. */
+function renderHealth(){
+  const empty=msg=>`<div class="empty">${esc(msg)}</div>`;
+  if(!HEALTH){
+    $('hl-kpis').innerHTML='';
+    ['hl-days','hl-issues','hl-tbl','hl-side','hl-kb'].forEach(id=>
+      $(id).innerHTML=empty('No verifier verdict published yet — verify.yml runs at 09:30 and 12:00 UTC daily.'));
+    return;
+  }
+  const H=HEALTH, C=H.counts||{};
+  const oc=H.overall==='green'?'g':H.overall==='amber'?'a':'r';
+  const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
+  const landedOk=(H.results||[]).filter(r=>r.check==='1-landed'&&r.level==='ok').length;
+  $('hl-kpis').innerHTML=
+    kpi(oc,'Overall',esc((H.overall||'?').toUpperCase()),(H.mode||'')+' run, verified '+(H.verified_date||''))+
+    kpi(landedOk===C.expected_feeds?'g':'r','Feeds landed',landedOk+' / '+(C.expected_feeds??'?'),'expected feeds in Postgres today')+
+    kpi(C.criticals?'r':'g','Criticals',C.criticals??0,'push + email when > 0')+
+    kpi((C.warnings||C.deferred)?'a':'g','Warnings',(C.warnings??0)+(C.deferred?` (+${C.deferred} deferred)`:''),'no push — here and the GitHub issue')+
+    kpi((H.sizes&&H.sizes.db_mb>400)?'a':'g','Warehouse',(H.sizes&&H.sizes.db_mb!=null)?H.sizes.db_mb+' MB':'—','Neon free cap 512 MB · warn at 400')+
+    kpi('o','Verifier ran',esc((H.generated_at||'').replace('T',' ').replace('Z',' UTC')),'v'+(H.verifier_version||'?')+' · silence is only healthy while this is fresh');
+
+  /* 7-day strip: recheck verdict wins over morning */
+  const runs=(VHIST&&VHIST.runs)||[];
+  const byDay={};
+  runs.forEach(r=>{if(r.date&&(!(r.date in byDay)||r.mode==='recheck')) byDay[r.date]=r.overall;});
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);
+    days.push([d,byDay[d]]);
+  }
+  $('hl-days').innerHTML=days.some(([,v])=>v)
+    ?'<div style="display:flex;gap:8px;flex-wrap:wrap">'+days.map(([d,v])=>
+      `<div style="text-align:center"><div>${chip(v==='green'?'g':v==='amber'?'a':v==='red'?'r':'n',v||'no run')}</div><div style="color:var(--muted);font-size:11px;margin-top:3px">${esc(d.slice(5))}</div></div>`).join('')+'</div>'
+    :empty('History accumulates from the first verifier run.');
+
+  /* criticals / deferred / warnings */
+  const item=(cls,r)=>`<div class="${cls}" style="margin-bottom:8px"><b>[${esc(r.check)}]</b> ${esc((r.feed?r.feed+' — ':'')+r.detail)}</div>`;
+  const iss=(H.criticals||[]).map(r=>item('err',r))
+    .concat((H.deferred||[]).map(r=>item('warn',r)))
+    .concat((H.warnings||[]).map(r=>item('warn',r))).join('');
+  $('hl-issues').innerHTML=iss||empty('Nothing to report — every check green.');
+
+  /* per-feed table from results */
+  const perFeed={};
+  (H.results||[]).forEach(r=>{
+    if(!r.feed||['0-receipts'].includes(r.check)) return;
+    const f=perFeed[r.feed]=perFeed[r.feed]||{};
+    f[r.check]=r;
+  });
+  const lvlChip=r=>!r?chip('n','—'):r.level==='ok'?chip('g','ok')
+    :r.level==='known_broken'?chip('n','not tested')
+    :r.level==='deferred'?chip('a','deferred')
+    :r.level==='critical'?chip('r','FAIL'):chip('a','warn');
+  const rows=Object.keys(perFeed).sort((a,b)=>{
+    const w=f=>{const p=perFeed[f];const lv=['critical','deferred','warning'];
+      for(const c of ['1-landed','2-rows','3-events']) if(p[c]&&lv.includes(p[c].level)) return lv.indexOf(p[c].level);
+      return p['1-landed']&&p['1-landed'].level==='known_broken'?8:5;};
+    return w(a)-w(b)||a.localeCompare(b);
+  }).map(f=>{const p=perFeed[f];
+    return [f,
+      lvlChip(p['1-landed']),
+      p['2-rows']?esc(p['2-rows'].detail.split(' - ')[0]):'—',
+      lvlChip(p['3-events']),
+      lvlChip(p['1-landed']&&p['1-landed'].level!=='ok'?p['1-landed']:(p['2-rows']&&p['2-rows'].level!=='ok'?p['2-rows']:(p['3-events']&&p['3-events'].level!=='ok'?p['3-events']:{level:'ok'})))];
+  });
+  $('hl-tbl-sub').textContent=rows.length+' feeds · landed / rows / events per the '+(H.mode||'')+' run · worst first';
+  table('hl-tbl',[{h:'Feed'},{h:'Landed',raw:1},{h:'Rows'},{h:'Events',raw:1},{h:'Status',raw:1}],rows,
+    'No per-feed results in the latest verdict.');
+
+  /* receipts + side channels */
+  const side=(H.results||[]).filter(r=>['0-receipts','6-side','aggregates','4b-consistency','4a-snapshot','5-unmanifested'].includes(r.check));
+  $('hl-side').innerHTML=side.length?side.map(r=>
+    `<div style="margin-bottom:7px">${lvlChip(r)} <b>[${esc(r.check)}]</b> ${esc((r.feed?r.feed+' — ':'')+r.detail)}</div>`).join('')
+    :empty('No receipt or side-channel results yet.');
+
+  /* known broken */
+  table('hl-kb',[{h:'Feed'},{h:'Why it is off the hook'}],
+    (H.known_broken||[]).map(k=>[k.name,k.note||'—']),
+    'Nothing is marked known_broken.');
 }
 
 /* ------------ render from a structured snapshot ------------ */
@@ -1057,6 +1164,8 @@ function render(snap){
   table('fh-tbl',[{h:'Feed'},{h:'Rows',n:1},{h:'Latest pull'},{h:'Age (days)',n:1},{h:'Verdict',raw:1}],
     fh.map(r=>[r.feed,fmtN(r.rows),r.latest_pull||'—',r.age_days??'—',
       chip(r.verdict==='OK'?'g':r.verdict==='WATCH'?'a':r.verdict==='EMPTY'?'n':'r',r.verdict)]));
+
+  renderHealth();
 
   /* overview */
   const s=snap.summary||{};
