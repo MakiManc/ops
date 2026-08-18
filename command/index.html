@@ -50,6 +50,14 @@ nav button[aria-selected="true"]{color:var(--maki-orange);border-bottom-color:va
 .kpi .sb{color:var(--muted);font-size:11.5px}
 .k-g{border-left-color:var(--g)}.k-r{border-left-color:var(--r)}.k-a{border-left-color:var(--a)}
 .k-b{border-left-color:var(--b)}.k-n{border-left-color:var(--n)}.k-o{border-left-color:var(--maki-orange)}
+.sitegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sitebox{background:var(--card);border:1px solid var(--line);border-left-width:3px;border-left-color:var(--maki-orange);
+  border-radius:10px;padding:10px 12px;cursor:pointer;transition:box-shadow .15s}
+.sitebox:hover{box-shadow:0 2px 8px rgba(15,23,42,.10)}
+.sitebox:hover .lb{color:var(--maki-orange)}
+.sitebox .lb{color:var(--ink);font-size:12.5px;font-weight:620;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sitebox .vl{font-size:19px;font-weight:680;letter-spacing:-.02em;margin:3px 0 1px;font-variant-numeric:tabular-nums}
+.sitebox .sb{color:var(--muted);font-size:11px}
 .tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:640;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .t-g{background:var(--g-bg);color:var(--g)}.t-r{background:var(--r-bg);color:var(--r)}
 .t-a{background:var(--a-bg);color:var(--a)}.t-b{background:var(--b-bg);color:var(--b)}.t-n{background:var(--n-bg);color:var(--n)}
@@ -213,7 +221,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div id="supp-note"></div>
   <div class="kpis" id="supp-kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Projected spend this week — by site &amp; supplier</div>
-    <div class="s" id="fa-aging-sub">Kobas Outstanding Stock Orders · orders due this Mon–Sun, by target delivery date · sorted by £ · a projection, not a confirmed spend figure (see note)</div></div>
+    <div class="s" id="fa-aging-sub">Kobas Outstanding Stock Orders · orders due this Mon–Sun, by target delivery date · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)</div></div>
     <div class="card-b" id="fa-aging"></div></div>
   <div class="card"><div class="card-h"><div class="t">Open issues by supplier</div>
     <div class="s">Delivery / supplier issue forms in GetCompliant · current open backlog, not sliced by the date range above (see "Issues by answered supplier" below for the filtered view)</div></div>
@@ -334,6 +342,15 @@ function table(host,cols,rows,empty){
     '</tr></thead><tbody>'+rows.map(r=>`<tr class="${r._tot?'tot':''}">`+cols.map((c,i)=>
     `<td class="${c.n?'n':''}">${c.raw?r[i]:esc(r[i]??'—')}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
 }
+function siteBoxes(host,items,empty){
+  const el=$(host);
+  if(!items.length){el.innerHTML=`<div class="empty">${esc(empty||'Nothing to show')}</div>`;return;}
+  el.innerHTML='<div class="sitegrid">'+items.map(i=>
+    `<div class="sitebox clk" data-site="${esc(i.site)}"><div class="lb" title="${esc(i.site)}">${esc(i.site)}</div>`+
+    `<div class="vl">£${fmtN(Math.round(i.value))}</div>`+
+    `<div class="sb">${fmtN(i.orders)} order${i.orders===1?'':'s'} · ${fmtN(i.suppliers)} supplier${i.suppliers===1?'':'s'}</div></div>`
+  ).join('')+'</div>';
+}
 function chip(kind,word){
   const ic={g:'✓',a:'▲',r:'●',n:'–',b:'ℹ'}[kind]||'';
   return `<span class="tag t-${kind}">${ic} ${esc(word)}</span>`;
@@ -383,6 +400,24 @@ function openSiteIssuesModal(site){
       `<td>${i.open?chip('a','Open'):chip('g','Closed')}</td></tr>`).join('')+
     '</tbody></table><div class="prov">'+fmtN(rows.length)+' issue form answer'+(rows.length===1?'':'s')+
     ' · '+esc(sup.issues_basis||'')+'</div>';
+  openModal(site,html);
+}
+function openWeekSpendModal(site){
+  const weekSpend=(SNAP&&SNAP.supply&&SNAP.supply.week_spend)||[];
+  const rows=weekSpend.filter(f=>f.site===site).slice().sort((a,b)=>(b.value_gbp||0)-(a.value_gbp||0));
+  if(!rows.length){
+    openModal(site,'<div class="empty">No orders due this week for this site in this pull.</div>');
+    return;
+  }
+  const tot=rows.reduce((s,f)=>s+(f.value_gbp||0),0);
+  const ord=rows.reduce((s,f)=>s+(f.orders||0),0);
+  const wk=(SNAP.supply&&SNAP.supply.week_start&&SNAP.supply.week_end)
+    ? SNAP.supply.week_start+' – '+SNAP.supply.week_end : 'this Mon–Sun';
+  const html='<table><thead><tr><th>Supplier</th><th class="n">Orders</th><th class="n">£ projected</th></tr></thead><tbody>'+
+    rows.map(f=>`<tr><td>${esc(f.supplier||'—')}</td><td class="n">${fmtN(f.orders)}</td>`+
+      `<td class="n">£${fmtN(Math.round(f.value_gbp||0))}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">£'+fmtN(Math.round(tot))+' across '+fmtN(ord)+' order'+(ord===1?'':'s')+
+    ' · orders due '+esc(wk)+' (target delivery date) · a projection, not a confirmed spend figure</div>';
   openModal(site,html);
 }
 function openMaintModal(site){
@@ -669,10 +704,18 @@ function render(snap){
   const weekStart=(snap.supply&&snap.supply.week_start)||'', weekEnd=(snap.supply&&snap.supply.week_end)||'';
   if($('fa-aging-sub')) $('fa-aging-sub').textContent='Kobas Outstanding Stock Orders · orders due '+
     (weekStart&&weekEnd?weekStart+' – '+weekEnd:'this Mon–Sun')+
-    ' (target delivery date) · sorted by £ · a projection, not a confirmed spend figure (see note)';
-  table('fa-aging',[{h:'Site'},{h:'Supplier'},{h:'Orders',n:1},{h:'£ projected',n:1}],
-    weekSpend.map(f=>[f.site,f.supplier,fmtN(f.orders),'£'+fmtN(Math.round(f.value_gbp||0))]),
-    'No orders due this week in this pull');
+    ' (target delivery date) · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)';
+  const siteAgg={};
+  weekSpend.forEach(f=>{
+    const s=siteAgg[f.site]||(siteAgg[f.site]={value:0,orders:0,suppliers:new Set()});
+    s.value+=(f.value_gbp||0); s.orders+=(f.orders||0); s.suppliers.add(f.supplier);
+  });
+  const siteBoxRows=Object.entries(siteAgg)
+    .map(([site,v])=>({site,value:v.value,orders:v.orders,suppliers:v.suppliers.size}))
+    .sort((a,b)=>b.value-a.value);
+  siteBoxes('fa-aging',siteBoxRows,'No orders due this week in this pull');
+  [...document.querySelectorAll('#fa-aging .sitebox')].forEach(b=>
+    b.addEventListener('click',()=>openWeekSpendModal(b.dataset.site)));
   if(snap.supply&&snap.supply.week_spend_basis)
     $('fa-aging').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.week_spend_basis)+'</div>');
   const priceRows=(snap.supply&&snap.supply.price_watch)||[];
