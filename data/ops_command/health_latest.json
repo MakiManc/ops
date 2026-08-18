@@ -1,29 +1,103 @@
 {
- "verifier_version": 1,
- "generated_at": "2026-08-18T18:01:46Z",
+ "verifier_version": 2,
+ "generated_at": "2026-08-18T22:48:28Z",
  "verified_date": "2026-08-18",
+ "mode": "recheck",
  "overall": "amber",
  "postgres_latest": "2026-08-18",
  "snapshot_latest": "2026-08-18",
+ "sizes": {
+  "maintenance_pulled_at": "2026-08-14T18:30:00Z",
+  "maintenance_source_as_of": "2026-08-12",
+  "db_mb": 307
+ },
  "counts": {
   "expected_feeds": 46,
   "known_broken": 14,
   "criticals": 0,
-  "warnings": 1
+  "warnings": 1,
+  "deferred": 0
  },
  "criticals": [],
  "warnings": [
   {
    "check": "0-receipts",
    "level": "warning",
-   "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt (expected on the first run after deploy). Checks 1-2 still verify the data directly."
+   "feed": "deep-pull",
+   "detail": "no 03:00 deep pull receipt yet (wrapper newly deployed)"
+  }
+ ],
+ "deferred": [],
+ "known_broken": [
+  {
+   "name": "Mapal Supplier Orders",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Smart Delivery",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Smart Yield",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Invoices To Receive",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Equipment",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Interventions",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Mapal Renewal Plans",
+   "note": "Mapal credentials - Phase 4"
+  },
+  {
+   "name": "Flow Bookings Calendar",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Local Module Tasks",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Local Module Tasks v2",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Deviations",
+   "note": "fetch fails daily; the (prev day) variant works"
+  },
+  {
+   "name": "GC Waste Registered",
+   "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "GC Waste Registered (prev day)",
+   "note": "fetch fails daily"
+  },
+  {
+   "name": "GC Location Changelog",
+   "note": "fetch fails daily; cause not yet investigated"
   }
  ],
  "results": [
   {
    "check": "0-receipts",
+   "level": "ok",
+   "feed": "daily-export",
+   "detail": "08:15 daily export: exit 0, 73714 rows written, finished 2026-08-18 18:26:34+00:00"
+  },
+  {
+   "check": "0-receipts",
    "level": "warning",
-   "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt (expected on the first run after deploy). Checks 1-2 still verify the data directly."
+   "feed": "deep-pull",
+   "detail": "no 03:00 deep pull receipt yet (wrapper newly deployed)"
   },
   {
    "check": "1-landed",
@@ -239,7 +313,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Training",
-   "detail": "970 rows (median 918)"
+   "detail": "971 rows (median 918)"
   },
   {
    "check": "1-landed",
@@ -407,7 +481,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Procedure Details",
-   "detail": "42 rows (median 55)"
+   "detail": "61 rows (median 55)"
   },
   {
    "check": "1-landed",
@@ -503,7 +577,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "24 rows (median 24)"
+   "detail": "26 rows (median 24)"
   },
   {
    "check": "1-landed",
@@ -575,7 +649,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "3 rows (median 4)"
+   "detail": "5 rows (median 4)"
   },
   {
    "check": "1-landed",
@@ -662,10 +736,54 @@
    "detail": "not verified (known_broken: fetch fails daily; cause not yet investigated)"
   },
   {
+   "check": "3-events",
+   "level": "ok",
+   "feed": "Deep Flow Modules",
+   "detail": "newest module_completed_date 2026-08-17 (1d old)"
+  },
+  {
+   "check": "3-events",
+   "level": "ok",
+   "feed": "GC Form Task Answers",
+   "detail": "newest AnsweredDateTime 2026-08-17 (1d old)"
+  },
+  {
+   "check": "3-events",
+   "level": "ok",
+   "feed": "GC Scheduled Task Answers",
+   "detail": "newest AnsweredDateTime 2026-08-17 (1d old)"
+  },
+  {
+   "check": "3-events",
+   "level": "ok",
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "detail": "newest Order Placed 2026-08-17 (1d old)"
+  },
+  {
    "check": "4a-snapshot",
    "level": "ok",
    "detail": "dashboard snapshot 2026-08-18 matches Postgres 2026-08-18"
+  },
+  {
+   "check": "6-side",
+   "level": "ok",
+   "detail": "maintenance source pulled 2026-08-14 (4d ago), sheet content as of 2026-08-12"
+  },
+  {
+   "check": "6-side",
+   "level": "ok",
+   "detail": "warehouse database 307 MB (warn at 400, Neon cap 512)"
+  },
+  {
+   "check": "4b-consistency",
+   "level": "ok",
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=35965, tasks_missed=822, week_spend_gbp=52826.79, broth_cells=349, supplier_issues=41, training_outstanding=2185"
+  },
+  {
+   "check": "aggregates",
+   "level": "ok",
+   "detail": "576 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
   }
  ],
- "basis": "verify_ops_data.py checks 0/1/2/4a against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
