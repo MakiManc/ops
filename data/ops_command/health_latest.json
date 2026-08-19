@@ -1,9 +1,9 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-19T09:58:46Z",
+ "generated_at": "2026-08-19T12:47:37Z",
  "verified_date": "2026-08-19",
- "mode": "morning",
- "overall": "amber",
+ "mode": "recheck",
+ "overall": "red",
  "postgres_latest": "2026-08-19",
  "snapshot_latest": "2026-08-19",
  "sizes": {
@@ -14,11 +14,18 @@
  "counts": {
   "expected_feeds": 46,
   "known_broken": 14,
-  "criticals": 0,
+  "criticals": 1,
   "warnings": 1,
   "deferred": 0
  },
- "criticals": [],
+ "criticals": [
+  {
+   "check": "4b-consistency",
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - broth_cells: live 386 vs recomputed 347 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
+  }
+ ],
  "warnings": [
   {
    "check": "6-side",
@@ -775,14 +782,15 @@
   },
   {
    "check": "4b-consistency",
-   "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=35812, tasks_missed=844, week_spend_gbp=52826.79, broth_cells=386, supplier_issues=45, training_outstanding=2171"
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - broth_cells: live 386 vs recomputed 347 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   },
   {
    "check": "aggregates",
    "level": "ok",
-   "detail": "617 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
+   "detail": "578 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
