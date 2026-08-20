@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-20T10:00:46Z",
+ "generated_at": "2026-08-20T12:51:54Z",
  "verified_date": "2026-08-20",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-08-20",
  "snapshot_latest": "2026-08-20",
@@ -14,7 +14,7 @@
  "counts": {
   "expected_feeds": 46,
   "known_broken": 14,
-  "criticals": 1,
+  "criticals": 2,
   "warnings": 7,
   "deferred": 0
  },
@@ -25,6 +25,12 @@
    "feed": "GC Procedure Details",
    "class": "1-landed",
    "detail": "last pull 2026-08-19 (1d old) - expected today"
+  },
+  {
+   "check": "4b-consistency",
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - broth_cells: live 386 vs recomputed 347 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   }
  ],
  "warnings": [
@@ -164,7 +170,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "2603 rows (median 2559)"
+   "detail": "2603 rows (median 2564)"
   },
   {
    "check": "1-landed",
@@ -188,7 +194,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "4771 rows (median 4723)"
+   "detail": "4771 rows (median 4725)"
   },
   {
    "check": "1-landed",
@@ -814,14 +820,15 @@
   },
   {
    "check": "4b-consistency",
-   "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=36127, tasks_missed=680, week_spend_gbp=52826.79, broth_cells=386, supplier_issues=47, training_outstanding=2165"
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - broth_cells: live 386 vs recomputed 347 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   },
   {
    "check": "aggregates",
    "level": "ok",
-   "detail": "620 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
+   "detail": "581 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
