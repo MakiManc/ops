@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-23T09:52:24Z",
+ "generated_at": "2026-08-23T12:40:32Z",
  "verified_date": "2026-08-23",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-08-23",
  "snapshot_latest": "2026-08-23",
@@ -412,7 +412,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "2616 rows (median 2589)"
+   "detail": "2616 rows (median 2596)"
   },
   {
    "check": "1-landed",
@@ -436,7 +436,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "4787 rows (median 4763)"
+   "detail": "4787 rows (median 4767)"
   },
   {
    "check": "1-landed",
@@ -876,5 +876,5 @@
    "detail": "592 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
