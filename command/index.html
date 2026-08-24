@@ -58,6 +58,8 @@ nav button[aria-selected="true"]{color:var(--maki-orange);border-bottom-color:va
 .sitebox .lb{color:var(--ink);font-size:12.5px;font-weight:620;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sitebox .vl{font-size:19px;font-weight:680;letter-spacing:-.02em;margin:3px 0 1px;font-variant-numeric:tabular-nums}
 .sitebox .sb{color:var(--muted);font-size:11px}
+.splitbar{height:4px;border-radius:2px;background:var(--maki-orange);overflow:hidden;margin-top:6px}
+.splitbar i{display:block;height:100%;background:var(--g)}
 .tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:640;padding:2px 8px;border-radius:20px;white-space:nowrap}
 .t-g{background:var(--g-bg);color:var(--g)}.t-r{background:var(--r-bg);color:var(--r)}
 .t-a{background:var(--a-bg);color:var(--a)}.t-b{background:var(--b-bg);color:var(--b)}.t-n{background:var(--n-bg);color:var(--n)}
@@ -360,11 +362,16 @@ function table(host,cols,rows,empty){
 function siteBoxes(host,items,empty){
   const el=$(host);
   if(!items.length){el.innerHTML=`<div class="empty">${esc(empty||'Nothing to show')}</div>`;return;}
-  el.innerHTML='<div class="sitegrid">'+items.map(i=>
-    `<div class="sitebox clk" data-site="${esc(i.site)}"><div class="lb" title="${esc(i.site)}">${esc(i.site)}</div>`+
+  el.innerHTML='<div class="sitegrid">'+items.map(i=>{
+    const hasSplit=i.delivered!=null;
+    const pct=hasSplit&&i.value>0?Math.max(0,Math.min(100,i.delivered/i.value*100)):0;
+    const bar=hasSplit?`<div class="splitbar"><i style="width:${pct}%"></i></div>`:'';
+    const deliveredNote=hasSplit&&i.delivered>0?' · £'+fmtN(Math.round(i.delivered))+' delivered':'';
+    return `<div class="sitebox clk" data-site="${esc(i.site)}"><div class="lb" title="${esc(i.site)}">${esc(i.site)}</div>`+
     `<div class="vl">£${fmtN(Math.round(i.value))}</div>`+
-    `<div class="sb">${fmtN(i.orders)} order${i.orders===1?'':'s'} · ${fmtN(i.suppliers)} supplier${i.suppliers===1?'':'s'}</div></div>`
-  ).join('')+'</div>';
+    `<div class="sb">${fmtN(i.orders)} order${i.orders===1?'':'s'} · ${fmtN(i.suppliers)} supplier${i.suppliers===1?'':'s'}${deliveredNote}</div>`+
+    bar+'</div>';
+  }).join('')+'</div>';
 }
 function chip(kind,word){
   const ic={g:'✓',a:'▲',r:'●',n:'–',b:'ℹ'}[kind]||'';
@@ -599,12 +606,49 @@ function openWeekSpendModal(site){
   const ord=rows.reduce((s,f)=>s+(f.orders||0),0);
   const wk=(SNAP.supply&&SNAP.supply.week_start&&SNAP.supply.week_end)
     ? SNAP.supply.week_start+' – '+SNAP.supply.week_end : 'this Mon–Sun';
-  const html='<table><thead><tr><th>Supplier</th><th class="n">Orders</th><th class="n">£ projected</th></tr></thead><tbody>'+
+  const isLive=(SNAP.supply&&SNAP.supply.week_spend_source)==='kobas_live';
+
+  if(!isLive){
+    /* fallback shape: exactly today's card - no delivered/pending split on
+       this source, so none is shown or invented (24/08/2026) */
+    const html='<table><thead><tr><th>Supplier</th><th class="n">Orders</th><th class="n">£ projected</th></tr></thead><tbody>'+
+      rows.map(f=>`<tr><td>${esc(f.supplier||'—')}</td><td class="n">${fmtN(f.orders)}</td>`+
+        `<td class="n">£${fmtN(Math.round(f.value_gbp||0))}</td></tr>`).join('')+
+      '</tbody></table><div class="prov">£'+fmtN(Math.round(tot))+' across '+fmtN(ord)+' order'+(ord===1?'':'s')+
+      ' · orders due '+esc(wk)+' (target delivery date) · a projection, not a confirmed spend figure</div>';
+    openModal(site,html);
+    return;
+  }
+
+  const delivered=rows.reduce((s,f)=>s+(f.delivered_value_gbp||0),0);
+  const pending=tot-delivered;
+  const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
+  const chips='<div class="kpis" style="margin:2px 0 12px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))">'+
+    kpi('o','Total','£'+fmtN(Math.round(tot)),fmtN(ord)+' order'+(ord===1?'':'s'))+
+    kpi('a','Still to come','£'+fmtN(Math.round(pending)),'')+
+    kpi('g','Delivered','£'+fmtN(Math.round(delivered)),'')+
+    '</div>';
+  const supTable='<div style="font-weight:650;font-size:13.5px;margin:4px 0 6px">By supplier</div>'+
+    '<table><thead><tr><th>Supplier</th><th class="n">Orders</th><th class="n">£ total</th></tr></thead><tbody>'+
     rows.map(f=>`<tr><td>${esc(f.supplier||'—')}</td><td class="n">${fmtN(f.orders)}</td>`+
       `<td class="n">£${fmtN(Math.round(f.value_gbp||0))}</td></tr>`).join('')+
-    '</tbody></table><div class="prov">£'+fmtN(Math.round(tot))+' across '+fmtN(ord)+' order'+(ord===1?'':'s')+
-    ' · orders due '+esc(wk)+' (target delivery date) · a projection, not a confirmed spend figure</div>';
-  openModal(site,html);
+    '</tbody></table>';
+  const drillAll=((SNAP.supply&&SNAP.supply.week_drill)||[]).filter(o=>o.site===site)
+    .slice().sort((a,b)=>(a.d||'').localeCompare(b.d||'')||(b.value_gbp||0)-(a.value_gbp||0));
+  const orderTable=drillAll.length
+    ? '<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">Every order</div>'+
+      '<table><thead><tr><th>Order no.</th><th>Supplier</th><th>Delivery date</th><th class="n">£</th><th>Status</th><th>Placed by</th></tr></thead><tbody>'+
+      drillAll.map(o=>`<tr><td>${esc(o.order_no||'—')}</td><td>${esc(o.supplier||'—')}</td><td>${esc(o.d||'—')}</td>`+
+        `<td class="n">£${fmtN(Math.round(o.value_gbp||0))}</td><td>${o.status==='delivered'?chip('g','Delivered'):chip('a','Pending')}</td>`+
+        `<td>${esc(o.staff||'—')}</td></tr>`).join('')+
+      '</tbody></table>'
+    : '<div class="empty" style="margin-top:14px">Per-order detail unavailable for this site this pull.</div>';
+  const capNote=(SNAP.supply&&SNAP.supply.week_drill_truncated)
+    ? ' · the week-wide order list is capped at 400 rows ('+fmtN(SNAP.supply.week_drill_total||0)+
+      ' orders due this week in total) - some orders for busy sites may be missing from the table above'
+    : '';
+  const basis=(SNAP.supply&&SNAP.supply.week_spend_basis)||'';
+  openModal(site,chips+supTable+orderTable+'<div class="prov">'+esc(basis)+capNote+'</div>');
 }
 function openMaintModal(site){
   const maint=(SNAP&&SNAP.maintenance)||{};
@@ -1098,22 +1142,39 @@ function render(snap){
   /* supply: projected spend this week (by site & supplier) + price watch */
   const weekSpend=(snap.supply&&snap.supply.week_spend)||[];
   const weekStart=(snap.supply&&snap.supply.week_start)||'', weekEnd=(snap.supply&&snap.supply.week_end)||'';
-  if($('fa-aging-sub')) $('fa-aging-sub').textContent='Kobas Outstanding Stock Orders · orders due '+
-    (weekStart&&weekEnd?weekStart+' – '+weekEnd:'this Mon–Sun')+
-    ' (target delivery date) · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)';
+  const weekSource=(snap.supply&&snap.supply.week_spend_source)||'weekly_report_fallback';
+  const weekTotals=(snap.supply&&snap.supply.week_totals)||null;
+  const isLiveSpend=weekSource==='kobas_live'&&!!weekTotals;
+  /* subtitle: 24/08/2026 - the live feed and the weekly-report fallback
+     carry different guarantees, so each gets its own wording rather than
+     one caption stretched to cover both. */
+  if($('fa-aging-sub')) $('fa-aging-sub').textContent=isLiveSpend
+    ? 'Kobas live pending orders · pulled daily · orders land 1–3 days ahead, so the weekly figure builds through the week · click a site for its supplier breakdown'
+    : 'Kobas Outstanding Stock Orders · orders due '+
+      (weekStart&&weekEnd?weekStart+' – '+weekEnd:'this Mon–Sun')+
+      ' (target delivery date) · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)';
   const siteAgg={};
   weekSpend.forEach(f=>{
-    const s=siteAgg[f.site]||(siteAgg[f.site]={value:0,orders:0,suppliers:new Set()});
+    const s=siteAgg[f.site]||(siteAgg[f.site]={value:0,orders:0,delivered:0,suppliers:new Set()});
     s.value+=(f.value_gbp||0); s.orders+=(f.orders||0); s.suppliers.add(f.supplier);
+    if(isLiveSpend) s.delivered+=(f.delivered_value_gbp||0);
   });
   const siteBoxRows=Object.entries(siteAgg)
-    .map(([site,v])=>({site,value:v.value,orders:v.orders,suppliers:v.suppliers.size}))
+    .map(([site,v])=>({site,value:v.value,orders:v.orders,suppliers:v.suppliers.size,
+      delivered:isLiveSpend?v.delivered:null}))
     .sort((a,b)=>b.value-a.value);
   siteBoxes('fa-aging',siteBoxRows,'No orders due this week in this pull');
   [...document.querySelectorAll('#fa-aging .sitebox')].forEach(b=>
     b.addEventListener('click',()=>openWeekSpendModal(b.dataset.site)));
   if(snap.supply&&snap.supply.week_spend_basis)
     $('fa-aging').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.week_spend_basis)+'</div>');
+  /* the gap note is the one place a source problem (missing/unparsable
+     live feed, stale pull) surfaces directly under the card - never
+     silently swallowed */
+  const supplyGaps=(snap.gaps||[]).filter(g=>/kobas pending orders/i.test(g));
+  if(supplyGaps.length)
+    $('fa-aging').insertAdjacentHTML('beforeend',
+      supplyGaps.map(g=>'<div class="prov" style="color:var(--a)">⚠ '+esc(g)+'</div>').join(''));
   const priceRows=(snap.supply&&snap.supply.price_watch)||[];
   table('pw-tbl',[{h:'Ingredient'},{h:'Old £',n:1},{h:'New £',n:1},{h:'Change',n:1}],
     priceRows.map(p=>[p.ingredient,p.old_price!=null?p.old_price.toFixed(2):'—',
@@ -1131,14 +1192,32 @@ function render(snap){
   });
   const topSite=Object.entries(bySiteTot).sort((a,b)=>b[1]-a[1])[0];
   const topSup=Object.entries(bySupTot).sort((a,b)=>b[1]-a[1])[0];
-  $('supp-kpis').innerHTML=
-    kpi('o','Projected spend this week','£'+Math.round(weekTotal).toLocaleString('en-GB'),
-        fmtN(weekOrders)+' order'+(weekOrders===1?'':'s')+(weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:''))+
-    kpi(topSite?'o':'n','Top site this week',topSite?topSite[0]:'—',
-        topSite?'£'+Math.round(topSite[1]).toLocaleString('en-GB'):'no orders due this week')+
-    kpi(topSup?'o':'n','Top supplier this week',topSup?topSup[0]:'—',
-        topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
-    kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
+  if(isLiveSpend){
+    /* live feed: total · still to come · delivered so far · top supplier ·
+       issues logged - the delivered/pending split only exists on this
+       source, so it never appears on the fallback shape below */
+    $('supp-kpis').innerHTML=
+      kpi('o','Projected spend this week','£'+Math.round(weekTotals.value_gbp).toLocaleString('en-GB'),
+          fmtN(weekTotals.orders)+' order'+(weekTotals.orders===1?'':'s')+(weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:''))+
+      kpi('a','Still to come','£'+Math.round(weekTotals.pending_value_gbp).toLocaleString('en-GB'),
+          fmtN(weekTotals.pending_orders)+' order'+(weekTotals.pending_orders===1?'':'s')+' pending')+
+      kpi('g','Delivered so far','£'+Math.round(weekTotals.delivered_value_gbp).toLocaleString('en-GB'),
+          fmtN(weekTotals.delivered_orders)+' order'+(weekTotals.delivered_orders===1?'':'s')+' delivered')+
+      kpi(topSup?'b':'n','Top supplier this week',topSup?topSup[0]:'—',
+          topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
+      kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
+  } else {
+    /* fallback shape: exactly today's card, unchanged - no delivered/
+       pending split exists on this source, so none is shown or invented */
+    $('supp-kpis').innerHTML=
+      kpi('o','Projected spend this week','£'+Math.round(weekTotal).toLocaleString('en-GB'),
+          fmtN(weekOrders)+' order'+(weekOrders===1?'':'s')+(weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:''))+
+      kpi(topSite?'o':'n','Top site this week',topSite?topSite[0]:'—',
+          topSite?'£'+Math.round(topSite[1]).toLocaleString('en-GB'):'no orders due this week')+
+      kpi(topSup?'o':'n','Top supplier this week',topSup?topSup[0]:'—',
+          topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
+      kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
+  }
   /* the Issues KPI is the click-through to the dedicated tab (18/08/2026) */
   const supTiles=$('supp-kpis').children, supLast=supTiles[supTiles.length-1];
   if(supLast){supLast.style.cursor='pointer';supLast.addEventListener('click',()=>gotoPage('p-supi'));}

@@ -732,12 +732,94 @@ def main():
     # Delivery Date. Site+supplier is a genuinely new cut: the old aging
     # block only ever grouped by supplier (site was fetched but unused).
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
-    week_spend=[]; price_watch=[]
+    KOBAS_LIVE_PATH=os.environ.get("KOBAS_PENDING_ORDERS_PATH",
+        "etl-data/data/kobas_pending_orders/latest.json")
+    WEEK_DRILL_CAP=400
+    week_spend=[]; price_watch=[]; week_days=[]; week_drill=[]
+    week_drill_total=0; week_spend_source=None; week_spend_basis=None; week_totals=None
     cur.execute("SELECT date_trunc('week',current_date)::date, "
                 "(date_trunc('week',current_date)+interval '6 day')::date")
     week_start,week_end=cur.fetchone()
     week_start,week_end=week_start.isoformat(),week_end.isoformat()
-    if has_feed(cur,FULFIL_FEED):
+
+    # ---- primary source: Kobas Pending Orders, live daily pull ----
+    # Landed as a JSON file committed straight into ross440/maki-hospitality-
+    # etl (not Postgres - the warehouse is at/over its 512 MB free cap; see
+    # kobas_cloud.py in that repo), checked out read-only into KOBAS_LIVE_PATH
+    # by this workflow's own steps. Snapshot-style feed: latest pull only,
+    # no cross-pull dedup needed (24/08/2026).
+    kobas_live=None
+    if os.path.exists(KOBAS_LIVE_PATH):
+        try:
+            with open(KOBAS_LIVE_PATH,encoding="utf-8") as fh:
+                kobas_live=json.load(fh)
+        except Exception as exc:  # noqa: BLE001
+            gaps.append(f"Kobas Pending Orders file at '{KOBAS_LIVE_PATH}' failed to parse "
+                 f"({type(exc).__name__}) - projected spend this week falling back to the "
+                "weekly outstanding-orders report (may be up to 7 days stale)")
+            kobas_live=None
+
+    if kobas_live is not None:
+        pull_date=kobas_live.get("pull_date") or "(unknown pull_date)"
+        rows=[r for r in (kobas_live.get("rows") or [])
+              if r.get("from_supplier_name") and r.get("log_date")
+              and week_start<=r["log_date"]<=week_end]
+        agg={}
+        by_day={}
+        for r in rows:
+            site=r.get("to_venue_name") or "(no site)"
+            sup=r.get("from_supplier_name")
+            val=float(r.get("total") or 0.0)
+            status=(r.get("status") or "").lower()
+            a_=agg.setdefault((site,sup),{"orders":0,"value":0.0,"delivered":0.0})
+            a_["orders"]+=1; a_["value"]+=val
+            if status=="delivered": a_["delivered"]+=val
+            d_=by_day.setdefault(r["log_date"],{"orders":0,"value":0.0})
+            d_["orders"]+=1; d_["value"]+=val
+        for (site,sup),a_ in agg.items():
+            week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
+              "value_gbp":round(a_["value"],2),
+              "delivered_value_gbp":round(a_["delivered"],2),
+              "pending_value_gbp":round(a_["value"]-a_["delivered"],2),
+              "supplier_canon":canon_supplier(sup)})
+        week_spend.sort(key=lambda r:-r["value_gbp"])
+        week_days=[{"d":d,"orders":v["orders"],"value_gbp":round(v["value"],2)}
+                   for d,v in sorted(by_day.items())]
+        drill_all=sorted(rows,key=lambda r:(r.get("log_date") or "",-float(r.get("total") or 0.0)))
+        week_drill_total=len(drill_all)
+        week_drill=[{"site":r.get("to_venue_name") or "(no site)",
+                     "order_no":r.get("order_no"),"supplier":r.get("from_supplier_name"),
+                     "d":r.get("log_date"),"value_gbp":round(float(r.get("total") or 0.0),2),
+                     "status":r.get("status"),"staff":r.get("staff_name")}
+                    for r in drill_all[:WEEK_DRILL_CAP]]
+        # Totals computed once here from the FULL row set (never from the
+        # capped week_drill) so the KPI strip is exact even when the drill
+        # table is truncated.
+        _delivered_orders=sum(1 for r in rows if (r.get("status") or "").lower()=="delivered")
+        _total_value=sum(a_["value"] for a_ in agg.values())
+        _delivered_value=sum(a_["delivered"] for a_ in agg.values())
+        week_totals={"orders":len(rows),"delivered_orders":_delivered_orders,
+          "pending_orders":len(rows)-_delivered_orders,
+          "value_gbp":round(_total_value,2),
+          "delivered_value_gbp":round(_delivered_value,2),
+          "pending_value_gbp":round(_total_value-_delivered_value,2)}
+        week_spend_source="kobas_live"
+        week_spend_basis=(f"Kobas Pending Orders (live daily pull, pull_date={pull_date}): "
+            "supplier orders only (transfers excluded) with a delivery date (log_date) in the "
+            "current Mon-Sun week, any status; delivered orders stay in the total so the figure "
+            "is stable rather than shrinking as deliveries land - the KPI strip splits delivered "
+            "vs still-to-come")
+        if pull_date not in (None,"(unknown pull_date)"):
+            try:
+                stale_days=(datetime.date.today()-datetime.date.fromisoformat(pull_date)).days
+                if stale_days>=2:
+                    gaps.append(f"Kobas Pending Orders was last pulled {pull_date} "
+                        f"({stale_days}d ago) - the daily fetch may be failing; see the "
+                        "maki-hospitality-etl 'Kobas live pending orders' workflow step")
+            except ValueError:
+                pass
+    # ---- fallback: weekly outstanding-orders report ----
+    elif has_feed(cur,FULFIL_FEED):
         cur.execute(
           "WITH o AS (SELECT DISTINCT ON (data->>'Order ID') "
           "   data->>'Order ID' oid, nullif(data->>'Supplier/Sending Venue','') sup, "
@@ -764,19 +846,34 @@ def main():
               # display keeps the Kobas name, the join uses supplier_canon
               "supplier_canon":canon_supplier(sup)})
         week_spend.sort(key=lambda r:-r["value_gbp"])
+        week_spend_source="weekly_report_fallback"
+        week_spend_basis=("Kobas Pending Orders feed missing - projected spend falling back to "
+            "the weekly outstanding-orders report (may be up to 7 days stale): one row per "
+            "site+supplier combination (deduped by Order ID across weekly pulls, latest pull "
+            "wins), summing Order Value for orders whose Target Delivery Date falls within the "
+            "current Mon-Sun week - a projection from outstanding orders, not a measured or "
+            "confirmed spend figure, and it carries no delivered/pending split")
+        gaps.append("Kobas Pending Orders feed missing - projected spend falling back to the "
+            "weekly outstanding-orders report (may be up to 7 days stale)")
     else:
-        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse - projected spend this week unavailable")
-    gaps.append("Projected spend this week is a proxy, not a confirmed figure: it sums Order "
-        "Value on currently-outstanding orders whose Target Delivery Date falls in the "
-        "current Mon-Sun week - it will overstate spend for any order that later slips to a "
-        "different week, and it says nothing about orders not yet placed. The Mapal Supplier "
-        "Orders/Smart Delivery/Invoices To Receive feeds still fail at fetch (credentials), so "
-        "there is no delivered-vs-ordered signal to true this up against - fixing Mapal is the "
-        "single highest-value data unlock for this dashboard")
-    gaps.append("Some 'outstanding' orders in the Kobas report carry Order Placed dates back "
-        "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
-        "in the source system rather than a live backlog; if one of these happens to carry a "
-        "Target Delivery Date in the current week it is still included as-is")
+        week_spend_source="weekly_report_fallback"
+        week_spend_basis="neither the Kobas Pending Orders live feed nor the weekly outstanding-orders report is available this bake"
+        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse, and no Kobas Pending Orders "
+            "file checked out either - projected spend this week unavailable")
+
+    if week_spend_source=="weekly_report_fallback":
+        gaps.append("Projected spend this week (fallback figure) is a proxy, not a confirmed "
+            "figure: it sums Order Value on currently-outstanding orders whose Target Delivery "
+            "Date falls in the current Mon-Sun week - it will overstate spend for any order "
+            "that later slips to a different week, and it says nothing about orders not yet "
+            "placed. The Mapal Supplier Orders/Smart Delivery/Invoices To Receive feeds still "
+            "fail at fetch (credentials), so there is no delivered-vs-ordered signal to true "
+            "this up against - fixing Mapal is the single highest-value data unlock for this "
+            "dashboard")
+        gaps.append("Some 'outstanding' orders in the Kobas report carry Order Placed dates back "
+            "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
+            "in the source system rather than a live backlog; if one of these happens to carry a "
+            "Target Delivery Date in the current week it is still included as-is")
     PRICE_FEED="Kobas Report - Weekly Ingredient Price Changes Report"
     if has_feed(cur,PRICE_FEED):
         cur.execute(
@@ -799,10 +896,13 @@ def main():
         "report, so price rises cannot be joined to a specific supplier or location - shown "
         "as a standalone watchlist, not cross-referenced to suppliers.issues")
     snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
-      "week_spend_basis":"one row per site+supplier combination (deduped by Order ID across "
-      "weekly pulls, latest pull wins) from the Kobas Outstanding Stock Orders report, summing "
-      "Order Value for orders whose Target Delivery Date falls within the current Mon-Sun "
-      "week; a projection from outstanding orders, not a measured or confirmed spend figure",
+      "week_spend_source":week_spend_source,
+      "week_spend_basis":week_spend_basis,
+      "week_totals":week_totals,
+      "week_days":week_days,
+      "week_drill":week_drill,
+      "week_drill_total":week_drill_total,
+      "week_drill_truncated":week_drill_total>WEEK_DRILL_CAP,
       "price_watch":price_watch[:100],
       "price_watch_basis":"latest pull of the Kobas Weekly Ingredient Price Changes report; "
       "pct_change = (new-old)/old*100; is_new=true when there is no prior price on file"}
