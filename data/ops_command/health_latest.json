@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-24T10:11:04Z",
+ "generated_at": "2026-08-24T11:42:40Z",
  "verified_date": "2026-08-24",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-08-24",
  "snapshot_latest": "2026-08-24",
@@ -16,7 +16,7 @@
   "known_broken": 14,
   "criticals": 2,
   "warnings": 4,
-  "deferred": 1
+  "deferred": 0
  },
  "criticals": [
   {
@@ -57,14 +57,7 @@
    "detail": "ops_daily_aggregates upsert failed: could not extend file because project size limit (512 MB) has been exceeded\nHINT:  This limit is defined externally by the project size limit, and internally by neon.max_cluster_size GUC\n"
   }
  ],
- "deferred": [
-  {
-   "check": "4b-consistency",
-   "level": "deferred",
-   "class": "4b-consistency",
-   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - training_outstanding: live 2174 vs recomputed 2143 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)  [deferred - rechecked at 12:00 UTC]"
-  }
- ],
+ "deferred": [],
  "known_broken": [
   {
    "name": "Mapal Supplier Orders",
@@ -158,7 +151,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "2616 rows (median 2603)"
+   "detail": "2616 rows (median 2607)"
   },
   {
    "check": "1-landed",
@@ -230,7 +223,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Branch Resources",
-   "detail": "2280 rows (median 2315)"
+   "detail": "2280 rows (median 2277)"
   },
   {
    "check": "1-landed",
@@ -803,9 +796,8 @@
   },
   {
    "check": "4b-consistency",
-   "level": "deferred",
-   "class": "4b-consistency",
-   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - training_outstanding: live 2174 vs recomputed 2143 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)  [deferred - rechecked at 12:00 UTC]"
+   "level": "ok",
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=36964, tasks_missed=595, week_spend_gbp=0, broth_cells=389, supplier_issues=56, training_outstanding=2143"
   },
   {
    "check": "aggregates",
@@ -813,5 +805,5 @@
    "detail": "ops_daily_aggregates upsert failed: could not extend file because project size limit (512 MB) has been exceeded\nHINT:  This limit is defined externally by the project size limit, and internally by neon.max_cluster_size GUC\n"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
