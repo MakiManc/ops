@@ -13,7 +13,13 @@ system's expectations.
 
 CHECKS (v2, Phase 2 complete)
   check 0  RUN RECEIPTS    etl_run_log has a receipt for today's
-                           daily-export and deep-pull runs, exit 0.
+                           daily-export and deep-pull runs. Exit 0 is not
+                           enough on its own: exit 0 with ZERO rows
+                           written, or exit 0 with failed feeds, is a
+                           critical. (25 Aug 2026: the receipt row said
+                           exit 0 / 0 rows / every feed failed while the
+                           workflow itself was red, and this check called
+                           it ok.)
   check 1  FEEDS LANDED    every status=expected feed's max(pull_date) is
                            today. Measured in Postgres (the §13 class).
   check 2  ROWS SANE       today's rows >= manifest floor and within a
@@ -42,9 +48,10 @@ CHECKS (v2, Phase 2 complete)
                            manifest cannot quietly fall behind reality.
   check 6  SIDE CHANNELS   maintenance_source.json age (>7 days without a
                            refresh commit suggests the refresh chain is
-                           dead) and DB size (warn at 400 MB -- Neon free
-                           cap is 512 MB; the archive+trim keeps steady
-                           state near 300 MB).
+                           dead) and DB size (warn at 400 MB, CRITICAL at
+                           450 -- Neon free cap is 512 MB and a rejected
+                           insert loses the day; the archive+trim keeps
+                           steady state near 300 MB).
 
 MORNING vs RECHECK (the false-alarm damper, plan §1)
   09:30 UTC morning run: timing-deferrable criticals -- a feed missing
@@ -67,7 +74,10 @@ ALSO WRITTEN EACH RUN
                                         supplier issues. This is the
                                         approved history archive: it
                                         accumulates beyond the feeds' own
-                                        rolling windows (open item 5).
+                                        rolling windows (open item 5). A
+                                        failed upsert is a CRITICAL -- it
+                                        is usually the first sign the
+                                        store itself is refusing writes.
 
 MONDAY ALIVE-PUSH: silence-as-healthy is only trustworthy while the
 checker is provably alive, so every Monday morning run sends one push --
@@ -101,6 +111,12 @@ PAGES_INDEX = ("https://ross440.github.io/ops/data/ops_command/"
                "snapshot_index.json")
 
 DB_SIZE_WARN_MB = 400          # Neon free cap is 512 MB
+# Above this, the store is close enough to the cap that the NEXT pull is
+# likely to be rejected outright (25 Aug 2026: 513 MB, every insert failed
+# with DiskFull and the day's data was lost). A warning is the wrong tier
+# for "tomorrow's export will not run" -- while Neon is still the store,
+# this is a critical. Retired with Neon at the end of Phase 2.
+DB_SIZE_CRIT_MB = 450
 MAINT_AGE_WARN_DAYS = 7        # a week with no refresh commit = dead chain
 
 # Timing-deferrable failure classes (morning run defers them to 12:00).
@@ -197,6 +213,27 @@ def check_receipts(cur, today: str) -> dict:
             add("0-receipts", "critical",
                 f"{label} receipt says exit {exit_code} with "
                 f"{feeds_failed} failed feed(s) - see its run log", kind)
+        elif not rows_written:
+            # 25 Aug 2026: Neon hit its 512 MB cap and rejected every
+            # insert. The receipt row said exit 0 with 0 rows and every
+            # feed failed -- because etl_receipt.finalize() persisted the
+            # INNER run's exit code, not its own verdict -- and this check
+            # called it "ok" while the workflow itself was red. Exit 0 is
+            # not evidence on its own: a run that persisted nothing did
+            # not work, whatever it reports about itself. Non-timing, so
+            # it alerts at 09:30 rather than deferring -- there is nothing
+            # a later recheck could change about a finished, empty run.
+            add("0-receipts", "critical",
+                f"{label} reports exit 0 but wrote ZERO rows "
+                f"({feeds_failed} failed feed(s), finished {finished}) - "
+                "the run persisted nothing to the store", kind,
+                klass="0-receipts-empty")
+        elif feeds_failed:
+            add("0-receipts", "critical",
+                f"{label} reports exit 0 but {feeds_failed} feed(s) "
+                f"failed ({rows_written} rows written, finished "
+                f"{finished}) - see its run log", kind,
+                klass="0-receipts-failed-feeds")
         else:
             add("0-receipts", "ok",
                 f"{label}: exit 0, {rows_written} rows written, "
@@ -488,14 +525,21 @@ def check_side_channels(cur, today: str) -> dict:
     db_bytes = cur.fetchone()[0]
     db_mb = round(db_bytes / 1e6)
     sizes["db_mb"] = db_mb
-    if db_mb > DB_SIZE_WARN_MB:
+    if db_mb > DB_SIZE_CRIT_MB:
+        add("6-side", "critical",
+            f"warehouse database is {db_mb} MB against a 512 MB Neon cap - "
+            "the next pull is likely to be REJECTED outright (DiskFull). "
+            "Dispatch warehouse-archive.yml with vacuum_full now",
+            klass="6-store-capacity")
+    elif db_mb > DB_SIZE_WARN_MB:
         add("6-side", "warning",
             f"warehouse database is {db_mb} MB - Neon free cap is 512 MB; "
             "check the archive+trim job (warehouse-archive.yml) and "
             "consider a vacuum_full dispatch")
     else:
         add("6-side", "ok", f"warehouse database {db_mb} MB "
-            f"(warn at {DB_SIZE_WARN_MB}, Neon cap 512)")
+            f"(warn at {DB_SIZE_WARN_MB}, critical at {DB_SIZE_CRIT_MB}, "
+            "Neon cap 512)")
     return sizes
 
 
@@ -570,8 +614,14 @@ def archive_aggregates(conn, snap: dict | None) -> None:
             conn.rollback()
         except Exception:  # noqa: BLE001
             pass
-        add("aggregates", "warning",
-            f"ops_daily_aggregates upsert failed: {e}")
+        # Not a warning: this write is the only durable history the system
+        # keeps beyond each feed's rolling window, and on 25 Aug 2026 its
+        # failure carried the same Neon DiskFull error that had already
+        # eaten the whole day's pull -- the earliest, clearest signal
+        # available, filed as a warning nobody was paged for.
+        add("aggregates", "critical",
+            f"ops_daily_aggregates upsert failed: {e}",
+            klass="aggregates-write")
 
 
 # ------------------------------------------------------------ history
