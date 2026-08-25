@@ -30,6 +30,16 @@ jobs:
   bake:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # ETL_REPO_TOKEN is lifted to job level ON PURPOSE. The `secrets`
+    # context is NOT available in a step-level `if:` - GitHub rejects the
+    # WHOLE FILE with "Unrecognized named-value: 'secrets'" and every run,
+    # scheduled or dispatched, dies before a single step executes. That is
+    # exactly what happened between 24 and 25 Aug 2026 (commit 826cbc2):
+    # the bake stopped running entirely and the dashboard silently froze on
+    # the 24 Aug snapshot. `env` IS available in a step `if:`, so the
+    # optional-checkout guard below tests env.ETL_REPO_TOKEN instead.
+    env:
+      ETL_REPO_TOKEN: ${{ secrets.ETL_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,12 +53,12 @@ jobs:
       # report + a gap note when etl-data/data/kobas_pending_orders/
       # latest.json isn't present.
       - name: Checkout Kobas pending-orders data (private etl repo)
-        if: ${{ secrets.ETL_REPO_TOKEN != '' }}
+        if: env.ETL_REPO_TOKEN != ''
         continue-on-error: true
         uses: actions/checkout@v4
         with:
           repository: ross440/maki-hospitality-etl
-          token: ${{ secrets.ETL_REPO_TOKEN }}
+          token: ${{ env.ETL_REPO_TOKEN }}
           path: etl-data
           sparse-checkout: |
             data/kobas_pending_orders
