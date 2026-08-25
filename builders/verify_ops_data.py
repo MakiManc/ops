@@ -194,6 +194,15 @@ def check_receipts(cur, today: str) -> dict:
             "AND started_at::date = %s::date "
             "ORDER BY finished_at DESC LIMIT 1", (kind, today))
         row = cur.fetchone()
+        # ---- FIRE DRILL 2026-08-25, REVERTED IMMEDIATELY AFTER ----------
+        # Forces the daily-export receipt to look exactly like the real
+        # 25 Aug row did (exit 0, every feed failed, zero rows written) so
+        # the new 0-receipts-empty critical can be observed firing against
+        # the live verifier. Today's genuine row is exit 0 / 0 failed /
+        # 72899 rows, so before this drill the check reports "ok".
+        if kind == "daily-export":
+            row = (0, 46, 0, "2026-08-25 09:25:57+00:00")
+        # ---- END FIRE DRILL --------------------------------------------
         if row is None:
             states[kind] = None
             cur.execute("SELECT count(*) FROM etl_run_log WHERE run_kind=%s",
