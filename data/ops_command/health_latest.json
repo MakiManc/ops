@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-25T12:47:58Z",
+ "generated_at": "2026-08-25T23:49:16Z",
  "verified_date": "2026-08-25",
  "mode": "recheck",
  "overall": "red",
@@ -9,16 +9,23 @@
  "sizes": {
   "maintenance_pulled_at": "2026-08-25T08:14:00Z",
   "maintenance_source_as_of": "2026-08-19",
-  "db_mb": 395
+  "db_mb": 415
  },
  "counts": {
   "expected_feeds": 46,
   "known_broken": 14,
-  "criticals": 3,
-  "warnings": 4,
+  "criticals": 4,
+  "warnings": 2,
   "deferred": 0
  },
  "criticals": [
+  {
+   "check": "0-receipts",
+   "level": "critical",
+   "feed": "daily-export",
+   "class": "0-receipts-empty",
+   "detail": "08:15 daily export reports exit 0 but wrote ZERO rows (46 failed feed(s), finished 2026-08-25 09:25:57+00:00) - the run persisted nothing to the store"
+  },
   {
    "check": "2-rows",
    "level": "critical",
@@ -41,31 +48,15 @@
  ],
  "warnings": [
   {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Branch Resources",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Profile XT",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Run Log",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
-  },
-  {
    "check": "2-rows",
    "level": "warning",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
    "detail": "465 rows today vs trailing 14-day median 141 - outside the 0.5x-3x band"
+  },
+  {
+   "check": "6-side",
+   "level": "warning",
+   "detail": "warehouse database is 415 MB - Neon free cap is 512 MB; check the archive+trim job (warehouse-archive.yml) and consider a vacuum_full dispatch"
   }
  ],
  "deferred": [],
@@ -130,22 +121,28 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "ok",
+   "level": "critical",
    "feed": "daily-export",
-   "detail": "08:15 daily export: exit 0, 72899 rows written, finished 2026-08-25 12:06:21+00:00"
+   "class": "0-receipts-empty",
+   "detail": "08:15 daily export reports exit 0 but wrote ZERO rows (46 failed feed(s), finished 2026-08-25 09:25:57+00:00) - the run persisted nothing to the store"
   },
   {
    "check": "0-receipts",
    "level": "ok",
    "feed": "deep-pull",
-   "detail": "03:00 deep pull: exit 0, 0 rows written, finished 2026-08-25 04:20:00+00:00"
+   "detail": "03:00 deep pull: exit 0, 35250 rows written, finished 2026-08-25 13:01:52+00:00"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Branch Resources",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
+   "detail": "landed 2026-08-25"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Branch Resources",
+   "detail": "25902 rows (median 25930)"
   },
   {
    "check": "1-landed",
@@ -185,17 +182,27 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Profile XT",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
+   "detail": "landed 2026-08-25"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Profile XT",
+   "detail": "452 rows (median 458)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Run Log",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
+   "detail": "landed 2026-08-25"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Run Log",
+   "detail": "1 rows (median 1)"
   },
   {
    "check": "1-landed",
@@ -792,8 +799,8 @@
   },
   {
    "check": "6-side",
-   "level": "ok",
-   "detail": "warehouse database 395 MB (warn at 400, Neon cap 512)"
+   "level": "warning",
+   "detail": "warehouse database is 415 MB - Neon free cap is 512 MB; check the archive+trim job (warehouse-archive.yml) and consider a vacuum_full dispatch"
   },
   {
    "check": "4b-consistency",
