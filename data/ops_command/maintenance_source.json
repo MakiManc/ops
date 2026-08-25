@@ -1,252 +1,332 @@
 {
- "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), section 'UPDATED AS OF - August 12, 2026' (ON GOING/PENDING + DONE tables)",
- "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit",
- "source_as_of": "2026-08-12",
- "pulled_at": "2026-08-14T18:30:00Z",
- "unresolved_site_labels": [
-  "Factory Edin",
-  "Factory Glasgow"
- ],
- "tasks": [
-  {
-   "site": "Maki Newcastle Ltd",
-   "raw_site": "Maki 12",
-   "d": "2026-08-01",
-   "issue": "Ice machine has broken down. Water flows through the top as it should where the cooling prongs are, and it makes a small amount of ice, but the rest of the reservoir below just fills with very very cold water, not ice.",
-   "comment": "call out scheduled 13.08",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Shoreditch",
-   "raw_site": "Maki 19",
-   "d": "2026-08-02",
-   "issue": "Fridge and freezer fuse for sushi keeps tripping",
-   "comment": "requested call out today, 12.08 no ETA yet.",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Southampton",
-   "raw_site": "Maki 20",
-   "d": "2026-08-02",
-   "issue": "Walking fridge",
-   "comment": "someone will be coming to check c/o Ross",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Manchester LTD",
-   "raw_site": "Maki 9",
-   "d": "2026-08-05",
-   "issue": "Aircond servicing (Water is dripping from the aircond and it's affecting 2 dine-in tables. Even after we turned on dry mode, it doesn't stop the water droplets).",
-   "comment": "arranging aircon cleaning, as per site no issues on temperature and other just drips whenever temp is low",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Manchester LTD",
-   "raw_site": "Maki 9",
-   "d": "2026-08-05",
-   "issue": "Ice Machine keeps tripping off, electrician came and found out that it is not socket issue but equipment itself",
-   "comment": "requested call out today, 12.08 no ETA yet.",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Nottingham Ltd",
-   "raw_site": "Maki 16",
-   "d": "2026-08-06",
-   "issue": "MALE CUBICLE - SEWAGE LEAKING? AND DRAIN FLY INFESTATION. ROTTEN WOOD?",
-   "comment": "Pestcon to check the issue, and will get sorted whatever the findings",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Nottingham Ltd",
-   "raw_site": "Maki 16",
-   "d": "2026-08-06",
-   "issue": "Installation of New Chinese Cooker",
-   "comment": "scheduled 13.08 after business hours",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Lakeside",
-   "raw_site": "Maki 17",
-   "d": "2026-08-07",
-   "issue": "Undercounter Fridge, high temp -- not in use",
-   "comment": "requested call out today, 11.08, ETA is tomorrow 13.08",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Shoreditch",
-   "raw_site": "Maki 19",
-   "d": "2026-08-09",
-   "issue": "Chinese Cooker - 1 hob weak flame",
-   "comment": "requested call out today, 11.08 no ETA yet.",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Nori",
-   "raw_site": "Maki Nori",
-   "d": "2026-08-11",
-   "issue": "Gap in wall in sushi handwash area. Was boarded up but has come off. Pest control have said this is most likely where the mice are coming from as there is some evidence.",
-   "comment": "handyman or Ross?",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Soho",
-   "raw_site": "Maki 18",
-   "d": "2026-08-11",
-   "issue": "Paint on the walls , need white paint as per picture and also black paint on the rest of the walls in the restaurant",
-   "comment": "Ross to do, verifying the exact color of paint",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Soho",
-   "raw_site": "Maki 18",
-   "d": "2026-08-11",
-   "issue": "The tap in the males toilet is not working properly. Only turns off the water if rotated beyond the tap and if pressed very hard down.",
-   "comment": "will check available plumber",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Leicester Ltd",
-   "raw_site": "Maki 11",
-   "d": "2026-08-11",
-   "issue": "The grease traps needs to be serviced , its leaking even after cleaning",
-   "comment": "checking details from site today",
-   "status": "ongoing"
-  },
-  {
-   "site": "Maki Soho",
-   "raw_site": "Maki 18",
-   "d": "2026-08-02",
-   "issue": "Our dishwasher is only rinse / steam and not washing , probably some kind of block could be there . We tried several times to restart the dishwasher and cleaned up as well but still not working . Please be kind and have a look into this issues",
-   "comment": "sorted and working well now",
-   "status": "done"
-  },
-  {
-   "site": "Maki Soho",
-   "raw_site": "Maki 18",
-   "d": "2026-08-02",
-   "issue": "Our Air Conditioning system is not working properly. We have 4 rooms in a restaurant connected to A/C and two of the room is still hot even when the air condition system is on. The rooms are: VIP, D, MRL, ZEN. So MRL and Zen are lately busiest part of restaurant and it's warm. VIP and Section D is working.",
-   "comment": "sorted and working well now",
-   "status": "done"
-  },
-  {
-   "site": "South Ikigai Ltd",
-   "raw_site": "Ikigai 2",
-   "d": "2026-08-07",
-   "issue": "New hand dispenser",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Fountain Good Food Ltd",
-   "raw_site": "Maki 3",
-   "d": "2026-08-07",
-   "issue": "Toilet flush handle broken",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Fountain Good Food Ltd",
-   "raw_site": "Maki 3",
-   "d": "2026-08-07",
-   "issue": "Aluminium corner added to sink surface to make it water tight",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "South Ikigai Ltd",
-   "raw_site": "Ikigai 2",
-   "d": "2026-08-07",
-   "issue": "Meeting with B&B landlord due to potential leaks issues",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Factory Edin",
-   "raw_site": "Factory Edin",
-   "d": "2026-08-07",
-   "issue": "Unused and broken items pick up by Rubbish company. Lots of broken fridges and items. Full van.",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Maki Shoreditch",
-   "raw_site": "Maki 19",
-   "d": "2026-08-07",
-   "issue": "Heading light is broken",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Renfield Good Food Ltd",
-   "raw_site": "Maki 8",
-   "d": "2026-08-10",
-   "issue": "Worktop cut to the size",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Renfield Good Food Ltd",
-   "raw_site": "Maki 8",
-   "d": "2026-08-10",
-   "issue": "Broken sink pipe in Main kitchen",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Factory Glasgow",
-   "raw_site": "Factory Glasgow",
-   "d": "2026-08-10",
-   "issue": "Celling in storage area needs to be painted and several water marks covered",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "South Ikigai Ltd",
-   "raw_site": "Ikigai 2",
-   "d": "2026-08-11",
-   "issue": "Pipe cover box broken",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "South Ikigai Ltd",
-   "raw_site": "Ikigai 2",
-   "d": "2026-08-11",
-   "issue": "Hand mixer plug broken",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Factory Glasgow",
-   "raw_site": "Factory Glasgow",
-   "d": "2026-08-11",
-   "issue": "Factory ceiling repainted white due to EHO inspection",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Factory Glasgow",
-   "raw_site": "Factory Glasgow",
-   "d": "2026-08-11",
-   "issue": "White boards coming off the walls due to constant moisture",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Factory Glasgow",
-   "raw_site": "Factory Glasgow",
-   "d": "2026-08-11",
-   "issue": "Lights coming down from ceiling",
-   "comment": "Sorted and completed",
-   "status": "done"
-  },
-  {
-   "site": "Factory Glasgow",
-   "raw_site": "Factory Glasgow",
-   "d": "2026-08-11",
-   "issue": "White board corners coming off",
-   "comment": "Sorted and completed",
-   "status": "done"
-  }
- ]
+    "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), section 'UPDATED AS OF - August 19, 2026' (ON GOING/PENDING + DONE tables)",
+    "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit",
+    "source_as_of": "2026-08-19",
+    "pulled_at": "2026-08-25T08:14:00Z",
+    "unresolved_site_labels": [
+        "Glasgow Factory",
+        "Maki 1/2"
+    ],
+    "tasks": [
+        {
+            "site": "Maki Newcastle Ltd",
+            "raw_site": "Maki 12",
+            "d": "2026-08-01",
+            "issue": "Ice machine has broken down. Water flows through the top as it should where the cooling prongs are, and it makes a small amount of ice, but the rest of the reservoir below just fills with very very cold water, not ice.",
+            "comment": "engineer came but still need to redo things, schedule of revisit 19-20.08",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Southampton",
+            "raw_site": "Maki 20",
+            "d": "2026-08-02",
+            "issue": "Walking fridge",
+            "comment": "someone will be coming to check c/o Ross",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Manchester LTD",
+            "raw_site": "Maki 9",
+            "d": "2026-08-05",
+            "issue": "Aircond servicing (Water is dripping from the aircond and it’s affecting 2 dine-in tables. Even after we turned on dry mode, it doesn’t stop the water droplets).",
+            "comment": "arranging aircon cleaning, as per site no issues on temperature and other just drips whenever temp is low",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Nottingham Ltd",
+            "raw_site": "Maki 16",
+            "d": "2026-08-06",
+            "issue": "MALE CUBICLE - SEWAGE LEAKING? AND DRAIN FLY INFESTATION. ROTTEN WOOD?",
+            "comment": "no feedback from site yet regarding pestcon feedback",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Nottingham Ltd",
+            "raw_site": "Maki 16",
+            "d": "2026-08-06",
+            "issue": "Installation of New Chinese Cooker",
+            "comment": "scheduled 13.08 after business hours",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Lakeside",
+            "raw_site": "Maki 17",
+            "d": "2026-08-07",
+            "issue": "Undercounter Fridge, high temp -- not in use",
+            "comment": "fan motor needs to be replace, quotation approved, awaiting schedule for revisit",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Shoreditch",
+            "raw_site": "Maki 19",
+            "d": "2026-08-09",
+            "issue": "Chinese Cooker - 1 hob weak flame",
+            "comment": "eta is 21.08",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Nori",
+            "raw_site": "Maki Nori",
+            "d": "2026-08-11",
+            "issue": "Gap in wall in sushi handwash area. Was boarded up but has come off. Pest control have said this is most likely where the mice are coming from as there is some evidence.",
+            "comment": "c/o Ross",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Soho",
+            "raw_site": "Maki 18",
+            "d": "2026-08-11",
+            "issue": "Paint on the walls , need white paint as per picture and also black paint on the rest of the walls in the restaurant",
+            "comment": "c/o Ross",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Soho",
+            "raw_site": "Maki 18",
+            "d": "2026-08-11",
+            "issue": "The tap in the males toilet is not working properly. Only turns off the water if rotated beyond the tap and if pressed very hard down.",
+            "comment": "Ross to check",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Leicester Ltd",
+            "raw_site": "Maki 11",
+            "d": "2026-08-11",
+            "issue": "The grease traps needs to be serviced , its leaking even after cleaning",
+            "comment": "visited 14.08, awaiting feedback from Tyrone",
+            "status": "ongoing"
+        },
+        {
+            "site": "South Ikigai Ltd",
+            "raw_site": "Iki2",
+            "d": "2026-08-11",
+            "issue": "dishwasher dose not washes properly, Chris suggest to replace longtime ago and was waiting to be replaced , can it be actioned we dont know if its 3 phase or single phase machine to order",
+            "comment": "Kris ordered the needed parts",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Newcastle Ltd",
+            "raw_site": "Maki 12",
+            "d": "2026-08-14",
+            "issue": "Air conditioning is still broken, when it was last checked they said someone would need to come out and find the leak somewhere in the ceiling but it would be hard to find as the Sakura is in the way. The restaurant is suffering now please can we get this fixed asap",
+            "comment": "eta is 21.08",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Meadowhall",
+            "raw_site": "Maki 14",
+            "d": "2026-08-14",
+            "issue": "hot water not getting hot enough",
+            "comment": "",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Meadowhall",
+            "raw_site": "Maki 14",
+            "d": "2026-08-14",
+            "issue": "need better brissels for the bottom of the door for pest prevention",
+            "comment": "",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Southampton",
+            "raw_site": "Maki 20",
+            "d": "2026-08-15",
+            "issue": "Tap in customer bathroom",
+            "comment": "to arrange a plumber or Ross to check first?",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Newcastle Ltd",
+            "raw_site": "Maki 12",
+            "d": "2026-08-17",
+            "issue": "Planter basket damage",
+            "comment": "Kris is confirmed to come 20.08",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Newcastle Ltd",
+            "raw_site": "Maki 12",
+            "d": "2026-08-17",
+            "issue": "Toilet urinal not draining",
+            "comment": "Kris is confirmed to come 20.08",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Newcastle Ltd",
+            "raw_site": "Maki 12",
+            "d": "2026-08-17",
+            "issue": "Fire door exterior handle falling off. Screw currently held in place but has been falling",
+            "comment": "Kris is confirmed to come 20.08",
+            "status": "ongoing"
+        },
+        {
+            "site": "Maki Shoreditch",
+            "raw_site": "Maki 19",
+            "d": "2026-08-02",
+            "issue": "Fridge and freezer fuse for sushi keeps tripping",
+            "comment": "requested call out today, 12.08 no ETA yet.",
+            "status": "done"
+        },
+        {
+            "site": "Maki Nottingham Ltd",
+            "raw_site": "Maki 16",
+            "d": "2026-08-15",
+            "issue": "Installation of New Chinese Cooker",
+            "comment": "done 15/08",
+            "status": "done"
+        },
+        {
+            "site": "Maki Leicester Ltd",
+            "raw_site": "Maki 11",
+            "d": "2026-08-11",
+            "issue": "The grease traps needs to be serviced , its leaking even after cleaning",
+            "comment": "visited 14.08, awaiting feedback from Tyrone",
+            "status": "done"
+        },
+        {
+            "site": "Maki Soho",
+            "raw_site": "Maki 18",
+            "d": "2026-08-09",
+            "issue": "Glasswash pump not washing glassware. Only works on Rinse mode",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Maki Shoreditch",
+            "raw_site": "Maki 19",
+            "d": "2026-08-09",
+            "issue": "The middle front 2 stove seems to be weaker than the ones on the 2 side front ones, not sure if intended. Please check.",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Renfield Good Food Ltd",
+            "raw_site": "Maki 8",
+            "d": "2026-08-10",
+            "issue": "Worktop cut to the size",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Renfield Good Food Ltd",
+            "raw_site": "Maki 8",
+            "d": "2026-08-10",
+            "issue": "Broken sink pipe in Main kitchen",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "South Ikigai Ltd",
+            "raw_site": "Iki 2",
+            "d": "2026-08-11",
+            "issue": "Pipe cover box broken",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "South Ikigai Ltd",
+            "raw_site": "Iki 2",
+            "d": "2026-08-11",
+            "issue": "Hand mixer plug broken",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "South Ikigai Ltd",
+            "raw_site": "Iki 2",
+            "d": "2026-08-11",
+            "issue": "disable toilet dosenot flushes properly",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-12",
+            "issue": "Factory ceiling repainted white due to EHO inspection",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-12",
+            "issue": "White boards coming off the walls due to constant moisture",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-12",
+            "issue": "Lights coming down from ceiling",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-12",
+            "issue": "White board corners coming off",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Maki Southampton",
+            "raw_site": "Maki 20",
+            "d": "2026-08-12",
+            "issue": "Kitchen door handle",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-12",
+            "issue": "Floor needs to be glued",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-17",
+            "issue": "Factory kitchen ceiling light broken",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-17",
+            "issue": "Factory kitchen water supply pipes need to be bracketed back to the wall",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Glasgow Factory",
+            "raw_site": "Glasgow Factory",
+            "d": "2026-08-17",
+            "issue": "Factory doors needs to be repainted",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Maki 1/2",
+            "raw_site": "Maki 1/2",
+            "d": "2026-08-18",
+            "issue": "New instant water heater installed",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        },
+        {
+            "site": "Maki 1/2",
+            "raw_site": "Maki 1/2",
+            "d": "2026-08-18",
+            "issue": "Fridge door come off",
+            "comment": "Sorted and fixed",
+            "status": "done"
+        }
+    ]
 }
