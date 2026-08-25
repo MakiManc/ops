@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-25T12:16:52Z",
+ "generated_at": "2026-08-25T12:47:58Z",
  "verified_date": "2026-08-25",
  "mode": "recheck",
  "overall": "red",
@@ -9,13 +9,13 @@
  "sizes": {
   "maintenance_pulled_at": "2026-08-25T08:14:00Z",
   "maintenance_source_as_of": "2026-08-19",
-  "db_mb": 484
+  "db_mb": 395
  },
  "counts": {
   "expected_feeds": 46,
   "known_broken": 14,
-  "criticals": 2,
-  "warnings": 8,
+  "criticals": 3,
+  "warnings": 4,
   "deferred": 0
  },
  "criticals": [
@@ -31,6 +31,12 @@
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "1-landed",
    "detail": "last pull 2026-08-21 (4d old) - expected today"
+  },
+  {
+   "check": "4b-consistency",
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - broth_cells: live 428 vs recomputed 350; training_outstanding: live 2135 vs recomputed 2129 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   }
  ],
  "warnings": [
@@ -38,27 +44,6 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "Deep Flow Branch Resources",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Certificates",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Courses",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Modules",
    "class": "1-landed",
    "detail": "last pull 2026-08-24 (1d old) - expected today"
   },
@@ -81,11 +66,6 @@
    "level": "warning",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
    "detail": "465 rows today vs trailing 14-day median 141 - outside the 0.5x-3x band"
-  },
-  {
-   "check": "6-side",
-   "level": "warning",
-   "detail": "warehouse database is 484 MB - Neon free cap is 512 MB; check the archive+trim job (warehouse-archive.yml) and consider a vacuum_full dispatch"
   }
  ],
  "deferred": [],
@@ -169,24 +149,39 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Certificates",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
+   "detail": "landed 2026-08-25"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Certificates",
+   "detail": "2648 rows (median 2611)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Courses",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
+   "detail": "landed 2026-08-25"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Courses",
+   "detail": "1467 rows (median 1456)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Modules",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-24 (1d old) - expected today"
+   "detail": "landed 2026-08-25"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Modules",
+   "detail": "4780 rows (median 4772)"
   },
   {
    "check": "1-landed",
@@ -224,7 +219,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Branch Resources",
-   "detail": "2293 rows (median 2276)"
+   "detail": "2293 rows (median 2257)"
   },
   {
    "check": "1-landed",
@@ -765,7 +760,7 @@
    "check": "3-events",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "newest module_completed_date 2026-08-22 (3d old)"
+   "detail": "newest module_completed_date 2026-08-25 (0d old)"
   },
   {
    "check": "3-events",
@@ -797,18 +792,19 @@
   },
   {
    "check": "6-side",
-   "level": "warning",
-   "detail": "warehouse database is 484 MB - Neon free cap is 512 MB; check the archive+trim job (warehouse-archive.yml) and consider a vacuum_full dispatch"
+   "level": "ok",
+   "detail": "warehouse database 395 MB (warn at 400, Neon cap 512)"
   },
   {
    "check": "4b-consistency",
-   "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=36456, tasks_missed=522, week_spend_gbp=0, broth_cells=428, supplier_issues=61, training_outstanding=2135"
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - broth_cells: live 428 vs recomputed 350; training_outstanding: live 2135 vs recomputed 2129 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   },
   {
    "check": "aggregates",
    "level": "ok",
-   "detail": "674 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
+   "detail": "596 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
   }
  ],
  "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
