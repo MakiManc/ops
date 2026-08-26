@@ -6,7 +6,7 @@ Every daily process in this system must either prove it worked or fail
 loudly, and "proved it worked" is always measured at the DESTINATION --
 Neon Postgres and the live dashboard -- never at a workflow's own exit
 code. This script is the safety net under the ETL's own loud-failure
-receipts (etl_receipt.py in ross440/maki-hospitality-etl).
+receipts (etl_receipt.py in MakiManc/maki-hospitality-etl).
 
 Driven by data/ops_command/feeds_manifest.json -- the single home for the
 system's expectations.
@@ -105,9 +105,9 @@ HEALTH_PATH = os.path.join(OUT_DIR, "health_latest.json")
 HISTORY_PATH = os.path.join(OUT_DIR, "verify_history.json")
 MAINT_PATH = os.path.join(OUT_DIR, "maintenance_source.json")
 
-RAW_BASE = ("https://raw.githubusercontent.com/ross440/ops/main/"
+RAW_BASE = ("https://raw.githubusercontent.com/MakiManc/ops/main/"
             "data/ops_command/")
-PAGES_INDEX = ("https://ross440.github.io/ops/data/ops_command/"
+PAGES_INDEX = ("https://makimanc.github.io/ops/data/ops_command/"
                "snapshot_index.json")
 
 DB_SIZE_WARN_MB = 400          # Neon free cap is 512 MB
@@ -789,7 +789,7 @@ def main() -> None:
             lines.append(f"...and {len(criticals) - 5} more")
         if push_ntfy("Ops data verification FAILED",
                      f"({today}, {mode} run)\n" + "\n".join(lines) +
-                     "\nhttps://github.com/ross440/ops/actions"):
+                     "\nhttps://github.com/MakiManc/ops/actions"):
             with open(".ntfy_sent", "w", encoding="utf-8") as f:
                 f.write(utcnow())
         sys.exit(1)
