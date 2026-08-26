@@ -385,7 +385,10 @@ def main():
             outstanding.append({"site":site,"person":person or "(unnamed)","module":module,
               "status":status,"overdue":bool(status and "Overdue" in status),"due":due,
               "mand":(module or "").strip() in MANDATORY_MODULES})
-        outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or ""))
+        # 2101 rows, and many share a site and a due date - without person and
+        # module the tie order is whatever the join happened to emit.
+        outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or "",
+                                       r["person"] or "", r["module"] or ""))
     # Completion EVENTS by day+site, so ranges filter on when modules were
     # actually completed, not on pull_date. module_completed_date is UK-format
     # 'DD/MM/YYYY HH:MM' (13/08/2026); parsed defensively, bad values skipped.
@@ -460,7 +463,14 @@ def main():
               "people":ppl,"assigned":assigned,"complete":comp,
               "pct":round(100.0*comp/assigned,1) if assigned else None,
               "people_overdue":p_ovd})
-        mand_sites.sort(key=lambda r:(r["pct"] if r["pct"] is not None else 999))
+        # The heatmap is indexed by site x module in the shell, so cell order does
+        # not drive display - but an unsorted list still rewrites the committed
+        # snapshot on every bake. It was the last of the eight non-deterministic
+        # lists, and the only one that had no sort at all rather than a partial one.
+        mand_cells.sort(key=lambda r:(r["site"] or "", r["module"] or ""))
+        # ties on pct kept whatever order the GROUP BY produced
+        mand_sites.sort(key=lambda r:(r["pct"] if r["pct"] is not None else 999,
+                                      r["site"] or ""))
         seen_mods={c["module"] for c in mand_cells}
         mandatory={
           "modules":[mn for mn in MANDATORY_MODULES if mn in seen_mods],

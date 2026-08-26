@@ -188,8 +188,15 @@ def connect(archive_dir: str, manifest: str | None = None) -> _Connection:
         feed_expr = _SLUG_FROM_FILENAME
 
     con = duckdb.connect()
+    # A TABLE, not a VIEW. As a view every one of the bake's 27 queries re-parses
+    # the whole gzipped archive: measured at 278s per bake against 21s for the
+    # Postgres one, a 13x regression that would have made the daily bake slower
+    # than the export. Materialising reads the gzip once and leaves the queries
+    # hitting memory. The archive is ~53MB compressed / ~1.2M rows, which fits
+    # comfortably; if it ever stops fitting, the answer is a per-feed read rather
+    # than going back to a view.
     con.execute(f"""
-        CREATE VIEW etl_feed_rows AS
+        CREATE TABLE etl_feed_rows AS
         SELECT {feed_expr}                                            AS feed,
                CAST(regexp_extract(filename, '(\\d{{4}}-\\d{{2}}-\\d{{2}})', 1)
                     AS DATE)                                          AS pull_date,
@@ -198,6 +205,9 @@ def connect(archive_dir: str, manifest: str | None = None) -> _Connection:
         FROM read_json_auto({_lit(pattern)}, filename=true,
                             union_by_name=true, maximum_object_size=20000000)
     """)
+    # Every query filters on feed, and most also on pull_date - the same index
+    # the real table carries (etl_feed_rows_feed_idx).
+    con.execute("CREATE INDEX etl_feed_rows_feed_idx ON etl_feed_rows (feed, pull_date)")
     return _Connection(con)
 
 
