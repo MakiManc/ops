@@ -1,7 +1,7 @@
 {
  "version": 1,
  "calibrated": "2026-08-18",
- "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (ross440/ops) and their fetch failures turn the ETL run red (etl_receipt.py in ross440/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind.",
+ "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (MakiManc/ops) and their fetch failures turn the ETL run red (etl_receipt.py in MakiManc/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind.",
  "feeds": [
   {
    "name": "Deep Flow Branch Resources",
