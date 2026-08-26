@@ -1,2 +1,7 @@
 etl-data/
 node_modules/
+
+# Python build artifacts (same trap the ETL repo hit: a stray __pycache__
+# from any local run is one `git add -A` away from being committed).
+__pycache__/
+*.py[cod]
