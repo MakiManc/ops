@@ -385,7 +385,10 @@ def main():
             outstanding.append({"site":site,"person":person or "(unnamed)","module":module,
               "status":status,"overdue":bool(status and "Overdue" in status),"due":due,
               "mand":(module or "").strip() in MANDATORY_MODULES})
-        outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or ""))
+        # 2101 rows, and many share a site and a due date - without person and
+        # module the tie order is whatever the join happened to emit.
+        outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or "",
+                                       r["person"] or "", r["module"] or ""))
     # Completion EVENTS by day+site, so ranges filter on when modules were
     # actually completed, not on pull_date. module_completed_date is UK-format
     # 'DD/MM/YYYY HH:MM' (13/08/2026); parsed defensively, bad values skipped.
@@ -406,7 +409,7 @@ def main():
           "       THEN substr(m.cd,7,4)||'-'||substr(m.cd,4,2)||'-'||substr(m.cd,1,2) END d "
           "  FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid) "
           "SELECT d, site, count(*), count(*) FILTER (WHERE mn=ANY(%s)) FROM p WHERE d IS NOT NULL "
-          "GROUP BY 1,2 ORDER BY 1 DESC LIMIT 4000", (feed, feed, MANDATORY_MODULES))
+          "GROUP BY 1,2 ORDER BY 1 DESC, 2 LIMIT 4000", (feed, feed, MANDATORY_MODULES))
         completions=[{"d":r[0],"site":r[1],"n":r[2],"nm":r[3]} for r in cur.fetchall()]
     # ---- mandatory compliance heatmap (site x module) ----
     # Ross, 18 Aug 2026: analyst view of MANDATORY compliance training only
@@ -460,7 +463,14 @@ def main():
               "people":ppl,"assigned":assigned,"complete":comp,
               "pct":round(100.0*comp/assigned,1) if assigned else None,
               "people_overdue":p_ovd})
-        mand_sites.sort(key=lambda r:(r["pct"] if r["pct"] is not None else 999))
+        # The heatmap is indexed by site x module in the shell, so cell order does
+        # not drive display - but an unsorted list still rewrites the committed
+        # snapshot on every bake. It was the last of the eight non-deterministic
+        # lists, and the only one that had no sort at all rather than a partial one.
+        mand_cells.sort(key=lambda r:(r["site"] or "", r["module"] or ""))
+        # ties on pct kept whatever order the GROUP BY produced
+        mand_sites.sort(key=lambda r:(r["pct"] if r["pct"] is not None else 999,
+                                      r["site"] or ""))
         seen_mods={c["module"] for c in mand_cells}
         mandatory={
           "modules":[mn for mn in MANDATORY_MODULES if mn in seen_mods],
@@ -520,7 +530,7 @@ def main():
           " count(DISTINCT data->>'ProcedureName') "
           "FROM etl_feed_rows WHERE feed='GC Central Module Tasks' AND pull_date="
           "(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='GC Central Module Tasks') "
-          "GROUP BY 1 ORDER BY 3 DESC, 2 DESC")
+          "GROUP BY 1 ORDER BY 3 DESC, 2 DESC, 1")
         areas=[{"area":r[0],"tasks":r[1],"overdue":r[2],"paused":r[3],"procedures":r[4]} for r in cur.fetchall()]
     # Form-answer EVENTS by day (deduped by AnswerID across overlapping pulls)
     # - lets the shell's date range slice by when forms were actually answered.
@@ -574,7 +584,7 @@ def main():
           " max(CASE WHEN task='Issue?' THEN ans END), "
           " string_agg(ans,' ') "
           "FROM a WHERE position('eliver' in tpl)>0 OR position('upplier' in tpl)>0 "
-          "GROUP BY fid ORDER BY 3 DESC LIMIT 2000")
+          "GROUP BY fid ORDER BY 3 DESC, fid LIMIT 2000")
         for fid,tpl,d,ans,site,opn,issue_text,alltext in cur.fetchall():
             # Attribution ladder (18/08/2026, Ross's direction):
             #   1. the form's own 'Supplier?' answer, canonicalised
@@ -618,7 +628,7 @@ def main():
       "note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
       "feeds fail at fetch, so this is the only supplier signal that lands - self-reported, "
       "not a measured OTIF.","totals":[{"supplier":k,**v} for k,v in
-      sorted(agg.items(),key=lambda kv:-kv[1]["open"])],"forms":sorted(sups,key=lambda r:-r["open"])}
+      sorted(agg.items(),key=lambda kv:(-kv[1]["open"], kv[0] or ""))],"forms":sorted(sups,key=lambda r:(-r["open"], r["form"] or ""))}
     cat_agg={}
     for i_ in issues:
         c=i_.get("category") or "uncategorized"
@@ -739,11 +749,12 @@ def main():
             else: c["on_time"]+=1
             by_site.setdefault(site,[]).append({"task":task,"due":due,
               "answered":answered,"answer":ans,"late":late,"d":d})
-        for (site,d),c in cell_agg.items():
+        for (site,d),c in sorted(cell_agg.items()):
             task_cells.append({"site":site,"d":d,"on_time":c["on_time"],
               "missed":c["missed"]})
         for site,items in by_site.items():
-            items.sort(key=lambda r:r["due"] or "",reverse=True)
+            items.sort(key=lambda r:(r["due"] or "", r["task"] or "",
+                                     r["answered"] or ""), reverse=True)
             task_drilldown[site]={"tasks":items[:TASK_DRILLDOWN_CAP],"total":len(items),
               "truncated":len(items)>TASK_DRILLDOWN_CAP}
     else:
@@ -1100,7 +1111,8 @@ def main():
             pct=round(100.0*(npf-opf)/opf,1) if opf else None
             price_watch.append({"ingredient":i,"old_price":opf,"new_price":npf,
               "pct_change":pct,"is_new":opf is None})
-        price_watch.sort(key=lambda r:(r["pct_change"] is None, -(r["pct_change"] or 0)))
+        price_watch.sort(key=lambda r:(r["pct_change"] is None,
+                                       -(r["pct_change"] or 0), r["ingredient"] or ""))
     else:
         gaps.append(f"'{PRICE_FEED}' absent from the warehouse")
     gaps.append("Ingredient price changes carry no supplier or site field in the source "
@@ -1240,7 +1252,7 @@ def main():
       "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows WHERE feed='Flow Branches' "
       " AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')) "
       "SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)'), count(*) FROM t LEFT JOIN b ON b.id=t.bid "
-      "GROUP BY 1 ORDER BY 2 DESC")
+      "GROUP BY 1 ORDER BY 2 DESC, 1")
     for site,n in cur.fetchall():
         hc.append({"site":site,"site_type":SITE_TYPES.get(site,"restaurant"),"people":n})
     directory=[]

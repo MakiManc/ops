@@ -60,9 +60,28 @@ SLUG_RE = re.compile(r"[^A-Za-z0-9]+")
 # to an = comparison is the kind of thing that returns a wrong answer quietly, so
 # every extraction gets parenthesised rather than only the ones seen to break.
 # Verified: bare form errors, parenthesised form returns 30,235 rows.
+# The key can be a quoted literal OR a %s placeholder - the ETL sibling's
+# headcount extract joins on b.data->>%s = t.data->>%s and hit the same trap.
 _JSON_EXTRACT = re.compile(
     r"(?<![\w')])([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?)"
-    r"\s*->>\s*('(?:[^']|'')*')")
+    r"\s*->>\s*('(?:[^']|'')*'|%s)")
+
+# Functions Postgres has and DuckDB does not, all verified missing rather than
+# assumed. The argument matches non-greedily up to the quoted format string, so
+# nested calls with their own commas survive: to_date(substring(x,1,10),'...').
+_JSONB_KEYS = re.compile(r"\bjsonb_object_keys\s*\(([^()]*)\)")
+_TO_CHAR = re.compile(r"\bto_char\s*\((.+?),\s*'([^']+)'\s*\)", re.IGNORECASE)
+_TO_DATE = re.compile(r"\bto_date\s*\((.+?),\s*'([^']+)'\s*\)", re.IGNORECASE)
+_TO_REGCLASS = re.compile(
+    r"\bto_regclass\s*\(\s*'([^']+)'\s*\)\s+IS\s+NOT\s+NULL", re.IGNORECASE)
+_FMT_TOKENS = [("YYYY", "%Y"), ("MM", "%m"), ("DD", "%d"),
+               ("HH24", "%H"), ("MI", "%M"), ("SS", "%S")]
+
+
+def _fmt(pg_format: str) -> str:
+    for pg, du in _FMT_TOKENS:
+        pg_format = pg_format.replace(pg, du)
+    return pg_format
 
 # Postgres allows an alias to follow an expression with no AS. DuckDB does not
 # when the expression ends in a JSON operator or a closing paren.
@@ -95,6 +114,13 @@ def translate(sql: str) -> str:
     Order matters: parenthesise extractions first, so the alias pass then sees a
     closing paren and handles `(data->>'x') alias` by its existing rule.
     """
+    sql = _JSONB_KEYS.sub(r"unnest(json_keys(\1))", sql)
+    sql = _TO_CHAR.sub(lambda m: f"strftime({m.group(1)}, '{_fmt(m.group(2))}')", sql)
+    sql = _TO_DATE.sub(
+        lambda m: f"CAST(strptime({m.group(1)}, '{_fmt(m.group(2))}') AS DATE)", sql)
+    sql = _TO_REGCLASS.sub(
+        r"EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='\1')",
+        sql)
     sql = _JSON_EXTRACT.sub(r"(\1->>\2)", sql)
     sql = _BARE_ALIAS.sub(r"\1 AS \2\3\4", sql)
     return sql.replace("%s", "?")
@@ -141,6 +167,11 @@ class _Cursor:
     def fetchone(self):
         return self._res.fetchone() if self._res is not None else None
 
+    def executemany(self, sql: str, seq: Sequence[Sequence[Any]]):
+        for params in seq:
+            self.execute(sql, params)
+        return self
+
     def close(self):
         self._res = None
 
@@ -159,11 +190,19 @@ class _Connection:
     def cursor(self):
         return _Cursor(self._con)
 
+    def rollback(self):
+        """Readers call this to clear aborted-tx state; DuckDB over files has
+        no transaction to roll back."""
+
+    def commit(self):
+        pass
+
     def close(self):
         self._con.close()
 
 
-def connect(archive_dir: str, manifest: str | None = None) -> _Connection:
+def connect(archive_dir: str, manifest: str | None = None,
+            run_log: str | None = None) -> _Connection:
     """Open the archive as if it were the warehouse.
 
     Builds one view named etl_feed_rows with the same columns the real table has
@@ -188,8 +227,15 @@ def connect(archive_dir: str, manifest: str | None = None) -> _Connection:
         feed_expr = _SLUG_FROM_FILENAME
 
     con = duckdb.connect()
+    # A TABLE, not a VIEW. As a view every one of the bake's 27 queries re-parses
+    # the whole gzipped archive: measured at 278s per bake against 21s for the
+    # Postgres one, a 13x regression that would have made the daily bake slower
+    # than the export. Materialising reads the gzip once and leaves the queries
+    # hitting memory. The archive is ~53MB compressed / ~1.2M rows, which fits
+    # comfortably; if it ever stops fitting, the answer is a per-feed read rather
+    # than going back to a view.
     con.execute(f"""
-        CREATE VIEW etl_feed_rows AS
+        CREATE TABLE etl_feed_rows AS
         SELECT {feed_expr}                                            AS feed,
                CAST(regexp_extract(filename, '(\\d{{4}}-\\d{{2}}-\\d{{2}})', 1)
                     AS DATE)                                          AS pull_date,
@@ -198,6 +244,33 @@ def connect(archive_dir: str, manifest: str | None = None) -> _Connection:
         FROM read_json_auto({_lit(pattern)}, filename=true,
                             union_by_name=true, maximum_object_size=20000000)
     """)
+    # Every query filters on feed, and most also on pull_date - the same index
+    # the real table carries (etl_feed_rows_feed_idx).
+    con.execute("CREATE INDEX etl_feed_rows_feed_idx ON etl_feed_rows (feed, pull_date)")
+
+    # The run receipts, when the caller can point at the shadow JSONL the ETL
+    # repo commits (run_log/etl_run_log.jsonl, one line per run). Built as a
+    # real etl_run_log table so the verifier's receipt queries run unchanged -
+    # its to_regclass() existence probe is translated to an information_schema
+    # check, so with no run_log given the table is simply absent and the
+    # verifier takes its own "no receipts yet" path rather than erroring.
+    if run_log and os.path.exists(run_log):
+        con.execute(f"""
+            CREATE TABLE etl_run_log AS
+            SELECT CAST(run_kind AS VARCHAR)              AS run_kind,
+                   CAST(started_at AS TIMESTAMP)          AS started_at,
+                   CAST(finished_at AS TIMESTAMP)         AS finished_at,
+                   CAST(pull_date AS DATE)                AS pull_date,
+                   CAST(github_run_id AS VARCHAR)         AS github_run_id,
+                   CAST(feeds_attempted AS INTEGER)       AS feeds_attempted,
+                   CAST(feeds_ok AS INTEGER)              AS feeds_ok,
+                   CAST(feeds_failed AS INTEGER)          AS feeds_failed,
+                   CAST(rows_written AS BIGINT)           AS rows_written,
+                   CAST(exit_code AS INTEGER)             AS exit_code,
+                   CAST(failures AS JSON)                 AS failures
+            FROM read_json_auto({_lit(run_log)}, format='newline_delimited',
+                                union_by_name=true)
+        """)
     return _Connection(con)
 
 

@@ -160,7 +160,33 @@ def fetch_json(url: str, timeout: int = 20):
         return json.loads(r.read().decode("utf-8"))
 
 
+# Phase 4 of the Neon exit: OPS_WAREHOUSE_SOURCE=archive verifies the committed
+# pull archive instead of Postgres. Every check below runs unchanged; only the
+# connection and the two store-specific behaviours (capacity, aggregates) branch
+# on this. Default is Postgres, so the flag is inert until something sets it.
+ARCHIVE_MODE = os.environ.get("OPS_WAREHOUSE_SOURCE") == "archive"
+
+
 def connect():
+    if ARCHIVE_MODE:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import archive_source
+        adir = (os.environ.get("OPS_ARCHIVE_DIR") or "").strip()
+        if not adir:
+            add("setup", "critical",
+                "OPS_WAREHOUSE_SOURCE=archive but OPS_ARCHIVE_DIR is not set "
+                "- the verifier cannot verify anything")
+            return None
+        try:
+            # OPS_RUN_LOG points at the ETL repo's shadow receipt JSONL; when
+            # absent the etl_run_log table simply does not exist and check 0
+            # takes its own "no receipts yet" path.
+            return archive_source.connect(
+                adir, manifest=MANIFEST_PATH,
+                run_log=(os.environ.get("OPS_RUN_LOG") or "").strip() or None)
+        except SystemExit as e:
+            add("setup", "critical", f"cannot open the archive: {e}")
+            return None
     import psycopg2
     dsn = (os.environ.get("WAREHOUSE_DSN") or "").strip()
     if not dsn:
@@ -439,11 +465,23 @@ def check_consistency(pg_latest: str, snap_latest: str):
         os.makedirs(os.path.join(tmp, "builders"), exist_ok=True)
         shutil.copy(os.path.join(HERE, "bake_ops_command.py"),
                     os.path.join(tmp, "builders", "bake_ops_command.py"))
-        # The builder reads maintenance_source.json from its OUT_DIR.
+        # In archive mode the copied bake imports archive_source from ITS OWN
+        # directory (the subprocess inherits OPS_WAREHOUSE_SOURCE and an
+        # absolute OPS_ARCHIVE_DIR from this process) - without this copy the
+        # recompute dies on ModuleNotFoundError, which is exactly how it
+        # failed on first test. Copied unconditionally: harmless in Postgres
+        # mode, required in archive mode.
+        shutil.copy(os.path.join(HERE, "archive_source.py"),
+                    os.path.join(tmp, "builders", "archive_source.py"))
+        # The builder reads maintenance_source.json from its OUT_DIR, and the
+        # archive-mode feed map falls back to the manifest for names.
         os.makedirs(os.path.join(tmp, "data", "ops_command"), exist_ok=True)
         if os.path.exists(MAINT_PATH):
             shutil.copy(MAINT_PATH, os.path.join(
                 tmp, "data", "ops_command", "maintenance_source.json"))
+        if os.path.exists(MANIFEST_PATH):
+            shutil.copy(MANIFEST_PATH, os.path.join(
+                tmp, "data", "ops_command", "feeds_manifest.json"))
         r = subprocess.run(
             [sys.executable, os.path.join(tmp, "builders",
                                           "bake_ops_command.py")],
@@ -521,6 +559,32 @@ def check_side_channels(cur, today: str) -> dict:
     except Exception as e:  # noqa: BLE001
         add("6-side", "warning", f"maintenance_source.json unreadable: {e}")
 
+    if ARCHIVE_MODE:
+        # pg_database_size and the 512 MB Neon cap mean nothing against the
+        # archive. The store here is the git repo, whose practical comfort
+        # bound is ~5 GB; the archive grows ~1.7 GB/year, so this is a slow
+        # drift warning rather than tomorrow's outage.
+        adir = os.environ.get("OPS_ARCHIVE_DIR") or ""
+        total = 0
+        for root, _dirs, files in os.walk(adir):
+            for fn in files:
+                try:
+                    total += os.path.getsize(os.path.join(root, fn))
+                except OSError:
+                    pass
+        arch_mb = round(total / 1e6)
+        sizes["archive_mb"] = arch_mb
+        if arch_mb > 4000:
+            add("6-side", "warning",
+                f"pull archive is {arch_mb} MB - approaching the ~5 GB point "
+                "where a git repo gets unwieldy; plan a yearly split or a "
+                "Parquet conversion")
+        else:
+            add("6-side", "ok",
+                f"pull archive {arch_mb} MB on disk (~1.7 GB/year growth; "
+                "repo comfort bound ~5 GB)")
+        return sizes
+
     cur.execute("SELECT pg_database_size(current_database())")
     db_bytes = cur.fetchone()[0]
     db_mb = round(db_bytes / 1e6)
@@ -594,6 +658,41 @@ def archive_aggregates(conn, snap: dict | None) -> None:
         add("aggregates", "warning",
             "recomputed snapshot had no aggregatable cells - nothing "
             "written to ops_daily_aggregates")
+        return
+    if ARCHIVE_MODE:
+        # The aggregates keep the same upsert semantics, but the store is a
+        # committed JSONL beside the snapshots rather than a Postgres table.
+        # Everything in it derives from the PUBLIC snapshot (that is what
+        # `snap` is), so it belongs in this public repo; committing is the
+        # bake workflow's job, same as health_latest.json.
+        try:
+            path = os.path.join(OUT_DIR, "ops_daily_aggregates.jsonl")
+            current: dict = {}
+            if os.path.exists(path):
+                with open(path, encoding="utf-8") as fh:
+                    for line in fh:
+                        if line.strip():
+                            r = json.loads(line)
+                            current[(r["metric_date"], r["site"],
+                                     r["metric"])] = r
+            for d, site, metric, v1, v2, v3 in rows:
+                current[(d, site, metric)] = {
+                    "metric_date": d, "site": site, "metric": metric,
+                    "v1": v1, "v2": v2, "v3": v3, "updated_at": utcnow()}
+            tmp = path + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as fh:
+                for k in sorted(current):
+                    fh.write(json.dumps(current[k], ensure_ascii=False,
+                                        separators=(",", ":"),
+                                        default=str) + "\n")
+            os.replace(tmp, path)
+            add("aggregates", "ok",
+                f"{len(rows)} per-site daily aggregate rows upserted into "
+                f"ops_daily_aggregates.jsonl ({len(current)} total)")
+        except Exception as e:  # noqa: BLE001
+            add("aggregates", "critical",
+                f"ops_daily_aggregates.jsonl upsert failed: {e}",
+                klass="aggregates-write")
         return
     try:
         with conn.cursor() as cur:
