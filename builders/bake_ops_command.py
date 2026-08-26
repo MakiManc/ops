@@ -792,6 +792,13 @@ def main():
     # Dedup key is the Kobas Reference, latest pull wins, then latest placed_at
     # within a pull - amended orders are understood to re-send the same
     # reference. Re-pulling the same orders daily is expected and correct.
+    # 26/08/2026: a row CARRYING 'Delivery Date ISO' now outranks one without,
+    # ahead of pull_date. Rows written before the parser upgrade have no ISO
+    # date and so cannot be date-filtered at all; without this a legacy row in
+    # a newer pull would shadow the usable one and drop the order out of both
+    # the week and the OTIF month, with no gap note - order_feed_usable only
+    # checks that SOME row somewhere carries an ISO date. Preferring the
+    # richer shape is free when both rows are current.
     # Field names are the feed's own (Title Case) - they predate this work and
     # other consumers read them. 'Delivery Date ISO' is the sortable date;
     # 'Delivery Date' is the raw '28th Aug 2026' string the feed has always
@@ -804,7 +811,9 @@ def main():
       "   nullif(data->>'Created By','') staff, data->>'Line Items' lines, "
       "   data->>'Items Ordered' items, data->>'Order Value GBP' total "
       " FROM etl_feed_rows WHERE feed=%s "
-      " ORDER BY data->>'Order Ref', pull_date DESC, "
+      " ORDER BY data->>'Order Ref', "
+      "          (nullif(data->>'Delivery Date ISO','') IS NULL), "
+      "          pull_date DESC, "
       "          data->>'Order Placed At' DESC")
     week_spend=[]; price_watch=[]; week_days=[]; week_drill=[]
     week_drill_total=0; week_spend_source=None; week_spend_basis=None; week_totals=None
