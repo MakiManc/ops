@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-26T10:05:43Z",
+ "generated_at": "2026-08-26T12:53:37Z",
  "verified_date": "2026-08-26",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-08-26",
  "snapshot_latest": "2026-08-26",
@@ -14,16 +14,218 @@
  "counts": {
   "expected_feeds": 46,
   "known_broken": 14,
-  "criticals": 1,
+  "criticals": 30,
   "warnings": 16,
-  "deferred": 29
+  "deferred": 0
  },
  "criticals": [
   {
    "check": "0-receipts",
    "level": "critical",
+   "feed": "daily-export",
+   "class": "0-receipts-missing",
+   "detail": "no receipt from the 08:15 daily export today - the run either never started or died before writing anything"
+  },
+  {
+   "check": "0-receipts",
+   "level": "critical",
    "feed": "deep-pull",
    "detail": "03:00 deep pull receipt says exit 1 with 4 failed feed(s) - see its run log"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Central Areas",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Central Form Tasks",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Central Module Tasks",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Deviations (prev day)",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Form Task Answers",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Form Task Answers (prev day)",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Forms",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Forms Overview",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Local Procedures",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Location Groups",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Locations",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Modules",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Procedure Details",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Procedures",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Procedures Refactor",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Processes",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Scheduled Task Answers",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Scheduled Task Answers (prev day)",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Users",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Waste Module Settings",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Orders",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-21 (5d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Supplier Issues",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
+  },
+  {
+   "check": "4b-consistency",
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - training_outstanding: live 2129 vs recomputed 2101 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   }
  ],
  "warnings": [
@@ -138,210 +340,7 @@
    "detail": "warehouse database is 421 MB - Neon free cap is 512 MB; check the archive+trim job (warehouse-archive.yml) and consider a vacuum_full dispatch"
   }
  ],
- "deferred": [
-  {
-   "check": "0-receipts",
-   "level": "deferred",
-   "feed": "daily-export",
-   "class": "0-receipts-missing",
-   "detail": "no receipt from the 08:15 daily export today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Central Areas",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Central Form Tasks",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Central Module Tasks",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Deviations (prev day)",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Form Task Answers",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Forms",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Forms Overview",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Local Procedures",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Location Groups",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Locations",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Modules",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Procedure Details",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Procedures",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Procedures Refactor",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Processes",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Scheduled Task Answers",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Scheduled Task Answers (prev day)",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Users",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Waste Module Settings",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Orders",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-21 (5d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Supplier Issues",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "4b-consistency",
-   "level": "deferred",
-   "class": "4b-consistency",
-   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - training_outstanding: live 2129 vs recomputed 2101 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)  [deferred - rechecked at 12:00 UTC]"
-  }
- ],
+ "deferred": [],
  "known_broken": [
   {
    "name": "Mapal Supplier Orders",
@@ -403,10 +402,10 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "deferred",
+   "level": "critical",
    "feed": "daily-export",
    "class": "0-receipts-missing",
-   "detail": "no receipt from the 08:15 daily export today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
+   "detail": "no receipt from the 08:15 daily export today - the run either never started or died before writing anything"
   },
   {
    "check": "0-receipts",
@@ -431,7 +430,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "2673 rows (median 2613)"
+   "detail": "2673 rows (median 2615)"
   },
   {
    "check": "1-landed",
@@ -443,7 +442,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Courses",
-   "detail": "1469 rows (median 1457)"
+   "detail": "1469 rows (median 1459)"
   },
   {
    "check": "1-landed",
@@ -455,7 +454,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "4778 rows (median 4775)"
+   "detail": "4778 rows (median 4779)"
   },
   {
    "check": "1-landed",
@@ -569,192 +568,192 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Central Areas",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Central Form Tasks",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Central Module Tasks",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Deviations (prev day)",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Form Task Answers",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Form Task Answers (prev day)",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Forms",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Forms Overview",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Local Procedures",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Location Groups",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Locations",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Modules",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Procedure Details",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Procedures",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Procedures Refactor",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Processes",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Scheduled Task Answers",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Scheduled Task Answers (prev day)",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Users",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Waste Module Settings",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Orders",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-21 (5d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-21 (5d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Supplier Issues",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-08-25 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-08-25 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -886,9 +885,9 @@
   },
   {
    "check": "4b-consistency",
-   "level": "deferred",
+   "level": "critical",
    "class": "4b-consistency",
-   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - training_outstanding: live 2129 vs recomputed 2101 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)  [deferred - rechecked at 12:00 UTC]"
+   "detail": "live dashboard aggregates do not match a fresh recompute from Postgres - training_outstanding: live 2129 vs recomputed 2101 (a builder deploy after the 09:00 bake causes this legitimately - rebake via workflow_dispatch if so)"
   },
   {
    "check": "aggregates",
@@ -896,5 +895,5 @@
    "detail": "596 per-site daily aggregate rows upserted (tasks, broth, supplier issues)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against Neon Postgres and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
