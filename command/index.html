@@ -235,6 +235,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="card"><div class="card-h"><div class="t">Projected spend this week — by site &amp; supplier</div>
     <div class="s" id="fa-aging-sub">Kobas Outstanding Stock Orders · orders due this Mon–Sun, by target delivery date · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)</div></div>
     <div class="card-b" id="fa-aging"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Supplier OTIF &mdash; monthly</div>
+    <div class="s" id="otif-sub">Issue-free delivery rate per supplier &middot; deliveries from Kobas order confirmations vs issues filed in the same month</div></div>
+    <div class="card-b" id="otif-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Price change watch</div>
     <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · latest report pull, not sliced by the date range above</div></div>
     <div class="card-b" id="pw-tbl"></div></div>
@@ -367,11 +370,91 @@ function siteBoxes(host,items,empty){
     const pct=hasSplit&&i.value>0?Math.max(0,Math.min(100,i.delivered/i.value*100)):0;
     const bar=hasSplit?`<div class="splitbar"><i style="width:${pct}%"></i></div>`:'';
     const deliveredNote=hasSplit&&i.delivered>0?' · £'+fmtN(Math.round(i.delivered))+' delivered':'';
+    /* i.sub lets a caller state the subline itself (26/08/2026 - the spend
+       card counts order LINES there, the default counts suppliers). */
+    const sub=i.sub!=null?esc(i.sub)
+      :`${fmtN(i.orders)} order${i.orders===1?'':'s'} · ${fmtN(i.suppliers)} supplier${i.suppliers===1?'':'s'}${deliveredNote}`;
     return `<div class="sitebox clk" data-site="${esc(i.site)}"><div class="lb" title="${esc(i.site)}">${esc(i.site)}</div>`+
     `<div class="vl">£${fmtN(Math.round(i.value))}</div>`+
-    `<div class="sb">${fmtN(i.orders)} order${i.orders===1?'':'s'} · ${fmtN(i.suppliers)} supplier${i.suppliers===1?'':'s'}${deliveredNote}</div>`+
+    `<div class="sb">${sub}</div>`+
     bar+'</div>';
   }).join('')+'</div>';
+}
+/* ---- monthly supplier OTIF (26/08/2026) --------------------------------
+   Ross's definition, locked: deliveries in the month vs issues filed in the
+   same month, per supplier. This is an ISSUE-FREE-DELIVERY RATE, not a
+   measured on-time-in-full - nothing here observes whether a delivery
+   actually arrived on time or complete, only whether somebody filed an issue
+   against that supplier that month. The note under the table says so every
+   time it renders, and August says more (issue history starts mid-month).
+   A snapshot baked before this block existed gets an explicit "predates"
+   empty state - never a table of zeros. */
+let OTIF_MONTH=null;
+function monthLabel(m){
+  const MN=['January','February','March','April','May','June','July',
+            'August','September','October','November','December'];
+  const p=String(m||'').split('-');
+  return (p.length===2&&MN[+p[1]-1])?MN[+p[1]-1]+' '+p[0]:String(m||'—');
+}
+function renderOtif(){
+  const el=$('otif-tbl'); if(!el) return;
+  const o=(SNAP&&SNAP.supply&&SNAP.supply.otif)||null;
+  const months=(o&&o.months)||[];
+  const sub=$('otif-sub');
+  if(!months.length){
+    el.innerHTML='<div class="empty">'+esc(o
+      ? 'No monthly OTIF data in this snapshot — the Kobas Orders feed had not landed when it was baked.'
+      : 'This snapshot predates the monthly OTIF data.')+'</div>';
+    if(sub) sub.textContent='Issue-free delivery rate per supplier · unavailable in this snapshot';
+    return;
+  }
+  const keys=months.map(m=>m.month);
+  if(!OTIF_MONTH||keys.indexOf(OTIF_MONTH)<0) OTIF_MONTH=keys[keys.length-1];
+  const idx=keys.indexOf(OTIF_MONTH);
+  const cur=months[idx], prev=idx>0?months[idx-1]:null;
+  const prevMap={}; if(prev)(prev.suppliers||[]).forEach(r=>{prevMap[r.supplier]=r;});
+  const rows=(cur.suppliers||[]).slice();
+  const pctTxt=v=>v==null?'—':Number(v).toFixed(1)+'%';
+  /* direction is carried by the glyph AND the word, never by colour alone */
+  const deltaCell=r=>{
+    if(!prev) return '—';
+    const p=prevMap[r.supplier];
+    if(!p||p.otif_pct==null||r.otif_pct==null) return '—';
+    const d=Math.round((r.otif_pct-p.otif_pct)*10)/10;
+    if(d===0) return '▬ level';
+    return (d>0?'▲ up ':'▼ down ')+Math.abs(d).toFixed(1)+' pts';
+  };
+  const selHtml='<div style="margin:0 0 10px">'+
+    '<label for="otif-month" style="font-size:12.5px;opacity:.85;margin-right:6px">Month</label>'+
+    '<select id="otif-month" title="Choose a month">'+
+    keys.map(k=>`<option value="${esc(k)}"${k===OTIF_MONTH?' selected':''}>${esc(monthLabel(k))}</option>`).join('')+
+    '</select></div>';
+  const body=rows.length
+    ? '<table><thead><tr><th>Supplier</th><th class="n">Deliveries</th><th class="n">Issues</th>'+
+      '<th class="n">OTIF %</th><th>vs '+esc(prev?monthLabel(prev.month):'previous month')+'</th></tr></thead><tbody>'+
+      rows.map(r=>`<tr><td>${esc(r.supplier||'—')}</td><td class="n">${fmtN(r.deliveries)}</td>`+
+        `<td class="n">${fmtN(r.issues)}</td><td class="n">${esc(pctTxt(r.otif_pct))}</td>`+
+        `<td>${esc(deltaCell(r))}</td></tr>`).join('')+
+      `<tr class="tot"><td>All suppliers</td><td class="n">${fmtN(cur.deliveries)}</td>`+
+      `<td class="n">${fmtN(cur.issues)}</td><td class="n">${esc(pctTxt(cur.otif_pct))}</td><td></td></tr>`+
+      '</tbody></table>'
+    : '<div class="empty">No deliveries or issues recorded in '+esc(monthLabel(cur.month))+'.</div>';
+  const augNote=(cur.month===(o.first_month||'2026-08'))
+    ? ' ⚠ '+esc(monthLabel(cur.month))+' is not comparable with later months: delivery counts cover the whole month but issue history only begins '+
+      esc(o.issues_history_start||'13 Aug 2026')+', so its OTIF is flattered.'
+    : '';
+  const unatt=(cur.unattributed_issues||0)>0
+    ? ' · '+fmtN(cur.unattributed_issues)+' issue'+(cur.unattributed_issues===1?'':'s')+
+      ' that month named no supplier and are excluded from the rows above (they are on the Supplier Issues tab)'
+    : '';
+  el.innerHTML=selHtml+body+
+    '<div class="prov">'+esc(o.note||'')+unatt+'</div>'+
+    (o.basis?'<div class="prov">'+esc(o.basis)+'</div>':'')+
+    (augNote?'<div class="prov" style="color:var(--a)">'+augNote+'</div>':'');
+  if(sub) sub.textContent='Issue-free delivery rate per supplier · '+monthLabel(cur.month)+
+    ' · deliveries from Kobas order confirmations vs issues filed in the same month · not a measured on-time-in-full';
+  const ms=$('otif-month');
+  if(ms) ms.onchange=()=>{OTIF_MONTH=ms.value;renderOtif();};
 }
 function chip(kind,word){
   const ic={g:'✓',a:'▲',r:'●',n:'–',b:'ℹ'}[kind]||'';
@@ -480,10 +563,38 @@ function openSupplierProfileModal(name){
       '<table><thead><tr><th>Site</th><th class="n">Orders</th><th class="n">£ projected</th></tr></thead><tbody>'+
       ws.map(w=>`<tr><td>${esc(w.site||'—')}</td><td class="n">${fmtN(w.orders)}</td>`+
         `<td class="n">£${fmtN(Math.round(w.value_gbp||0))}</td></tr>`).join('')+
-      '</tbody></table><div class="prov">a projection from outstanding orders, not a confirmed spend figure</div>';
+      '</tbody></table><div class="prov">'+
+      ((SNAP&&SNAP.supply&&SNAP.supply.week_spend_source)==='order_emails'
+        ? 'orders as placed, from Kobas order confirmation emails — not a confirmed delivered figure'
+        : 'a projection from outstanding orders, not a confirmed spend figure')+'</div>';
   } else {
-    html+='<div class="prov" style="margin-top:12px">No outstanding orders due this week are attributed to this supplier'+
+    html+='<div class="prov" style="margin-top:12px">No orders due this week are attributed to this supplier'+
       (name==='Unattributed'?'':' (older snapshots predate the supplier join)')+'.</div>';
+  }
+  /* monthly OTIF for this supplier, restricted to the months the event-date
+     range touches (26/08/2026). A month counts as in range if ANY of its days
+     is - a range that ends mid-month still shows that month, labelled. */
+  const otifB=(SNAP&&SNAP.supply&&SNAP.supply.otif)||null;
+  const monthOverlapsRange=m=>{
+    const first=m+'-01';
+    const y=+m.slice(0,4), mo=+m.slice(5,7);
+    const last=new Date(Date.UTC(y,mo,0)).toISOString().slice(0,10);
+    return (!EV.t||first<=EV.t)&&(!EV.f||last>=EV.f);
+  };
+  if(otifB&&(otifB.months||[]).length){
+    const mrows=(otifB.months||[]).filter(m=>monthOverlapsRange(m.month))
+      .map(m=>({month:m.month,r:(m.suppliers||[]).find(x=>x.supplier===name)||null}))
+      .filter(x=>x.r);
+    html+='<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">OTIF by month</div>';
+    html+=mrows.length
+      ? '<table><thead><tr><th>Month</th><th class="n">Deliveries</th><th class="n">Issues</th><th class="n">OTIF %</th></tr></thead><tbody>'+
+        mrows.map(x=>`<tr><td>${esc(monthLabel(x.month))}</td><td class="n">${fmtN(x.r.deliveries)}</td>`+
+          `<td class="n">${fmtN(x.r.issues)}</td>`+
+          `<td class="n">${x.r.otif_pct==null?'—':Number(x.r.otif_pct).toFixed(1)+'%'}</td></tr>`).join('')+
+        '</tbody></table><div class="prov">'+esc(otifB.note||'')+'</div>'
+      : '<div class="empty">No deliveries or issues recorded for this supplier in the months this range touches.</div>';
+  } else {
+    html+='<div class="prov" style="margin-top:12px">Monthly OTIF is not in this snapshot.</div>';
   }
   html+='<div class="prov">Ingredient price changes carry no supplier field in the source report, so they cannot be shown per supplier — see Price change watch on Supply &amp; Fulfilment.</div>'+
     '<div class="prov">'+esc(sup.issues_basis||'')+' · '+esc(evLabel())+'</div>';
@@ -606,7 +717,7 @@ function openWeekSpendModal(site){
   const ord=rows.reduce((s,f)=>s+(f.orders||0),0);
   const wk=(SNAP.supply&&SNAP.supply.week_start&&SNAP.supply.week_end)
     ? SNAP.supply.week_start+' – '+SNAP.supply.week_end : 'this Mon–Sun';
-  const isLive=(SNAP.supply&&SNAP.supply.week_spend_source)==='kobas_live';
+  const isLive=(SNAP.supply&&SNAP.supply.week_spend_source)==='order_emails';
 
   if(!isLive){
     /* fallback shape: exactly today's card - no delivered/pending split on
@@ -620,26 +731,32 @@ function openWeekSpendModal(site){
     return;
   }
 
-  const delivered=rows.reduce((s,f)=>s+(f.delivered_value_gbp||0),0);
-  const pending=tot-delivered;
+  /* 26/08/2026: the order-confirmation emails carry no delivered status, so
+     the delivered/pending split that the retired pending-orders feed
+     supported is GONE rather than guessed at. Items and lines take its
+     place - both are real numbers off the order itself. */
+  const items=rows.reduce((s,f)=>s+(f.items||0),0);
+  const lines=rows.reduce((s,f)=>s+(f.lines||0),0);
   const kpi=(c,l,v,sb)=>`<div class="kpi k-${c}"><div class="lb">${esc(l)}</div><div class="vl">${v}</div><div class="sb">${esc(sb)}</div></div>`;
   const chips='<div class="kpis" style="margin:2px 0 12px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))">'+
     kpi('o','Total','£'+fmtN(Math.round(tot)),fmtN(ord)+' order'+(ord===1?'':'s'))+
-    kpi('a','Still to come','£'+fmtN(Math.round(pending)),'')+
-    kpi('g','Delivered','£'+fmtN(Math.round(delivered)),'')+
+    kpi('o','Items ordered',fmtN(items),fmtN(lines)+' order line'+(lines===1?'':'s'))+
+    kpi('b','Suppliers',fmtN(rows.length),'')+
     '</div>';
   const supTable='<div style="font-weight:650;font-size:13.5px;margin:4px 0 6px">By supplier</div>'+
-    '<table><thead><tr><th>Supplier</th><th class="n">Orders</th><th class="n">£ total</th></tr></thead><tbody>'+
+    '<table><thead><tr><th>Supplier</th><th class="n">Orders</th><th class="n">Items</th><th class="n">Lines</th><th class="n">£ total</th></tr></thead><tbody>'+
     rows.map(f=>`<tr><td>${esc(f.supplier||'—')}</td><td class="n">${fmtN(f.orders)}</td>`+
+      `<td class="n">${fmtN(f.items)}</td><td class="n">${fmtN(f.lines)}</td>`+
       `<td class="n">£${fmtN(Math.round(f.value_gbp||0))}</td></tr>`).join('')+
     '</tbody></table>';
   const drillAll=((SNAP.supply&&SNAP.supply.week_drill)||[]).filter(o=>o.site===site)
     .slice().sort((a,b)=>(a.d||'').localeCompare(b.d||'')||(b.value_gbp||0)-(a.value_gbp||0));
   const orderTable=drillAll.length
     ? '<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">Every order</div>'+
-      '<table><thead><tr><th>Order no.</th><th>Supplier</th><th>Delivery date</th><th class="n">£</th><th>Status</th><th>Placed by</th></tr></thead><tbody>'+
+      '<table><thead><tr><th>Order no.</th><th>Supplier</th><th>Delivery date</th><th class="n">Lines</th><th class="n">Items</th><th class="n">£</th><th>Placed by</th></tr></thead><tbody>'+
       drillAll.map(o=>`<tr><td>${esc(o.order_no||'—')}</td><td>${esc(o.supplier||'—')}</td><td>${esc(o.d||'—')}</td>`+
-        `<td class="n">£${fmtN(Math.round(o.value_gbp||0))}</td><td>${o.status==='delivered'?chip('g','Delivered'):chip('a','Pending')}</td>`+
+        `<td class="n">${fmtN(o.lines)}</td><td class="n">${fmtN(o.items)}</td>`+
+        `<td class="n">£${fmtN(Math.round(o.value_gbp||0))}</td>`+
         `<td>${esc(o.staff||'—')}</td></tr>`).join('')+
       '</tbody></table>'
     : '<div class="empty" style="margin-top:14px">Per-order detail unavailable for this site this pull.</div>';
@@ -1144,24 +1261,29 @@ function render(snap){
   const weekStart=(snap.supply&&snap.supply.week_start)||'', weekEnd=(snap.supply&&snap.supply.week_end)||'';
   const weekSource=(snap.supply&&snap.supply.week_spend_source)||'weekly_report_fallback';
   const weekTotals=(snap.supply&&snap.supply.week_totals)||null;
-  const isLiveSpend=weekSource==='kobas_live'&&!!weekTotals;
-  /* subtitle: 24/08/2026 - the live feed and the weekly-report fallback
+  const isLiveSpend=weekSource==='order_emails'&&!!weekTotals;
+  /* subtitle: 24/08/2026 - the email feed and the weekly-report fallback
      carry different guarantees, so each gets its own wording rather than
-     one caption stretched to cover both. */
+     one caption stretched to cover both. 26/08/2026: the email source has
+     no delivered/pending split, so the caption no longer promises one. */
   if($('fa-aging-sub')) $('fa-aging-sub').textContent=isLiveSpend
-    ? 'Kobas live pending orders · pulled daily · orders land 1–3 days ahead, so the weekly figure builds through the week · click a site for its supplier breakdown'
+    ? 'Kobas order confirmation emails · parsed daily · orders as placed, by delivery date, so the weekly figure builds through the week · click a site for its supplier breakdown'
     : 'Kobas Outstanding Stock Orders · orders due '+
       (weekStart&&weekEnd?weekStart+' – '+weekEnd:'this Mon–Sun')+
       ' (target delivery date) · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)';
   const siteAgg={};
   weekSpend.forEach(f=>{
-    const s=siteAgg[f.site]||(siteAgg[f.site]={value:0,orders:0,delivered:0,suppliers:new Set()});
+    const s=siteAgg[f.site]||(siteAgg[f.site]={value:0,orders:0,lines:0,items:0,suppliers:new Set()});
     s.value+=(f.value_gbp||0); s.orders+=(f.orders||0); s.suppliers.add(f.supplier);
-    if(isLiveSpend) s.delivered+=(f.delivered_value_gbp||0);
+    s.lines+=(f.lines||0); s.items+=(f.items||0);
   });
   const siteBoxRows=Object.entries(siteAgg)
     .map(([site,v])=>({site,value:v.value,orders:v.orders,suppliers:v.suppliers.size,
-      delivered:isLiveSpend?v.delivered:null}))
+      /* no split bar: nothing in this source knows what has been delivered */
+      delivered:null,
+      sub:isLiveSpend
+        ? fmtN(v.orders)+' order'+(v.orders===1?'':'s')+' · '+fmtN(v.lines)+' line'+(v.lines===1?'':'s')
+        : null}))
     .sort((a,b)=>b.value-a.value);
   siteBoxes('fa-aging',siteBoxRows,'No orders due this week in this pull');
   [...document.querySelectorAll('#fa-aging .sitebox')].forEach(b=>
@@ -1171,7 +1293,7 @@ function render(snap){
   /* the gap note is the one place a source problem (missing/unparsable
      live feed, stale pull) surfaces directly under the card - never
      silently swallowed */
-  const supplyGaps=(snap.gaps||[]).filter(g=>/kobas pending orders/i.test(g));
+  const supplyGaps=(snap.gaps||[]).filter(g=>/kobas orders|kobas order emails|kobas pending orders/i.test(g));
   if(supplyGaps.length)
     $('fa-aging').insertAdjacentHTML('beforeend',
       supplyGaps.map(g=>'<div class="prov" style="color:var(--a)">⚠ '+esc(g)+'</div>').join(''));
@@ -1192,17 +1314,25 @@ function render(snap){
   });
   const topSite=Object.entries(bySiteTot).sort((a,b)=>b[1]-a[1])[0];
   const topSup=Object.entries(bySupTot).sort((a,b)=>b[1]-a[1])[0];
+  /* OTIF this month: the weighted whole-estate figure the builder already
+     computed for the latest month - never recomputed here from the table,
+     so the tile and the table can never disagree (26/08/2026). */
+  const otifB=(snap.supply&&snap.supply.otif)||null;
+  const otifNow=(otifB&&(otifB.months||[]).length)?otifB.months[otifB.months.length-1]:null;
+  const otifTile=otifNow&&otifNow.otif_pct!=null
+    ? kpi('o','OTIF this month',Number(otifNow.otif_pct).toFixed(1)+'%',
+        monthLabel(otifNow.month)+' · '+fmtN(otifNow.deliveries)+' deliveries · '+fmtN(otifNow.issues)+' issues')
+    : kpi('n','OTIF this month','—',otifB?'no deliveries recorded this month':'not in this snapshot');
   if(isLiveSpend){
-    /* live feed: total · still to come · delivered so far · top supplier ·
-       issues logged - the delivered/pending split only exists on this
-       source, so it never appears on the fallback shape below */
+    /* email feed: total · items ordered · OTIF · top supplier · issues
+       logged. No delivered/pending split exists on this source - see the
+       note in bake_ops_command.py - so none is shown or invented. */
     $('supp-kpis').innerHTML=
       kpi('o','Projected spend this week','£'+Math.round(weekTotals.value_gbp).toLocaleString('en-GB'),
           fmtN(weekTotals.orders)+' order'+(weekTotals.orders===1?'':'s')+(weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:''))+
-      kpi('a','Still to come','£'+Math.round(weekTotals.pending_value_gbp).toLocaleString('en-GB'),
-          fmtN(weekTotals.pending_orders)+' order'+(weekTotals.pending_orders===1?'':'s')+' pending')+
-      kpi('g','Delivered so far','£'+Math.round(weekTotals.delivered_value_gbp).toLocaleString('en-GB'),
-          fmtN(weekTotals.delivered_orders)+' order'+(weekTotals.delivered_orders===1?'':'s')+' delivered')+
+      kpi('o','Items ordered this week',fmtN(weekTotals.items),
+          fmtN(weekTotals.lines)+' order line'+(weekTotals.lines===1?'':'s'))+
+      otifTile+
       kpi(topSup?'b':'n','Top supplier this week',topSup?topSup[0]:'—',
           topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
       kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
@@ -1212,12 +1342,13 @@ function render(snap){
     $('supp-kpis').innerHTML=
       kpi('o','Projected spend this week','£'+Math.round(weekTotal).toLocaleString('en-GB'),
           fmtN(weekOrders)+' order'+(weekOrders===1?'':'s')+(weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:''))+
-      kpi(topSite?'o':'n','Top site this week',topSite?topSite[0]:'—',
-          topSite?'£'+Math.round(topSite[1]).toLocaleString('en-GB'):'no orders due this week')+
+      kpi('n','Items ordered this week','—','no line or item counts in the fallback source')+
+      otifTile+
       kpi(topSup?'o':'n','Top supplier this week',topSup?topSup[0]:'—',
           topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
       kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
   }
+  renderOtif();
   /* the Issues KPI is the click-through to the dedicated tab (18/08/2026) */
   const supTiles=$('supp-kpis').children, supLast=supTiles[supTiles.length-1];
   if(supLast){supLast.style.cursor='pointer';supLast.addEventListener('click',()=>gotoPage('p-supi'));}

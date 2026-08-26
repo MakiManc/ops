@@ -366,9 +366,12 @@
    "workflow": "daily-export",
    "cadence_days": 1,
    "pulls_weekends": true,
-   "min_rows": 8,
-   "median_rows_at_calibration": 24,
-   "status": "expected"
+   "min_rows": 40,
+   "median_rows_at_calibration": 97,
+   "status": "expected",
+   "event_date_field": "Delivery Date ISO",
+   "event_fresh_days": 3,
+   "note": "Recalibrated 26/08/2026: the window widened from 2 days to 14, so a healthy pull now holds roughly 97 orders rather than 24. Floor set from 76 confirmations observed over 11 days (~7/day); weekends are thin but the 14-day window smooths that out. Re-check against the trailing 7-day median once more suppliers are enabled for order-by-email in Kobas - the count rises as coverage grows."
   },
   {
    "name": "Kobas Report - Daily EPoS Item Recipes Report",
