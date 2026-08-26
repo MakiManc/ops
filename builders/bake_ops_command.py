@@ -149,6 +149,27 @@ SUPPLIERS = [
     ("Boba Box",      ["boba box"]),
     ("PCY",           ["pcy"]),
     ("AA Factory",    ["aa factory"]),
+    # Added 26/08/2026 from the live Kobas supplier list (34 distinct names in
+    # the Ops Deliveries report). Unmapped names are NOT dropped - they keep
+    # supplier_canon=null and render under their verbatim Kobas name - but
+    # mapping them here is what lets an emailed order and a filed issue meet
+    # on the same row of the OTIF table. Deliberately NOT mapped: 'J&S' and
+    # 'LTH'. Both are short enough to fire inside unrelated free text during
+    # the text-attribution scan, and a wrong attribution is worse than none.
+    ("Wellocks",      ["wellock"]),
+    ("John Vallance", ["vallance"]),
+    ("Dunns",         ["dunns"]),
+    ("Campbells",     ["campbell"]),
+    ("Tazaki",        ["tazaki"]),
+    ("Shield Foods",  ["shield food"]),
+    ("Kirkstall Brewery", ["kirkstall"]),
+    ("ETeaket",       ["eteaket"]),
+    ("Eddies Seafood", ["eddies seafood"]),
+    ("Daata Meats",   ["daata"]),
+    ("Rahmans",       ["rahman"]),
+    ("F&J Food",      ["f&j food"]),
+    ("Wismetta",      ["wismetta"]),
+    ("Logistics RHQ", ["logistics - rhq"]),
 ]
 ANSWER_ONLY_NEEDLES = {"breaks"}
 # Answers that mean "no supplier named", never a supplier called N/A:
@@ -726,98 +747,188 @@ def main():
     # ---- supply / projected spend this week, by site + supplier ----
     # Ross, 17 Aug: replace the "orders outstanding" aging/backlog framing
     # with a forward-looking view - what do we expect to SPEND this week,
-    # broken down by site and supplier - from the same Kobas Outstanding
-    # Stock Orders report. "This week" = the Mon-Sun week containing today
-    # (Postgres current_date), matched against each order's own Target
-    # Delivery Date. Site+supplier is a genuinely new cut: the old aging
+    # broken down by site and supplier. "This week" = the Mon-Sun week
+    # containing today (Postgres current_date), matched against each order's
+    # own delivery date. Site+supplier is a genuinely new cut: the old aging
     # block only ever grouped by supplier (site was fetched but unused).
+    #
+    # SOURCE CHANGE (26/08/2026). The primary source is now the 'Kobas Order
+    # Emails' feed - a daily IMAP parse of the confirmation emails Kobas sends
+    # to ross@makiramen.com. It replaces the 'Kobas Pending Orders' route,
+    # which logged in to Kobas headlessly and committed a JSON file into the
+    # ETL repo for this workflow to check out. That route never once completed
+    # in Actions; the checkout step and its ETL_REPO_TOKEN are gone, and this
+    # builder no longer reads any checked-out etl-data/ directory. The email
+    # feed arrives in the warehouse like every other feed.
+    #
+    # WHAT THE EMAIL SOURCE CANNOT DO, STATED PLAINLY (26/08/2026):
+    #  * NO DELIVERED/PENDING SPLIT. Confirmation emails record an order being
+    #    placed and carry no status. The split that the pending-orders route
+    #    supported is REMOVED rather than faked - week_totals has no
+    #    delivered/pending keys on this source and the site boxes carry no
+    #    split bar.
+    #  * PARTIAL SUPPLIER COVERAGE. Kobas only emails a confirmation for
+    #    suppliers configured to receive their orders by email. On discovery
+    #    that was 6 of 31 estate suppliers (LWC depots, Brakes, Perfect Ted);
+    #    Lynas, HARRO, JFC, TRUE WORLD FOODS, Solstice and AA Factory transmit
+    #    another way and produce nothing, which is ~80% of estate spend. Ross
+    #    is switching the rest on in Kobas, so coverage grows by itself.
+    #    Nothing here filters by supplier - a new supplier appears the day its
+    #    first email lands. The shortfall is measured below against the weekly
+    #    outstanding-orders report and emitted as a named gap listing exactly
+    #    which suppliers are still missing, so it self-clears as Ross works
+    #    through them.
+    #  * CANCELLATIONS ARE INVISIBLE. An order cancelled in Kobas without a
+    #    re-sent email stays in the week's total.
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
-    KOBAS_LIVE_PATH=os.environ.get("KOBAS_PENDING_ORDERS_PATH",
-        "etl-data/data/kobas_pending_orders/latest.json")
+    # 26/08/2026: this is the EXISTING 'Kobas Orders' feed, not a new one.
+    # daily_export.py has parsed Kobas order-confirmation emails into it since
+    # 13/08/2026; it was upgraded the same day to emit an ISO delivery date and
+    # an item count, and to dedupe latest-wins. Adding a second feed over the
+    # same emails would have duplicated a healthy one and thrown away a
+    # fortnight of history.
+    ORDER_EMAIL_FEED="Kobas Orders"
     WEEK_DRILL_CAP=400
+    # Dedup key is the Kobas Reference, latest pull wins, then latest placed_at
+    # within a pull - amended orders are understood to re-send the same
+    # reference. Re-pulling the same orders daily is expected and correct.
+    # Field names are the feed's own (Title Case) - they predate this work and
+    # other consumers read them. 'Delivery Date ISO' is the sortable date;
+    # 'Delivery Date' is the raw '28th Aug 2026' string the feed has always
+    # carried and is deliberately NOT used for filtering.
+    ORDER_EMAIL_DEDUP=(
+      "SELECT DISTINCT ON (data->>'Order Ref') "
+      "   data->>'Order Ref' ref, nullif(data->>'Supplier','') sup, "
+      "   nullif(data->>'Site','') site, "
+      "   nullif(data->>'Delivery Date ISO','') dd, "
+      "   nullif(data->>'Created By','') staff, data->>'Line Items' lines, "
+      "   data->>'Items Ordered' items, data->>'Order Value GBP' total "
+      " FROM etl_feed_rows WHERE feed=%s "
+      " ORDER BY data->>'Order Ref', pull_date DESC, "
+      "          data->>'Order Placed At' DESC")
     week_spend=[]; price_watch=[]; week_days=[]; week_drill=[]
     week_drill_total=0; week_spend_source=None; week_spend_basis=None; week_totals=None
+    supply_coverage=None
     cur.execute("SELECT date_trunc('week',current_date)::date, "
                 "(date_trunc('week',current_date)+interval '6 day')::date")
     week_start,week_end=cur.fetchone()
     week_start,week_end=week_start.isoformat(),week_end.isoformat()
 
-    # ---- primary source: Kobas Pending Orders, live daily pull ----
-    # Landed as a JSON file committed straight into ross440/maki-hospitality-
-    # etl (not Postgres - the warehouse is at/over its 512 MB free cap; see
-    # kobas_cloud.py in that repo), checked out read-only into KOBAS_LIVE_PATH
-    # by this workflow's own steps. Snapshot-style feed: latest pull only,
-    # no cross-pull dedup needed (24/08/2026).
-    kobas_live=None
-    if os.path.exists(KOBAS_LIVE_PATH):
-        try:
-            with open(KOBAS_LIVE_PATH,encoding="utf-8") as fh:
-                kobas_live=json.load(fh)
-        except Exception as exc:  # noqa: BLE001
-            gaps.append(f"Kobas Pending Orders file at '{KOBAS_LIVE_PATH}' failed to parse "
-                 f"({type(exc).__name__}) - projected spend this week falling back to the "
-                "weekly outstanding-orders report (may be up to 7 days stale)")
-            kobas_live=None
+    def _num(v, cast=float, default=0):
+        try: return cast(v)
+        except (TypeError,ValueError): return default
 
-    if kobas_live is not None:
-        pull_date=kobas_live.get("pull_date") or "(unknown pull_date)"
-        rows=[r for r in (kobas_live.get("rows") or [])
-              if r.get("from_supplier_name") and r.get("log_date")
-              and week_start<=r["log_date"]<=week_end]
-        agg={}
-        by_day={}
+    # ---- primary source: Kobas Orders (order-confirmation emails) ----
+    # A feed present but written by the PRE-26/08 parser carries no
+    # 'Delivery Date ISO' on any row, so nothing can be date-filtered. That is
+    # a real state between deploying the parser upgrade and running the
+    # backfill, and it must fall back rather than render an empty week that
+    # looks like nobody ordered anything.
+    order_feed_usable=False
+    if has_feed(cur, ORDER_EMAIL_FEED):
+        cur.execute("SELECT count(*) FROM etl_feed_rows WHERE feed=%s "
+                    "AND nullif(data->>'Delivery Date ISO','') IS NOT NULL",
+                    (ORDER_EMAIL_FEED,))
+        order_feed_usable=bool((cur.fetchone() or [0])[0])
+        if not order_feed_usable:
+            gaps.append(f"'{ORDER_EMAIL_FEED}' is present but no row carries a "
+                "'Delivery Date ISO' - these rows predate the 26/08/2026 parser "
+                "upgrade and cannot be date-filtered. Projected spend is falling "
+                "back to the weekly outstanding-orders report until the backfill "
+                "(run_kobas_orders.py --since) has run")
+    if order_feed_usable:
+        cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows WHERE feed=%s",
+                    (ORDER_EMAIL_FEED,))
+        oe_pull=(cur.fetchone() or [None])[0] or "(unknown pull_date)"
+        cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") "
+                    "SELECT ref,sup,site,dd,staff,lines,items,total FROM o "
+                    "WHERE dd IS NOT NULL AND dd::date BETWEEN %s AND %s",
+                    (ORDER_EMAIL_FEED,week_start,week_end))
+        rows=[]
+        for ref,sup,site,dd,staff,lines,items,total in cur.fetchall():
+            rows.append({"ref":ref,"sup":sup or "(no supplier)","site":site or "(no site)",
+              "d":dd,"staff":staff,"lines":_num(lines,int),"items":_num(items,int),
+              "value":_num(total,float,0.0)})
+        agg={}; by_day={}
         for r in rows:
-            site=r.get("to_venue_name") or "(no site)"
-            sup=r.get("from_supplier_name")
-            val=float(r.get("total") or 0.0)
-            status=(r.get("status") or "").lower()
-            a_=agg.setdefault((site,sup),{"orders":0,"value":0.0,"delivered":0.0})
-            a_["orders"]+=1; a_["value"]+=val
-            if status=="delivered": a_["delivered"]+=val
-            d_=by_day.setdefault(r["log_date"],{"orders":0,"value":0.0})
-            d_["orders"]+=1; d_["value"]+=val
+            a_=agg.setdefault((r["site"],r["sup"]),
+                              {"orders":0,"lines":0,"items":0,"value":0.0})
+            a_["orders"]+=1; a_["lines"]+=r["lines"]
+            a_["items"]+=r["items"]; a_["value"]+=r["value"]
+            d_=by_day.setdefault(r["d"],{"orders":0,"value":0.0})
+            d_["orders"]+=1; d_["value"]+=r["value"]
         for (site,sup),a_ in agg.items():
-            week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
-              "value_gbp":round(a_["value"],2),
-              "delivered_value_gbp":round(a_["delivered"],2),
-              "pending_value_gbp":round(a_["value"]-a_["delivered"],2),
-              "supplier_canon":canon_supplier(sup)})
+            week_spend.append({"site":site,"supplier":sup,
+              # canonical supplier key so the Supplier Issues tab's profile
+              # modal can join this spend to issue attribution (18/08/2026);
+              # display keeps the Kobas name, the join uses supplier_canon
+              "supplier_canon":canon_supplier(sup),
+              "orders":a_["orders"],"lines":a_["lines"],"items":a_["items"],
+              "value_gbp":round(a_["value"],2)})
         week_spend.sort(key=lambda r:-r["value_gbp"])
         week_days=[{"d":d,"orders":v["orders"],"value_gbp":round(v["value"],2)}
                    for d,v in sorted(by_day.items())]
-        drill_all=sorted(rows,key=lambda r:(r.get("log_date") or "",-float(r.get("total") or 0.0)))
+        drill_all=sorted(rows,key=lambda r:(r["d"] or "",-r["value"]))
         week_drill_total=len(drill_all)
-        week_drill=[{"site":r.get("to_venue_name") or "(no site)",
-                     "order_no":r.get("order_no"),"supplier":r.get("from_supplier_name"),
-                     "d":r.get("log_date"),"value_gbp":round(float(r.get("total") or 0.0),2),
-                     "status":r.get("status"),"staff":r.get("staff_name")}
+        week_drill=[{"site":r["site"],"order_no":r["ref"],"supplier":r["sup"],
+                     "d":r["d"],"lines":r["lines"],"items":r["items"],
+                     "value_gbp":round(r["value"],2),"staff":r["staff"]}
                     for r in drill_all[:WEEK_DRILL_CAP]]
         # Totals computed once here from the FULL row set (never from the
         # capped week_drill) so the KPI strip is exact even when the drill
         # table is truncated.
-        _delivered_orders=sum(1 for r in rows if (r.get("status") or "").lower()=="delivered")
-        _total_value=sum(a_["value"] for a_ in agg.values())
-        _delivered_value=sum(a_["delivered"] for a_ in agg.values())
-        week_totals={"orders":len(rows),"delivered_orders":_delivered_orders,
-          "pending_orders":len(rows)-_delivered_orders,
-          "value_gbp":round(_total_value,2),
-          "delivered_value_gbp":round(_delivered_value,2),
-          "pending_value_gbp":round(_total_value-_delivered_value,2)}
-        week_spend_source="kobas_live"
-        week_spend_basis=(f"Kobas Pending Orders (live daily pull, pull_date={pull_date}): "
-            "supplier orders only (transfers excluded) with a delivery date (log_date) in the "
-            "current Mon-Sun week, any status; delivered orders stay in the total so the figure "
-            "is stable rather than shrinking as deliveries land - the KPI strip splits delivered "
-            "vs still-to-come")
-        if pull_date not in (None,"(unknown pull_date)"):
-            try:
-                stale_days=(datetime.date.today()-datetime.date.fromisoformat(pull_date)).days
-                if stale_days>=2:
-                    gaps.append(f"Kobas Pending Orders was last pulled {pull_date} "
-                        f"({stale_days}d ago) - the daily fetch may be failing; see the "
-                        "maki-hospitality-etl 'Kobas live pending orders' workflow step")
-            except ValueError:
-                pass
+        week_totals={"orders":len(rows),
+          "lines":sum(r["lines"] for r in rows),
+          "items":sum(r["items"] for r in rows),
+          "value_gbp":round(sum(r["value"] for r in rows),2)}
+        week_spend_source="order_emails"
+        week_spend_basis=(f"Kobas Orders (daily IMAP parse of Kobas order-confirmation "
+            f"emails, pull_date={oe_pull}): one row per order, deduped by Kobas Reference "
+            "(latest pull wins), summing the email's own TOTAL for orders whose DELIVERY date "
+            "falls in the current Mon-Sun week, all venues including franchises. Orders as "
+            "PLACED - confirmation emails carry no delivered status, so there is no "
+            "delivered/pending split on this source and none is shown; a cancellation made in "
+            "Kobas without a re-sent email stays in the total")
+        try:
+            stale_days=(datetime.date.today()-datetime.date.fromisoformat(oe_pull)).days
+            if stale_days>=2:
+                gaps.append(f"Kobas Orders was last pulled {oe_pull} ({stale_days}d ago) "
+                    "- the daily IMAP fetch may be failing; check the maki-hospitality-etl "
+                    "daily-export run and the GMAIL_APP_PASSWORD secret")
+        except ValueError:
+            pass
+        # -- supplier coverage vs the weekly outstanding report -------------
+        # The report sees every supplier the estate orders from; the emails see
+        # only those Kobas transmits by email. Naming the difference turns an
+        # invisible 80% shortfall into a checklist that empties itself as Ross
+        # enables the remaining suppliers in Kobas (26/08/2026).
+        if has_feed(cur,FULFIL_FEED):
+            cur.execute("SELECT DISTINCT nullif(data->>'Supplier/Sending Venue','') "
+                        "FROM etl_feed_rows WHERE feed=%s",(FULFIL_FEED,))
+            report_sups={s for (s,) in cur.fetchall() if s}
+            cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") SELECT DISTINCT sup FROM o "
+                        "WHERE dd IS NOT NULL",(ORDER_EMAIL_FEED,))
+            email_sups={s for (s,) in cur.fetchall() if s}
+            email_keys={(canon_supplier(s) or s.strip().lower()) for s in email_sups}
+            missing=sorted({s for s in report_sups
+                            if (canon_supplier(s) or s.strip().lower()) not in email_keys})
+            if missing:
+                shown=", ".join(missing[:8])+("…" if len(missing)>8 else "")
+                gaps.append(f"Kobas Orders covers {len(email_sups)} supplier(s); "
+                    f"{len(missing)} supplier(s) the estate orders from send no confirmation "
+                    f"email and are therefore ABSENT from projected spend this week: {shown}. "
+                    "Kobas only emails a confirmation for suppliers configured to receive "
+                    "orders by email - enabling it per supplier in Kobas closes this gap, and "
+                    "this note shrinks as it is done")
+            supply_coverage={"suppliers_in_emails":sorted(email_sups),
+              "suppliers_missing_from_emails":missing,
+              "basis":"distinct suppliers in the Kobas Orders feed vs distinct "
+              "'Supplier/Sending Venue' in the weekly outstanding-orders report, matched on "
+              "the canonical supplier name where one is known"}
+        else:
+            gaps.append("Supplier coverage of the Kobas Orders feed cannot be checked "
+                "this bake: the weekly outstanding-orders report is absent, so there is "
+                "nothing to measure the email feed's supplier list against")
     # ---- fallback: weekly outstanding-orders report ----
     elif has_feed(cur,FULFIL_FEED):
         cur.execute(
@@ -835,31 +946,31 @@ def main():
             k=(site or "(no site)",sup or "(no supplier)")
             a_=agg3.setdefault(k,{"orders":0,"value":0.0})
             a_["orders"]+=1
-            try: v=float(val)
-            except (TypeError,ValueError): v=0.0
-            a_["value"]+=v
+            a_["value"]+=_num(val,float,0.0)
         for (site,sup),a_ in agg3.items():
             week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
               "value_gbp":round(a_["value"],2),
-              # canonical supplier key so the Supplier Issues tab's profile
-              # modal can join this spend to issue attribution (18/08/2026);
-              # display keeps the Kobas name, the join uses supplier_canon
+              # no line/item counts exist in the report - null, never 0, so the
+              # shell renders an em dash rather than implying an empty order
+              "lines":None,"items":None,
               "supplier_canon":canon_supplier(sup)})
         week_spend.sort(key=lambda r:-r["value_gbp"])
         week_spend_source="weekly_report_fallback"
-        week_spend_basis=("Kobas Pending Orders feed missing - projected spend falling back to "
+        week_spend_basis=("Kobas Orders feed missing - projected spend falling back to "
             "the weekly outstanding-orders report (may be up to 7 days stale): one row per "
             "site+supplier combination (deduped by Order ID across weekly pulls, latest pull "
             "wins), summing Order Value for orders whose Target Delivery Date falls within the "
             "current Mon-Sun week - a projection from outstanding orders, not a measured or "
-            "confirmed spend figure, and it carries no delivered/pending split")
-        gaps.append("Kobas Pending Orders feed missing - projected spend falling back to the "
+            "confirmed spend figure, and it carries no delivered/pending split and no line or "
+            "item counts")
+        gaps.append("Kobas Orders feed missing - projected spend falling back to the "
             "weekly outstanding-orders report (may be up to 7 days stale)")
     else:
         week_spend_source="weekly_report_fallback"
-        week_spend_basis="neither the Kobas Pending Orders live feed nor the weekly outstanding-orders report is available this bake"
-        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse, and no Kobas Pending Orders "
-            "file checked out either - projected spend this week unavailable")
+        week_spend_basis=("neither the Kobas Orders feed nor the weekly "
+            "outstanding-orders report is available this bake")
+        gaps.append(f"'{FULFIL_FEED}' absent from the warehouse, and the Kobas Orders "
+            "feed is absent too - projected spend this week unavailable")
 
     if week_spend_source=="weekly_report_fallback":
         gaps.append("Projected spend this week (fallback figure) is a proxy, not a confirmed "
@@ -874,6 +985,81 @@ def main():
             "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
             "in the source system rather than a live backlog; if one of these happens to carry a "
             "Target Delivery Date in the current week it is still included as-is")
+
+    # ---- monthly supplier OTIF (deliveries vs issues recorded) ------------
+    # Ross's definition, locked 26/08/2026, verbatim: "match the deliveries
+    # amount for the month to the amount of issues recorded in that month".
+    # Per supplier per calendar month:
+    #     otif_pct = max(0, deliveries - issues) / deliveries * 100
+    # null (rendered as an em dash) when deliveries = 0. This is an
+    # ISSUE-FREE-DELIVERY RATE, not a measured on-time-in-full: nothing here
+    # observes whether a delivery was on time or complete, only whether
+    # somebody filed an issue against that supplier in the same month. It is
+    # NOT a one-to-one match either - one issue form can describe several
+    # problems and several issues can land on one delivery. Ross has accepted
+    # both approximations; the per-issue detail stays on the Supplier Issues
+    # tab. Measured OTIF still needs the Mapal feeds, which still fail at
+    # fetch - that remains the standing open item.
+    OTIF_FIRST_MONTH="2026-08"
+    ISSUES_HISTORY_START="2026-08-13"
+    otif_months=[]; otif_basis=None
+    if week_spend_source=="order_emails":
+        cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") "
+                    "SELECT substr(dd,1,7) m, sup, count(*) FROM o "
+                    "WHERE dd IS NOT NULL AND dd>=%s GROUP BY 1,2",
+                    (ORDER_EMAIL_FEED,OTIF_FIRST_MONTH+"-01"))
+        deliveries={}
+        for m,sup,n in cur.fetchall():
+            if not m: continue
+            name=(sup or "(no supplier)").strip()
+            key=canon_supplier(name) or name
+            d_=deliveries.setdefault(m,{})
+            e_=d_.setdefault(key,{"supplier":key,"supplier_canon":canon_supplier(name),
+                                  "deliveries":0,"issues":0})
+            e_["deliveries"]+=n
+        # Issues come from the SAME list the Supplier Issues tab renders, so
+        # the two always reconcile. Sliced on the issue's own answer date.
+        issues_by_month={}; unattributed={}
+        for i_ in issues:
+            d=i_.get("d") or ""
+            if len(d)<7 or d[:7]<OTIF_FIRST_MONTH: continue
+            m=d[:7]
+            if i_.get("supplier"):
+                issues_by_month.setdefault(m,{})
+                key=i_["supplier"]
+                issues_by_month[m][key]=issues_by_month[m].get(key,0)+1
+            else:
+                unattributed[m]=unattributed.get(m,0)+1
+        months=sorted(set(deliveries)|set(issues_by_month)|set(unattributed))
+        cutoff=(pull or datetime.date.today().isoformat())[:7]
+        months=[m for m in months if OTIF_FIRST_MONTH<=m<=cutoff]
+        for m in months:
+            sups=dict(deliveries.get(m,{}))
+            for key,n in (issues_by_month.get(m,{}) or {}).items():
+                e_=sups.setdefault(key,{"supplier":key,"supplier_canon":canon_supplier(key),
+                                        "deliveries":0,"issues":0})
+                e_["issues"]=n
+            rows_=[]
+            for e_ in sups.values():
+                dl,iss=e_["deliveries"],e_["issues"]
+                rows_.append({**e_,
+                  "otif_pct":round(100.0*max(0,dl-iss)/dl,1) if dl else None})
+            rows_.sort(key=lambda r:(-r["deliveries"],r["supplier"]))
+            dl_tot=sum(r["deliveries"] for r in rows_)
+            iss_tot=sum(r["issues"] for r in rows_)
+            otif_months.append({"month":m,"suppliers":rows_,
+              "deliveries":dl_tot,"issues":iss_tot,
+              "unattributed_issues":unattributed.get(m,0),
+              "otif_pct":round(100.0*max(0,dl_tot-iss_tot)/dl_tot,1) if dl_tot else None})
+        otif_basis=("deliveries = orders with a delivery date in the month from the Kobas Order "
+            "Emails feed (deduped by Kobas Reference); issues = supplier issues from GC Form "
+            "Task Answers whose own answer date falls in the month, deduped by FormId and "
+            "canonicalised to the same supplier names - the identical rows the Supplier Issues "
+            "tab renders, so the two always reconcile; otif_pct = max(0, deliveries - issues) / "
+            "deliveries, null when there were no deliveries")
+    else:
+        gaps.append("Monthly supplier OTIF unavailable: it needs the Kobas Orders feed "
+            "for its delivery counts, and that feed is absent this bake")
     PRICE_FEED="Kobas Report - Weekly Ingredient Price Changes Report"
     if has_feed(cur,PRICE_FEED):
         cur.execute(
@@ -903,6 +1089,18 @@ def main():
       "week_drill":week_drill,
       "week_drill_total":week_drill_total,
       "week_drill_truncated":week_drill_total>WEEK_DRILL_CAP,
+      "coverage":supply_coverage,
+      "otif":{"months":otif_months,"basis":otif_basis,
+        "first_month":OTIF_FIRST_MONTH,
+        "issues_history_start":ISSUES_HISTORY_START,
+        "note":"An issue-free-delivery rate, NOT a measured on-time-in-full: nothing here "
+        "observes whether a delivery arrived on time or complete, only whether an issue was "
+        "filed against that supplier in the same month. Issue history begins "
+        +ISSUES_HISTORY_START+", so August denominators cover the whole month but its issue "
+        "counts only start mid-month - August OTIF is therefore flattered and is not "
+        "comparable with later months. Suppliers with deliveries and no issues show 100%; "
+        "suppliers with no deliveries show an em dash, never 0%. Issues that name no supplier "
+        "are excluded from the per-supplier rows and disclosed as unattributed_issues."},
       "price_watch":price_watch[:100],
       "price_watch_basis":"latest pull of the Kobas Weekly Ingredient Price Changes report; "
       "pct_change = (new-old)/old*100; is_new=true when there is no prior price on file"}

@@ -5,14 +5,20 @@ name: Ops Command daily bake (Pipe 9)
 # The dashboard (command/index.html + the desktop artifact) just fetches the
 # committed JSON from Pages - a data refresh is a commit, not a redeploy.
 #
-# Needs WAREHOUSE_DSN (same value as in maki-hospitality-etl), and
-# ETL_REPO_TOKEN - a fine-grained PAT with read-only Contents access to
-# MakiManc/maki-hospitality-etl ONLY, used to check out that private repo's
-# data/kobas_pending_orders/latest.json (the live Kobas pending-orders feed
-# lands there instead of Postgres - see kobas_cloud.py in that repo for
-# why). If ETL_REPO_TOKEN is unset or the checkout step fails, the bake
-# falls back to the weekly Kobas report unchanged, with a gap note - this
-# step is allowed to fail without failing the run.
+# Needs WAREHOUSE_DSN only (same value as in MakiManc/maki-hospitality-etl).
+#
+# 26/08/2026 - THE CROSS-REPO CHECKOUT IS GONE. This workflow used to check
+# out MakiManc/maki-hospitality-etl with a fine-grained read-only PAT held
+# in a repo secret,
+# to read data/kobas_pending_orders/latest.json, because the headless-login
+# Kobas feed committed a JSON file into that private repo instead of writing
+# to Postgres. That feed is retired: projected spend now comes from the
+# 'Kobas Orders' feed, which lands in the warehouse like every other
+# feed, so there is nothing to check out and no token to manage. If you are
+# re-adding a cross-repo step, read the job-level `env` note below first.
+#
+# That PAT secret is now unused and can be deleted from Settings > Secrets
+# and variables > Actions; no workflow reads it any more.
 
 on:
   schedule:
@@ -30,16 +36,13 @@ jobs:
   bake:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # ETL_REPO_TOKEN is lifted to job level ON PURPOSE. The `secrets`
-    # context is NOT available in a step-level `if:` - GitHub rejects the
-    # WHOLE FILE with "Unrecognized named-value: 'secrets'" and every run,
-    # scheduled or dispatched, dies before a single step executes. That is
-    # exactly what happened between 24 and 25 Aug 2026 (commit 826cbc2):
-    # the bake stopped running entirely and the dashboard silently froze on
-    # the 24 Aug snapshot. `env` IS available in a step `if:`, so the
-    # optional-checkout guard below tests env.ETL_REPO_TOKEN instead.
-    env:
-      ETL_REPO_TOKEN: ${{ secrets.ETL_REPO_TOKEN }}
+    # KEPT AS A WARNING FOR WHOEVER EDITS THIS NEXT (24-25/08/2026, commit
+    # 826cbc2): the `secrets` context is NOT available in a step-level `if:`.
+    # GitHub rejects the WHOLE FILE with "Unrecognized named-value: 'secrets'"
+    # and every run, scheduled or dispatched, dies before a single step
+    # executes - the bake stopped running entirely and the dashboard silently
+    # froze on the 24 Aug snapshot. `env` IS available in a step `if:`, so any
+    # optional step must lift its secret to job-level `env` and test that.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -47,26 +50,9 @@ jobs:
           python-version: "3.12"
       - name: Install driver
         run: pip install psycopg2-binary
-      # Read-only pull of the live Kobas pending-orders feed from the
-      # private ETL repo. Allowed to fail (missing/expired token, repo
-      # renamed, etc.) - bake_ops_command.py falls back to the weekly
-      # report + a gap note when etl-data/data/kobas_pending_orders/
-      # latest.json isn't present.
-      - name: Checkout Kobas pending-orders data (private etl repo)
-        if: env.ETL_REPO_TOKEN != ''
-        continue-on-error: true
-        uses: actions/checkout@v4
-        with:
-          repository: MakiManc/maki-hospitality-etl
-          token: ${{ env.ETL_REPO_TOKEN }}
-          path: etl-data
-          sparse-checkout: |
-            data/kobas_pending_orders
-          sparse-checkout-cone-mode: true
       - name: Bake snapshot from the warehouse
         env:
           WAREHOUSE_DSN: ${{ secrets.WAREHOUSE_DSN }}
-          KOBAS_PENDING_ORDERS_PATH: etl-data/data/kobas_pending_orders/latest.json
         run: python builders/bake_ops_command.py
       - name: Commit if changed
         run: |
