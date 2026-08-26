@@ -136,5 +136,5 @@ jobs:
             -H "Title: Ops data verifier CRASHED" \
             -H "Priority: high" \
             -H "Tags: rotating_light" \
-            -d "verify.yml went red without completing its checks on $(date -u '+%F %H:%M UTC'). The safety net itself needs looking at. https://github.com/ross440/ops/actions" \
+            -d "verify.yml went red without completing its checks on $(date -u '+%F %H:%M UTC'). The safety net itself needs looking at. https://github.com/MakiManc/ops/actions" \
             "https://ntfy.sh/$NTFY_TOPIC" || echo "ntfy push itself failed - GitHub failure email is the backstop"

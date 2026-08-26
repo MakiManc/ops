@@ -7,7 +7,7 @@ name: Ops Command daily bake (Pipe 9)
 #
 # Needs WAREHOUSE_DSN (same value as in maki-hospitality-etl), and
 # ETL_REPO_TOKEN - a fine-grained PAT with read-only Contents access to
-# ross440/maki-hospitality-etl ONLY, used to check out that private repo's
+# MakiManc/maki-hospitality-etl ONLY, used to check out that private repo's
 # data/kobas_pending_orders/latest.json (the live Kobas pending-orders feed
 # lands there instead of Postgres - see kobas_cloud.py in that repo for
 # why). If ETL_REPO_TOKEN is unset or the checkout step fails, the bake
@@ -57,7 +57,7 @@ jobs:
         continue-on-error: true
         uses: actions/checkout@v4
         with:
-          repository: ross440/maki-hospitality-etl
+          repository: MakiManc/maki-hospitality-etl
           token: ${{ env.ETL_REPO_TOKEN }}
           path: etl-data
           sparse-checkout: |
