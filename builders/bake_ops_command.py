@@ -66,10 +66,8 @@ USAGE
 """
 from __future__ import annotations
 import argparse, datetime, json, os, re, sys
-try:
-    import psycopg2
-except ImportError:
-    sys.exit("psycopg2 is required: pip install psycopg2-binary")
+# psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
+# bake needs no Postgres driver at all, and requiring one would defeat the point.
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "ops_command")
 # Site map lives in the builder (house rule) -- classification, not presentation.
 # type: restaurant | factory | entity (non-trading legal vehicles on the roster)
@@ -287,8 +285,26 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=None, help="pull date to stamp (default: max pull_date in warehouse)")
     a = ap.parse_args()
-    dsn = os.environ.get("WAREHOUSE_DSN") or sys.exit("WAREHOUSE_DSN not set")
-    conn = psycopg2.connect(dsn); cur = conn.cursor()
+    # Phase 2 of the Neon exit. OPS_WAREHOUSE_SOURCE=archive reads the committed
+    # pull archive through DuckDB instead of Postgres; every query below is
+    # unchanged either way. Default is still Postgres, so this is inert until
+    # something sets it - which is what makes the two runnable back to back and
+    # diffable. See builders/archive_source.py.
+    if os.environ.get("OPS_WAREHOUSE_SOURCE") == "archive":
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import archive_source
+        adir = os.environ.get("OPS_ARCHIVE_DIR") or sys.exit(
+            "OPS_ARCHIVE_DIR not set (path to warehouse_direct/ or warehouse_archive/)")
+        conn = archive_source.connect(
+            adir, manifest=os.path.join(OUT_DIR, "feeds_manifest.json"))
+    else:
+        try:
+            import psycopg2
+        except ImportError:
+            sys.exit("psycopg2 is required: pip install psycopg2-binary")
+        dsn = os.environ.get("WAREHOUSE_DSN") or sys.exit("WAREHOUSE_DSN not set")
+        conn = psycopg2.connect(dsn)
+    cur = conn.cursor()
     gaps, snap = [], {}
     cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows")
     pull = a.date or (cur.fetchone() or [None])[0] or datetime.date.today().isoformat()
