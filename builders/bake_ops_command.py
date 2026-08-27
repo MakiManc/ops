@@ -852,6 +852,7 @@ def main():
       "   data->>'Order Ref' ref, nullif(data->>'Supplier','') sup, "
       "   nullif(data->>'Site','') site, "
       "   nullif(data->>'Delivery Date ISO','') dd, "
+      "   nullif(data->>'Order Email Date','') emailed, "
       "   nullif(data->>'Created By','') staff, data->>'Line Items' lines, "
       "   data->>'Items Ordered' items, data->>'Order Value GBP' total "
       " FROM etl_feed_rows WHERE feed=%s "
@@ -862,6 +863,7 @@ def main():
     week_spend=[]; price_watch=[]; week_days=[]; week_drill=[]
     week_drill_total=0; week_spend_source=None; week_spend_basis=None; week_totals=None
     supplier_totals=[]; supplier_totals_basis=None
+    supplier_totals_all=[]; supplier_totals_all_basis=None; supplier_totals_all_meta=None
     supply_coverage=None
     cur.execute("SELECT date_trunc('week',current_date)::date, "
                 "(date_trunc('week',current_date)+interval '6 day')::date")
@@ -950,6 +952,102 @@ def main():
             "lines and items are the order email's own Line Items and Items Ordered "
             "totals. Scheduled deliveries, not confirmed ones - an order confirmation "
             "says a delivery was booked, never that it turned up.")
+
+        # ---- all-time supplier totals ----
+        # Same dedup, no week filter. Kept as its own query rather than widening
+        # the one above, so the weekly figures the KPI strip reconciles against
+        # cannot be disturbed by anything here.
+        #
+        # WHERE THE COVERAGE STARTS, MEASURED RATHER THAN ASSUMED. This feed is
+        # a rolling 14-day IMAP window over order-confirmation emails, so it has
+        # a hard left edge and no knowledge of anything before it. The edge is
+        # not a guess: it is the earliest email date in the archive. Deliveries
+        # near that edge are still short, because their orders were emailed
+        # BEFORE it - so the first trustworthy delivery date is the edge plus
+        # the longest order-to-delivery lead actually observed, and the first
+        # trustworthy Monday is the one on or after that. Both are recomputed
+        # every bake, so this stays true as the archive grows rather than
+        # freezing today's dates into a comment.
+        cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") "
+                    "SELECT ref,sup,site,dd,emailed,lines,items,total FROM o "
+                    "WHERE dd IS NOT NULL",(ORDER_EMAIL_FEED,))
+        all_rows=[]
+        for ref,sup,site,dd,emailed,lines,items,total in cur.fetchall():
+            all_rows.append({"sup":sup or "(no supplier)","site":site or "(no site)",
+              "d":dd,"emailed":emailed,"lines":_num(lines,int),"items":_num(items,int),
+              "value":_num(total,float,0.0)})
+        if all_rows:
+            a_agg={}
+            for r in all_rows:
+                a_=a_agg.setdefault(r["sup"],{"orders":0,"lines":0,"items":0,
+                                              "value":0.0,"slots":set(),"sites":set()})
+                a_["orders"]+=1; a_["lines"]+=r["lines"]; a_["items"]+=r["items"]
+                a_["value"]+=r["value"]
+                a_["slots"].add((r["site"],r["d"])); a_["sites"].add(r["site"])
+            supplier_totals_all=[{"supplier":sup,"supplier_canon":canon_supplier(sup),
+                                  "orders":a_["orders"],"deliveries":len(a_["slots"]),
+                                  "lines":a_["lines"],"items":a_["items"],
+                                  "sites":len(a_["sites"]),
+                                  "value_gbp":round(a_["value"],2)}
+                                 for sup,a_ in a_agg.items()]
+            supplier_totals_all.sort(key=lambda r:(-r["value_gbp"],r["supplier"]))
+            dds=sorted(r["d"] for r in all_rows)
+            leads=[(datetime.date.fromisoformat(r["d"])
+                    -datetime.date.fromisoformat(r["emailed"])).days
+                   for r in all_rows if r["emailed"] and r["d"]]
+            cov=min((r["emailed"] for r in all_rows if r["emailed"]),default=None)
+            max_lead=max(leads) if leads else 0
+            complete_from=None
+            if cov:
+                safe=datetime.date.fromisoformat(cov)+datetime.timedelta(days=max_lead)
+                mon=safe-datetime.timedelta(days=safe.weekday())
+                if mon<safe: mon+=datetime.timedelta(days=7)
+                complete_from=mon.isoformat()
+            # Weeks the reader should not treat as a like-for-like comparison:
+            # too early for full email coverage, or not finished being ordered.
+            wk_orders={}
+            for r in all_rows:
+                d_=datetime.date.fromisoformat(r["d"])
+                wk_orders.setdefault((d_-datetime.timedelta(days=d_.weekday())).isoformat(),
+                                     {"orders":0,"value":0.0})
+                k_=(d_-datetime.timedelta(days=d_.weekday())).isoformat()
+                wk_orders[k_]["orders"]+=1; wk_orders[k_]["value"]+=r["value"]
+            partial=[]
+            for wmon,v in sorted(wk_orders.items()):
+                why=None
+                if complete_from and wmon<complete_from:
+                    why=("starts before the feed's email coverage does, so orders "
+                         "placed for it were never captured")
+                elif wmon>=week_start:
+                    why="still being ordered into"
+                if why:
+                    partial.append({"w":wmon,"orders":v["orders"],
+                                    "value_gbp":round(v["value"],2),"why":why})
+            supplier_totals_all_meta={
+              "orders":len(all_rows),
+              # (supplier, site, date), NOT (site, date). The per-supplier rows
+              # each count their own site+date slots, so collapsing across
+              # suppliers here would make this total disagree with the table it
+              # describes - one site taking two suppliers in a day is two
+              # deliveries, not one. Measured: 200, not 174.
+              "deliveries":len({(r["sup"],r["site"],r["d"]) for r in all_rows}),
+              "value_gbp":round(sum(r["value"] for r in all_rows),2),
+              "first_delivery":dds[0],"last_delivery":dds[-1],
+              "coverage_start":cov,"max_lead_days":max_lead,
+              "complete_from":complete_from,
+              "weeks":len(wk_orders),"partial_weeks":partial}
+            supplier_totals_all_basis=(
+              "Every order the Kobas Orders feed has ever captured, deduped by Kobas "
+              f"Reference, grouped by supplier: {len(all_rows)} orders with delivery dates "
+              f"{dds[0]} to {dds[-1]}. NOT A COMPLETE TRADING HISTORY. The feed is a rolling "
+              "14-day window over order-confirmation emails, so it knows nothing before its "
+              f"first captured email ({cov}); with the longest observed order-to-delivery "
+              f"lead being {max_lead} day(s), deliveries are only fully covered from "
+              f"{complete_from} onward"
+              + (f", which leaves {len(partial)} week(s) that should not be compared "
+                 "like for like with the rest" if partial else "")
+              + ". Scheduled deliveries, not confirmed ones - an order confirmation says a "
+                "delivery was booked, never that it turned up.")
         week_days=[{"d":d,"orders":v["orders"],"value_gbp":round(v["value"],2)}
                    for d,v in sorted(by_day.items())]
         drill_all=sorted(rows,key=lambda r:(r["d"] or "",-r["value"]))
@@ -1186,6 +1284,9 @@ def main():
     snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
       "supplier_totals":supplier_totals,
       "supplier_totals_basis":supplier_totals_basis,
+      "supplier_totals_all":supplier_totals_all,
+      "supplier_totals_all_basis":supplier_totals_all_basis,
+      "supplier_totals_all_meta":supplier_totals_all_meta,
       "week_spend_source":week_spend_source,
       "week_spend_basis":week_spend_basis,
       "week_totals":week_totals,
