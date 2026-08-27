@@ -265,6 +265,50 @@ MANDATORY_MODULES = [
     "Mapal Run through",
     "Mapal Run through Management",
 ]
+# Factory spec band for the broth refractometer reading taken AFTER ice (Ross,
+# 27 Aug 2026). The broth is made to this band at the factory, so it is one
+# figure per broth across the whole estate - a reading outside it is a flag
+# wherever it was taken. Reference data, so it lives in the builder next to the
+# site map rather than in the page.
+BROTH_SPEC = {
+    "tonkotsu": {"min": 8.0, "max": 9.0},
+    "chicken":  {"min": 5.0, "max": 6.0},
+}
+def broth_spec_flag(kind, val):
+    """'low' | 'in' | 'high' against the factory band; None with no reading."""
+    sp = BROTH_SPEC.get(kind)
+    if sp is None or val is None: return None
+    return "low" if val < sp["min"] else "high" if val > sp["max"] else "in"
+def broth_spec_summary(cells):
+    """Per-broth in/low/high counts over cells that carry a numeric reading."""
+    out = {}
+    for kind, sp in BROTH_SPEC.items():
+        flags = [broth_spec_flag(kind, c.get("value")) for c in cells
+                 if c["kind"] == kind and c.get("value") is not None]
+        out[kind] = {"min": sp["min"], "max": sp["max"], "n": len(flags),
+          "in":   flags.count("in"), "low": flags.count("low"), "high": flags.count("high")}
+    return out
+BROTH_SPEC_BASIS = ("factory spec band, refractometer reading AFTER ice (Ross, 27 Aug "
+    "2026): tonkotsu 8.0-9.0, chicken 5.0-6.0. One band per broth across the whole "
+    "estate because the broth is made to it at the factory; each cell carries 'spec' as "
+    "low/in/high, or null where no numeric reading landed that day")
+BROTH_SPEC_GAP = ("Broth heatmap colours key off the factory spec band - tonkotsu "
+    "8.0-9.0, chicken 5.0-6.0, refractometer AFTER ice (Ross, 27 Aug 2026) - not the "
+    "observed range. The band is one group-wide pair of numbers held in this builder, "
+    "not a per-site or per-batch reference table in the warehouse, and GetCompliant does "
+    "not record whether a reading was taken before or after ice")
+def broth_spec_gaps(summary):
+    """The band gap, plus a named flag per broth the estate is mostly missing."""
+    out = [BROTH_SPEC_GAP]
+    for kind, ss in summary.items():
+        bad = ss["n"] - ss["in"]
+        if ss["n"] and bad / ss["n"] > 0.5:
+            out.append(f"{bad} of {ss['n']} {kind} readings in this snapshot fall outside "
+                f"the {ss['min']:.1f}-{ss['max']:.1f} band ({round(100*bad/ss['n'])}%, "
+                f"{ss['low']} low / {ss['high']} high) - confirm sites are reading AFTER "
+                "ice as the spec assumes before treating this as an estate-wide density "
+                "miss rather than a measurement-basis mismatch")
+    return out
 EXPECTED_FEEDS = [
     "Flow Trainees","Flow Branches","Flow Modules","Flow Certificates",
     "Deep Flow Modules","Deep Flow Certificates",
@@ -689,21 +733,22 @@ def main():
             else: c["missed"]+=1
             if dev in ("true","1","yes"):
                 broth_deviations.append({"site":site,"kind":kind,"d":d,"value":val,
+                  "spec":broth_spec_flag(kind,val),
                   "open":opn in ("true","1","yes")})
         for (site,kind,d),c in cell_agg.items():
-            broth_cells.append({"site":site,"kind":kind,"d":d,
-              "value":round(sum(c["vals"])/len(c["vals"]),2) if c["vals"] else None,
+            val=round(sum(c["vals"])/len(c["vals"]),2) if c["vals"] else None
+            broth_cells.append({"site":site,"kind":kind,"d":d,"value":val,
+              "spec":broth_spec_flag(kind,val),
               "checks":c["n"],"checks_missed":c["missed"]})
         broth_deviations.sort(key=lambda r:r["d"],reverse=True)
     else:
         gaps.append("'GC Scheduled Task Answers' absent from the warehouse - broth quality "
             "checks (Chicken/Tonkotsu Broth Check) unavailable")
-    gaps.append("Broth heatmap colours are scaled to the OBSERVED reading range in this "
-        "snapshot, not an official spec band - no chicken/tonkotsu density target exists in "
-        "the data yet (needs a small reference table of min/target/max from Ross's par "
-        "standards)")
+    spec_summary=broth_spec_summary(broth_cells)
+    gaps.extend(broth_spec_gaps(spec_summary))
     snap["quality"]={"broth":{"cells":broth_cells,"deviations":broth_deviations[:200],
-      "tasks":BROTH_TASKS,
+      "tasks":BROTH_TASKS,"spec":BROTH_SPEC,"spec_summary":spec_summary,
+      "spec_basis":BROTH_SPEC_BASIS,
       "basis":"one cell per site + check-type + day from GC Scheduled Task Answers, "
       "deduped by AnswerID across pulls, averaged if >1 reading landed that day; "
       "'checks_missed' counts non-numeric answers (e.g. 'Not registered on time') "

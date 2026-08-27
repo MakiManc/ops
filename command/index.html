@@ -108,6 +108,14 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 #tr-heat td.hcell{color:var(--ink);font-weight:600}
 .heat td.hmiss{background:repeating-linear-gradient(45deg,var(--r-bg),var(--r-bg) 3px,#fff 3px,#fff 6px);
   color:var(--r);font-weight:700;border-color:var(--r)}
+/* broth heatmap reads against the factory spec band, not the observed range:
+   green = inside it, red = outside, weight carries how far outside */
+.heat td.hoos{color:var(--r);font-weight:700;border-color:rgba(220,38,38,.4)}
+.heat td.hins{color:var(--ink)}
+.speckey{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:0 0 8px;
+  font-size:11.5px;color:var(--muted)}
+.speckey i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;
+  vertical-align:-1px;border:1px solid var(--line)}
 .brow.clk,tr.clk{cursor:pointer}
 .brow.clk:hover .blab,tr.clk:hover td{color:var(--maki-orange)}
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:60;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
@@ -215,11 +223,19 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div id="qual-note"></div>
   <div class="kpis" id="qual-kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Chicken Broth Check — by site</div>
-    <div class="s" id="qh-chicken-sub">GC Scheduled Task Answers · colour scaled to the observed range in this snapshot, not an official spec band</div></div>
+    <div class="s" id="qh-chicken-sub">GC Scheduled Task Answers · coloured against the factory spec band, 5.0–6.0 after ice</div></div>
     <div class="card-b" id="qh-chicken"></div></div>
   <div class="card"><div class="card-h"><div class="t">Tonkotsu Broth Check — by site</div>
-    <div class="s" id="qh-tonkotsu-sub">Same scale rule as above, tonkotsu readings only</div></div>
+    <div class="s" id="qh-tonkotsu-sub">Same rule, tonkotsu readings against their own band, 8.0–9.0 after ice</div></div>
     <div class="card-b" id="qh-tonkotsu"></div></div>
+  <div class="cols">
+    <div class="card"><div class="card-h"><div class="t">Out of spec — by site</div>
+      <div class="s">% of numeric readings outside the factory band, both broths, worst first</div></div>
+      <div class="card-b" id="qh-oos"></div></div>
+    <div class="card"><div class="card-h"><div class="t">Flagged — by site &amp; broth</div>
+      <div class="s">Where the flags sit and how far out, worst reading first · bands are the after-ice factory spec · every individual reading is in the heatmaps above</div></div>
+      <div class="card-b" id="qh-oos-tbl"></div></div>
+  </div>
   <div class="cols">
     <div class="card"><div class="card-h"><div class="t">Check discipline</div>
       <div class="s">% of checks with a numeric reading vs total attempted, per site, in range</div></div>
@@ -1358,32 +1374,73 @@ function render(snap){
   const brothDevAll=(snap.quality&&snap.quality.broth&&snap.quality.broth.deviations)||[];
   $('qual-note').innerHTML=brothCells.length?'':
     '<div class="empty">No broth-check data in this pull yet.</div>';
+  /* Broth is judged against the factory spec band - tonkotsu 8.0-9.0, chicken
+     5.0-6.0 on the refractometer AFTER ice - not against whatever range this
+     snapshot happens to hold. The bake writes the band and a per-cell low/in/
+     high flag into the snapshot; the fallback keeps snapshots baked before
+     27/08/2026 on the same band rather than the old observed-range scaling. */
+  const BROTH_SPEC_FB={tonkotsu:{min:8,max:9},chicken:{min:5,max:6}};
+  const brothSpec=k=>((snap.quality&&snap.quality.broth&&snap.quality.broth.spec)||BROTH_SPEC_FB)[k]||null;
+  const specBand=k=>{const sp=brothSpec(k);return sp?sp.min.toFixed(1)+'–'+sp.max.toFixed(1):'—';};
+  const IN_BG='rgba(5,150,105,.16)';
+  /* a whole-number reading prints as 8, which reads oddly next to a 8.0-9.0
+     band and next to the 5.4s around it - give it the decimal, but never
+     round a reading the bake recorded more precisely */
+  const rdg=v=>v==null?'—':Number.isInteger(v)?v.toFixed(1):String(v);
+  /* red deepens with distance outside the band, saturating one band-width out */
+  function oosBg(kind,v){
+    const sp=brothSpec(kind); if(!sp) return 'var(--track)';
+    const dist=v<sp.min?sp.min-v:v>sp.max?v-sp.max:0;
+    const band=Math.max(.5,sp.max-sp.min);
+    return `rgba(220,38,38,${(.16+.54*Math.min(1,dist/band)).toFixed(2)})`;
+  }
+  /* prefer the flag the bake wrote; recompute for older snapshots */
+  function brothFlag(c){
+    if(c.spec!==undefined&&c.spec!==null) return c.spec;
+    const sp=brothSpec(c.kind);
+    if(!sp||c.value==null) return null;
+    return c.value<sp.min?'low':c.value>sp.max?'high':'in';
+  }
   function drawHeat(host,subHost,kind,label){
     const inRange=brothCells.filter(c=>c.kind===kind&&inEV(c.d));
     const days=[...new Set(inRange.map(c=>c.d))].sort();
+    const sp=brothSpec(kind);
     if(!days.length){ $(host).innerHTML='<div class="empty">No '+label+' broth checks dated in this range</div>';
       $(subHost).textContent='0 days in range · '+evLabel(); return; }
     const bySite={}; inRange.forEach(c=>{(bySite[c.site]=bySite[c.site]||{})[c.d]=c;});
     const sites=Object.keys(bySite).sort();
-    const vals=inRange.filter(c=>c.value!=null).map(c=>c.value);
-    const min=vals.length?Math.min(...vals):0, max=vals.length?Math.max(...vals):1;
-    let html='<div style="overflow-x:auto"><table class="heat"><thead><tr><th></th>'+
+    const read=inRange.filter(c=>c.value!=null);
+    const nOut=read.filter(c=>{const f=brothFlag(c);return f&&f!=='in';}).length;
+    const key=sp?'<div class="speckey"><span><i style="background:'+IN_BG+'"></i>inside '+
+      specBand(kind)+' after ice</span><span><i style="background:'+oosBg(kind,sp.min-1.5)+
+      '"></i>outside the band, deeper red the further out</span>'+
+      '<span><i style="background:var(--r-bg);border-color:var(--r)"></i>× not registered on time</span></div>':'';
+    let html=key+'<div style="overflow-x:auto"><table class="heat"><thead><tr><th></th>'+
       days.map(d=>`<th>${esc(d.slice(5))}</th>`).join('')+'</tr></thead><tbody>';
     sites.forEach(s=>{
       html+='<tr><td class="hsite">'+esc(s)+'</td>'+days.map(d=>{
         const c=bySite[s][d];
         if(!c) return '<td class="hblank">—</td>';
         if(c.value==null) return `<td class="hmiss" title="${esc(s)} ${esc(d)} — not registered on time">×</td>`;
-        const t=max>min?(c.value-min)/(max-min):0.5;
-        const bg=`rgba(233,78,27,${(0.12+0.7*t).toFixed(2)})`;
-        return `<td class="hcell" style="background:${bg}" title="${esc(s)} ${esc(d)} — ${c.value}">${c.value}</td>`;
+        const f=brothFlag(c);
+        const cls=f==='in'?'hcell hins':f?'hcell hoos':'hcell';
+        const bg=f==='in'?IN_BG:f?oosBg(kind,c.value):'var(--track)';
+        const why=f==='in'?'in spec '+specBand(kind)
+          :f?(Math.abs(f==='low'?sp.min-c.value:c.value-sp.max).toFixed(1)+' '+
+              (f==='low'?'below':'above')+' spec '+specBand(kind))
+          :'no spec band for this check';
+        return `<td class="${cls}" style="background:${bg}" title="${esc(s)} ${esc(d)} — ${rdg(c.value)} · ${esc(why)}">${rdg(c.value)}</td>`;
       }).join('')+'</tr>';
     });
     html+='</tbody></table></div><div class="prov">'+sites.length+' site(s) · '+days.length+
-      ' day(s) in range · observed range '+(vals.length?(Math.min(...vals)+'–'+Math.max(...vals)):'—')+
-      ' (not an official spec band) · × = not registered on time</div>';
+      ' day(s) in range · '+(sp?('spec band '+specBand(kind)+
+        ' after ice (factory standard, Ross 27/08/2026) · '+
+        (read.length?nOut+' of '+read.length+' readings outside it':'no numeric readings'))
+        :'no spec band for this check in this snapshot')+
+      ' · × = not registered on time</div>';
     $(host).innerHTML=html;
-    $(subHost).textContent=days.length+' day(s), '+sites.length+' site(s) · '+evLabel();
+    $(subHost).textContent=days.length+' day(s), '+sites.length+' site(s) · '+
+      (sp?'spec '+specBand(kind)+' after ice · ':'')+evLabel();
   }
   drawHeat('qh-chicken','qh-chicken-sub','chicken','chicken');
   drawHeat('qh-tonkotsu','qh-tonkotsu-sub','tonkotsu','tonkotsu');
@@ -1397,19 +1454,72 @@ function render(snap){
       v:v.checks?Math.round(100*(v.checks-v.missed)/v.checks):0,
       tip:`${k} — ${v.checks-v.missed} of ${v.checks} checks registered on time`}))
     .sort((a,b)=>a.v-b.v),i=>i.v+'%');
+  /* out of spec by site, both broths pooled - the band differs per broth but
+     "share of readings the factory spec would reject" is comparable across sites */
+  const oosBySite={};
+  brothInRange.forEach(c=>{
+    const f=c.value==null?null:brothFlag(c); if(!f) return;
+    const a=oosBySite[c.site]=oosBySite[c.site]||{n:0,out:0};
+    a.n++; if(f!=='in') a.out++;
+  });
+  bars('qh-oos',Object.entries(oosBySite).map(([k,v])=>({k,
+      v:v.n?Math.round(100*v.out/v.n):0,
+      tip:`${k} — ${v.out} of ${v.n} readings outside the factory band`}))
+    .sort((a,b)=>b.v-a.v||a.k.localeCompare(b.k)),i=>i.v+'%');
+
+  /* one row per site x broth rather than per reading - the heatmaps above
+     already carry every individual reading, so the table's job is where the
+     flags cluster and how far out the worst of them sits */
+  const oosGrp={};
+  brothInRange.forEach(c=>{
+    const f=c.value==null?null:brothFlag(c); if(!f) return;
+    const g=oosGrp[c.site+'\u0000'+c.kind]=oosGrp[c.site+'\u0000'+c.kind]||
+      {site:c.site,kind:c.kind,n:0,out:0,worst:null,worstGap:0,last:null};
+    g.n++;
+    if(f==='in') return;
+    const sp=brothSpec(c.kind), gap=f==='low'?sp.min-c.value:c.value-sp.max;
+    g.out++;
+    if(gap>g.worstGap){g.worstGap=gap;g.worst=c.value;g.worstFlag=f;}
+    if(!g.last||c.d>g.last) g.last=c.d;
+  });
+  table('qh-oos-tbl',[{h:'Site'},{h:'Broth'},{h:'Out of spec',n:1},{h:'Worst',n:1},
+      {h:'Spec band'},{h:'Last flagged'},{h:'Flag',raw:1}],
+    Object.values(oosGrp).filter(g=>g.out)
+      .sort((a,b)=>b.worstGap-a.worstGap||b.out-a.out||a.site.localeCompare(b.site))
+      .map(g=>[g.site,g.kind,g.out+' of '+g.n,
+        rdg(g.worst)+' ('+g.worstGap.toFixed(1)+' '+(g.worstFlag==='low'?'below':'above')+')',
+        specBand(g.kind),g.last,
+        chip('r',g.worstFlag==='low'?'Below spec':'Above spec')]),
+    'No readings outside the factory spec band in this range');
+
   const brothDev=brothDevAll.filter(d=>inEV(d.d));
-  table('qh-dev',[{h:'Date'},{h:'Site'},{h:'Check'},{h:'Reading'},{h:'Status',raw:1}],
-    brothDev.slice().sort((a,b)=>b.d.localeCompare(a.d)).map(d=>
-      [d.d,d.site,d.kind,d.value??'not registered',d.open?chip('a','Open'):chip('g','Closed')]),
+  table('qh-dev',[{h:'Date'},{h:'Site'},{h:'Check'},{h:'Reading'},{h:'vs spec',raw:1},{h:'Status',raw:1}],
+    brothDev.slice().sort((a,b)=>b.d.localeCompare(a.d)).map(d=>{
+      const f=d.value==null?null:brothFlag(d);
+      return [d.d,d.site,d.kind,d.value??'not registered',
+        f==='in'?chip('g','In spec'):f?chip('r',f==='low'?'Below spec':'Above spec'):chip('n','—'),
+        d.open?chip('a','Open'):chip('g','Closed')];
+    }),
     brothDevAll.length?'No quality deviations dated in this range':'No quality deviations in this snapshot');
-  const chickenN=brothInRange.filter(c=>c.kind==='chicken'&&c.value!=null).length;
-  const tonkN=brothInRange.filter(c=>c.kind==='tonkotsu'&&c.value!=null).length;
   const totChecks=brothInRange.reduce((s,c)=>s+(c.checks||0),0), totMissed=brothInRange.reduce((s,c)=>s+(c.checks_missed||0),0);
   const disc=totChecks?Math.round(100*(totChecks-totMissed)/totChecks):null;
   const devOpenQ=brothDev.filter(d=>d.open).length;
+  /* the headline is no longer how many checks happened but how many the
+     factory spec would reject - a check that lands outside the band is the
+     thing worth acting on */
+  function specKpi(kind,label){
+    if(!brothSpec(kind)) return kpi('n',label+' out of spec','—','no spec band in this snapshot');
+    const read=brothInRange.filter(c=>c.kind===kind&&c.value!=null);
+    const out=read.filter(c=>{const f=brothFlag(c);return f&&f!=='in';}).length;
+    const pct=read.length?Math.round(100*out/read.length):null;
+    return kpi(pct==null?'n':pct===0?'g':pct<=10?'a':'r',label+' out of spec',
+      pct==null?'—':pct+'%',
+      read.length?out+' of '+read.length+' readings outside '+specBand(kind)+' after ice'
+                 :'no numeric readings in range');
+  }
   $('qual-kpis').innerHTML=
-    kpi('o','Chicken checks',fmtN(chickenN),'in range, numeric readings')+
-    kpi('o','Tonkotsu checks',fmtN(tonkN),'in range, numeric readings')+
+    specKpi('chicken','Chicken')+
+    specKpi('tonkotsu','Tonkotsu')+
     kpi(disc==null?'n':disc>=90?'g':disc>=75?'a':'r','Check discipline',disc==null?'—':disc+'%',
         'checks with a numeric reading, in range')+
     kpi(devOpenQ?'a':'g','Open quality deviations',fmtN(devOpenQ),'IsOpenDeviation on a broth check');
