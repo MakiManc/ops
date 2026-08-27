@@ -564,14 +564,18 @@ def check_side_channels(cur, today: str) -> dict:
         # archive. The store here is the git repo, whose practical comfort
         # bound is ~5 GB; the archive grows ~1.7 GB/year, so this is a slow
         # drift warning rather than tomorrow's outage.
-        adir = os.environ.get("OPS_ARCHIVE_DIR") or ""
+        # OPS_ARCHIVE_DIR may name several directories (os.pathsep-joined); the
+        # store is all of them, and a shadowed duplicate still occupies the repo.
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import archive_source
         total = 0
-        for root, _dirs, files in os.walk(adir):
-            for fn in files:
-                try:
-                    total += os.path.getsize(os.path.join(root, fn))
-                except OSError:
-                    pass
+        for adir in archive_source.archive_dirs(os.environ.get("OPS_ARCHIVE_DIR") or ""):
+            for root, _dirs, files in os.walk(adir):
+                for fn in files:
+                    try:
+                        total += os.path.getsize(os.path.join(root, fn))
+                    except OSError:
+                        pass
         arch_mb = round(total / 1e6)
         sizes["archive_mb"] = arch_mb
         if arch_mb > 4000:

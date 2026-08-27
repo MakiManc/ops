@@ -293,10 +293,25 @@ def main():
     if os.environ.get("OPS_WAREHOUSE_SOURCE") == "archive":
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import archive_source
+        # One directory, or several joined by os.pathsep in precedence order -
+        # normally "warehouse_direct:warehouse_archive", because neither covers
+        # the whole span on its own. archive_source resolves the overlap per
+        # (pull_date, feed) rather than concatenating.
         adir = os.environ.get("OPS_ARCHIVE_DIR") or sys.exit(
-            "OPS_ARCHIVE_DIR not set (path to warehouse_direct/ or warehouse_archive/)")
+            "OPS_ARCHIVE_DIR not set (warehouse_direct and/or warehouse_archive, "
+            f"joined by {os.pathsep!r}, highest precedence first)")
         conn = archive_source.connect(
             adir, manifest=os.path.join(OUT_DIR, "feeds_manifest.json"))
+        # The snapshot is published on a public Pages site and read by scheduled
+        # reports that quote its provenance line. It named Neon regardless of
+        # where the rows came from, which is a lie the moment this branch runs.
+        # Basenames, not the paths: this line is published on a public site and
+        # quoted in reports, and OPS_ARCHIVE_DIR is an absolute runner path.
+        src_label = ("committed pull archive (%s) via bake_ops_command.py "
+                     "(Pipe 9); feed health measured against the archive, "
+                     "not the Sheets write"
+                     % ", ".join(os.path.basename(d.rstrip("/")) or d
+                                 for d in archive_source.archive_dirs(adir)))
     else:
         try:
             import psycopg2
@@ -304,6 +319,8 @@ def main():
             sys.exit("psycopg2 is required: pip install psycopg2-binary")
         dsn = os.environ.get("WAREHOUSE_DSN") or sys.exit("WAREHOUSE_DSN not set")
         conn = psycopg2.connect(dsn)
+        src_label = ("Neon Postgres warehouse via bake_ops_command.py (Pipe 9); "
+                     "feed health measured against Postgres, not the Sheets write")
     cur = conn.cursor()
     gaps, snap = [], {}
     cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows")
@@ -1302,7 +1319,7 @@ def main():
     snap["signals"]=sig
     snap["schema_version"]="1.0"
     snap["generated_at"]=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    snap["source"]="Neon Postgres warehouse via bake_ops_command.py (Pipe 9); feed health measured against Postgres, not the Sheets write"
+    snap["source"]=src_label
     snap["pull_date"]=pull
     os.makedirs(OUT_DIR,exist_ok=True)
     out=os.path.join(OUT_DIR,f"snapshot_{pull}.json")

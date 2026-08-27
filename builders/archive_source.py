@@ -13,6 +13,28 @@ NOTHING SWITCHES TO THIS AUTOMATICALLY. bake_ops_command.py uses it only when
 OPS_WAREHOUSE_SOURCE=archive, so the default path is untouched and the two can be
 run back to back and diffed.
 
+TWO DIRECTORIES, ONE WAREHOUSE
+------------------------------
+The archive arrived by two routes and neither covers the whole span. Pulls from
+13/08/2026 were archived out of Postgres into warehouse_archive/; from 27/08/2026
+the export writes warehouse_direct/ itself. Reading either one alone is wrong in
+a different direction - archive-only goes stale the day Neon stops being written,
+direct-only silently drops every pull before it existed - so connect() takes
+several directories joined by os.pathsep, in PRECEDENCE order:
+
+    connect("warehouse_direct" + os.pathsep + "warehouse_archive")
+
+Files are resolved per (pull_date, filename), and the FIRST directory that has one
+wins; the rest are skipped, not concatenated. Concatenating would double every row
+of every overlapping pull - a silent doubling of the whole dashboard, since both
+routes write the same pull_date on the same day.
+
+Direct wins over archive because it is first-hand. archive_writer.write_pull is
+atomic (write .tmp, verify the gzip line count round-trips, rename), so a file
+present there is a complete file; warehouse_archive/ is a dump of whatever
+Postgres held, which on 26/08/2026 - Neon at its 512 MB cap, zero rows stored,
+every fetch fine - was nothing at all.
+
 DIALECT - VERIFIED AGAINST DUCKDB 1.5.5, NOT ASSUMED
 ----------------------------------------------------
 These behave identically to Postgres and need no translation:
@@ -26,13 +48,21 @@ Two differences do need translating, both mechanical:
     %s -> ?          psycopg2 positional params
     bare alias       Postgres accepts `data->>'Order Ref' ref`; DuckDB needs AS
 
-THE JSON CAST IS LOAD-BEARING
------------------------------
-read_json_auto infers `data` as a typed STRUCT when the glob covers one feed, but
-degrades to MAP(VARCHAR, JSON) across the ~50 feeds in a full archive - and on a
-MAP every `->>` silently returns NULL rather than erroring. CAST(data AS JSON)
-restores Postgres semantics. Removing it does not fail loudly; it just quietly
-empties the dashboard.
+THE `data` COLUMN IS PINNED TO JSON, NOT AUTO-DETECTED
+------------------------------------------------------
+This used to be read_json_auto with CAST(data AS JSON) over the top, and what
+DuckDB inferred depended on HOW MANY FEEDS THE FILE SET HAPPENED TO COVER:
+
+    ~50 feeds  -> MAP(VARCHAR, JSON), on which every ->> silently returns NULL
+    one pull   -> a typed STRUCT, which then dies outright on the first pair of
+                  keys differing only in case:
+                  "Duplicate name \"Language\" in struct auto-detected in JSON"
+
+So the same code read the fortnight-wide archive fine and could not read a single
+day of it - a property of the input, discoverable only by trying. read_json with
+an explicit columns= pins row_num and data to BIGINT and JSON whatever the set
+looks like, which is what the archive envelope has always been. The CAST is kept
+below as a free no-op so the intent survives if anyone loosens this again.
 
 FEED NAMES
 ----------
@@ -126,7 +156,32 @@ def translate(sql: str) -> str:
     return sql.replace("%s", "?")
 
 
-def _feed_map(archive_dir: str, manifest: str | None) -> dict[str, str]:
+def archive_dirs(spec: str | Sequence[str]) -> list[str]:
+    """The directory list behind an OPS_ARCHIVE_DIR value, in precedence order."""
+    parts = spec.split(os.pathsep) if isinstance(spec, str) else [str(p) for p in spec]
+    return [p.strip() for p in parts if p and p.strip()]
+
+
+def resolve_files(spec: str | Sequence[str]) -> tuple[list[str], list[tuple[str, str]]]:
+    """Which .jsonl.gz files make up the warehouse, one per (pull_date, feed).
+
+    Returns (files, shadowed), where shadowed lists (skipped, kept) pairs so the
+    caller can say out loud which route supplied an overlapping pull rather than
+    leaving it to be inferred. Precedence is the directory order, first wins.
+    """
+    chosen: dict[tuple[str, str], str] = {}
+    shadowed: list[tuple[str, str]] = []
+    for d in archive_dirs(spec):
+        for p in sorted(glob.glob(os.path.join(d, "*", "*.jsonl.gz"))):
+            key = (os.path.basename(os.path.dirname(p)), os.path.basename(p))
+            if key in chosen:
+                shadowed.append((p, chosen[key]))
+            else:
+                chosen[key] = p
+    return [chosen[k] for k in sorted(chosen)], shadowed
+
+
+def _feed_map(spec: str | Sequence[str], manifest: str | None) -> dict[str, str]:
     """slug -> real feed name, preferring what the writer recorded at the time."""
     out: dict[str, str] = {}
     if manifest and os.path.exists(manifest):
@@ -139,12 +194,15 @@ def _feed_map(archive_dir: str, manifest: str | None) -> dict[str, str]:
         except Exception:  # noqa: BLE001 - a bad manifest must not stop the read
             pass
     # _feeds.json is authoritative where present: it was written next to the data.
-    for p in sorted(glob.glob(os.path.join(archive_dir, "*", "_feeds.json"))):
-        try:
-            with open(p, encoding="utf-8") as f:
-                out.update(json.load(f))
-        except Exception:  # noqa: BLE001
-            pass
+    # Lowest-precedence directory first, so the highest-precedence one has the
+    # last word on any slug both recorded.
+    for d in reversed(archive_dirs(spec)):
+        for p in sorted(glob.glob(os.path.join(d, "*", "_feeds.json"))):
+            try:
+                with open(p, encoding="utf-8") as f:
+                    out.update(json.load(f))
+            except Exception:  # noqa: BLE001
+                pass
     return out
 
 
@@ -207,6 +265,9 @@ def connect(archive_dir: str, manifest: str | None = None,
 
     Builds one view named etl_feed_rows with the same columns the real table has
     (feed, pull_date, row_num, data) so the bake's SQL binds unchanged.
+
+    archive_dir is one directory or several joined by os.pathsep, highest
+    precedence first - see the module docstring.
     """
     try:
         import duckdb
@@ -214,9 +275,12 @@ def connect(archive_dir: str, manifest: str | None = None,
         raise SystemExit("duckdb is required for OPS_WAREHOUSE_SOURCE=archive: "
                          "pip install duckdb")
 
-    pattern = os.path.join(archive_dir, "*", "*.jsonl.gz")
-    if not glob.glob(pattern):
+    files, shadowed = resolve_files(archive_dir)
+    if not files:
         raise SystemExit(f"no archive files under {archive_dir!r} - nothing to read")
+    if shadowed:
+        print(f"[archive] {len(files)} pull files; {len(shadowed)} shadowed by a "
+              f"higher-precedence copy, e.g. {shadowed[0][0]} <- {shadowed[0][1]}")
 
     fmap = _feed_map(archive_dir, manifest)
     if fmap:
@@ -241,8 +305,10 @@ def connect(archive_dir: str, manifest: str | None = None,
                     AS DATE)                                          AS pull_date,
                row_num,
                CAST(data AS JSON)                                     AS data
-        FROM read_json_auto({_lit(pattern)}, filename=true,
-                            union_by_name=true, maximum_object_size=20000000)
+        FROM read_json({_lit_list(files)}, filename=true,
+                       format='newline_delimited',
+                       columns={{'row_num': 'BIGINT', 'data': 'JSON'}},
+                       maximum_object_size=20000000)
     """)
     # Every query filters on feed, and most also on pull_date - the same index
     # the real table carries (etl_feed_rows_feed_idx).
@@ -281,3 +347,9 @@ def _lit(s: str) -> str:
     """Single-quoted SQL literal. Feed names come from our own files, but they
     contain apostrophes often enough that escaping is not optional."""
     return "'" + s.replace("'", "''") + "'"
+
+
+def _lit_list(items: Sequence[str]) -> str:
+    """A DuckDB list literal. An explicit file list, not a glob: the glob cannot
+    express 'this pull date from direct, that one from archive'."""
+    return "[" + ", ".join(_lit(s) for s in items) + "]"
