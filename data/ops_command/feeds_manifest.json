@@ -554,6 +554,16 @@
    "min_rows": 1,
    "status": "known_broken",
    "note": "fetch fails daily; cause not yet investigated"
+  },
+  {
+   "name": "Factory Broth Readings",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 100,
+   "median_rows_at_calibration": null,
+   "status": "expected",
+   "note": "The factory refractometer form's responses, pulled whole every day (factory_broth.py in the ETL repo), so the row count is the form's entire history and only ever grows - roughly +3 a day. min_rows is a floor set BEFORE the feed's first landing, not a calibration: it is there to catch a wiped or wrong tab, and should be re-floored against a fortnight of real pulls. The verifier's 0.5x-3x band self-calibrates on the trailing median regardless."
   }
  ]
 }

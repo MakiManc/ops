@@ -40,6 +40,7 @@ CHECKS (v2, Phase 2 complete)
                            the same headline aggregates as the live baked
                            snapshot: scheduled-task on-time/missed totals,
                            projected-spend GBP total, broth cell count,
+                           factory refractometer reading count,
                            supplier-issue count, outstanding-training
                            count. Catches a correct warehouse feeding a
                            wrong dashboard.
@@ -440,6 +441,7 @@ def _snapshot_aggregates(snap: dict) -> dict:
     tasks = (snap.get("tasks") or {}).get("cells") or []
     week = (snap.get("supply") or {}).get("week_spend") or []
     broth = ((snap.get("quality") or {}).get("broth") or {}).get("cells") or []
+    factory = ((snap.get("quality") or {}).get("factory") or {}).get("readings") or []
     issues = (snap.get("suppliers") or {}).get("issues") or []
     outstanding = (snap.get("training") or {}).get("outstanding") or []
     return {
@@ -447,6 +449,10 @@ def _snapshot_aggregates(snap: dict) -> dict:
         "tasks_missed": sum(c.get("missed") or 0 for c in tasks),
         "week_spend_gbp": round(sum(w.get("value_gbp") or 0 for w in week), 2),
         "broth_cells": len(broth),
+        # The factory refractometer readings are a different measurement from
+        # broth_cells (factory batch vs per-site check), so they are counted
+        # separately - summing them would compare two scales.
+        "factory_broth_readings": len(factory),
         "supplier_issues": len(issues),
         "training_outstanding": len(outstanding),
     }

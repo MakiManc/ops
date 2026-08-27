@@ -272,11 +272,51 @@ EXPECTED_FEEDS = [
     "GC Deviations","GC Waste Registered",
     "Mapal Supplier Orders","Mapal Smart Delivery","Mapal Invoices To Receive",
     "Kobas Orders",
+    "Factory Broth Readings",
 ]
 def supplier_of(form):
     for sup, needle in SUPPLIER_MATCH:
         if needle.lower() in (form or "").lower(): return sup
     return "Unattributed"
+def fb_num(v):
+    """One refractometer reading as a float, or None if it is not a number.
+
+    Readings arrive as the SHEET RENDERS them, so a cell somebody formatted as
+    a percentage comes through as '900.00%' - that is 9, not 900, and it is a
+    real reading of a real batch. The derived tabs of the source sheet are full
+    of them, so the form's own columns can acquire one at any time. Converted
+    and counted rather than dropped; anything else non-numeric is None and
+    counted too, never guessed at.
+    """
+    s = (v or "").strip().replace(",", "")
+    if not s:
+        return None
+    pct = s.endswith("%")
+    if pct:
+        s = s[:-1].strip()
+    try:
+        n = float(s)
+    except ValueError:
+        return None
+    return n / 100 if pct else n
+def fb_date(form_date, ts):
+    """(iso_date, dated_from_timestamp) for one refractometer response.
+
+    The form's own 'Date' field is hand-typed and carries typos the submission
+    Timestamp cannot ('03/08/0025' for 03/08/2025). It is still the right field
+    to prefer: a batch made late one night is often submitted the next morning,
+    and the operator dates it to the production day. So parse Date first, fall
+    back to the Timestamp's date, and say which was used - a reading neither
+    field can date is returned undated and disclosed, never dated by guess.
+    """
+    for src, val in (("form", form_date), ("ts", ts)):
+        try:
+            d = datetime.datetime.strptime((val or "").strip()[:10], "%d/%m/%Y").date()
+        except ValueError:
+            continue
+        if 2000 <= d.year <= 2100:
+            return d.isoformat(), src == "ts"
+    return None, False
 def has_feed(cur, feed):
     cur.execute("SELECT 1 FROM etl_feed_rows WHERE feed=%s LIMIT 1", (feed,))
     return cur.fetchone() is not None
@@ -709,6 +749,101 @@ def main():
       "'checks_missed' counts non-numeric answers (e.g. 'Not registered on time') "
       "separately from checks_missed==checks meaning value is null (no numeric reading "
       "that day); event-dated on AnsweredDateTime, never pull_date"}}
+    # ---- factory broth score (Factory Broth Readings; the refractometer form) ----
+    # Ross, 27/08/2026: a factory-level broth score on this page, by batch,
+    # scored on the AFTER-ICE reading.
+    #
+    # A DIFFERENT MEASUREMENT FROM THE BLOCK ABOVE, NOT MORE OF IT. Those cells
+    # are per-SITE GetCompliant checks of broth as it is served; these are the
+    # factory's own refractometer readings of the batch it produced, one form
+    # submission per batch, taken before and after ice is added. Different
+    # instrument, different moment, different scale - so they are separate
+    # blocks, never averaged into one another and never plotted on one axis.
+    #
+    # BEFORE-ICE IS CARRIED BUT IS NOT THE SCORE. Ross was explicit: the score
+    # is the after-ice reading. Before-ice rides along because it is what the
+    # dilution is measured against and the pair is only meaningful together.
+    #
+    # NEWEST PULL ONLY. The feed is a whole-sheet copy every day (see
+    # factory_broth.py in the ETL repo), so one pull is the complete history to
+    # date - dedup across pulls would need a key the form does not have, since
+    # two submissions can share a Timestamp to the second (30/07/2025 21:17:35
+    # covers batches 3007A, 3007B and 3007C).
+    FB_FEED = "Factory Broth Readings"
+    FB_CAP = 500
+    fb_readings=[]; fb_total=0; fb_pull=None; fb_pct=0; fb_ts_dated=0
+    fb_excl={"no_after_ice":0,"undated":0,"non_numeric":0}
+    if has_feed(cur,FB_FEED):
+        cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows WHERE feed=%s",(FB_FEED,))
+        fb_pull=(cur.fetchone() or [None])[0]
+        cur.execute(
+          "SELECT data->>'Timestamp', data->>'Date', data->>'Batch Number', "
+          " data->>'Product Name', data->>'Reading Before Adding Ice', "
+          " data->>'Reading After Adding Ice' "
+          "FROM etl_feed_rows WHERE feed=%s AND pull_date="+L, (FB_FEED,FB_FEED))
+        for ts,dt,batch,product,before,after in cur.fetchall():
+            fb_total+=1
+            raw=(after or "").strip()
+            if not raw:
+                # Every response before 13/08/2025 predates the two ice
+                # questions on the form. No after-ice reading means no score -
+                # counted and disclosed, never scored as a zero.
+                fb_excl["no_after_ice"]+=1; continue
+            d,from_ts=fb_date(dt,ts)
+            if d is None:
+                fb_excl["undated"]+=1; continue
+            val=fb_num(raw)
+            if val is None:
+                fb_excl["non_numeric"]+=1; continue
+            if from_ts: fb_ts_dated+=1
+            if raw.endswith("%"): fb_pct+=1
+            fb_readings.append({"d":d,"ts":ts,
+              "batch":(batch or "").strip() or None,
+              "product":(product or "").strip() or None,
+              "score":round(val,2),"before":fb_num(before),
+              "date_source":"timestamp" if from_ts else "form"})
+        # The same batch and product read twice in one day is real - it happens
+        # (210825B, 21/08/2025, 7 then 9). Both rows stay and both are marked,
+        # so the reader sees two readings rather than a duplicated row, and
+        # nothing is quietly averaged away.
+        seen={}
+        for r in fb_readings:
+            k=(r["batch"],r["product"],r["d"]); seen[k]=seen.get(k,0)+1
+        for r in fb_readings:
+            r["repeat"]=seen[(r["batch"],r["product"],r["d"])]>1
+        fb_readings.sort(key=lambda r:(r["d"],r["ts"] or ""),reverse=True)
+        gaps.append("The factory broth score carries no factory: the refractometer "
+            "form has no site field, so readings cannot be split between the Glasgow, "
+            "Edinburgh and Shoreditch factories - and no after-ice target band exists "
+            "in the source either, so its colour scale is the observed range, not a spec")
+    else:
+        gaps.append("'"+FB_FEED+"' absent from the warehouse - the factory broth "
+            "score (refractometer readings by batch) is unavailable until the daily "
+            "export lands it")
+    if fb_excl["no_after_ice"]:
+        gaps.append(str(fb_excl["no_after_ice"])+" refractometer response(s) carry no "
+            "after-ice reading (the form gained that question on 13/08/2025) and are "
+            "excluded from the factory broth score rather than scored as zero")
+    if fb_ts_dated:
+        gaps.append(str(fb_ts_dated)+" refractometer reading(s) are dated from the "
+            "submission timestamp because the form's own Date field did not parse "
+            "(it is hand-typed and carries typo'd years) - fix at source when possible")
+    if fb_pct:
+        gaps.append(str(fb_pct)+" after-ice reading(s) arrived percent-formatted "
+            "('900.00%' for 9) and were converted - the source sheet's derived tabs "
+            "are full of these, so the form's own columns can acquire one too")
+    snap["quality"]["factory"]={
+      "readings":fb_readings[:FB_CAP],"scored":len(fb_readings),
+      "responses":fb_total,"truncated":len(fb_readings)>FB_CAP,
+      "excluded":fb_excl,"source_feed":FB_FEED,"pull_date":fb_pull,
+      "basis":"one row per refractometer form submission at the factory, from the "
+      "newest pull of '"+FB_FEED+"' (a whole-sheet copy, so one pull is the full "
+      "history); score = the reading taken AFTER adding ice, Ross's definition, with "
+      "the before-ice reading carried alongside for context; event-dated on the form's "
+      "own Date field, falling back to the submission timestamp when that does not "
+      "parse, never on pull_date; responses with no after-ice reading are excluded and "
+      "counted in 'excluded', never scored as zero; 'repeat' marks a batch and product "
+      "read more than once on the same day - both readings are kept, neither averaged"}
     # ---- scheduled task completion rate ON TIME by site (GC Scheduled Task Answers) ----
     # Ross, 15 Aug: the Task Completion page was reading GC Form Task Answers
     # (Closed/Open FORM state - a current-state backlog snapshot). Ross asked
