@@ -18,11 +18,29 @@ name: Ops data verification
 # red, which fires GitHub's failure email. WARNINGS: recorded in
 # data/ops_command/health_latest.json and mirrored to an auto-updated
 # GitHub issue - the push channel stays pure.
+#
+# 27/08/2026 - THE SCHEDULE IS RETIRED (phase 6 of the Neon exit). The daily
+# verification now runs in MakiManc/maki-hospitality-etl (.github/workflows/
+# ops_verify.yml) on the same two crons, against the committed pull archive,
+# and pushes health_latest.json / verify_history.json back here.
+#
+# A verifier has to be able to see the store it is verifying. This one measures
+# at the destination and never trusts a workflow's exit code - and its
+# destination is no longer Neon, which both repos could reach, but the pull
+# archive, which lives in the private repo because the warehouse holds employee
+# names. Left here it would be checking a database nothing writes to any more.
+#
+# THIS FILE IS THE ROLLBACK, WHICH IS WHY IT IS STILL HERE, and it is the only
+# place the GitHub-issue warning mirror still exists - that step needs Issues:
+# write on this repo, which OPS_REPO_TOKEN deliberately does not carry.
+# "Run workflow" restores the Neon-sourced verification for as long as Neon
+# holds current data. Do NOT leave both scheduled: they write the same two
+# verdict files and would overwrite each other.
+#
+# It reads Postgres, so it is only as good as Neon is fresh. Once the export
+# stops writing Neon, this stops being a rollback and should be deleted.
 
 on:
-  schedule:
-    - cron: "30 9 * * *"
-    - cron: "0 12 * * *"
   workflow_dispatch:
 
 concurrency:

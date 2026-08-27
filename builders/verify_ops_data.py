@@ -165,6 +165,10 @@ def fetch_json(url: str, timeout: int = 20):
 # connection and the two store-specific behaviours (capacity, aggregates) branch
 # on this. Default is Postgres, so the flag is inert until something sets it.
 ARCHIVE_MODE = os.environ.get("OPS_WAREHOUSE_SOURCE") == "archive"
+# What to CALL the store in the verdict. This text is the Data Health tab
+# and the ntfy push, so "Postgres" in archive mode is not a cosmetic slip -
+# it sends whoever is reading at 09:30 to look at the wrong system.
+STORE = "the pull archive" if ARCHIVE_MODE else "Postgres"
 
 
 def connect():
@@ -290,7 +294,7 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
         # run may still be in flight -> timing-deferrable in the morning.
         inflight = receipt_states.get(wf, "no-table") is None
         if lp is None:
-            add("1-landed", sev, "feed has NEVER landed in Postgres", name,
+            add("1-landed", sev, f"feed has NEVER landed in {STORE}", name,
                 klass="1-landed-inflight" if inflight else "1-landed")
             continue
         age = (date.fromisoformat(today) - date.fromisoformat(lp)).days
@@ -414,10 +418,10 @@ def check_snapshot(cur):
             pass
     if snap_latest == pg_latest:
         add("4a-snapshot", "ok",
-            f"dashboard snapshot {snap_latest} matches Postgres {pg_latest}")
+            f"dashboard snapshot {snap_latest} matches {STORE} {pg_latest}")
     else:
         add("4a-snapshot", "critical",
-            f"dashboard says latest data is {snap_latest} but Postgres "
+            f"dashboard says latest data is {snap_latest} but {STORE} "
             f"says {pg_latest} - the bake failed, baked stale, or the "
             "commit never landed", klass="4a-snapshot")
     try:
@@ -519,7 +523,7 @@ def check_consistency(pg_latest: str, snap_latest: str):
     if diffs:
         add("4b-consistency", "critical",
             "live dashboard aggregates do not match a fresh recompute from "
-            "Postgres - " + "; ".join(diffs) + " (a builder deploy after "
+            f"{STORE} - " + "; ".join(diffs) + " (a builder deploy after "
             "the 09:00 bake causes this legitimately - rebake via "
             "workflow_dispatch if so)", klass="4b-consistency")
     else:
@@ -842,7 +846,9 @@ def main() -> None:
         "known_broken": known_broken,
         "results": RESULTS,
         "basis": ("verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against "
-                  "Neon Postgres and raw.githubusercontent.com; manifest v"
+                  + ("the committed pull archive" if ARCHIVE_MODE
+                     else "Neon Postgres")
+                  + " and raw.githubusercontent.com; manifest v"
                   f"{manifest.get('version')} calibrated "
                   f"{manifest.get('calibrated')}; "
                   f"{mode} run (morning defers timing-class failures to "
