@@ -71,6 +71,31 @@ function emailSupplyFixture() {
         lines: 37, items: 76, sites: 1, value_gbp: 1166.19 },
     ],
     supplier_totals_basis: 'Same orders as the site table above, grouped by supplier. Deliveries counts distinct site+delivery-date combinations. Scheduled deliveries, not confirmed ones.',
+    // All-time: a superset of the week, with one supplier (Perfect Ted) that
+    // ordered in an earlier week and not this one - so switching period has to
+    // change the row set, not just the numbers.
+    supplier_totals_all: [
+      { supplier: 'LWC Northeast', supplier_canon: 'LWC', orders: 9, deliveries: 8,
+        lines: 301, items: 502, sites: 4, value_gbp: 11840.22 },
+      { supplier: 'Brakes', supplier_canon: 'Brakes', orders: 7, deliveries: 5,
+        lines: 92, items: 190, sites: 2, value_gbp: 3110.40 },
+      { supplier: 'LWC London', supplier_canon: 'LWC', orders: 3, deliveries: 3,
+        lines: 101, items: 190, sites: 1, value_gbp: 2604.27 },
+      { supplier: 'Perfect Ted', supplier_canon: 'Perfect Ted', orders: 1, deliveries: 1,
+        lines: 1, items: 2, sites: 1, value_gbp: 300.00 },
+    ],
+    supplier_totals_all_meta: {
+      orders: 20, deliveries: 17, value_gbp: 17854.89,
+      first_delivery: '2026-08-03', last_delivery: '2026-09-02',
+      coverage_start: '2026-08-02', max_lead_days: 6,
+      complete_from: '2026-08-10', weeks: 5,
+      partial_weeks: [
+        { w: '2026-08-03', orders: 4, value_gbp: 1200.0,
+          why: "starts before the feed's email coverage does, so orders placed for it were never captured" },
+        { w: '2026-08-24', orders: 6, value_gbp: 5581.56, why: 'still being ordered into' },
+      ],
+    },
+    supplier_totals_all_basis: 'Every order the Kobas Orders feed has ever captured, deduped by Kobas Reference, grouped by supplier: 20 orders with delivery dates 2026-08-03 to 2026-09-02. NOT A COMPLETE TRADING HISTORY.',
     week_start: '2026-08-24', week_end: '2026-08-30',
     week_spend_source: 'order_emails',
     week_spend_basis: 'Kobas Orders (daily IMAP parse of Kobas order-confirmation emails, pull_date=2026-09-03): test basis string',
@@ -219,6 +244,67 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   assert(/not confirmed ones/.test(supBasis),
     `emails: the basis line says these are scheduled, not confirmed, deliveries (got "${supBasis}")`);
 
+  // -- by-supplier: all-time period ---------------------------------------
+  const toggleBtns = (await page.locator('#sup-tot-toggle .fbtn').allInnerTexts());
+  assert(toggleBtns.join('|') === 'This week|All time',
+    `emails: the card offers both periods (got ${JSON.stringify(toggleBtns)})`);
+  assert(await page.locator('#sup-tot-warn .prov').count() === 0,
+    'emails: no caveat banner on the week view - it has nothing to caveat');
+  await page.locator('#sup-tot-toggle .fbtn', { hasText: 'All time' }).click();
+
+  const allRows = await page.locator('#sup-tot table tbody tr').count();
+  assert(allRows === 5, `all-time: 4 supplier rows plus a total (got ${allRows})`);
+  const ptRow = await page.locator('#sup-tot table tbody tr', { hasText: 'Perfect Ted' }).count();
+  assert(ptRow === 1,
+    'all-time: a supplier that ordered in an earlier week but not this one appears');
+  const allTot = await page.locator('#sup-tot table tbody tr.tot td').allInnerTexts();
+  assert(allTot[1] === '£17,855',
+    `all-time: total is the all-time spend, not the week's (got "${allTot[1]}")`);
+  assert(allTot[3] === '20' && allTot[4] === '17',
+    `all-time: totals switch with the period (got ${JSON.stringify(allTot.slice(3, 5))})`);
+
+  // The caveat is the whole reason this period is safe to offer, so assert on
+  // its substance, not merely that some banner exists.
+  const warn = await page.locator('#sup-tot-warn').innerText();
+  assert(/Not a complete trading history/i.test(warn),
+    `all-time: the caveat leads with what the number is not (got "${warn.slice(0, 60)}…")`);
+  assert(/2026-08-02/.test(warn),
+    'all-time: the caveat names the date coverage actually starts');
+  assert(/2026-08-10/.test(warn),
+    'all-time: the caveat names the first fully-covered delivery date');
+  assert(/2 of 5 week\(s\) are not comparable/.test(warn),
+    `all-time: the caveat counts the weeks that are not comparable (got "${warn}")`);
+  assert(/still being ordered into/.test(warn) && /never captured/.test(warn),
+    'all-time: the caveat says WHY each week is not comparable');
+  assert(/ordered<\/b>, not invoiced/.test(await page.locator('#sup-tot-warn').innerHTML()),
+    'all-time: the caveat distinguishes ordered from invoiced');
+
+  // The meta totals and the table they describe must be the same numbers.
+  // They were not: meta.deliveries collapsed site+date ACROSS suppliers (174)
+  // while the rows each counted their own (200), so the snapshot carried two
+  // answers to one word. Asserted on the fixture so it cannot come back.
+  {
+    const meta = snap.supply.supplier_totals_all_meta;
+    const rows = snap.supply.supplier_totals_all;
+    assert(meta.orders === rows.reduce((a, r) => a + r.orders, 0),
+      'all-time: meta.orders equals the sum of the supplier rows');
+    assert(meta.deliveries === rows.reduce((a, r) => a + r.deliveries, 0),
+      'all-time: meta.deliveries equals the sum of the supplier rows (not collapsed across suppliers)');
+    assert(Math.abs(meta.value_gbp - rows.reduce((a, r) => a + r.value_gbp, 0)) < 0.01,
+      'all-time: meta.value_gbp equals the sum of the supplier rows');
+  }
+
+  const allSub = await page.locator('#sup-tot-sub').innerText();
+  assert(/2026-08-03 – 2026-09-02/.test(allSub),
+    `all-time: the subline states the span covered (got "${allSub}")`);
+
+  // Back to the week, and the numbers must return to the week's own.
+  await page.locator('#sup-tot-toggle .fbtn', { hasText: 'This week' }).click();
+  const backTot = await page.locator('#sup-tot table tbody tr.tot td').allInnerTexts();
+  assert(backTot[1] === '£5,582', `week: switching back restores the week (got "${backTot[1]}")`);
+  assert(await page.locator('#sup-tot-warn .prov').count() === 0,
+    'week: the caveat is gone again once the period no longer needs it');
+
   // -- KPI strip ----------------------------------------------------------
   const kpiLabels = (await page.locator('#supp-kpis .kpi .lb').allInnerTexts()).map(t => t.toLowerCase());
   assert(kpiLabels.join('|') === 'projected spend this week|items ordered this week|otif this month|top supplier this week|issues logged',
@@ -321,6 +407,8 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   const gapNote = await page.locator('#fa-aging .prov', { hasText: 'falling back to the weekly outstanding-orders report' }).count();
   assert(gapNote >= 1, 'fallback: the gap note about the missing email feed is visible under the card');
 
+  assert(await page.locator('#sup-tot-toggle .fbtn').count() === 0,
+    'fallback: no period toggle - this source has no all-time data to switch to');
   const fbCells = await page.locator('#sup-tot table tbody tr').first().locator('td').allInnerTexts();
   assert(fbCells[0] === 'AA Factory1 Limited' && fbCells[1] === '£5,100',
     `fallback: by-supplier still shows spend (got ${JSON.stringify(fbCells.slice(0, 2))})`);
@@ -360,6 +448,8 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   // table - old snapshots stay viewable through the roll-back selector.
   assert(await page.locator('#sup-tot table').count() === 0,
     'legacy: no by-supplier table is drawn for a snapshot that predates it');
+  assert(await page.locator('#sup-tot-toggle .fbtn').count() === 0,
+    'legacy: no period toggle for a snapshot that predates the data');
   const legacyEmpty = await page.locator('#sup-tot .empty').innerText();
   assert(/No orders due this week/.test(legacyEmpty),
     `legacy: the by-supplier card shows an empty state (got "${legacyEmpty}")`);
