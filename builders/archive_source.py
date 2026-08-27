@@ -48,6 +48,17 @@ Two differences do need translating, both mechanical:
     %s -> ?          psycopg2 positional params
     bare alias       Postgres accepts `data->>'Order Ref' ref`; DuckDB needs AS
 
+One difference is NOT translated and is a trap - `~` MEANS SOMETHING ELSE HERE.
+Postgres' ~ searches; DuckDB's ~ is regexp_full_match. 'abc' ~ 'b' is TRUE on
+Postgres and FALSE here. A start-anchored pattern is what catches people out,
+because it looks portable and is not: '2026-09-10T09:00:00' ~ '^\\d{4}-\\d{2}-\\d{2}'
+is true on Postgres and false here, so the two engines quietly return different
+rows rather than one of them failing. No query in either repo relies on it today
+(the ETL sibling's pg_extract._as_date is the only ~ anywhere, and it spells out
+a '.*' tail so it means the same under both readings). Do the same, or add a
+rule, before using ~ in the bake. Recorded here because the sibling found it:
+this file and archive_query.py must not diverge on dialect.
+
 THE `data` COLUMN IS PINNED TO JSON, NOT AUTO-DETECTED
 ------------------------------------------------------
 This used to be read_json_auto with CAST(data AS JSON) over the top, and what
