@@ -299,23 +299,45 @@ def fb_num(v):
     except ValueError:
         return None
     return n / 100 if pct else n
+FB_MAX_LAG_DAYS = 7
+def fb_parse_date(val):
+    """A UK-format DD/MM/YYYY leading date, or None if it is not one."""
+    try:
+        d = datetime.datetime.strptime((val or "").strip()[:10], "%d/%m/%Y").date()
+    except ValueError:
+        return None
+    return d if 2000 <= d.year <= 2100 else None
 def fb_date(form_date, ts):
     """(iso_date, dated_from_timestamp) for one refractometer response.
 
-    The form's own 'Date' field is hand-typed and carries typos the submission
-    Timestamp cannot ('03/08/0025' for 03/08/2025). It is still the right field
-    to prefer: a batch made late one night is often submitted the next morning,
-    and the operator dates it to the production day. So parse Date first, fall
-    back to the Timestamp's date, and say which was used - a reading neither
-    field can date is returned undated and disclosed, never dated by guess.
+    The form's own 'Date' field is the right field to PREFER: a batch made late
+    one night is often submitted the next morning, and the operator dates it to
+    the production day rather than the submission day.
+
+    But it is hand-typed next to an automatic Timestamp, so it is trusted only
+    when it PARSES and is PLAUSIBLE - and those are two different tests:
+      * doesn't parse: '03/08/0025' for 03/08/2025.
+      * parses and is wrong: batch 080925B is dated 08/09/2024 and was
+        submitted 08/09/2025. Exactly a year out, perfectly well-formed, and
+        contradicted by the batch number itself, which reads 08/09/25.
+    A production date AFTER its own submission is impossible, and one more than
+    FB_MAX_LAG_DAYS before it is a slip rather than a late entry: 3 readings of
+    1,461 in the first full pull were 14, 30 and 365 days out, and every one of
+    them was contradicted by its own batch number. Left alone, the 365-day one
+    stretched the dashboard's whole date range back a year on its own.
+
+    Either failure falls back to the Timestamp's date and is counted, so the
+    row says where its date came from. A reading neither field can date is
+    returned undated and disclosed, never dated by guess.
     """
-    for src, val in (("form", form_date), ("ts", ts)):
-        try:
-            d = datetime.datetime.strptime((val or "").strip()[:10], "%d/%m/%Y").date()
-        except ValueError:
-            continue
-        if 2000 <= d.year <= 2100:
-            return d.isoformat(), src == "ts"
+    d_form, d_ts = fb_parse_date(form_date), fb_parse_date(ts)
+    if d_form is not None:
+        if d_ts is None:
+            return d_form.isoformat(), False          # nothing to check it against
+        if 0 <= (d_ts - d_form).days <= FB_MAX_LAG_DAYS:
+            return d_form.isoformat(), False
+    if d_ts is not None:
+        return d_ts.isoformat(), True
     return None, False
 def has_feed(cur, feed):
     cur.execute("SELECT 1 FROM etl_feed_rows WHERE feed=%s LIMIT 1", (feed,))
@@ -770,8 +792,17 @@ def main():
     # two submissions can share a Timestamp to the second (30/07/2025 21:17:35
     # covers batches 3007A, 3007B and 3007C).
     FB_FEED = "Factory Broth Readings"
-    FB_CAP = 500
+    # 2,000, not 500 (27/08/2026). The first real pull landed 1,461 scored
+    # readings - thirteen months of production - and a 500 cap truncated the
+    # dashboard to the most recent five months on its first day. The card
+    # disclosed the truncation honestly, but a page built for comparing this
+    # month's broth against last year's should not have to. 1,461 readings cost
+    # ~220KB in the snapshot and the form adds ~3 a day, so this holds the whole
+    # history plus a couple of years of it; the truncation notice stays for the
+    # day that stops being true.
+    FB_CAP = 2000
     fb_readings=[]; fb_total=0; fb_pull=None; fb_pct=0; fb_ts_dated=0
+    fb_median=None; fb_suspect=0
     fb_excl={"no_after_ice":0,"undated":0,"non_numeric":0}
     if has_feed(cur,FB_FEED):
         cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows WHERE feed=%s",(FB_FEED,))
@@ -811,7 +842,41 @@ def main():
             k=(r["batch"],r["product"],r["d"]); seen[k]=seen.get(k,0)+1
         for r in fb_readings:
             r["repeat"]=seen[(r["batch"],r["product"],r["d"])]>1
+        # ---- implausible readings, flagged and kept ----------------------
+        # The first full pull of 1,461 readings contained five that cannot be
+        # what the refractometer showed: 87.0, 80.0, 80.0 and 52.0 alongside
+        # before-ice readings of 12.2, 12.1, 11.1 and 6.0 (a missed decimal
+        # point in every case), and one 0.09 (a cell formatted as '9.00%', so
+        # the percent conversion above is right about the cell and wrong about
+        # the intent). Five rows in 1,461 - 0.34% - and they did real damage:
+        # the card's colour scale runs min-to-max, so one 87 pushed every
+        # genuine 4-to-12 reading into the bottom seventh of the scale and the
+        # whole column shaded the same.
+        #
+        # They are FLAGGED, not dropped and not repaired. Dropping loses a
+        # real record of what was entered; dividing by ten is inventing data;
+        # and the row is the only thing that will make anyone fix the sheet.
+        # The band is deliberately derived from the data (a third of the
+        # median to three times it) rather than being a spec: this file says
+        # everywhere that no official after-ice target exists, and a
+        # plausibility test for keying slips must not be mistaken for one.
+        fb_median=None
+        vals=sorted(r["score"] for r in fb_readings)
+        if vals:
+            n=len(vals)
+            fb_median=vals[n//2] if n%2 else round((vals[n//2-1]+vals[n//2])/2,2)
+        fb_suspect=0
+        for r in fb_readings:
+            r["suspect"]=bool(fb_median and (r["score"]>3*fb_median
+                                             or r["score"]<fb_median/3))
+            if r["suspect"]: fb_suspect+=1
         fb_readings.sort(key=lambda r:(r["d"],r["ts"] or ""),reverse=True)
+        if fb_suspect:
+            gaps.append(str(fb_suspect)+" refractometer reading(s) are outside a "
+                "third to three times the median of "+str(fb_median)+" - a missed "
+                "decimal point ('87' for 8.7) or a percent-formatted cell. They are "
+                "kept, flagged and excluded from the colour scale, never repaired or "
+                "dropped: fix them in the source sheet and they stop being flagged")
         gaps.append("The factory broth score carries no factory: the refractometer "
             "form has no site field, so readings cannot be split between the Glasgow, "
             "Edinburgh and Shoreditch factories - and no after-ice target band exists "
@@ -826,14 +891,17 @@ def main():
             "excluded from the factory broth score rather than scored as zero")
     if fb_ts_dated:
         gaps.append(str(fb_ts_dated)+" refractometer reading(s) are dated from the "
-            "submission timestamp because the form's own Date field did not parse "
-            "(it is hand-typed and carries typo'd years) - fix at source when possible")
+            "submission timestamp because the form's own hand-typed Date field either "
+            "did not parse ('03/08/0025') or contradicted that timestamp - dated after "
+            "its own submission, or more than "+str(FB_MAX_LAG_DAYS)+" days before it - "
+            "fix at source when possible")
     if fb_pct:
         gaps.append(str(fb_pct)+" after-ice reading(s) arrived percent-formatted "
             "('900.00%' for 9) and were converted - the source sheet's derived tabs "
             "are full of these, so the form's own columns can acquire one too")
     snap["quality"]["factory"]={
       "readings":fb_readings[:FB_CAP],"scored":len(fb_readings),
+      "median":fb_median,"suspect":fb_suspect,
       "responses":fb_total,"truncated":len(fb_readings)>FB_CAP,
       "excluded":fb_excl,"source_feed":FB_FEED,"pull_date":fb_pull,
       "basis":"one row per refractometer form submission at the factory, from the "
@@ -841,9 +909,13 @@ def main():
       "history); score = the reading taken AFTER adding ice, Ross's definition, with "
       "the before-ice reading carried alongside for context; event-dated on the form's "
       "own Date field, falling back to the submission timestamp when that does not "
-      "parse, never on pull_date; responses with no after-ice reading are excluded and "
+      "parse OR contradicts it (a date after its own submission, or more than "
+      +str(FB_MAX_LAG_DAYS)+" days before it, is a typo), never on pull_date; responses with no after-ice reading are excluded and "
       "counted in 'excluded', never scored as zero; 'repeat' marks a batch and product "
-      "read more than once on the same day - both readings are kept, neither averaged"}
+      "read more than once on the same day - both readings are kept, neither averaged; "
+      "'suspect' marks a reading outside a third to three times the median, which is a "
+      "keying-slip test derived from the data and NOT a spec band - no after-ice target "
+      "exists in the source"}
     # ---- scheduled task completion rate ON TIME by site (GC Scheduled Task Answers) ----
     # Ross, 15 Aug: the Task Completion page was reading GC Form Task Answers
     # (Closed/Open FORM state - a current-state backlog snapshot). Ross asked

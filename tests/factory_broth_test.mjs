@@ -57,8 +57,13 @@ function factoryFixture() {
         score: 7.0, before: 11.0, date_source: 'form', repeat: true },
       { d: '2025-10-16', ts: '16/10/2025 19:26:24', batch: '1610GA3', product: 'Chicken Broth',
         score: 5.0, before: 6.0, date_source: 'form', repeat: false },
+      // a real mis-keyed reading: 8.7 entered as 87, against a before-ice of
+      // 12.2. Kept and flagged, never repaired or dropped - and the summary
+      // and the colour scale both have to survive it.
+      { d: '2026-02-19', ts: '19/02/2026 20:10:00', batch: '190226GA2', product: 'Tonkotsu Broth',
+        score: 87.0, before: 12.2, date_source: 'form', repeat: false, suspect: true },
     ],
-    scored: 6, responses: 9, truncated: false,
+    scored: 7, responses: 10, truncated: false, median: 8.7, suspect: 1,
     excluded: { no_after_ice: 3, undated: 0, non_numeric: 0 },
     source_feed: 'Factory Broth Readings', pull_date: '2026-08-27',
     basis: BASIS,
@@ -97,7 +102,7 @@ page.on('console', msg => {
   assert(head.join('|') === 'date|batch|product|after ice|before ice|notes',
     `batch table columns are date/batch/product/after ice/before ice/notes (got ${JSON.stringify(head)})`);
   const rows = await page.locator('#fb-tbl table tbody tr').count();
-  assert(rows === 6, `one row per reading, not per batch (got ${rows})`);
+  assert(rows === 7, `one row per reading, not per batch (got ${rows})`);
   const first = await page.locator('#fb-tbl table tbody tr').first().locator('td').allInnerTexts();
   assert(first[0] === '2025-10-20', `newest reading first (got "${first[0]}")`);
   assert(first[1] === '2010GA1', `the batch number is on the row - Ross asked for it by name (got "${first[1]}")`);
@@ -120,38 +125,63 @@ page.on('console', msg => {
 
   // -- the disclosure line: exclusions are counted, never scored as zero ----
   const prov = await page.locator('#fb-tbl .prov').innerText();
-  assert(/6 reading\(s\)/.test(prov) && /5 batch\(es\)/.test(prov),
+  assert(/7 reading\(s\)/.test(prov) && /6 batch\(es\)/.test(prov),
     `the batch count is distinct batches, not rows (got "${prov}")`);
-  assert(/observed after-ice range 5–9/.test(prov),
+  assert(/observed after-ice range 5–87/.test(prov),
     `the colour scale states its observed range (got "${prov}")`);
   assert(/not an official spec band/.test(prov),
     'the scale disclaims being a spec band - no target exists in the source');
   assert(/3 with no after-ice reading/.test(prov) && /never scored as zero/.test(prov),
     `responses with no after-ice reading are disclosed as excluded (got "${prov}")`);
   const scoreCells = await page.locator('#fb-tbl table tbody td .fbscore').count();
-  assert(scoreCells === 6, `every score cell is shaded to the observed range (got ${scoreCells})`);
+  assert(scoreCells === 7, `every score cell is shaded (got ${scoreCells})`);
   assert(!/\b0\b/.test(await page.locator('#fb-tbl table tbody').innerText()),
     'no reading renders as a zero - an unscored response is absent, never a 0');
+
+  // -- the mis-keyed reading: kept, flagged, and not allowed to set the scale
+  const susRow = await page.locator('#fb-tbl table tbody tr', { hasText: '190226GA2' });
+  const susCells = await susRow.locator('td').allInnerTexts();
+  assert(susCells[3] === '87', `the mis-keyed reading is shown as entered, 87 (got "${susCells[3]}")`);
+  assert(/Check this reading/.test(await susRow.innerHTML()),
+    'the mis-keyed reading is flagged for someone to fix at source');
+  assert(/mis-keyed reading\(s\) cannot flatten the scale/.test(prov),
+    `the disclosure says the colour scale excludes the outlier (got "${prov}")`);
+  assert(/still shown and still counted|Still shown and still counted/.test(prov),
+    'the flagged reading is disclosed as kept, not dropped or repaired');
+  // The whole point: a genuine 5.0 and a genuine 9.0 must still shade
+  // differently. On a min-to-max scale spanning 5-87 they would be within
+  // 5% of each other and the column would read as one flat colour.
+  const shades = await page.locator('#fb-tbl table tbody td .fbscore').evaluateAll(
+    els => els.map(e => e.getAttribute('style') || ''));
+  const alpha = st => { const m = st.match(/rgba\(233,78,27,([0-9.]+)\)/); return m ? +m[1] : null; };
+  const lo = alpha(shades[shades.length - 1]), hi = alpha(shades[0]);
+  assert(lo != null && hi != null && Math.abs(hi - lo) > 0.2,
+    `real readings still shade distinctly from each other (got ${lo} vs ${hi})`);
 
   // -- by-product card -----------------------------------------------------
   const prodBars = await page.locator('#fb-prod .brow').count();
   assert(prodBars === 2, `one bar per product with readings in range (got ${prodBars})`);
   const prodFirst = await page.locator('#fb-prod .brow').first().innerText();
   // tonkotsu mean of 9.0, 8.0, 8.7, 9.0, 7.0 = 8.34 -> 8.3
-  assert(/Tonkotsu Broth/.test(prodFirst) && /8\.3/.test(prodFirst),
-    `products are ranked by mean after-ice score, tonkotsu 8.3 first (got "${prodFirst.replace(/\s+/g, ' ')}")`);
+  // tonkotsu: 7.0 8.0 8.7 9.0 9.0 87.0 -> median 8.85, rendered 8.8 (8.85 is
+  // 8.8499… in binary floating point, so toFixed(1) rounds down - deterministic,
+  // not a bug). The MEAN would be 21.5: one typo would become the product's score.
+  assert(/Tonkotsu Broth/.test(prodFirst) && /8\.8/.test(prodFirst),
+    `products are ranked by MEDIAN after-ice score, tonkotsu 8.8 first (got "${prodFirst.replace(/\s+/g, ' ')}")`);
   const prodProv = await page.locator('#fb-prod .prov').innerText();
-  assert(/not a pass mark/.test(prodProv),
-    `the per-product means disclaim being a pass mark (got "${prodProv}")`);
+  assert(/not a pass mark/.test(prodProv) && /Median/.test(prodProv),
+    `the per-product figures are medians and disclaim being a pass mark (got "${prodProv}")`);
 
   // -- KPI strip -----------------------------------------------------------
   const kpiLabels = (await page.locator('#qual-kpis .kpi .lb').allInnerTexts()).map(t => t.toLowerCase());
-  assert(kpiLabels.slice(0, 2).join('|') === 'factory batches scored|avg factory score',
+  assert(kpiLabels.slice(0, 2).join('|') === 'factory batches scored|median factory score',
     `the factory tiles lead the quality KPI strip (got ${JSON.stringify(kpiLabels)})`);
   const kpiVals = await page.locator('#qual-kpis .kpi .vl').allInnerTexts();
-  assert(kpiVals[0] === '5', `batches scored counts distinct batches, 5 (got "${kpiVals[0]}")`);
-  // 9.0 + 8.0 + 8.7 + 9.0 + 7.0 + 5.0 = 46.7 over 6 readings = 7.78
-  assert(kpiVals[1] === '7.8', `avg factory score is the after-ice mean, 7.8 (got "${kpiVals[1]}")`);
+  assert(kpiVals[0] === '6', `batches scored counts distinct batches, 6 (got "${kpiVals[0]}")`);
+  // 5.0 7.0 8.0 8.7 9.0 9.0 87.0 -> the middle one is 8.7. A mean would be
+  // 19.1 here: one mis-keyed row would become the headline number.
+  assert(kpiVals[1] === '8.7',
+    `the factory score is the MEDIAN, unmoved by the mis-keyed 87 (got "${kpiVals[1]}")`);
 
   // -- the two levels are never conflated ----------------------------------
   const note = await page.locator('#p-qual .note').innerText();

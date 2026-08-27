@@ -223,7 +223,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="kpis" id="qual-kpis"></div>
   <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added. The <b>site</b> cards below are GetCompliant broth checks at each restaurant. Different instrument, different moment in the broth's life: they are shown separately and never averaged into one another.</div>
   <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by product</div>
-    <div class="s" id="fb-prod-sub">Average after-ice reading per product · refractometer form, factory production batches</div></div>
+    <div class="s" id="fb-prod-sub">Median after-ice reading per product · refractometer form, factory production batches</div></div>
     <div class="card-b" id="fb-prod"></div></div>
   <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by batch</div>
     <div class="s" id="fb-tbl-sub">Every batch with an after-ice reading, newest first</div></div>
@@ -1472,17 +1472,32 @@ function render(snap){
   const fbBlock=(snap.quality&&snap.quality.factory)||null;
   const fbAll=(fbBlock&&fbBlock.readings)||[];
   const fbIn=fbAll.filter(r=>inEV(r.d));
-  const fbVals=fbIn.map(r=>r.score).filter(v=>v!=null);
-  const fbAvg=fbVals.length?fbVals.reduce((a,b)=>a+b,0)/fbVals.length:null;
-  const fbMin=fbVals.length?Math.min(...fbVals):null, fbMax=fbVals.length?Math.max(...fbVals):null;
+  const fbVals=fbIn.map(r=>r.score).filter(v=>v!=null).sort((a,b)=>a-b);
+  /* MEDIAN, not mean, and a PERCENTILE colour scale rather than min-to-max.
+     Both for the same reason: the first full pull carried five readings out of
+     1,461 that were plainly keyed wrong (87, 80, 80, 52, and an 0.09 from a
+     percent-formatted cell). One 87 in a min-to-max scale pushed every real
+     4-to-12 reading into the bottom seventh of it and the whole column shaded
+     identically; the mean it dragged up by a fifth of a point. The readings
+     stay on the table exactly as recorded - it is the SUMMARY and the SCALE
+     that stop letting five rows speak for 1,461. */
+  const fbPct=q=>{ if(!fbVals.length) return null;
+    const i=(fbVals.length-1)*q, lo=Math.floor(i), hi=Math.ceil(i);
+    return lo===hi?fbVals[lo]:fbVals[lo]+(fbVals[hi]-fbVals[lo])*(i-lo); };
+  const fbAvg=fbPct(0.5);
+  const fbLo=fbPct(0.05), fbHi=fbPct(0.95);
+  const fbMin=fbVals.length?fbVals[0]:null, fbMax=fbVals.length?fbVals[fbVals.length-1]:null;
+  const fbSuspect=fbIn.filter(r=>r.suspect).length;
   const fbBatches=new Set(fbIn.map(r=>r.batch||'(no batch)')).size;
   const fbLegacy='This snapshot predates the factory broth score - rebake to populate it.';
   /* colour scaled to the observed range, exactly as the site heatmaps are:
      the source records no after-ice target band, so a red/green scale would be
      inventing one. */
   const fbShade=v=>{
-    if(v==null||fbMax==null) return '';
-    const t=fbMax>fbMin?(v-fbMin)/(fbMax-fbMin):0.5;
+    if(v==null||fbHi==null) return '';
+    /* clamped, so a mis-keyed 87 sits at the top of the scale instead of
+       redefining it - and it is still on the row, flagged, to be read. */
+    const t=fbHi>fbLo?Math.max(0,Math.min(1,(v-fbLo)/(fbHi-fbLo))):0.5;
     return ' style="background:rgba(233,78,27,'+(0.12+0.7*t).toFixed(2)+')"';
   };
   if(!fbBlock){
@@ -1494,14 +1509,15 @@ function render(snap){
     const prodAgg={};
     fbIn.forEach(r=>{
       const k=r.product||'(no product named)';
-      const a=prodAgg[k]=prodAgg[k]||{n:0,sum:0,min:null,max:null,batches:new Set()};
-      a.n++; a.sum+=r.score; a.batches.add(r.batch||'(no batch)');
-      a.min=(a.min==null||r.score<a.min)?r.score:a.min;
-      a.max=(a.max==null||r.score>a.max)?r.score:a.max;
+      const a=prodAgg[k]=prodAgg[k]||{vals:[],batches:new Set()};
+      a.vals.push(r.score); a.batches.add(r.batch||'(no batch)');
     });
-    const prodRows=Object.entries(prodAgg).map(([k,a])=>({k,v:+(a.sum/a.n).toFixed(2),
-      tip:`${k} — ${a.n} reading${a.n===1?'':'s'} across ${a.batches.size} batch${a.batches.size===1?'':'es'}, `+
-          `after-ice ${a.min}–${a.max}`})).sort((a,b)=>b.v-a.v);
+    const med=v=>{const s=v.slice().sort((a,b)=>a-b),m=s.length>>1;
+      return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+    const prodRows=Object.entries(prodAgg).map(([k,a])=>({k,v:+med(a.vals).toFixed(2),
+      tip:`${k} — ${a.vals.length} reading${a.vals.length===1?'':'s'} across `+
+          `${a.batches.size} batch${a.batches.size===1?'':'es'}, `+
+          `after-ice ${Math.min(...a.vals)}–${Math.max(...a.vals)}`})).sort((a,b)=>b.v-a.v);
     if(!prodRows.length){
       $('fb-prod').innerHTML='<div class="empty">'+(fbAll.length
         ?'No factory batches scored in '+esc(evLabel())
@@ -1510,7 +1526,7 @@ function render(snap){
     /* insertAdjacentHTML, not innerHTML+= : reassigning innerHTML reserialises
        the bars and silently drops the hover listeners bars() just attached. */
     if(prodRows.length) $('fb-prod').insertAdjacentHTML('beforeend',
-      '<div class="prov">Mean after-ice reading per product in '+esc(evLabel())+
+      '<div class="prov">Median after-ice reading per product in '+esc(evLabel())+
       ' · no target band exists in the source, so these are levels to compare with each other and with last month, not a pass mark.</div>');
     $('fb-prod-sub').textContent=prodRows.length
       ? prodRows.length+' product(s) · '+fbIn.length+' reading(s) · '+evLabel()
@@ -1520,6 +1536,7 @@ function render(snap){
       fbIn.map(r=>[r.d,r.batch||'—',r.product||'—',
         '<span'+fbShade(r.score)+' class="fbscore">'+esc(r.score)+'</span>',
         r.before==null?'—':r.before,
+        (r.suspect?chip('r','Check this reading'):'')+
         (r.repeat?chip('b','2nd reading this day'):'')+
         (r.date_source==='timestamp'?chip('n','Dated from submission'):'')]),
       fbAll.length?'No factory batches scored in '+evLabel():
@@ -1536,10 +1553,17 @@ function render(snap){
     if(ex.no_after_ice) exBits.push(fmtN(ex.no_after_ice)+' with no after-ice reading (the form gained that question on 13/08/2025)');
     if(ex.non_numeric)  exBits.push(fmtN(ex.non_numeric)+' whose after-ice answer is not a number');
     if(ex.undated)      exBits.push(fmtN(ex.undated)+' that neither the form date nor the submission timestamp could date');
+    const exText=[];
+    if(exBits.length) exText.push('excluded from the score: '+exBits.join('; ')+
+      ' — counted, never scored as zero');
+    if(fbSuspect) exText.push(fmtN(fbSuspect)+' reading(s) flagged "check this reading": outside a third to three times the median, so a missed decimal point or a percent-formatted cell. Still shown and still counted — the row is what gets it fixed at source');
     if(fbIn.length) $('fb-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
       fmtN(fbIn.length)+' reading(s) across '+fmtN(fbBatches)+' batch(es) in '+esc(evLabel())+
-      ' · observed after-ice range '+fbMin+'–'+fbMax+' (not an official spec band)'+
-      (exBits.length?' · excluded from the score: '+esc(exBits.join('; '))+' — counted, never scored as zero':'')+
+      ' · observed after-ice range '+fbMin+'–'+fbMax+
+      (fbSuspect?', shaded over '+(+fbLo.toFixed(1))+'–'+(+fbHi.toFixed(1))+
+        ' so '+fmtN(fbSuspect)+' mis-keyed reading(s) cannot flatten the scale':'')+
+      ' (not an official spec band)'+
+      (exText.length?' · '+esc(exText.join(' · ')):'')+
       (fbBlock.truncated?' · the snapshot carries the '+fmtN(fbAll.length)+' most recent of '+fmtN(fbBlock.scored)+' scored readings, so an older range may be incomplete':'')+
       '</div>');
     $('fb-tbl-sub').textContent=fbIn.length
@@ -1604,8 +1628,8 @@ function render(snap){
   $('qual-kpis').innerHTML=
     kpi('o','Factory batches scored',fbBlock?fmtN(fbBatches):'—',
         fbBlock?'after-ice readings, in range':'not in this snapshot')+
-    kpi('n','Avg factory score',fbAvg==null?'—':fbAvg.toFixed(1),
-        fbAvg==null?'no factory readings in range':'after-ice mean · no target band in source')+
+    kpi('n','Median factory score',fbAvg==null?'—':fbAvg.toFixed(1),
+        fbAvg==null?'no factory readings in range':'after-ice midpoint · a mis-keyed 87 cannot move it · no target band in source')+
     kpi('o','Chicken checks',fmtN(chickenN),'in range, numeric readings')+
     kpi('o','Tonkotsu checks',fmtN(tonkN),'in range, numeric readings')+
     kpi(disc==null?'n':disc>=90?'g':disc>=75?'a':'r','Check discipline',disc==null?'—':disc+'%',
