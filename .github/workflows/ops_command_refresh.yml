@@ -19,10 +19,25 @@ name: Ops Command daily bake (Pipe 9)
 #
 # That PAT secret is now unused and can be deleted from Settings > Secrets
 # and variables > Actions; no workflow reads it any more.
+#
+# 27/08/2026 - THE SCHEDULE IS RETIRED (phase 5 of the Neon exit). The daily
+# bake now runs in MakiManc/maki-hospitality-etl (.github/workflows/
+# ops_command_bake.yml), chained to that repo's export, reading the committed
+# pull archive through DuckDB and pushing the snapshot back here. The warehouse
+# holds employee names, so it can only live in the private repo; Neon used to be
+# the one place both repos could meet, and taking it away means the bake has to
+# run where the data is.
+#
+# THIS FILE IS THE ROLLBACK, WHICH IS WHY IT IS STILL HERE. It still bakes from
+# Neon and it still works: "Run workflow" restores the old path in one click for
+# as long as Neon holds current data. Put the `schedule:` block back and this
+# becomes the daily bake again - but do NOT leave both scheduled, because they
+# write the same snapshot file and would overwrite each other daily.
+#
+# It reads Postgres, so it is only as good as Neon is fresh. Once the export
+# stops writing Neon, this stops being a rollback and should be deleted.
 
 on:
-  schedule:
-    - cron: "0 9 * * *"   # 09:00 UTC every day (Mon-Sun)
   workflow_dispatch:
 
 concurrency:
