@@ -92,6 +92,13 @@ tr.tot td{font-weight:650;border-top:2px solid var(--line)}
 .filters .fbtn{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--muted)}
 .filters .fbtn[aria-pressed="true"]{background:var(--maki-orange-bg);border-color:var(--maki-orange);color:var(--maki-orange);font-weight:600}
 .prov{color:var(--faint);font-size:11px;margin-top:8px}
+/* factory broth score cell - the heatmap's observed-range shading, in a table */
+.fbscore{display:inline-block;min-width:34px;padding:2px 7px;border-radius:5px;font-variant-numeric:tabular-nums}
+/* a long batch log must not push the rest of the page off the bottom: it
+   scrolls in place, header pinned, with every row still reachable */
+.tscroll{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.tscroll table{margin:0}
+.tscroll thead th{position:sticky;top:0;background:var(--card);z-index:1}
 .foot{color:var(--muted);font-size:11.5px;margin-top:18px;text-align:center}
 code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 .heat{border-collapse:separate;border-spacing:2px;margin-top:2px}
@@ -214,6 +221,13 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-qual">
   <div id="qual-note"></div>
   <div class="kpis" id="qual-kpis"></div>
+  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added. The <b>site</b> cards below are GetCompliant broth checks at each restaurant. Different instrument, different moment in the broth's life: they are shown separately and never averaged into one another.</div>
+  <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by product</div>
+    <div class="s" id="fb-prod-sub">Average after-ice reading per product · refractometer form, factory production batches</div></div>
+    <div class="card-b" id="fb-prod"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by batch</div>
+    <div class="s" id="fb-tbl-sub">Every batch with an after-ice reading, newest first</div></div>
+    <div class="card-b" id="fb-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Chicken Broth Check — by site</div>
     <div class="s" id="qh-chicken-sub">GC Scheduled Task Answers · colour scaled to the observed range in this snapshot, not an official spec band</div></div>
     <div class="card-b" id="qh-chicken"></div></div>
@@ -1447,11 +1461,97 @@ function render(snap){
   const supTiles=$('supp-kpis').children, supLast=supTiles[supTiles.length-1];
   if(supLast){supLast.style.cursor='pointer';supLast.addEventListener('click',()=>gotoPage('p-supi'));}
 
+  /* factory broth score (27/08/2026): the refractometer form, by batch.
+     Ross's definition, locked: the SCORE IS THE AFTER-ICE READING. Before-ice
+     rides along in the table because the pair is only meaningful together, but
+     it is never the score and never averaged with it. These are factory
+     production batches - a different measurement from the per-site checks
+     below, on a different scale, so the two never share a card or an axis.
+     A snapshot baked before this block existed gets an explicit "predates"
+     empty state, never a table of zeros. */
+  const fbBlock=(snap.quality&&snap.quality.factory)||null;
+  const fbAll=(fbBlock&&fbBlock.readings)||[];
+  const fbIn=fbAll.filter(r=>inEV(r.d));
+  const fbVals=fbIn.map(r=>r.score).filter(v=>v!=null);
+  const fbAvg=fbVals.length?fbVals.reduce((a,b)=>a+b,0)/fbVals.length:null;
+  const fbMin=fbVals.length?Math.min(...fbVals):null, fbMax=fbVals.length?Math.max(...fbVals):null;
+  const fbBatches=new Set(fbIn.map(r=>r.batch||'(no batch)')).size;
+  const fbLegacy='This snapshot predates the factory broth score - rebake to populate it.';
+  /* colour scaled to the observed range, exactly as the site heatmaps are:
+     the source records no after-ice target band, so a red/green scale would be
+     inventing one. */
+  const fbShade=v=>{
+    if(v==null||fbMax==null) return '';
+    const t=fbMax>fbMin?(v-fbMin)/(fbMax-fbMin):0.5;
+    return ' style="background:rgba(233,78,27,'+(0.12+0.7*t).toFixed(2)+')"';
+  };
+  if(!fbBlock){
+    $('fb-prod').innerHTML='<div class="empty">'+fbLegacy+'</div>';
+    $('fb-tbl').innerHTML='<div class="empty">'+fbLegacy+'</div>';
+    $('fb-prod-sub').textContent='Not in this snapshot';
+    $('fb-tbl-sub').textContent='Not in this snapshot';
+  } else {
+    const prodAgg={};
+    fbIn.forEach(r=>{
+      const k=r.product||'(no product named)';
+      const a=prodAgg[k]=prodAgg[k]||{n:0,sum:0,min:null,max:null,batches:new Set()};
+      a.n++; a.sum+=r.score; a.batches.add(r.batch||'(no batch)');
+      a.min=(a.min==null||r.score<a.min)?r.score:a.min;
+      a.max=(a.max==null||r.score>a.max)?r.score:a.max;
+    });
+    const prodRows=Object.entries(prodAgg).map(([k,a])=>({k,v:+(a.sum/a.n).toFixed(2),
+      tip:`${k} — ${a.n} reading${a.n===1?'':'s'} across ${a.batches.size} batch${a.batches.size===1?'':'es'}, `+
+          `after-ice ${a.min}–${a.max}`})).sort((a,b)=>b.v-a.v);
+    if(!prodRows.length){
+      $('fb-prod').innerHTML='<div class="empty">'+(fbAll.length
+        ?'No factory batches scored in '+esc(evLabel())
+        :'No factory broth readings in this snapshot yet')+'</div>';
+    } else bars('fb-prod',prodRows,i=>i.v.toFixed(1));
+    /* insertAdjacentHTML, not innerHTML+= : reassigning innerHTML reserialises
+       the bars and silently drops the hover listeners bars() just attached. */
+    if(prodRows.length) $('fb-prod').insertAdjacentHTML('beforeend',
+      '<div class="prov">Mean after-ice reading per product in '+esc(evLabel())+
+      ' · no target band exists in the source, so these are levels to compare with each other and with last month, not a pass mark.</div>');
+    $('fb-prod-sub').textContent=prodRows.length
+      ? prodRows.length+' product(s) · '+fbIn.length+' reading(s) · '+evLabel()
+      : 'No factory readings in '+evLabel();
+    table('fb-tbl',[{h:'Date'},{h:'Batch'},{h:'Product'},{h:'After ice',n:1,raw:1},
+        {h:'Before ice',n:1},{h:'Notes',raw:1}],
+      fbIn.map(r=>[r.d,r.batch||'—',r.product||'—',
+        '<span'+fbShade(r.score)+' class="fbscore">'+esc(r.score)+'</span>',
+        r.before==null?'—':r.before,
+        (r.repeat?chip('b','2nd reading this day'):'')+
+        (r.date_source==='timestamp'?chip('n','Dated from submission'):'')]),
+      fbAll.length?'No factory batches scored in '+evLabel():
+        'No factory broth readings in this snapshot yet - the "'+
+        esc((fbBlock.source_feed)||'Factory Broth Readings')+'" feed has not landed.');
+    /* 190+ batches is a normal year of production, and an unbounded table
+       would push the per-site cards below it off the bottom of the page. It
+       scrolls rather than truncating: nothing is hidden, so the disclosure
+       line below still describes every row. */
+    const fbTable=$('fb-tbl').querySelector('table');
+    if(fbTable&&fbIn.length>25) fbTable.outerHTML='<div class="tscroll">'+fbTable.outerHTML+'</div>';
+    const ex=fbBlock.excluded||{};
+    const exBits=[];
+    if(ex.no_after_ice) exBits.push(fmtN(ex.no_after_ice)+' with no after-ice reading (the form gained that question on 13/08/2025)');
+    if(ex.non_numeric)  exBits.push(fmtN(ex.non_numeric)+' whose after-ice answer is not a number');
+    if(ex.undated)      exBits.push(fmtN(ex.undated)+' that neither the form date nor the submission timestamp could date');
+    if(fbIn.length) $('fb-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
+      fmtN(fbIn.length)+' reading(s) across '+fmtN(fbBatches)+' batch(es) in '+esc(evLabel())+
+      ' · observed after-ice range '+fbMin+'–'+fbMax+' (not an official spec band)'+
+      (exBits.length?' · excluded from the score: '+esc(exBits.join('; '))+' — counted, never scored as zero':'')+
+      (fbBlock.truncated?' · the snapshot carries the '+fmtN(fbAll.length)+' most recent of '+fmtN(fbBlock.scored)+' scored readings, so an older range may be incomplete':'')+
+      '</div>');
+    $('fb-tbl-sub').textContent=fbIn.length
+      ? fmtN(fbIn.length)+' reading(s), '+fmtN(fbBatches)+' batch(es) · score = the reading after adding ice · '+evLabel()
+      : 'Score = the reading after adding ice · '+evLabel();
+  }
+
   /* quality: broth heatmaps, discipline, deviations */
   const brothCells=(snap.quality&&snap.quality.broth&&snap.quality.broth.cells)||[];
   const brothDevAll=(snap.quality&&snap.quality.broth&&snap.quality.broth.deviations)||[];
   $('qual-note').innerHTML=brothCells.length?'':
-    '<div class="empty">No broth-check data in this pull yet.</div>';
+    '<div class="empty">No per-site broth-check data in this pull yet (the factory cards below have their own source).</div>';
   function drawHeat(host,subHost,kind,label){
     const inRange=brothCells.filter(c=>c.kind===kind&&inEV(c.d));
     const days=[...new Set(inRange.map(c=>c.d))].sort();
@@ -1502,6 +1602,10 @@ function render(snap){
   const disc=totChecks?Math.round(100*(totChecks-totMissed)/totChecks):null;
   const devOpenQ=brothDev.filter(d=>d.open).length;
   $('qual-kpis').innerHTML=
+    kpi('o','Factory batches scored',fbBlock?fmtN(fbBatches):'—',
+        fbBlock?'after-ice readings, in range':'not in this snapshot')+
+    kpi('n','Avg factory score',fbAvg==null?'—':fbAvg.toFixed(1),
+        fbAvg==null?'no factory readings in range':'after-ice mean · no target band in source')+
     kpi('o','Chicken checks',fmtN(chickenN),'in range, numeric readings')+
     kpi('o','Tonkotsu checks',fmtN(tonkN),'in range, numeric readings')+
     kpi(disc==null?'n':disc>=90?'g':disc>=75?'a':'r','Check discipline',disc==null?'—':disc+'%',
