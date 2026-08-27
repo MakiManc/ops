@@ -289,6 +289,73 @@ page.on('console', msg => {
     'legacy: the per-site broth heatmaps are untouched by the factory block');
 }
 
+// ------------------------------------------- site heatmap: spec grading ---
+// Ross, 27/08/2026: "Chicken broth should be within 1 from 6 and the tonkotsu
+// between 6-7". A different band from the factory's, on a different
+// measurement - broth as served, not the batch after ice - so the two must
+// never be conflated. In spec is UNFILLED: across 800+ cells the calm state
+// has to be quiet or the misses do not stand out.
+{
+  const band = { chicken: [5.0, 7.0], tonkotsu: [6.0, 7.0] };
+  const cell = (site, kind, d, value, grade, miss) =>
+    ({ site, kind, d, value, checks: 1, checks_missed: 0, band: band[kind], grade, miss });
+  const snap = { ...baseSnap, quality: { ...baseSnap.quality, broth: {
+    ...baseSnap.quality.broth, bands: band,
+    grades: { in: 3, low: 3, high: 2 },
+    deviations: [],
+    cells: [
+      cell('Maki Soho',      'chicken', '2026-08-05', 5.0, 'in',   0.0),
+      cell('Maki Soho',      'chicken', '2026-08-06', 4.6, 'low',  0.4),   // step 1
+      cell('Maki Meadowhall','chicken', '2026-08-05', 4.2, 'low',  0.8),   // step 2
+      cell('Maki Meadowhall','chicken', '2026-08-06', 3.0, 'low',  2.0),   // step 3
+      cell('Maki Soho',      'tonkotsu','2026-08-05', 6.5, 'in',   0.0),
+      cell('Maki Nottingham Ltd','tonkotsu','2026-08-05', 8.0, 'high', 1.0),
+      cell('Maki Nottingham Ltd','tonkotsu','2026-08-06', 7.3, 'high', 0.3),
+      cell('Maki Lakeside',  'tonkotsu','2026-08-06', 6.2, 'in',   0.0),
+    ] } } };
+  await page.evaluate((s) => { window.render(s); window.gotoPage('p-qual'); }, snap);
+
+  const cls = async (host, txt) => (await page.locator(host + ' td', { hasText: txt })
+    .first().getAttribute('class'));
+  // in spec -> no ramp class at all, so the cell stays on the surface
+  const inCls = await cls('#qh-chicken', '5');
+  assert(inCls === 'hcell', `an in-spec cell is left unfilled (got "${inCls}")`);
+  // the three steps deepen with distance past the bound
+  assert(/hb1/.test(await cls('#qh-chicken', '4.6')), 'half a point below -> step 1');
+  assert(/hb2/.test(await cls('#qh-chicken', '4.2')), 'nearly a point below -> step 2');
+  assert(/hb3/.test(await cls('#qh-chicken', '3')),   'two points below -> step 3');
+  assert(/ha1/.test(await cls('#qh-tonkotsu', '7.3')), 'just above -> step 1');
+  assert(/ha2/.test(await cls('#qh-tonkotsu', '8')),   'a point above -> step 2');
+  // direction is in the glyph too, not colour alone
+  const lowTxt = await page.locator('#qh-chicken td', { hasText: '4.6' }).first().innerText();
+  const hiTxt  = await page.locator('#qh-tonkotsu td', { hasText: '8' }).first().innerText();
+  assert(/▼/.test(lowTxt), `a below-spec cell carries ▼ (got "${lowTxt}")`);
+  assert(/▲/.test(hiTxt),  `an above-spec cell carries ▲ (got "${hiTxt}")`);
+  assert(!/▼|▲/.test(await page.locator('#qh-chicken td', { hasText: '5' }).first().innerText()),
+    'an in-spec cell carries no glyph');
+  // the tooltip spells out the miss in words
+  const tip = await page.locator('#qh-chicken td', { hasText: '3' }).first().getAttribute('title');
+  assert(/spec 5–7/.test(tip) && /2 below spec/.test(tip),
+    `the cell tooltip names the spec and the miss (got "${tip}")`);
+  // a legend is present - a ramp without one is unreadable
+  const leg = await page.locator('#qh-chicken .hleg').innerText();
+  assert(/in spec 5–7/.test(leg) && /below spec/.test(leg) && /above spec/.test(leg),
+    `the card carries a legend for the ramp (got "${leg.replace(/\s+/g,' ')}")`);
+  // counts, and the finding a miss-only ramp cannot show
+  const prov = await page.locator('#qh-chicken .prov').innerText();
+  assert(/1 of 4 in spec \(25\.0%\), 3 below and 0 above/.test(prov),
+    `the card counts in spec, below and above (got "${prov}")`);
+  assert(/median 4.4/.test(prov), `the median is stated (got "${prov}")`);
+  assert(/LOWER bound/.test(prov),
+    `a band hugging its lower bound is called out in words (got "${prov}")`);
+  const sub = await page.locator('#qh-tonkotsu-sub').innerText();
+  assert(/spec 6–7, 2 out of spec/.test(sub),
+    `the subline carries the spec and the miss count (got "${sub}")`);
+  // and the factory band must NOT have leaked into the site cards
+  assert(!/8–9/.test(await page.locator('#qh-tonkotsu .hleg').innerText()),
+    'the factory after-ice band does not appear on the site card');
+}
+
 assert(consoleErrors.length === 0,
   `no console/page errors during any render() call (got ${consoleErrors.length}: ${consoleErrors.slice(0,3).join(' | ')})`);
 

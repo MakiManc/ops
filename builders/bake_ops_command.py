@@ -747,7 +747,18 @@ def main():
     # Flow Appraisals (checked: 0 of 672 appraisal rows mention broth) - they
     # are numeric density readings in GetCompliant's scheduled tasks.
     BROTH_TASKS={"Chicken Broth Check":"chicken","Tonkotsu Broth Check":"tonkotsu"}
+    # Ross, 27/08/2026: "Chicken broth should be within 1 from 6 and the tonkotsu
+    # between 6-7" - the SITE spec, and a separate thing from the factory's
+    # after-ice band. Chicken's is stated as a tolerance (6 ± 1) rather than a
+    # pair of bounds, so it is written out as 5-7 here and rendered as the
+    # bounds it is. Inclusive, like the factory's.
+    #
+    # These do NOT transfer either way. The factory reads the batch after ice
+    # (tonkotsu 8-9); these read broth as served (tonkotsu 6-7). Same
+    # instrument, different point in the broth's life, and the numbers say so.
+    SITE_BROTH_BANDS={"chicken":(5.0,7.0),"tonkotsu":(6.0,7.0)}
     broth_cells=[]; broth_deviations=[]
+    site_grades={"in":0,"low":0,"high":0}
     if has_feed(cur,"GC Scheduled Task Answers"):
         cur.execute(
           "WITH a AS (SELECT DISTINCT ON (data->>'AnswerID') "
@@ -776,22 +787,38 @@ def main():
                 broth_deviations.append({"site":site,"kind":kind,"d":d,"value":val,
                   "open":opn in ("true","1","yes")})
         for (site,kind,d),c in cell_agg.items():
+            val=round(sum(c["vals"])/len(c["vals"]),2) if c["vals"] else None
+            band=SITE_BROTH_BANDS.get(kind)
+            grade=None; miss=None
+            if val is not None and band:
+                lo,hi=band
+                if val<lo:   grade,miss="low",round(lo-val,2)
+                elif val>hi: grade,miss="high",round(val-hi,2)
+                else:        grade,miss="in",0.0
             broth_cells.append({"site":site,"kind":kind,"d":d,
-              "value":round(sum(c["vals"])/len(c["vals"]),2) if c["vals"] else None,
-              "checks":c["n"],"checks_missed":c["missed"]})
+              "value":val,"checks":c["n"],"checks_missed":c["missed"],
+              "band":list(band) if band else None,"grade":grade,"miss":miss})
+            if grade: site_grades[grade]+=1
         broth_deviations.sort(key=lambda r:r["d"],reverse=True)
     else:
         gaps.append("'GC Scheduled Task Answers' absent from the warehouse - broth quality "
             "checks (Chicken/Tonkotsu Broth Check) unavailable")
-    gaps.append("The PER-SITE broth heatmaps are scaled to the OBSERVED reading range in "
-        "this snapshot, not a spec band - and unlike the factory card, no target exists for "
-        "them. Ross's after-ice bands (tonkotsu 8-9, chicken 5-6) are the FACTORY's, measured "
-        "on the batch after ice; these are GetCompliant checks of broth as served, a "
-        "different measurement at a different point, and the site readings sit well below "
-        "the factory bands - so the factory spec must not be borrowed for these cards. They "
-        "need their own min/target/max from Ross before they can be graded")
+    if broth_cells:
+        sg=site_grades; sg_tot=sg["in"]+sg["low"]+sg["high"]
+        if sg_tot:
+            gaps.append("Site broth readings are graded against Ross's SITE band (chicken "
+                "6+/-1 i.e. 5-7, tonkotsu 6-7), which is NOT the factory's after-ice band "
+                "(tonkotsu 8-9, chicken 5-6): same instrument, different point in the broth's "
+                "life. "+str(sg["in"])+" of "+str(sg_tot)+" site readings are in band, "
+                +str(sg["low"])+" below and "+str(sg["high"])+" above")
+        ungraded_kinds=sorted({c["kind"] for c in broth_cells
+                               if c["value"] is not None and not c.get("grade")})
+        if ungraded_kinds:
+            gaps.append("Site broth readings for "+", ".join(repr(k) for k in ungraded_kinds)
+                +" have no band and are not graded - shown uncoloured rather than guessed at")
     snap["quality"]={"broth":{"cells":broth_cells,"deviations":broth_deviations[:200],
       "tasks":BROTH_TASKS,
+      "bands":{k:list(v) for k,v in SITE_BROTH_BANDS.items()},"grades":site_grades,
       "basis":"one cell per site + check-type + day from GC Scheduled Task Answers, "
       "deduped by AnswerID across pulls, averaged if >1 reading landed that day; "
       "'checks_missed' counts non-numeric answers (e.g. 'Not registered on time') "
