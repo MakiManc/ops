@@ -58,6 +58,19 @@ function emailSupplyFixture() {
       { site: 'Maki Southampton',supplier: 'Brakes',        supplier_canon: 'Brakes',
         orders: 3, lines: 37, items: 76, value_gbp: 1166.19 },
     ],
+    // The same four rows rolled up by supplier, as the builder emits them.
+    // LWC Northeast's 2 orders sit at 2 sites so they are 2 deliveries;
+    // Brakes' 3 orders at one site include two on the same day, so 2 - which
+    // is what makes Deliveries a different number from Orders.
+    supplier_totals: [
+      { supplier: 'LWC Northeast', supplier_canon: 'LWC', orders: 2, deliveries: 2,
+        lines: 89, items: 144, sites: 2, value_gbp: 3061.10 },
+      { supplier: 'LWC London', supplier_canon: 'LWC', orders: 1, deliveries: 1,
+        lines: 47, items: 90, sites: 1, value_gbp: 1354.27 },
+      { supplier: 'Brakes', supplier_canon: 'Brakes', orders: 3, deliveries: 2,
+        lines: 37, items: 76, sites: 1, value_gbp: 1166.19 },
+    ],
+    supplier_totals_basis: 'Same orders as the site table above, grouped by supplier. Deliveries counts distinct site+delivery-date combinations. Scheduled deliveries, not confirmed ones.',
     week_start: '2026-08-24', week_end: '2026-08-30',
     week_spend_source: 'order_emails',
     week_spend_basis: 'Kobas Orders (daily IMAP parse of Kobas order-confirmation emails, pull_date=2026-09-03): test basis string',
@@ -108,6 +121,11 @@ function fallbackSupplyFixture() {
       { site: 'Maki Newcastle', supplier: 'AA Factory1 Limited', orders: 1,
         value_gbp: 5100.0, lines: null, items: null, supplier_canon: 'AA Factory' },
     ],
+    supplier_totals: [
+      { supplier: 'AA Factory1 Limited', supplier_canon: 'AA Factory', orders: 1,
+        deliveries: null, lines: null, items: null, sites: 1, value_gbp: 5100.0 },
+    ],
+    supplier_totals_basis: 'Weekly outstanding-orders report grouped by supplier. That report carries no line, item or delivery-date detail per order.',
     week_start: '2026-08-24', week_end: '2026-08-30',
     week_spend_source: 'weekly_report_fallback',
     week_spend_basis: 'Kobas Orders feed missing - projected spend falling back to the weekly outstanding-orders report',
@@ -167,6 +185,39 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   assert(/3 orders/.test(soton) && /37 lines/.test(soton),
     `emails: site subline is "N orders · N lines" (got "${soton}")`);
   assert(!/delivered/i.test(soton), `emails: site subline claims nothing about delivery (got "${soton}")`);
+
+  // -- by-supplier table --------------------------------------------------
+  // Headers are uppercased by CSS, so compare lowercased - the same thing the
+  // KPI-label assertion below does.
+  const supHead = (await page.locator('#sup-tot table thead th').allInnerTexts())
+    .map(t => t.toLowerCase());
+  assert(supHead.join('|') === 'supplier|£ spend|share|orders|deliveries|lines|items|sites',
+    `emails: by-supplier columns are supplier/spend/share/orders/deliveries/lines/items/sites (got ${JSON.stringify(supHead)})`);
+  const supRows = await page.locator('#sup-tot table tbody tr').count();
+  assert(supRows === 4, `emails: 3 supplier rows plus a total (got ${supRows})`);
+  const firstCells = (await page.locator('#sup-tot table tbody tr').first().locator('td').allInnerTexts());
+  assert(firstCells[0] === 'LWC Northeast',
+    `emails: suppliers are ordered by spend, biggest first (got "${firstCells[0]}")`);
+  assert(firstCells[1] === '£3,061', `emails: spend renders as rounded GBP (got "${firstCells[1]}")`);
+  assert(firstCells[2] === '54.8%', `emails: share of week spend (got "${firstCells[2]}")`);
+  assert(firstCells[3] === '2' && firstCells[4] === '2' && firstCells[5] === '89'
+      && firstCells[6] === '144' && firstCells[7] === '2',
+    `emails: orders/deliveries/lines/items/sites (got ${JSON.stringify(firstCells.slice(3))})`);
+  // Deliveries must not silently duplicate Orders - Brakes is the case that
+  // distinguishes them (3 orders arriving as 2 deliveries).
+  const brakes = await page.locator('#sup-tot table tbody tr', { hasText: 'Brakes' }).first().locator('td').allInnerTexts();
+  assert(brakes[3] === '3' && brakes[4] === '2',
+    `emails: a supplier with two orders on one day shows fewer deliveries than orders (got ${brakes[3]} orders, ${brakes[4]} deliveries)`);
+  // The total row must reconcile with the KPI strip, or the two disagree on
+  // screen and the reader cannot tell which to believe.
+  const supTot = await page.locator('#sup-tot table tbody tr.tot td').allInnerTexts();
+  assert(supTot[0] === 'Total' && supTot[1] === '£5,582' && supTot[2] === '100.0%',
+    `emails: total row sums to the week's spend (got ${JSON.stringify(supTot.slice(0, 3))})`);
+  assert(supTot[3] === '6' && supTot[5] === '173' && supTot[6] === '310',
+    `emails: total orders/lines/items match week_totals (got ${JSON.stringify(supTot.slice(3))})`);
+  const supBasis = await page.locator('#sup-tot .prov').innerText();
+  assert(/not confirmed ones/.test(supBasis),
+    `emails: the basis line says these are scheduled, not confirmed, deliveries (got "${supBasis}")`);
 
   // -- KPI strip ----------------------------------------------------------
   const kpiLabels = (await page.locator('#supp-kpis .kpi .lb').allInnerTexts()).map(t => t.toLowerCase());
@@ -270,6 +321,18 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   const gapNote = await page.locator('#fa-aging .prov', { hasText: 'falling back to the weekly outstanding-orders report' }).count();
   assert(gapNote >= 1, 'fallback: the gap note about the missing email feed is visible under the card');
 
+  const fbCells = await page.locator('#sup-tot table tbody tr').first().locator('td').allInnerTexts();
+  assert(fbCells[0] === 'AA Factory1 Limited' && fbCells[1] === '£5,100',
+    `fallback: by-supplier still shows spend (got ${JSON.stringify(fbCells.slice(0, 2))})`);
+  assert(fbCells[4] === '—' && fbCells[5] === '—' && fbCells[6] === '—',
+    `fallback: deliveries/lines/items are em dashes, never 0 (got ${JSON.stringify(fbCells.slice(4, 7))})`);
+  const fbTot = await page.locator('#sup-tot table tbody tr.tot td').allInnerTexts();
+  assert(fbTot[4] === '—' && fbTot[5] === '—',
+    `fallback: the total row does not invent a 0 for columns the source lacks (got ${JSON.stringify(fbTot.slice(4, 6))})`);
+  const fbSub = await page.locator('#sup-tot-sub').innerText();
+  assert(/no line, item or delivery detail/.test(fbSub),
+    `fallback: the subline says why the columns are blank (got "${fbSub}")`);
+
   const otifEmpty = await page.locator('#otif-tbl .empty').count();
   assert(otifEmpty === 1, 'fallback: the OTIF card shows an empty state, not a table of zeros');
   const otifEmptyText = await page.locator('#otif-tbl .empty').innerText();
@@ -292,6 +355,14 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   assert(/predates/.test(txt), `legacy: a snapshot with no otif block says it predates the data (got "${txt}")`);
   const otifKpi = (await page.locator('#supp-kpis .kpi .vl').allInnerTexts())[2];
   assert(otifKpi === '—', `legacy: OTIF KPI is an em dash (got "${otifKpi}")`);
+  // A snapshot baked before supplier_totals existed has no such key. The card
+  // must show an empty state rather than throwing or drawing a headers-only
+  // table - old snapshots stay viewable through the roll-back selector.
+  assert(await page.locator('#sup-tot table').count() === 0,
+    'legacy: no by-supplier table is drawn for a snapshot that predates it');
+  const legacyEmpty = await page.locator('#sup-tot .empty').innerText();
+  assert(/No orders due this week/.test(legacyEmpty),
+    `legacy: the by-supplier card shows an empty state (got "${legacyEmpty}")`);
   await page.evaluate(() => window.openSupplierProfileModal('Harro'));
   const profHtml = await page.locator('#task-modal-b').innerHTML();
   assert(/Monthly OTIF is not in this snapshot/.test(profHtml),
