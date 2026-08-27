@@ -38,32 +38,36 @@ function assert(cond, msg) {
 }
 
 const BASIS = 'one row per refractometer form submission at the factory; score = the ' +
-  'reading taken AFTER adding ice; test basis string';
+  'reading taken AFTER adding ice, graded against its spec band; test basis string';
+const TONKOTSU = [8.0, 9.0];   // Ross, 27/08/2026
+const CHICKEN  = [5.0, 6.0];
 
 function factoryFixture() {
   return {
     // newest first, exactly as the builder emits them
     readings: [
       { d: '2025-10-20', ts: '20/10/2025 09:15:00', batch: '2010GA1', product: 'Tonkotsu Broth',
-        score: 9.0, before: 12.0, date_source: 'timestamp', repeat: false },
+        score: 9.0, before: 12.0, date_source: 'timestamp', repeat: false, band: TONKOTSU, grade: 'in' },
       { d: '2025-10-19', ts: '19/10/2025 16:26:38', batch: '1910GA3', product: 'Tonkotsu Broth',
-        score: 8.0, before: 11.6, date_source: 'form', repeat: false },
+        score: 8.0, before: 11.6, date_source: 'form', repeat: false, band: TONKOTSU, grade: 'in' },
       { d: '2025-10-19', ts: '19/10/2025 11:13:41', batch: '1910GA1', product: 'Tonkotsu Broth',
-        score: 8.7, before: 11.9, date_source: 'form', repeat: false },
+        score: 8.7, before: 11.9, date_source: 'form', repeat: false, band: TONKOTSU, grade: 'in' },
       // the same batch read twice in one day - both rows kept, both marked
       { d: '2025-08-21', ts: '21/08/2025 18:45:46', batch: '210825B', product: 'Tonkotsu Broth',
-        score: 9.0, before: 12.0, date_source: 'form', repeat: true },
+        score: 9.0, before: 12.0, date_source: 'form', repeat: true, band: TONKOTSU, grade: 'in' },
       { d: '2025-08-21', ts: '21/08/2025 15:24:24', batch: '210825B', product: 'Tonkotsu Broth',
-        score: 7.0, before: 11.0, date_source: 'form', repeat: true },
+        score: 7.0, before: 11.0, date_source: 'form', repeat: true, band: TONKOTSU, grade: 'low' },
       { d: '2025-10-16', ts: '16/10/2025 19:26:24', batch: '1610GA3', product: 'Chicken Broth',
-        score: 5.0, before: 6.0, date_source: 'form', repeat: false },
+        score: 5.0, before: 6.0, date_source: 'form', repeat: false, band: CHICKEN, grade: 'in' },
       // a real mis-keyed reading: 8.7 entered as 87, against a before-ice of
       // 12.2. Kept and flagged, never repaired or dropped - and the summary
       // and the colour scale both have to survive it.
       { d: '2026-02-19', ts: '19/02/2026 20:10:00', batch: '190226GA2', product: 'Tonkotsu Broth',
-        score: 87.0, before: 12.2, date_source: 'form', repeat: false, suspect: true },
+        score: 87.0, before: 12.2, date_source: 'form', repeat: false, suspect: true, band: TONKOTSU, grade: 'high' },
     ],
     scored: 7, responses: 10, truncated: false, median: 8.7, suspect: 1,
+    bands: { 'Tonkotsu Broth': TONKOTSU, 'Chicken Broth': CHICKEN },
+    grades: { in: 5, low: 1, high: 1, ungraded: 0, out_suspect: 1 },
     excluded: { no_after_ice: 3, undated: 0, non_numeric: 0 },
     source_feed: 'Factory Broth Readings', pull_date: '2026-08-27',
     basis: BASIS,
@@ -128,9 +132,13 @@ page.on('console', msg => {
   assert(/7 reading\(s\)/.test(prov) && /6 batch\(es\)/.test(prov),
     `the batch count is distinct batches, not rows (got "${prov}")`);
   assert(/observed after-ice range 5–87/.test(prov),
-    `the colour scale states its observed range (got "${prov}")`);
-  assert(/not an official spec band/.test(prov),
-    'the scale disclaims being a spec band - no target exists in the source');
+    `the observed range is still stated (got "${prov}")`);
+  assert(/graded against the after-ice spec: Tonkotsu 8–9, Chicken 5–6/.test(prov),
+    `the disclosure names the spec each product is graded against (got "${prov}")`);
+  assert(/5 of 7 in spec \(71\.4%\), 1 below and 1 above/.test(prov),
+    `the disclosure counts in spec, below and above (got "${prov}")`);
+  assert(!/not an official spec band/.test(prov),
+    'the old "no spec band exists" disclaimer is gone from the factory card - one exists now');
   assert(/3 with no after-ice reading/.test(prov) && /never scored as zero/.test(prov),
     `responses with no after-ice reading are disclosed as excluded (got "${prov}")`);
   const scoreCells = await page.locator('#fb-tbl table tbody td .fbscore').count();
@@ -141,22 +149,39 @@ page.on('console', msg => {
   // -- the mis-keyed reading: kept, flagged, and not allowed to set the scale
   const susRow = await page.locator('#fb-tbl table tbody tr', { hasText: '190226GA2' });
   const susCells = await susRow.locator('td').allInnerTexts();
-  assert(susCells[3] === '87', `the mis-keyed reading is shown as entered, 87 (got "${susCells[3]}")`);
+  // '87 ▲' - the number exactly as entered, plus the out-of-spec glyph. Not
+  // repaired to 8.7, not dropped, not silently rescaled.
+  assert(susCells[3] === '87 ▲',
+    `the mis-keyed reading is shown as entered and graded (got "${susCells[3]}")`);
   assert(/Check this reading/.test(await susRow.innerHTML()),
     'the mis-keyed reading is flagged for someone to fix at source');
-  assert(/mis-keyed reading\(s\) cannot flatten the scale/.test(prov),
-    `the disclosure says the colour scale excludes the outlier (got "${prov}")`);
-  assert(/still shown and still counted|Still shown and still counted/.test(prov),
+  assert(/Still shown, still graded and still counted/.test(prov),
     'the flagged reading is disclosed as kept, not dropped or repaired');
-  // The whole point: a genuine 5.0 and a genuine 9.0 must still shade
-  // differently. On a min-to-max scale spanning 5-87 they would be within
-  // 5% of each other and the column would read as one flat colour.
-  const shades = await page.locator('#fb-tbl table tbody td .fbscore').evaluateAll(
-    els => els.map(e => e.getAttribute('style') || ''));
-  const alpha = st => { const m = st.match(/rgba\(233,78,27,([0-9.]+)\)/); return m ? +m[1] : null; };
-  const lo = alpha(shades[shades.length - 1]), hi = alpha(shades[0]);
-  assert(lo != null && hi != null && Math.abs(hi - lo) > 0.2,
-    `real readings still shade distinctly from each other (got ${lo} vs ${hi})`);
+  assert(/rather than a batch that missed spec/.test(prov),
+    'a keying slip is distinguished from a genuine out-of-spec batch');
+  // -- the grading itself ---------------------------------------------------
+  const classOf = async (batch) => (await page.locator('#fb-tbl table tbody tr',
+    { hasText: batch }).first().locator('td .fbscore').getAttribute('class'));
+  const inClass = await classOf('1910GA3');   // 8.0, the bottom of the 8-9 band
+  assert(/fb-in/.test(inClass),
+    `a reading ON the lower bound is in spec - the band is inclusive (got "${inClass}")`);
+  const lowRow = page.locator('#fb-tbl table tbody tr', { hasText: '210825B' }).last();
+  const lowCell = await lowRow.locator('td .fbscore').getAttribute('class');
+  const lowText = await lowRow.locator('td .fbscore').innerText();
+  assert(/fb-out/.test(lowCell), `a 7.0 against a 8-9 spec grades out (got "${lowCell}")`);
+  assert(/▼/.test(lowText), `a below-spec cell carries a down glyph, not colour alone (got "${lowText}")`);
+  assert(/Below spec \(8\)/.test(await lowRow.innerHTML()),
+    'a below-spec row says in words which bound it missed');
+  const hiRow = page.locator('#fb-tbl table tbody tr', { hasText: '190226GA2' });
+  assert(/▲/.test(await hiRow.locator('td .fbscore').innerText()),
+    'an above-spec cell carries an up glyph');
+  assert(/Above spec \(9\)/.test(await hiRow.innerHTML()),
+    'an above-spec row says in words which bound it missed');
+  // the chicken band is its own: 5.0 passes at 5-6 where it would fail at 8-9
+  const chickCell = await page.locator('#fb-tbl table tbody tr', { hasText: '1610GA3' })
+    .locator('td .fbscore').getAttribute('class');
+  assert(/fb-in/.test(chickCell),
+    `a chicken 5.0 is graded against 5-6, not the tonkotsu band (got "${chickCell}")`);
 
   // -- by-product card -----------------------------------------------------
   const prodBars = await page.locator('#fb-prod .brow').count();
@@ -174,19 +199,58 @@ page.on('console', msg => {
 
   // -- KPI strip -----------------------------------------------------------
   const kpiLabels = (await page.locator('#qual-kpis .kpi .lb').allInnerTexts()).map(t => t.toLowerCase());
-  assert(kpiLabels.slice(0, 2).join('|') === 'factory batches scored|median factory score',
+  assert(kpiLabels.slice(0, 3).join('|') === 'factory batches scored|factory readings in spec|median factory score',
     `the factory tiles lead the quality KPI strip (got ${JSON.stringify(kpiLabels)})`);
   const kpiVals = await page.locator('#qual-kpis .kpi .vl').allInnerTexts();
   assert(kpiVals[0] === '6', `batches scored counts distinct batches, 6 (got "${kpiVals[0]}")`);
+  assert(kpiVals[1] === '71.4%',
+    `the in-spec tile is 5 of 7 graded readings (got "${kpiVals[1]}")`);
   // 5.0 7.0 8.0 8.7 9.0 9.0 87.0 -> the middle one is 8.7. A mean would be
   // 19.1 here: one mis-keyed row would become the headline number.
-  assert(kpiVals[1] === '8.7',
-    `the factory score is the MEDIAN, unmoved by the mis-keyed 87 (got "${kpiVals[1]}")`);
+  assert(kpiVals[2] === '8.7',
+    `the factory score is the MEDIAN, unmoved by the mis-keyed 87 (got "${kpiVals[2]}")`);
 
   // -- the two levels are never conflated ----------------------------------
   const note = await page.locator('#p-qual .note').innerText();
   assert(/never averaged/.test(note) && /after/.test(note),
     `the page says factory readings and site checks are separate measurements (got "${note.replace(/\s+/g, ' ')}")`);
+}
+
+// ------------------------------------- a product with no band is not graded ---
+// Ross gave bands for tonkotsu and chicken. 'Ikigai Chicken Broth' is in the
+// form and was not given one, so it must not be coloured pass or fail, and it
+// must not sit in the in-spec denominator either - a product nobody has speced
+// cannot drag the compliance number in either direction.
+{
+  const snap = { ...baseSnap, quality: { ...baseSnap.quality, factory: {
+    readings: [
+      { d: '2026-08-26', ts: '26/08/2026 20:00:00', batch: '2608IK1', product: 'Ikigai Chicken Broth',
+        score: 4.6, before: 6.0, date_source: 'form', repeat: false, band: null, grade: null },
+      { d: '2026-08-26', ts: '26/08/2026 19:00:00', batch: '2608GA1', product: 'Tonkotsu Broth',
+        score: 8.4, before: 11.5, date_source: 'form', repeat: false, band: TONKOTSU, grade: 'in' },
+    ],
+    scored: 2, responses: 2, truncated: false, median: 6.5, suspect: 0,
+    bands: { 'Tonkotsu Broth': TONKOTSU, 'Chicken Broth': CHICKEN },
+    grades: { in: 1, low: 0, high: 0, ungraded: 1, out_suspect: 0 },
+    excluded: { no_after_ice: 0, undated: 0, non_numeric: 0 },
+    source_feed: 'Factory Broth Readings', pull_date: '2026-08-27', basis: BASIS } } };
+  await page.evaluate((s) => { window.render(s); window.gotoPage('p-qual'); }, snap);
+  const ikRow = page.locator('#fb-tbl table tbody tr', { hasText: '2608IK1' });
+  const ikClass = await ikRow.locator('td .fbscore').getAttribute('class');
+  assert(/fb-none/.test(ikClass) && !/fb-in|fb-out/.test(ikClass),
+    `an unspeced product is neither pass nor fail (got "${ikClass}")`);
+  assert(!/▼|▲/.test(await ikRow.locator('td .fbscore').innerText()),
+    'an unspeced reading gets no direction glyph - there is no bound to miss');
+  assert(/No band for this product/.test(await ikRow.innerHTML()),
+    'the row says why it is not graded');
+  const prov = await page.locator('#fb-tbl .prov').innerText();
+  assert(/1 of 1 in spec \(100\.0%\)/.test(prov),
+    `the unspeced reading is outside the in-spec denominator (got "${prov}")`);
+  assert(/1 not graded \(no band for that product\)/.test(prov),
+    `the ungraded count is disclosed rather than hidden (got "${prov}")`);
+  const inSpecKpi = (await page.locator('#qual-kpis .kpi .vl').allInnerTexts())[1];
+  assert(inSpecKpi === '100.0%',
+    `the in-spec KPI counts only graded readings (got "${inSpecKpi}")`);
 }
 
 // -------------------------------------------------- feed has not landed ---
@@ -202,7 +266,8 @@ page.on('console', msg => {
   assert(await page.locator('#fb-tbl table').count() === 0,
     'no headers-only table is drawn when there is nothing to show');
   const kpiVals = await page.locator('#qual-kpis .kpi .vl').allInnerTexts();
-  assert(kpiVals[1] === '—', `the average is an em dash with no readings, never 0 (got "${kpiVals[1]}")`);
+  assert(kpiVals[1] === '—' && kpiVals[2] === '—',
+    `in-spec and median are em dashes with no readings, never 0 (got ${JSON.stringify(kpiVals.slice(1,3))})`);
 }
 
 // ------------------------------------------------------------- legacy ----
@@ -217,8 +282,8 @@ page.on('console', msg => {
   assert(await page.locator('#fb-prod .brow').count() === 0,
     'legacy: no product bars are drawn for a snapshot that predates the block');
   const kpiVals = await page.locator('#qual-kpis .kpi .vl').allInnerTexts();
-  assert(kpiVals[0] === '—' && kpiVals[1] === '—',
-    `legacy: both factory tiles are em dashes (got ${JSON.stringify(kpiVals.slice(0, 2))})`);
+  assert(kpiVals[0] === '—' && kpiVals[1] === '—' && kpiVals[2] === '—',
+    `legacy: all three factory tiles are em dashes (got ${JSON.stringify(kpiVals.slice(0, 3))})`);
   // the site-level cards must still render off the same snapshot
   assert(await page.locator('#qh-tonkotsu table.heat').count() === 1,
     'legacy: the per-site broth heatmaps are untouched by the factory block');

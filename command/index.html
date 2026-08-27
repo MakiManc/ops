@@ -94,6 +94,14 @@ tr.tot td{font-weight:650;border-top:2px solid var(--line)}
 .prov{color:var(--faint);font-size:11px;margin-top:8px}
 /* factory broth score cell - the heatmap's observed-range shading, in a table */
 .fbscore{display:inline-block;min-width:34px;padding:2px 7px;border-radius:5px;font-variant-numeric:tabular-nums}
+/* Grading against the after-ice spec band is a STATUS encoding, not a
+   magnitude one, so it uses this page's status palette rather than the heat
+   ramp - and never colour alone: an out-of-spec cell also carries a ▼/▲ and
+   the row carries a chip saying which bound it missed. */
+.fb-in{background:var(--g-bg);color:var(--g)}
+.fb-out{background:var(--r-bg);color:var(--r);font-weight:650}
+.fb-none{background:var(--n-bg);color:var(--n)}
+.prodspec{color:var(--faint);font-weight:400;font-size:11px}
 /* a long batch log must not push the rest of the page off the bottom: it
    scrolls in place, header pinned, with every row still reachable */
 .tscroll{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:8px}
@@ -221,7 +229,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-qual">
   <div id="qual-note"></div>
   <div class="kpis" id="qual-kpis"></div>
-  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added. The <b>site</b> cards below are GetCompliant broth checks at each restaurant. Different instrument, different moment in the broth's life: they are shown separately and never averaged into one another.</div>
+  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added, graded against its product's spec (tonkotsu 8&ndash;9, chicken 5&ndash;6). The <b>site</b> cards below are GetCompliant broth checks at each restaurant, which have <b>no</b> spec band in the source, so those stay shaded to the observed range. Different instrument, different moment in the broth's life, and only one of them has a target: they are shown separately and never averaged into one another.</div>
   <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by product</div>
     <div class="s" id="fb-prod-sub">Median after-ice reading per product · refractometer form, factory production batches</div></div>
     <div class="card-b" id="fb-prod"></div></div>
@@ -1473,33 +1481,50 @@ function render(snap){
   const fbAll=(fbBlock&&fbBlock.readings)||[];
   const fbIn=fbAll.filter(r=>inEV(r.d));
   const fbVals=fbIn.map(r=>r.score).filter(v=>v!=null).sort((a,b)=>a-b);
-  /* MEDIAN, not mean, and a PERCENTILE colour scale rather than min-to-max.
-     Both for the same reason: the first full pull carried five readings out of
-     1,461 that were plainly keyed wrong (87, 80, 80, 52, and an 0.09 from a
-     percent-formatted cell). One 87 in a min-to-max scale pushed every real
-     4-to-12 reading into the bottom seventh of it and the whole column shaded
-     identically; the mean it dragged up by a fifth of a point. The readings
-     stay on the table exactly as recorded - it is the SUMMARY and the SCALE
-     that stop letting five rows speak for 1,461. */
+  /* The colour is now a GRADE against the after-ice spec band Ross set on
+     27/08/2026 (tonkotsu 8-9, chicken 5-6), not a shading of the observed
+     range. That is a better encoding for a simpler reason than aesthetics: a
+     range scale answers "how does this batch compare with the others", and the
+     question the factory actually asks is "did this batch meet spec". It also
+     takes the sting out of a mis-keyed 87 - a fixed band cannot be stretched
+     by one bad number the way min-to-max was.
+     The MEDIAN stays the headline for the same reason it became one: five
+     keying slips in 1,461 would drag a mean and cannot move a midpoint. */
   const fbPct=q=>{ if(!fbVals.length) return null;
     const i=(fbVals.length-1)*q, lo=Math.floor(i), hi=Math.ceil(i);
     return lo===hi?fbVals[lo]:fbVals[lo]+(fbVals[hi]-fbVals[lo])*(i-lo); };
   const fbAvg=fbPct(0.5);
-  const fbLo=fbPct(0.05), fbHi=fbPct(0.95);
   const fbMin=fbVals.length?fbVals[0]:null, fbMax=fbVals.length?fbVals[fbVals.length-1]:null;
   const fbSuspect=fbIn.filter(r=>r.suspect).length;
+  const fbGraded=fbIn.filter(r=>r.grade);
+  const fbInSpec=fbGraded.filter(r=>r.grade==='in').length;
+  const fbSpecPct=fbGraded.length?100*fbInSpec/fbGraded.length:null;
+  const fbUngraded=fbIn.length-fbGraded.length;
+  const fbBandTxt=r=>r.band?r.band[0]+'–'+r.band[1]:null;
+  /* Rendered from the snapshot's own band map, never hard-coded here: the
+     spec lives in the builder with the rest of the classification, so
+     changing it is a bake, not a shell deploy. */
+  const bandsTxt=Object.entries((fbBlock&&fbBlock.bands)||{})
+    .map(([k,v])=>k.replace(/ Broth$/,'')+' '+v[0]+'–'+v[1]).join(', ');
   const fbBatches=new Set(fbIn.map(r=>r.batch||'(no batch)')).size;
   const fbLegacy='This snapshot predates the factory broth score - rebake to populate it.';
   /* colour scaled to the observed range, exactly as the site heatmaps are:
      the source records no after-ice target band, so a red/green scale would be
      inventing one. */
-  const fbShade=v=>{
-    if(v==null||fbHi==null) return '';
-    /* clamped, so a mis-keyed 87 sits at the top of the scale instead of
-       redefining it - and it is still on the row, flagged, to be read. */
-    const t=fbHi>fbLo?Math.max(0,Math.min(1,(v-fbLo)/(fbHi-fbLo))):0.5;
-    return ' style="background:rgba(233,78,27,'+(0.12+0.7*t).toFixed(2)+')"';
-  };
+  /* The score cell: state in the colour, the direction in a glyph, and the
+     bound it missed in words on the row. Any one of the three read on its own
+     tells you the same thing. */
+  function fbCell(r){
+    const band=fbBandTxt(r);
+    if(!r.grade) return '<span class="fbscore fb-none" title="'+esc(r.product||'this product')+
+      ' has no after-ice band, so this reading is not graded">'+esc(r.score)+'</span>';
+    const ok=r.grade==='in';
+    const glyph=ok?'':(r.grade==='low'?' ▼':' ▲');
+    const tip=esc(r.product||'')+' spec '+band+' after ice — '+
+      (ok?'in spec':r.grade==='low'?'below spec':'above spec');
+    return '<span class="fbscore '+(ok?'fb-in':'fb-out')+'" title="'+tip+'">'+
+      esc(r.score)+glyph+'</span>';
+  }
   if(!fbBlock){
     $('fb-prod').innerHTML='<div class="empty">'+fbLegacy+'</div>';
     $('fb-tbl').innerHTML='<div class="empty">'+fbLegacy+'</div>';
@@ -1509,34 +1534,45 @@ function render(snap){
     const prodAgg={};
     fbIn.forEach(r=>{
       const k=r.product||'(no product named)';
-      const a=prodAgg[k]=prodAgg[k]||{vals:[],batches:new Set()};
+      const a=prodAgg[k]=prodAgg[k]||{vals:[],batches:new Set(),band:r.band,graded:0,inSpec:0};
       a.vals.push(r.score); a.batches.add(r.batch||'(no batch)');
+      if(r.grade){ a.graded++; if(r.grade==='in') a.inSpec++; }
     });
     const med=v=>{const s=v.slice().sort((a,b)=>a-b),m=s.length>>1;
       return s.length%2?s[m]:(s[m-1]+s[m])/2;};
-    const prodRows=Object.entries(prodAgg).map(([k,a])=>({k,v:+med(a.vals).toFixed(2),
-      tip:`${k} — ${a.vals.length} reading${a.vals.length===1?'':'s'} across `+
-          `${a.batches.size} batch${a.batches.size===1?'':'es'}, `+
-          `after-ice ${Math.min(...a.vals)}–${Math.max(...a.vals)}`})).sort((a,b)=>b.v-a.v);
+    const prodRows=Object.entries(prodAgg).map(([k,a])=>{
+      const pct=a.graded?100*a.inSpec/a.graded:null;
+      return {k,v:+med(a.vals).toFixed(2),pct,band:a.band,
+        tip:`${k} — ${a.vals.length} reading${a.vals.length===1?'':'s'} across `+
+            `${a.batches.size} batch${a.batches.size===1?'':'es'}, `+
+            `after-ice ${Math.min(...a.vals)}–${Math.max(...a.vals)}`+
+            (a.band?`, spec ${a.band[0]}–${a.band[1]}, ${a.inSpec} of ${a.graded} in spec`
+                   :', no spec band for this product')};
+    }).sort((a,b)=>b.v-a.v);
     if(!prodRows.length){
       $('fb-prod').innerHTML='<div class="empty">'+(fbAll.length
         ?'No factory batches scored in '+esc(evLabel())
         :'No factory broth readings in this snapshot yet')+'</div>';
-    } else bars('fb-prod',prodRows,i=>i.v.toFixed(1));
+    } else bars('fb-prod',prodRows,i=>i.v.toFixed(1)+
+      (i.band?'  <span class="prodspec">'+i.band[0]+'–'+i.band[1]+' · '+
+        i.pct.toFixed(0)+'% in spec</span>':'  <span class="prodspec">no band</span>'));
     /* insertAdjacentHTML, not innerHTML+= : reassigning innerHTML reserialises
        the bars and silently drops the hover listeners bars() just attached. */
     if(prodRows.length) $('fb-prod').insertAdjacentHTML('beforeend',
       '<div class="prov">Median after-ice reading per product in '+esc(evLabel())+
-      ' · no target band exists in the source, so these are levels to compare with each other and with last month, not a pass mark.</div>');
+      ' · the spec each is graded against sits beside it. The median is a midpoint, not a pass mark: a product can sit mid-band and still have batches out of spec on both sides, which is what the per-batch table below is for.</div>');
     $('fb-prod-sub').textContent=prodRows.length
       ? prodRows.length+' product(s) · '+fbIn.length+' reading(s) · '+evLabel()
       : 'No factory readings in '+evLabel();
     table('fb-tbl',[{h:'Date'},{h:'Batch'},{h:'Product'},{h:'After ice',n:1,raw:1},
         {h:'Before ice',n:1},{h:'Notes',raw:1}],
       fbIn.map(r=>[r.d,r.batch||'—',r.product||'—',
-        '<span'+fbShade(r.score)+' class="fbscore">'+esc(r.score)+'</span>',
+        fbCell(r),
         r.before==null?'—':r.before,
-        (r.suspect?chip('r','Check this reading'):'')+
+        (r.grade==='low'?chip('r','Below spec ('+r.band[0]+')'):'')+
+        (r.grade==='high'?chip('r','Above spec ('+r.band[1]+')'):'')+
+        (!r.grade?chip('n','No band for this product'):'')+
+        (r.suspect?chip('a','Check this reading'):'')+
         (r.repeat?chip('b','2nd reading this day'):'')+
         (r.date_source==='timestamp'?chip('n','Dated from submission'):'')]),
       fbAll.length?'No factory batches scored in '+evLabel():
@@ -1556,19 +1592,22 @@ function render(snap){
     const exText=[];
     if(exBits.length) exText.push('excluded from the score: '+exBits.join('; ')+
       ' — counted, never scored as zero');
-    if(fbSuspect) exText.push(fmtN(fbSuspect)+' reading(s) flagged "check this reading": outside a third to three times the median, so a missed decimal point or a percent-formatted cell. Still shown and still counted — the row is what gets it fixed at source');
+    if(fbSuspect) exText.push(fmtN(fbSuspect)+' reading(s) flagged "check this reading": outside a third to three times the median, so a missed decimal point or a percent-formatted cell rather than a batch that missed spec. Still shown, still graded and still counted — the row is what gets it fixed at source');
     if(fbIn.length) $('fb-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
       fmtN(fbIn.length)+' reading(s) across '+fmtN(fbBatches)+' batch(es) in '+esc(evLabel())+
+      ' · graded against the after-ice spec: '+esc(bandsTxt||'no bands set')+
+      (fbGraded.length?' · '+fmtN(fbInSpec)+' of '+fmtN(fbGraded.length)+' in spec ('+
+        fbSpecPct.toFixed(1)+'%), '+fmtN(fbGraded.filter(r=>r.grade==='low').length)+
+        ' below and '+fmtN(fbGraded.filter(r=>r.grade==='high').length)+' above':'')+
+      (fbUngraded?' · '+fmtN(fbUngraded)+' not graded (no band for that product)':'')+
       ' · observed after-ice range '+fbMin+'–'+fbMax+
-      (fbSuspect?', shaded over '+(+fbLo.toFixed(1))+'–'+(+fbHi.toFixed(1))+
-        ' so '+fmtN(fbSuspect)+' mis-keyed reading(s) cannot flatten the scale':'')+
-      ' (not an official spec band)'+
       (exText.length?' · '+esc(exText.join(' · ')):'')+
       (fbBlock.truncated?' · the snapshot carries the '+fmtN(fbAll.length)+' most recent of '+fmtN(fbBlock.scored)+' scored readings, so an older range may be incomplete':'')+
       '</div>');
     $('fb-tbl-sub').textContent=fbIn.length
-      ? fmtN(fbIn.length)+' reading(s), '+fmtN(fbBatches)+' batch(es) · score = the reading after adding ice · '+evLabel()
-      : 'Score = the reading after adding ice · '+evLabel();
+      ? fmtN(fbIn.length)+' reading(s), '+fmtN(fbBatches)+' batch(es) · after-ice score graded against spec'+
+        (bandsTxt?' ('+bandsTxt+')':'')+' · '+evLabel()
+      : 'Score = the reading after adding ice, graded against spec · '+evLabel();
   }
 
   /* quality: broth heatmaps, discipline, deviations */
@@ -1628,8 +1667,11 @@ function render(snap){
   $('qual-kpis').innerHTML=
     kpi('o','Factory batches scored',fbBlock?fmtN(fbBatches):'—',
         fbBlock?'after-ice readings, in range':'not in this snapshot')+
+    kpi('o','Factory readings in spec',fbSpecPct==null?'—':fbSpecPct.toFixed(1)+'%',
+        fbSpecPct==null?'no graded readings in range'
+          :fmtN(fbInSpec)+' of '+fmtN(fbGraded.length)+' after-ice readings within spec')+
     kpi('n','Median factory score',fbAvg==null?'—':fbAvg.toFixed(1),
-        fbAvg==null?'no factory readings in range':'after-ice midpoint · a mis-keyed 87 cannot move it · no target band in source')+
+        fbAvg==null?'no factory readings in range':'after-ice midpoint · a mis-keyed 87 cannot move it')+
     kpi('o','Chicken checks',fmtN(chickenN),'in range, numeric readings')+
     kpi('o','Tonkotsu checks',fmtN(tonkN),'in range, numeric readings')+
     kpi(disc==null?'n':disc>=90?'g':disc>=75?'a':'r','Check discipline',disc==null?'—':disc+'%',
