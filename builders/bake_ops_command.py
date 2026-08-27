@@ -277,6 +277,27 @@ def supplier_of(form):
     for sup, needle in SUPPLIER_MATCH:
         if needle.lower() in (form or "").lower(): return sup
     return "Unattributed"
+# Ross, 27/08/2026, verbatim: "Tonkotsu should be between 8 and 9 after ice ...
+# for chicken broth it should be between 5 and 6". The first real after-ice
+# SPEC this system has ever had - every string in the factory block used to say
+# no target band existed, because until now none did. Bounds are INCLUSIVE:
+# 8.0 and 9.0 both pass.
+#
+# A product with no entry here is NOT graded and NOT flagged - it gets a named
+# gap instead. Inventing a band for it would be exactly the fabrication the
+# rest of this block refuses: 'Ikigai Chicken Broth' appears in the form and
+# Ross did not give it a range, so it stays ungraded until he does.
+FACTORY_BROTH_BANDS = {
+    "Tonkotsu Broth": (8.0, 9.0),
+    "Chicken Broth":  (5.0, 6.0),
+}
+def fb_grade(product, score):
+    """'in' | 'low' | 'high' for a graded product, None when it has no band."""
+    band = FACTORY_BROTH_BANDS.get(product or "")
+    if band is None or score is None:
+        return None
+    lo, hi = band
+    return "low" if score < lo else "high" if score > hi else "in"
 def fb_num(v):
     """One refractometer reading as a float, or None if it is not a number.
 
@@ -762,10 +783,13 @@ def main():
     else:
         gaps.append("'GC Scheduled Task Answers' absent from the warehouse - broth quality "
             "checks (Chicken/Tonkotsu Broth Check) unavailable")
-    gaps.append("Broth heatmap colours are scaled to the OBSERVED reading range in this "
-        "snapshot, not an official spec band - no chicken/tonkotsu density target exists in "
-        "the data yet (needs a small reference table of min/target/max from Ross's par "
-        "standards)")
+    gaps.append("The PER-SITE broth heatmaps are scaled to the OBSERVED reading range in "
+        "this snapshot, not a spec band - and unlike the factory card, no target exists for "
+        "them. Ross's after-ice bands (tonkotsu 8-9, chicken 5-6) are the FACTORY's, measured "
+        "on the batch after ice; these are GetCompliant checks of broth as served, a "
+        "different measurement at a different point, and the site readings sit well below "
+        "the factory bands - so the factory spec must not be borrowed for these cards. They "
+        "need their own min/target/max from Ross before they can be graded")
     snap["quality"]={"broth":{"cells":broth_cells,"deviations":broth_deviations[:200],
       "tasks":BROTH_TASKS,
       "basis":"one cell per site + check-type + day from GC Scheduled Task Answers, "
@@ -805,6 +829,7 @@ def main():
     FB_CAP = 2000
     fb_readings=[]; fb_total=0; fb_pull=None; fb_pct=0; fb_ts_dated=0
     fb_median=None; fb_suspect=0
+    fb_grades={"in":0,"low":0,"high":0,"ungraded":0,"out_suspect":0}
     fb_excl={"no_after_ice":0,"undated":0,"non_numeric":0}
     if has_feed(cur,FB_FEED):
         cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows WHERE feed=%s",(FB_FEED,))
@@ -830,10 +855,14 @@ def main():
                 fb_excl["non_numeric"]+=1; continue
             if from_ts: fb_ts_dated+=1
             if raw.endswith("%"): fb_pct+=1
+            prod=(product or "").strip() or None
+            score=round(val,2)
             fb_readings.append({"d":d,"ts":ts,
               "batch":(batch or "").strip() or None,
-              "product":(product or "").strip() or None,
-              "score":round(val,2),"before":fb_num(before),
+              "product":prod,
+              "score":score,"before":fb_num(before),
+              "band":list(FACTORY_BROTH_BANDS[prod]) if prod in FACTORY_BROTH_BANDS else None,
+              "grade":fb_grade(prod,score),
               "date_source":"timestamp" if from_ts else "form"})
         # The same batch and product read twice in one day is real - it happens
         # (210825B, 21/08/2025, 7 then 9). Both rows stay and both are marked,
@@ -858,10 +887,13 @@ def main():
         # They are FLAGGED, not dropped and not repaired. Dropping loses a
         # real record of what was entered; dividing by ten is inventing data;
         # and the row is the only thing that will make anyone fix the sheet.
-        # The band is deliberately derived from the data (a third of the
-        # median to three times it) rather than being a spec: this file says
-        # everywhere that no official after-ice target exists, and a
-        # plausibility test for keying slips must not be mistaken for one.
+        # This band is derived from the data (a third of the median to three
+        # times it) and is NOT the spec band. Those are now two different
+        # things and must stay that way: FACTORY_BROTH_BANDS says whether a
+        # batch met spec, this says whether the number was typed correctly.
+        # An 87 is not a batch three times too dense - it is 8.7 with a lost
+        # decimal point, and collapsing the two would put five typos into the
+        # out-of-spec count and send someone to the factory over them.
         fb_median=None
         vals=sorted(r["score"] for r in fb_readings)
         if vals:
@@ -873,16 +905,32 @@ def main():
                                              or r["score"]<fb_median/3))
             if r["suspect"]: fb_suspect+=1
         fb_readings.sort(key=lambda r:(r["d"],r["ts"] or ""),reverse=True)
+        for r in fb_readings:
+            g=r["grade"]
+            if g is None:
+                fb_grades["ungraded"]+=1
+            else:
+                fb_grades[g]+=1
+                if g!="in" and r["suspect"]: fb_grades["out_suspect"]+=1
+        ungraded=sorted({r["product"] or "(no product named)"
+                         for r in fb_readings if r["grade"] is None})
+        if ungraded:
+            gaps.append(str(fb_grades["ungraded"])+" refractometer reading(s) are NOT "
+                "graded because their product has no after-ice band: "
+                +", ".join(repr(x) for x in ungraded)+". Shown and counted, never "
+                "coloured pass or fail - a band has to be given, not guessed")
         if fb_suspect:
             gaps.append(str(fb_suspect)+" refractometer reading(s) are outside a "
                 "third to three times the median of "+str(fb_median)+" - a missed "
                 "decimal point ('87' for 8.7) or a percent-formatted cell. They are "
-                "kept, flagged and excluded from the colour scale, never repaired or "
-                "dropped: fix them in the source sheet and they stop being flagged")
+                "kept and flagged, never repaired or dropped. They are graded against "
+                "the spec band like any other reading, so a mis-key reads as out of "
+                "spec - the 'out_suspect' count says how many of the out-of-band "
+                "readings are these: fix them at source and both numbers drop")
         gaps.append("The factory broth score carries no factory: the refractometer "
             "form has no site field, so readings cannot be split between the Glasgow, "
-            "Edinburgh and Shoreditch factories - and no after-ice target band exists "
-            "in the source either, so its colour scale is the observed range, not a spec")
+            "Edinburgh and Shoreditch factories - an out-of-spec batch cannot be traced "
+            "to the line that made it")
     else:
         gaps.append("'"+FB_FEED+"' absent from the warehouse - the factory broth "
             "score (refractometer readings by batch) is unavailable until the daily "
@@ -904,6 +952,7 @@ def main():
     snap["quality"]["factory"]={
       "readings":fb_readings[:FB_CAP],"scored":len(fb_readings),
       "median":fb_median,"suspect":fb_suspect,
+      "bands":{k:list(v) for k,v in FACTORY_BROTH_BANDS.items()},"grades":fb_grades,
       "responses":fb_total,"truncated":len(fb_readings)>FB_CAP,
       "excluded":fb_excl,"source_feed":FB_FEED,"pull_date":fb_pull,
       "basis":"one row per refractometer form submission at the factory, from the "
@@ -915,9 +964,12 @@ def main():
       +str(FB_MAX_LAG_DAYS)+" days before it, is a typo), never on pull_date; responses with no after-ice reading are excluded and "
       "counted in 'excluded', never scored as zero; 'repeat' marks a batch and product "
       "read more than once on the same day - both readings are kept, neither averaged; "
-      "'suspect' marks a reading outside a third to three times the median, which is a "
-      "keying-slip test derived from the data and NOT a spec band - no after-ice target "
-      "exists in the source"}
+      "'grade' is the reading against its product's after-ice SPEC BAND (Ross, 27/08/2026: "
+      "tonkotsu 8-9, chicken 5-6, bounds inclusive) - 'in', 'low', 'high', or null for a "
+      "product with no band, which is never graded or coloured; 'suspect' is a SEPARATE, "
+      "much cruder test for keying slips (outside a third to three times the median, e.g. "
+      "87 for 8.7), kept apart from the band so a typo is not read as a batch that missed "
+      "spec - 'grades.out_suspect' counts the overlap"}
     # ---- scheduled task completion rate ON TIME by site (GC Scheduled Task Answers) ----
     # Ross, 15 Aug: the Task Completion page was reading GC Form Task Answers
     # (Closed/Open FORM state - a current-state backlog snapshot). Ross asked
