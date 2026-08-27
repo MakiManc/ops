@@ -270,7 +270,6 @@ EXPECTED_FEEDS = [
     "Deep Flow Modules","Deep Flow Certificates",
     "GC Forms Overview","GC Central Module Tasks","GC Locations",
     "GC Deviations","GC Waste Registered",
-    "Mapal Supplier Orders","Mapal Smart Delivery","Mapal Invoices To Receive",
     "Kobas Orders",
     "Factory Broth Readings",
 ]
@@ -704,9 +703,12 @@ def main():
       "form names no supplier, a text search of all its answers for known supplier names "
       "attributes it instead (attribution='text', a heuristic); null when neither finds "
       "one, never a fake name",
-      "note":"GetCompliant delivery/supplier issue forms. The Mapal supplier "
-      "feeds fail at fetch, so this is the only supplier signal that lands - self-reported, "
-      "not a measured OTIF.","totals":[{"supplier":k,**v} for k,v in
+      "note":"GetCompliant delivery/supplier issue forms - the only supplier signal the "
+      "estate produces, and self-reported rather than a measured OTIF. This used to read "
+      "'the Mapal supplier feeds fail at fetch', which framed it as a credentials problem "
+      "waiting to be fixed. It was not: those feeds were Mapal Easilys, the business does "
+      "not use Easilys (Ross, 27/08/2026), and they have been removed from the pull. There "
+      "is no delivered-vs-ordered source behind them to unlock.","totals":[{"supplier":k,**v} for k,v in
       sorted(agg.items(),key=lambda kv:(-kv[1]["open"], kv[0] or ""))],"forms":sorted(sups,key=lambda r:(-r["open"], r["form"] or ""))}
     cat_agg={}
     for i_ in issues:
@@ -1383,10 +1385,11 @@ def main():
             "figure: it sums Order Value on currently-outstanding orders whose Target Delivery "
             "Date falls in the current Mon-Sun week - it will overstate spend for any order "
             "that later slips to a different week, and it says nothing about orders not yet "
-            "placed. The Mapal Supplier Orders/Smart Delivery/Invoices To Receive feeds still "
-            "fail at fetch (credentials), so there is no delivered-vs-ordered signal to true "
-            "this up against - fixing Mapal is the single highest-value data unlock for this "
-            "dashboard")
+            "placed. There is no delivered-vs-ordered signal anywhere in the estate to true "
+            "this up against: the Mapal Easilys feeds that used to be named here as the fix "
+            "were removed on 27/08/2026 because the business does not use Easilys, so this is "
+            "a missing SOURCE, not a broken feed - closing it needs a system that records "
+            "deliveries, not a credential")
         gaps.append("Some 'outstanding' orders in the Kobas report carry Order Placed dates back "
             "to 2024 and still show status=pending - almost certainly abandoned/never closed out "
             "in the source system rather than a live backlog; if one of these happens to carry a "
@@ -1404,8 +1407,10 @@ def main():
     # NOT a one-to-one match either - one issue form can describe several
     # problems and several issues can land on one delivery. Ross has accepted
     # both approximations; the per-issue detail stays on the Supplier Issues
-    # tab. Measured OTIF still needs the Mapal feeds, which still fail at
-    # fetch - that remains the standing open item.
+    # tab. A measured OTIF needs a source that records what was DELIVERED,
+    # and the estate does not have one: the Mapal Easilys feeds that this
+    # comment used to point at were removed on 27/08/2026 (the business does
+    # not use Easilys). The open item is a missing system, not a broken feed.
     OTIF_FIRST_MONTH="2026-08"
     ISSUES_HISTORY_START="2026-08-13"
     otif_months=[]; otif_basis=None
