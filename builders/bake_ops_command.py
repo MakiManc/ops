@@ -861,6 +861,7 @@ def main():
       "          data->>'Order Placed At' DESC")
     week_spend=[]; price_watch=[]; week_days=[]; week_drill=[]
     week_drill_total=0; week_spend_source=None; week_spend_basis=None; week_totals=None
+    supplier_totals=[]; supplier_totals_basis=None
     supply_coverage=None
     cur.execute("SELECT date_trunc('week',current_date)::date, "
                 "(date_trunc('week',current_date)+interval '6 day')::date")
@@ -919,6 +920,36 @@ def main():
               "orders":a_["orders"],"lines":a_["lines"],"items":a_["items"],
               "value_gbp":round(a_["value"],2)})
         week_spend.sort(key=lambda r:-r["value_gbp"])
+        # Same rows, rolled up by supplier instead of site+supplier, so the
+        # question "what are we spending with each supplier" is answered
+        # without the reader summing a site table by eye.
+        #
+        # DELIVERIES is a distinct (site, delivery date), not an order count:
+        # two orders to one site arriving the same day are one delivery, and
+        # this week that is 68 orders arriving as 61 deliveries. It is derived
+        # from order confirmations, so it counts SCHEDULED deliveries - nothing
+        # in this source observes whether one arrived. The OTIF card on the
+        # same page counts deliveries the same way, so the two agree.
+        sup_agg={}
+        for r in rows:
+            a_=sup_agg.setdefault(r["sup"],{"orders":0,"lines":0,"items":0,
+                                            "value":0.0,"slots":set(),"sites":set()})
+            a_["orders"]+=1; a_["lines"]+=r["lines"]; a_["items"]+=r["items"]
+            a_["value"]+=r["value"]
+            a_["slots"].add((r["site"],r["d"])); a_["sites"].add(r["site"])
+        supplier_totals=[{"supplier":sup,"supplier_canon":canon_supplier(sup),
+                          "orders":a_["orders"],"deliveries":len(a_["slots"]),
+                          "lines":a_["lines"],"items":a_["items"],
+                          "sites":len(a_["sites"]),
+                          "value_gbp":round(a_["value"],2)}
+                         for sup,a_ in sup_agg.items()]
+        supplier_totals.sort(key=lambda r:(-r["value_gbp"],r["supplier"]))
+        supplier_totals_basis=("Same orders as the site table above, grouped by the "
+            "supplier name Kobas sends. Deliveries counts distinct site+delivery-date "
+            "combinations, so two orders to one site on one day are one delivery; "
+            "lines and items are the order email's own Line Items and Items Ordered "
+            "totals. Scheduled deliveries, not confirmed ones - an order confirmation "
+            "says a delivery was booked, never that it turned up.")
         week_days=[{"d":d,"orders":v["orders"],"value_gbp":round(v["value"],2)}
                    for d,v in sorted(by_day.items())]
         drill_all=sorted(rows,key=lambda r:(r["d"] or "",-r["value"]))
@@ -1008,6 +1039,23 @@ def main():
               "lines":None,"items":None,
               "supplier_canon":canon_supplier(sup)})
         week_spend.sort(key=lambda r:-r["value_gbp"])
+        # Same roll-up, but this source carries no line, item or per-delivery
+        # detail. Those stay null, never 0, so the shell renders an em dash
+        # rather than implying an order with nothing on it.
+        sup_agg3={}
+        for (site,sup),a_ in agg3.items():
+            b_=sup_agg3.setdefault(sup,{"orders":0,"value":0.0,"sites":set()})
+            b_["orders"]+=a_["orders"]; b_["value"]+=a_["value"]; b_["sites"].add(site)
+        supplier_totals=[{"supplier":sup,"supplier_canon":canon_supplier(sup),
+                          "orders":b_["orders"],"deliveries":None,
+                          "lines":None,"items":None,"sites":len(b_["sites"]),
+                          "value_gbp":round(b_["value"],2)}
+                         for sup,b_ in sup_agg3.items()]
+        supplier_totals.sort(key=lambda r:(-r["value_gbp"],r["supplier"]))
+        supplier_totals_basis=("Weekly outstanding-orders report grouped by supplier. "
+            "That report carries no line, item or delivery-date detail per order, so "
+            "those columns are blank rather than zero - only spend and order count are "
+            "known on this source, and both are a projection from outstanding orders.")
         week_spend_source="weekly_report_fallback"
         week_spend_basis=("Kobas Orders feed missing - projected spend falling back to "
             "the weekly outstanding-orders report (may be up to 7 days stale): one row per "
@@ -1136,6 +1184,8 @@ def main():
         "report, so price rises cannot be joined to a specific supplier or location - shown "
         "as a standalone watchlist, not cross-referenced to suppliers.issues")
     snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
+      "supplier_totals":supplier_totals,
+      "supplier_totals_basis":supplier_totals_basis,
       "week_spend_source":week_spend_source,
       "week_spend_basis":week_spend_basis,
       "week_totals":week_totals,

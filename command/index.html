@@ -235,6 +235,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="card"><div class="card-h"><div class="t">Projected spend this week — by site &amp; supplier</div>
     <div class="s" id="fa-aging-sub">Kobas Outstanding Stock Orders · orders due this Mon–Sun, by target delivery date · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)</div></div>
     <div class="card-b" id="fa-aging"></div></div>
+  <div class="card"><div class="card-h"><div class="t">By supplier &mdash; this week</div>
+    <div class="s" id="sup-tot-sub">Total spend, lines ordered and deliveries per supplier &middot; same orders as the card above, grouped by supplier rather than site</div></div>
+    <div class="card-b" id="sup-tot"></div></div>
   <div class="card"><div class="card-h"><div class="t">Supplier OTIF &mdash; monthly</div>
     <div class="s" id="otif-sub">Issue-free delivery rate per supplier &middot; deliveries from Kobas order confirmations vs issues filed in the same month</div></div>
     <div class="card-b" id="otif-tbl"></div></div>
@@ -1297,6 +1300,44 @@ function render(snap){
   if(supplyGaps.length)
     $('fa-aging').insertAdjacentHTML('beforeend',
       supplyGaps.map(g=>'<div class="prov" style="color:var(--a)">⚠ '+esc(g)+'</div>').join(''));
+  /* by supplier: the same week's orders grouped by supplier rather than site.
+     Deliveries is distinct site+delivery-date, not an order count - see the
+     basis line under the table. */
+  const supTotals=(snap.supply&&snap.supply.supplier_totals)||[];
+  if($('sup-tot-sub')) $('sup-tot-sub').textContent=
+    'Total spend, lines ordered and deliveries per supplier'+
+    (weekStart&&weekEnd?' · '+weekStart+' – '+weekEnd:' · this Mon–Sun')+
+    (isLiveSpend
+      ? ' · a delivery is one site on one day, so two orders arriving together count once'
+      : ' · fallback source: no line, item or delivery detail available');
+  if(supTotals.length){
+    const gbp=v=>'£'+fmtN(Math.round(v||0));
+    const tSpend=supTotals.reduce((a,r)=>a+(r.value_gbp||0),0);
+    /* Sum the nullable columns only where a value exists, so a fallback bake
+       shows an em dash in the totals row instead of a confident 0. */
+    const sumOrNull=k=>supTotals.some(r=>r[k]!=null)
+      ? supTotals.reduce((a,r)=>a+(r[k]||0),0) : null;
+    /* table() escapes every cell itself unless the column is raw, so these
+       are plain values - passing esc() here would double-encode a supplier
+       name containing & or '. */
+    const rows=supTotals.map(r=>[
+      r.supplier||'—',
+      gbp(r.value_gbp),
+      tSpend>0?(r.value_gbp/tSpend*100).toFixed(1)+'%':'—',
+      fmtN(r.orders), fmtN(r.deliveries), fmtN(r.lines), fmtN(r.items), fmtN(r.sites)]);
+    const tot=['Total', gbp(tSpend), tSpend>0?'100.0%':'—',
+      fmtN(sumOrNull('orders')), fmtN(sumOrNull('deliveries')),
+      fmtN(sumOrNull('lines')), fmtN(sumOrNull('items')), '—'];
+    tot._tot=1;
+    table('sup-tot',[{h:'Supplier'},{h:'£ spend',n:1},{h:'Share',n:1},
+      {h:'Orders',n:1},{h:'Deliveries',n:1},{h:'Lines',n:1},{h:'Items',n:1},
+      {h:'Sites',n:1}],rows.concat([tot]),'');
+  } else {
+    table('sup-tot',[{h:'Supplier'}],[],'No orders due this week in this pull');
+  }
+  if(snap.supply&&snap.supply.supplier_totals_basis)
+    $('sup-tot').insertAdjacentHTML('beforeend',
+      '<div class="prov">'+esc(snap.supply.supplier_totals_basis)+'</div>');
   const priceRows=(snap.supply&&snap.supply.price_watch)||[];
   table('pw-tbl',[{h:'Ingredient'},{h:'Old £',n:1},{h:'New £',n:1},{h:'Change',n:1}],
     priceRows.map(p=>[p.ingredient,p.old_price!=null?p.old_price.toFixed(2):'—',
