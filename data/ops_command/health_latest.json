@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-08-28T14:00:38Z",
+ "generated_at": "2026-08-28T20:58:17Z",
  "verified_date": "2026-08-28",
  "mode": "recheck",
  "overall": "red",
@@ -9,14 +9,14 @@
  "sizes": {
   "maintenance_pulled_at": "2026-08-25T08:14:00Z",
   "maintenance_source_as_of": "2026-08-19",
-  "archive_mb": 62
+  "archive_mb": 63
  },
  "counts": {
   "expected_feeds": 32,
   "known_broken": 10,
   "best_effort": 18,
   "criticals": 3,
-  "warnings": 17,
+  "warnings": 6,
   "deferred": 0
  },
  "criticals": [
@@ -44,85 +44,10 @@
  ],
  "warnings": [
   {
-   "check": "0-receipts",
-   "level": "warning",
-   "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt. Checks 1-2 still verify the data directly."
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Branch Resources",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Certificates",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Courses",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Modules",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Flow Profile XT",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "Deep Run Log",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "GC Deviations (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "GC Procedure Details",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "GC Scheduled Task Answers (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
-  },
-  {
    "check": "2-rows",
    "level": "warning",
    "feed": "Kobas Orders",
-   "detail": "166 rows today vs trailing 14-day median 22 - outside the 0.5x-3x band"
+   "detail": "186 rows today vs trailing 14-day median 22 - outside the 0.5x-3x band"
   },
   {
    "check": "1-landed",
@@ -224,50 +149,87 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "warning",
-   "detail": "etl_run_log does not exist yet - the loud-failure wrapper has not produced its first receipt. Checks 1-2 still verify the data directly."
+   "level": "ok",
+   "feed": "daily-export",
+   "detail": "08:15 daily export: exit 0, 71900 rows written, finished 2026-08-28 20:37:47"
+  },
+  {
+   "check": "0-receipts",
+   "level": "ok",
+   "feed": "deep-pull",
+   "detail": "03:00 deep pull: exit 0, 35308 rows written, finished 2026-08-28 15:37:37"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Branch Resources",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Branch Resources",
+   "detail": "25860 rows (median 25950)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Certificates",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Certificates",
+   "detail": "2737 rows (median 2607)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Courses",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Courses",
+   "detail": "1474 rows (median 1455)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Modules",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Modules",
+   "detail": "4784 rows (median 4771)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Profile XT",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Flow Profile XT",
+   "detail": "452 rows (median 458)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Run Log",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Deep Run Log",
+   "detail": "1 rows (median 1)"
   },
   {
    "check": "1-landed",
@@ -463,10 +425,15 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Deviations (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Deviations (prev day)",
+   "detail": "4 rows (median 6)"
   },
   {
    "check": "1-landed",
@@ -482,10 +449,15 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Form Task Answers (prev day)",
+   "detail": "421 rows (median 273)"
   },
   {
    "check": "1-landed",
@@ -561,10 +533,15 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Procedure Details",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Procedure Details",
+   "detail": "38 rows (median 43)"
   },
   {
    "check": "1-landed",
@@ -616,10 +593,15 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-27 (1d old) - expected today"
+   "detail": "landed 2026-08-28"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Scheduled Task Answers (prev day)",
+   "detail": "4525 rows (median 4544)"
   },
   {
    "check": "1-landed",
@@ -655,7 +637,7 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Kobas Orders",
-   "detail": "166 rows today vs trailing 14-day median 22 - outside the 0.5x-3x band"
+   "detail": "186 rows today vs trailing 14-day median 22 - outside the 0.5x-3x band"
   },
   {
    "check": "1-landed",
@@ -712,7 +694,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "10 rows (median 6)"
+   "detail": "13 rows (median 6)"
   },
   {
    "check": "1-landed",
@@ -784,7 +766,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Factory Broth Readings",
-   "detail": "1522 rows (no median available)"
+   "detail": "1525 rows (no median available)"
   },
   {
    "check": "1-landed",
@@ -843,11 +825,6 @@
    "detail": "dashboard snapshot 2026-08-28 matches the pull archive 2026-08-28"
   },
   {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages fetch failed (informative): <urlopen error Tunnel connection failed: 403 Forbidden>"
-  },
-  {
    "check": "6-side",
    "level": "ok",
    "detail": "maintenance source pulled 2026-08-25 (3d ago), sheet content as of 2026-08-19"
@@ -855,12 +832,12 @@
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 62 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 63 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
    "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=36282, tasks_missed=531, week_spend_gbp=38054.36, broth_cells=882, factory_broth_readings=1464, supplier_issues=73, training_outstanding=2055"
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=36282, tasks_missed=531, week_spend_gbp=44473.82, broth_cells=882, factory_broth_readings=1467, supplier_issues=73, training_outstanding=2044"
   },
   {
    "check": "aggregates",
