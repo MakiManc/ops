@@ -20,7 +20,8 @@ CHECKS (v2, Phase 2 complete)
                            exit 0 / 0 rows / every feed failed while the
                            workflow itself was red, and this check called
                            it ok.)
-  check 1  FEEDS LANDED    every status=expected feed's max(pull_date) is
+  check 1  FEEDS LANDED    every status=expected or best_effort feed's
+                          max(pull_date) is
                            today. Measured in Postgres (the §13 class).
   check 2  ROWS SANE       today's rows >= manifest floor and within a
                            0.5x-3x band of the trailing 14-day median
@@ -289,6 +290,23 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
             continue
         dom = domain_of(name)
         sev = "critical" if dom in PRIORITY_DOMAINS else "warning"
+        # best_effort: checked exactly like an expected feed - cadence, floor,
+        # median, all of it - but it can never turn this verifier red. The
+        # tier exists because "expected" and "known_broken" were the only two
+        # options, so a feed that is genuinely useful, genuinely working, and
+        # read by nothing had to be filed as one or the other: call it
+        # expected and a squeezed pull is an incident, call it known_broken
+        # and it stops being checked at all. Neither is true of, say,
+        # 'GC Procedure Details' - 25 of the GetCompliant pull's 77 calls,
+        # last in the order, so the first thing a tight quota drops, and read
+        # by no dashboard, answer pack or KPI tab.
+        #
+        # Capping severity rather than skipping checks is the point: the feed
+        # still appears in every check with its real result, so a best_effort
+        # feed that quietly dies for a month is visible as a standing warning
+        # (and keeps the health amber). What it cannot do is page anyone.
+        if status == "best_effort":
+            sev = "warning"
         lp = latest.get(name)
         wf = f.get("workflow", "daily-export")
         # Feed missing while its producing run has no receipt today: the
@@ -341,15 +359,15 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
     for feed in sorted(set(today_rows) - man_names):
         add("5-unmanifested", "warning",
             f"feed landed {today_rows[feed]} rows today but is NOT in the "
-            "manifest - add it (or mark known_broken) so it stops flying "
-            "blind", feed)
+            "manifest - add it (expected, best_effort, or known_broken) so "
+            "it stops flying blind", feed)
 
 
 # --------------------------------------------------------------- check 3
 def check_event_dates(cur, manifest: dict, today: str):
     for f in manifest["feeds"]:
         field = f.get("event_date_field")
-        if not field or f["status"] != "expected":
+        if not field or f["status"] not in ("expected", "best_effort"):
             continue
         name = f["name"]
         window = int(f.get("event_fresh_days", 7))
@@ -829,6 +847,8 @@ def main() -> None:
     known_broken = [{"name": f["name"], "note": f.get("note", "")}
                     for f in manifest["feeds"]
                     if f["status"] == "known_broken"]
+    best_effort = [f["name"] for f in manifest["feeds"]
+                   if f["status"] == "best_effort"]
     health = {
         "verifier_version": 2,
         "generated_at": utcnow(),
@@ -842,6 +862,7 @@ def main() -> None:
             "expected_feeds": sum(1 for f in manifest["feeds"]
                                   if f["status"] == "expected"),
             "known_broken": len(known_broken),
+            "best_effort": len(best_effort),
             "criticals": len(criticals),
             "warnings": len(warnings),
             "deferred": len(deferred),
@@ -850,6 +871,7 @@ def main() -> None:
         "warnings": warnings,
         "deferred": deferred,
         "known_broken": known_broken,
+        "best_effort": best_effort,
         "results": RESULTS,
         "basis": ("verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against "
                   + ("the committed pull archive" if ARCHIVE_MODE
