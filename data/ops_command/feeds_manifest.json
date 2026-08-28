@@ -1,7 +1,7 @@
 {
  "version": 1,
  "calibrated": "2026-08-18",
- "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (MakiManc/ops) and their fetch failures turn the ETL run red (etl_receipt.py in MakiManc/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind. A feed the ETL no longer pulls must be REMOVED from here, or check 1 reports it as never having landed forever: the four Mapal Easilys feeds (Supplier Orders, Smart Delivery, Smart Yield, Invoices To Receive) went on 27/08/2026 when Ross confirmed the business does not use Easilys.",
+ "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (MakiManc/ops) and their fetch failures turn the ETL run red (etl_receipt.py in MakiManc/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind. A feed the ETL no longer pulls must be REMOVED from here, or check 1 reports it as never having landed forever: the four Mapal Easilys feeds (Supplier Orders, Smart Delivery, Smart Yield, Invoices To Receive) went on 27/08/2026 when Ross confirmed the business does not use Easilys. STATUS TIERS: 'expected' = something downstream reads it, so a fetch failure or a short pull FAILS the ETL run and can go critical in the verifier. 'best_effort' (added 28/08/2026) = wanted and fully verified when it lands, but read by nothing, so a fetch failure or short pull is a WARNING and never turns a run red - it exists because a feed that is working, useful and unread had to be filed either as an incident or as not-checked-at-all, and neither was true. 'known_broken' = does not work; not verified at all.",
  "feeds": [
   {
    "name": "Deep Flow Branch Resources",
@@ -184,7 +184,8 @@
    "pulls_weekends": true,
    "min_rows": 12,
    "median_rows_at_calibration": 33,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Central Form Tasks",
@@ -193,7 +194,8 @@
    "pulls_weekends": true,
    "min_rows": 5018,
    "median_rows_at_calibration": 12576,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Central Module Tasks",
@@ -211,7 +213,8 @@
    "pulls_weekends": true,
    "min_rows": 1,
    "median_rows_at_calibration": 6,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Form Task Answers",
@@ -231,7 +234,8 @@
    "pulls_weekends": true,
    "min_rows": 58,
    "median_rows_at_calibration": 196,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Forms",
@@ -240,7 +244,8 @@
    "pulls_weekends": true,
    "min_rows": 29,
    "median_rows_at_calibration": 74,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Forms Overview",
@@ -258,7 +263,8 @@
    "pulls_weekends": true,
    "min_rows": 230,
    "median_rows_at_calibration": 575,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Location Groups",
@@ -267,7 +273,8 @@
    "pulls_weekends": true,
    "min_rows": 5,
    "median_rows_at_calibration": 13,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Locations",
@@ -285,7 +292,8 @@
    "pulls_weekends": true,
    "min_rows": 2,
    "median_rows_at_calibration": 6,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Procedure Details",
@@ -294,8 +302,8 @@
    "pulls_weekends": true,
    "min_rows": 3,
    "median_rows_at_calibration": 55,
-   "status": "expected",
-   "note": "Re-floored 16 -> 3 on 27/08/2026. The feed is a per-procedure fan-out and only some procedures have details, so its row count swings hard: 61, 55, 42, 44, 16, 46, 7, 61, 11 across the nine pulls in the archive. A floor of 16 sat ABOVE the observed minimum of 7 and fired 'feed_below_floor' on an 11-row pull that was perfectly healthy - a red run for normal variance. 3 is ~40% of the observed minimum, which is the rule the rest of this file's floors follow."
+   "status": "best_effort",
+   "note": "Re-floored 16 -> 3 on 27/08/2026. The feed is a per-procedure fan-out and only some procedures have details, so its row count swings hard: 61, 55, 42, 44, 16, 46, 7, 61, 11 across the nine pulls in the archive. A floor of 16 sat ABOVE the observed minimum of 7 and fired 'feed_below_floor' on an 11-row pull that was perfectly healthy - a red run for normal variance. 3 is ~40% of the observed minimum, which is the rule the rest of this file's floors follow. best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Procedures",
@@ -304,7 +312,8 @@
    "pulls_weekends": true,
    "min_rows": 10,
    "median_rows_at_calibration": 25,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Procedures Refactor",
@@ -313,7 +322,8 @@
    "pulls_weekends": true,
    "min_rows": 10,
    "median_rows_at_calibration": 25,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Processes",
@@ -322,7 +332,8 @@
    "pulls_weekends": true,
    "min_rows": 14,
    "median_rows_at_calibration": 37,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Scheduled Task Answers",
@@ -342,7 +353,8 @@
    "pulls_weekends": true,
    "min_rows": 1795,
    "median_rows_at_calibration": 4584,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Users",
@@ -351,7 +363,8 @@
    "pulls_weekends": true,
    "min_rows": 486,
    "median_rows_at_calibration": 1219,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC Waste Module Settings",
@@ -360,7 +373,8 @@
    "pulls_weekends": true,
    "min_rows": 2,
    "median_rows_at_calibration": 5,
-   "status": "expected"
+   "status": "best_effort",
+   "note": "best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "Kobas Orders",
@@ -537,8 +551,8 @@
    "pulls_weekends": true,
    "min_rows": 0,
    "median_rows_at_calibration": 0,
-   "status": "expected",
-   "note": "NOT the same feed as 'GC Location Changelog' (singular), which is the per-location fan-out and is known_broken. This one is the date-ranged 'locations-changelog' endpoint, and it was missing from this manifest entirely until 27/08/2026 - so every run where it hit a 429 was classed 'fetch failed and feed is NOT in the manifest', the hardest red the receipt has, for a feed nobody had ever declared. It fetches most days and has returned 0 rows on every one of them, so min_rows is 0 deliberately: a floor on a feed with no rows to floor would be noise. The entry exists so its fetch failures are classified rather than treated as an undeclared feed."
+   "status": "best_effort",
+   "note": "NOT the same feed as 'GC Location Changelog' (singular), which is the per-location fan-out and is known_broken. This one is the date-ranged 'locations-changelog' endpoint, and it was missing from this manifest entirely until 27/08/2026 - so every run where it hit a 429 was classed 'fetch failed and feed is NOT in the manifest', the hardest red the receipt has, for a feed nobody had ever declared. It fetches most days and has returned 0 rows on every one of them, so min_rows is 0 deliberately: a floor on a feed with no rows to floor would be noise. The entry exists so its fetch failures are classified rather than treated as an undeclared feed. best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC DAP Logged Data",
@@ -546,8 +560,8 @@
    "cadence_days": 1,
    "pulls_weekends": true,
    "min_rows": 0,
-   "status": "expected",
-   "note": "pulled by the GetCompliant block since it went in but missing from this manifest until 28/08/2026, which is why a failed pull went hard-red as 'feed is NOT in the manifest'. Floor is 0 because 0 rows is all this feed has ever returned - a floor above that is a standing false red."
+   "status": "best_effort",
+   "note": "pulled by the GetCompliant block since it went in but missing from this manifest until 28/08/2026, which is why a failed pull went hard-red as 'feed is NOT in the manifest'. Floor is 0 because 0 rows is all this feed has ever returned - a floor above that is a standing false red. best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   },
   {
    "name": "GC DAP Logged Data (prev day)",
@@ -555,8 +569,8 @@
    "cadence_days": 1,
    "pulls_weekends": true,
    "min_rows": 0,
-   "status": "expected",
-   "note": "pulled by the GetCompliant block since it went in but missing from this manifest until 28/08/2026, which is why a failed pull went hard-red as 'feed is NOT in the manifest'. Floor is 0 because 0 rows is all this feed has ever returned - a floor above that is a standing false red."
+   "status": "best_effort",
+   "note": "pulled by the GetCompliant block since it went in but missing from this manifest until 28/08/2026, which is why a failed pull went hard-red as 'feed is NOT in the manifest'. Floor is 0 because 0 rows is all this feed has ever returned - a floor above that is a standing false red. best_effort from 28/08/2026: no dashboard, answer pack or KPI tab reads this feed, so a pull the GetCompliant quota squeezes out is a warning, not an incident. Still pulled daily and still verified when it lands. See GetCompliantClient.DAILY_TABS for what is read."
   }
  ]
 }
