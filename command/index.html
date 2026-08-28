@@ -102,20 +102,28 @@ tr.tot td{font-weight:650;border-top:2px solid var(--line)}
 .fb-out{background:var(--r-bg);color:var(--r);font-weight:650}
 .fb-none{background:var(--n-bg);color:var(--n)}
 .prodspec{color:var(--faint);font-weight:400;font-size:11px}
-/* Site broth heatmap: a DIVERGING ramp around Ross's site band, two hues with
-   the surface itself as the neutral midpoint. In band the cell is unfilled -
-   the calm state should be quiet across 800+ cells - and every filled cell is
-   a miss, blue below the band and red above, stepping deeper the further out.
-   Three steps per arm rather than continuous alpha: the steps are what make
-   the ramp readable and validatable (each arm passes the ordinal checks -
-   monotone lightness, adjacent ΔL >= 0.06, light end >= 2:1 on the surface),
-   and continuous alpha would land cells in the 0.78-0.86 dead zone where
-   neither dark nor white text clears 4.5:1. */
-.hb1{background:rgba(79,70,229,.45)}.hb2{background:rgba(79,70,229,.70)}
-.hb3{background:rgba(79,70,229,1)}
-.ha1{background:rgba(220,38,38,.45)}.ha2{background:rgba(220,38,38,.70)}
-.ha3{background:rgba(220,38,38,1)}
-.hb3,.ha3{color:#fff}
+/* Site broth heatmap. Ross, 28/08/2026: "make it green if it's within, red if
+   they are not". So every reading is now painted - in spec is GREEN, not the
+   bare surface it used to be. Leaving the calm state unfilled meant a cell
+   that was read and passed looked exactly like a cell nobody had coloured,
+   which is the one thing a quality heatmap must not do.
+   Two ordinal ramps, three steps each, both validated (monotone lightness,
+   adjacent ΔL >= 0.06, light end >= 2:1 on white):
+     green  #10b981 -> #047857 -> #064e3b   deeper = nearer the middle of band
+     red    #f87171 -> #dc2626 -> #991b1b   deeper = further outside it
+   Direction (too thin vs too thick) is carried by the ▼/▲ glyph and the
+   tooltip, not by hue, so red can mean "out" in both directions as asked and
+   the reading still survives greyscale and colourblindness.
+   Stepped, not continuous alpha: continuous would land cells in the 0.78-0.86
+   dead zone where neither dark nor white text clears 4.5:1. Each step below
+   carries the ink colour that clears it - all six are >= 4.8:1. */
+.hi1{background:#10b981;color:var(--ink)}
+.hi2{background:#047857;color:#fff}
+.hi3{background:#064e3b;color:#fff}
+.ho1{background:#f87171;color:var(--ink)}
+.ho2{background:#dc2626;color:#fff}
+.ho3{background:#991b1b;color:#fff}
+.hi1,.hi2,.hi3,.ho1,.ho2,.ho3{font-weight:600}
 .hleg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:9px;font-size:11px;color:var(--faint)}
 .hleg i{display:inline-block;width:15px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:3px;border:1px solid var(--line)}
 /* a long batch log must not push the rest of the page off the bottom: it
@@ -1631,14 +1639,24 @@ function render(snap){
   const brothDevAll=(snap.quality&&snap.quality.broth&&snap.quality.broth.deviations)||[];
   $('qual-note').innerHTML=brothCells.length?'':
     '<div class="empty">No per-site broth-check data in this pull yet (the factory cards below have their own source).</div>';
-  /* How far past its bound a reading is, in Brix, bucketed into the three
-     validated ramp steps. Absolute distance, not a fraction of the band: the
-     bands are different widths (chicken 2.0, tonkotsu 1.0) and half a Brix
-     point out is the same problem in either. */
+  /* Every graded reading gets a colour - green inside the band, red outside.
+     OUT: how far past the bound, in Brix. Absolute distance, not a fraction of
+     the band: the bands are different widths (chicken 2.0, tonkotsu 1.0) and
+     half a Brix point out is the same problem in either.
+     IN: how near the middle of the band, as a fraction of its half-width -
+     here it HAS to be relative, because "0.3 off centre" means comfortable in
+     a 2.0-wide band and borderline in a 1.0-wide one. Deepest green is dead
+     centre; the lightest is in spec but sitting on a bound, which is the
+     site-chicken finding this page used to have to state in words.
+     A cell with no band or no reading is not graded and stays neutral - it is
+     never painted green, because "we did not check" must not read as "pass". */
   const heatClass=c=>{
-    if(!c.grade||c.grade==='in') return 'hcell';
-    const step=c.miss>1?3:c.miss>0.5?2:1;
-    return 'hcell '+(c.grade==='low'?'hb':'ha')+step;
+    if(!c.grade) return 'hcell';
+    if(c.grade!=='in') return 'hcell ho'+(c.miss>1?3:c.miss>0.5?2:1);
+    if(!c.band) return 'hcell';
+    const half=(c.band[1]-c.band[0])/2, mid=(c.band[0]+c.band[1])/2;
+    const central=half>0?1-Math.abs(c.value-mid)/half:1;
+    return 'hcell hi'+(central>=0.66?3:central>=0.33?2:1);
   };
   function drawHeat(host,subHost,kind,label){
     const inRange=brothCells.filter(c=>c.kind===kind&&inEV(c.d));
@@ -1673,9 +1691,10 @@ function render(snap){
     });
     html+='</tbody></table></div>';
     if(band) html+='<div class="hleg">'+
-      '<span><i style="background:var(--card)"></i>in spec '+band[0]+'–'+band[1]+'</span>'+
-      '<span><i class="hb1"></i><i class="hb2"></i><i class="hb3"></i>below spec ▼ — deeper is further out</span>'+
-      '<span><i class="ha1"></i><i class="ha2"></i><i class="ha3"></i>above spec ▲</span>'+
+      '<span><i class="hi1"></i><i class="hi2"></i><i class="hi3"></i>in spec '+
+        band[0]+'–'+band[1]+' — deeper is nearer the middle</span>'+
+      '<span><i class="ho1"></i><i class="ho2"></i><i class="ho3"></i>out of spec — '+
+        'deeper is further out · ▼ below, ▲ above</span>'+
       '<span><i style="background:var(--track)"></i>× not registered on time</span>'+
       '</div>';
     /* Where the IN-spec readings sit inside the band is invisible in a scale
@@ -1695,7 +1714,8 @@ function render(snap){
         ' in spec ('+(graded.length?(100*nIn/graded.length).toFixed(1):'—')+'%), '+
         fmtN(nLow)+' below and '+fmtN(nHigh)+' above'
        :' · no spec band for this check, so cells are left uncoloured')+
-      ' · steps are half a Brix point out, then one, then more'+esc(hug)+'</div>';
+      ' · red steps are half a Brix point out, then one, then more; green steps '+
+      'are how near the middle of the band the reading sits'+esc(hug)+'</div>';
     $(host).innerHTML=html;
     $(subHost).textContent=days.length+' day(s), '+sites.length+' site(s)'+
       (band?' · spec '+band[0]+'–'+band[1]+', '+fmtN(nLow+nHigh)+' out of spec':'')+
