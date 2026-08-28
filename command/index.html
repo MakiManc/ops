@@ -102,6 +102,22 @@ tr.tot td{font-weight:650;border-top:2px solid var(--line)}
 .fb-out{background:var(--r-bg);color:var(--r);font-weight:650}
 .fb-none{background:var(--n-bg);color:var(--n)}
 .prodspec{color:var(--faint);font-weight:400;font-size:11px}
+/* Site broth heatmap: a DIVERGING ramp around Ross's site band, two hues with
+   the surface itself as the neutral midpoint. In band the cell is unfilled -
+   the calm state should be quiet across 800+ cells - and every filled cell is
+   a miss, blue below the band and red above, stepping deeper the further out.
+   Three steps per arm rather than continuous alpha: the steps are what make
+   the ramp readable and validatable (each arm passes the ordinal checks -
+   monotone lightness, adjacent ΔL >= 0.06, light end >= 2:1 on the surface),
+   and continuous alpha would land cells in the 0.78-0.86 dead zone where
+   neither dark nor white text clears 4.5:1. */
+.hb1{background:rgba(79,70,229,.45)}.hb2{background:rgba(79,70,229,.70)}
+.hb3{background:rgba(79,70,229,1)}
+.ha1{background:rgba(220,38,38,.45)}.ha2{background:rgba(220,38,38,.70)}
+.ha3{background:rgba(220,38,38,1)}
+.hb3,.ha3{color:#fff}
+.hleg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:9px;font-size:11px;color:var(--faint)}
+.hleg i{display:inline-block;width:15px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:3px;border:1px solid var(--line)}
 /* a long batch log must not push the rest of the page off the bottom: it
    scrolls in place, header pinned, with every row still reachable */
 .tscroll{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:8px}
@@ -229,7 +245,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-qual">
   <div id="qual-note"></div>
   <div class="kpis" id="qual-kpis"></div>
-  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added, graded against its product's spec (tonkotsu 8&ndash;9, chicken 5&ndash;6). The <b>site</b> cards below are GetCompliant broth checks at each restaurant, which have <b>no</b> spec band in the source, so those stay shaded to the observed range. Different instrument, different moment in the broth's life, and only one of them has a target: they are shown separately and never averaged into one another.</div>
+  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added, graded against its product's spec (tonkotsu 8&ndash;9, chicken 5&ndash;6). The <b>site</b> cards below are GetCompliant broth checks of broth <b>as served</b>, graded against their own site spec (chicken 6&plusmn;1, tonkotsu 6&ndash;7). Same instrument, different moment in the broth's life — which is why the two sets of numbers are different and neither band transfers to the other. They are shown separately and never averaged into one another.</div>
   <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by product</div>
     <div class="s" id="fb-prod-sub">Median after-ice reading per product · refractometer form, factory production batches</div></div>
     <div class="card-b" id="fb-prod"></div></div>
@@ -237,10 +253,10 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="s" id="fb-tbl-sub">Every batch with an after-ice reading, newest first</div></div>
     <div class="card-b" id="fb-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Chicken Broth Check — by site</div>
-    <div class="s" id="qh-chicken-sub">GC Scheduled Task Answers · colour scaled to the observed range in this snapshot, not an official spec band</div></div>
+    <div class="s" id="qh-chicken-sub">GC Scheduled Task Answers · graded against the site spec, out-of-spec cells shaded by how far out</div></div>
     <div class="card-b" id="qh-chicken"></div></div>
   <div class="card"><div class="card-h"><div class="t">Tonkotsu Broth Check — by site</div>
-    <div class="s" id="qh-tonkotsu-sub">Same scale rule as above, tonkotsu readings only</div></div>
+    <div class="s" id="qh-tonkotsu-sub">Same grading rule as above, tonkotsu readings only</div></div>
     <div class="card-b" id="qh-tonkotsu"></div></div>
   <div class="cols">
     <div class="card"><div class="card-h"><div class="t">Check discipline</div>
@@ -1615,6 +1631,15 @@ function render(snap){
   const brothDevAll=(snap.quality&&snap.quality.broth&&snap.quality.broth.deviations)||[];
   $('qual-note').innerHTML=brothCells.length?'':
     '<div class="empty">No per-site broth-check data in this pull yet (the factory cards below have their own source).</div>';
+  /* How far past its bound a reading is, in Brix, bucketed into the three
+     validated ramp steps. Absolute distance, not a fraction of the band: the
+     bands are different widths (chicken 2.0, tonkotsu 1.0) and half a Brix
+     point out is the same problem in either. */
+  const heatClass=c=>{
+    if(!c.grade||c.grade==='in') return 'hcell';
+    const step=c.miss>1?3:c.miss>0.5?2:1;
+    return 'hcell '+(c.grade==='low'?'hb':'ha')+step;
+  };
   function drawHeat(host,subHost,kind,label){
     const inRange=brothCells.filter(c=>c.kind===kind&&inEV(c.d));
     const days=[...new Set(inRange.map(c=>c.d))].sort();
@@ -1624,6 +1649,11 @@ function render(snap){
     const sites=Object.keys(bySite).sort();
     const vals=inRange.filter(c=>c.value!=null).map(c=>c.value);
     const min=vals.length?Math.min(...vals):0, max=vals.length?Math.max(...vals):1;
+    const band=(snap.quality&&snap.quality.broth&&snap.quality.broth.bands||{})[kind];
+    const graded=inRange.filter(c=>c.grade);
+    const nLow=graded.filter(c=>c.grade==='low').length;
+    const nHigh=graded.filter(c=>c.grade==='high').length;
+    const nIn=graded.filter(c=>c.grade==='in').length;
     let html='<div style="overflow-x:auto"><table class="heat"><thead><tr><th></th>'+
       days.map(d=>`<th>${esc(d.slice(5))}</th>`).join('')+'</tr></thead><tbody>';
     sites.forEach(s=>{
@@ -1631,16 +1661,45 @@ function render(snap){
         const c=bySite[s][d];
         if(!c) return '<td class="hblank">—</td>';
         if(c.value==null) return `<td class="hmiss" title="${esc(s)} ${esc(d)} — not registered on time">×</td>`;
-        const t=max>min?(c.value-min)/(max-min):0.5;
-        const bg=`rgba(233,78,27,${(0.12+0.7*t).toFixed(2)})`;
-        return `<td class="hcell" style="background:${bg}" title="${esc(s)} ${esc(d)} — ${c.value}">${c.value}</td>`;
+        /* An out-of-band cell says so three ways: hue for direction, depth for
+           how far, and a glyph - so it survives being read in greyscale. */
+        const glyph=c.grade==='low'?' ▼':c.grade==='high'?' ▲':'';
+        const tip=c.grade&&c.band
+          ? `${s} ${d} — ${c.value}, spec ${c.band[0]}–${c.band[1]} — `+
+            (c.grade==='in'?'in spec':`${c.miss} ${c.grade==='low'?'below':'above'} spec`)
+          : `${s} ${d} — ${c.value}`;
+        return `<td class="${heatClass(c)}" title="${esc(tip)}">${c.value}${glyph}</td>`;
       }).join('')+'</tr>';
     });
-    html+='</tbody></table></div><div class="prov">'+sites.length+' site(s) · '+days.length+
-      ' day(s) in range · observed range '+(vals.length?(Math.min(...vals)+'–'+Math.max(...vals)):'—')+
-      ' (not an official spec band) · × = not registered on time</div>';
+    html+='</tbody></table></div>';
+    if(band) html+='<div class="hleg">'+
+      '<span><i style="background:var(--card)"></i>in spec '+band[0]+'–'+band[1]+'</span>'+
+      '<span><i class="hb1"></i><i class="hb2"></i><i class="hb3"></i>below spec ▼ — deeper is further out</span>'+
+      '<span><i class="ha1"></i><i class="ha2"></i><i class="ha3"></i>above spec ▲</span>'+
+      '<span><i style="background:var(--track)"></i>× not registered on time</span>'+
+      '</div>';
+    /* Where the IN-spec readings sit inside the band is invisible in a scale
+       that only paints misses - and it is a real finding here: site chicken
+       never once reaches the middle of its 5-7 band. Stated in words, because
+       a third colour ramp for "in spec but hugging a bound" would be a
+       margin nobody has specified. */
+    const sorted=vals.slice().sort((a,b)=>a-b);
+    const med=sorted.length?(sorted.length%2?sorted[sorted.length>>1]
+      :(sorted[(sorted.length>>1)-1]+sorted[sorted.length>>1])/2):null;
+    const hug=band&&med!=null&&(med-band[0]<=(band[1]-band[0])*0.2)?' — the middle of the range sits on the LOWER bound, so these sites are in spec but only just'
+      :band&&med!=null&&(band[1]-med<=(band[1]-band[0])*0.2)?' — the middle of the range sits on the UPPER bound, so these sites are in spec but only just':'';
+    html+='<div class="prov">'+sites.length+' site(s) · '+days.length+
+      ' day(s) in range · observed '+(vals.length?(Math.min(...vals)+'–'+Math.max(...vals)):'—')+
+      (med!=null?', median '+(+med.toFixed(2)):'')+
+      (band?' against a '+band[0]+'–'+band[1]+' spec · '+fmtN(nIn)+' of '+fmtN(graded.length)+
+        ' in spec ('+(graded.length?(100*nIn/graded.length).toFixed(1):'—')+'%), '+
+        fmtN(nLow)+' below and '+fmtN(nHigh)+' above'
+       :' · no spec band for this check, so cells are left uncoloured')+
+      ' · steps are half a Brix point out, then one, then more'+esc(hug)+'</div>';
     $(host).innerHTML=html;
-    $(subHost).textContent=days.length+' day(s), '+sites.length+' site(s) · '+evLabel();
+    $(subHost).textContent=days.length+' day(s), '+sites.length+' site(s)'+
+      (band?' · spec '+band[0]+'–'+band[1]+', '+fmtN(nLow+nHigh)+' out of spec':'')+
+      ' · '+evLabel();
   }
   drawHeat('qh-chicken','qh-chicken-sub','chicken','chicken');
   drawHeat('qh-tonkotsu','qh-tonkotsu-sub','tonkotsu','tonkotsu');
