@@ -298,27 +298,59 @@ def fb_grade(product, score):
         return None
     lo, hi = band
     return "low" if score < lo else "high" if score > hi else "in"
+#: A Brix reading this instrument can physically produce. Used ONLY to decide
+#: how to read an ambiguous cell format - never to reject a reading.
+FB_PLAUSIBLE_LO, FB_PLAUSIBLE_HI = 0.5, 30.0
 def fb_num(v):
     """One refractometer reading as a float, or None if it is not a number.
 
-    Readings arrive as the SHEET RENDERS them, so a cell somebody formatted as
-    a percentage comes through as '900.00%' - that is 9, not 900, and it is a
-    real reading of a real batch. The derived tabs of the source sheet are full
-    of them, so the form's own columns can acquire one at any time. Converted
-    and counted rather than dropped; anything else non-numeric is None and
-    counted too, never guessed at.
+    Readings arrive as the SHEET RENDERS them, so this has to read what the
+    factory actually typed rather than what a strict float() will accept.
+    Three real cases, all confirmed against the batch's own before-ice
+    reading (28/08/2026) - every one of these was previously being mangled or
+    dropped, and Ross's instruction was to ignore no reading:
+
+      '8,7'    DECIMAL COMMA. Staff type it as often as a point. The old code
+               stripped commas as thousands separators, turning 8.7 into 87 -
+               which then read as a batch three times over spec. Four readings
+               (8,7 / 8,0 / 8,0 / 5,2) were wrong this way, and they were the
+               reason a 'suspect' rule existed at all.
+      '8.4’'   TRAILING JUNK. A stray typographic apostrophe. float() raised,
+               so the reading was dropped entirely and counted as non-numeric.
+      '8.60%'  PERCENT-FORMATTED CELL. The cell really does hold 0.086 - the
+               person typed 8.6 into a cell someone had formatted as a
+               percentage. Dividing by 100 is right about the cell and wrong
+               about the batch, so where /100 lands outside anything a
+               refractometer can read AND the face value is plausible, the
+               face value wins. '900.00%' still reads as 9 (900/100), which
+               is what the sheet's derived tabs contain.
+
+    Anything genuinely non-numeric is still None, counted, and never guessed
+    at. A comma is only a decimal point when it is followed by one or two
+    digits and nothing else - '1,234' stays 1234.
     """
-    s = (v or "").strip().replace(",", "")
+    s = (v or "").strip()
     if not s:
         return None
     pct = s.endswith("%")
     if pct:
         s = s[:-1].strip()
-    try:
-        n = float(s)
-    except ValueError:
+    if re.fullmatch(r"-?\d+,\d{1,2}", s):
+        s = s.replace(",", ".")
+    else:
+        s = s.replace(",", "")
+    m = re.match(r"-?\d*\.?\d+", s)
+    if not m:
         return None
-    return n / 100 if pct else n
+    n = float(m.group(0))
+    if not pct:
+        return n
+    scaled = n / 100
+    if FB_PLAUSIBLE_LO <= scaled <= FB_PLAUSIBLE_HI:
+        return scaled
+    if FB_PLAUSIBLE_LO <= n <= FB_PLAUSIBLE_HI:
+        return n
+    return scaled
 FB_MAX_LAG_DAYS = 7
 def fb_parse_date(val):
     """A UK-format DD/MM/YYYY leading date, or None if it is not one."""
@@ -854,7 +886,7 @@ def main():
     # history plus a couple of years of it; the truncation notice stays for the
     # day that stops being true.
     FB_CAP = 2000
-    fb_readings=[]; fb_total=0; fb_pull=None; fb_pct=0; fb_ts_dated=0
+    fb_readings=[]; fb_total=0; fb_pull=None; fb_pct=0; fb_comma=0; fb_ts_dated=0
     fb_median=None; fb_suspect=0
     fb_grades={"in":0,"low":0,"high":0,"ungraded":0,"out_suspect":0}
     fb_excl={"no_after_ice":0,"undated":0,"non_numeric":0}
@@ -882,6 +914,7 @@ def main():
                 fb_excl["non_numeric"]+=1; continue
             if from_ts: fb_ts_dated+=1
             if raw.endswith("%"): fb_pct+=1
+            if re.fullmatch(r"-?\d+,\d{1,2}", raw.rstrip("%").strip()): fb_comma+=1
             prod=(product or "").strip() or None
             score=round(val,2)
             fb_readings.append({"d":d,"ts":ts,
@@ -901,26 +934,30 @@ def main():
         for r in fb_readings:
             r["repeat"]=seen[(r["batch"],r["product"],r["d"])]>1
         # ---- implausible readings, flagged and kept ----------------------
-        # The first full pull of 1,461 readings contained five that cannot be
-        # what the refractometer showed: 87.0, 80.0, 80.0 and 52.0 alongside
-        # before-ice readings of 12.2, 12.1, 11.1 and 6.0 (a missed decimal
-        # point in every case), and one 0.09 (a cell formatted as '9.00%', so
-        # the percent conversion above is right about the cell and wrong about
-        # the intent). Five rows in 1,461 - 0.34% - and they did real damage:
-        # the card's colour scale runs min-to-max, so one 87 pushed every
-        # genuine 4-to-12 reading into the bottom seventh of the scale and the
-        # whole column shaded the same.
+        # This used to fire on six readings - 87.0, 80.0, 80.0, 52.0, 0.09 and
+        # one dropped outright - which were read on 27/08/2026 as factory
+        # keying slips and reported to Ross as such. They were not. Every one
+        # was a reading this parser was mangling: four decimal commas, one
+        # percent-formatted cell and one stray apostrophe (see fb_num). The
+        # sheet was right and the code was wrong, and the check that was meant
+        # to catch bad data was instead reporting the bug that created it.
         #
-        # They are FLAGGED, not dropped and not repaired. Dropping loses a
-        # real record of what was entered; dividing by ten is inventing data;
-        # and the row is the only thing that will make anyone fix the sheet.
-        # This band is derived from the data (a third of the median to three
-        # times it) and is NOT the spec band. Those are now two different
-        # things and must stay that way: FACTORY_BROTH_BANDS says whether a
-        # batch met spec, this says whether the number was typed correctly.
-        # An 87 is not a batch three times too dense - it is 8.7 with a lost
-        # decimal point, and collapsing the two would put five typos into the
-        # out-of-spec count and send someone to the factory over them.
+        # The rule stays, because a genuine lost decimal point is a real thing
+        # that will happen and the damage is real: the card's colour scale runs
+        # min-to-max, so a single 87 pushes every genuine 4-to-12 reading into
+        # the bottom seventh of the scale and the whole column shades the same.
+        # It should now fire on nothing, and if it fires again the first
+        # question is whether fb_num has met a format it does not know yet.
+        #
+        # Anything it does catch is FLAGGED, not dropped and not repaired.
+        # Dropping loses a real record of what was entered, dividing by ten is
+        # inventing data, and the row is the only thing that will make anyone
+        # fix the sheet. This band is derived from the data (a third of the
+        # median to three times it) and is NOT the spec band. Those are two
+        # different things and must stay that way: FACTORY_BROTH_BANDS says
+        # whether a batch met spec, this says whether the number was typed
+        # correctly - collapsing them would put typos into the out-of-spec
+        # count and send someone to the factory over them.
         fb_median=None
         vals=sorted(r["score"] for r in fb_readings)
         if vals:
@@ -973,15 +1010,24 @@ def main():
             "its own submission, or more than "+str(FB_MAX_LAG_DAYS)+" days before it - "
             "fix at source when possible")
     if fb_pct:
-        gaps.append(str(fb_pct)+" after-ice reading(s) arrived percent-formatted "
-            "('900.00%' for 9) and were converted - the source sheet's derived tabs "
-            "are full of these, so the form's own columns can acquire one too")
+        gaps.append(str(fb_pct)+" after-ice reading(s) arrived percent-formatted and "
+            "were converted: '900.00%' is 9, and '8.60%' is a cell holding 0.086 "
+            "because someone typed 8.6 into a cell already formatted as a percentage - "
+            "read as 8.6, which is what its 11.4 before-ice reading says it was. Worth "
+            "clearing the percent formatting on that column at source")
+    if fb_comma:
+        gaps.append(str(fb_comma)+" reading(s) were typed with a DECIMAL COMMA ('8,7' "
+            "for 8.7) and are read as such. Until 28/08/2026 the comma was stripped as "
+            "a thousands separator, so these read as 87, 80, 80 and 52 and were "
+            "reported as factory keying slips - they were this builder's bug, not the "
+            "factory's, and the sheet needs no correction")
     snap["quality"]["factory"]={
       "readings":fb_readings[:FB_CAP],"scored":len(fb_readings),
       "median":fb_median,"suspect":fb_suspect,
       "bands":{k:list(v) for k,v in FACTORY_BROTH_BANDS.items()},"grades":fb_grades,
       "responses":fb_total,"truncated":len(fb_readings)>FB_CAP,
       "excluded":fb_excl,"source_feed":FB_FEED,"pull_date":fb_pull,
+      "formats":{"percent":fb_pct,"decimal_comma":fb_comma},
       "basis":"one row per refractometer form submission at the factory, from the "
       "newest pull of '"+FB_FEED+"' (a whole-sheet copy, so one pull is the full "
       "history); score = the reading taken AFTER adding ice, Ross's definition, with "

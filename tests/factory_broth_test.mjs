@@ -317,15 +317,28 @@ page.on('console', msg => {
 
   const cls = async (host, txt) => (await page.locator(host + ' td', { hasText: txt })
     .first().getAttribute('class'));
-  // in spec -> no ramp class at all, so the cell stays on the surface
-  const inCls = await cls('#qh-chicken', '5');
-  assert(inCls === 'hcell', `an in-spec cell is left unfilled (got "${inCls}")`);
-  // the three steps deepen with distance past the bound
-  assert(/hb1/.test(await cls('#qh-chicken', '4.6')), 'half a point below -> step 1');
-  assert(/hb2/.test(await cls('#qh-chicken', '4.2')), 'nearly a point below -> step 2');
-  assert(/hb3/.test(await cls('#qh-chicken', '3')),   'two points below -> step 3');
-  assert(/ha1/.test(await cls('#qh-tonkotsu', '7.3')), 'just above -> step 1');
-  assert(/ha2/.test(await cls('#qh-tonkotsu', '8')),   'a point above -> step 2');
+  // Ross, 28/08/2026: in spec is GREEN, not the bare surface. A cell that was
+  // read and passed must never look like a cell nobody coloured.
+  // 5.0 sits exactly ON the lower bound of 5-7, so it is in spec at its very
+  // edge - the lightest green, and the case that would previously have been
+  // indistinguishable from a comfortable 6.0.
+  assert(/\bhi1\b/.test(await cls('#qh-chicken', '5')),
+    `in spec but on a bound -> lightest green (got "${await cls('#qh-chicken','5')}")`);
+  // 6.5 in a 6-7 band is 0.5 off a 0.5 half-width -> centrality 0, still hi1;
+  // 6.2 is 0.3 off -> centrality 0.4 -> hi2. Deeper green = nearer the middle.
+  assert(/\bhi2\b/.test(await cls('#qh-tonkotsu', '6.2')),
+    `nearer the middle of the band -> deeper green (got "${await cls('#qh-tonkotsu','6.2')}")`);
+  // out of spec is RED in BOTH directions now - direction lives in the glyph
+  assert(/\bho1\b/.test(await cls('#qh-chicken', '4.6')), 'half a point below -> red step 1');
+  assert(/\bho2\b/.test(await cls('#qh-chicken', '4.2')), 'nearly a point below -> red step 2');
+  assert(/\bho3\b/.test(await cls('#qh-chicken', '3')),   'two points below -> red step 3');
+  assert(/\bho1\b/.test(await cls('#qh-tonkotsu', '7.3')), 'just above -> red step 1');
+  assert(/\bho2\b/.test(await cls('#qh-tonkotsu', '8')),   'a point above -> red step 2');
+  // no cell anywhere carries the retired below/above hue split
+  const allCls = await page.locator('#qh-chicken td, #qh-tonkotsu td').evaluateAll(
+    ts => ts.map(t => t.className).join(' '));
+  assert(!/\bh[ba][123]\b/.test(allCls),
+    `the retired indigo/red split is gone (got "${allCls}")`);
   // direction is in the glyph too, not colour alone
   const lowTxt = await page.locator('#qh-chicken td', { hasText: '4.6' }).first().innerText();
   const hiTxt  = await page.locator('#qh-tonkotsu td', { hasText: '8' }).first().innerText();
@@ -339,8 +352,9 @@ page.on('console', msg => {
     `the cell tooltip names the spec and the miss (got "${tip}")`);
   // a legend is present - a ramp without one is unreadable
   const leg = await page.locator('#qh-chicken .hleg').innerText();
-  assert(/in spec 5–7/.test(leg) && /below spec/.test(leg) && /above spec/.test(leg),
-    `the card carries a legend for the ramp (got "${leg.replace(/\s+/g,' ')}")`);
+  assert(/in spec 5–7/.test(leg) && /out of spec/.test(leg) &&
+         /▼ below/.test(leg) && /▲ above/.test(leg),
+    `the card carries a legend for both ramps (got "${leg.replace(/\s+/g,' ')}")`);
   // counts, and the finding a miss-only ramp cannot show
   const prov = await page.locator('#qh-chicken .prov').innerText();
   assert(/1 of 4 in spec \(25\.0%\), 3 below and 0 above/.test(prov),
