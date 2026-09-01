@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-09-01T14:13:56Z",
+ "generated_at": "2026-09-01T15:33:45Z",
  "verified_date": "2026-09-01",
  "mode": "recheck",
  "overall": "red",
@@ -9,14 +9,14 @@
  "sizes": {
   "maintenance_pulled_at": "2026-08-25T08:14:00Z",
   "maintenance_source_as_of": "2026-08-19",
-  "archive_mb": 82
+  "archive_mb": 83
  },
  "counts": {
   "expected_feeds": 32,
   "known_broken": 10,
   "best_effort": 18,
   "criticals": 1,
-  "warnings": 17,
+  "warnings": 15,
   "deferred": 0
  },
  "criticals": [
@@ -24,7 +24,7 @@
    "check": "0-receipts",
    "level": "critical",
    "feed": "daily-export",
-   "detail": "08:15 daily export receipt says exit 1 with 3 failed feed(s) - see its run log"
+   "detail": "08:17 daily export receipt says exit 1 with 3 failed feed(s) - see its run log"
   }
  ],
  "warnings": [
@@ -32,25 +32,25 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Branch Resources",
-   "detail": "587 rows today, below the manifest floor 917"
+   "detail": "626 rows today, below the manifest floor 917"
   },
   {
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Certificates",
-   "detail": "68 rows today vs trailing 14-day median 231 - outside the 0.5x-3x band"
+   "detail": "75 rows today vs trailing 14-day median 231 - outside the 0.5x-3x band"
   },
   {
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Courses",
-   "detail": "40 rows today, below the manifest floor 46"
+   "detail": "41 rows today, below the manifest floor 46"
   },
   {
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Modules",
-   "detail": "117 rows today, below the manifest floor 150"
+   "detail": "124 rows today, below the manifest floor 150"
   },
   {
    "check": "2-rows",
@@ -65,24 +65,10 @@
    "detail": "22 rows today vs trailing 14-day median 6 - outside the 0.5x-3x band"
   },
   {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-31 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
-   "feed": "GC Procedure Details",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-31 (1d old) - expected today"
-  },
-  {
    "check": "2-rows",
    "level": "warning",
    "feed": "Kobas Orders",
-   "detail": "312 rows today vs trailing 14-day median 30 - outside the 0.5x-3x band"
+   "detail": "317 rows today vs trailing 14-day median 30 - outside the 0.5x-3x band"
   },
   {
    "check": "2-rows",
@@ -204,13 +190,13 @@
    "check": "0-receipts",
    "level": "critical",
    "feed": "daily-export",
-   "detail": "08:15 daily export receipt says exit 1 with 3 failed feed(s) - see its run log"
+   "detail": "08:17 daily export receipt says exit 1 with 3 failed feed(s) - see its run log"
   },
   {
    "check": "0-receipts",
    "level": "ok",
    "feed": "deep-pull",
-   "detail": "03:00 deep pull: exit 0, 35407 rows written, finished 2026-09-01 08:59:39"
+   "detail": "01:07 deep pull: exit 0, 35407 rows written, finished 2026-09-01 08:59:39"
   },
   {
    "check": "1-landed",
@@ -294,7 +280,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Appraisals",
-   "detail": "677 rows (median 676)"
+   "detail": "678 rows (median 676)"
   },
   {
    "check": "1-landed",
@@ -306,7 +292,7 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Branch Resources",
-   "detail": "587 rows today, below the manifest floor 917"
+   "detail": "626 rows today, below the manifest floor 917"
   },
   {
    "check": "1-landed",
@@ -330,7 +316,7 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Certificates",
-   "detail": "68 rows today vs trailing 14-day median 231 - outside the 0.5x-3x band"
+   "detail": "75 rows today vs trailing 14-day median 231 - outside the 0.5x-3x band"
   },
   {
    "check": "1-landed",
@@ -342,7 +328,7 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Courses",
-   "detail": "40 rows today, below the manifest floor 46"
+   "detail": "41 rows today, below the manifest floor 46"
   },
   {
    "check": "1-landed",
@@ -366,7 +352,7 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Flow Modules",
-   "detail": "117 rows today, below the manifest floor 150"
+   "detail": "124 rows today, below the manifest floor 150"
   },
   {
    "check": "1-landed",
@@ -390,7 +376,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees",
-   "detail": "675 rows (median 675)"
+   "detail": "676 rows (median 675)"
   },
   {
    "check": "1-landed",
@@ -402,7 +388,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees Ext",
-   "detail": "675 rows (median 675)"
+   "detail": "676 rows (median 675)"
   },
   {
    "check": "1-landed",
@@ -414,7 +400,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees ReadOnly",
-   "detail": "871 rows (median 870)"
+   "detail": "872 rows (median 870)"
   },
   {
    "check": "1-landed",
@@ -426,7 +412,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Training",
-   "detail": "984 rows (median 962)"
+   "detail": "992 rows (median 962)"
   },
   {
    "check": "1-landed",
@@ -438,7 +424,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Workbooks",
-   "detail": "677 rows (median 676)"
+   "detail": "678 rows (median 676)"
   },
   {
    "check": "1-landed",
@@ -502,10 +488,15 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-31 (1d old) - expected today"
+   "detail": "landed 2026-09-01"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Form Task Answers (prev day)",
+   "detail": "486 rows (median 275)"
   },
   {
    "check": "1-landed",
@@ -581,10 +572,15 @@
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Procedure Details",
-   "class": "1-landed",
-   "detail": "last pull 2026-08-31 (1d old) - expected today"
+   "detail": "landed 2026-09-01"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Procedure Details",
+   "detail": "36 rows (median 17)"
   },
   {
    "check": "1-landed",
@@ -656,7 +652,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Users",
-   "detail": "1229 rows (median 1228)"
+   "detail": "1230 rows (median 1228)"
   },
   {
    "check": "1-landed",
@@ -680,7 +676,7 @@
    "check": "2-rows",
    "level": "warning",
    "feed": "Kobas Orders",
-   "detail": "312 rows today vs trailing 14-day median 30 - outside the 0.5x-3x band"
+   "detail": "317 rows today vs trailing 14-day median 30 - outside the 0.5x-3x band"
   },
   {
    "check": "1-landed",
@@ -752,7 +748,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "5 rows (median 7)"
+   "detail": "6 rows (median 7)"
   },
   {
    "check": "1-landed",
@@ -824,7 +820,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Factory Broth Readings",
-   "detail": "1544 rows (median 1526)"
+   "detail": "1545 rows (median 1526)"
   },
   {
    "check": "1-landed",
@@ -881,7 +877,7 @@
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "newest Delivery Date ISO 2026-09-04 (-3d old)"
+   "detail": "newest Delivery Date ISO 2026-09-08 (-7d old)"
   },
   {
    "check": "3-events",
@@ -902,12 +898,12 @@
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 82 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 83 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
    "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=35930, tasks_missed=779, week_spend_gbp=111928.1, broth_cells=1038, factory_broth_readings=1486, supplier_issues=78, training_outstanding=2036"
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=35930, tasks_missed=779, week_spend_gbp=113033.67, broth_cells=1038, factory_broth_readings=1487, supplier_issues=78, training_outstanding=2036"
   },
   {
    "check": "aggregates",
