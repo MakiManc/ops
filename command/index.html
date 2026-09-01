@@ -291,8 +291,14 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="card"><div class="card-h"><div class="t">Supplier OTIF &mdash; monthly</div>
     <div class="s" id="otif-sub">Issue-free delivery rate per supplier &middot; deliveries from Kobas order confirmations vs issues filed in the same month</div></div>
     <div class="card-b" id="otif-tbl"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Rises that have stuck</div>
+    <div class="s" id="ps-sub">Price went up and has not moved since &middot; the ones to renegotiate or reprice</div></div>
+    <div class="card-b" id="ps-tbl"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Prices that keep moving</div>
+    <div class="s" id="pf-sub">Up and back down across several reports &middot; a quoted price you cannot plan a margin on</div></div>
+    <div class="card-b" id="pf-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Price change watch</div>
-    <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · latest report pull, not sliced by the date range above</div></div>
+    <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · newest report, not sliced by the date range above</div></div>
     <div class="card-b" id="pw-tbl"></div></div>
 </div>
 
@@ -1437,6 +1443,58 @@ function render(snap){
   };
   if(!hasAllTime) SUP_TOT_MODE='week';   /* nothing to switch to */
   renderSupTotals();
+  /* Ross, 01/09/2026: two flags off the price report - a rise that has stuck,
+     and a price that will not settle. Both read the same pill vocabulary the
+     factory broth cards use, so a red pill means the same thing on every page,
+     and both carry a number in the text as well as the colour. */
+  const psup=snap.supply||{}, pth=psup.price_thresholds||{};
+  const money=v=>v==null?'—':'£'+v.toFixed(2);
+  const settled=psup.price_settled||[];
+  /* Two packs of one ingredient are two items, and without the pack shown the
+     card lists "Sweet potatoes" twice at different prices and looks broken. */
+  const itemCell=r=>esc(r.item||'—')+(r.pack?' <span class="prodspec">'+esc(r.pack)+'</span>':'');
+  table('ps-tbl',[{h:'Item',raw:1},{h:'Was',n:1},{h:'Now',n:1},{h:'Rise',n:1,raw:1},
+                  {h:'Since'},{h:'Held',n:1}],
+    settled.map(r=>[itemCell(r),money(r.old_price),money(r.new_price),
+      '<span class="fbscore fb-out">+'+r.pct_change.toFixed(1)+'%</span>',
+      r.since,r.age_days+'d']),
+    'No rise has held for '+(pth.settled_days||14)+
+      ' days yet — either prices are still moving, or there is not that much report history.');
+  {
+    const n=psup.price_newest_report, reps=(psup.price_reports||[]).length;
+    const ev=settled.length?Math.min(...settled.map(r=>r.held_days)):null;
+    $('ps-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
+      esc(settled.length+' item(s) whose most recent change was a rise at least '+
+      (pth.settled_days||14)+' days ago, with no later report changing them again. '+
+      '"Held" is calendar days since the rise; the reports evidence it only as far as the '+
+      'newest one ('+(n||'none')+'), which is why a row can be older than its evidence'+
+      (ev!=null?' — the thinnest evidence here is '+ev+' days':'')+'. Built from '+reps+
+      ' distinct report(s), deduped by content because the weekly report is pulled daily.')+
+      '</div>');
+  }
+  const flux=psup.price_flux||[];
+  const nFlagged=flux.filter(r=>r.suspect).length;
+  table('pf-tbl',[{h:'Item',raw:1},{h:'Range',n:1},{h:'Swing',n:1},{h:'Changes',n:1},
+                  {h:'Reversals',n:1},{h:'Reports',n:1},{h:'Now',n:1}],
+    flux.map(r=>[itemCell(r)+(r.suspect?' <span class="fbscore fb-none" title="one of '+
+        'this item\u2019s moves is bigger than a price change plausibly is \u2014 '+
+        'likely a pack or unit re-spec">check data</span>':''),
+      money(r.low)+'–'+money(r.high),
+      r.swing_pct!=null?r.swing_pct.toFixed(1)+'%':'—',
+      r.changes,r.reversals,r.reports,money(r.new_price)]),
+    'No ingredient has changed direction '+(pth.flux_reversals||2)+
+    '+ times across '+(pth.flux_reports||2)+'+ reports.');
+  $('pf-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
+    esc(flux.length+' item(s) that changed in at least '+(pth.flux_reports||2)+
+    ' distinct reports and reversed direction at least '+(pth.flux_reversals||2)+
+    ' times. "Changes" counts every change event, and one report can carry several for '+
+    'the same item — the report is a log of changes, not a daily price, and it has no '+
+    'per-event timestamp, so events within one report are ordered only by row. An item is '+
+    'one PACK of one ingredient, because a parent ingredient can hold several packs and '+
+    'treating them as one would read two packs as one price bouncing.'+
+    (nFlagged?' '+nFlagged+' row(s) are marked "check data": one of their moves is too '+
+      'big to be a price change (a pack or unit re-spec, or a keying slip), so they sort '+
+      'last rather than leading a list meant for supplier conversations.':''))+'</div>');
   const priceRows=(snap.supply&&snap.supply.price_watch)||[];
   table('pw-tbl',[{h:'Ingredient'},{h:'Old £',n:1},{h:'New £',n:1},{h:'Change',n:1}],
     priceRows.map(p=>[p.ingredient,p.old_price!=null?p.old_price.toFixed(2):'—',

@@ -65,7 +65,7 @@ USAGE
   Exit 0 on success, 1 on any failure (nothing partially written).
 """
 from __future__ import annotations
-import argparse, datetime, json, os, re, sys
+import argparse, datetime, hashlib, json, os, re, sys
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "ops_command")
@@ -1597,22 +1597,165 @@ def main():
         gaps.append("Monthly supplier OTIF unavailable: it needs the Kobas Orders feed "
             "for its delivery counts, and that feed is absent this bake")
     PRICE_FEED="Kobas Report - Weekly Ingredient Price Changes Report"
+    # Ross, 01/09/2026: update the price watch every time the report arrives,
+    # and flag (1) an increase that has since held, (2) a price that keeps
+    # moving. Both need HISTORY, and this block used to read exactly one pull
+    # - so it showed the newest report and nothing else, and had no way to
+    # know whether a rise had stuck or a price had bounced.
+    #
+    # WHAT A "REPORT" IS. Kobas emails this weekly; the export pulls it every
+    # day, so the same report is archived several days running. Four distinct
+    # reports arrived in the ten pulls to 31/08. So the unit of time here is a
+    # DISTINCT REPORT, identified by its content, dated by the first pull that
+    # carried it - not pull_date, which would count one report four times and
+    # make every price look like it changed daily.
+    #
+    # Dating by first-seen is deliberately conservative. A pull gap (an export
+    # that failed, or the 3-day email window that lost the 24-31/08 report on
+    # three days) can only make a report look NEWER than it is, so the
+    # "held for N days" test under-states age and never over-fires.
+    #
+    # WHAT A ROW IS. Each row is one change EVENT, not one item: an item can
+    # appear several times in a single report, and the report carries no
+    # per-event timestamp, so within a report the only ordering is row_num.
+    # 'Old Price' is the literal string 'New' for an item priced for the first
+    # time - that is not an increase and is counted separately.
+    PRICE_SETTLED_DAYS=14          # Ross: "more than 2 weeks"
+    PRICE_FLUX_REPORTS=2           # moved in at least this many distinct reports
+    PRICE_FLUX_REVERSALS=2         # and changed direction at least this often
+    PRICE_SUSPECT_UP=100.0         # a jump this big is a re-spec, not a price rise
+    PRICE_SUSPECT_DOWN=-50.0
+    PRICE_STALE_DAYS=10            # a weekly report older than this is a gap
+    price_reports=[]; price_settled=[]; price_flux=[]; price_suspect=[]
+    price_items=0; newest_report=None
     if has_feed(cur,PRICE_FEED):
         cur.execute(
-          "SELECT nullif(data->>'Ingredient Name','') i, nullif(data->>'Old Price','') op, "
-          " nullif(data->>'New Price','') np FROM etl_feed_rows WHERE feed=%s "
-          " AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed=%s)",
-          (PRICE_FEED,PRICE_FEED))
-        for i,op,np in cur.fetchall():
-            try: npf=float(np)
-            except (TypeError,ValueError): continue
-            try: opf=float(op)
-            except (TypeError,ValueError): opf=None
+          "SELECT pull_date::text d, row_num, nullif(data->>'Ingredient Name','') i, "
+          " data->>'Old Price' op, data->>'New Price' np, "
+          " data->>'Parent ID' pid, data->>'Pack Size' ps, "
+          " data->>'Unit Volume' uv, data->>'Measurement' ms "
+          "FROM etl_feed_rows WHERE feed=%s ORDER BY pull_date, row_num",
+          (PRICE_FEED,))
+        by_pull={}
+        for d,rn,i,op,np,pid,ps,uv,ms in cur.fetchall():
+            by_pull.setdefault(d,[]).append((rn,i,op,np,pid,ps,uv,ms))
+        seen_hash={}; reports=[]
+        for d in sorted(by_pull):
+            rows=by_pull[d]
+            h=hashlib.sha1(repr(rows).encode()).hexdigest()
+            if h in seen_hash: continue      # same report, pulled again
+            seen_hash[h]=d
+            reports.append((d,rows))
+            price_reports.append({"date":d,"rows":len(rows)})
+        # One item is a specific pack of a specific ingredient. Parent ID alone
+        # is not unique - EDAMAME carries several packs under one parent - and
+        # keying on it would read two packs' prices as one item bouncing.
+        hist={}
+        for d,rows in reports:
+            for rn,i,op,np,pid,ps,uv,ms in rows:
+                n=fb_num(np); o=fb_num(op)
+                if n is None: continue
+                hist.setdefault((pid,ps,uv,ms),[]).append((d,o,n,i))
+        price_items=len(hist)
+        newest=newest_report=reports[-1][0] if reports else None
+        def packlabel(pid,ps,uv,ms):
+            """'1 x 25000 Grams' - what tells two packs of one ingredient apart.
+
+            Without it the cards show 'Sweet potatoes' twice with different
+            prices and look broken, when they are in fact two different packs.
+            """
+            bits=[]
+            n=fb_num(ps); v=fb_num(uv)
+            if n and n!=1: bits.append(str(int(n) if n==int(n) else n)+" x")
+            if v: bits.append(str(int(v) if v==int(v) else v))
+            if ms: bits.append(str(ms))
+            return " ".join(bits) or None
+        for k,evs in hist.items():
+            name=evs[-1][3]
+            pack=packlabel(*k)
+            changes=[e for e in evs if e[1] is not None and e[1]>0]
+            if not changes: continue         # only ever priced 'New'
+            d,o,n,_=changes[-1]
+            pct=round(100.0*(n-o)/o,1)
+            since=datetime.date.fromisoformat(d)
+            # TWO different spans, and conflating them would be a lie either
+            # way. age_days is calendar time since the rise - what Ross means
+            # by "stayed at that price for more than 2 weeks". held_days is
+            # how much of that age the reports actually EVIDENCE: the report
+            # only lists changes, so silence means "unchanged", but only up to
+            # the newest report we hold. If that report is a fortnight stale,
+            # age keeps climbing while the evidence does not, so both are
+            # published and the card shows the gap.
+            age=(datetime.date.fromisoformat(pull)-since).days
+            held=(datetime.date.fromisoformat(newest)-since).days if newest else 0
+            # Does ANY move in this item's history look like a re-spec rather
+            # than a price? If so the item is marked wherever it appears, so a
+            # £0.01-£2.13 "swing" cannot lead the fluctuating list ahead of a
+            # real one.
+            moves=[100.0*(e[2]-e[1])/e[1] for e in changes]
+            suspect=any(m>=PRICE_SUSPECT_UP or m<=PRICE_SUSPECT_DOWN for m in moves)
+            row={"item":name,"pack":pack,"old_price":o,"new_price":n,
+                 "pct_change":pct,"since":d,"age_days":age,"held_days":held,
+                 "changes":len(changes),"suspect":suspect,
+                 "reports":len({e[0] for e in changes})}
+            # A +2298% "rise" is a re-spec or a keying slip, not a price to go
+            # and negotiate. Kept and shown, but in its own list - same rule as
+            # the refractometer's suspect readings: never silently repaired,
+            # never mixed in with the real signal.
+            if pct>=PRICE_SUSPECT_UP or pct<=PRICE_SUSPECT_DOWN:
+                price_suspect.append(row)
+            elif (pct>0 and age>=PRICE_SETTLED_DAYS
+                  and not any(e[0]>d for e in evs)):
+                # "and not any later event" is belt and braces - changes[-1] is
+                # already the last CHANGE, so a later event could only be a
+                # 'New' re-price, which still means the item moved again.
+                price_settled.append(row)
+            dirs=[1 if e[2]>e[1] else -1 for e in changes]
+            revs=sum(1 for a,b in zip(dirs,dirs[1:]) if a!=b)
+            if row["reports"]>=PRICE_FLUX_REPORTS and revs>=PRICE_FLUX_REVERSALS:
+                prices=sorted({e[2] for e in changes}|{changes[0][1]})
+                lo,hi=prices[0],prices[-1]
+                price_flux.append({**row,"reversals":revs,"low":lo,"high":hi,
+                  "swing_pct":round(100.0*(hi-lo)/lo,1) if lo else None,
+                  "distinct_prices":len(prices),
+                  "trail":[{"d":e[0],"old":e[1],"new":e[2]} for e in changes[-8:]]})
+        price_settled.sort(key=lambda r:(-r["pct_change"],-r["age_days"]))
+        # Suspect items last: they are genuinely fluctuating, but a data-entry
+        # swing is a different job from a supplier who will not hold a price,
+        # and the commercial signal has to lead.
+        price_flux.sort(key=lambda r:(r["suspect"],-r["reversals"],
+                                      -(r["swing_pct"] or 0)))
+        price_suspect.sort(key=lambda r:-abs(r["pct_change"]))
+        # The newest report's own changes, which is what the existing card shows.
+        for rn,i,op,np,pid,ps,uv,ms in (reports[-1][1] if reports else []):
+            npf=fb_num(np)
+            if npf is None: continue
+            opf=fb_num(op)
             pct=round(100.0*(npf-opf)/opf,1) if opf else None
             price_watch.append({"ingredient":i,"old_price":opf,"new_price":npf,
               "pct_change":pct,"is_new":opf is None})
         price_watch.sort(key=lambda r:(r["pct_change"] is None,
                                        -(r["pct_change"] or 0), r["ingredient"] or ""))
+        stale=(datetime.date.fromisoformat(pull)
+               -datetime.date.fromisoformat(newest)).days if newest else None
+        if stale is not None and stale>PRICE_STALE_DAYS:
+            gaps.append("The newest ingredient price report is "+str(stale)+" days old "
+                "(the report is weekly), so the settled-increase flag is counting days "
+                "nothing has confirmed: an item shows as holding its price only because "
+                "no newer report exists to say otherwise. Each row carries held_days - "
+                "how far the evidence actually reaches - beside age_days")
+        if len(reports)<2:
+            gaps.append("Only "+str(len(reports))+" distinct ingredient price report(s) "
+                "are in the archive, so 'held for "+str(PRICE_SETTLED_DAYS)+" days' and "
+                "'keeps fluctuating' have almost no history to judge against - both "
+                "lists will be thin until more reports land")
+        if price_suspect:
+            gaps.append(str(len(price_suspect))+" ingredient price change(s) move by more "
+                "than "+str(int(PRICE_SUSPECT_UP))+"% up or "+str(int(-PRICE_SUSPECT_DOWN))
+                +"% down (e.g. 2.73 to 65.48). At that size it is a pack or unit re-spec "
+                "or a keying slip rather than a price rise, so they are listed separately "
+                "and kept OUT of the settled-increase flag - putting them in would send "
+                "someone to a supplier over a data-entry error")
     else:
         gaps.append(f"'{PRICE_FEED}' absent from the warehouse")
     gaps.append("Ingredient price changes carry no supplier or site field in the source "
@@ -1644,8 +1787,35 @@ def main():
         "suppliers with no deliveries show an em dash, never 0%. Issues that name no supplier "
         "are excluded from the per-supplier rows and disclosed as unattributed_issues."},
       "price_watch":price_watch[:100],
-      "price_watch_basis":"latest pull of the Kobas Weekly Ingredient Price Changes report; "
-      "pct_change = (new-old)/old*100; is_new=true when there is no prior price on file"}
+      "price_watch_basis":"newest DISTINCT report of the Kobas Weekly Ingredient Price "
+      "Changes email (the same report is pulled daily, so pulls are deduped by content); "
+      "pct_change = (new-old)/old*100; is_new=true when the source says 'New' rather than "
+      "a prior price",
+      "price_reports":price_reports,
+      "price_items":price_items,
+      "price_settled":price_settled[:100],
+      "price_flux":price_flux[:100],
+      "price_suspect":price_suspect[:100],
+      "price_thresholds":{"settled_days":PRICE_SETTLED_DAYS,
+        "flux_reports":PRICE_FLUX_REPORTS,"flux_reversals":PRICE_FLUX_REVERSALS,
+        "suspect_up":PRICE_SUSPECT_UP,"suspect_down":PRICE_SUSPECT_DOWN,
+        "stale_days":PRICE_STALE_DAYS},
+      "price_newest_report":newest_report,
+      "price_flags_basis":"built from EVERY archived pull of the price-changes report, "
+      "deduped by content into distinct reports and dated by the first pull that carried "
+      "each - the report is emailed weekly but pulled daily, so pull_date would count one "
+      "report many times. An item is one PACK of one ingredient (Parent ID + pack size + "
+      "unit volume + measurement): Parent ID alone is not unique, so keying on it would "
+      "read two packs as one item bouncing. Each row is a change EVENT and an item can "
+      "have several in one report, which carries no per-event timestamp - within a report "
+      "the only ordering is row_num. SETTLED = the item's most recent change was a rise "
+      "and no later report has changed it again, held at least settled_days, measured to "
+      "the newest report rather than today so a stale bake cannot inflate it. FLUCTUATING "
+      "= changed in at least flux_reports distinct reports with at least flux_reversals "
+      "direction changes. SUSPECT = a move beyond suspect_up/suspect_down, which at that "
+      "size is a pack or unit re-spec rather than a price, held out of the settled list "
+      "and never repaired. Neither flag can see a price that never appears in the report, "
+      "because the report only lists changes"}
     # ---- cross-reference: broth quality x supplier issues, by site+date ----
     gc_to_key={v[0]:k for k,v in SITE_ALIASES.items()}
     events=[]
