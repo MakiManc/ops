@@ -56,7 +56,9 @@ CHECKS (v2, Phase 2 complete)
                            steady state near 300 MB).
 
 MORNING vs RECHECK (the false-alarm damper, plan §1)
-  09:30 UTC morning run: timing-deferrable criticals -- a feed missing
+  Morning run (since 01/09/2026 chained to the Ops Command bake finishing,
+  ~09:00 UTC on a normal day, rather than a 09:30 cron GitHub was firing
+  hours late): timing-deferrable criticals -- a feed missing
   while its producing run has no receipt yet (may still be in flight),
   a stale snapshot, a 4b mismatch or recompute crash -- are recorded as
   "deferred" (overall amber, no push, exit 0). Everything genuinely
@@ -122,9 +124,9 @@ DB_SIZE_CRIT_MB = 450
 MAINT_AGE_WARN_DAYS = 7        # a week with no refresh commit = dead chain
 
 # Timing-deferrable failure classes (morning run defers them to 12:00).
-# A missing receipt at 09:30 is indistinguishable from an export still in
-# flight (75-min timeout from 08:15 can outlast the morning run); by 12:00
-# it is unambiguous, so it defers alongside the other timing classes.
+# A missing receipt on the morning run is indistinguishable from an export
+# still in flight (the 75-min timeout can outlast it); by 12:00 it is
+# unambiguous, so it defers alongside the other timing classes.
 DEFERRABLE = {"1-landed-inflight", "4a-snapshot", "4b-consistency",
               "0-receipts-missing"}
 
@@ -169,7 +171,7 @@ def fetch_json(url: str, timeout: int = 20):
 ARCHIVE_MODE = os.environ.get("OPS_WAREHOUSE_SOURCE") == "archive"
 # What to CALL the store in the verdict. This text is the Data Health tab
 # and the ntfy push, so "Postgres" in archive mode is not a cosmetic slip -
-# it sends whoever is reading at 09:30 to look at the wrong system.
+# it sends whoever is reading the morning verdict to the wrong system.
 STORE = "the pull archive" if ARCHIVE_MODE else "Postgres"
 
 
@@ -218,8 +220,8 @@ def check_receipts(cur, today: str) -> dict:
             "not produced its first receipt. Checks 1-2 still verify the "
             "data directly.")
         return states
-    for kind, label in (("daily-export", "08:15 daily export"),
-                        ("deep-pull", "03:00 deep pull")):
+    for kind, label in (("daily-export", "08:17 daily export"),
+                        ("deep-pull", "01:07 deep pull")):
         cur.execute(
             "SELECT exit_code, feeds_failed, rows_written, finished_at "
             "FROM etl_run_log WHERE run_kind=%s "
@@ -253,8 +255,8 @@ def check_receipts(cur, today: str) -> dict:
             # called it "ok" while the workflow itself was red. Exit 0 is
             # not evidence on its own: a run that persisted nothing did
             # not work, whatever it reports about itself. Non-timing, so
-            # it alerts at 09:30 rather than deferring -- there is nothing
-            # a later recheck could change about a finished, empty run.
+            # it alerts on the morning run rather than deferring -- there is
+            # nothing a later recheck could change about a finished, empty run.
             add("0-receipts", "critical",
                 f"{label} reports exit 0 but wrote ZERO rows "
                 f"({feeds_failed} failed feed(s), finished {finished}) - "
