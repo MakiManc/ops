@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-09-02T08:11:14Z",
+ "generated_at": "2026-09-02T12:48:50Z",
  "verified_date": "2026-09-02",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-09-02",
  "snapshot_latest": "2026-09-02",
@@ -850,11 +850,6 @@
    "detail": "dashboard snapshot 2026-09-02 matches the pull archive 2026-09-02"
   },
   {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-09-01 (propagation lag - normal for up to ~an hour)"
-  },
-  {
    "check": "6-side",
    "level": "warning",
    "detail": "maintenance_source.json last pulled 2026-08-25 (8d ago) - the refresh chain may be dead (its daily 08:00 task skips commits when the sheet is unchanged, but a week of silence is worth checking)"
@@ -875,5 +870,5 @@
    "detail": "1340 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (1502 total)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
