@@ -910,7 +910,7 @@ const regionFilter=(host,onchange)=>{
    The old banner cried wolf on every quiet day (>1.5-day-old snapshot =
    "the bake may have failed"), because it didn't know the schedule. It now
    reads the daily verifier's verdict (health_latest.json, committed by
-   verify.yml at 09:30 UTC) and only goes red when verification actually
+   ops_verify.yml, chained to the daily bake) and only goes red when verification actually
    FAILED; a legit no-new-data day renders as a neutral note. If the
    verifier itself goes quiet for >30h, that is its own amber - silence is
    only healthy while the checker is provably alive. */
@@ -926,7 +926,7 @@ function bannerHtml(snap){
   const isLatest=!IDX||!IDX.latest||IDX.latest===snap.pull_date;
   if(HEALTH&&HEALTH.generated_at){
     const hAge=(Date.now()-new Date(HEALTH.generated_at))/864e5;
-    if(hAge>1.25) return `<div class="warn"><b>The data verifier hasn't reported since ${esc(HEALTH.generated_at)}.</b> Its 09:30 UTC run may have stopped — check the ops repo's Actions tab.</div>`;
+    if(hAge>1.25) return `<div class="warn"><b>The data verifier hasn't reported since ${esc(HEALTH.generated_at)}.</b> Its run may have stopped — check the ETL repo's Actions tab.</div>`;
     if(HEALTH.overall==='red'){
       const f=(HEALTH.criticals&&HEALTH.criticals[0])||{};
       const n=(HEALTH.counts&&HEALTH.counts.criticals)||'?';
