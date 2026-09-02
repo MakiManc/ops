@@ -141,6 +141,97 @@ assert(/No ingredient has changed direction/.test(emptyFlux),
 assert(!/\b0\b/.test(emptySettled.split('\n')[0]),
   'an empty list is a sentence, never a zero pretending to be a measurement');
 
+// -------------------------------------------------- drill-down (02/09/2026)
+// Ross: "a tab when open that shows each supplier's price point for that
+// product and the supplier that prices have changed". The supplier half is
+// DATA-GATED - the price report carries no supplier column - so the two states
+// are both pinned here: what it says when there is no supplier, and what it
+// renders the day one appears.
+// A fixture shaped like what the builder now emits: rows carry id + trail.
+// (supplyFixture() deliberately does NOT, so the legacy case below still
+// exercises a snapshot baked before the drill-down existed.)
+const withTrail = supplyFixture({});
+withTrail.price_settled = withTrail.price_settled.map((r, ix) => ix ? r : {
+  ...r, id: '1637|1.0|1000|Grams',
+  trail: [{ d: '2026-08-13', old: 0.98, new: 1.5, pct: 53.1, dir: 1, supplier: null }],
+});
+await page.evaluate(s => { window.render(s); window.gotoPage('p-supp'); },
+  { ...baseSnap, supply: withTrail });
+
+const clkSettled = await page.locator('#ps-tbl tbody tr.clk').count();
+const clkFlux = await page.locator('#pf-tbl tbody tr.clk').count();
+assert(clkSettled > 0 && clkFlux > 0,
+  `rows on both price cards open (${clkSettled} settled, ${clkFlux} flux)`);
+
+await page.locator('#ps-tbl tbody tr').first().click();
+assert(await page.locator('#task-modal-ov.on').count() === 1,
+  'opening a flagged row opens the drill-down');
+const drillTitle = await page.locator('#task-modal-t').innerText();
+assert(/CARROTS/.test(drillTitle) && /1000 Grams/.test(drillTitle),
+  'the drill-down names the ingredient AND the pack, not just the ingredient');
+const drillBody = await page.locator('#task-modal-b').innerText();
+assert(/£0\.98/.test(drillBody) && /£1\.50/.test(drillBody) && /\+53\.1%/.test(drillBody),
+  'the drill-down shows every change event behind the headline number');
+
+// The no-supplier state must EXPLAIN itself. An empty table here reads as a
+// broken card, and the explanation is the difference between "Kobas does not
+// send it" and "the ETL is dropping it" - which is the actual next action.
+assert(/no supplier/i.test(drillBody) && /Kobas/.test(drillBody),
+  'with no supplier in the feed the panel says so instead of showing an empty table');
+assert(/keeps every column/.test(drillBody),
+  'it says the ETL is not the thing dropping the supplier - the report never had it');
+await page.evaluate(() => document.getElementById('task-modal-ov').classList.remove('on'));
+
+// Now the same page with a supplier column present, which is exactly the shape
+// bake_ops_command.py emits once the report carries one (verified by baking a
+// synthetic archive through the real builder).
+const withSup = supplyFixture({});
+withSup.price_has_supplier = true;
+withSup.price_supplier_names = ['Big Dipper', 'Lynas'];
+withSup.price_settled = [{
+  item: 'SEAWEED NORI', pack: '10000 Grams', old_price: 4.1, new_price: 5.6,
+  pct_change: 36.6, since: '2026-08-15', age_days: 28, held_days: 14,
+  changes: 3, reports: 3, suspect: false, id: '9002|1.0|10000|Grams',
+  suppliers: [
+    { supplier: 'Big Dipper', price: 4.1, last_change: '2026-08-08', changes: 1, dir: -1 },
+    { supplier: 'Lynas', price: 5.6, last_change: '2026-08-15', changes: 2, dir: 1 }],
+  trail: [
+    { d: '2026-08-01', old: 4.0, new: 5.2, pct: 30.0, dir: 1, supplier: 'Lynas' },
+    { d: '2026-08-08', old: 5.2, new: 4.1, pct: -21.2, dir: -1, supplier: 'Big Dipper' },
+    { d: '2026-08-15', old: 4.1, new: 5.6, pct: 36.6, dir: 1, supplier: 'Lynas' }],
+}];
+await page.evaluate(s => { window.render(s); window.gotoPage('p-supp'); },
+  { ...baseSnap, supply: withSup });
+await page.locator('#ps-tbl tbody tr').first().click();
+const supBody = await page.locator('#task-modal-b').innerText();
+assert(/Big Dipper/.test(supBody) && /Lynas/.test(supBody),
+  'each supplier that priced the product is listed');
+assert(/£4\.10/.test(supBody) && /£5\.60/.test(supBody),
+  "each supplier's own latest price point is shown");
+assert(/2026-08-08/.test(supBody) && /2026-08-15/.test(supBody),
+  'the drill-down shows WHICH supplier changed and when');
+// The honest caveat: this report only logs changes, so a supplier sitting on a
+// steady quote is absent. Without this line the table reads as a full price
+// comparison across the supply base, which it is not.
+assert(/log of changes/.test(supBody) && /steady quote/.test(supBody),
+  'it says the list is who moved, not a full comparison across the supply base');
+await page.evaluate(() => document.getElementById('task-modal-ov').classList.remove('on'));
+
+// An item can be flagged by BOTH cards, and ids are not unique across the two
+// lists - the click must open the row it belongs to, not whichever list was
+// searched first.
+const both = supplyFixture({});
+both.price_settled = [withSup.price_settled[0]];
+both.price_flux = [{ ...withSup.price_settled[0], reversals: 2, low: 4.1, high: 5.6,
+                     swing_pct: 36.6, distinct_prices: 3 }];
+await page.evaluate(s => { window.render(s); window.gotoPage('p-supp'); },
+  { ...baseSnap, supply: both });
+await page.locator('#pf-tbl tbody tr').first().click();
+const dupTitle = await page.locator('#task-modal-t').innerText();
+assert(/SEAWEED NORI/.test(dupTitle),
+  'an item flagged on both cards opens from the fluctuating card too');
+await page.evaluate(() => document.getElementById('task-modal-ov').classList.remove('on'));
+
 // ------------------------------------------- a snapshot baked before this
 const legacy = { ...baseSnap, supply: { ...baseSnap.supply } };
 delete legacy.supply.price_settled; delete legacy.supply.price_flux;
@@ -150,6 +241,17 @@ await page.evaluate(s => { window.render(s); window.gotoPage('p-supp'); }, legac
 const legacySettled = await page.locator('#ps-tbl').innerText();
 assert(/No rise has held for 14 days/.test(legacySettled),
   'a snapshot predating these flags falls back to the default threshold, not a crash');
+
+// A snapshot baked before the drill-down: rows have no id, trail or suppliers.
+// They must still render and still open, showing the headline with an empty
+// history rather than throwing.
+const noTrail = { ...baseSnap, supply: supplyFixture() };
+await page.evaluate(s => { window.render(s); window.gotoPage('p-supp'); }, noTrail);
+await page.locator('#ps-tbl tbody tr').first().click();
+const noTrailBody = await page.locator('#task-modal-b').innerText();
+assert(/No change events recorded/.test(noTrailBody),
+  'a pre-drill-down snapshot opens and says it has no history, rather than crashing');
+await page.evaluate(() => document.getElementById('task-modal-ov').classList.remove('on'));
 
 assert(consoleErrors.length === 0,
   `no console/page errors during any render() call (got ${consoleErrors.length}: ${consoleErrors.join(' | ')})`);

@@ -1628,17 +1628,40 @@ def main():
     PRICE_STALE_DAYS=10            # a weekly report older than this is a gap
     price_reports=[]; price_settled=[]; price_flux=[]; price_suspect=[]
     price_items=0; newest_report=None
+    # Initialised HERE, not inside the has_feed branch below: the snapshot
+    # publishes it unconditionally, so a day without the price feed (the
+    # weekly report missed its window, or the export skipped it) would
+    # otherwise fail the whole bake on a NameError.
+    price_supplier_seen=set()
     if has_feed(cur,PRICE_FEED):
+        # THE SUPPLIER COLUMN IS READ SPECULATIVELY, AND TODAY IT IS ALWAYS NULL.
+        # Ross, 02/09/2026, asked for each supplier's price point per product.
+        # The emailed report does not carry one: its seven columns are Parent
+        # ID, Ingredient Name, Pack Size, Unit Volume, Measurement, Old Price,
+        # New Price, and the email parser keeps EVERY column of the sheet
+        # (dict(zip(header,row)) - no whitelist), so this is Kobas not sending
+        # it rather than us dropping it. Of the reports that do name a
+        # supplier, Outstanding Stock Orders and Ops Deliveries, neither
+        # carries an ingredient or a unit price - they are order and invoice
+        # totals - so no join reconstructs it either.
+        #
+        # coalesce over the plausible spellings costs nothing (->> on a missing
+        # key is NULL in both Postgres and the DuckDB archive) and means the
+        # day somebody adds a Supplier column to the report in Kobas, the
+        # drill-down fills itself in with no code change. Until then every
+        # consumer below sees None and the card says so in as many words.
         cur.execute(
           "SELECT pull_date::text d, row_num, nullif(data->>'Ingredient Name','') i, "
           " data->>'Old Price' op, data->>'New Price' np, "
           " data->>'Parent ID' pid, data->>'Pack Size' ps, "
-          " data->>'Unit Volume' uv, data->>'Measurement' ms "
+          " data->>'Unit Volume' uv, data->>'Measurement' ms, "
+          " coalesce(data->>'Supplier', data->>'Supplier Name', "
+          "          data->>'Vendor', data->>'Supplier/Sending Venue') sup "
           "FROM etl_feed_rows WHERE feed=%s ORDER BY pull_date, row_num",
           (PRICE_FEED,))
         by_pull={}
-        for d,rn,i,op,np,pid,ps,uv,ms in cur.fetchall():
-            by_pull.setdefault(d,[]).append((rn,i,op,np,pid,ps,uv,ms))
+        for d,rn,i,op,np,pid,ps,uv,ms,sup in cur.fetchall():
+            by_pull.setdefault(d,[]).append((rn,i,op,np,pid,ps,uv,ms,sup))
         seen_hash={}; reports=[]
         for d in sorted(by_pull):
             rows=by_pull[d]
@@ -1652,10 +1675,12 @@ def main():
         # keying on it would read two packs' prices as one item bouncing.
         hist={}
         for d,rows in reports:
-            for rn,i,op,np,pid,ps,uv,ms in rows:
+            for rn,i,op,np,pid,ps,uv,ms,sup in rows:
                 n=fb_num(np); o=fb_num(op)
                 if n is None: continue
-                hist.setdefault((pid,ps,uv,ms),[]).append((d,o,n,i))
+                sup=(sup or "").strip() or None
+                if sup: price_supplier_seen.add(sup)
+                hist.setdefault((pid,ps,uv,ms),[]).append((d,o,n,i,sup))
         price_items=len(hist)
         newest=newest_report=reports[-1][0] if reports else None
         def packlabel(pid,ps,uv,ms):
@@ -1670,12 +1695,51 @@ def main():
             if v: bits.append(str(int(v) if v==int(v) else v))
             if ms: bits.append(str(ms))
             return " ".join(bits) or None
+        def item_trail(evs):
+            """Every change event for one pack, oldest first.
+
+            The card shows a rise or a swing as one number; this is the working
+            behind it, which is what a supplier conversation actually needs -
+            when it moved, from what, to what, and how many times. Capped at 24
+            events so one pathological item cannot bloat the snapshot.
+            """
+            out=[]
+            for d,o,n,_i,sup in evs[-24:]:
+                out.append({"d":d,"old":o,"new":n,"supplier":sup,
+                  "pct":round(100.0*(n-o)/o,1) if (o and o>0) else None,
+                  "dir":0 if o is None else (1 if n>o else -1 if n<o else 0)})
+            return out
+
+        def supplier_view(evs):
+            """Latest price per supplier for one pack, from its change events.
+
+            Returns [] whenever the report carries no supplier - which is every
+            row today. NOTE the limit even once it does: this report is a log of
+            CHANGES, so it can only ever show suppliers that changed a price. A
+            supplier holding a steady quote never appears in it, so this is
+            "who moved, and to what", not a full price comparison across the
+            supply base. The drill-down says so rather than implying the list
+            is exhaustive.
+            """
+            if not any(e[4] for e in evs): return []
+            by={}
+            for d,o,n,_i,sup in evs:
+                key=sup or "(not named in report)"
+                e=by.setdefault(key,{"supplier":key,"changes":0,"price":None,
+                                     "last_change":None,"dir":0})
+                e["changes"]+=1
+                if e["last_change"] is None or d>=e["last_change"]:
+                    e["last_change"]=d; e["price"]=n
+                    e["dir"]=0 if o is None else (1 if n>o else -1 if n<o else 0)
+            return sorted(by.values(),
+                          key=lambda r:(r["price"] is None, r["price"]))
+
         for k,evs in hist.items():
             name=evs[-1][3]
             pack=packlabel(*k)
             changes=[e for e in evs if e[1] is not None and e[1]>0]
             if not changes: continue         # only ever priced 'New'
-            d,o,n,_=changes[-1]
+            d,o,n,_name,_sup=changes[-1]   # events grew a supplier field
             pct=round(100.0*(n-o)/o,1)
             since=datetime.date.fromisoformat(d)
             # TWO different spans, and conflating them would be a lie either
@@ -1694,10 +1758,15 @@ def main():
             # real one.
             moves=[100.0*(e[2]-e[1])/e[1] for e in changes]
             suspect=any(m>=PRICE_SUSPECT_UP or m<=PRICE_SUSPECT_DOWN for m in moves)
-            row={"item":name,"pack":pack,"old_price":o,"new_price":n,
+            # id: what the dashboard clicks on. The pack tuple is already the
+            # unique key here (Parent ID alone is not - EDAMAME carries several
+            # packs under one parent), so reuse it rather than inventing one.
+            row={"id":"|".join(str(x) for x in k),
+                 "item":name,"pack":pack,"old_price":o,"new_price":n,
                  "pct_change":pct,"since":d,"age_days":age,"held_days":held,
                  "changes":len(changes),"suspect":suspect,
-                 "reports":len({e[0] for e in changes})}
+                 "reports":len({e[0] for e in changes}),
+                 "trail":item_trail(changes),"suppliers":supplier_view(changes)}
             # A +2298% "rise" is a re-spec or a keying slip, not a price to go
             # and negotiate. Kept and shown, but in its own list - same rule as
             # the refractometer's suspect readings: never silently repaired,
@@ -1717,8 +1786,7 @@ def main():
                 lo,hi=prices[0],prices[-1]
                 price_flux.append({**row,"reversals":revs,"low":lo,"high":hi,
                   "swing_pct":round(100.0*(hi-lo)/lo,1) if lo else None,
-                  "distinct_prices":len(prices),
-                  "trail":[{"d":e[0],"old":e[1],"new":e[2]} for e in changes[-8:]]})
+                  "distinct_prices":len(prices)})
         price_settled.sort(key=lambda r:(-r["pct_change"],-r["age_days"]))
         # Suspect items last: they are genuinely fluctuating, but a data-entry
         # swing is a different job from a supplier who will not hold a price,
@@ -1727,7 +1795,7 @@ def main():
                                       -(r["swing_pct"] or 0)))
         price_suspect.sort(key=lambda r:-abs(r["pct_change"]))
         # The newest report's own changes, which is what the existing card shows.
-        for rn,i,op,np,pid,ps,uv,ms in (reports[-1][1] if reports else []):
+        for rn,i,op,np,pid,ps,uv,ms,_sup in (reports[-1][1] if reports else []):
             npf=fb_num(np)
             if npf is None: continue
             opf=fb_num(op)
@@ -1801,6 +1869,23 @@ def main():
         "suspect_up":PRICE_SUSPECT_UP,"suspect_down":PRICE_SUSPECT_DOWN,
         "stale_days":PRICE_STALE_DAYS},
       "price_newest_report":newest_report,
+      # Whether the report named a supplier on ANY row of ANY archived pull.
+      # Published as a fact rather than assumed either way, so the drill-down
+      # can say "the feed does not carry one" instead of showing an empty
+      # table that reads like a bug - and so it starts working by itself if a
+      # Supplier column is ever added to the report in Kobas.
+      "price_supplier_names":sorted(price_supplier_seen)[:50],
+      "price_has_supplier":bool(price_supplier_seen),
+      "price_supplier_basis":"the Weekly Ingredient Price Changes report carries seven "
+      "columns - Parent ID, Ingredient Name, Pack Size, Unit Volume, Measurement, Old "
+      "Price, New Price - and no supplier. The email parser keeps every column of the "
+      "attached sheet, so this is the report not carrying it, not the ETL dropping it. "
+      "The reports that do name a supplier (Outstanding Stock Orders, Ops Deliveries) "
+      "carry order and invoice totals with no ingredient or unit price, so the two "
+      "cannot be joined. Adding a Supplier column to the price report in Kobas is what "
+      "fills this in; the bake already reads one if it appears. Even then it would show "
+      "only suppliers that CHANGED a price, because the report is a log of changes - a "
+      "supplier holding a steady quote never appears in it.",
       "price_flags_basis":"built from EVERY archived pull of the price-changes report, "
       "deduped by content into distinct reports and dated by the first pull that carried "
       "each - the report is emailed weekly but pulled daily, so pull_date would count one "
