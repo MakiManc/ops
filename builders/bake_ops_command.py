@@ -397,8 +397,40 @@ def fb_date(form_date, ts):
         return d_ts.isoformat(), True
     return None, False
 def has_feed(cur, feed):
+    """Has this feed EVER landed. Deliberately not a freshness test.
+
+    Retention keeps 14 pulls and a feed that never lands again never
+    accumulates more, so it is never trimmed - this stays True forever once a
+    feed has landed even once. Fine for "does this column exist"; wrong for
+    "may I quote a number from it". Use feed_fresh_within() for anything a
+    reader would take as current.
+    """
     cur.execute("SELECT 1 FROM etl_feed_rows WHERE feed=%s LIMIT 1", (feed,))
     return cur.fetchone() is not None
+
+
+def feed_fresh_within(cur, feed, days, today=None):
+    """True when the feed's newest pull is within `days` of `today`.
+
+    The guard has_feed cannot be. On 03/09/2026 the weekly outstanding-orders
+    report had not been produced since 18/08 - Kobas stopped sending it - yet
+    has_feed stayed True off retained pulls, so the honest "unavailable"
+    branch was unreachable and the fallback would have published a confident
+    "0 orders / GBP 0.00" for a week that actually held GBP 153k.
+    """
+    cur.execute("SELECT max(pull_date) FROM etl_feed_rows WHERE feed=%s",
+                (feed,))
+    row = cur.fetchone()
+    lp = row[0] if row else None
+    if lp is None:
+        return False
+    if not isinstance(lp, datetime.date):
+        lp = fb_parse_date(str(lp))
+        if lp is None:
+            return False
+    ref = fb_parse_date(today) if isinstance(today, str) else today
+    ref = ref or datetime.date.today()
+    return (ref - lp).days <= days
 L = "(SELECT max(pull_date) FROM etl_feed_rows WHERE feed=%s)"
 def main():
     ap = argparse.ArgumentParser()
@@ -1164,6 +1196,9 @@ def main():
     #  * CANCELLATIONS ARE INVISIBLE. An order cancelled in Kobas without a
     #    re-sent email stays in the week's total.
     FULFIL_FEED="Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report"
+    # Manifest cadence for that report is 8 days; allow one more before it is
+    # too stale to quote a figure from.
+    FULFIL_MAX_STALE_DAYS=9
     # 26/08/2026: this is the EXISTING 'Kobas Orders' feed, not a new one.
     # daily_export.py has parsed Kobas order-confirmation emails into it since
     # 13/08/2026; it was upgraded the same day to emit an ISO delivery date and
@@ -1451,7 +1486,10 @@ def main():
                 "this bake: the weekly outstanding-orders report is absent, so there is "
                 "nothing to measure the email feed's supplier list against")
     # ---- fallback: weekly outstanding-orders report ----
-    elif has_feed(cur,FULFIL_FEED):
+    # feed_fresh_within, NOT has_feed: a report that stopped being sent keeps
+    # has_feed True off retained pulls forever, which made the honest
+    # "unavailable" branch below dead code.
+    elif feed_fresh_within(cur,FULFIL_FEED,FULFIL_MAX_STALE_DAYS,pull):
         cur.execute(
           "WITH o AS (SELECT DISTINCT ON (data->>'Order ID') "
           "   data->>'Order ID' oid, nullif(data->>'Supplier/Sending Venue','') sup, "
@@ -1468,41 +1506,57 @@ def main():
             a_=agg3.setdefault(k,{"orders":0,"value":0.0})
             a_["orders"]+=1
             a_["value"]+=_num(val,float,0.0)
-        for (site,sup),a_ in agg3.items():
-            week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
-              "value_gbp":round(a_["value"],2),
-              # no line/item counts exist in the report - null, never 0, so the
-              # shell renders an em dash rather than implying an empty order
-              "lines":None,"items":None,
-              "supplier_canon":canon_supplier(sup)})
-        week_spend.sort(key=lambda r:-r["value_gbp"])
-        # Same roll-up, but this source carries no line, item or per-delivery
-        # detail. Those stay null, never 0, so the shell renders an em dash
-        # rather than implying an order with nothing on it.
-        sup_agg3={}
-        for (site,sup),a_ in agg3.items():
-            b_=sup_agg3.setdefault(sup,{"orders":0,"value":0.0,"sites":set()})
-            b_["orders"]+=a_["orders"]; b_["value"]+=a_["value"]; b_["sites"].add(site)
-        supplier_totals=[{"supplier":sup,"supplier_canon":canon_supplier(sup),
-                          "orders":b_["orders"],"deliveries":None,
-                          "lines":None,"items":None,"sites":len(b_["sites"]),
-                          "value_gbp":round(b_["value"],2)}
-                         for sup,b_ in sup_agg3.items()]
-        supplier_totals.sort(key=lambda r:(-r["value_gbp"],r["supplier"]))
-        supplier_totals_basis=("Weekly outstanding-orders report grouped by supplier. "
-            "That report carries no line, item or delivery-date detail per order, so "
-            "those columns are blank rather than zero - only spend and order count are "
-            "known on this source, and both are a projection from outstanding orders.")
-        week_spend_source="weekly_report_fallback"
-        week_spend_basis=("Kobas Orders feed missing - projected spend falling back to "
-            "the weekly outstanding-orders report (may be up to 7 days stale): one row per "
-            "site+supplier combination (deduped by Order ID across weekly pulls, latest pull "
-            "wins), summing Order Value for orders whose Target Delivery Date falls within the "
-            "current Mon-Sun week - a projection from outstanding orders, not a measured or "
-            "confirmed spend figure, and it carries no delivered/pending split and no line or "
-            "item counts")
-        gaps.append("Kobas Orders feed missing - projected spend falling back to the "
-            "weekly outstanding-orders report (may be up to 7 days stale)")
+        # An empty result is indistinguishable from frozen content, and
+        # "GBP 0.00 / 0 orders" renders on the card identically to a real
+        # figure. A week with no outstanding order due does not happen in
+        # this business, so treat it as no answer rather than an answer of
+        # zero - the card shows an em dash and the gap says why.
+        if agg3:
+            for (site,sup),a_ in agg3.items():
+                week_spend.append({"site":site,"supplier":sup,"orders":a_["orders"],
+                  "value_gbp":round(a_["value"],2),
+                  # no line/item counts exist in the report - null, never 0, so the
+                  # shell renders an em dash rather than implying an empty order
+                  "lines":None,"items":None,
+                  "supplier_canon":canon_supplier(sup)})
+            week_spend.sort(key=lambda r:-r["value_gbp"])
+            # Same roll-up, but this source carries no line, item or per-delivery
+            # detail. Those stay null, never 0, so the shell renders an em dash
+            # rather than implying an order with nothing on it.
+            sup_agg3={}
+            for (site,sup),a_ in agg3.items():
+                b_=sup_agg3.setdefault(sup,{"orders":0,"value":0.0,"sites":set()})
+                b_["orders"]+=a_["orders"]; b_["value"]+=a_["value"]; b_["sites"].add(site)
+            supplier_totals=[{"supplier":sup,"supplier_canon":canon_supplier(sup),
+                              "orders":b_["orders"],"deliveries":None,
+                              "lines":None,"items":None,"sites":len(b_["sites"]),
+                              "value_gbp":round(b_["value"],2)}
+                             for sup,b_ in sup_agg3.items()]
+            supplier_totals.sort(key=lambda r:(-r["value_gbp"],r["supplier"]))
+            supplier_totals_basis=("Weekly outstanding-orders report grouped by supplier. "
+                "That report carries no line, item or delivery-date detail per order, so "
+                "those columns are blank rather than zero - only spend and order count are "
+                "known on this source, and both are a projection from outstanding orders.")
+            week_spend_source="weekly_report_fallback"
+            week_spend_basis=("Kobas Orders feed missing - projected spend falling back to "
+                "the weekly outstanding-orders report (may be up to 7 days stale): one row per "
+                "site+supplier combination (deduped by Order ID across weekly pulls, latest pull "
+                "wins), summing Order Value for orders whose Target Delivery Date falls within the "
+                "current Mon-Sun week - a projection from outstanding orders, not a measured or "
+                "confirmed spend figure, and it carries no delivered/pending split and no line or "
+                "item counts")
+            gaps.append("Kobas Orders feed missing - projected spend falling back to the "
+                "weekly outstanding-orders report (may be up to 7 days stale)")
+        else:
+            week_spend_source="unavailable"
+            week_spend_basis=("the weekly outstanding-orders report is present but "
+                "carries no order with a Target Delivery Date in this week - its "
+                "content is frozen or this week is not covered, so projected spend "
+                "is unavailable rather than zero")
+            supplier_totals_basis=week_spend_basis
+            gaps.append("Kobas Orders feed missing, and the weekly outstanding-orders "
+                "report has no order due this week - projected spend this week is "
+                "unavailable, reported as unavailable and NOT as zero")
     else:
         week_spend_source="weekly_report_fallback"
         week_spend_basis=("neither the Kobas Orders feed nor the weekly "

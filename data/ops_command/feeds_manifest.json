@@ -1,7 +1,7 @@
 {
  "version": 1,
  "calibrated": "2026-08-18",
- "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (MakiManc/ops) and their fetch failures turn the ETL run red (etl_receipt.py in MakiManc/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind. A feed the ETL no longer pulls must be REMOVED from here, or check 1 reports it as never having landed forever: the four Mapal Easilys feeds (Supplier Orders, Smart Delivery, Smart Yield, Invoices To Receive) went on 27/08/2026 when Ross confirmed the business does not use Easilys. STATUS TIERS: 'expected' = something downstream reads it, so a fetch failure or a short pull FAILS the ETL run and can go critical in the verifier. 'best_effort' (added 28/08/2026) = wanted and fully verified when it lands, but read by nothing, so a fetch failure or short pull is a WARNING and never turns a run red - it exists because a feed that is working, useful and unread had to be filed either as an incident or as not-checked-at-all, and neither was true. 'known_broken' = does not work; not verified at all.",
+ "notes": "Single home for the ops data system's expectations. One entry per feed the ETL is meant to land in Neon Postgres (etl_feed_rows). status=expected feeds are verified daily by verify.yml (MakiManc/ops) and their fetch failures turn the ETL run red (etl_receipt.py in MakiManc/maki-hospitality-etl). status=known_broken feeds never alert - flip the field to expected the day the underlying fetch is fixed. min_rows floors are deliberately generous (~40% of the 14-day minimum observed at calibration); the verifier's row-count band check self-calibrates against a trailing median on top of this. A feed missing from this manifest raises a warning (check 5) and its fetch failure turns the run red - new feeds must be added here or fly blind. A feed the ETL no longer pulls must be REMOVED from here, or check 1 reports it as never having landed forever: the four Mapal Easilys feeds (Supplier Orders, Smart Delivery, Smart Yield, Invoices To Receive) went on 27/08/2026 when Ross confirmed the business does not use Easilys. STATUS TIERS: 'expected' = something downstream reads it, so a fetch failure or a short pull FAILS the ETL run and can go critical in the verifier. 'best_effort' (added 28/08/2026) = wanted and fully verified when it lands, but read by nothing, so a fetch failure or short pull is a WARNING and never turns a run red - it exists because a feed that is working, useful and unread had to be filed either as an incident or as not-checked-at-all, and neither was true. 'known_broken' = does not work; not verified at all. 03/09/2026: the three weekly Kobas email reports carry cadence_days 8, not 1. Every feed here was declared daily, so a weekly report was critical on 'expected today' for 12 of 13 days while the one report that had genuinely stopped looked no different from the two that were fine. 8 rather than 7 tolerates a few hours of send drift.",
  "feeds": [
   {
    "name": "Deep Flow Branch Resources",
@@ -409,7 +409,7 @@
   {
    "name": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 8,
    "pulls_weekends": true,
    "min_rows": 398,
    "median_rows_at_calibration": 995,
@@ -420,16 +420,18 @@
   {
    "name": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 8,
    "pulls_weekends": true,
    "min_rows": 695,
    "median_rows_at_calibration": 2034,
-   "status": "expected"
+   "status": "expected",
+   "event_fresh_days": 10,
+   "event_date_field": "Edit Date/Time"
   },
   {
    "name": "Kobas Report - Weekly Ingredient Price Changes Report",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 8,
    "pulls_weekends": true,
    "min_rows": 56,
    "median_rows_at_calibration": 141,

@@ -460,6 +460,32 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   await page.locator('#task-modal-x').click();
 }
 
+// --------------- no source for projected spend at all (03/09/2026) ------
+// The weekly outstanding-orders report stopped being sent on 18/08 and the
+// 14-day IMAP window kept re-serving the last email, so nothing noticed for a
+// fortnight. If the primary order-email feed had also thinned in that window,
+// the fallback would have summed an empty list and rendered "£0 · 0 orders"
+// in the ordinary tone - a confident figure, styled identically to a real one,
+// for a week that actually held £153k. Zero is not a measurement here.
+{
+  const snap = { ...baseSnap, gaps: [], supply: { ...baseSnap.supply,
+    week_spend_source: 'unavailable', week_spend: [], week_totals: null } };
+  await page.evaluate((s) => { window.render(s); window.gotoPage('p-supp'); }, snap);
+  const vals = await page.locator('#supp-kpis .kpi .vl').allInnerTexts();
+  assert(vals[0] === '—',
+    `no-source: projected spend is an em dash, never £0 (got "${vals[0]}")`);
+  assert(vals[1] === '—',
+    `no-source: items ordered is an em dash (got "${vals[1]}")`);
+  const kpiTxt = (await page.locator('#supp-kpis').innerText());
+  assert(/not zero/.test(kpiTxt),
+    'no-source: the card says in words that this is absence, not a zero reading');
+  assert(!/£0\b/.test(kpiTxt),
+    'no-source: the string "£0" appears nowhere on the KPI row');
+  const sub = await page.locator('#fa-aging-sub').innerText();
+  assert(/No source for projected spend/.test(sub),
+    'no-source: the subtitle stops naming a source whose data is not there');
+}
+
 assert(consoleErrors.length === 0,
   `no console/page errors during any render() call (got ${consoleErrors.length}: ${consoleErrors.slice(0,3).join(' | ')})`);
 
