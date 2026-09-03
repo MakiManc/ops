@@ -292,10 +292,10 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="s" id="otif-sub">Issue-free delivery rate per supplier &middot; deliveries from Kobas order confirmations vs issues filed in the same month</div></div>
     <div class="card-b" id="otif-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Rises that have stuck</div>
-    <div class="s" id="ps-sub">Price went up and has not moved since &middot; the ones to renegotiate or reprice</div></div>
+    <div class="s" id="ps-sub">Price went up and has not moved since &middot; the ones to renegotiate or reprice &middot; open a row for its full price history</div></div>
     <div class="card-b" id="ps-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Prices that keep moving</div>
-    <div class="s" id="pf-sub">Up and back down across several reports &middot; a quoted price you cannot plan a margin on</div></div>
+    <div class="s" id="pf-sub">Up and back down across several reports &middot; a quoted price you cannot plan a margin on &middot; open a row for its full price history</div></div>
     <div class="card-b" id="pf-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Price change watch</div>
     <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · newest report, not sliced by the date range above</div></div>
@@ -1448,6 +1448,59 @@ function render(snap){
      factory broth cards use, so a red pill means the same thing on every page,
      and both carry a number in the text as well as the colour. */
   const psup=snap.supply||{}, pth=psup.price_thresholds||{};
+  /* Ross, 02/09/2026: open a flagged item and see the working - every change
+     event behind the headline number, and each supplier's price point.
+     THE SUPPLIER HALF IS DATA-GATED AND TODAY IT IS EMPTY. The price report
+     carries no supplier column (see price_supplier_basis in the snapshot), so
+     rather than render an empty table that reads like a bug, the panel says
+     what is missing and what would fill it. The bake already reads a supplier
+     column if one ever appears, so this lights up on its own. */
+  /* Takes the ROW, not an id. An item can be flagged by more than one card
+     (settled and flux are not mutually exclusive), so ids are not unique
+     across the three lists and a find() would open whichever list was
+     concatenated first. The click handler already has the row in hand. */
+  function openPriceItemModal(r){
+    if(!r) return;
+    const title=(r.item||'—')+(r.pack?' · '+r.pack:'');
+    const arrow=d=>d>0?'<span class="fbscore fb-out">▲</span>'
+      :d<0?'<span class="fbscore fb-in">▼</span>':'—';
+    const trail=(r.trail||[]).slice().reverse();
+    const hist=trail.length
+      ? '<table><thead><tr><th>Report</th><th class="n">Was</th><th class="n">Became</th>'+
+        '<th class="n">Move</th><th>Dir</th></tr></thead><tbody>'+
+        trail.map(t=>`<tr><td>${esc(t.d)}</td><td class="n">${money(t.old)}</td>`+
+          `<td class="n">${money(t.new)}</td>`+
+          `<td class="n">${t.pct!=null?(t.pct>0?'+':'')+t.pct.toFixed(1)+'%':'—'}</td>`+
+          `<td>${arrow(t.dir)}</td></tr>`).join('')+'</tbody></table>'
+      : '<div class="empty">No change events recorded for this pack.</div>';
+    const sups=r.suppliers||[];
+    const supTbl=sups.length
+      ? '<table><thead><tr><th>Supplier</th><th class="n">Latest price</th>'+
+        '<th>Last changed</th><th class="n">Changes</th><th>Dir</th></tr></thead><tbody>'+
+        sups.map(v=>`<tr><td>${esc(v.supplier)}</td><td class="n">${money(v.price)}</td>`+
+          `<td>${esc(v.last_change||'—')}</td><td class="n">${v.changes}</td>`+
+          `<td>${arrow(v.dir)}</td></tr>`).join('')+'</tbody></table>'+
+        '<div class="prov">'+esc('Only suppliers that CHANGED a price appear here — the '+
+          'report is a log of changes, so a supplier holding a steady quote is absent. '+
+          'This is who moved, not a full price comparison across the supply base.')+'</div>'
+      : '<div class="empty">'+esc('No supplier on this feed. The Kobas Weekly Ingredient '+
+          'Price Changes report carries seven columns — Parent ID, Ingredient Name, Pack '+
+          'Size, Unit Volume, Measurement, Old Price, New Price — and no supplier. The '+
+          'ETL keeps every column the sheet has, so nothing is being dropped in transit; '+
+          'the reports that do name a supplier carry order and invoice totals with no '+
+          'ingredient or unit price, so they cannot be joined to this. Add a Supplier '+
+          'column to the price report in Kobas and this table fills itself in.')+'</div>';
+    openModal(title,
+      '<div class="sub">Each supplier’s price point</div>'+supTbl+
+      '<div class="sub" style="margin-top:14px">Every change on record</div>'+hist+
+      '<div class="prov">'+esc('Now '+ (r.new_price!=null?'£'+r.new_price.toFixed(2):'—')+
+        (r.pct_change!=null?' · last move '+(r.pct_change>0?'+':'')+r.pct_change.toFixed(1)+'%':'')+
+        ' · '+(r.changes||0)+' change event(s) across '+(r.reports||0)+' report(s)'+
+        (r.since?' · latest '+r.since:'')+
+        '. An item is one PACK of one ingredient, so two packs of the same ingredient are '+
+        'two rows. Events within one report are ordered by row only — the report has no '+
+        'per-event timestamp.')+'</div>');
+  }
   const money=v=>v==null?'—':'£'+v.toFixed(2);
   const settled=psup.price_settled||[];
   /* Two packs of one ingredient are two items, and without the pack shown the
@@ -1460,6 +1513,13 @@ function render(snap){
       r.since,r.age_days+'d']),
     'No rise has held for '+(pth.settled_days||14)+
       ' days yet — either prices are still moving, or there is not that much report history.');
+  /* Same idiom as every other drill-down in this shell: render, then mark the
+     rows clickable in index order. */
+  [...$('ps-tbl').querySelectorAll('tbody tr')].forEach((tr,ix)=>{
+    const r=settled[ix]; if(!r) return;
+    tr.classList.add('clk');
+    tr.addEventListener('click',()=>openPriceItemModal(r));
+  });
   {
     const n=psup.price_newest_report, reps=(psup.price_reports||[]).length;
     const ev=settled.length?Math.min(...settled.map(r=>r.held_days)):null;
@@ -1484,6 +1544,11 @@ function render(snap){
       r.changes,r.reversals,r.reports,money(r.new_price)]),
     'No ingredient has changed direction '+(pth.flux_reversals||2)+
     '+ times across '+(pth.flux_reports||2)+'+ reports.');
+  [...$('pf-tbl').querySelectorAll('tbody tr')].forEach((tr,ix)=>{
+    const r=flux[ix]; if(!r) return;
+    tr.classList.add('clk');
+    tr.addEventListener('click',()=>openPriceItemModal(r));
+  });
   $('pf-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
     esc(flux.length+' item(s) that changed in at least '+(pth.flux_reports||2)+
     ' distinct reports and reversed direction at least '+(pth.flux_reversals||2)+
