@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-09-03T12:19:50Z",
+ "generated_at": "2026-09-03T12:51:56Z",
  "verified_date": "2026-09-03",
  "mode": "recheck",
  "overall": "red",
@@ -9,7 +9,7 @@
  "sizes": {
   "maintenance_pulled_at": "2026-08-25T08:14:00Z",
   "maintenance_source_as_of": "2026-08-19",
-  "archive_mb": 92
+  "archive_mb": 96
  },
  "counts": {
   "expected_feeds": 32,
@@ -858,11 +858,6 @@
    "detail": "dashboard snapshot 2026-09-03 matches the pull archive 2026-09-03"
   },
   {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-09-02 (propagation lag - normal for up to ~an hour)"
-  },
-  {
    "check": "6-side",
    "level": "warning",
    "detail": "maintenance_source.json last pulled 2026-08-25 (9d ago) - the refresh chain may be dead (its daily 08:00 task skips commits when the sheet is unchanged, but a week of silence is worth checking)"
@@ -870,7 +865,7 @@
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 92 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 96 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
