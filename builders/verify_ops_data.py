@@ -20,9 +20,15 @@ CHECKS (v2, Phase 2 complete)
                            exit 0 / 0 rows / every feed failed while the
                            workflow itself was red, and this check called
                            it ok.)
-  check 1  FEEDS LANDED    every status=expected or best_effort feed's
-                          max(pull_date) is
-                           today. Measured in Postgres (the §13 class).
+  check 1  FEEDS LANDED    every status=expected or best_effort feed has
+                           landed within its cadence_days (1 = daily; the
+                           three weekly Kobas email reports are 8). Measured
+                           at the store (the §13 class). A feed inside a
+                           multi-day cadence with no pull today also SKIPS
+                           check 2 -- otherwise the floor check fires "0 rows"
+                           on the days it was never due, which is how giving a
+                           weekly report its real cadence moves the red
+                           instead of clearing it.
   check 2  ROWS SANE       today's rows >= manifest floor and within a
                            0.5x-3x band of the trailing 14-day median
                            (falls back to the calibration median while
@@ -30,8 +36,15 @@ CHECKS (v2, Phase 2 complete)
   check 3  EVENTS FRESH    for manifest feeds with event_date_field: the
                            max event date INSIDE the data is recent per
                            the feed's event_fresh_days. Catches pulls that
-                           keep landing while the upstream API silently
-                           serves a frozen window. Always a warning tier.
+                           keep landing while the upstream silently serves
+                           a frozen window -- including a Kobas report that
+                           stopped being produced while its last email is
+                           re-served daily from the 14-day IMAP window, which
+                           NO arrival check can see. Severity mirrors the
+                           feed's tier (critical for expected in a priority
+                           domain); it was pinned to warning until 03/09/2026,
+                           which is why it named the Outstanding Stock Orders
+                           stoppage six days early and was not acted on.
   check 4a SNAPSHOT FRESH  the live snapshot_index.json says the same
                            latest data date as Postgres (raw GitHub
                            primary; Pages CDN informative only).
@@ -326,6 +339,19 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
             continue
         add("1-landed", "ok", f"landed {lp}", name)
 
+        # A feed with a multi-day cadence has nothing to weigh on the days
+        # between its pulls. Without this, giving a weekly report its real
+        # cadence just MOVES the red rather than clearing it: check 1 goes ok
+        # and check 2 immediately fires "0 rows today, below the manifest
+        # floor" at the same severity, from the same loop, two lines later.
+        # That is the trap that makes "just set cadence_days: 7" wrong.
+        cadence = f.get("cadence_days", 1)
+        if cadence > 1 and name not in today_rows:
+            add("2-rows", "ok",
+                f"no pull today - last landed {lp}, inside its {cadence}-day "
+                "cadence, so there are no rows to weigh", name)
+            continue
+
         n = today_rows.get(name, 0)
         floor = f.get("min_rows", 1)
         if n < floor:
@@ -367,12 +393,31 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
 
 # --------------------------------------------------------------- check 3
 def check_event_dates(cur, manifest: dict, today: str):
+    # Latest pull per feed, so a stale-content message can say whether pulls
+    # are still arriving or stopped days ago. The old wording asserted "pulls
+    # are landing" unconditionally and kept saying it after they had stopped.
+    cur.execute("SELECT feed, max(pull_date)::text FROM etl_feed_rows "
+                "GROUP BY feed")
+    last_pull = dict(cur.fetchall())
     for f in manifest["feeds"]:
         field = f.get("event_date_field")
         if not field or f["status"] not in ("expected", "best_effort"):
             continue
         name = f["name"]
         window = int(f.get("event_fresh_days", 7))
+        # THIS CHECK IS NOT A SECOND-CLASS SIGNAL, so its severity mirrors
+        # checks 1-2 instead of being pinned to warning. Content freshness is
+        # the ONLY check that can see a report which stopped being produced
+        # while its last email keeps being re-served: the export re-reads the
+        # newest email per subject inside a 14-day window, so arrival looks
+        # perfect for a fortnight after the report dies. On 28/08/2026 this
+        # check named the Outstanding Stock Orders stoppage exactly - "pulls
+        # are landing but the content looks frozen" - six days before the
+        # arrival check noticed anything, and it sat at warning the whole
+        # time while an uninformative critical took the attention.
+        sev = "critical" if domain_of(name) in PRIORITY_DOMAINS else "warning"
+        if f["status"] == "best_effort":
+            sev = "warning"
         try:
             if f.get("event_date_format") == "uk":
                 cur.execute(
@@ -406,9 +451,14 @@ def check_event_dates(cur, manifest: dict, today: str):
                 f"unparseable max {field}: {mx!r}", name)
             continue
         if age > window:
-            add("3-events", "warning",
-                f"newest {field} is {mx} ({age}d old, window {window}d) - "
-                "pulls are landing but the content looks frozen", name)
+            lp = last_pull.get(name)
+            still = (" the last pull is still arriving daily, so the report "
+                     "itself has stopped being produced"
+                     if lp == today else
+                     f" and the last pull was {lp}")
+            add("3-events", sev,
+                f"newest {field} is {mx} ({age}d old, window {window}d) -"
+                f"{still}", name, klass="3-events-stale")
         else:
             add("3-events", "ok", f"newest {field} {mx} ({age}d old)", name)
 

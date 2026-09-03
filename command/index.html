@@ -1394,6 +1394,8 @@ function render(snap){
      no delivered/pending split, so the caption no longer promises one. */
   if($('fa-aging-sub')) $('fa-aging-sub').textContent=isLiveSpend
     ? 'Kobas order confirmation emails · parsed daily · orders as placed, by delivery date, so the weekly figure builds through the week · click a site for its supplier breakdown'
+    : weekSource==='unavailable'
+    ? 'No source for projected spend in this bake · the Kobas order-confirmation feed is absent and the weekly outstanding-orders report is stale or carries nothing due this week · see the note below'
     : 'Kobas Outstanding Stock Orders · orders due '+
       (weekStart&&weekEnd?weekStart+' – '+weekEnd:'this Mon–Sun')+
       ' (target delivery date) · click a site for its supplier breakdown · a projection, not a confirmed spend figure (see note)';
@@ -1596,6 +1598,19 @@ function render(snap){
       otifTile+
       kpi(topSup?'b':'n','Top supplier this week',topSup?topSup[0]:'—',
           topSup?'£'+Math.round(topSup[1]).toLocaleString('en-GB'):'no orders due this week')+
+      kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
+  } else if(weekSource==='unavailable'){
+    /* NO SOURCE AT ALL. The fallback branch below sums week_spend, so an
+       empty list renders "£0 · 0 orders" in the ordinary tone - a confident
+       figure, indistinguishable from a real one, for a week that may hold
+       six figures of orders. An em dash in the muted tone is the truth.
+       (03/09/2026, after the weekly outstanding-orders report stopped being
+       sent on 18/08 and nothing noticed for a fortnight.) */
+    $('supp-kpis').innerHTML=
+      kpi('n','Projected spend this week','—','no source in this bake — not zero')+
+      kpi('n','Items ordered this week','—','no source in this bake')+
+      otifTile+
+      kpi('n','Top supplier this week','—','no source in this bake')+
       kpi('o','Issues logged',fmtN(issues.length),'answer dates '+evLabel()+' · click for the Supplier Issues tab');
   } else {
     /* fallback shape: exactly today's card, unchanged - no delivered/
