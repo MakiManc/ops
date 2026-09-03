@@ -252,6 +252,13 @@ def classify_issue(text):
 # & Wales' assignments, so its cell renders as no-data, never a penalty.
 # HR/people modules (Sexual Harassment, Data Privacy, D&I, Disability
 # Awareness, Anti-Modern Slavery) are deliberately NOT in this list.
+#
+# Ross, 03/09/2026: 'Mapal Run through' and 'Mapal Run through Management'
+# come OUT. They are training in how to use Mapal itself, not a safety, food
+# or licensing obligation - the only kind this view is meant to count. Their
+# rows are still pulled and still appear under "All modules"; what changes is
+# that nobody is counted non-compliant for them. Two of the eleven heatmap
+# columns go with them.
 MANDATORY_MODULES = [
     "COSHH: Working With Hazardous Substances - UK",
     "First Aid Awareness",
@@ -262,8 +269,6 @@ MANDATORY_MODULES = [
     "Licensing Scotland",
     "Licensing England & Wales",
     "MRSOS Training Module",
-    "Mapal Run through",
-    "Mapal Run through Management",
 ]
 EXPECTED_FEEDS = [
     "Flow Trainees","Flow Branches","Flow Modules","Flow Certificates",

@@ -141,7 +141,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   border:1px solid var(--line)}
 .heat td.hblank{background:var(--track);color:var(--faint)}
 /* mandatory-compliance heatmap: shrink-wrap the site column so the module
-   cells share the card's full width (11 wide columns, unlike broth's 14) */
+   cells share the card's full width (9 wide columns, unlike broth's 14) */
 #tr-heat td.hsite{width:1%}
 #tr-heat td.hcell,#tr-heat td.hblank{min-width:46px;height:26px}
 #tr-heat td.hcell{color:var(--ink);font-weight:600}
@@ -859,9 +859,7 @@ const MOD_SHORT={
   'Fire Safety Awareness':'Fire Safety',
   'Licensing Scotland':'Lic. Scot',
   'Licensing England & Wales':'Lic. E&W',
-  'MRSOS Training Module':'MRSOS',
-  'Mapal Run through':'Mapal',
-  'Mapal Run through Management':'Mapal Mgmt'};
+  'MRSOS Training Module':'MRSOS'};
 const modeFilter=(host,onchange)=>{
   const modes=[['mand','Mandatory compliance'],['all','All modules']];
   $(host).innerHTML='<span style="color:var(--muted);font-size:12px">View:</span>'+
