@@ -1,0 +1,42 @@
+name: Scheduler probe
+
+# A MEASUREMENT, NOT A TRIGGER. It does nothing except exist and be late.
+#
+# Since 27/08/2026 the PRIVATE repo MakiManc/maki-hospitality-etl has had its
+# `schedule` events created 3h33m-12h21m late while every other trigger there
+# is punctual to the second. Nobody knows whether that is account-wide or
+# specific to that private repo, because THIS repo's own schedules were deleted
+# on 26-27/08 - one day before the regime changed - so there is no post-break
+# evidence either way.
+#
+# That question decides real things. If this public repo's schedules are
+# punctual, the throttle is private-repo-specific and the 15-slot cron ladder
+# now carrying the deadline in the ETL repo can be trimmed back to one or two.
+# If they are equally late, it is account-wide and the external clock is the
+# only answer.
+#
+# Read it after 24 hours with:
+#   for each run: created_at minus the cron time (:05 of the hour)
+# 24 samples is plenty. Delete this workflow once the question is answered - it
+# is not meant to live here.
+#
+# Costs nothing: public repos get free Actions minutes and this is one echo.
+
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Record when this actually started
+        run: |
+          echo "cron said     :05 of the hour"
+          echo "actually ran  $(date -u '+%F %H:%M:%S UTC')"
+          echo "delay is (actual - :05); read it from created_at in the API."
