@@ -166,7 +166,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="wrap">
 <div class="top">
   <div><h1><b>Maki &amp; Ramen</b> · Ops Command</h1>
-    <div class="sub">Baked daily from the Neon warehouse · shell carries no numbers</div></div>
+    <div class="sub">Baked daily from the committed pull archive · shell carries no numbers</div></div>
   <div class="meta">
     <span>pull <b id="m-pull">—</b></span>
     <span class="filters" style="margin:0" id="range-btns" title="Filters by when things actually happened — form answer dates and module completion dates, not ETL pull dates">
@@ -185,6 +185,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 
 <div class="page on" id="p-over">
   <div class="kpis" id="kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">OKR scorecard</div>
+    <div class="s">One row per KR in the Master Operating Manual. A row with a figure is measured from the feeds named in its basis &mdash; hover it. A grey row is <b>not measured</b> and names what it would take; that list is the data roadmap. Green means the target is met and red means it is not; there is no amber, because the Manual sets targets and no tolerances.</div></div>
+    <div class="card-b" id="scorecard"></div></div>
   <div class="card"><div class="card-h"><div class="t">Needs attention</div>
     <div class="s">Every signal carries its basis — hover to see how it was derived · these are current-state figures, not sliced by the date range filter (the filter applies inside each tab, to submission/answer/completion dates — never pull dates)</div></div>
     <div class="card-b" id="signals"></div></div>
@@ -1002,6 +1005,62 @@ function bannerHtml(snap){
      missing rather than guessing the bake failed. */
   if(isLatest&&ageDays>2.5) return `<div class="warn"><b>This snapshot is ${Math.floor(ageDays)} days old</b> (generated ${esc(snap.generated_at)}) and no verifier verdict is available — check the ops repo's Actions tab.</div>`;
   return '';
+}
+
+/* Ross, 09/09/2026: the OKR scorecard. Every judgement in here was made by the
+   builder - RAG, whether a row is measurable, what the blocker is - and this
+   function only paints it. That split is the house rule (index.html carries no
+   numbers and no thresholds), and it matters most here: a scorecard is exactly
+   the place someone would be tempted to decide in the shell that 96.1% "looks
+   green". It does not, because nobody has set that target. */
+function sparkline(points){
+  /* Nulls are holes, never zeros. A week with no data draws no dot and no line
+     across it - 0-padding would have rendered the two days this pipeline was
+     dead as a dramatic improvement in every rate on the page. */
+  const vals=points.filter(p=>p.v!=null).map(p=>p.v);
+  if(!vals.length) return '<span style="opacity:.55">no history</span>';
+  const lo=Math.min(...vals), hi=Math.max(...vals), span=(hi-lo)||1;
+  const W=88,H=22,step=points.length>1?W/(points.length-1):0;
+  const xy=points.map((p,i)=>p.v==null?null:[i*step,H-2-((p.v-lo)/span)*(H-6)]);
+  let segs='',prev=null;
+  xy.forEach(pt=>{ if(pt&&prev) segs+=`<line x1="${prev[0].toFixed(1)}" y1="${prev[1].toFixed(1)}" x2="${pt[0].toFixed(1)}" y2="${pt[1].toFixed(1)}" stroke="currentColor" stroke-width="1.5" fill="none"/>`; prev=pt; });
+  const dots=xy.map(pt=>pt?`<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="2" fill="currentColor"/>`:'').join('');
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-hidden="true" style="vertical-align:middle;opacity:.85">${segs}${dots}</svg>`;
+}
+function renderScorecard(snap){
+  const el=$('scorecard'); if(!el) return;
+  const s=snap&&snap.scorecard;
+  if(!s||!(s.rows||[]).length){
+    el.innerHTML='<div class="empty">This snapshot predates the OKR scorecard.</div>'; return;
+  }
+  const ragChip=r=>r.rag==='green'?chip('g','On target')
+                  :r.rag==='red'?chip('r','Off target')
+                  :r.value!=null?chip('b','Reported')
+                  :chip('n','Not measured');
+  let fn_='';
+  const body=s.rows.map(r=>{
+    const head=r.function!==fn_?(fn_=r.function,`<tr><td colspan="5" style="padding-top:12px;font-weight:650;opacity:.75;border:0">${esc(r.function)}</td></tr>`):'';
+    const measured=r.value!=null;
+    const trend=r.trend?sparkline(r.trend):'';
+    const trendNote=r.trend_note?`<div class="dt" style="opacity:.7">${esc(r.trend_note)}</div>`:'';
+    const unit=r.trend&&r.trend_unit?`<div class="dt" style="opacity:.6">${esc(r.trend_unit)}</div>`:'';
+    const detail=measured
+      ? `<div class="dt">${esc(r.basis||'')}</div>`
+      : `<div class="dt"><b>Needs:</b> ${esc(r.not_measured||'no source')}</div>`;
+    const link=(r.tab&&r.tab!=='—')
+      ? ` <button class="lnk" data-go="${esc(r.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
+      : '';
+    return head+`<tr${measured?'':' style="opacity:.72"'}>`+
+      `<td><div>${esc(r.kr)}</div>${detail}</td>`+
+      `<td class="n" style="white-space:nowrap">${esc(r.target)}</td>`+
+      `<td class="n" style="font-weight:650;white-space:nowrap">${esc(r.display||'—')}</td>`+
+      `<td>${ragChip(r)}${link}</td>`+
+      `<td>${trend}${unit}${trendNote}</td></tr>`;
+  }).join('');
+  el.innerHTML='<table><thead><tr><th>KR / KPI</th><th class="n">Target</th><th class="n">Now</th>'+
+    '<th>Status</th><th>Last 4 weeks</th></tr></thead><tbody>'+body+'</tbody></table>'+
+    `<div class="prov">${esc(s.measured)} of ${esc(s.total)} measured. ${esc(s.basis||'')}</div>`;
+  el.querySelectorAll('button[data-go]').forEach(b=>b.onclick=()=>gotoPage(b.dataset.go));
 }
 
 /* ------------ render from a structured snapshot ------------ */
@@ -2023,13 +2082,24 @@ function render(snap){
     kpi('o','Employees',fmtN(s.employees),'on the Flow roster')+
     kpi(trPct==null?'n':trPct>=TARGET?'g':trPct>=70?'a':'r','Training complete',
         trPct==null?'—':trPct+'%',trPct==null?'waiting on the deep pull':fmtN(comp)+' of '+fmtN(mods)+' modules')+
-    kpi(supOpen==null?'n':supOpen>10?'r':supOpen?'a':'g','Open supplier issues',
-        supOpen==null?'—':fmtN(supOpen),
-        supOpen==null?'no data in this pull':'target is 10 or fewer per month')+
+    /* Ross, 09/09/2026: this tile used to read "Open supplier issues 219 —
+       target is 10 or fewer per month", which put a running open-form total
+       next to a PER-MONTH target: two different units in one card, and it now
+       sat directly above a scorecard row saying KR1 is 26. The Overview
+       contradicted itself. It is KR1 here too, read from the same
+       suppliers.kr1 block, so the tile and the scorecard cannot drift.
+       "Open" survives only on the Supplier Issues tab, where suppliers.kr1
+       .open_note explains what that number actually counts. */
+    (()=>{const k=((sup.kr1||{}).months||[]).slice(-1)[0];
+      return kpi(!k?'n':k.rag==='red'?'r':'g','Delivery issues this month',
+        k?fmtN(k.issues):'—',
+        k?`${monthLabel(k.month)} · target ≤${k.target} · by answered supplier`
+         :'no data in this pull');})()+
     kpi(devOpen==null?'n':devOpen?'a':'g','Open deviations',devOpen==null?'—':fmtN(devOpen),
         devOpen==null?'no data in this pull':'all forms, unresolved')+
     kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected but absent from Postgres')+
     kpi('g','Feeds healthy',fmtN(s.feeds_ok),'fresh in the warehouse');
+  renderScorecard(snap);
   $('signals').innerHTML=(snap.signals||[]).length?(snap.signals||[]).map(g=>
     `<div class="sig" data-t="basis: ${esc(g.basis||'')}">${chip(g.severity==='red'?'r':g.severity==='amber'?'a':'b',
       g.severity==='red'?'Escalate':g.severity==='amber'?'Review':'Note')}

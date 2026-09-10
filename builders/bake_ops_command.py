@@ -2241,6 +2241,229 @@ def main():
         gaps.append("Flow Certificates exposes no expiry field (certificate_url, module_name, "
                     "trainee_id only) - statutory expiries are not visible from this feed")
     snap["gaps"]=gaps
+    # ---- OKR scorecard (Overview) -----------------------------------------
+    # Ross, 09/09/2026: the Overview is an OKR SCORECARD now, not four ranked
+    # signals. One row per KR/KPI from the Master Operating Manual, each with
+    # its target, its RAG, a 4-week trend and the tab that drills into it.
+    #
+    # THE RULES THIS BLOCK OBEYS, because they are what stop a scorecard
+    # becoming a wall of invented numbers:
+    #
+    #  1. RAG is decided HERE, in the builder, never in the shell. The shell
+    #     maps a colour name to a chip; it does not know what "good" is.
+    #  2. Green when the target is met, red when it is not. There is NO amber
+    #     band, because the Manual gives targets and no tolerances, and a
+    #     tolerance nobody agreed is a number we made up.
+    #  3. A KR with no target gets NO RAG - grey, and the words "no target
+    #     set". Scheduled-task on-time is 96.1%, which looks like a pass, but
+    #     nobody has set the target, so colouring it green would be inventing
+    #     the target as well as the verdict.
+    #  4. A KR with no source renders grey with the BLOCKER named. That list is
+    #     the data roadmap, on the dashboard instead of in a document.
+    #  5. Trends are never 0-padded. A week with no data is null and draws no
+    #     point. Padding a dead feed to zero would have drawn the two days this
+    #     pipeline was down as a dramatic improvement in every rate on the page.
+    #  6. Denominators travel with every point, so a week of 3 task instances
+    #     cannot be averaged against a week of 3,000.
+    def _mon(d):
+        """Monday of the ISO week containing YYYY-MM-DD."""
+        dt=datetime.date.fromisoformat(d[:10])
+        return (dt-datetime.timedelta(days=dt.weekday())).isoformat()
+    _end=_mon((pull or datetime.date.today().isoformat())[:10])
+    WEEKS=[(datetime.date.fromisoformat(_end)-datetime.timedelta(days=7*i)).isoformat()
+           for i in range(3,-1,-1)]
+    def _trend(buckets, fmt=lambda num,den: round(100.0*num/den,1) if den else None):
+        """buckets: {monday: (numerator, denominator, days_observed)} -> 4 points."""
+        out=[]
+        for w in WEEKS:
+            if w in buckets:
+                num,den,days=buckets[w]
+                out.append({"w":w,"v":fmt(num,den),"n":den,"days":days})
+            else:
+                out.append({"w":w,"v":None,"n":0,"days":0})
+        return out
+    def _note(buckets,what,since=None):
+        have=sum(1 for w in WEEKS if w in buckets)
+        if have==4: return None
+        return (f"{have} of 4 weeks"+(f" - {what} history starts {since}" if since else
+                f" - no {what} history for the missing weeks"))
+
+    # The append-only aggregates archive is the ONLY durable history this
+    # system has: the task feed is a rolling ~9-day window, so without it a
+    # trend could never be longer than the window. It is written by the
+    # VERIFIER (verify_ops_data.archive_aggregates) after each bake and
+    # committed beside the snapshots, so it is always one bake behind - which
+    # is fine for a weekly trend and must not be "fixed" by having the bake
+    # write it too, or the two writers will fight.
+    agg=[]
+    try:
+        with open(os.path.join(OUT_DIR,"ops_daily_aggregates.jsonl")) as fh_:
+            for line in fh_:
+                if line.strip(): agg.append(json.loads(line))
+    except FileNotFoundError:
+        gaps.append("Trend history unavailable: data/ops_command/ops_daily_aggregates.jsonl "
+                    "is missing, so the scorecard can only show this pull's own window")
+
+    sc=[]
+    def row(fn,kr,target,tab,**kw):
+        sc.append({"function":fn,"kr":kr,"target":target,"tab":tab,
+                   "value":None,"display":None,"rag":None,"basis":None,
+                   "trend":None,"trend_unit":None,"trend_note":None,
+                   "not_measured":None,**kw})
+
+    # --- Supply KR1: delivery issues per month (MEASURED) ---
+    _k=(snap["suppliers"].get("kr1") or {}).get("months") or []
+    if _k:
+        _cur=_k[-1]
+        _b={}
+        for i_ in issues:
+            d=i_.get("d") or ""
+            if len(d)<10: continue
+            w=_mon(d); n_,_x,dd=_b.get(w,(0,0,set())); dd=set(dd); dd.add(d)
+            _b[w]=(n_+1,0,dd)
+        _b={w:(n_,0,len(dd)) for w,(n_,_x,dd) in _b.items()}
+        row("Supply","KR1 delivery issues / month","≤10","p-supi",
+            value=_cur["issues"],display=str(_cur["issues"]),rag=_cur["rag"],
+            basis=(snap["suppliers"]["kr1"]["basis"]
+                   +(" — "+_cur["coverage_note"] if _cur.get("coverage_note") else "")),
+            trend=_trend(_b,fmt=lambda num,den: num),trend_unit="issues raised / week",
+            trend_note=_note(_b,"issue","2026-08-05"))
+    else:
+        row("Supply","KR1 delivery issues / month","≤10","p-supi",
+            not_measured="needs the GC Form Task Answers feed, which is absent from this bake")
+
+    # --- Supply KR2: price spikes (PROXY) ---
+    row("Supply","KR2 price spikes / month","≤3","p-supp",
+        not_measured=("item-level only — the Kobas Weekly Ingredient Price Changes report "
+          "carries no supplier or site column, so a change cannot be attributed. "
+          "Needs a supplier column on that report, or price lines joined to Kobas Orders "
+          "line items by ingredient code"))
+    # --- Supply KR3 / KR5: no source at all ---
+    row("Supply","KR3 menu items unavailable","0","—",
+        not_measured="no stock-out is recorded anywhere machine-readable. Needs a GC stock-out form, or Kobas 86'd items")
+    row("Supply","KR5 monthly supplier audit","100%","—",
+        not_measured="no audit is recorded. Needs a supplier audit checklist in GetCompliant or Asana")
+
+    # --- Supply KR4: OTIF (PROXY, and say so) ---
+    _o=(snap.get("supply") or {}).get("otif") or {}
+    _om=(_o.get("months") or [])
+    _last=_om[-1] if _om else None
+    if _last and _last.get("otif_pct") is not None:
+        row("Supply","KR4 OTIF",">=95%","p-supp",
+            value=_last["otif_pct"],display=f"{_last['otif_pct']}%",rag=None,
+            basis=("PROXY, NOT OTIF — this is the issue-free delivery rate: nothing in the read "
+              "path observes whether a delivery was on time, so it can only be a lower bound. "
+              f"{_last.get('measurable_suppliers')} of {_last.get('measurable_of')} suppliers had "
+              "order-email coverage spanning the month. Real OTIF needs Mapal Supplier Orders "
+              "or a Lynas delivery file."),
+            not_measured=None)
+    else:
+        row("Supply","KR4 OTIF",">=95%","p-supp",
+            not_measured=("no supplier-month has Kobas order-email coverage spanning the whole "
+              "month, so no defensible rate exists. Real OTIF needs Mapal Supplier Orders "
+              "or a Lynas delivery file"))
+
+    # --- Maintenance: all five have no machine-readable source ---
+    # None of the five is measurable from Lincoln's sheet, which is a single
+    # hand-maintained list of reactive tickets: it records what broke, not what
+    # was scheduled, so there is nothing to score "on time" against.
+    _mt="Lincoln's maintenance sheet records reactive tickets only. Needs %s"
+    for _kr,_tg,_need in [
+        ("KR1 PPM on time",">=95%","a PPM schedule with planned vs actual dates — the Asana system Ziang owns is the natural home"),
+        ("KR2 repeat issues vs baseline","-20%","issue categorisation and an agreed baseline period"),
+        ("KR3 unplanned closures","0","a record of where closures are logged (Kobas trading hours? Slack?)"),
+        ("KR4 statutory compliance","100%","a certificate register with expiry dates — CP42, EICR, PAT, Ansul, fire alarm, grease trap"),
+        ("KR5 Contact Sheets complete","100%","the Operations Setup sheet tab, or Drive")]:
+        row("Maintenance",_kr,_tg,"p-maint",not_measured=_mt % _need)
+
+    # --- Quality: broth conformance (MEASURED) ---
+    _cells=((snap.get("quality") or {}).get("broth") or {}).get("cells") or []
+    _g=[c for c in _cells if c.get("grade")]
+    if _g:
+        _in=sum(1 for c in _g if c["grade"]=="in")
+        _pct=round(100.0*_in/len(_g),1)
+        _b={}
+        for c in _g:
+            w=_mon(c["d"]); i_,n_,dd=_b.get(w,(0,0,set())); dd=set(dd); dd.add(c["d"])
+            _b[w]=(i_+(1 if c["grade"]=="in" else 0),n_+1,dd)
+        _b={w:(i_,n_,len(dd)) for w,(i_,n_,dd) in _b.items()}
+        row("Quality","Broth conformance (site)",">=95% in band","p-qual",
+            value=_pct,display=f"{_pct}%",rag=("green" if _pct>=95 else "red"),
+            basis=(f"{_in} of {len(_g)} graded site readings inside the band "
+                   f"(chicken 5-7, tonkotsu 6-7); readings for a product with no agreed band "
+                   f"are not graded and not counted"),
+            trend=_trend(_b),trend_unit="% in band / week",trend_note=_note(_b,"broth-check"))
+    else:
+        row("Quality","Broth conformance (site)",">=95% in band","p-qual",
+            not_measured="no graded broth readings in this bake")
+
+    # --- Compliance: scheduled-task on-time (MEASURED, but NO TARGET SET) ---
+    _tb={}
+    for r_ in agg:
+        if r_.get("metric")!="tasks": continue
+        w=_mon(r_["metric_date"]); ot,ms,dd=_tb.get(w,(0,0,set())); dd=set(dd); dd.add(r_["metric_date"])
+        _tb[w]=(ot+(r_.get("v1") or 0),ms+(r_.get("v2") or 0),dd)
+    _tb={w:(ot,ot+ms,len(dd)) for w,(ot,ms,dd) in _tb.items()}
+    _tc=(snap.get("tasks") or {}).get("cells") or []
+    _ot=sum(c.get("on_time") or 0 for c in _tc); _ms=sum(c.get("missed") or 0 for c in _tc)
+    if _ot+_ms:
+        _pct=round(100.0*_ot/(_ot+_ms),1)
+        row("Compliance","Scheduled task on-time","not set","p-tasks",
+            value=_pct,display=f"{_pct}%",rag=None,
+            basis=(f"{_ot} on time of {_ot+_ms} scheduled task instances in this pull's window. "
+                   "NO TARGET HAS BEEN SET for this KR, so it carries no RAG - the figure is "
+                   "reported, not judged."),
+            trend=_trend(_tb),trend_unit="% on time / week",
+            trend_note=_note(_tb,"task",min((r_["metric_date"] for r_ in agg
+                                             if r_.get("metric")=="tasks"),default=None)))
+    else:
+        row("Compliance","Scheduled task on-time","not set","p-tasks",
+            not_measured="no scheduled-task answers in this bake")
+
+    # --- People: mandatory training (MEASURED, no trend source yet) ---
+    _ms_=((snap.get("training") or {}).get("mandatory") or {}).get("sites") or []
+    _as=sum(s_.get("assigned") or 0 for s_ in _ms_); _cp=sum(s_.get("complete") or 0 for s_ in _ms_)
+    if _as:
+        _pct=round(100.0*_cp/_as,1)
+        row("People","Mandatory training complete",">=90%","p-train",
+            value=_pct,display=f"{_pct}%",rag=("green" if _pct>=90 else "red"),
+            basis=f"{_cp} of {_as} mandatory module assignments complete across {len(_ms_)} sites",
+            trend_note=("no trend yet - training is read as CURRENT STATE, not as events, so "
+                        "there is nothing to bucket by week. A trend needs completion counts "
+                        "archived per day, which ops_daily_aggregates.jsonl does not yet carry"))
+    else:
+        row("People","Mandatory training complete",">=90%","p-train",
+            not_measured="no mandatory module rows in this bake")
+
+    # --- Production and Warehouse: nothing lands in this system at all ---
+    for _kr,_tg in [("Factory food cost","45%"),("Factory labour","22%"),
+                    ("Stock variance","<5%"),("Forecast accuracy","+/-15%"),
+                    ("Availability","100%")]:
+        row("Production",_kr,_tg,"—",
+            not_measured=("no factory feed reaches this system. Needs Kobas API or scheduled "
+              "report exports for the factory org, and the Demand Sheet via a service account"))
+    row("Warehouse","China stock cover (weeks)","not set","—",
+        not_measured="Mintsoft is not wired in. Needs a Mintsoft export or API, plus the known duplicate-line cleanup")
+
+    # Emitted in build order, which put KR4 after KR5 because the OTIF row needs
+    # the OTIF block above it. Sort by the KR number so the Overview reads in
+    # the order the Manual lists them; rows with no KR number keep their place.
+    import re as _re
+    _order={ "Supply":0,"Maintenance":1,"Production":2,"Quality":3,
+             "Compliance":4,"People":5,"Warehouse":6 }
+    def _krn(r_):
+        m_=_re.match(r"KR(\d+)",r_["kr"])
+        return int(m_.group(1)) if m_ else 99
+    sc.sort(key=lambda r_:(_order.get(r_["function"],9),_krn(r_)))
+    snap["scorecard"]={"weeks":WEEKS,"rows":sc,
+      "measured":sum(1 for r_ in sc if r_["value"] is not None),
+      "total":len(sc),
+      "basis":("one row per KR/KPI in the Master Operating Manual. A row with a value is "
+        "measured from the feeds named in its basis; a row without one names the blocker "
+        "instead, and that list is the data roadmap. RAG is green when the target is met and "
+        "red when it is not; there is no amber band because the Manual sets targets and no "
+        "tolerances, and a KR with no agreed target carries no RAG at all.")}
+
     # ---- signals, each with basis ----
     sig=[]
     # Ross, 09/09/2026: this signal used to read "Supplier issue backlog is 214
