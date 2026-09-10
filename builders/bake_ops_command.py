@@ -112,6 +112,15 @@ SITE_REGIONS = {
     "Maki Birmingham Ltd": "south",       # M21 -- South England cluster
     "Maki Nori": "south",
     "Maki O2 Arena": "south",             # best-fit (franchise MAF3, London)
+    # Ross, 09/09/2026: Braehead was the one site in the estate with no region,
+    # so it fell out of every regional view and into the named-gap list. It is a
+    # FRANCHISE, like Maki O2 Arena, which is why the AM Manual's three clusters
+    # do not name it - so it takes the same best-fit rule this map already uses
+    # for O2: the host region's AM. Braehead is in Glasgow, hence scotland.
+    # Note this is host-region, NOT geography: this map deliberately puts
+    # Renfield (Glasgow) under north and Newcastle under scotland, because
+    # region here means who manages a site, never where it is.
+    "Maki Braehead": "scotland",          # best-fit (franchise, Glasgow - host-region AM)
 }
 SUPPLIER_MATCH = [("Lynas","Lynas"),("Solstice","Solstice"),("Solstice","Sosltice"),
                   ("TWF","TWF"),("M&R","M&R")]
@@ -215,7 +224,31 @@ SITE_ALIASES = {
     "o2_arena":      ("Maki O2 Arena",         "Maki O2 Arena",              "Maki O2 Arena"),
     "renfield":      ("Renfield Good Food Ltd","Maki Renfield",              "Maki Renfield"),
     "south_ikigai":  ("South Ikigai Ltd",      "Ikigai Ramen South Bridge",  "South Ikigai"),
+    # Ross, 09/09/2026: four pairs added, none of them guessed. Flow Branches
+    # carries `trainee_feed_identifier` beside `name` - Flow's own record of
+    # which Kobas venue a GetCompliant location IS. It reproduces all nineteen
+    # hand-built pairs above, 19 for 19, and is stable across all 25 archived
+    # pulls, which is what makes it evidence rather than a coincidence.
+    #
+    # It proves IDENTITY, never the literal string: it writes 'Maki METRO' where
+    # Kobas writes 'Maki Metro', and slugs some ('Maki-yorkshire-LTD'). So every
+    # Kobas value below is the exact string as it appears in the Kobas feeds
+    # themselves, counted in the archive, not copied from Flow.
+    "fountainbridge":("Fountain Good Food Ltd", "Maki Fountainbridge",        "Maki Fountainbridge"),
+    "m1too":         ("M1TOO Ltd",              "Maki 1/2 (Nicolson St)",     "Maki 1/2 Nicolson St"),
+    "meadowhall":    ("Maki Meadowhall",        "Maki Yorkshire",             "Maki Meadowhall"),
+    "braehead":      ("Maki Braehead",          "Maki Braehead",              "Maki Braehead"),
 }
+# STILL UNMATCHED, AND DELIBERATELY SO - this is the honest remainder, not an
+# oversight, and it is shorter than it was:
+#   Kobas-side with no GetCompliant location and no Flow branch in ANY pull:
+#     'Maki Leith', 'Maki Manchester NQ', 'Maki West End'. Giving these keys
+#     would put site names on the Cross-Reference tab that can never carry a
+#     broth check or a compliance form, which is worse than leaving them out.
+#   'OLD: Maki Bath Street' and 'OLD: Maki Renfield' are superseded Kobas
+#     venues; their live counterparts are already mapped.
+#   'Maki Property Ltd' is Head Office and 'Maki EH1 Ltd' has no Kobas venue at
+#     all - neither takes deliveries, so neither can be cross-referenced.
 # GC-side sites with no confirmed Kobas match (as of 14/08/2026): Fountain
 # Good Food Ltd, M1TOO Ltd, Maki Meadowhall, Maki Property Ltd. Kobas-side
 # sites with no GC broth-check match: Maki 1/2 (Nicolson St), Maki
@@ -2105,15 +2138,25 @@ def main():
       "and never repaired. Neither flag can see a price that never appears in the report, "
       "because the report only lists changes"}
     # ---- cross-reference: broth quality x supplier issues, by site+date ----
-    gc_to_key={v[0]:k for k,v in SITE_ALIASES.items()}
+    # Ross, 09/09/2026: NORMALISE THE NON-BREAKING SPACE. GetCompliant writes
+    # 'Maki\u00a0O2\u00a0Arena' - U+00A0, not a space - in every feed, and this
+    # file contains no U+00A0 anywhere, so the lookup silently missed and O2
+    # Arena has been excluded from cross-referencing since the tab was built.
+    # It looks identical in every editor and diff, which is exactly why it
+    # survived: the tab reported "no coincidences" rather than "site not
+    # matched". Normalise on BOTH sides of the join, never by editing the
+    # literal above to contain an invisible character.
+    def _site_key(s):
+        return " ".join(str(s or "").replace("\u00a0", " ").split())
+    gc_to_key={_site_key(v[0]):k for k,v in SITE_ALIASES.items()}
     events=[]
     for dv in broth_deviations:
-        key=gc_to_key.get(dv["site"])
+        key=gc_to_key.get(_site_key(dv["site"]))
         if not key: continue
         events.append({"site_key":key,"d":dv["d"],"kind":"broth_deviation",
           "detail":f"{dv['kind']} broth deviation"+(" (open)" if dv["open"] else "")})
     for i_ in issues:
-        key=gc_to_key.get(i_["site"])
+        key=gc_to_key.get(_site_key(i_["site"]))
         if not key or not i_["d"]: continue
         events.append({"site_key":key,"d":i_["d"],"kind":"supplier_issue",
           "detail":f"{i_['supplier'] or '(no supplier answer)'} issue"+
@@ -2137,13 +2180,37 @@ def main():
                   "broth_date":bd["d"],"broth_detail":bd["detail"],
                   "supplier_issues":[{"d":si["d"],"detail":si["detail"]} for si in near]})
     coincidences.sort(key=lambda r:r["broth_date"],reverse=True)
-    gaps.append("Cross-reference site-alias map does not cover every site: 'Fountain Good "
-        "Food Ltd', 'M1TOO Ltd', 'Maki Meadowhall' and 'Maki Property Ltd' appear in "
-        "GetCompliant with no confirmed Kobas venue match, and 'Maki 1/2 (Nicolson St)', "
-        "'Maki Fountainbridge', 'Maki Leith', 'Maki Manchester NQ', 'Maki West End' and "
-        "'Maki Yorkshire' appear in Kobas with no GetCompliant broth-check match - these "
-        "sites are excluded from cross-referencing until the alias map is extended, never "
-        "guessed at")
+    # Ross, 09/09/2026: this list was hand-written and is now derived, because a
+    # hand-written one goes stale the moment the map is extended - as it just
+    # did. Four of the ten sites it named were matched on Flow Branches
+    # evidence, and Meadowhall was one of them, which is why this tab produced
+    # its first coincidences in four weeks the moment the map grew.
+    _gcnames={r[0] for r in SITE_ALIASES.values()}
+    _kbnames={r[1] for r in SITE_ALIASES.values()}
+    # Both sides measured from the feeds, so this list shrinks by itself the
+    # next time the map grows and can never again name a site that IS mapped.
+    xr_gc_sites={dv["site"] for dv in broth_deviations if dv.get("site")}
+    xr_gc_sites |= {i_["site"] for i_ in issues if i_.get("site")}
+    xr_kobas_sites=set()
+    try:
+        cur.execute("SELECT DISTINCT nullif(data->>'Site','') FROM etl_feed_rows "
+                    "WHERE feed=%s", (ORDER_EMAIL_FEED,))
+        xr_kobas_sites={r[0] for r in cur.fetchall() if r and r[0]}
+    except Exception as e:
+        print(f"[bake] could not read Kobas venue names for the alias gap ({e})")
+    _gcnames={_site_key(n) for n in _gcnames}
+    _gc_un=sorted(s_ for s_ in xr_gc_sites if _site_key(s_) not in _gcnames)
+    _kb_un=sorted(s_ for s_ in xr_kobas_sites
+                  if s_ not in _kbnames and not s_.startswith("OLD: "))
+    if _gc_un or _kb_un:
+        gaps.append("Cross-reference site-alias map does not cover every site: "
+            + (", ".join(repr(s_) for s_ in _gc_un)+" appear"+("s" if len(_gc_un)==1 else "")
+               +" in GetCompliant with no confirmed Kobas venue match" if _gc_un else "")
+            + ("; " if _gc_un and _kb_un else "")
+            + (", ".join(repr(s_) for s_ in _kb_un)+" appear"+("s" if len(_kb_un)==1 else "")
+               +" in Kobas with no GetCompliant match" if _kb_un else "")
+            + " - excluded from cross-referencing until there is evidence for a pairing, "
+              "never guessed at")
     snap["cross_ref"]={"events":events,"coincidences":coincidences,
       "site_aliases":{k:{"gc":v[0],"kobas":v[1],"label":v[2]} for k,v in SITE_ALIASES.items()},
       "basis":"coincidence, NOT causation: every broth deviation (GC Scheduled Task "
