@@ -740,14 +740,50 @@ def main():
           "SELECT coalesce(nullif(data->>'FolderName',''),'(no folder)'), "
           " coalesce(nullif(data->>'FormName',''),'(unnamed)'), "
           " coalesce((data->>'CompletedFormsCount')::int,0), coalesce((data->>'OngoingFormsCount')::int,0), "
-          " coalesce((data->>'DeviationsCount')::int,0), coalesce((data->>'OpenDeviationsCount')::int,0) "
+          " coalesce((data->>'DeviationsCount')::int,0), coalesce((data->>'OpenDeviationsCount')::int,0), "
+          " lower(coalesce(data->>'IsArchieved','')), lower(coalesce(data->>'IsDeleted','')), "
+          " nullif(data->>'FormVersionId',''), nullif(data->>'FormId','') "
           "FROM etl_feed_rows WHERE feed='GC Forms Overview' AND pull_date="
           "(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='GC Forms Overview')")
-        for folder,form,comp,ong,dev,opn in cur.fetchall():
+        # Ross, 09/09/2026: IsArchieved / IsDeleted / FormVersionId are in every
+        # source row and were being discarded right here, so nothing downstream
+        # could tell a live form version from a dead one. That is how the
+        # "Open deviations" tile reached 285 when the live estate is 189, and
+        # how the supplier total reached 219 when live is 123.
+        #
+        # 'IsArchieved' is spelled that way in GETCOMPLIANT'S OWN SCHEMA. It is
+        # not a typo in this file. Do NOT "correct" it to IsArchived - the key
+        # would stop matching, every row would read false, and every archived
+        # version would come silently back into the totals.
+        #
+        # FormVersionId is this feed's real key; FormId REPEATS. On the 09/09
+        # pull FormId 17460 appears on eight of the thirteen delivery/supplier
+        # rows under five different names. So a row here is a form VERSION.
+        _tf=lambda v:str(v or "").strip() in ("true","1","yes","t")
+        for folder,form,comp,ong,dev,opn,arch,dele,ver,fid in cur.fetchall():
             tot=comp+ong
             forms.append({"folder":folder,"form":form,"completed":comp,"ongoing":ong,
               "pct_complete":round(100.0*comp/tot,1) if tot else None,
-              "deviations":dev,"open":opn})
+              "deviations":dev,"open":opn,
+              "archived":_tf(arch),"deleted":_tf(dele),
+              "live":not (_tf(arch) or _tf(dele)),
+              "version":ver,"form_id":fid})
+        # A dead version still reporting open deviations is not a backlog, it is
+        # a GetCompliant artefact: version 34231 of the Delivery/Supplier Issue
+        # Form carries 96 open deviations while reporting zero deviations raised
+        # and zero forms completed. Name it rather than quietly dropping it -
+        # somebody will otherwise ask why the number fell.
+        _dead=[f_ for f_ in forms if not f_["live"] and f_["open"]]
+        if _dead:
+            gaps.append(
+              f"{sum(f_['open'] for f_ in _dead)} open deviations sit on "
+              f"{len(_dead)} ARCHIVED or DELETED form version(s) in GetCompliant "
+              f"(worst: '{max(_dead,key=lambda f_:f_['open'])['form']}' version "
+              f"{max(_dead,key=lambda f_:f_['open'])['version']}). They are excluded "
+              "from the open counts on this dashboard because a retired form version "
+              "cannot accrue a real backlog - one of them reports 0 deviations raised "
+              "and 0 forms completed alongside its 96 open. They are still listed on "
+              "the Compliance tab, flagged. Clearing them is a GetCompliant admin job.")
     else: gaps.append("GC Forms Overview absent from warehouse")
     areas=[]
     if has_feed(cur,"GC Central Module Tasks"):
@@ -782,9 +818,21 @@ def main():
         n=f["form"]
         if "eliver" in n or "upplier" in n:
             sups.append({"supplier":supplier_of(n),"form":n,"completed":f["completed"],
-                         "raised":f["deviations"],"open":f["open"]})
+                         "raised":f["deviations"],"open":f["open"],
+                         "live":f["live"],"archived":f["archived"],"deleted":f["deleted"],
+                         "version":f["version"],"form_id":f["form_id"]})
+    # Ross, 09/09/2026: LIVE VERSIONS ONLY in the totals. Every retired version
+    # is still listed above in suppliers.forms with its flags, so nothing is
+    # hidden - it just stops being counted. On the 09/09 pull this is the
+    # difference between 219 and 123, and 96 of the 96 removed sit on ONE
+    # archived version that reports zero deviations raised and zero forms
+    # completed. A number nobody can defend in a supplier conversation is worse
+    # than no number, which is the whole reason KR1 replaced this as the
+    # headline; this makes what remains defensible too.
+    sups_all_versions=list(sups)   # kept for suppliers.kr1.open_note, below
     agg={}
     for s_ in sups:
+        if not s_["live"]: continue
         a_=agg.setdefault(s_["supplier"],{"forms":0,"completed":0,"raised":0,"open":0})
         a_["forms"]+=1
         for k in ("completed","raised","open"): a_[k]+=s_[k]
@@ -1656,7 +1704,16 @@ def main():
     # comment used to point at were removed on 27/08/2026 (the business does
     # not use Easilys). The open item is a missing system, not a broken feed.
     OTIF_FIRST_MONTH="2026-08"
-    ISSUES_HISTORY_START="2026-08-13"
+    # Ross, 09/09/2026: this constant is the date the ANSWERS FEED FIRST LANDED,
+    # not the date its data begins, and the two are eight days apart. Each pull
+    # reaches back ~9 days, so the 13/08 pull already carried answers from 05/08.
+    # Renamed to say what it is, and the figure quoted to the reader is now
+    # MEASURED from the rows rather than assumed from the landing date - the old
+    # note told Ross August "counts only start mid-month" when in fact it covers
+    # 5-31 Aug, understating his own coverage by more than a week.
+    ISSUES_FEED_LANDED="2026-08-13"
+    ISSUES_HISTORY_START=min((i_.get("d") or "9999" for i_ in issues),
+                             default=ISSUES_FEED_LANDED)
     # ---- KR1: delivery issues per month, by ANSWERED supplier -------------
     # Ross, 09/09/2026: the headline supplier number is now FORMS RAISED IN THE
     # MONTH BY ANSWERED SUPPLIER, measured against Supply KR1 (<=10 a month).
@@ -1677,7 +1734,10 @@ def main():
     # bucketing on creation date moves August from 78 forms to 72 and Lynas
     # from 53 to 52. Answer date is when the issue was actually reported.
     KR1_TARGET=10
-    issues_by_month={}; unattributed={}; month_span={}
+    # issues_by_month stays {month: {supplier: int}} because the OTIF block
+    # downstream reads it that way; the richer per-supplier detail accumulates
+    # alongside it in kr1_detail rather than by reshaping it.
+    issues_by_month={}; unattributed={}; month_span={}; kr1_detail={}
     for i_ in issues:
         d=i_.get("d") or ""
         if len(d)<7 or d[:7]<OTIF_FIRST_MONTH: continue
@@ -1686,6 +1746,12 @@ def main():
         if i_.get("supplier"):
             issues_by_month.setdefault(m,{})
             issues_by_month[m][i_["supplier"]]=issues_by_month[m].get(i_["supplier"],0)+1
+            e_=kr1_detail.setdefault(m,{}).setdefault(i_["supplier"],
+                 {"open":0,"sites":set(),"answered":0,"text":0})
+            if i_.get("open"): e_["open"]+=1
+            if i_.get("site"): e_["sites"].add(i_["site"])
+            if i_.get("attribution")=="answered": e_["answered"]+=1
+            elif i_.get("attribution")=="text": e_["text"]+=1
         else:
             unattributed[m]=unattributed.get(m,0)+1
     # The answer feed reaches back only ~9 days from each pull, so the earliest
@@ -1696,7 +1762,17 @@ def main():
     kr1_months=[]
     for m in sorted(set(issues_by_month)|set(unattributed)|set(month_span)):
         if m>(pull or datetime.date.today().isoformat())[:7]: continue
-        rows_=sorted(({"supplier":s,"issues":n} for s,n in (issues_by_month.get(m) or {}).items()),
+        # "open" travels as a SECONDARY column, never as the headline. It is
+        # counted from the per-issue rows (IsOpenDeviation on the answer), so it
+        # reconciles with the raised count on its own row - the GC Forms Overview
+        # figure never could, being a sum over form versions.
+        _dt=kr1_detail.get(m) or {}
+        rows_=sorted(({"supplier":s,"issues":n,
+                       "open":(_dt.get(s) or {}).get("open",0),
+                       "sites":len((_dt.get(s) or {}).get("sites") or ()),
+                       "answered":(_dt.get(s) or {}).get("answered",0),
+                       "text":(_dt.get(s) or {}).get("text",0)}
+                      for s,n in (issues_by_month.get(m) or {}).items()),
                      key=lambda r:(-r["issues"],r["supplier"]))
         att=sum(r["issues"] for r in rows_); un=unattributed.get(m,0)
         first_,last_=month_span.get(m,(None,None))
@@ -1716,6 +1792,12 @@ def main():
                        f"day(s) are missing and this month is an UNDERCOUNT")
         kr1_months.append({"month":m,"suppliers":rows_,
           "issues":att+un,"attributed":att,"unattributed":un,
+          "open":sum(r["open"] for r in rows_),
+          # An explicit flag rather than leaving the shell to read prose: a
+          # month the feed stops inside is an undercount, and a card must be
+          # able to say so without regexing coverage_note.
+          "undercount":bool(answers_newest and pull and answers_newest<pull
+                            and m>=answers_newest[:7]),
           "target":KR1_TARGET,
           # Green when the target is met, red when it is not. The Master
           # Operating Manual gives a target and no tolerance, so there is no
@@ -1729,12 +1811,23 @@ def main():
         "and attributed to the supplier ANSWERED on the form, falling back to a supplier name "
         "found in the free-text issue where the question was left blank. Counts forms RAISED in "
         "the month; it says nothing about whether they were closed."),
-      "open_note":("The old headline, 'N open', is not published as a KR any more and should not be "
-        "quoted. It summed OpenDeviationsCount over GC Forms Overview rows, which are FORM VERSIONS, "
-        "not forms: on the 07/09 pull, 96 of the 214 sat on a single ARCHIVED version (the raw field "
-        "is 'IsArchieved' - GetCompliant's own misspelling, do not 'fix' it) that simultaneously "
-        "reported 0 forms and 0 completions. Closing state also depends on sites closing forms in "
-        "GetCompliant, which they largely do not.")}
+      # Measured, not hard-coded: this note quoted "96 of the 214 on the 07/09
+      # pull" and was stale within two days. The same staleness that made the
+      # alias gap wrong.
+      "open_note":(lambda _all,_live,_dead:
+        f"The old headline, '{_all} open', is not published as a KR any more and should not be "
+        f"quoted. It summed OpenDeviationsCount over GC Forms Overview rows, which are FORM "
+        f"VERSIONS, not forms"
+        + (f": {_all-_live} of the {_all} sit on ARCHIVED or DELETED versions (the raw field is "
+           f"'IsArchieved' - GetCompliant's own misspelling, do not 'fix' it)"
+           + (f", {max(_dead,key=lambda f_:f_['open'])['open']} of them on one version that "
+              f"simultaneously reports 0 deviations raised and 0 forms completed" if _dead else "")
+           if _all>_live else "")
+        + f". The live-version total is {_live}. Closing state also depends on sites closing forms "
+          "in GetCompliant, which they largely do not."
+        )(sum(f_["open"] for f_ in sups_all_versions),
+          sum(f_["open"] for f_ in sups_all_versions if f_["live"]),
+          [f_ for f_ in sups_all_versions if not f_["live"] and f_["open"]])}
 
     otif_months=[]; otif_basis=None
     if week_spend_source=="order_emails":
@@ -2082,14 +2175,20 @@ def main():
       "otif":{"months":otif_months,"basis":otif_basis,
         "first_month":OTIF_FIRST_MONTH,
         "issues_history_start":ISSUES_HISTORY_START,
+        "issues_feed_landed":ISSUES_FEED_LANDED,
         "note":"An issue-free-delivery rate, NOT a measured on-time-in-full: nothing here "
         "observes whether a delivery arrived on time or complete, only whether an issue was "
-        "filed against that supplier in the same month. Issue history begins "
-        +ISSUES_HISTORY_START+", so August denominators cover the whole month but its issue "
-        "counts only start mid-month - August OTIF is therefore flattered and is not "
-        "comparable with later months. Suppliers with deliveries and no issues show 100%; "
-        "suppliers with no deliveries show an em dash, never 0%. Issues that name no supplier "
-        "are excluded from the per-supplier rows and disclosed as unattributed_issues."},
+        "filed against that supplier in the same month. The earliest issue on record is "
+        +ISSUES_HISTORY_START+" (the answers feed landed "+ISSUES_FEED_LANDED+", but each "
+        "pull reaches back about nine days, so it arrived carrying history). The old note "
+        "here said issue counts 'only start mid-month' and that August was therefore "
+        "flattered; that was wrong by eight days in the pessimistic direction. What actually "
+        "limits August is the DELIVERY side: the Kobas order-email feed starts partway "
+        "through the month, and on a different day for each supplier, which is why no "
+        "August supplier is measurable at all. Suppliers with deliveries and no issues show "
+        "100%; a supplier-month whose emails do not span the month shows 'not measured' with "
+        "the reason, never 0%. Issues that name no supplier are excluded from the "
+        "per-supplier rows and disclosed as unattributed_issues."},
       "price_watch":price_watch[:100],
       "price_watch_basis":"newest DISTINCT report of the Kobas Weekly Ingredient Price "
       "Changes email (the same report is pulled daily, so pulls are deduped by content); "

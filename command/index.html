@@ -308,6 +308,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-supi">
   <div id="sq-note"></div>
   <div class="kpis" id="sq-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">KR1 &mdash; delivery issues raised, by month</div>
+    <div class="s">The OKR figure: forms <b>raised</b> in the calendar month, by the supplier answered on the form. Always calendar-month and <b>not</b> sliced by the date range above &mdash; a KR measured per month cannot honour a 7-day picker without reading green off three days of data. &ldquo;Still open&rdquo; is shown alongside as secondary, counted from the issues themselves so it reconciles with the raised figure on its own row.</div></div>
+    <div class="card-b" id="sq-kr1"></div></div>
   <div class="filters" id="sq-toggle"></div>
   <div class="cols">
     <div class="card"><div class="card-h"><div class="t">By supplier</div>
@@ -1068,6 +1071,41 @@ let SNAP=null;
 /* Which period the by-supplier card is showing. Survives a re-render so a
    refresh does not silently snap the reader back to the week. */
 let SUP_TOT_MODE='week';
+function renderKr1(){
+  const el=$('sq-kr1'); if(!el) return;
+  const k=(SNAP&&SNAP.suppliers&&SNAP.suppliers.kr1)||null;
+  const months=(k&&k.months)||[];
+  if(!months.length){
+    el.innerHTML='<div class="empty">'+esc(k?'No issues in range for this measure.'
+      :'This snapshot predates the KR1 measure.')+'</div>'; return;
+  }
+  const m=months[months.length-1];
+  const MN=['January','February','March','April','May','June','July','August',
+            'September','October','November','December'];
+  const lbl=MN[+m.month.slice(5,7)-1]+' '+m.month.slice(0,4);
+  const over=m.rag==='red';
+  const rows=(m.suppliers||[]).map(r=>
+    `<tr><td>${esc(r.supplier)}</td><td class="n" style="font-weight:650">${fmtN(r.issues)}</td>`+
+    `<td class="n" style="opacity:.75">${fmtN(r.open)}</td>`+
+    `<td class="n" style="opacity:.75">${fmtN(r.sites)}</td>`+
+    `<td style="opacity:.75">${r.text?esc(r.answered+' answered, '+r.text+' from the issue text'):'all answered'}</td></tr>`).join('');
+  /* The unattributed bucket is a NAMED GAP, never a supplier-shaped row: it
+     must not sort among real suppliers as though "no answer" were a company. */
+  const unatt=m.unattributed
+    ? `<tr><td colspan="5" style="opacity:.8"><b>${fmtN(m.unattributed)}</b> form${m.unattributed===1?'':'s'} named no supplier and cannot be attributed &mdash; the &ldquo;Supplier?&rdquo; question is optional on the generic form. Making it mandatory in GetCompliant is what closes this.</td></tr>`
+    : '';
+  el.innerHTML=
+    `<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">`+
+    `<div style="font-size:30px;font-weight:700">${fmtN(m.issues)}</div>`+
+    `<div>${chip(over?'r':'g',over?'Off target':'On target')}</div>`+
+    `<div style="opacity:.8">raised in ${esc(lbl)} &middot; target &le;${esc(m.target)} a month`+
+    `${m.undercount?' &middot; <b>month to date, and undercounted</b>':(m.month===(SNAP.pull_date||'').slice(0,7)?' &middot; month to date':'')}</div></div>`+
+    (m.coverage_note?`<div class="prov" style="margin:-4px 0 10px">${esc(m.coverage_note)}</div>`:'')+
+    '<table><thead><tr><th>Supplier</th><th class="n">Raised</th><th class="n">Still open</th>'+
+    '<th class="n">Sites</th><th>Attribution</th></tr></thead><tbody>'+rows+unatt+'</tbody></table>'+
+    `<div class="prov">${esc(k.basis||'')}</div>`+
+    `<div class="prov">${esc(k.open_note||'')}</div>`;
+}
 function renderSupTotals(){
   const sup=(SNAP&&SNAP.supply)||{};
   const all=SUP_TOT_MODE==='all';
@@ -2077,7 +2115,14 @@ function render(snap){
   const mods=trAll.reduce((x,r)=>x+(r.modules||0),0), comp=trAll.reduce((x,r)=>x+(r.complete||0),0);
   const trPct=mods?Math.round(100*comp/mods):null;
   const supOpen=(sup.totals||[]).length?sup.totals.reduce((x,t)=>x+(t.open||0),0):null;
-  const devOpen=forms.length?forms.reduce((x,f)=>x+(f.open||0),0):null;
+  /* Ross, 09/09/2026: live form versions only. This summed every row in GC
+     Forms Overview, and those rows are form VERSIONS, not forms - so archived
+     and deleted versions were counted. On the 09/09 pull that was 285 against
+     a live estate of 189. `f.live!==false` rather than `f.live` so snapshots
+     baked before the flag existed keep their old total instead of silently
+     collapsing to zero. */
+  const liveForms=forms.filter(f=>f.live!==false);
+  const devOpen=liveForms.length?liveForms.reduce((x,f)=>x+(f.open||0),0):null;
   $('kpis').innerHTML=
     kpi('o','Employees',fmtN(s.employees),'on the Flow roster')+
     kpi(trPct==null?'n':trPct>=TARGET?'g':trPct>=70?'a':'r','Training complete',
@@ -2096,10 +2141,11 @@ function render(snap){
         k?`${monthLabel(k.month)} · target ≤${k.target} · by answered supplier`
          :'no data in this pull');})()+
     kpi(devOpen==null?'n':devOpen?'a':'g','Open deviations',devOpen==null?'—':fmtN(devOpen),
-        devOpen==null?'no data in this pull':'all forms, unresolved')+
-    kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected but absent from Postgres')+
+        devOpen==null?'no data in this pull':'live form versions only — archived and deleted excluded')+
+    kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected by feeds_manifest.json but absent from the archive')+
     kpi('g','Feeds healthy',fmtN(s.feeds_ok),'fresh in the warehouse');
   renderScorecard(snap);
+  renderKr1();
   $('signals').innerHTML=(snap.signals||[]).length?(snap.signals||[]).map(g=>
     `<div class="sig" data-t="basis: ${esc(g.basis||'')}">${chip(g.severity==='red'?'r':g.severity==='amber'?'a':'b',
       g.severity==='red'?'Escalate':g.severity==='amber'?'Review':'Note')}
