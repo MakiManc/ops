@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-09-10T09:37:35Z",
+ "generated_at": "2026-09-10T16:07:10Z",
  "verified_date": "2026-09-10",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-09-10",
  "snapshot_latest": "2026-09-10",
@@ -15,11 +15,88 @@
   "expected_feeds": 32,
   "known_broken": 10,
   "best_effort": 18,
-  "criticals": 1,
+  "criticals": 12,
   "warnings": 34,
-  "deferred": 11
+  "deferred": 0
  },
  "criticals": [
+  {
+   "check": "0-receipts",
+   "level": "critical",
+   "feed": "daily-export",
+   "class": "0-receipts-missing",
+   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Central Module Tasks",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Form Task Answers",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Forms Overview",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Locations",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "GC Scheduled Task Answers",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Orders",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-01 (9d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "critical",
+   "feed": "Supplier Issues",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
+  },
   {
    "check": "3-events",
    "level": "critical",
@@ -265,85 +342,7 @@
    "detail": "maintenance_source.json last pulled 2026-08-25 (16d ago) - the refresh chain may be dead (its daily 08:00 task skips commits when the sheet is unchanged, but a week of silence is worth checking)"
   }
  ],
- "deferred": [
-  {
-   "check": "0-receipts",
-   "level": "deferred",
-   "feed": "daily-export",
-   "class": "0-receipts-missing",
-   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Central Module Tasks",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Form Task Answers",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Forms Overview",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Locations",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "GC Scheduled Task Answers",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Orders",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-01 (9d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "1-landed",
-   "level": "deferred",
-   "feed": "Supplier Issues",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
-  }
- ],
+ "deferred": [],
  "known_broken": [
   {
    "name": "Mapal Equipment",
@@ -409,10 +408,10 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "deferred",
+   "level": "critical",
    "feed": "daily-export",
    "class": "0-receipts-missing",
-   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
+   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything"
   },
   {
    "check": "0-receipts",
@@ -599,10 +598,10 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Central Module Tasks",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -613,10 +612,10 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Form Task Answers",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -634,10 +633,10 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Forms Overview",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -655,10 +654,10 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Locations",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -697,10 +696,10 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "GC Scheduled Task Answers",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -725,31 +724,31 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Orders",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-01 (9d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-01 (9d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -777,10 +776,10 @@
   },
   {
    "check": "1-landed",
-   "level": "deferred",
+   "level": "critical",
    "feed": "Supplier Issues",
    "class": "1-landed-inflight",
-   "detail": "last pull 2026-09-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+   "detail": "last pull 2026-09-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -913,11 +912,6 @@
    "detail": "dashboard snapshot 2026-09-10 matches the pull archive 2026-09-10"
   },
   {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-09-09 (propagation lag - normal for up to ~an hour)"
-  },
-  {
    "check": "6-side",
    "level": "warning",
    "detail": "maintenance_source.json last pulled 2026-08-25 (16d ago) - the refresh chain may be dead (its daily 08:00 task skips commits when the sheet is unchanged, but a week of silence is worth checking)"
@@ -938,5 +932,5 @@
    "detail": "1641 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (1968 total)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
