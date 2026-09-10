@@ -288,7 +288,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
       <div id="sup-tot-warn"></div>
       <div id="sup-tot"></div>
     </div></div>
-  <div class="card"><div class="card-h"><div class="t">Supplier OTIF &mdash; monthly</div>
+  <div class="card"><div class="card-h"><div class="t">Issue-free deliveries by supplier &mdash; monthly</div>
     <div class="s" id="otif-sub">Issue-free delivery rate per supplier &middot; deliveries from Kobas order confirmations vs issues filed in the same month</div></div>
     <div class="card-b" id="otif-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Rises that have stuck</div>
@@ -462,9 +462,9 @@ function renderOtif(){
   const sub=$('otif-sub');
   if(!months.length){
     el.innerHTML='<div class="empty">'+esc(o
-      ? 'No monthly OTIF data in this snapshot — the Kobas Orders feed had not landed when it was baked.'
-      : 'This snapshot predates the monthly OTIF data.')+'</div>';
-    if(sub) sub.textContent='Issue-free delivery rate per supplier · unavailable in this snapshot';
+      ? 'No monthly issue-free delivery data in this snapshot — the Kobas Orders feed had not landed when it was baked.'
+      : 'This snapshot predates this measure.')+'</div>';
+    if(sub) sub.textContent='Issue-free delivery rate per supplier (indicative, not OTIF) · unavailable in this snapshot';
     return;
   }
   const keys=months.map(m=>m.month);
@@ -488,19 +488,36 @@ function renderOtif(){
     '<select id="otif-month" title="Choose a month">'+
     keys.map(k=>`<option value="${esc(k)}"${k===OTIF_MONTH?' selected':''}>${esc(monthLabel(k))}</option>`).join('')+
     '</select></div>';
+  /* Ross, 09/09/2026: a supplier-month whose order emails do not cover the whole
+     month shows the words "not measured" and the reason, never a percentage.
+     This column used to be headed "OTIF %" and to print 0.0% for Lynas in
+     August off 34 deliveries against 53 issues - a number that was wrong in
+     both its label and its value, and the one most likely to be quoted at a
+     supplier. The builder decides measurability; the shell only renders it. */
+  const rateCell=r=>r.otif_pct!=null
+    ? `<td class="n">${esc(pctTxt(r.otif_pct))}</td>`
+    : `<td class="n" style="opacity:.7" title="${esc(r.not_measured||'not measured')}">not measured</td>`;
   const body=rows.length
     ? '<table><thead><tr><th>Supplier</th><th class="n">Deliveries</th><th class="n">Issues</th>'+
-      '<th class="n">OTIF %</th><th>vs '+esc(prev?monthLabel(prev.month):'previous month')+'</th></tr></thead><tbody>'+
+      '<th class="n">Issue-free %</th><th>vs '+esc(prev?monthLabel(prev.month):'previous month')+'</th></tr></thead><tbody>'+
       rows.map(r=>`<tr><td>${esc(r.supplier||'—')}</td><td class="n">${fmtN(r.deliveries)}</td>`+
-        `<td class="n">${fmtN(r.issues)}</td><td class="n">${esc(pctTxt(r.otif_pct))}</td>`+
+        `<td class="n">${fmtN(r.issues)}</td>`+rateCell(r)+
         `<td>${esc(deltaCell(r))}</td></tr>`).join('')+
-      `<tr class="tot"><td>All suppliers</td><td class="n">${fmtN(cur.deliveries)}</td>`+
-      `<td class="n">${fmtN(cur.issues)}</td><td class="n">${esc(pctTxt(cur.otif_pct))}</td><td></td></tr>`+
+      `<tr class="tot"><td>All suppliers${cur.measurable_suppliers!=null&&cur.measurable_suppliers<cur.measurable_of?` <span style="font-weight:400;opacity:.75">(${cur.measurable_suppliers} of ${cur.measurable_of} measurable)</span>`:''}</td>`+
+      `<td class="n">${fmtN(cur.measurable_suppliers!=null?cur.measurable_deliveries:cur.deliveries)}</td>`+
+      `<td class="n">${fmtN(cur.measurable_suppliers!=null?cur.measurable_issues:cur.issues)}</td>`+
+      rateCell(cur)+`<td></td></tr>`+
       '</tbody></table>'
     : '<div class="empty">No deliveries or issues recorded in '+esc(monthLabel(cur.month))+'.</div>';
-  const augNote=(cur.month===(o.first_month||'2026-08'))
-    ? ' ⚠ '+esc(monthLabel(cur.month))+' is not comparable with later months: delivery counts cover the whole month but issue history only begins '+
-      esc(o.issues_history_start||'13 Aug 2026')+', so its OTIF is flattered.'
+  /* The old note here said August was "flattered" because issue history began
+     mid-month while deliveries covered it all. That was backwards - it is the
+     DELIVERIES that start mid-month, per supplier, which is why August now
+     measures nothing at all - and it was keyed off ISSUES_HISTORY_START, the
+     first PULL date rather than the first data date, so it was eight days out
+     as well. The builder now states coverage per supplier-month; this just
+     reports how much of the month survived it. */
+  const augNote=(cur.measurable_suppliers===0)
+    ? ' ⚠ Nothing in '+esc(monthLabel(cur.month))+' is measurable: the Kobas order-confirmation feed starts partway through this month for every supplier, so a rate here would divide a full month of issues by a fragment of a month of deliveries. Hover a row for the date its emails begin.'
     : '';
   const unatt=(cur.unattributed_issues||0)>0
     ? ' · '+fmtN(cur.unattributed_issues)+' issue'+(cur.unattributed_issues===1?'':'s')+
@@ -644,16 +661,18 @@ function openSupplierProfileModal(name){
     const mrows=(otifB.months||[]).filter(m=>monthOverlapsRange(m.month))
       .map(m=>({month:m.month,r:(m.suppliers||[]).find(x=>x.supplier===name)||null}))
       .filter(x=>x.r);
-    html+='<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">OTIF by month</div>';
+    html+='<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">Issue-free deliveries by month <span style="font-weight:400;opacity:.7">(indicative, not OTIF)</span></div>';
     html+=mrows.length
-      ? '<table><thead><tr><th>Month</th><th class="n">Deliveries</th><th class="n">Issues</th><th class="n">OTIF %</th></tr></thead><tbody>'+
+      ? '<table><thead><tr><th>Month</th><th class="n">Deliveries</th><th class="n">Issues</th><th class="n">Issue-free %</th></tr></thead><tbody>'+
         mrows.map(x=>`<tr><td>${esc(monthLabel(x.month))}</td><td class="n">${fmtN(x.r.deliveries)}</td>`+
           `<td class="n">${fmtN(x.r.issues)}</td>`+
-          `<td class="n">${x.r.otif_pct==null?'—':Number(x.r.otif_pct).toFixed(1)+'%'}</td></tr>`).join('')+
+          (x.r.otif_pct==null
+            ? `<td class="n" style="opacity:.7" title="${esc(x.r.not_measured||'not measured')}">not measured</td>`
+            : `<td class="n">${Number(x.r.otif_pct).toFixed(1)+'%'}</td>`)+`</tr>`).join('')+
         '</tbody></table><div class="prov">'+esc(otifB.note||'')+'</div>'
       : '<div class="empty">No deliveries or issues recorded for this supplier in the months this range touches.</div>';
   } else {
-    html+='<div class="prov" style="margin-top:12px">Monthly OTIF is not in this snapshot.</div>';
+    html+='<div class="prov" style="margin-top:12px">Monthly issue-free delivery data is not in this snapshot.</div>';
   }
   html+='<div class="prov">Ingredient price changes carry no supplier field in the source report, so they cannot be shown per supplier — see Price change watch on Supply &amp; Fulfilment.</div>'+
     '<div class="prov">'+esc(sup.issues_basis||'')+' · '+esc(evLabel())+'</div>';
@@ -919,9 +938,48 @@ async function fetchHealth(){
     if(r.ok) HEALTH=await r.json();
   }catch(e){/* no verdict published yet - bannerHtml degrades gracefully */}
 }
+/* Ross, 10/09/2026: THE BANNER COULD NOT SEE A DEAD PIPELINE, AND ONE WENT
+   UNNOTICED FOR TWO DAYS. Between 07/09 and 09/09 the daily export never ran
+   (a window gate in the ETL repo rejected every run that GitHub created late).
+   Nothing here said so, because every check below is blind to it:
+     - snap.generated_at stayed fresh: the bake is chained to the export
+       COMPLETING, and a 20-second gate-skip completes successfully, so the
+       bake re-ran on the same stale archive every few hours and re-stamped it.
+     - HEALTH.generated_at stayed fresh for the same reason.
+     - snap.pull_date is stamped from the newest pull in the archive, and the
+       deep-pull (Flow) DID run daily, so it read 2026-09-09 while every GC and
+       Kobas feed underneath was from 07/09.
+     - the verifier was already overall=red every day since 27/08, so its red
+       branch below carried no new information the day the pipeline died.
+   The one thing that cannot be faked by a bake running on empty is HOW OLD THE
+   DATA ITSELF IS. That is what this checks, straight off feed_health.age_days,
+   and it goes first because it outranks every other verdict: if the pull is
+   dead, nothing else on the page is about today. */
+/* Threshold is 2, not 1, and that is a judgement not an oversight. age 1 is
+   the NORMAL state of every morning before the export lands (it runs 08:10 UK
+   at the earliest, and later on the days GitHub is slow), so firing at 1 would
+   paint the banner red daily at exactly the hour Ross reads it, and a warning
+   that cries wolf every morning is worse than none. 2 means a full day was
+   missed and cannot be explained by a late run. Verified against the real
+   files: the 09/09 09:37 snapshot, baked while the pipeline was dead, scores 2
+   and fires; the 15:40 snapshot after the pull was restored scores 0. */
+const DAILY_STALE_RED=2;
+function pipelineAgeDays(snap){
+  /* Daily feeds only. The three weekly Kobas reports legitimately sit at a
+     higher age, and a feed that has never landed has age_days null - counting
+     either would make this fire on a healthy morning. */
+  const rows=(snap&&snap.feed_health)||[];
+  const ages=rows.filter(r=>r&&r.age_days!=null&&/^(GC |Kobas Orders|Flow |Factory Broth|Supplier Issues)/.test(r.feed)&&!/Weekly/.test(r.feed))
+                 .map(r=>r.age_days);
+  return ages.length?Math.min(...ages):null;   // min: the freshest daily feed is how recently ANY pull landed
+}
 function bannerHtml(snap){
   const ageDays=(Date.now()-new Date(snap.generated_at))/864e5;
   const isLatest=!IDX||!IDX.latest||IDX.latest===snap.pull_date;
+  const pAge=pipelineAgeDays(snap);
+  if(pAge!=null&&pAge>=DAILY_STALE_RED){
+    return `<div class="err"><b>The daily pull has not run for ${pAge} days.</b> Every GetCompliant and Kobas figure on this page is from ${esc(snap.feed_health.filter(r=>r.age_days===pAge&&r.latest_pull).map(r=>r.latest_pull)[0]||'an earlier pull')}, not today — the page is still being rebuilt daily from that stale data, so a fresh timestamp above does not mean fresh numbers. Check the Daily Hospitality Export workflow in the ETL repo.</div>`;
+  }
   if(HEALTH&&HEALTH.generated_at){
     const hAge=(Date.now()-new Date(HEALTH.generated_at))/864e5;
     if(hAge>1.25) return `<div class="warn"><b>The data verifier hasn't reported since ${esc(HEALTH.generated_at)}.</b> Its run may have stopped — check the ETL repo's Actions tab.</div>`;
@@ -1582,10 +1640,23 @@ function render(snap){
      so the tile and the table can never disagree (26/08/2026). */
   const otifB=(snap.supply&&snap.supply.otif)||null;
   const otifNow=(otifB&&(otifB.months||[]).length)?otifB.months[otifB.months.length-1]:null;
+  /* Renamed 09/09/2026. This tile said "OTIF" and it has never been OTIF -
+     nothing in the read path observes whether a delivery was on time, and one
+     delivery can carry several issue forms, so the figure is a lower bound on
+     an issue-free rate and nothing more. The wording matters because this tile
+     is what a Finance reader quotes. The month total is now measurable-only,
+     so the sub-line counts the suppliers behind it rather than implying the
+     whole estate. */
   const otifTile=otifNow&&otifNow.otif_pct!=null
-    ? kpi('o','OTIF this month',Number(otifNow.otif_pct).toFixed(1)+'%',
-        monthLabel(otifNow.month)+' · '+fmtN(otifNow.deliveries)+' deliveries · '+fmtN(otifNow.issues)+' issues')
-    : kpi('n','OTIF this month','—',otifB?'no deliveries recorded this month':'not in this snapshot');
+    ? kpi('o','Issue-free deliveries',Number(otifNow.otif_pct).toFixed(1)+'%',
+        monthLabel(otifNow.month)+' · '+fmtN(otifNow.measurable_deliveries!=null?otifNow.measurable_deliveries:otifNow.deliveries)+' deliveries · '+
+        fmtN(otifNow.measurable_issues!=null?otifNow.measurable_issues:otifNow.issues)+' issues'+
+        (otifNow.measurable_suppliers!=null&&otifNow.measurable_suppliers<otifNow.measurable_of
+          ? ' · '+otifNow.measurable_suppliers+' of '+otifNow.measurable_of+' suppliers measurable' : '')+
+        ' · indicative, not OTIF')
+    : kpi('n','Issue-free deliveries','—',
+        otifNow?'not measurable this month — order-email coverage does not span it'
+              :(otifB?'no deliveries recorded this month':'not in this snapshot'));
   if(isLiveSpend){
     /* email feed: total · items ordered · OTIF · top supplier · issues
        logged. No delivered/pending split exists on this source - see the
