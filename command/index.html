@@ -166,7 +166,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="wrap">
 <div class="top">
   <div><h1><b>Maki &amp; Ramen</b> · Ops Command</h1>
-    <div class="sub">Baked daily from the Neon warehouse · shell carries no numbers</div></div>
+    <div class="sub">Baked daily from the committed pull archive · shell carries no numbers</div></div>
   <div class="meta">
     <span>pull <b id="m-pull">—</b></span>
     <span class="filters" style="margin:0" id="range-btns" title="Filters by when things actually happened — form answer dates and module completion dates, not ETL pull dates">
@@ -185,6 +185,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 
 <div class="page on" id="p-over">
   <div class="kpis" id="kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">OKR scorecard</div>
+    <div class="s">One row per KR in the Master Operating Manual. A row with a figure is measured from the feeds named in its basis &mdash; hover it. A grey row is <b>not measured</b> and names what it would take; that list is the data roadmap. Green means the target is met and red means it is not; there is no amber, because the Manual sets targets and no tolerances.</div></div>
+    <div class="card-b" id="scorecard"></div></div>
   <div class="card"><div class="card-h"><div class="t">Needs attention</div>
     <div class="s">Every signal carries its basis — hover to see how it was derived · these are current-state figures, not sliced by the date range filter (the filter applies inside each tab, to submission/answer/completion dates — never pull dates)</div></div>
     <div class="card-b" id="signals"></div></div>
@@ -288,7 +291,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
       <div id="sup-tot-warn"></div>
       <div id="sup-tot"></div>
     </div></div>
-  <div class="card"><div class="card-h"><div class="t">Supplier OTIF &mdash; monthly</div>
+  <div class="card"><div class="card-h"><div class="t">Issue-free deliveries by supplier &mdash; monthly</div>
     <div class="s" id="otif-sub">Issue-free delivery rate per supplier &middot; deliveries from Kobas order confirmations vs issues filed in the same month</div></div>
     <div class="card-b" id="otif-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Rises that have stuck</div>
@@ -305,6 +308,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-supi">
   <div id="sq-note"></div>
   <div class="kpis" id="sq-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">KR1 &mdash; delivery issues raised, by month</div>
+    <div class="s">The OKR figure: forms <b>raised</b> in the calendar month, by the supplier answered on the form. Always calendar-month and <b>not</b> sliced by the date range above &mdash; a KR measured per month cannot honour a 7-day picker without reading green off three days of data. &ldquo;Still open&rdquo; is shown alongside as secondary, counted from the issues themselves so it reconciles with the raised figure on its own row.</div></div>
+    <div class="card-b" id="sq-kr1"></div></div>
   <div class="filters" id="sq-toggle"></div>
   <div class="cols">
     <div class="card"><div class="card-h"><div class="t">By supplier</div>
@@ -462,9 +468,9 @@ function renderOtif(){
   const sub=$('otif-sub');
   if(!months.length){
     el.innerHTML='<div class="empty">'+esc(o
-      ? 'No monthly OTIF data in this snapshot — the Kobas Orders feed had not landed when it was baked.'
-      : 'This snapshot predates the monthly OTIF data.')+'</div>';
-    if(sub) sub.textContent='Issue-free delivery rate per supplier · unavailable in this snapshot';
+      ? 'No monthly issue-free delivery data in this snapshot — the Kobas Orders feed had not landed when it was baked.'
+      : 'This snapshot predates this measure.')+'</div>';
+    if(sub) sub.textContent='Issue-free delivery rate per supplier (indicative, not OTIF) · unavailable in this snapshot';
     return;
   }
   const keys=months.map(m=>m.month);
@@ -488,19 +494,36 @@ function renderOtif(){
     '<select id="otif-month" title="Choose a month">'+
     keys.map(k=>`<option value="${esc(k)}"${k===OTIF_MONTH?' selected':''}>${esc(monthLabel(k))}</option>`).join('')+
     '</select></div>';
+  /* Ross, 09/09/2026: a supplier-month whose order emails do not cover the whole
+     month shows the words "not measured" and the reason, never a percentage.
+     This column used to be headed "OTIF %" and to print 0.0% for Lynas in
+     August off 34 deliveries against 53 issues - a number that was wrong in
+     both its label and its value, and the one most likely to be quoted at a
+     supplier. The builder decides measurability; the shell only renders it. */
+  const rateCell=r=>r.otif_pct!=null
+    ? `<td class="n">${esc(pctTxt(r.otif_pct))}</td>`
+    : `<td class="n" style="opacity:.7" title="${esc(r.not_measured||'not measured')}">not measured</td>`;
   const body=rows.length
     ? '<table><thead><tr><th>Supplier</th><th class="n">Deliveries</th><th class="n">Issues</th>'+
-      '<th class="n">OTIF %</th><th>vs '+esc(prev?monthLabel(prev.month):'previous month')+'</th></tr></thead><tbody>'+
+      '<th class="n">Issue-free %</th><th>vs '+esc(prev?monthLabel(prev.month):'previous month')+'</th></tr></thead><tbody>'+
       rows.map(r=>`<tr><td>${esc(r.supplier||'—')}</td><td class="n">${fmtN(r.deliveries)}</td>`+
-        `<td class="n">${fmtN(r.issues)}</td><td class="n">${esc(pctTxt(r.otif_pct))}</td>`+
+        `<td class="n">${fmtN(r.issues)}</td>`+rateCell(r)+
         `<td>${esc(deltaCell(r))}</td></tr>`).join('')+
-      `<tr class="tot"><td>All suppliers</td><td class="n">${fmtN(cur.deliveries)}</td>`+
-      `<td class="n">${fmtN(cur.issues)}</td><td class="n">${esc(pctTxt(cur.otif_pct))}</td><td></td></tr>`+
+      `<tr class="tot"><td>All suppliers${cur.measurable_suppliers!=null&&cur.measurable_suppliers<cur.measurable_of?` <span style="font-weight:400;opacity:.75">(${cur.measurable_suppliers} of ${cur.measurable_of} measurable)</span>`:''}</td>`+
+      `<td class="n">${fmtN(cur.measurable_suppliers!=null?cur.measurable_deliveries:cur.deliveries)}</td>`+
+      `<td class="n">${fmtN(cur.measurable_suppliers!=null?cur.measurable_issues:cur.issues)}</td>`+
+      rateCell(cur)+`<td></td></tr>`+
       '</tbody></table>'
     : '<div class="empty">No deliveries or issues recorded in '+esc(monthLabel(cur.month))+'.</div>';
-  const augNote=(cur.month===(o.first_month||'2026-08'))
-    ? ' ⚠ '+esc(monthLabel(cur.month))+' is not comparable with later months: delivery counts cover the whole month but issue history only begins '+
-      esc(o.issues_history_start||'13 Aug 2026')+', so its OTIF is flattered.'
+  /* The old note here said August was "flattered" because issue history began
+     mid-month while deliveries covered it all. That was backwards - it is the
+     DELIVERIES that start mid-month, per supplier, which is why August now
+     measures nothing at all - and it was keyed off ISSUES_HISTORY_START, the
+     first PULL date rather than the first data date, so it was eight days out
+     as well. The builder now states coverage per supplier-month; this just
+     reports how much of the month survived it. */
+  const augNote=(cur.measurable_suppliers===0)
+    ? ' ⚠ Nothing in '+esc(monthLabel(cur.month))+' is measurable: the Kobas order-confirmation feed starts partway through this month for every supplier, so a rate here would divide a full month of issues by a fragment of a month of deliveries. Hover a row for the date its emails begin.'
     : '';
   const unatt=(cur.unattributed_issues||0)>0
     ? ' · '+fmtN(cur.unattributed_issues)+' issue'+(cur.unattributed_issues===1?'':'s')+
@@ -644,16 +667,18 @@ function openSupplierProfileModal(name){
     const mrows=(otifB.months||[]).filter(m=>monthOverlapsRange(m.month))
       .map(m=>({month:m.month,r:(m.suppliers||[]).find(x=>x.supplier===name)||null}))
       .filter(x=>x.r);
-    html+='<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">OTIF by month</div>';
+    html+='<div style="font-weight:650;font-size:13.5px;margin:14px 0 6px">Issue-free deliveries by month <span style="font-weight:400;opacity:.7">(indicative, not OTIF)</span></div>';
     html+=mrows.length
-      ? '<table><thead><tr><th>Month</th><th class="n">Deliveries</th><th class="n">Issues</th><th class="n">OTIF %</th></tr></thead><tbody>'+
+      ? '<table><thead><tr><th>Month</th><th class="n">Deliveries</th><th class="n">Issues</th><th class="n">Issue-free %</th></tr></thead><tbody>'+
         mrows.map(x=>`<tr><td>${esc(monthLabel(x.month))}</td><td class="n">${fmtN(x.r.deliveries)}</td>`+
           `<td class="n">${fmtN(x.r.issues)}</td>`+
-          `<td class="n">${x.r.otif_pct==null?'—':Number(x.r.otif_pct).toFixed(1)+'%'}</td></tr>`).join('')+
+          (x.r.otif_pct==null
+            ? `<td class="n" style="opacity:.7" title="${esc(x.r.not_measured||'not measured')}">not measured</td>`
+            : `<td class="n">${Number(x.r.otif_pct).toFixed(1)+'%'}</td>`)+`</tr>`).join('')+
         '</tbody></table><div class="prov">'+esc(otifB.note||'')+'</div>'
       : '<div class="empty">No deliveries or issues recorded for this supplier in the months this range touches.</div>';
   } else {
-    html+='<div class="prov" style="margin-top:12px">Monthly OTIF is not in this snapshot.</div>';
+    html+='<div class="prov" style="margin-top:12px">Monthly issue-free delivery data is not in this snapshot.</div>';
   }
   html+='<div class="prov">Ingredient price changes carry no supplier field in the source report, so they cannot be shown per supplier — see Price change watch on Supply &amp; Fulfilment.</div>'+
     '<div class="prov">'+esc(sup.issues_basis||'')+' · '+esc(evLabel())+'</div>';
@@ -919,9 +944,48 @@ async function fetchHealth(){
     if(r.ok) HEALTH=await r.json();
   }catch(e){/* no verdict published yet - bannerHtml degrades gracefully */}
 }
+/* Ross, 10/09/2026: THE BANNER COULD NOT SEE A DEAD PIPELINE, AND ONE WENT
+   UNNOTICED FOR TWO DAYS. Between 07/09 and 09/09 the daily export never ran
+   (a window gate in the ETL repo rejected every run that GitHub created late).
+   Nothing here said so, because every check below is blind to it:
+     - snap.generated_at stayed fresh: the bake is chained to the export
+       COMPLETING, and a 20-second gate-skip completes successfully, so the
+       bake re-ran on the same stale archive every few hours and re-stamped it.
+     - HEALTH.generated_at stayed fresh for the same reason.
+     - snap.pull_date is stamped from the newest pull in the archive, and the
+       deep-pull (Flow) DID run daily, so it read 2026-09-09 while every GC and
+       Kobas feed underneath was from 07/09.
+     - the verifier was already overall=red every day since 27/08, so its red
+       branch below carried no new information the day the pipeline died.
+   The one thing that cannot be faked by a bake running on empty is HOW OLD THE
+   DATA ITSELF IS. That is what this checks, straight off feed_health.age_days,
+   and it goes first because it outranks every other verdict: if the pull is
+   dead, nothing else on the page is about today. */
+/* Threshold is 2, not 1, and that is a judgement not an oversight. age 1 is
+   the NORMAL state of every morning before the export lands (it runs 08:10 UK
+   at the earliest, and later on the days GitHub is slow), so firing at 1 would
+   paint the banner red daily at exactly the hour Ross reads it, and a warning
+   that cries wolf every morning is worse than none. 2 means a full day was
+   missed and cannot be explained by a late run. Verified against the real
+   files: the 09/09 09:37 snapshot, baked while the pipeline was dead, scores 2
+   and fires; the 15:40 snapshot after the pull was restored scores 0. */
+const DAILY_STALE_RED=2;
+function pipelineAgeDays(snap){
+  /* Daily feeds only. The three weekly Kobas reports legitimately sit at a
+     higher age, and a feed that has never landed has age_days null - counting
+     either would make this fire on a healthy morning. */
+  const rows=(snap&&snap.feed_health)||[];
+  const ages=rows.filter(r=>r&&r.age_days!=null&&/^(GC |Kobas Orders|Flow |Factory Broth|Supplier Issues)/.test(r.feed)&&!/Weekly/.test(r.feed))
+                 .map(r=>r.age_days);
+  return ages.length?Math.min(...ages):null;   // min: the freshest daily feed is how recently ANY pull landed
+}
 function bannerHtml(snap){
   const ageDays=(Date.now()-new Date(snap.generated_at))/864e5;
   const isLatest=!IDX||!IDX.latest||IDX.latest===snap.pull_date;
+  const pAge=pipelineAgeDays(snap);
+  if(pAge!=null&&pAge>=DAILY_STALE_RED){
+    return `<div class="err"><b>The daily pull has not run for ${pAge} days.</b> Every GetCompliant and Kobas figure on this page is from ${esc(snap.feed_health.filter(r=>r.age_days===pAge&&r.latest_pull).map(r=>r.latest_pull)[0]||'an earlier pull')}, not today — the page is still being rebuilt daily from that stale data, so a fresh timestamp above does not mean fresh numbers. Check the Daily Hospitality Export workflow in the ETL repo.</div>`;
+  }
   if(HEALTH&&HEALTH.generated_at){
     const hAge=(Date.now()-new Date(HEALTH.generated_at))/864e5;
     if(hAge>1.25) return `<div class="warn"><b>The data verifier hasn't reported since ${esc(HEALTH.generated_at)}.</b> Its run may have stopped — check the ETL repo's Actions tab.</div>`;
@@ -946,11 +1010,102 @@ function bannerHtml(snap){
   return '';
 }
 
+/* Ross, 09/09/2026: the OKR scorecard. Every judgement in here was made by the
+   builder - RAG, whether a row is measurable, what the blocker is - and this
+   function only paints it. That split is the house rule (index.html carries no
+   numbers and no thresholds), and it matters most here: a scorecard is exactly
+   the place someone would be tempted to decide in the shell that 96.1% "looks
+   green". It does not, because nobody has set that target. */
+function sparkline(points){
+  /* Nulls are holes, never zeros. A week with no data draws no dot and no line
+     across it - 0-padding would have rendered the two days this pipeline was
+     dead as a dramatic improvement in every rate on the page. */
+  const vals=points.filter(p=>p.v!=null).map(p=>p.v);
+  if(!vals.length) return '<span style="opacity:.55">no history</span>';
+  const lo=Math.min(...vals), hi=Math.max(...vals), span=(hi-lo)||1;
+  const W=88,H=22,step=points.length>1?W/(points.length-1):0;
+  const xy=points.map((p,i)=>p.v==null?null:[i*step,H-2-((p.v-lo)/span)*(H-6)]);
+  let segs='',prev=null;
+  xy.forEach(pt=>{ if(pt&&prev) segs+=`<line x1="${prev[0].toFixed(1)}" y1="${prev[1].toFixed(1)}" x2="${pt[0].toFixed(1)}" y2="${pt[1].toFixed(1)}" stroke="currentColor" stroke-width="1.5" fill="none"/>`; prev=pt; });
+  const dots=xy.map(pt=>pt?`<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="2" fill="currentColor"/>`:'').join('');
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-hidden="true" style="vertical-align:middle;opacity:.85">${segs}${dots}</svg>`;
+}
+function renderScorecard(snap){
+  const el=$('scorecard'); if(!el) return;
+  const s=snap&&snap.scorecard;
+  if(!s||!(s.rows||[]).length){
+    el.innerHTML='<div class="empty">This snapshot predates the OKR scorecard.</div>'; return;
+  }
+  const ragChip=r=>r.rag==='green'?chip('g','On target')
+                  :r.rag==='red'?chip('r','Off target')
+                  :r.value!=null?chip('b','Reported')
+                  :chip('n','Not measured');
+  let fn_='';
+  const body=s.rows.map(r=>{
+    const head=r.function!==fn_?(fn_=r.function,`<tr><td colspan="5" style="padding-top:12px;font-weight:650;opacity:.75;border:0">${esc(r.function)}</td></tr>`):'';
+    const measured=r.value!=null;
+    const trend=r.trend?sparkline(r.trend):'';
+    const trendNote=r.trend_note?`<div class="dt" style="opacity:.7">${esc(r.trend_note)}</div>`:'';
+    const unit=r.trend&&r.trend_unit?`<div class="dt" style="opacity:.6">${esc(r.trend_unit)}</div>`:'';
+    const detail=measured
+      ? `<div class="dt">${esc(r.basis||'')}</div>`
+      : `<div class="dt"><b>Needs:</b> ${esc(r.not_measured||'no source')}</div>`;
+    const link=(r.tab&&r.tab!=='—')
+      ? ` <button class="lnk" data-go="${esc(r.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
+      : '';
+    return head+`<tr${measured?'':' style="opacity:.72"'}>`+
+      `<td><div>${esc(r.kr)}</div>${detail}</td>`+
+      `<td class="n" style="white-space:nowrap">${esc(r.target)}</td>`+
+      `<td class="n" style="font-weight:650;white-space:nowrap">${esc(r.display||'—')}</td>`+
+      `<td>${ragChip(r)}${link}</td>`+
+      `<td>${trend}${unit}${trendNote}</td></tr>`;
+  }).join('');
+  el.innerHTML='<table><thead><tr><th>KR / KPI</th><th class="n">Target</th><th class="n">Now</th>'+
+    '<th>Status</th><th>Last 4 weeks</th></tr></thead><tbody>'+body+'</tbody></table>'+
+    `<div class="prov">${esc(s.measured)} of ${esc(s.total)} measured. ${esc(s.basis||'')}</div>`;
+  el.querySelectorAll('button[data-go]').forEach(b=>b.onclick=()=>gotoPage(b.dataset.go));
+}
+
 /* ------------ render from a structured snapshot ------------ */
 let SNAP=null;
 /* Which period the by-supplier card is showing. Survives a re-render so a
    refresh does not silently snap the reader back to the week. */
 let SUP_TOT_MODE='week';
+function renderKr1(){
+  const el=$('sq-kr1'); if(!el) return;
+  const k=(SNAP&&SNAP.suppliers&&SNAP.suppliers.kr1)||null;
+  const months=(k&&k.months)||[];
+  if(!months.length){
+    el.innerHTML='<div class="empty">'+esc(k?'No issues in range for this measure.'
+      :'This snapshot predates the KR1 measure.')+'</div>'; return;
+  }
+  const m=months[months.length-1];
+  const MN=['January','February','March','April','May','June','July','August',
+            'September','October','November','December'];
+  const lbl=MN[+m.month.slice(5,7)-1]+' '+m.month.slice(0,4);
+  const over=m.rag==='red';
+  const rows=(m.suppliers||[]).map(r=>
+    `<tr><td>${esc(r.supplier)}</td><td class="n" style="font-weight:650">${fmtN(r.issues)}</td>`+
+    `<td class="n" style="opacity:.75">${fmtN(r.open)}</td>`+
+    `<td class="n" style="opacity:.75">${fmtN(r.sites)}</td>`+
+    `<td style="opacity:.75">${r.text?esc(r.answered+' answered, '+r.text+' from the issue text'):'all answered'}</td></tr>`).join('');
+  /* The unattributed bucket is a NAMED GAP, never a supplier-shaped row: it
+     must not sort among real suppliers as though "no answer" were a company. */
+  const unatt=m.unattributed
+    ? `<tr><td colspan="5" style="opacity:.8"><b>${fmtN(m.unattributed)}</b> form${m.unattributed===1?'':'s'} named no supplier and cannot be attributed &mdash; the &ldquo;Supplier?&rdquo; question is optional on the generic form. Making it mandatory in GetCompliant is what closes this.</td></tr>`
+    : '';
+  el.innerHTML=
+    `<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">`+
+    `<div style="font-size:30px;font-weight:700">${fmtN(m.issues)}</div>`+
+    `<div>${chip(over?'r':'g',over?'Off target':'On target')}</div>`+
+    `<div style="opacity:.8">raised in ${esc(lbl)} &middot; target &le;${esc(m.target)} a month`+
+    `${m.undercount?' &middot; <b>month to date, and undercounted</b>':(m.month===(SNAP.pull_date||'').slice(0,7)?' &middot; month to date':'')}</div></div>`+
+    (m.coverage_note?`<div class="prov" style="margin:-4px 0 10px">${esc(m.coverage_note)}</div>`:'')+
+    '<table><thead><tr><th>Supplier</th><th class="n">Raised</th><th class="n">Still open</th>'+
+    '<th class="n">Sites</th><th>Attribution</th></tr></thead><tbody>'+rows+unatt+'</tbody></table>'+
+    `<div class="prov">${esc(k.basis||'')}</div>`+
+    `<div class="prov">${esc(k.open_note||'')}</div>`;
+}
 function renderSupTotals(){
   const sup=(SNAP&&SNAP.supply)||{};
   const all=SUP_TOT_MODE==='all';
@@ -1582,10 +1737,23 @@ function render(snap){
      so the tile and the table can never disagree (26/08/2026). */
   const otifB=(snap.supply&&snap.supply.otif)||null;
   const otifNow=(otifB&&(otifB.months||[]).length)?otifB.months[otifB.months.length-1]:null;
+  /* Renamed 09/09/2026. This tile said "OTIF" and it has never been OTIF -
+     nothing in the read path observes whether a delivery was on time, and one
+     delivery can carry several issue forms, so the figure is a lower bound on
+     an issue-free rate and nothing more. The wording matters because this tile
+     is what a Finance reader quotes. The month total is now measurable-only,
+     so the sub-line counts the suppliers behind it rather than implying the
+     whole estate. */
   const otifTile=otifNow&&otifNow.otif_pct!=null
-    ? kpi('o','OTIF this month',Number(otifNow.otif_pct).toFixed(1)+'%',
-        monthLabel(otifNow.month)+' · '+fmtN(otifNow.deliveries)+' deliveries · '+fmtN(otifNow.issues)+' issues')
-    : kpi('n','OTIF this month','—',otifB?'no deliveries recorded this month':'not in this snapshot');
+    ? kpi('o','Issue-free deliveries',Number(otifNow.otif_pct).toFixed(1)+'%',
+        monthLabel(otifNow.month)+' · '+fmtN(otifNow.measurable_deliveries!=null?otifNow.measurable_deliveries:otifNow.deliveries)+' deliveries · '+
+        fmtN(otifNow.measurable_issues!=null?otifNow.measurable_issues:otifNow.issues)+' issues'+
+        (otifNow.measurable_suppliers!=null&&otifNow.measurable_suppliers<otifNow.measurable_of
+          ? ' · '+otifNow.measurable_suppliers+' of '+otifNow.measurable_of+' suppliers measurable' : '')+
+        ' · indicative, not OTIF')
+    : kpi('n','Issue-free deliveries','—',
+        otifNow?'not measurable this month — order-email coverage does not span it'
+              :(otifB?'no deliveries recorded this month':'not in this snapshot'));
   if(isLiveSpend){
     /* email feed: total · items ordered · OTIF · top supplier · issues
        logged. No delivered/pending split exists on this source - see the
@@ -1947,18 +2115,37 @@ function render(snap){
   const mods=trAll.reduce((x,r)=>x+(r.modules||0),0), comp=trAll.reduce((x,r)=>x+(r.complete||0),0);
   const trPct=mods?Math.round(100*comp/mods):null;
   const supOpen=(sup.totals||[]).length?sup.totals.reduce((x,t)=>x+(t.open||0),0):null;
-  const devOpen=forms.length?forms.reduce((x,f)=>x+(f.open||0),0):null;
+  /* Ross, 09/09/2026: live form versions only. This summed every row in GC
+     Forms Overview, and those rows are form VERSIONS, not forms - so archived
+     and deleted versions were counted. On the 09/09 pull that was 285 against
+     a live estate of 189. `f.live!==false` rather than `f.live` so snapshots
+     baked before the flag existed keep their old total instead of silently
+     collapsing to zero. */
+  const liveForms=forms.filter(f=>f.live!==false);
+  const devOpen=liveForms.length?liveForms.reduce((x,f)=>x+(f.open||0),0):null;
   $('kpis').innerHTML=
     kpi('o','Employees',fmtN(s.employees),'on the Flow roster')+
     kpi(trPct==null?'n':trPct>=TARGET?'g':trPct>=70?'a':'r','Training complete',
         trPct==null?'—':trPct+'%',trPct==null?'waiting on the deep pull':fmtN(comp)+' of '+fmtN(mods)+' modules')+
-    kpi(supOpen==null?'n':supOpen>10?'r':supOpen?'a':'g','Open supplier issues',
-        supOpen==null?'—':fmtN(supOpen),
-        supOpen==null?'no data in this pull':'target is 10 or fewer per month')+
+    /* Ross, 09/09/2026: this tile used to read "Open supplier issues 219 —
+       target is 10 or fewer per month", which put a running open-form total
+       next to a PER-MONTH target: two different units in one card, and it now
+       sat directly above a scorecard row saying KR1 is 26. The Overview
+       contradicted itself. It is KR1 here too, read from the same
+       suppliers.kr1 block, so the tile and the scorecard cannot drift.
+       "Open" survives only on the Supplier Issues tab, where suppliers.kr1
+       .open_note explains what that number actually counts. */
+    (()=>{const k=((sup.kr1||{}).months||[]).slice(-1)[0];
+      return kpi(!k?'n':k.rag==='red'?'r':'g','Delivery issues this month',
+        k?fmtN(k.issues):'—',
+        k?`${monthLabel(k.month)} · target ≤${k.target} · by answered supplier`
+         :'no data in this pull');})()+
     kpi(devOpen==null?'n':devOpen?'a':'g','Open deviations',devOpen==null?'—':fmtN(devOpen),
-        devOpen==null?'no data in this pull':'all forms, unresolved')+
-    kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected but absent from Postgres')+
+        devOpen==null?'no data in this pull':'live form versions only — archived and deleted excluded')+
+    kpi(s.feeds_missing?'r':'g','Feeds missing',fmtN(s.feeds_missing),'expected by feeds_manifest.json but absent from the archive')+
     kpi('g','Feeds healthy',fmtN(s.feeds_ok),'fresh in the warehouse');
+  renderScorecard(snap);
+  renderKr1();
   $('signals').innerHTML=(snap.signals||[]).length?(snap.signals||[]).map(g=>
     `<div class="sig" data-t="basis: ${esc(g.basis||'')}">${chip(g.severity==='red'?'r':g.severity==='amber'?'a':'b',
       g.severity==='red'?'Escalate':g.severity==='amber'?'Review':'Note')}
