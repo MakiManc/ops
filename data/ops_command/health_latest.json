@@ -1,14 +1,14 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-09-16T14:04:33Z",
+ "generated_at": "2026-09-16T14:29:03Z",
  "verified_date": "2026-09-16",
  "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-09-16",
  "snapshot_latest": "2026-09-16",
  "sizes": {
-  "maintenance_pulled_at": "2026-08-25T08:14:00Z",
-  "maintenance_source_as_of": "2026-08-19",
+  "maintenance_pulled_at": "2026-09-16T14:27:49Z",
+  "maintenance_source_as_of": "2026-09-16",
   "archive_mb": 158
  },
  "counts": {
@@ -16,7 +16,7 @@
   "known_broken": 10,
   "best_effort": 18,
   "criticals": 3,
-  "warnings": 6,
+  "warnings": 5,
   "deferred": 0
  },
  "criticals": [
@@ -74,11 +74,6 @@
    "level": "warning",
    "feed": "Deep Flow Modules",
    "detail": "no parseable module_completed_date values in the latest pull"
-  },
-  {
-   "check": "6-side",
-   "level": "warning",
-   "detail": "maintenance_source.json last pulled 2026-08-25 (22d ago) - the refresh chain may be dead (its daily 08:00 task skips commits when the sheet is unchanged, but a week of silence is worth checking)"
   }
  ],
  "deferred": [],
@@ -840,14 +835,9 @@
    "detail": "dashboard snapshot 2026-09-16 matches the pull archive 2026-09-16"
   },
   {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-09-15 (propagation lag - normal for up to ~an hour)"
-  },
-  {
    "check": "6-side",
-   "level": "warning",
-   "detail": "maintenance_source.json last pulled 2026-08-25 (22d ago) - the refresh chain may be dead (its daily 08:00 task skips commits when the sheet is unchanged, but a week of silence is worth checking)"
+   "level": "ok",
+   "detail": "maintenance source pulled 2026-09-16 (0d ago), sheet content as of 2026-09-16"
   },
   {
    "check": "6-side",
