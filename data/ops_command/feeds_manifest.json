@@ -438,6 +438,16 @@
    "status": "expected"
   },
   {
+   "name": "Kobas Pack Prices",
+   "workflow": "daily-export",
+   "cadence_days": 30,
+   "pulls_weekends": true,
+   "min_rows": 900,
+   "median_rows_at_calibration": 2647,
+   "status": "best_effort",
+   "note": "Added 16/09/2026. The Kobas pack-price export (KOBAS_Template_StockIngredientPackPriceImport) that Ross drops into Drive by hand, landed by pull_pack_prices.py. It is the only source that names the SUPPLIER behind a price: the Weekly Ingredient Price Changes report keys on the parent ingredient, and a parent carries one pack line per supplier. best_effort and cadence_days=30 are deliberate, not lax: this is a manual export on no fixed schedule - nine in 2026, median gap 25.5 days, longest 57 - so 'no new export today' is the normal day and must not redden a run. pull_date is the DRIVE FILE'S modified time, not the run date, so re-reading the same file rewrites the same pull instead of inventing a fresh one; the feed therefore looks stale between exports BY DESIGN, and a staleness warning here means the export is overdue, which is a real signal. min_rows 900 is ~40% of the 2,492-row smallest export held, the same rule the other floors follow. Attribution coverage is measured by check_pack_price_attribution.py in MakiManc/maki-hospitality-etl and published as supply.price_attribution."
+  },
+  {
    "name": "Supplier Issues",
    "workflow": "daily-export",
    "cadence_days": 1,
