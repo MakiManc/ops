@@ -61,12 +61,13 @@ CHECKS (v2, Phase 2 complete)
   check 5  NOTHING BLIND   feeds present in Postgres today but absent
                            from the manifest raise warnings -- the
                            manifest cannot quietly fall behind reality.
-  check 6  SIDE CHANNELS   maintenance_source.json age (>7 days without a
-                           refresh commit suggests the refresh chain is
-                           dead) and DB size (warn at 400 MB, CRITICAL at
-                           450 -- Neon free cap is 512 MB and a rejected
-                           insert loses the day; the archive+trim keeps
-                           steady state near 300 MB).
+  check 6  SIDE CHANNELS   maintenance_source.json age (its pulled_at is a
+                           daily heartbeat from the refresher, so >3 days
+                           means the refresh chain is dead) and DB size
+                           (warn at 400 MB, CRITICAL at 450 -- Neon free
+                           cap is 512 MB and a rejected insert loses the
+                           day; the archive+trim keeps steady state near
+                           300 MB).
 
 MORNING vs RECHECK (the false-alarm damper, plan §1)
   Morning run (since 01/09/2026 chained to the Ops Command bake finishing,
@@ -134,7 +135,27 @@ DB_SIZE_WARN_MB = 400          # Neon free cap is 512 MB
 # for "tomorrow's export will not run" -- while Neon is still the store,
 # this is a critical. Retired with Neon at the end of Phase 2.
 DB_SIZE_CRIT_MB = 450
-MAINT_AGE_WARN_DAYS = 7        # a week with no refresh commit = dead chain
+# Ross, 16/09/2026: was 7, and the 7 was calibrated for a mechanism that no
+# longer exists. The old refresh was a hand-run browser pull that "skipped
+# commits when the sheet was unchanged", so pulled_at went stale on healthy
+# days too and the threshold had to be loose enough to tolerate that. The
+# result was a check that took a week to notice anything and cried wolf in
+# between - it sat warning "the refresh chain may be dead" for 22 days while
+# the chain genuinely WAS dead, and nobody could tell that from the noise.
+#
+# builders/refresh_maintenance.py rewrites the file on every successful read,
+# pulled_at and all, so pulled_at is now a true daily heartbeat: it says when
+# the sheet was last actually reachable, not when its contents last changed.
+# That makes a tight threshold meaningful for the first time.
+#
+# 3 rather than 1, for two reasons that both cost a day. The arithmetic below
+# is whole-day (today - pulled_at[:10]), so a bake at 23:00 and a verify at
+# 01:00 two days later reads 2 from about 26 hours. And the export that the
+# bake chains off is itself allowed to be 3-12h late, so it can skip a
+# calendar day without anything being wrong. The export's own liveness is
+# watched separately at 30h by ops_verify.yml; this is the narrower backstop
+# for the refresh dying while the export carries on working.
+MAINT_AGE_WARN_DAYS = 3
 
 # Timing-deferrable failure classes (morning run defers them to 12:00).
 # A missing receipt on the morning run is indistinguishable from an export
@@ -626,9 +647,12 @@ def check_side_channels(cur, today: str) -> dict:
         elif age > MAINT_AGE_WARN_DAYS:
             add("6-side", "warning",
                 f"maintenance_source.json last pulled {pulled} ({age}d ago) "
-                "- the refresh chain may be dead (its daily 08:00 task "
-                "skips commits when the sheet is unchanged, but a week of "
-                "silence is worth checking)")
+                "- builders/refresh_maintenance.py rewrites this on every "
+                "bake, so this is not a quiet sheet, it is a refresh that "
+                "stopped running or stopped being able to read the sheet. "
+                "Check the 'Refresh the maintenance sheet' step in the most "
+                "recent Ops Command bake: it logs the reason, and a 403/404 "
+                "there means the service account needs Viewer on the sheet")
         else:
             add("6-side", "ok",
                 f"maintenance source pulled {pulled} ({age}d ago), "
