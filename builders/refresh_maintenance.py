@@ -107,14 +107,20 @@ SITE_CODES = {
 #
 # Deliberately NOT mapped, and they must stay that way until somebody decides
 # what they are:
-#   'Factory Edin', 'Glasgow Factory', 'MF Edinburgh', 'MF Glasgow' - the only
-#     factory site on this dashboard is AA Factory1 Limited, and mapping an
-#     Edinburgh or Glasgow factory onto it would attribute one site's
-#     maintenance to another.
-#   'Maki 4' - M4 is not in the estate's M-code list this map was built from
-#     (M1, M3, M5-M21), so there is nothing to map it to. It appears 11 times
-#     in the 2024 form rows and may be a since-closed site; until someone says
-#     which, it renders as itself.
+# Counts below are from the live worksheet, 1,264 submissions, 16/09/2026:
+#   'MF Edinburgh' (20), 'MF Glasgow' (22), 'Factory - Dalkeith Road,
+#     Edinburgh' (4), 'Factory - Renfield St, Glasgow' (17) - four spellings of
+#     two factories. The only factory site on this dashboard is AA Factory1
+#     Limited, and mapping an Edinburgh or Glasgow factory onto it would
+#     attribute one site's maintenance to another.
+#   'Maki 4' (44) and 'Maki 2' (1) - M2 and M4 are not in the estate's M-code
+#     list this map was built from (M1, M3, M5-M21), so there is nothing to map
+#     them to. 44 submissions is too many to be noise; they may be a
+#     since-closed site. Until someone says which, they render as themselves.
+#   'RHQ' (22) - head office, not a trading site.
+#   'IKIGAI 1' (3) - Iki 2 is South Ikigai Ltd; there is no confirmed Iki 1 on
+#     this dashboard, so this is not assumed to be the same place.
+#   'Grindlay Flat' (4) - a flat, not a site.
 # All of them surface in unresolved_site_labels and are named in the gap the
 # baker puts on the Maintenance tab.
 
@@ -123,9 +129,31 @@ _MONTHS = ("january february march april may june july august september "
 
 
 def canon_site(raw: str) -> str | None:
-    """Canonical dashboard site for a sheet label, or None if not confirmed."""
-    key = re.sub(r"\s+", " ", str(raw or "")).strip().lower().rstrip("-").strip()
-    return SITE_CODES.get(key)
+    """Canonical dashboard site for a sheet label, or None if not confirmed.
+
+    Ross, 16/09/2026: the form's dropdown has been re-worded at least once, so
+    the SAME site appears under two labels - 180 rows of 'Maki 8' and 14 of
+    'Maki 8 - Renfield St, Glasgow'. Matching the whole string only resolved
+    942 of 1,264 submissions and left the entire estate in the unresolved list
+    under its long spelling.
+
+    So: try the label whole, then try the part before the FIRST ' - '. First,
+    not last, because two of them carry a second dash - 'Maki 9 - York St -
+    Manchester', 'Maki 10 - Bond St - Leeds'.
+
+    This is still matching, not guessing: the prefix it falls back to is the
+    site code already in the map, so 'Maki 8 - Renfield St, Glasgow' resolves
+    to what 'Maki 8' resolves to and nothing new is invented. A label whose
+    prefix is not a known code - 'Factory - Dalkeith Road, Edinburgh' - stays
+    unresolved exactly as before.
+    """
+    def _key(t):
+        return re.sub(r"\s+", " ", str(t or "")).strip().lower().rstrip("-").strip()
+    key = _key(raw)
+    if key in SITE_CODES:
+        return SITE_CODES[key]
+    head = _key(key.split(" - ", 1)[0]) if " - " in key else None
+    return SITE_CODES.get(head) if head else None
 
 
 def iso_date(raw: str) -> str | None:
