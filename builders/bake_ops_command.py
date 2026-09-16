@@ -2325,17 +2325,27 @@ def main():
     # for it either (checked GC Forms - no maintenance/repair/facilities form
     # exists). The real tracker is a Google Sheet Lincoln maintains by hand:
     # "Required Maintenance/Repair (Responses)", confirmed as the source with
-    # Ross. That sheet has no live API wired into Pipe 9 (GitHub Actions has no
-    # Google credential, and adding one is a Ross-side credential step - see
-    # gaps note below) so this block reads a committed companion file,
-    # data/ops_command/maintenance_source.json, instead of querying Postgres.
-    # That file is produced by pulling the sheet's most recent curated section
-    # ("UPDATED AS OF <date>" - ON GOING/PENDING + DONE tables) via the Drive
-    # connector and normalizing site labels (the sheet uses short codes like
-    # M12/Maki 12 - mapped to the same canonical site names used everywhere
-    # else on this dashboard via a legend cross-checked against the internal
-    # "SITE OVERVIEW" directory doc). It is refreshed by re-running that pull,
-    # not by Pipe 9 itself - see the project doc for the refresh mechanism.
+    # Ross. This block reads a committed companion file,
+    # data/ops_command/maintenance_source.json, rather than querying the
+    # warehouse, because the sheet is not an ETL feed.
+    #
+    # Ross, 11/09/2026: THE PARAGRAPH THAT USED TO BE HERE SAID "GitHub Actions
+    # has no Google credential, and adding one is a Ross-side credential step".
+    # That was true when it was written and is not true now - and believing it
+    # cost three weeks. GOOGLE_SA_JSON has existed since external_sheets.py went
+    # in, and external_sheets.py already reads this exact spreadsheet id daily;
+    # it just writes it to a tab in the KPI workbook, which this bake cannot
+    # see. So the refresh stayed manual, ran through a browser connector, and
+    # froze at 19/08 while fifteen scheduled headless runs built the data and
+    # could not commit it.
+    #
+    # It is automated now: builders/refresh_maintenance.py parses the sheet's
+    # newest "UPDATED AS OF <date>" section (ON GOING/PENDING + DONE tables)
+    # with that same service account, and ops_command_bake.yml runs it
+    # immediately before this bake, so the file rides out on the same commit as
+    # the snapshot that reads it. Site short codes (M12 / Maki 12) are mapped
+    # there, never guessed - an unrecognised label stays verbatim and is named
+    # in unresolved_site_labels.
     MAINT_SRC=os.path.join(OUT_DIR,"maintenance_source.json")
     if os.path.exists(MAINT_SRC):
         msrc=json.load(open(MAINT_SRC))
@@ -2364,15 +2374,20 @@ def main():
           "does not distinguish outstanding from in-progress any further than that; "
           "event-dated on the sheet's own Date column, so the date-range filter "
           "slices both the per-site bars/table and the drill-down; NOT sourced from "
-          "the Neon warehouse or Pipe 9 - see 'source_as_of'/'pulled_at' for "
-          "freshness, and the project doc for how this gets refreshed"}
+          "the warehouse - see 'source_as_of' (the date Lincoln stamped on the "
+          "section) and 'pulled_at' (when the refresher last read it) for "
+          "freshness. Refreshed automatically by builders/refresh_maintenance.py "
+          "on every bake; if those two dates stop moving, that script is failing "
+          "and saying so in the bake log"}
     else:
         snap["maintenance"]={"tasks":[],"by_site":[],"gaps":[
           "maintenance_source.json missing - Maintenance tab has no data this bake"],
           "basis":"no data available this bake"}
         gaps.append("data/ops_command/maintenance_source.json absent - Maintenance tab "
-          "empty. This file is not produced by Pipe 9; it's pulled from Lincoln's "
-          "Google Sheet by a separate refresh step - see project doc")
+          "empty. It is written by builders/refresh_maintenance.py from Lincoln's "
+          "Google Sheet, which runs immediately before this bake; if the file is "
+          "missing entirely, that step did not run or has never succeeded - check "
+          "the bake log for the reason it printed")
     # ---- sites ----
     hc=[]
     cur.execute(
