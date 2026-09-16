@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-09-15",
+ "source_as_of": "2026-09-16",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-09-16T19:05:44Z",
+ "pulled_at": "2026-09-16T19:47:51Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -14,10 +14,21 @@
   "MF Edinburgh",
   "MF Glasgow",
   "Maki 2",
-  "Maki 4",
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Aberdeen Ltd",
+   "raw_site": "Maki 13 - Union Square, Aberdeen",
+   "d": "2026-09-16",
+   "issue": "Ice machine making an unsettling noise",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Joe"
+  },
   {
    "site": "Maki SJQ Ltd",
    "raw_site": "Maki 7 - SJQ, Edinburgh",
@@ -432,7 +443,7 @@
    "d": "2026-08-31",
    "issue": "Women 2 toilet lockers broken",
    "comment": "eta, 10.09",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -660,7 +671,7 @@
    "d": "2026-08-26",
    "issue": "Kitchen sink leaking",
    "comment": "ETA, 10.09",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "Medium Priority",
    "completed_on": null,
    "cost": null,
@@ -1032,7 +1043,7 @@
    "d": "2026-08-17",
    "issue": "Repair of Chinese cooker",
    "comment": "waiting for confirmation of visit 21.08",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -1164,7 +1175,7 @@
    "d": "2026-08-14",
    "issue": "hot water not getting hot enough",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -1596,7 +1607,7 @@
    "d": "2026-08-05",
    "issue": "Aircond servicing (Water is dripping from the aircond and it’s affecting 2 dine-in tables. Even after we turned on dry mode, it doesn’t stop the water droplets).",
    "comment": "no repair needed, just cleaning service",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "Medium Priority",
    "completed_on": null,
    "cost": null,
@@ -3504,7 +3515,7 @@
    "d": "2026-06-10",
    "issue": "Replacement for mouldy soaked wood from the bar sink",
    "comment": "looking for local handyman to do the job",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -4039,7 +4050,7 @@
    "raised_by": "Caroline"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-05-15",
    "issue": "Kitchen mixer tap broken ball valve",
@@ -4075,7 +4086,7 @@
    "raised_by": "Matt"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-05-13",
    "issue": "Maki ramen neon sign disconnected and removed",
@@ -4375,7 +4386,7 @@
    "raised_by": "Ewan"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-05-04",
    "issue": "Kitchen sink tap is broken.No hot water",
@@ -5347,7 +5358,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-04-03",
    "issue": "New commercial double bowl sink installed.New pipe line installed plus new grease trap plastic pipe work finish and new taps added.",
@@ -5527,7 +5538,7 @@
    "raised_by": "Matt"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-03-24",
    "issue": "Storage room lights sensor needs to be replaced",
@@ -5707,7 +5718,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-03-15",
    "issue": "Fix fridge or replace",
@@ -5803,7 +5814,7 @@
    "raised_by": "Arthur"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-03-11",
    "issue": "Mould on celling",
@@ -5815,7 +5826,7 @@
    "raised_by": "Piotr"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-03-11",
    "issue": "Fix left tap on hand sink",
@@ -5827,7 +5838,7 @@
    "raised_by": "Piotr"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-03-11",
    "issue": "Fix left tap in washing sink (loose)",
@@ -5856,7 +5867,7 @@
    "d": "2026-03-10",
    "issue": "Wall at bottom of stairs repaired (see pictured)",
    "comment": "duplicated request",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -6115,7 +6126,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-02-27",
    "issue": "Slats wall coming off from frame",
@@ -6360,7 +6371,7 @@
    "d": "2026-02-16",
    "issue": "Kitchen pass circuit repeatedly tripping",
    "comment": "Advise to purchased new unit",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "Low Priority",
    "completed_on": null,
    "cost": null,
@@ -6403,7 +6414,7 @@
    "raised_by": "Kieran"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-02-12",
    "issue": "Buffalo hot water boiler installed",
@@ -6739,7 +6750,7 @@
    "raised_by": "Derrick Cheung"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-02-02",
    "issue": "Waste pipe leak",
@@ -6763,7 +6774,7 @@
    "raised_by": "Samu"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-02-02",
    "issue": "New hot water heater installed plus new hot water pipe system for toilet and kitchen.",
@@ -6775,7 +6786,7 @@
    "raised_by": "Krzysztof Jozefowicz/Blair"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-02-02",
    "issue": "Disabled person toilet wall and ceiling strip down to timber frame due to water tank damage",
@@ -7327,7 +7338,7 @@
    "raised_by": "Penny Fung"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2026-01-14",
    "issue": "Disabled toilet ceiling water damage due to water tanks and pipe massive condensation problem",
@@ -7867,7 +7878,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-12-17",
    "issue": "New double entrance door fitted",
@@ -8292,7 +8303,7 @@
    "d": "2025-11-23",
    "issue": "adasd",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "Low Priority",
    "completed_on": null,
    "cost": null,
@@ -8503,7 +8514,7 @@
    "raised_by": "Justyna"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-11-12",
    "issue": "valve katsu curry warmer not working",
@@ -8551,7 +8562,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-11-11",
    "issue": "Soft closer toilet seat installed",
@@ -8575,7 +8586,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-11-11",
    "issue": "Induction hob not working",
@@ -8683,7 +8694,7 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-11-05",
    "issue": "Need to repaint the wall before halal friendly certification team visit (next Wednesday)",
@@ -9043,7 +9054,7 @@
    "raised_by": "Ka"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-10-30",
    "issue": "New light switch added .Outside flood lights installed",
@@ -9067,7 +9078,7 @@
    "raised_by": "Artur"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-10-29",
    "issue": "New wall heater installed",
@@ -9792,7 +9803,7 @@
    "d": "2025-08-14",
    "issue": "Upstair prep fridge broken, temp always high",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "Medium Priority",
    "completed_on": null,
    "cost": null,
@@ -10248,7 +10259,7 @@
    "d": "2025-06-23",
    "issue": "Chest freezer in middle of kitchen wire needs fixed as their are exposed wires and wire need trunking to prevent trips",
    "comment": "KRIS",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -10308,7 +10319,7 @@
    "d": "2025-06-07",
    "issue": "Please repair and check hot hold lamp on ramen and side section, if not work please buy new",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -10428,7 +10439,7 @@
    "d": "2025-05-23",
    "issue": "Please open the floor in downstiars store sink as Pests control has advised the floorinf underneath are water damaged and the sole reason of driain flies . We have failed our internal audit because of flies",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -10483,7 +10494,7 @@
    "raised_by": "Penny Fung"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-05-16",
    "issue": "Boiler",
@@ -10548,7 +10559,7 @@
    "d": "2025-05-09",
    "issue": "Ice machine on bar keeps filling up with water.",
    "comment": "KRIS",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -10560,7 +10571,7 @@
    "d": "2025-05-06",
    "issue": "Canopy motor has been leaking since its installed",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -10584,7 +10595,7 @@
    "d": "2025-04-28",
    "issue": "Install a new passcode lock in basement back door",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "Medium Priority",
    "completed_on": null,
    "cost": null,
@@ -10704,7 +10715,7 @@
    "d": "2025-04-20",
    "issue": "light in the stairwell is broken (wire problem)",
    "comment": "KRIS",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -11100,7 +11111,7 @@
    "d": "2025-03-11",
    "issue": "The Stove start closing 5-10 times a day, in causes delays in busy times.",
    "comment": "LINCOLN",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -11472,7 +11483,7 @@
    "d": "2025-01-27",
    "issue": "Roof in drinks stock room hanging down",
    "comment": "",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
@@ -11527,7 +11538,7 @@
    "raised_by": "Weelz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-01-06",
    "issue": "Toilet handle broken",
@@ -11539,7 +11550,7 @@
    "raised_by": "Adrian"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2025-01-05",
    "issue": "Disabled toilet door handle has broken off",
@@ -11611,7 +11622,7 @@
    "raised_by": "Aurora"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-12-16",
    "issue": "Ice machine not working",
@@ -11731,7 +11742,7 @@
    "raised_by": "Kaitlin Docherty"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-12-06",
    "issue": "Basin leaking, pipe needs to be replaced.",
@@ -11839,7 +11850,7 @@
    "raised_by": "Dean"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-12-01",
    "issue": "Heater socket is burnt",
@@ -11851,7 +11862,7 @@
    "raised_by": "Adrian"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-12-01",
    "issue": "Heater (couldn’t locate the on/off switch)",
@@ -11935,7 +11946,7 @@
    "raised_by": "Abhishek Basnet"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-11-28",
    "issue": "2 heaters. one above the table 6 it could be the socket connection issue. We have to hit the socket hard then it might or might not turn on. And the second one above ice making machine (not sure where the on/off switch is )",
@@ -12199,7 +12210,7 @@
    "raised_by": "Amy Tang"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-10-29",
    "issue": "Large crack in kitchen floor in front of the sink",
@@ -12247,7 +12258,7 @@
    "raised_by": "Zu Strassberg"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-10-17",
    "issue": "One of the heaters has stopped working, also the switch for all the heaters has got stuck (?) and can’t be turned off",
@@ -12847,7 +12858,7 @@
    "raised_by": "Sujan"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-08-20",
    "issue": "accessible Toilet slow draining and clog easily after few usage if customer throw toilet paper in",
@@ -13015,7 +13026,7 @@
    "raised_by": "Óisín Patrick"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-08-01",
    "issue": "1 unit double wall socket and 1 unit single wall socket in the kitchen need to be replaced, they got burnt.",
@@ -13495,7 +13506,7 @@
    "raised_by": "Ka"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-06-15",
    "issue": "Toilet refilling slow and easy clog",
@@ -13651,7 +13662,7 @@
    "raised_by": "Justyna"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-06-06",
    "issue": "No hot water supply since yesterday.",
@@ -13939,7 +13950,7 @@
    "raised_by": "Weelz"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-05-17",
    "issue": "Repair needed, left side of the grill is not getting hot, while the right side still functioning properly.",
@@ -14179,7 +14190,7 @@
    "raised_by": "Abhi"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-04-14",
    "issue": "Noodle boiler at maki 4 is kaput",
@@ -14251,7 +14262,7 @@
    "raised_by": "Óisín Darragh"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-03-30",
    "issue": "Table 9 - Needs Sealed as wind trap coming through the boxed area - Customers complaining.",
@@ -14263,7 +14274,7 @@
    "raised_by": "Ka"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-03-30",
    "issue": "Heating at Maki 4 non operational - Needs looked at all 3 ceiling heaters. - Door one ok",
@@ -14671,7 +14682,7 @@
    "raised_by": "Smriti Rai"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-02-15",
    "issue": "Railing in Accessible Toilet has come loose and needs secured",
@@ -14695,7 +14706,7 @@
    "raised_by": "Ka"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-02-15",
    "issue": "Hinges need attached on hatch under mirror",
@@ -14707,7 +14718,7 @@
    "raised_by": "Óisín Patrick"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-02-15",
    "issue": "Hinge needs secured on cupboard above entrance to toilets",
@@ -14719,7 +14730,7 @@
    "raised_by": "Óisín Patrick Darragh"
   },
   {
-   "site": "Maki 4",
+   "site": "Maki Leith",
    "raw_site": "Maki 4",
    "d": "2024-02-15",
    "issue": "Door needs replaced on cupboard containing boiler",
