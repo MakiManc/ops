@@ -306,9 +306,16 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
     'week: the caveat is gone again once the period no longer needs it');
 
   // -- KPI strip ----------------------------------------------------------
+  // Ross, 16/09/2026: the third tile used to read "OTIF this month". It was
+  // renamed on 09/09 because the number is an issue-free-delivery rate and
+  // calling it OTIF invited someone to quote it at a supplier as a measured
+  // on-time-in-full. The tile is the same tile; only the honest label moved,
+  // so this asserts the new wording rather than treating it as a regression.
   const kpiLabels = (await page.locator('#supp-kpis .kpi .lb').allInnerTexts()).map(t => t.toLowerCase());
-  assert(kpiLabels.join('|') === 'projected spend this week|items ordered this week|otif this month|top supplier this week|issues logged',
-    `emails: KPI strip is spend/items/OTIF/top supplier/issues (got ${JSON.stringify(kpiLabels)})`);
+  assert(kpiLabels.join('|') === 'projected spend this week|items ordered this week|issue-free deliveries|top supplier this week|issues logged',
+    `emails: KPI strip is spend/items/issue-free deliveries/top supplier/issues (got ${JSON.stringify(kpiLabels)})`);
+  assert(!kpiLabels.some(l => /\botif\b/.test(l)),
+    'emails: no tile calls the issue-free rate "OTIF"');
   assert(!kpiLabels.includes('still to come') && !kpiLabels.includes('delivered so far'),
     'emails: KPI strip invents no delivered/pending split');
   const vals = await page.locator('#supp-kpis .kpi .vl').allInnerTexts();
@@ -346,8 +353,17 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   assert(/100\.0%/.test(lwcRow), `emails: a supplier with deliveries and no issues shows 100% (got "${lwcRow.replace(/\s+/g,' ')}")`);
   const provText = await page.locator('#otif-tbl .prov').allInnerTexts();
   const provJoined = provText.join(' ');
-  assert(/August 2026 is not comparable with later months/.test(provJoined),
-    'emails: August carries the "not comparable" caveat naming the issue-history start');
+  // Ross, 16/09/2026: this used to assert on a caveat the SHELL generated -
+  // "August 2026 is not comparable with later months" - off first_month. That
+  // banner is gone, and deliberately: it was keyed to issues_history_start,
+  // which is the first PULL date rather than the first data date, and it blamed
+  // the wrong side of the fraction. The shell now warns only when the builder
+  // says a month measures nothing (covered in the measurability scenario
+  // below). For a snapshot baked before measurability existed - which is what
+  // this fixture is, and what the roll-back selector still serves - the warning
+  // has to survive in the snapshot's own note, so assert it is on screen there.
+  assert(/not comparable with later months/.test(provJoined),
+    'emails: a legacy-shape snapshot still shows its own August caveat from the note');
   assert(/2026-08-13/.test(provJoined), 'emails: the caveat names the 13 Aug 2026 issue-history start date');
   assert(/issue-free-delivery rate/i.test(provJoined) && /NOT a measured on-time-in-full/i.test(provJoined),
     'emails: the OTIF definition note is on screen, not just in the JSON');
@@ -376,10 +392,15 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
     `emails modal: chip row is Total/Items ordered/Suppliers (got ${JSON.stringify(modalKpis)})`);
   await page.locator('#task-modal-x').click();
 
-  // -- supplier profile modal gains OTIF by month -------------------------
+  // -- supplier profile modal gains issue-free deliveries by month --------
+  // Renamed 09/09/2026 with the rest of the OTIF wording; the section itself
+  // is unchanged, so this follows the label rather than reporting a loss.
   await page.evaluate(() => window.openSupplierProfileModal('Brakes'));
   const profHtml = await page.locator('#task-modal-b').innerHTML();
-  assert(/OTIF by month/.test(profHtml), 'profile modal: has an OTIF by month section');
+  assert(/Issue-free deliveries by month/.test(profHtml),
+    'profile modal: has an issue-free-deliveries-by-month section');
+  assert(/indicative, not OTIF/.test(profHtml),
+    'profile modal: the section says in words that it is not a measured OTIF');
   assert(/August 2026/.test(profHtml) && /87\.5%/.test(profHtml),
     "profile modal: shows this supplier's own monthly deliveries/issues/OTIF");
   await page.locator('#task-modal-x').click();
@@ -455,8 +476,8 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
     `legacy: the by-supplier card shows an empty state (got "${legacyEmpty}")`);
   await page.evaluate(() => window.openSupplierProfileModal('Harro'));
   const profHtml = await page.locator('#task-modal-b').innerHTML();
-  assert(/Monthly OTIF is not in this snapshot/.test(profHtml),
-    'legacy: the supplier profile says OTIF is absent rather than showing an empty table');
+  assert(/Monthly issue-free delivery data is not in this snapshot/.test(profHtml),
+    'legacy: the supplier profile says the monthly rate is absent rather than showing an empty table');
   await page.locator('#task-modal-x').click();
 }
 
@@ -484,6 +505,89 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
   const sub = await page.locator('#fa-aging-sub').innerText();
   assert(/No source for projected spend/.test(sub),
     'no-source: the subtitle stops naming a source whose data is not there');
+}
+
+// ------------- per-supplier measurability (09/09/2026 shape) ------------
+// The fixtures above are the pre-09/09 shape, kept because the roll-back
+// selector still serves snapshots baked then. This is the shape the builder
+// emits NOW, and it is the one that ships: the builder decides per
+// supplier-month whether the order emails span the month, and a month where
+// none of them do measures nothing at all.
+//
+// It matters because the number this replaced was Lynas at 0.0% for August,
+// off 34 deliveries against 53 issues - deliveries counted from 28/08 and
+// issues from the whole month. Wrong in its label and its value, and the one
+// most likely to be read out to a supplier. A rate that cannot be measured has
+// to say so in words.
+{
+  const otifNow = {
+    months: [
+      { month: '2026-08', deliveries: 328, issues: 71,
+        measurable_suppliers: 0, measurable_of: 17,
+        measurable_deliveries: 0, measurable_issues: 0,
+        unattributed_issues: 7, otif_pct: null,
+        suppliers: [
+          { supplier: 'Lynas', supplier_canon: 'Lynas', deliveries: 34, issues: 53,
+            measurable: false, coverage_from: '2026-08-28', otif_pct: null,
+            not_measured: 'order emails for this supplier only start 2026-08-28, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers' },
+        ] },
+      { month: '2026-09', deliveries: 916, issues: 44,
+        measurable_suppliers: 2, measurable_of: 3,
+        measurable_deliveries: 294, measurable_issues: 34,
+        unattributed_issues: 2, otif_pct: 88.4,
+        suppliers: [
+          { supplier: 'Lynas', supplier_canon: 'Lynas', deliveries: 171, issues: 34,
+            measurable: true, not_measured: null, coverage_from: '2026-08-28', otif_pct: 80.1 },
+          { supplier: 'Harro', supplier_canon: 'Harro', deliveries: 123, issues: 0,
+            measurable: true, not_measured: null, coverage_from: '2026-08-28', otif_pct: 100.0 },
+          { supplier: 'TWF', supplier_canon: 'TWF', deliveries: 140, issues: 2,
+            measurable: false, coverage_from: '2026-09-03', otif_pct: null,
+            not_measured: 'order emails for this supplier only start 2026-09-03, partway through 2026-09 - the delivery count is a fragment of the month the issue count covers' },
+        ] },
+    ],
+    basis: 'test otif basis',
+    first_month: '2026-08',
+    issues_history_start: '2026-08-05',
+    issues_feed_landed: '2026-08-13',
+    note: 'An issue-free-delivery rate, NOT a measured on-time-in-full. The earliest issue on record is 2026-08-05.',
+  };
+  const snap = { ...baseSnap, gaps: [],
+    supply: { ...emailSupplyFixture(), otif: otifNow } };
+  await page.evaluate((s) => { window.render(s); window.gotoPage('p-supp'); }, snap);
+
+  // The month selector is module state on the page and survives a render, so
+  // name the month rather than inherit whichever one the last scenario left.
+  await page.selectOption('#otif-month', '2026-09');
+
+  // September: two of three suppliers measurable, so a rate is offered - but
+  // the unmeasurable one says so rather than being averaged in silently.
+  const sepHtml = await page.locator('#otif-tbl').innerHTML();
+  assert(/80\.1%/.test(sepHtml) && /100\.0%/.test(sepHtml),
+    'measurable: a measurable supplier-month shows its rate');
+  const twfRow = await page.locator('#otif-tbl tbody tr', { hasText: 'TWF' }).innerText();
+  assert(/not measured/.test(twfRow) && !/%/.test(twfRow.replace(/vs .*/, '')),
+    `measurable: a supplier whose emails start mid-month reads "not measured", never a % (got "${twfRow.replace(/\s+/g, ' ')}")`);
+  const sepTot = await page.locator('#otif-tbl tbody tr.tot').innerText();
+  assert(/2 of 3 measurable/.test(sepTot),
+    `measurable: the total row says how much of the month it is speaking for (got "${sepTot.replace(/\s+/g, ' ')}")`);
+  assert(/88\.4%/.test(sepTot), 'measurable: the total is the rate over measurable suppliers only');
+  assert(await page.locator('#otif-tbl .prov', { hasText: 'is measurable' }).count() === 0,
+    'measurable: no month-wide warning while the selected month does measure something');
+
+  // August: nothing measurable, so there is no rate and the banner says why.
+  await page.selectOption('#otif-month', '2026-08');
+  const augProv = (await page.locator('#otif-tbl .prov').allInnerTexts()).join(' ');
+  assert(/Nothing in August 2026 is measurable/.test(augProv),
+    'measurable: a month with no measurable supplier is banner-warned by name');
+  assert(/starts partway through this month/.test(augProv),
+    'measurable: the banner names the delivery side as the cause, not the issue side');
+  const lynasAug = await page.locator('#otif-tbl tbody tr', { hasText: 'Lynas' }).innerText();
+  assert(!/0\.0%/.test(lynasAug),
+    `measurable: Lynas August is never rendered as 0.0% (got "${lynasAug.replace(/\s+/g, ' ')}")`);
+  assert(/not measured/.test(lynasAug), 'measurable: Lynas August reads "not measured"');
+  const augTot = await page.locator('#otif-tbl tbody tr.tot').innerText();
+  assert(/0 of 17 measurable/.test(augTot) && !/%/.test(augTot.replace(/vs .*/, '')),
+    `measurable: the August total offers no rate at all (got "${augTot.replace(/\s+/g, ' ')}")`);
 }
 
 assert(consoleErrors.length === 0,
