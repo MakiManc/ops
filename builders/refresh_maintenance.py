@@ -77,6 +77,12 @@ OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 SITE_CODES = {
     "m1":  "M1TOO Ltd",              "maki 1":  "M1TOO Ltd",
     "m1/2": "M1TOO Ltd",             "maki 1/2": "M1TOO Ltd",
+    # Ross, 16/09/2026: "Maki 2 is merged with Maki 1 to make Maki 1/2."
+    # So M2 is not a missing site, it is half of one that already resolves. The
+    # site's own Kobas name records the merge - bake_ops_command.py pairs
+    # M1TOO Ltd with the venue 'Maki 1/2 (Nicolson St)' - which is why 'm1/2'
+    # was already in this map and 'm2' was not. One submission, 26/05/2025.
+    "m2":  "M1TOO Ltd",              "maki 2":  "M1TOO Ltd",
     "m3":  "Fountain Good Food Ltd", "maki 3":  "Fountain Good Food Ltd",
     "m5":  "South Ikigai Ltd",       "maki 5":  "South Ikigai Ltd",
     "iki2": "South Ikigai Ltd",      "iki 2":   "South Ikigai Ltd",
@@ -133,17 +139,16 @@ SITE_CODES = {
 #
 # Deliberately NOT mapped, and they must stay that way until somebody decides
 # what they are:
-# Counts below are from the live worksheet, 1,264 submissions, 16/09/2026:
+# Counts below are from the live worksheet, 1,265 submissions, 16/09/2026:
 #   'MF Edinburgh' (20), 'MF Glasgow' (22), 'Factory - Dalkeith Road,
 #     Edinburgh' (4), 'Factory - Renfield St, Glasgow' (17) - four spellings of
 #     two factories. The only factory site on this dashboard is AA Factory1
 #     Limited, and mapping an Edinburgh or Glasgow factory onto it would
 #     attribute one site's maintenance to another.
-#   'Maki 2' (1) - M2 is not in the estate's M-code list this map was built
-#     from (M1, M3, M5-M21), so there is nothing to map it to. One submission,
-#     26/05/2025, 'Sockets for led lights'. 'Maki 4' left this list on
-#     16/09/2026 when Ross said what it was; nobody has said what M2 is, and one
-#     row is not enough to guess from. It renders as itself.
+#   'Maki 4' and 'Maki 2' both left this list on 16/09/2026, when Ross said what
+#     they were - M4 is Leith, M2 is half of M1/2. What remains below is not a
+#     backlog of unanswered labels; it is four things that are not trading sites
+#     and one that is not confirmed.
 #   'RHQ' (22) - head office, not a trading site.
 #   'IKIGAI 1' (3) - Iki 2 is South Ikigai Ltd; there is no confirmed Iki 1 on
 #     this dashboard, so this is not assumed to be the same place.
