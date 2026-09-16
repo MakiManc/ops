@@ -68,7 +68,12 @@ from __future__ import annotations
 import argparse, collections, datetime, hashlib, json, os, re, sys
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
-OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "ops_command")
+# OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
+# tests/price_spike_attribution_test.py would write its synthetic snapshot over
+# a real one and prepend a made-up date to snapshot_index.json - a fixture that
+# can corrupt the history it is meant to protect is worse than no fixture.
+OUT_DIR = (os.environ.get("OPS_OUT_DIR")
+           or os.path.join(os.path.dirname(__file__), "..", "data", "ops_command"))
 # Site map lives in the builder (house rule) -- classification, not presentation.
 # type: restaurant | factory | entity (non-trading legal vehicles on the roster)
 SITE_TYPES = {
