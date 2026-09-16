@@ -45,6 +45,21 @@ log = logging.getLogger("refresh_maintenance")
 SHEET_ID = os.environ.get("EXT_MAINTENANCE_ID", "").strip() or \
     "1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA"
 SHEET_NAME = "Required Maintenance/Repair (Responses)"
+# Ross, 16/09/2026: THE SOURCE IS THE FORM RESPONSES, NOT LINCOLN'S RECAP.
+# This script first shipped reading the curated "UPDATED AS OF <date>" block,
+# which is Lincoln's weekly write-up. The record sites actually submit into is
+# the Google Form responses worksheet, and that is what the tab should show.
+#
+# Targeted by worksheet GID, not by title or by column signature. The file has
+# THREE form-response-shaped worksheets (two of them near-duplicates) plus two
+# curated trackers, so "the tab whose header looks like a form" is ambiguous
+# and "the first worksheet" is wrong. A gid is exact and survives a rename.
+# It is the number in the sheet URL after #gid=.
+FORM_GID = int(os.environ.get("MAINT_FORM_GID") or 1754461106)
+# How old the newest submission may be before the log says so out loud. 30 days
+# rather than a week: sites submit when something breaks, so a quiet fortnight
+# is a good fortnight, not a fault.
+MAX_QUIET_DAYS = 30
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "..", "data", "ops_command")
 
@@ -65,6 +80,7 @@ SITE_CODES = {
     "m3":  "Fountain Good Food Ltd", "maki 3":  "Fountain Good Food Ltd",
     "m5":  "South Ikigai Ltd",       "maki 5":  "South Ikigai Ltd",
     "iki2": "South Ikigai Ltd",      "iki 2":   "South Ikigai Ltd",
+    "ikigai 2": "South Ikigai Ltd",  "ikigai2": "South Ikigai Ltd",
     "m6":  "Maki Bath St",           "maki 6":  "Maki Bath St",
     "m7":  "Maki SJQ Ltd",           "maki 7":  "Maki SJQ Ltd",
     "m8":  "Renfield Good Food Ltd", "maki 8":  "Renfield Good Food Ltd",
@@ -83,11 +99,24 @@ SITE_CODES = {
     "m21": "Maki Birmingham Ltd",    "maki 21": "Maki Birmingham Ltd",
     "maki nori": "Maki Nori",        "nori": "Maki Nori",
 }
+# The form and the recap use DIFFERENT vocabularies for the same estate, which
+# is why both spellings appear above: the recap writes 'Iki 2' and 'Maki 7',
+# the form writes 'Ikigai 2' and 'Maki 7'. Every pair is still evidenced -
+# 'Ikigai 2' resolves to the site 'Iki 2' already resolved to in the set Ross
+# signed off, not to a new guess.
+#
 # Deliberately NOT mapped, and they must stay that way until somebody decides
-# what they are: 'Factory Edin', 'Glasgow Factory', 'MF Glasgow'. The estate's
-# only factory site on this dashboard is AA Factory1 Limited, and mapping an
-# Edinburgh or Glasgow factory onto it would attribute one site's maintenance
-# to another. They surface in unresolved_site_labels and render as themselves.
+# what they are:
+#   'Factory Edin', 'Glasgow Factory', 'MF Edinburgh', 'MF Glasgow' - the only
+#     factory site on this dashboard is AA Factory1 Limited, and mapping an
+#     Edinburgh or Glasgow factory onto it would attribute one site's
+#     maintenance to another.
+#   'Maki 4' - M4 is not in the estate's M-code list this map was built from
+#     (M1, M3, M5-M21), so there is nothing to map it to. It appears 11 times
+#     in the 2024 form rows and may be a since-closed site; until someone says
+#     which, it renders as itself.
+# All of them surface in unresolved_site_labels and are named in the gap the
+# baker puts on the Maintenance tab.
 
 _MONTHS = ("january february march april may june july august september "
            "october november december").split()
@@ -103,7 +132,9 @@ def iso_date(raw: str) -> str | None:
     """'26/08/2026' -> '2026-08-26'. Day-first: this is a UK sheet typed by
     hand, and 03/09 is the third of September in it, never the ninth of March.
     """
-    s = str(raw or "").strip()
+    # split() because a form Timestamp is "13/01/2024 12:53:25" - the date is
+    # the first token. The recap's Date column has no time part; both work.
+    s = str(raw or "").strip().split()[0] if str(raw or "").strip() else ""
     m = re.match(r"^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})$", s)
     if not m:
         return None
@@ -116,127 +147,122 @@ def iso_date(raw: str) -> str | None:
         return None
 
 
-def _section_date(text: str) -> str | None:
-    """'UPDATED AS OF - September 9, 2026' -> '2026-09-09'."""
-    m = re.search(r"updated\s+as\s+of\s*[-:]?\s*([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})",
-                  str(text or ""), re.I)
-    if not m:
-        return None
-    name, day, year = m.group(1).lower(), int(m.group(2)), int(m.group(3))
-    if name not in _MONTHS:
-        return None
-    return datetime.date(year, _MONTHS.index(name) + 1, day).isoformat()
-
-
 def _cells(row) -> list[str]:
     return [re.sub(r"\s+", " ", str(c or "")).strip() for c in row]
 
 
-def _heading(cs: list[str]) -> str | None:
-    """'ongoing' | 'done' if this row is a merged banner, else None."""
-    vals = {re.sub(r"^\\?\[merged\\?\]\s*", "", c, flags=re.I)
-            .strip().lower().rstrip(":").strip() for c in cs if c}
-    if len(vals) != 1:
-        return None
-    v = vals.pop()
-    if re.fullmatch(r"done\.?", v):
+# A form row counts as DONE when the sheet says so in either of the two places
+# it can: the Status column, or a filled Date of Completion. Both, because they
+# disagree in practice - rows carry a completion date with Status still blank,
+# and rows read "Completed" with no date. Anything else is ongoing, INCLUDING a
+# blank status: an unanswered row is outstanding work, not finished work, and
+# defaulting the other way would quietly empty the tab.
+_DONE_WORDS = re.compile(
+    r"^(completed?|done|resolved|fixed|sorted|closed|complete - .*)$", re.I)
+
+
+def _status_of(status: str, completed_on: str) -> str:
+    if _DONE_WORDS.match((status or "").strip()):
         return "done"
-    if re.fullmatch(r"(on\s*going|ongoing)(\s*/\s*pending)?|pending", v):
-        return "ongoing"
+    if iso_date(completed_on):
+        return "done"
+    return "ongoing"
+
+
+def _header_row(values: list[list]) -> tuple[int, dict] | None:
+    """Locate the form's header row and map the columns this script reads.
+
+    By NAME, never by position: the three form-shaped worksheets in this file
+    have different column orders, one carries a leading 'Month' column the
+    others lack, and the person-column is spelled 'Your Name' on one and
+    'Name' on another. Position would silently read the wrong field.
+    """
+    want = {
+        "d":         ("timestamp",),
+        "site":      ("location",),
+        "issue":     ("outstanding maintenance/repair tasks", "issue"),
+        "urgency":   ("on a scale of urgency, where does it fall?", "urgency"),
+        "completed": ("date of completion",),
+        "status":    ("status",),
+        "by":        ("carried out bykr", "carried out by"),
+        "cost":      ("expenses",),
+        "comment":   ("notes",),
+        "who":       ("your name", "name"),
+    }
+    for i, row in enumerate(values[:40]):
+        low = [c.lower() for c in _cells(row)]
+        if "timestamp" not in low or "location" not in low:
+            continue
+        cols = {}
+        for key, names in want.items():
+            for n in names:
+                if n in low:
+                    cols[key] = low.index(n)
+                    break
+        return i, cols
     return None
 
 
-def parse_sections(values: list[list]) -> tuple[str, list[dict]] | None:
-    """Find the NEWEST 'UPDATED AS OF' block in one worksheet and parse its
-    ON GOING/PENDING and DONE tables. Returns (as_of_iso, tasks) or None.
-
-    Newest rather than first, and by the date IN THE HEADING rather than by
-    position: the sheet keeps old sections above and below the current one
-    (there is a May block sitting above the September one), so "the top table"
-    and "the last table" are both wrong answers.
-    """
-    starts = []
-    for i, row in enumerate(values):
-        for c in _cells(row):
-            d = _section_date(c)
-            if d:
-                starts.append((d, i))
-                break
-    if not starts:
-        return None
-    as_of, start = max(starts)                      # newest heading wins
-    ends = [i for _, i in starts if i > start]
-    end = min(ends) if ends else len(values)
-
-    tasks, status, cols = [], None, None
-    for row in values[start + 1:end]:
+def parse_form(values: list[list]) -> list[dict]:
+    """Every submission in the form-responses worksheet, newest first."""
+    found = _header_row(values)
+    if not found:
+        return []
+    hdr, cols = found
+    get = lambda cs, k: (cs[cols[k]] if k in cols and cols[k] < len(cs) else "")
+    tasks = []
+    for row in values[hdr + 1:]:
         cs = _cells(row)
-        joined = " ".join(cs).lower()
         if not any(cs):
             continue
-        # Table headings. A banner row is a MERGED cell, so every non-empty
-        # cell on it carries the same text and that text is only the heading.
-        # Testing "does this row mention done" instead would swallow real work:
-        # the DONE table has a row reading "| | | Walk in Fridge issue | done
-        # and sorted |", which mentions done, has few filled cells, and is a
-        # task.
-        head = _heading(cs)
-        if head:
-            status, cols = head, None
-            continue
-        # Column header row - locate columns by name, never by position.
-        low = [c.lower() for c in cs]
-        if "site" in low and ("concern" in low or "issue" in low):
-            cols = {"date": low.index("date") if "date" in low else 0,
-                    "site": low.index("site"),
-                    "issue": low.index("concern") if "concern" in low
-                             else low.index("issue")}
-            rest = [j for j, c in enumerate(low)
-                    if j not in cols.values() and c]
-            cols["comment"] = rest[-1] if rest else None
-            continue
-        if status is None or cols is None:
-            continue
-        get = lambda k: (cs[cols[k]] if cols.get(k) is not None
-                         and cols[k] < len(cs) else "")
-        site_raw, issue = get("site"), get("issue")
-        if not issue and not site_raw:
-            continue
-        if not issue:                    # a site with no concern is not a task
-            continue
+        issue = get(cs, "issue")
+        if not issue:
+            continue                      # a row with no task is not a task
+        site_raw = get(cs, "site")
+        status = _status_of(get(cs, "status"), get(cs, "completed"))
         tasks.append({
-            # A row with a concern but no site is real work that the sheet
-            # left unattributed. It is NOT inherited from the row above: a
-            # blank under a filled cell usually means "same site", and usually
-            # is not a standard this file gets to invent.
             "site": canon_site(site_raw) or site_raw or "(no site given)",
             "raw_site": site_raw,
-            "d": iso_date(get("date")),
+            "d": iso_date(get(cs, "d")),
             "issue": issue,
-            "comment": get("comment"),
+            # The recap had one free-text update per row; the form splits that
+            # across Notes and who carried it out, so they are joined rather
+            # than one being dropped - the Maintenance tab renders this as the
+            # task's comment and a half-empty column reads as missing data.
+            "comment": " · ".join(x for x in (get(cs, "comment"),
+                                              get(cs, "by")) if x),
             "status": status,
+            # Fields the recap never carried. Urgency is the one sites actually
+            # fill in, and it is the only priority signal this system has.
+            "urgency": get(cs, "urgency") or None,
+            "completed_on": iso_date(get(cs, "completed")),
+            "cost": get(cs, "cost") or None,
+            "raised_by": get(cs, "who") or None,
         })
-    return as_of, tasks
+    tasks.sort(key=lambda t: (t["d"] or "", t["issue"]), reverse=True)
+    return tasks
 
 
-def build(values_by_tab: dict[str, list[list]], pulled_at: str) -> dict | None:
-    """Pick the worksheet holding the newest section and build the file."""
-    best = None
-    for tab, values in values_by_tab.items():
-        got = parse_sections(values)
-        if got and got[1] and (best is None or got[0] > best[1]):
-            best = (tab, got[0], got[1])
-    if best is None:
+def build(values: list[list], pulled_at: str, tab: str) -> dict | None:
+    """The committed file, from one form-responses worksheet."""
+    tasks = parse_form(values)
+    if not tasks:
         return None
-    tab, as_of, tasks = best
     unresolved = sorted({t["raw_site"] for t in tasks
                          if canon_site(t["raw_site"]) is None and t["raw_site"]})
+    dates = [t["d"] for t in tasks if t["d"]]
     return {
         "source": (f"Google Sheet '{SHEET_NAME}' (owned by lincoln@makiramen.com), "
-                   f"worksheet '{tab}', section 'UPDATED AS OF - {as_of}' "
-                   f"(ON GOING/PENDING + DONE tables)"),
-        "source_url": f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit",
-        "source_as_of": as_of,
+                   f"worksheet '{tab}' (gid {FORM_GID}) - the Google Form "
+                   f"responses themselves, one row per submission"),
+        "source_url": (f"https://docs.google.com/spreadsheets/d/{SHEET_ID}"
+                       f"/edit#gid={FORM_GID}"),
+        # source_kind exists so the never-go-backwards guard in main() can tell
+        # a genuine regression from a deliberate change of source. Switching
+        # from the recap to the form moves source_as_of backwards by design.
+        "source_kind": "form_responses",
+        "source_as_of": max(dates) if dates else None,
+        "first_submission": min(dates) if dates else None,
         "pulled_at": pulled_at,
         "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
         "unresolved_site_labels": unresolved,
@@ -244,8 +270,8 @@ def build(values_by_tab: dict[str, list[list]], pulled_at: str) -> dict | None:
     }
 
 
-def fetch(sheet_id: str) -> dict[str, list[list]]:
-    """Every worksheet's values, via the same service account the ETL uses."""
+def fetch(sheet_id: str, gid: int) -> tuple[str, list[list]]:
+    """One worksheet's values, by gid, via the service account the ETL uses."""
     import gspread
     sa = os.environ.get("GOOGLE_SA_JSON")
     path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
@@ -257,67 +283,108 @@ def fetch(sheet_id: str) -> dict[str, list[list]]:
         raise RuntimeError("no Google credentials (GOOGLE_SA_JSON or "
                            "GOOGLE_APPLICATION_CREDENTIALS)")
     sh = gc.open_by_key(sheet_id)
-    return {ws.title: ws.get_all_values() for ws in sh.worksheets()}
+    # Log every worksheet before picking one. When this file is reorganised -
+    # and it has been, it carries five trackers and three form tabs - the log
+    # is what tells the next person which gid to use instead of guessing.
+    titles = [(w.title, w.id) for w in sh.worksheets()]
+    log.info("worksheets in %s: %s", sheet_id,
+             ", ".join(f"{t!r} (gid {i})" for t, i in titles))
+    ws = sh.get_worksheet_by_id(gid)
+    log.info("reading worksheet %r (gid %s)", ws.title, gid)
+    return ws.title, ws.get_all_values()
 
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s %(name)s %(levelname)s %(message)s")
     ap = argparse.ArgumentParser()
-    ap.add_argument("--from-json", help="parse this {tab: values} dump instead "
-                                        "of calling Google (for tests)")
+    ap.add_argument("--from-json", help="parse this worksheet dump (a list of "
+                                        "rows) instead of calling Google")
+    ap.add_argument("--gid", type=int, default=FORM_GID)
     ap.add_argument("--out", default=os.path.join(OUT_DIR, "maintenance_source.json"))
     ap.add_argument("--print", action="store_true", help="print, do not write")
     a = ap.parse_args()
 
     try:
         if a.from_json:
-            values_by_tab = json.load(open(a.from_json))
+            values, tab = json.load(open(a.from_json)), "(local dump)"
         else:
-            values_by_tab = fetch(SHEET_ID)
+            tab, values = fetch(SHEET_ID, a.gid)
     except Exception as exc:                                     # noqa: BLE001
         # Fail soft. The committed file stays as it is, and the tab keeps
         # showing its real source_as_of, which is the honest outcome.
         log.error("could not read the maintenance sheet (%s: %s). Leaving the "
                   "committed file untouched. If this is a 403/404, share %s "
                   "with the service account (client_email in GOOGLE_SA_JSON) "
-                  "as Viewer.", type(exc).__name__, exc, SHEET_ID)
+                  "as Viewer; if it names the gid, worksheet %s has been "
+                  "deleted or renumbered and the log above lists the real "
+                  "ones.", type(exc).__name__, exc, SHEET_ID, a.gid)
         return 0
 
     pulled_at = (os.environ.get("PULLED_AT")
                  or datetime.datetime.now(datetime.timezone.utc)
                  .strftime("%Y-%m-%dT%H:%M:%SZ"))
-    built = build(values_by_tab, pulled_at)
+    built = build(values, pulled_at, tab)
     if not built:
-        log.error("no 'UPDATED AS OF' section found in any worksheet of %s - "
-                  "the sheet's layout may have changed. Leaving the committed "
-                  "file untouched.", SHEET_ID)
+        log.error("no form submissions parsed from worksheet gid %s of %s - "
+                  "expected a header row carrying 'Timestamp' and 'Location'. "
+                  "The layout may have changed. Leaving the committed file "
+                  "untouched.", a.gid, SHEET_ID)
         return 0
 
     ongoing = sum(1 for t in built["tasks"] if t["status"] == "ongoing")
     done = sum(1 for t in built["tasks"] if t["status"] == "done")
-    log.info("parsed section %s: %d tasks (%d ongoing, %d done), %d unresolved "
-             "site label(s): %s", built["source_as_of"], len(built["tasks"]),
-             ongoing, done, len(built["unresolved_site_labels"]),
+    log.info("parsed %d submissions (%d ongoing, %d done), dated %s..%s, "
+             "%d unresolved site label(s): %s", len(built["tasks"]),
+             ongoing, done, built["first_submission"], built["source_as_of"],
+             len(built["unresolved_site_labels"]),
              ", ".join(built["unresolved_site_labels"]) or "none")
+
+    # NEVER PUBLISH AN ANCIENT TAB QUIETLY. The form responses are the source
+    # Ross chose, but this file's form worksheets have gone quiet before - the
+    # three legacy ones stop between Aug 2024 and Feb 2025 - and a refresh that
+    # runs daily, succeeds, and serves two-year-old work would look healthy in
+    # every check we have: pulled_at would be today. The tab renders
+    # source_as_of, so a reader can see it; this makes sure the bake log says
+    # it too, because that is where somebody debugging will actually look.
+    if built["source_as_of"]:
+        stale = (datetime.date.fromisoformat(pulled_at[:10])
+                 - datetime.date.fromisoformat(built["source_as_of"])).days
+        if stale > MAX_QUIET_DAYS:
+            log.warning("NEWEST SUBMISSION IS %d DAYS OLD (%s). Worksheet gid "
+                        "%s parsed fine, so this is not a broken pull - either "
+                        "sites have stopped using the form, or the live "
+                        "responses are on a different worksheet. The list of "
+                        "worksheets logged above gives the other gids.",
+                        stale, built["source_as_of"], a.gid)
 
     if a.print:
         print(json.dumps(built, indent=1))
         return 0
 
-    prev_as_of = None
+    prev = {}
     if os.path.exists(a.out):
         try:
-            prev_as_of = json.load(open(a.out)).get("source_as_of")
+            prev = json.load(open(a.out)) or {}
         except Exception:                                        # noqa: BLE001
             pass
-    if prev_as_of and built["source_as_of"] < prev_as_of:
-        # Only ever move forward. A sheet edit that removes the newest section
-        # should not silently roll the dashboard back to an older one.
-        log.error("parsed section %s is OLDER than the committed %s - refusing "
-                  "to go backwards. Leaving the committed file untouched.",
-                  built["source_as_of"], prev_as_of)
+    prev_as_of, prev_kind = prev.get("source_as_of"), prev.get("source_kind")
+    # Never go backwards WITHIN a source: a sheet edit that removes the newest
+    # rows must not silently roll the dashboard back. But a change of source is
+    # not a regression - moving from Lincoln's recap to the form responses
+    # legitimately moves source_as_of to whatever the form's newest row is, and
+    # blocking that would make the switch impossible to deploy.
+    if (prev_as_of and prev_kind == built["source_kind"]
+            and built["source_as_of"] and built["source_as_of"] < prev_as_of):
+        log.error("newest submission %s is OLDER than the committed %s from "
+                  "the same source - refusing to go backwards. Leaving the "
+                  "committed file untouched.", built["source_as_of"], prev_as_of)
         return 0
+    if prev_kind and prev_kind != built["source_kind"]:
+        log.warning("source changed: %s -> %s. source_as_of moves %s -> %s, "
+                    "which is expected and not a regression.",
+                    prev_kind, built["source_kind"], prev_as_of,
+                    built["source_as_of"])
 
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
