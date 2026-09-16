@@ -456,6 +456,18 @@ def fb_date(form_date, ts):
     if d_ts is not None:
         return d_ts.isoformat(), True
     return None, False
+def _mon(d):
+    """Monday of the ISO week containing YYYY-MM-DD.
+
+    Module level since 16/09/2026: the KR2 spike trend buckets by report week
+    inside the price block, which runs well before the scorecard where this
+    used to live. Two copies of a week-start rule is how two trends end up
+    disagreeing about which week a Sunday belongs to.
+    """
+    dt=datetime.date.fromisoformat(d[:10])
+    return (dt-datetime.timedelta(days=dt.weekday())).isoformat()
+
+
 def has_feed(cur, feed):
     """Has this feed EVER landed. Deliberately not a freshness test.
 
@@ -1981,6 +1993,8 @@ def main():
     # take the whole bake down on a NameError.
     att_by_route=collections.Counter(); att_unattributed=collections.Counter()
     att_total=0
+    spike_events=[]; spike_months=[]; spike_weeks={}
+    spike_unattributed=0; spike_dupe_skipped=0; ordered_recent=None
 
     # ---- WHOSE price moved -----------------------------------------------
     # THE JOIN EVERYONE REACHES FOR FIRST DOES NOT EXIST, so do not re-add it.
@@ -2359,6 +2373,102 @@ def main():
         price_flux.sort(key=lambda r:(r["suspect"],-r["reversals"],
                                       -(r["swing_pct"] or 0)))
         price_suspect.sort(key=lambda r:-abs(r["pct_change"]))
+
+        # ---- Supply KR2: price spikes, per supplier, per month -----------
+        # A SPIKE is one supplier pack line rising by PRICE_SPIKE_PCT or more
+        # in a single report. Five exclusions, each for a reason that would
+        # otherwise send someone to a supplier over nothing:
+        #   * Old Price 'New' - a first-ever price is not a rise.
+        #   * a move in the suspect band - at +100% it is a pack or unit
+        #     re-spec or a keying slip, the same rule the settled list uses.
+        #   * duplicate_line - the export holds two live lines for that
+        #     supplier+category+ingredient+pack, so neither price can be
+        #     trusted as THE price.
+        #   * either side priced 0.00 - a placeholder Kobas never filled in.
+        #   * a line whose supplier could not be named - counted separately as
+        #     a disclosed gap, never attributed to anyone.
+        # ONE LINE COUNTS ONCE PER REPORT. The report has no per-event
+        # timestamp and can carry several events for one line, so counting
+        # events would score a line that wobbled twice in one week as two
+        # spikes against its supplier.
+        #
+        # THE ORDERED-RECENTLY FILTER IS PROBED, NOT ASSUMED. Ross's rule is
+        # "only ingredients we actually buy", which needs order lines at
+        # INGREDIENT level. 'Kobas Orders' is parsed from order-confirmation
+        # emails and today keeps only per-order totals - Line Items and Items
+        # Ordered are counts - so there is nothing to filter on and the filter
+        # is OFF, said plainly in the basis rather than silently skipped. The
+        # emails themselves do carry the lines ("2 x 70893 FRESH EGGS (1 x 180
+        # Items @ GBP68.00)"); daily_export.fetch_kobas_orders captures only
+        # the quantity. Widening that regex is what switches this on, and this
+        # block starts using it with no change here.
+        ordered_recent=None
+        if has_feed(cur,ORDER_EMAIL_FEED):
+            _since=(datetime.date.fromisoformat(pull)
+                    -datetime.timedelta(weeks=PRICE_SPIKE_ORDERED_WEEKS)).isoformat()
+            cur.execute(
+              "SELECT DISTINCT coalesce(data->>'Ingredient', data->>'Ingredient Name', "
+              "  data->>'Item', data->>'Item Name', data->>'Product') ing "
+              "FROM etl_feed_rows WHERE feed=%s "
+              "  AND coalesce(data->>'Delivery Date ISO', data->>'Order Email Date')>=%s",
+              (ORDER_EMAIL_FEED,_since))
+            _ings={_pk_name(r[0]) for r in cur.fetchall() if r[0]}
+            if _ings: ordered_recent=_ings
+        for k,evs in hist.items():
+            seen_line=set()
+            for d,o,n,i,_sup,a in evs:
+                if o is None or not o or not n: continue      # 'New', or a 0.00 side
+                pct=round(100.0*(n-o)/o,1)
+                if pct<PRICE_SPIKE_PCT: continue
+                if pct>=PRICE_SUSPECT_UP or pct<=PRICE_SUSPECT_DOWN: continue
+                if a["duplicate_line"]: spike_dupe_skipped+=1; continue
+                if not a["supplier"]: spike_unattributed+=1; continue
+                if ordered_recent is not None and _pk_name(i) not in ordered_recent:
+                    continue
+                if (d,a["supplier"]) in seen_line: continue   # once per report
+                seen_line.add((d,a["supplier"]))
+                spike_events.append({"d":d,"month":d[:7],"supplier":a["supplier"],
+                  "supplier_canon":a["supplier_canon"],"item":i,
+                  "pack":packlabel(*k),"pct":pct,"old":o,"new":n,
+                  "attribution":a["attribution"]})
+        # Every line PRICED in a month or week, per supplier - the denominator.
+        # A supplier with three lines and a supplier with three hundred cannot
+        # be compared on a raw count, so the count never travels without it.
+        _lines_m={}; _lines_w={}
+        for k,evs in hist.items():
+            for d,o,n,i,_sup,a in evs:
+                if not a["supplier"]: continue
+                _lines_m.setdefault((d[:7],a["supplier"]),set()).add(k)
+                _lines_w.setdefault(_mon(d),set()).add((k,a["supplier"]))
+        _by_month={}
+        for e in spike_events:
+            _by_month.setdefault(e["month"],{}).setdefault(e["supplier"],[]).append(e)
+        spike_months=[]
+        for m in sorted(_by_month) or sorted({d[:7] for d,_ in reports}):
+            sups=[]
+            for s,evl in sorted((_by_month.get(m) or {}).items()):
+                worst=max(evl,key=lambda e:e["pct"])
+                sups.append({"supplier":s,"supplier_canon":canon_supplier(s),
+                  "spikes":len(evl),"lines":len(_lines_m.get((m,s)) or ()),
+                  "worst_pct":worst["pct"],
+                  "worst_item":worst["item"]+(" · "+worst["pack"] if worst["pack"] else ""),
+                  "rag":"red" if len(evl)>PRICE_SPIKE_MAX_PER_SUPPLIER else "green"})
+            sups.sort(key=lambda r:(-r["spikes"],-r["worst_pct"],r["supplier"]))
+            over=[r for r in sups if r["spikes"]>PRICE_SPIKE_MAX_PER_SUPPLIER]
+            spike_months.append({"month":m,"suppliers":sups,
+              "over":len(over),"target":PRICE_SPIKE_MAX_PER_SUPPLIER,
+              "rag":"green" if not over else "red",
+              "worst":(over[0]["supplier"]+" "+str(over[0]["spikes"])) if over else None,
+              "spikes":sum(r["spikes"] for r in sups)})
+        # Weekly trend buckets: spikes that week over lines priced that week.
+        spike_weeks={}
+        for e in spike_events:
+            w=_mon(e["d"]); num_,_den,_days=spike_weeks.get(w,(0,0,0))
+            spike_weeks[w]=(num_+1,0,0)
+        for d,_rows in reports:                # a report week with no spike is 0,
+            w=_mon(d)                          # not a hole - the report DID land
+            spike_weeks.setdefault(w,(0,0,0))
+        spike_weeks={w:(n_,len(_lines_w.get(w) or ()),1) for w,(n_,_x,_y) in spike_weeks.items()}
         # The newest report's own changes, which is what the existing card shows.
         for rn,i,op,np,pid,ps,uv,ms,_sup in (reports[-1][1] if reports else []):
             npf=fb_num(np)
@@ -2467,6 +2577,36 @@ def main():
           "shapes and are counted but deliberately not merged, because there one code "
           "has been reused for two real pack sizes and collapsing them would delete a "
           "price. Fixing these in Kobas is a stock-data job, not a dashboard one")
+    # The basis is the row's audit trail: the rule, which month, how much of
+    # the report could be attributed at all, and every exclusion - because a
+    # count of spikes with no denominator and no exclusions named is exactly
+    # the kind of number this scorecard exists not to publish.
+    _spike_basis=(
+      "A spike is one supplier pack line rising by "+str(int(PRICE_SPIKE_PCT))+"% or "
+      "more in a single weekly report, counted once per line per report and attributed "
+      "to the supplier whose pack line moved. "
+      +("Month shown is "+spike_months[-1]["month"]+", by the report's first-seen date, "
+        "the same calendar-month rule as KR1. " if spike_months else "")
+      +"Excluded: a first-ever price ('New'), a move of "+str(int(PRICE_SUSPECT_UP))+"% "
+      "or more (a pack re-spec or a keying slip, not a price), either side priced 0.00, "
+      "and any line the pack-price export holds twice for one supplier+category+"
+      "ingredient+pack, whose price cannot be read off a single record"
+      +(" ("+str(spike_dupe_skipped)+" excluded on that ground). " if spike_dupe_skipped
+        else ". ")
+      +str(att_rate)+"% of report rows could be attributed to a named supplier"
+      +(" (under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% bar this system requires "
+        "before naming suppliers on a scorecard row)" if att_rate is not None
+        and att_rate<PRICE_ATTRIBUTION_MIN_PCT else "")
+      +"; "+str(spike_unattributed)+" qualifying rise(s) name no supplier and are "
+      "disclosed rather than assigned. "
+      +("Restricted to the "+str(len(ordered_recent))+" ingredient(s) ordered in the "
+        "trailing "+str(PRICE_SPIKE_ORDERED_WEEKS)+" weeks."
+        if ordered_recent is not None else
+        "NOT restricted to recently-ordered ingredients: '"+ORDER_EMAIL_FEED+"' is parsed "
+        "from order-confirmation emails and keeps only per-order totals, so there is no "
+        "ingredient-level order line to filter on. Every priced ingredient is counted. "
+        "The emails do carry the lines; widening the parser in "
+        "daily_export.fetch_kobas_orders is what turns this filter on."))
     snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
       "supplier_totals":supplier_totals,
       "supplier_totals_basis":supplier_totals_basis,
@@ -2521,6 +2661,15 @@ def main():
       "price_supplier_names":sorted(price_supplier_seen)[:50],
       "price_has_supplier":bool(price_supplier_seen),
       "price_attribution":price_attribution,
+      "price_spikes":{"months":spike_months,
+        "current":(spike_months[-1] if spike_months else None),
+        "unattributed":spike_unattributed,"duplicate_skipped":spike_dupe_skipped,
+        "ordered_filter":(len(ordered_recent) if ordered_recent is not None else None),
+        "thresholds":{"pct":PRICE_SPIKE_PCT,
+          "max_per_supplier":PRICE_SPIKE_MAX_PER_SUPPLIER,
+          "ordered_weeks":PRICE_SPIKE_ORDERED_WEEKS},
+        "basis":_spike_basis},
+      "spikes_by_supplier":(spike_months[-1]["suppliers"] if spike_months else []),
       "price_supplier_basis":"the Weekly Ingredient Price Changes report still carries "
       "seven columns - Parent ID, Ingredient Name, Pack Size, Unit Volume, Measurement, "
       "Old Price, New Price - and no supplier of its own. Since 16/09/2026 the supplier "
@@ -2761,10 +2910,6 @@ def main():
     #     pipeline was down as a dramatic improvement in every rate on the page.
     #  6. Denominators travel with every point, so a week of 3 task instances
     #     cannot be averaged against a week of 3,000.
-    def _mon(d):
-        """Monday of the ISO week containing YYYY-MM-DD."""
-        dt=datetime.date.fromisoformat(d[:10])
-        return (dt-datetime.timedelta(days=dt.weekday())).isoformat()
     _end=_mon((pull or datetime.date.today().isoformat())[:10])
     WEEKS=[(datetime.date.fromisoformat(_end)-datetime.timedelta(days=7*i)).isoformat()
            for i in range(3,-1,-1)]
@@ -2828,12 +2973,48 @@ def main():
         row("Supply","KR1 delivery issues / month","≤10","p-supi",
             not_measured="needs the GC Form Task Answers feed, which is absent from this bake")
 
-    # --- Supply KR2: price spikes (PROXY) ---
-    row("Supply","KR2 price spikes / month","≤3","p-supp",
-        not_measured=("item-level only — the Kobas Weekly Ingredient Price Changes report "
-          "carries no supplier or site column, so a change cannot be attributed. "
-          "Needs a supplier column on that report, or price lines joined to Kobas Orders "
-          "line items by ingredient code"))
+    # --- Supply KR2: price spikes per supplier ---
+    # GATED ON COVERAGE, ON PURPOSE (16/09/2026). The measure itself works:
+    # every spike below is attributed to the supplier whose pack line moved,
+    # and where the routes fire they agree with the export-diff ground truth
+    # every time. What is not yet true is that ENOUGH of the report can be
+    # attributed - 75.5% against the committed archive, against a bar of 90%.
+    # Publishing "6 suppliers over 3" off three quarters of the data would put
+    # a red chip and a named supplier next to a number that moves when an
+    # export lands, which is rule 4's "invented number" in a different costume.
+    # So the row stays grey and says the live rate, the per-supplier table is
+    # published for the Supply tab either way, and the row turns itself on the
+    # day the exports catch up - no code change, just a fresher Drive drop.
+    _sp=(snap.get("supply") or {}).get("price_spikes") or {}
+    _spcur=_sp.get("current")
+    _spb={w:(n_,d_,dd) for w,(n_,d_,dd) in (spike_weeks or {}).items()}
+    if _spcur and price_attribution.get("meets_bar"):
+        row("Supply","KR2 price spikes / month","≤3","p-supp",
+            value=_spcur["over"],
+            display=(f"{_spcur['over']} supplier{'' if _spcur['over']==1 else 's'} over "
+                     f"{PRICE_SPIKE_MAX_PER_SUPPLIER}"
+                     +(f" (worst: {_spcur['worst']})" if _spcur.get("worst") else "")),
+            rag=_spcur["rag"],basis=_sp.get("basis"),
+            trend=_trend(_spb,fmt=lambda num,den: num),
+            trend_unit="spikes / week",
+            trend_note=_note(_spb,"price report","2026-08-13"))
+    else:
+        row("Supply","KR2 price spikes / month","≤3","p-supp",
+            not_measured=(
+              "the spikes are counted and attributed - see Price spikes by supplier on "
+              "Supply & Fulfilment - but only "
+              +str(price_attribution.get("rate"))+"% of the price report can be tied to a "
+              "named supplier, under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% needed "
+              "before this system will put a supplier on a scorecard row. The price "
+              "report names a parent ingredient and a parent carries a pack line per "
+              "supplier, so the supplier is reconstructed from the Kobas pack-price "
+              "export; that export is taken by hand, roughly monthly, while the report is "
+              "weekly, so recent reports have none after them to read the answer from. "
+              "Taking the export weekly is what clears this, and the row then measures "
+              "itself"
+              if price_attribution.get("total") else
+              "needs the Kobas Weekly Ingredient Price Changes report and the Kobas "
+              "pack-price export, neither of which is in this bake"))
     # --- Supply KR3 / KR5: no source at all ---
     row("Supply","KR3 menu items unavailable","0","—",
         not_measured="no stock-out is recorded anywhere machine-readable. Needs a GC stock-out form, or Kobas 86'd items")
