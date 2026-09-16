@@ -1,0 +1,69 @@
+name: Dashboard tests
+
+# Ross, 16/09/2026. The suite already existed and already passed; nothing ran
+# it. That is the whole reason for this file.
+#
+# WHAT WENT WRONG WITHOUT IT
+#   On 09/09/2026 the supplier wording changed on purpose - "OTIF this month"
+#   became "Issue-free deliveries", because the number is an issue-free rate
+#   and the old label invited someone to read it out to a supplier as a
+#   measured on-time-in-full. A deliberate, documented change. It also broke
+#   four assertions in tests/supply_orders_otif_test.mjs, which had been
+#   asserting the old label.
+#
+#   Those four sat red on main for six days and were found by hand on 16/09,
+#   while checking something else. Nobody was ignoring a failure: there was no
+#   failure to ignore, because the suite was never executed anywhere. A test
+#   that only runs when a human remembers is not a test, it is a document.
+#
+# WHY IT RUNS ON PUSH TO MAIN AND NOT ONLY ON PULL REQUESTS
+#   Most commits to main here are not pull requests. The bake pushes a fresh
+#   snapshot on every export, and the verifier pushes health files - both
+#   straight to main from Actions. The suite reads the NEWEST baked snapshot as
+#   its base fixture and replaces only snap.supply per scenario, so a bake that
+#   emits a shape the shell cannot render fails these tests. That is exactly
+#   the alarm worth having, and it can only fire if bake commits run it too.
+#
+# WHAT RED MEANS
+#   This workflow going red fires GitHub's failure email. It writes nothing,
+#   pushes nothing and holds no credential - it checks out, installs, and runs
+#   three node scripts that exit non-zero on a failed assertion.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: dashboard-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # npm ci, not npm install: package-lock.json is committed, so CI should
+      # fail on a lockfile that has drifted from package.json rather than
+      # quietly resolving something else and testing a different tree.
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      # The tests launch Chromium by explicit path when this container's
+      # pinned build is present and otherwise let Playwright resolve its own,
+      # which is the path taken here - so the browser has to be downloaded.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the dashboard suite
+        run: npm test
