@@ -301,8 +301,11 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="s" id="pf-sub">Up and back down across several reports &middot; a quoted price you cannot plan a margin on &middot; open a row for its full price history</div></div>
     <div class="card-b" id="pf-tbl"></div></div>
   <div class="card"><div class="card-h"><div class="t">Price change watch</div>
-    <div class="s" id="pw-sub">Kobas ingredient price report · no supplier/site field in source, shown standalone · newest report, not sliced by the date range above</div></div>
+    <div class="s" id="pw-sub">Kobas ingredient price report · supplier reconstructed from the Kobas pack-price export, because the report names only a parent ingredient · newest report, not sliced by the date range above</div></div>
     <div class="card-b" id="pw-tbl"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Price spikes this month, by supplier</div>
+    <div class="s" id="sp-sub">Supply KR2 &mdash; a supplier pack line up 10%+ in one weekly report, counted once per line per report &middot; target &le;3 a supplier a month</div></div>
+    <div class="card-b" id="sp-tbl"></div></div>
 </div>
 
 <div class="page" id="p-supi">
@@ -545,6 +548,14 @@ function chip(kind,word){
 function openModal(title,bodyHtml){
   $('task-modal-t').textContent=title;
   $('task-modal-b').innerHTML=bodyHtml;
+  /* Any modal may carry a data-go button to send the reader to the tab that
+     holds the full table. Wired HERE rather than at each call site so a new
+     modal cannot ship a dead link; the modal has to close first, or the reader
+     lands on the right page behind an overlay that is still up. */
+  $('task-modal-b').querySelectorAll('button[data-go]').forEach(b=>b.onclick=()=>{
+    $('task-modal-ov').classList.remove('on');
+    gotoPage(b.dataset.go);
+  });
   $('task-modal-ov').classList.add('on');
 }
 function openTaskModal(site){
@@ -680,8 +691,32 @@ function openSupplierProfileModal(name){
   } else {
     html+='<div class="prov" style="margin-top:12px">Monthly issue-free delivery data is not in this snapshot.</div>';
   }
-  html+='<div class="prov">Ingredient price changes carry no supplier field in the source report, so they cannot be shown per supplier — see Price change watch on Supply &amp; Fulfilment.</div>'+
-    '<div class="prov">'+esc(sup.issues_basis||'')+' · '+esc(evLabel())+'</div>';
+  /* Was "price changes cannot be shown per supplier" until 16/09/2026. They
+     can now, so this says THIS supplier's number rather than apologising for
+     not having one. Matched on supplier_canon first because the profile is
+     keyed on the canonical name while the pack-price export writes Kobas's
+     spelling ('LYNAS FOODSERVICE' vs 'Lynas'); falling back to the verbatim
+     name keeps the unmapped suppliers working. */
+  {
+    const sk=(SNAP&&SNAP.supply&&SNAP.supply.price_spikes)||null;
+    const cur=sk&&sk.current;
+    const mine=((SNAP&&SNAP.supply&&SNAP.supply.spikes_by_supplier)||[])
+      .find(r=>r.supplier_canon===name||r.supplier===name);
+    html+='<div class="prov">'+(sk
+      ? (mine
+         ? 'Price spikes in '+esc(monthLabel(cur.month))+': <b>'+fmtN(mine.spikes)+
+           '</b> across '+fmtN(mine.lines)+' pack line(s) priced, worst '+
+           (mine.worst_pct!=null?'+'+mine.worst_pct.toFixed(1)+'%':'—')+
+           ' on '+esc(mine.worst_item||'—')+'. '
+         : 'No price spike attributed to this supplier'+
+           (cur?' in '+esc(monthLabel(cur.month)):'')+'. ')+
+        '<button class="lnk" data-go="p-supp" style="background:none;border:0;'+
+        'color:var(--maki-orange);cursor:pointer;padding:0;font-size:inherit">'+
+        'Price spikes by supplier →</button>'
+      : 'This snapshot predates supplier attribution, so price changes cannot be shown '+
+        'per supplier — see Price change watch on Supply &amp; Fulfilment.')+'</div>';
+  }
+  html+='<div class="prov">'+esc(sup.issues_basis||'')+' · '+esc(evLabel())+'</div>';
   openModal(name,html);
 }
 function drawIssueTrend(set){
@@ -1603,6 +1638,25 @@ function render(snap){
      factory broth cards use, so a red pill means the same thing on every page,
      and both carry a number in the text as well as the colour. */
   const psup=snap.supply||{}, pth=psup.price_thresholds||{};
+  /* HOW a supplier was established, named rather than implied. It is the first
+     thing anyone asks of a supplier shown against a report that has no supplier
+     column, and the honest answer differs per row: 'diff' is proof read off the
+     pack-price export, the other two are inference the BUILDER has scored (and
+     which agreed with the proof on every row where both fired). The shell picks
+     no colour of its own here beyond good/neutral - it has no thresholds. */
+  const ROUTE_NOTE={
+    diff:['in','proved from the pack-price export — that supplier’s own line moved by exactly this much'],
+    unique:['none','only this supplier sells this ingredient in this pack'],
+    price:['none','several suppliers sell this pack, and only this one is at the old or the new price'],
+    reported:['in','named by the price report itself']};
+  const routeChip=t=>{const m=ROUTE_NOTE[t];
+    return m?`<span class="fbscore fb-${m[0]}" title="${esc(m[1])}">${esc(t)}</span>`:'';};
+  /* A duplicated export line taints every number read off it, so the chip
+     travels with the item everywhere it appears, not just on the spike table
+     that excludes it. */
+  const dupChip=v=>v?' <span class="fbscore fb-none" title="the pack-price export holds '+
+    'more than one live line for this supplier, category, ingredient and pack, so no '+
+    'single record is THE price — excluded from the spike count">duplicate line</span>':'';
   /* Ross, 02/09/2026: open a flagged item and see the working - every change
      event behind the headline number, and each supplier's price point.
      THE SUPPLIER HALF IS DATA-GATED AND TODAY IT IS EMPTY. The price report
@@ -1629,22 +1683,33 @@ function render(snap){
           `<td>${arrow(t.dir)}</td></tr>`).join('')+'</tbody></table>'
       : '<div class="empty">No change events recorded for this pack.</div>';
     const sups=r.suppliers||[];
+    const unatt=r.suppliers_unattributed||0;
     const supTbl=sups.length
       ? '<table><thead><tr><th>Supplier</th><th class="n">Latest price</th>'+
-        '<th>Last changed</th><th class="n">Changes</th><th>Dir</th></tr></thead><tbody>'+
-        sups.map(v=>`<tr><td>${esc(v.supplier)}</td><td class="n">${money(v.price)}</td>`+
+        '<th>Last changed</th><th class="n">Changes</th><th>Dir</th><th>How</th></tr></thead><tbody>'+
+        sups.map(v=>`<tr><td>${esc(v.supplier)}${dupChip(v.duplicate_line)}`+
+          (v.supplier_code?` <span class="prodspec">${esc(v.supplier_code)}</span>`:'')+
+          `</td><td class="n">${money(v.price)}</td>`+
           `<td>${esc(v.last_change||'—')}</td><td class="n">${v.changes}</td>`+
-          `<td>${arrow(v.dir)}</td></tr>`).join('')+'</tbody></table>'+
+          `<td>${arrow(v.dir)}</td><td>${routeChip(v.attribution)}</td></tr>`).join('')+'</tbody></table>'+
+        (unatt?'<div class="prov">'+esc(unatt+' further change'+(unatt===1?'':'s')+
+          ' on this pack could not be tied to one supplier, and are left out rather than '+
+          'pooled under a made-up name: several suppliers sell it in this pack and none '+
+          'is at either price.')+'</div>':'')+
         '<div class="prov">'+esc('Only suppliers that CHANGED a price appear here — the '+
           'report is a log of changes, so a supplier holding a steady quote is absent. '+
-          'This is who moved, not a full price comparison across the supply base.')+'</div>'
-      : '<div class="empty">'+esc('No supplier on this feed. The Kobas Weekly Ingredient '+
-          'Price Changes report carries seven columns — Parent ID, Ingredient Name, Pack '+
-          'Size, Unit Volume, Measurement, Old Price, New Price — and no supplier. The '+
-          'ETL keeps every column the sheet has, so nothing is being dropped in transit; '+
-          'the reports that do name a supplier carry order and invoice totals with no '+
-          'ingredient or unit price, so they cannot be joined to this. Add a Supplier '+
-          'column to the price report in Kobas and this table fills itself in.')+'</div>';
+          'This is who moved, not a full price comparison across the supply base. The '+
+          'price report still carries no supplier column; each row above is matched to '+
+          'the Kobas pack-price export, and "How" says on what evidence.')+'</div>'
+      : '<div class="empty">'+esc(unatt
+          ? 'None of the '+unatt+' change'+(unatt===1?'':'s')+' on this pack could be '+
+            'tied to one supplier. The price report names a parent ingredient, this pack '+
+            'is sold by several suppliers, and none is currently at the old or the new '+
+            'price — so naming one would be a guess. A fresher pack-price export in '+
+            'Drive is what resolves it.'
+          : 'No supplier could be established for this pack. The Kobas pack-price export '+
+            'is the source for that, and it holds no line for this ingredient in this '+
+            'pack size.')+'</div>';
     openModal(title,
       '<div class="sub">Each supplier’s price point</div>'+supTbl+
       '<div class="sub" style="margin-top:14px">Every change on record</div>'+hist+
@@ -1660,7 +1725,16 @@ function render(snap){
   const settled=psup.price_settled||[];
   /* Two packs of one ingredient are two items, and without the pack shown the
      card lists "Sweet potatoes" twice at different prices and looks broken. */
-  const itemCell=r=>esc(r.item||'—')+(r.pack?' <span class="prodspec">'+esc(r.pack)+'</span>':'');
+  const itemCell=r=>esc(r.item||'—')+(r.pack?' <span class="prodspec">'+esc(r.pack)+'</span>':'')+
+    dupChip(r.duplicate_line);
+  /* An unattributed row is a NAMED GAP, never a supplier called "(none)": a
+     supplier-shaped placeholder would sort among real companies and read as a
+     business that puts its prices up. The builder says WHY each one failed and
+     that reason is what the cell shows on hover. */
+  const supCell=r=>r.supplier
+    ? esc(r.supplier)+' '+routeChip(r.attribution)
+    : '<span style="opacity:.6" title="'+esc(r.unattributed_why||'not established')+
+      '">not established</span>';
   table('ps-tbl',[{h:'Item',raw:1},{h:'Was',n:1},{h:'Now',n:1},{h:'Rise',n:1,raw:1},
                   {h:'Since'},{h:'Held',n:1}],
     settled.map(r=>[itemCell(r),money(r.old_price),money(r.new_price),
@@ -1716,13 +1790,68 @@ function render(snap){
       'big to be a price change (a pack or unit re-spec, or a keying slip), so they sort '+
       'last rather than leading a list meant for supplier conversations.':''))+'</div>');
   const priceRows=(snap.supply&&snap.supply.price_watch)||[];
-  table('pw-tbl',[{h:'Ingredient'},{h:'Old £',n:1},{h:'New £',n:1},{h:'Change',n:1}],
-    priceRows.map(p=>[p.ingredient,p.old_price!=null?p.old_price.toFixed(2):'—',
+  const att=(snap.supply&&snap.supply.price_attribution)||null;
+  table('pw-tbl',[{h:'Ingredient',raw:1},{h:'Supplier',raw:1},{h:'Old £',n:1},
+                  {h:'New £',n:1},{h:'Change',n:1}],
+    priceRows.map(p=>[itemCell({item:p.ingredient,pack:p.pack,
+        duplicate_line:p.duplicate_line}),
+      supCell(p),
+      p.old_price!=null?p.old_price.toFixed(2):'—',
       p.new_price!=null?p.new_price.toFixed(2):'—',
       p.pct_change!=null?(p.pct_change>0?'+':'')+p.pct_change+'%':(p.is_new?'new':'—')]),
     'No price-change data in this pull');
   if(snap.supply&&snap.supply.price_watch_basis)
     $('pw-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+esc(snap.supply.price_watch_basis)+'</div>');
+  /* A snapshot baked before 16/09/2026 has no price_attribution at all. Say so
+     once, here, instead of letting every Supplier cell read "not established"
+     as though attribution had been tried and failed. */
+  $('pw-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+esc(att
+    ? att.rate+'% of price changes in this bake could be tied to a named supplier ('+
+      att.by_id+' proved from the pack-price export of '+(att.as_of||'—')+', '+
+      att.by_name+' matched by ingredient and pack). The rest are shown as "not '+
+      'established" rather than guessed — hover one for the reason.'
+    : 'This snapshot predates supplier attribution, so no supplier is shown against a '+
+      'price change. Re-bake to fill this column in.')+'</div>');
+  /* Supply KR2, per supplier. EVERY judgement here was made in the builder:
+     which rises count, which are excluded, and whether a supplier is over
+     target. The shell paints r.rag and nothing else - it does not know that 3
+     is the target, and must not learn. */
+  {
+    const sk=(snap.supply&&snap.supply.price_spikes)||null;
+    const cur=sk&&sk.current, rows=(snap.supply&&snap.supply.spikes_by_supplier)||[];
+    const sub=$('sp-sub');
+    if(!sk){
+      $('sp-tbl').innerHTML='<div class="empty">This snapshot predates supplier '+
+        'attribution, so price spikes cannot be broken down by supplier.</div>';
+    }else if(!rows.length){
+      $('sp-tbl').innerHTML='<div class="empty">'+esc(cur
+        ? 'No price spike attributed to any supplier in '+monthLabel(cur.month)+'.'
+        : 'No price report in this bake, so no spike can be counted.')+'</div>'+
+        '<div class="prov">'+esc(sk.basis||'')+'</div>';
+    }else{
+      table('sp-tbl',[{h:'Supplier',raw:1},{h:'Spikes',n:1},{h:'Lines priced',n:1},
+                      {h:'Worst',n:1},{h:'Worst item'},{h:'',raw:1}],
+        rows.map(r=>[esc(r.supplier),fmtN(r.spikes),fmtN(r.lines),
+          r.worst_pct!=null?'+'+r.worst_pct.toFixed(1)+'%':'—',
+          r.worst_item||'—',
+          chip(r.rag==='red'?'r':'g',r.rag==='red'?'Over target':'On target')]),
+        'No spike attributed to a supplier this month');
+      /* Counts never travel without their denominator: a supplier with 3 lines
+         priced and one with 30 cannot be compared on a raw spike count. */
+      $('sp-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
+        esc('"Lines priced" is how many of that supplier’s pack lines the month’s '+
+        'reports priced at all — the denominator the spike count has to be read against. '+
+        (sk.unattributed?sk.unattributed+' qualifying rise'+(sk.unattributed===1?'':'s')+
+          ' could not be tied to a supplier and are counted nowhere on this table. ':'')+
+        (sk.duplicate_skipped?sk.duplicate_skipped+(sk.duplicate_skipped===1?' was':' were')+
+          ' excluded as a duplicate export line. ':''))+'</div>'+
+        '<div class="prov">'+esc(sk.basis||'')+'</div>');
+    }
+    if(sub&&cur) sub.textContent='Supply KR2 — a supplier pack line up '+
+      (((sk.thresholds||{}).pct)||10)+'%+ in one weekly report, counted once per line per '+
+      'report · '+monthLabel(cur.month)+' · target ≤'+
+      (((sk.thresholds||{}).max_per_supplier)||3)+' a supplier a month';
+  }
   const weekTotal=weekSpend.reduce((s,f)=>s+(f.value_gbp||0),0);
   const weekOrders=weekSpend.reduce((s,f)=>s+(f.orders||0),0);
   const bySiteTot={}, bySupTot={};

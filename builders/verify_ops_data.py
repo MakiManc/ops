@@ -630,6 +630,59 @@ def check_consistency(pg_latest: str, snap_latest: str):
     return local_snap
 
 
+# --------------------------------------------------------------- check 4c
+def check_price_attribution(snap: dict | None) -> None:
+    """Is a price change still traceable to the supplier that made it?
+
+    Added 16/09/2026 with the attribution itself. Two failure modes, and they
+    need different noises:
+
+    CRITICAL if the block is MISSING from a snapshot that has a price report.
+    That means the pack-price feed stopped landing, or the block was refactored
+    out - and the failure is silent by nature, because every price card keeps
+    rendering perfectly with the Supplier column quietly reading "not
+    established" on every row.
+
+    WARNING below the bar, because that is the NORMAL state today (75.5%) and
+    the cause is operational, not broken code: the price report is weekly and
+    the pack-price export is taken by hand, roughly monthly, so reports
+    arriving after the newest export have nothing to be proved against. A
+    critical here would cry wolf every day until someone drops a file in Drive.
+    Supply KR2 stays unmeasured while this warns, which is the point.
+    """
+    if not snap:
+        return
+    supply = snap.get("supply") or {}
+    att = supply.get("price_attribution")
+    if att is None:
+        if supply.get("price_reports"):
+            add("4c-attribution", "critical",
+                "supply.price_attribution is missing from the snapshot while a "
+                "price report IS present - price changes can no longer be tied "
+                "to a supplier, and nothing on the page says so. Check the "
+                "'Kobas Pack Prices' feed is landing (pull_pack_prices.py)")
+        return
+    rate, floor = att.get("rate"), att.get("min_pct") or 90.0
+    if rate is None:
+        add("4c-attribution", "warning",
+            "supply.price_attribution is published but has no rate - no price "
+            "report row to attribute in this bake")
+    elif rate < floor:
+        add("4c-attribution", "warning",
+            f"only {rate}% of price-report rows could be tied to a named "
+            f"supplier (floor {floor}%), so Supply KR2 stays unmeasured. "
+            f"{att.get('by_id', 0)} were proved from the pack-price export of "
+            f"{att.get('as_of') or 'none held'} and {att.get('by_name', 0)} "
+            "matched by ingredient and pack. A fresher export in Drive is what "
+            "lifts it - the export is manual and the price report is weekly")
+    else:
+        add("4c-attribution", "ok",
+            f"{rate}% of price-report rows attributed to a named supplier "
+            f"({att.get('by_id', 0)} proved from the export, "
+            f"{att.get('by_name', 0)} by name+pack), at or above the "
+            f"{floor}% floor")
+
+
 # --------------------------------------------------------------- check 6
 def check_side_channels(cur, today: str) -> dict:
     sizes = {}
@@ -902,6 +955,7 @@ def main() -> None:
                 pg_latest, snap_latest = check_snapshot(cur)
                 sizes = check_side_channels(cur, today)
             recomputed = check_consistency(pg_latest, snap_latest)
+            check_price_attribution(recomputed)
             archive_aggregates(conn, recomputed)
         finally:
             conn.close()

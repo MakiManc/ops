@@ -174,12 +174,19 @@ assert(/£0\.98/.test(drillBody) && /£1\.50/.test(drillBody) && /\+53\.1%/.test
   'the drill-down shows every change event behind the headline number');
 
 // The no-supplier state must EXPLAIN itself. An empty table here reads as a
-// broken card, and the explanation is the difference between "Kobas does not
-// send it" and "the ETL is dropping it" - which is the actual next action.
-assert(/no supplier/i.test(drillBody) && /Kobas/.test(drillBody),
-  'with no supplier in the feed the panel says so instead of showing an empty table');
-assert(/keeps every column/.test(drillBody),
-  'it says the ETL is not the thing dropping the supplier - the report never had it');
+// broken card, and the explanation is the actual next action.
+//
+// 16/09/2026: that next action CHANGED, so these two assertions changed with
+// it. Until now the answer was "Kobas does not send a supplier column and the
+// ETL is not dropping it", because nothing could name a supplier at all. The
+// supplier is now reconstructed from the Kobas pack-price export, so a pack
+// with no supplier means that export has no line for it - which is a Drive
+// drop away from being fixed, not a Kobas feature request.
+assert(/no supplier/i.test(drillBody) && /pack-price export/.test(drillBody),
+  'with no supplier established the panel says so instead of showing an empty table');
+assert(/no line for this ingredient in this pack size/.test(drillBody),
+  'it names what is actually missing - the export line - rather than the old '
+  + '"the report has no supplier column" answer');
 await page.evaluate(() => document.getElementById('task-modal-ov').classList.remove('on'));
 
 // Now the same page with a supplier column present, which is exactly the shape

@@ -27,7 +27,15 @@ name: Dashboard tests
 # WHAT RED MEANS
 #   This workflow going red fires GitHub's failure email. It writes nothing,
 #   pushes nothing and holds no credential - it checks out, installs, and runs
-#   three node scripts that exit non-zero on a failed assertion.
+#   the node scripts plus the python fixtures, each exiting non-zero on a
+#   failed assertion.
+#
+# WHY PYTHON IS IN HERE TOO (16/09/2026)
+#   tests/price_spike_attribution_test.py runs the REAL builder over a
+#   hand-built archive and asserts the per-supplier spike count that comes out.
+#   It needs no browser and no database - just python3 and duckdb, because the
+#   builder reads the archive through it. It bakes into a temp directory
+#   (OPS_OUT_DIR) so it can never write over a real snapshot.
 
 on:
   push:
@@ -64,6 +72,11 @@ jobs:
       # which is the path taken here - so the browser has to be downloaded.
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      # duckdb only: the builder reads the committed pull archive through it,
+      # which is how the fixture test runs with no warehouse and no psycopg2.
+      - name: Install Python deps
+        run: pip install "duckdb>=1.5"
 
       - name: Run the dashboard suite
         run: npm test

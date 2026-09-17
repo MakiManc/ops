@@ -65,10 +65,15 @@ USAGE
   Exit 0 on success, 1 on any failure (nothing partially written).
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, json, os, re, sys
+import argparse, collections, datetime, hashlib, json, os, re, sys
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
-OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "ops_command")
+# OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
+# tests/price_spike_attribution_test.py would write its synthetic snapshot over
+# a real one and prepend a made-up date to snapshot_index.json - a fixture that
+# can corrupt the history it is meant to protect is worse than no fixture.
+OUT_DIR = (os.environ.get("OPS_OUT_DIR")
+           or os.path.join(os.path.dirname(__file__), "..", "data", "ops_command"))
 # Site map lives in the builder (house rule) -- classification, not presentation.
 # type: restaurant | factory | entity (non-trading legal vehicles on the roster)
 SITE_TYPES = {
@@ -463,6 +468,18 @@ def fb_date(form_date, ts):
     if d_ts is not None:
         return d_ts.isoformat(), True
     return None, False
+def _mon(d):
+    """Monday of the ISO week containing YYYY-MM-DD.
+
+    Module level since 16/09/2026: the KR2 spike trend buckets by report week
+    inside the price block, which runs well before the scorecard where this
+    used to live. Two copies of a week-start rule is how two trends end up
+    disagreeing about which week a Sunday belongs to.
+    """
+    dt=datetime.date.fromisoformat(d[:10])
+    return (dt-datetime.timedelta(days=dt.weekday())).isoformat()
+
+
 def has_feed(cur, feed):
     """Has this feed EVER landed. Deliberately not a freshness test.
 
@@ -1962,6 +1979,20 @@ def main():
     PRICE_SUSPECT_UP=100.0         # a jump this big is a re-spec, not a price rise
     PRICE_SUSPECT_DOWN=-50.0
     PRICE_STALE_DAYS=10            # a weekly report older than this is a gap
+    # --- KR2 price spikes, per supplier (16/09/2026) ---------------------
+    PRICE_SPIKE_PCT=10.0           # Ross: a single-report rise of 10% or more
+    PRICE_SPIKE_ORDERED_WEEKS=8    # only ingredients actually ordered recently
+    PRICE_SPIKE_MAX_PER_SUPPLIER=3 # the KR target: <=3 spikes a month each
+    # How much of the price report has to be attributable to a named supplier
+    # before this system will put supplier names on a scorecard row. Ross set
+    # it. It is NOT a quality bar on the join - measured against the export
+    # diff, the two inferred routes are 100% right where they fire - it is a
+    # COVERAGE bar, and coverage is limited by how often the pack-price export
+    # is taken. Under it, KR2 stays not_measured and says the live rate, so
+    # the row turns itself on the moment the exports catch up.
+    PRICE_ATTRIBUTION_MIN_PCT=90.0
+    PACK_FEED="Kobas Pack Prices"
+    PACK_STALE_DAYS=14
     price_reports=[]; price_settled=[]; price_flux=[]; price_suspect=[]
     price_items=0; newest_report=None
     # Initialised HERE, not inside the has_feed branch below: the snapshot
@@ -1969,6 +2000,188 @@ def main():
     # weekly report missed its window, or the export skipped it) would
     # otherwise fail the whole bake on a NameError.
     price_supplier_seen=set()
+    # Same reason as price_supplier_seen above: the attribution block below
+    # publishes unconditionally, so a day without the price report must not
+    # take the whole bake down on a NameError.
+    att_by_route=collections.Counter(); att_unattributed=collections.Counter()
+    att_total=0
+    spike_events=[]; spike_months=[]; spike_weeks={}
+    spike_unattributed=0; spike_dupe_skipped=0; ordered_recent=None
+
+    # ---- WHOSE price moved -----------------------------------------------
+    # THE JOIN EVERYONE REACHES FOR FIRST DOES NOT EXIST, so do not re-add it.
+    # The obvious plan is report 'Parent ID' = export 'Ingredient Id'. It
+    # matches ZERO of 1,236 rows and always will: Parent ID is the PARENT
+    # INGREDIENT and Ingredient Id is a SUPPLIER PACK LINE underneath it.
+    # CHICKEN KARAAGE is parent 1965, whose pack lines are 1966 (Lynas), 2576
+    # (Dunster) and 13241 (JFC), all 10 x 1000g. Both sets live in 1635..13784,
+    # every Parent ID falls in a GAP of the Ingredient Id set, and two
+    # independent draws that dense would overlap on about 94 - so zero is
+    # structural, not a sampling accident. A third feed settles it: the Weekly
+    # Stock Check Edits report's 'Ingredient ID' shares 53.7% with Parent ID
+    # and 0.0% with the export. Measured by check_pack_price_attribution.py in
+    # MakiManc/maki-hospitality-etl; re-run it before doubting this.
+    #
+    # NOR IS IT 'Parent ID + 1'. That lands on a same-name export line for 84%
+    # of report rows and on a different name for 0% of them, because a parent
+    # and its first pack line are allocated consecutively - which is exactly
+    # what makes it look like the answer. It names whichever supplier line was
+    # created FIRST under the parent, not the one that moved: scored against
+    # ground truth it is 200/365, a coin flip, and it would systematically
+    # blame the incumbent supplier for a newcomer's price.
+    #
+    # THREE ROUTES, IN ORDER OF EVIDENCE, and each row records which one it
+    # used so the drill-down can show its working:
+    #   diff    two exports bracket the change and one Ingredient Id moved by
+    #           exactly that old->new. The export row carries Supplier Name, so
+    #           this is not inference at all. It is also the only GROUND TRUTH
+    #           available, which is what the other two are scored against.
+    #   unique  only one supplier sells that ingredient in that pack.
+    #   price   several do, but exactly one is currently AT the old or the new
+    #           price.
+    # Scored against 'diff': unique 195/195 and price 156/156 correct, 351
+    # agree, 0 disagree. So an unattributed row is a COVERAGE gap, never a
+    # wrong name - which is why the unattributed are published as a counted,
+    # named gap and never as a supplier called "(none)".
+    def _pk_name(s):
+        """Ingredient names join case- and whitespace-insensitively.
+
+        The report writes 'Prawn use for seafood ramen and sushi nigiri' where
+        the export writes it in capitals, and either side can carry a double
+        space. Exact matching costs real rows silently.
+        """
+        return " ".join((s or "").strip().upper().split())
+    def _pk_pack(ps,uv):
+        """Pack size + unit volume as strings that compare ACROSS sources.
+
+        The report ships Pack Size as a JSON float (10.0), the export as a bare
+        integer ('10'). Compared raw they match nothing, and that failure looks
+        exactly like the namespace problem above - so it is normalised once,
+        here, rather than at each call site.
+        """
+        def one(v):
+            f=fb_num(v)
+            if f is not None and f==int(f): return str(int(f))
+            return "" if v is None else str(v).strip()
+        return (one(ps),one(uv))
+    def _code_key(code):
+        """A Supplier Code with punctuation stripped.
+
+        Kobas records a second pack variant by appending dots to the supplier's
+        own code - S6005 / S6005. / 60166 / 60166.. - so two lines that differ
+        only by punctuation are ONE line duplicated, not two prices. They are
+        collapsed rather than flagged; what survives the collapse and is still
+        doubled is a real duplicate.
+        """
+        return re.sub(r"[^a-z0-9]","",(code or "").lower())
+    pack_snaps=[]; pack_newest={}; pack_newest_date=None
+    pack_by_np={}; pack_truth={}; pack_dupe=set()
+    pack_rows=0; pack_twins=0; pack_twins_wide=0; pack_zero=0
+    if has_feed(cur,PACK_FEED):
+        cur.execute(
+          "SELECT pull_date::text d, data->>'Ingredient Id' iid, "
+          " data->>'Supplier Name' sup, data->>'Ingredient Category Name' cat, "
+          " data->>'Ingredient Name' nm, data->>'Supplier Code' code, "
+          " data->>'Pack Size' ps, data->>'Unit Volume' uv, "
+          " data->>'Current Price' cp "
+          "FROM etl_feed_rows WHERE feed=%s ORDER BY pull_date, row_num",
+          (PACK_FEED,))
+        by_pull={}
+        for d,iid,sup,cat,nm,code,ps,uv,cp in cur.fetchall():
+            if not iid: continue
+            by_pull.setdefault(d,{})[str(iid)]={
+              "sup":(sup or "").strip() or None,"cat":(cat or "").strip() or None,
+              "nm":nm,"code":(code or "").strip() or None,
+              "ps":ps,"uv":uv,"price":fb_num(cp)}
+        pack_snaps=[(d,by_pull[d]) for d in sorted(by_pull)]
+        if pack_snaps:
+            pack_newest_date,pack_newest=pack_snaps[-1]
+            pack_rows=len(pack_newest)
+            # A line priced 0.00 is a placeholder Kobas never filled in, not a
+            # free ingredient. It cannot evidence a price either way, so it is
+            # counted, disclosed, and kept out of every route below.
+            live={i:r for i,r in pack_newest.items() if r["price"]}
+            pack_zero=len(pack_newest)-len(live)
+            # Collapse the punctuated code twins FIRST, then whatever is still
+            # doubled is a genuine duplicate. Doing it the other way round
+            # reports Kobas's own bookkeeping as a data-quality problem.
+            groups={}
+            for i,r in live.items():
+                groups.setdefault((r["sup"],r["cat"],_pk_name(r["nm"]))+_pk_pack(r["ps"],r["uv"]),[]).append((i,r))
+            for k,g in groups.items():
+                keep={}
+                for i,r in g:
+                    ck=_code_key(r["code"])
+                    # Keep the line with the SHORTEST raw code - 'S6005' over
+                    # 'S6005.' - so the surviving row carries the code a buyer
+                    # would actually quote at the supplier.
+                    if ck and (ck not in keep or len(r["code"] or "")<len(keep[ck][1]["code"] or "")):
+                        keep[ck]=(i,r)
+                    elif not ck:
+                        keep[i]=(i,r)     # no code at all: cannot be a twin
+                pack_twins+=len(g)-len(keep)
+                if len(keep)>1: pack_dupe.add(k)
+                for i,r in keep.values():
+                    pack_by_np.setdefault((_pk_name(r["nm"]),)+_pk_pack(r["ps"],r["uv"]),[]).append(r)
+            # Twins that sit on DIFFERENT pack shapes are counted but NOT
+            # merged. S6005 / S6005. on one pack is the same record written
+            # twice; on 30x2 versus 60x1 it is one supplier code reused for two
+            # real pack sizes, and collapsing those would silently delete a
+            # price. Disclosed so the Kobas clean-up has the number, and left
+            # alone so the bake never invents a merge it cannot justify.
+            wide={}
+            for i,r in live.items():
+                wide.setdefault((r["sup"],r["cat"],_pk_name(r["nm"])),[]).append(r)
+            for g in wide.values():
+                c=collections.Counter(_code_key(r["code"]) for r in g if _code_key(r["code"]))
+                pack_twins_wide+=sum(n-1 for n in c.values() if n>1)
+            # Ground truth: every move a PAIR of exports proves, keyed so a
+            # report row can find it. Keyed on Ingredient Id BETWEEN the two
+            # exports, so the supplier on the row is the supplier that moved.
+            for (_d1,a),(_d2,b) in zip(pack_snaps,pack_snaps[1:]):
+                for i,rb in b.items():
+                    ra=a.get(i)
+                    if not ra: continue      # a pack line that did not exist yet
+                    o,n=ra["price"],rb["price"]
+                    if not o or not n or o==n: continue
+                    pack_truth.setdefault(
+                      (_pk_name(rb["nm"]),)+_pk_pack(rb["ps"],rb["uv"])
+                      +(round(o,4),round(n,4)),[]).append(rb)
+    pack_names={k[0] for k in pack_by_np}
+    def attribute_price(nm,ps,uv,o,n,reported=None):
+        """Who moved this price: (supplier, code, category, route, why).
+
+        route is None when nobody could be named, and `why` then says what
+        stopped it - in words a reader can act on, because that list IS the
+        roadmap for getting this measured.
+        """
+        if reported:
+            # If Kobas ever adds a Supplier column to the price report, its own
+            # answer beats anything reconstructed here.
+            return reported,None,None,"reported",None
+        key=(_pk_name(nm),)+_pk_pack(ps,uv)
+        if o is not None and n is not None:
+            t=pack_truth.get(key+(round(o,4),round(n,4))) or []
+            if len({r["sup"] for r in t})==1:
+                r=t[0]; return r["sup"],r["code"],r["cat"],"diff",None
+        c=pack_by_np.get(key) or []
+        if not c:
+            return (None,None,None,None,
+              "no pack line for this ingredient in this pack size"
+              if key[0] in pack_names else
+              "this ingredient is not in the pack-price export")
+        sups={r["sup"] for r in c}
+        if len(sups)==1:
+            r=c[0]; return r["sup"],r["code"],r["cat"],"unique",None
+        at=[r for r in c if r["price"] in (o,n)]
+        if len({r["sup"] for r in at})==1:
+            r=at[0]; return r["sup"],r["code"],r["cat"],"price",None
+        return (None,None,None,None,
+          "several suppliers sell this ingredient in this pack and none is at "
+          "either price, so naming one would be a guess")
+    def pack_is_dupe(sup,cat,nm,ps,uv):
+        return (sup,cat,_pk_name(nm))+_pk_pack(ps,uv) in pack_dupe
+
     if has_feed(cur,PRICE_FEED):
         # THE SUPPLIER COLUMN IS READ SPECULATIVELY, AND TODAY IT IS ALWAYS NULL.
         # Ross, 02/09/2026, asked for each supplier's price point per product.
@@ -2010,13 +2223,25 @@ def main():
         # is not unique - EDAMAME carries several packs under one parent - and
         # keying on it would read two packs' prices as one item bouncing.
         hist={}
+        # Attribution is done ONCE per change event, here, and travels with the
+        # event from now on. Every card, row and modal downstream reads the
+        # same answer, so the Supply tab and the scorecard cannot disagree
+        # about who moved a price.
         for d,rows in reports:
             for rn,i,op,np,pid,ps,uv,ms,sup in rows:
                 n=fb_num(np); o=fb_num(op)
                 if n is None: continue
                 sup=(sup or "").strip() or None
                 if sup: price_supplier_seen.add(sup)
-                hist.setdefault((pid,ps,uv,ms),[]).append((d,o,n,i,sup))
+                who,code,cat,route,why=attribute_price(i,ps,uv,o,n,reported=sup)
+                att_total+=1
+                if route: att_by_route[route]+=1
+                else: att_unattributed[why]+=1
+                a={"supplier":who,"supplier_canon":canon_supplier(who) if who else None,
+                   "supplier_code":code,"category":cat,"attribution":route,
+                   "unattributed_why":why,
+                   "duplicate_line":bool(who and pack_is_dupe(who,cat,i,ps,uv))}
+                hist.setdefault((pid,ps,uv,ms),[]).append((d,o,n,i,sup,a))
         price_items=len(hist)
         newest=newest_report=reports[-1][0] if reports else None
         def packlabel(pid,ps,uv,ms):
@@ -2040,8 +2265,11 @@ def main():
             events so one pathological item cannot bloat the snapshot.
             """
             out=[]
-            for d,o,n,_i,sup in evs[-24:]:
-                out.append({"d":d,"old":o,"new":n,"supplier":sup,
+            for d,o,n,_i,sup,a in evs[-24:]:
+                out.append({"d":d,"old":o,"new":n,
+                  "supplier":a["supplier"],"supplier_canon":a["supplier_canon"],
+                  "attribution":a["attribution"],
+                  "unattributed_why":a["unattributed_why"],
                   "pct":round(100.0*(n-o)/o,1) if (o and o>0) else None,
                   "dir":0 if o is None else (1 if n>o else -1 if n<o else 0)})
             return out
@@ -2049,33 +2277,44 @@ def main():
         def supplier_view(evs):
             """Latest price per supplier for one pack, from its change events.
 
-            Returns [] whenever the report carries no supplier - which is every
-            row today. NOTE the limit even once it does: this report is a log of
-            CHANGES, so it can only ever show suppliers that changed a price. A
-            supplier holding a steady quote never appears in it, so this is
-            "who moved, and to what", not a full price comparison across the
-            supply base. The drill-down says so rather than implying the list
-            is exhaustive.
+            TWO LIMITS, both stated on the card rather than implied away.
+            First, this report is a log of CHANGES, so it can only ever show
+            suppliers that MOVED a price - a supplier holding a steady quote
+            never appears. Second, a change is only here if it could be
+            attributed at all; the rows that could not are counted into
+            `unattributed` beside the table rather than piled into a supplier
+            called "(none)", which would sort among real companies as though
+            "we don't know" were a business.
             """
-            if not any(e[4] for e in evs): return []
-            by={}
-            for d,o,n,_i,sup in evs:
-                key=sup or "(not named in report)"
-                e=by.setdefault(key,{"supplier":key,"changes":0,"price":None,
-                                     "last_change":None,"dir":0})
+            by={}; unattributed=0
+            for d,o,n,_i,sup,a in evs:
+                if not a["supplier"]:
+                    unattributed+=1
+                    continue
+                e=by.setdefault(a["supplier"],{
+                  "supplier":a["supplier"],"supplier_canon":a["supplier_canon"],
+                  "supplier_code":a["supplier_code"],"category":a["category"],
+                  "duplicate_line":a["duplicate_line"],"attribution":a["attribution"],
+                  "changes":0,"price":None,"last_change":None,"dir":0})
                 e["changes"]+=1
+                # The strongest route any of this supplier's events used, so a
+                # row proved by an export diff does not read as a guess because
+                # a later event had to fall back.
+                if a["attribution"]=="diff" or e["attribution"] is None:
+                    e["attribution"]=a["attribution"]
                 if e["last_change"] is None or d>=e["last_change"]:
                     e["last_change"]=d; e["price"]=n
                     e["dir"]=0 if o is None else (1 if n>o else -1 if n<o else 0)
-            return sorted(by.values(),
-                          key=lambda r:(r["price"] is None, r["price"]))
+            return (sorted(by.values(),
+                           key=lambda r:(r["price"] is None, r["price"])),
+                    unattributed)
 
         for k,evs in hist.items():
             name=evs[-1][3]
             pack=packlabel(*k)
             changes=[e for e in evs if e[1] is not None and e[1]>0]
             if not changes: continue         # only ever priced 'New'
-            d,o,n,_name,_sup=changes[-1]   # events grew a supplier field
+            d,o,n,_name,_sup,latest_att=changes[-1]
             pct=round(100.0*(n-o)/o,1)
             since=datetime.date.fromisoformat(d)
             # TWO different spans, and conflating them would be a lie either
@@ -2097,12 +2336,28 @@ def main():
             # id: what the dashboard clicks on. The pack tuple is already the
             # unique key here (Parent ID alone is not - EDAMAME carries several
             # packs under one parent), so reuse it rather than inventing one.
+            sup_rows,sup_unattributed=supplier_view(changes)
+            # The row's own supplier is the one behind its LATEST change - the
+            # number the card is showing. A pack shared by several suppliers
+            # still lists them all in `suppliers`, so the headline names who
+            # moved last without pretending the pack belongs to them.
             row={"id":"|".join(str(x) for x in k),
                  "item":name,"pack":pack,"old_price":o,"new_price":n,
                  "pct_change":pct,"since":d,"age_days":age,"held_days":held,
                  "changes":len(changes),"suspect":suspect,
                  "reports":len({e[0] for e in changes}),
-                 "trail":item_trail(changes),"suppliers":supplier_view(changes)}
+                 "supplier":latest_att["supplier"],
+                 "supplier_canon":latest_att["supplier_canon"],
+                 "supplier_code":latest_att["supplier_code"],
+                 "category":latest_att["category"],
+                 "attribution":latest_att["attribution"],
+                 "unattributed_why":latest_att["unattributed_why"],
+                 # An item is flagged if ANY of its attributed events sits on a
+                 # duplicated export line: the duplicate is a property of the
+                 # Kobas record, so it taints every number read off it.
+                 "duplicate_line":any(e[5]["duplicate_line"] for e in changes),
+                 "trail":item_trail(changes),"suppliers":sup_rows,
+                 "suppliers_unattributed":sup_unattributed}
             # A +2298% "rise" is a re-spec or a keying slip, not a price to go
             # and negotiate. Kept and shown, but in its own list - same rule as
             # the refractometer's suspect readings: never silently repaired,
@@ -2130,14 +2385,116 @@ def main():
         price_flux.sort(key=lambda r:(r["suspect"],-r["reversals"],
                                       -(r["swing_pct"] or 0)))
         price_suspect.sort(key=lambda r:-abs(r["pct_change"]))
+
+        # ---- Supply KR2: price spikes, per supplier, per month -----------
+        # A SPIKE is one supplier pack line rising by PRICE_SPIKE_PCT or more
+        # in a single report. Five exclusions, each for a reason that would
+        # otherwise send someone to a supplier over nothing:
+        #   * Old Price 'New' - a first-ever price is not a rise.
+        #   * a move in the suspect band - at +100% it is a pack or unit
+        #     re-spec or a keying slip, the same rule the settled list uses.
+        #   * duplicate_line - the export holds two live lines for that
+        #     supplier+category+ingredient+pack, so neither price can be
+        #     trusted as THE price.
+        #   * either side priced 0.00 - a placeholder Kobas never filled in.
+        #   * a line whose supplier could not be named - counted separately as
+        #     a disclosed gap, never attributed to anyone.
+        # ONE LINE COUNTS ONCE PER REPORT. The report has no per-event
+        # timestamp and can carry several events for one line, so counting
+        # events would score a line that wobbled twice in one week as two
+        # spikes against its supplier.
+        #
+        # THE ORDERED-RECENTLY FILTER IS PROBED, NOT ASSUMED. Ross's rule is
+        # "only ingredients we actually buy", which needs order lines at
+        # INGREDIENT level. 'Kobas Orders' is parsed from order-confirmation
+        # emails and today keeps only per-order totals - Line Items and Items
+        # Ordered are counts - so there is nothing to filter on and the filter
+        # is OFF, said plainly in the basis rather than silently skipped. The
+        # emails themselves do carry the lines ("2 x 70893 FRESH EGGS (1 x 180
+        # Items @ GBP68.00)"); daily_export.fetch_kobas_orders captures only
+        # the quantity. Widening that regex is what switches this on, and this
+        # block starts using it with no change here.
+        ordered_recent=None
+        if has_feed(cur,ORDER_EMAIL_FEED):
+            _since=(datetime.date.fromisoformat(pull)
+                    -datetime.timedelta(weeks=PRICE_SPIKE_ORDERED_WEEKS)).isoformat()
+            cur.execute(
+              "SELECT DISTINCT coalesce(data->>'Ingredient', data->>'Ingredient Name', "
+              "  data->>'Item', data->>'Item Name', data->>'Product') ing "
+              "FROM etl_feed_rows WHERE feed=%s "
+              "  AND coalesce(data->>'Delivery Date ISO', data->>'Order Email Date')>=%s",
+              (ORDER_EMAIL_FEED,_since))
+            _ings={_pk_name(r[0]) for r in cur.fetchall() if r[0]}
+            if _ings: ordered_recent=_ings
+        for k,evs in hist.items():
+            seen_line=set()
+            for d,o,n,i,_sup,a in evs:
+                if o is None or not o or not n: continue      # 'New', or a 0.00 side
+                pct=round(100.0*(n-o)/o,1)
+                if pct<PRICE_SPIKE_PCT: continue
+                if pct>=PRICE_SUSPECT_UP or pct<=PRICE_SUSPECT_DOWN: continue
+                if a["duplicate_line"]: spike_dupe_skipped+=1; continue
+                if not a["supplier"]: spike_unattributed+=1; continue
+                if ordered_recent is not None and _pk_name(i) not in ordered_recent:
+                    continue
+                if (d,a["supplier"]) in seen_line: continue   # once per report
+                seen_line.add((d,a["supplier"]))
+                spike_events.append({"d":d,"month":d[:7],"supplier":a["supplier"],
+                  "supplier_canon":a["supplier_canon"],"item":i,
+                  "pack":packlabel(*k),"pct":pct,"old":o,"new":n,
+                  "attribution":a["attribution"]})
+        # Every line PRICED in a month or week, per supplier - the denominator.
+        # A supplier with three lines and a supplier with three hundred cannot
+        # be compared on a raw count, so the count never travels without it.
+        _lines_m={}; _lines_w={}
+        for k,evs in hist.items():
+            for d,o,n,i,_sup,a in evs:
+                if not a["supplier"]: continue
+                _lines_m.setdefault((d[:7],a["supplier"]),set()).add(k)
+                _lines_w.setdefault(_mon(d),set()).add((k,a["supplier"]))
+        _by_month={}
+        for e in spike_events:
+            _by_month.setdefault(e["month"],{}).setdefault(e["supplier"],[]).append(e)
+        spike_months=[]
+        for m in sorted(_by_month) or sorted({d[:7] for d,_ in reports}):
+            sups=[]
+            for s,evl in sorted((_by_month.get(m) or {}).items()):
+                worst=max(evl,key=lambda e:e["pct"])
+                sups.append({"supplier":s,"supplier_canon":canon_supplier(s),
+                  "spikes":len(evl),"lines":len(_lines_m.get((m,s)) or ()),
+                  "worst_pct":worst["pct"],
+                  "worst_item":worst["item"]+(" · "+worst["pack"] if worst["pack"] else ""),
+                  "rag":"red" if len(evl)>PRICE_SPIKE_MAX_PER_SUPPLIER else "green"})
+            sups.sort(key=lambda r:(-r["spikes"],-r["worst_pct"],r["supplier"]))
+            over=[r for r in sups if r["spikes"]>PRICE_SPIKE_MAX_PER_SUPPLIER]
+            spike_months.append({"month":m,"suppliers":sups,
+              "over":len(over),"target":PRICE_SPIKE_MAX_PER_SUPPLIER,
+              "rag":"green" if not over else "red",
+              "worst":(over[0]["supplier"]+" "+str(over[0]["spikes"])) if over else None,
+              "spikes":sum(r["spikes"] for r in sups)})
+        # Weekly trend buckets: spikes that week over lines priced that week.
+        spike_weeks={}
+        for e in spike_events:
+            w=_mon(e["d"]); num_,_den,_days=spike_weeks.get(w,(0,0,0))
+            spike_weeks[w]=(num_+1,0,0)
+        for d,_rows in reports:                # a report week with no spike is 0,
+            w=_mon(d)                          # not a hole - the report DID land
+            spike_weeks.setdefault(w,(0,0,0))
+        spike_weeks={w:(n_,len(_lines_w.get(w) or ()),1) for w,(n_,_x,_y) in spike_weeks.items()}
         # The newest report's own changes, which is what the existing card shows.
         for rn,i,op,np,pid,ps,uv,ms,_sup in (reports[-1][1] if reports else []):
             npf=fb_num(np)
             if npf is None: continue
             opf=fb_num(op)
             pct=round(100.0*(npf-opf)/opf,1) if opf else None
+            who,code,cat,route,why=attribute_price(i,ps,uv,opf,npf,reported=_sup)
             price_watch.append({"ingredient":i,"old_price":opf,"new_price":npf,
-              "pct_change":pct,"is_new":opf is None})
+              "pct_change":pct,"is_new":opf is None,
+              "pack":packlabel(pid,ps,uv,ms),
+              "supplier":who,"supplier_canon":canon_supplier(who) if who else None,
+              "supplier_code":code,"category":cat,"attribution":route,
+              "unattributed_why":why,
+              "duplicate_line":bool(who and pack_is_dupe(who,cat,i,ps,uv))})
         price_watch.sort(key=lambda r:(r["pct_change"] is None,
                                        -(r["pct_change"] or 0), r["ingredient"] or ""))
         stale=(datetime.date.fromisoformat(pull)
@@ -2162,9 +2519,106 @@ def main():
                 "someone to a supplier over a data-entry error")
     else:
         gaps.append(f"'{PRICE_FEED}' absent from the warehouse")
-    gaps.append("Ingredient price changes carry no supplier or site field in the source "
-        "report, so price rises cannot be joined to a specific supplier or location - shown "
-        "as a standalone watchlist, not cross-referenced to suppliers.issues")
+    # ---- how much of the price report could be attributed at all ---------
+    att_rate=(round(100.0*sum(att_by_route.values())/att_total,1)
+              if att_total else None)
+    price_attribution={
+      "attributed":sum(att_by_route.values()),"total":att_total,"rate":att_rate,
+      "by_route":dict(att_by_route),
+      # by_id / by_name are the two shapes a reader asks for: proved from the
+      # export's own Ingredient Id, versus inferred from the ingredient name.
+      "by_id":att_by_route.get("diff",0)+att_by_route.get("reported",0),
+      "by_name":att_by_route.get("unique",0)+att_by_route.get("price",0),
+      "unattributed":dict(att_unattributed),
+      "duplicates":len(pack_dupe),"code_twins_collapsed":pack_twins,
+      "code_twins_across_packs":pack_twins_wide,
+      "zero_priced_lines":pack_zero,
+      "source_file":PACK_FEED,"as_of":pack_newest_date,
+      "pack_lines":pack_rows,"exports_held":len(pack_snaps),
+      "min_pct":PRICE_ATTRIBUTION_MIN_PCT,
+      "meets_bar":bool(att_rate is not None and att_rate>=PRICE_ATTRIBUTION_MIN_PCT),
+      "basis":("Each price change is attributed to the supplier whose pack line moved, "
+        "by three routes in order of evidence. 'diff': two pack-price exports bracket "
+        "the change and one Ingredient Id moved by exactly that old->new, so the "
+        "supplier is read off the export row rather than inferred. 'unique': only one "
+        "supplier sells that ingredient in that pack. 'price': several do, but exactly "
+        "one is currently at the old or the new price. Scored against 'diff' as ground "
+        "truth, the other two are 195/195 and 156/156 correct with 0 disagreements - so "
+        "an unattributed row is missing coverage, never a wrong name. The report's own "
+        "Parent ID is NOT usable as a key: it names the parent ingredient, while the "
+        "export's Ingredient Id names a supplier pack line under it, and the two share "
+        "no values at all. Rows that could not be attributed are counted by reason and "
+        "excluded, never bucketed into a supplier called '(none)'.")}
+    if not pack_snaps:
+        gaps.append("'"+PACK_FEED+"' is absent, so no ingredient price change can be "
+          "attributed to a supplier: the price report names a parent ingredient, and a "
+          "parent carries one pack line per supplier. Run pull_pack_prices.py in "
+          "MakiManc/maki-hospitality-etl, or drop a fresh "
+          "KOBAS_Template_StockIngredientPackPriceImport export into the Drive folder")
+    elif len(pack_snaps)<2:
+        gaps.append("Only one pack-price export is held ("+str(pack_newest_date)+"), so "
+          "no price change can be attributed by the exact route - that needs two exports "
+          "to diff between. Attribution is running on the two inferred routes alone, at "
+          +str(att_rate)+"% of report rows")
+    else:
+        _pstale=(datetime.date.fromisoformat(pull)
+                 -datetime.date.fromisoformat(pack_newest_date)).days
+        if _pstale>PACK_STALE_DAYS:
+            gaps.append("The newest pack-price export is "+str(_pstale)+" days old ("
+              +str(pack_newest_date)+"). The price report is weekly, so every report "
+              "since then has no export after it to diff against and falls back to the "
+              "inferred routes - which is most of what keeps attribution at "
+              +str(att_rate)+"% rather than near-complete. A fresh export in Drive is "
+              "what closes it")
+    if att_rate is not None and not price_attribution["meets_bar"]:
+        gaps.append("Supplier attribution of price changes is at "+str(att_rate)+"% of "
+          "report rows, under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% this system "
+          "requires before it will put supplier names on a scorecard row, so Supply KR2 "
+          "stays unmeasured. This is a COVERAGE limit, not an accuracy one: where a "
+          "route fires it agrees with the export-diff ground truth every time. Taking "
+          "the pack-price export weekly, on the price report's own schedule, is what "
+          "lifts it")
+    if pack_dupe:
+        gaps.append(str(len(pack_dupe))+" supplier+category+ingredient+pack combination(s) "
+          "carry more than one live line in the pack-price export, so their price cannot "
+          "be read off a single record. They are marked duplicate_line wherever they "
+          "appear and excluded from the spike count. "+str(pack_twins)+" line(s) were "
+          "collapsed first as punctuated Supplier Code twins (S6005 / S6005.) on an "
+          "identical pack, which is one Kobas record written twice rather than two "
+          "prices; a further "+str(pack_twins_wide)+" twin(s) sit on DIFFERENT pack "
+          "shapes and are counted but deliberately not merged, because there one code "
+          "has been reused for two real pack sizes and collapsing them would delete a "
+          "price. Fixing these in Kobas is a stock-data job, not a dashboard one")
+    # The basis is the row's audit trail: the rule, which month, how much of
+    # the report could be attributed at all, and every exclusion - because a
+    # count of spikes with no denominator and no exclusions named is exactly
+    # the kind of number this scorecard exists not to publish.
+    _spike_basis=(
+      "A spike is one supplier pack line rising by "+str(int(PRICE_SPIKE_PCT))+"% or "
+      "more in a single weekly report, counted once per line per report and attributed "
+      "to the supplier whose pack line moved. "
+      +("Month shown is "+spike_months[-1]["month"]+", by the report's first-seen date, "
+        "the same calendar-month rule as KR1. " if spike_months else "")
+      +"Excluded: a first-ever price ('New'), a move of "+str(int(PRICE_SUSPECT_UP))+"% "
+      "or more (a pack re-spec or a keying slip, not a price), either side priced 0.00, "
+      "and any line the pack-price export holds twice for one supplier+category+"
+      "ingredient+pack, whose price cannot be read off a single record"
+      +(" ("+str(spike_dupe_skipped)+" excluded on that ground). " if spike_dupe_skipped
+        else ". ")
+      +str(att_rate)+"% of report rows could be attributed to a named supplier"
+      +(" (under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% bar this system requires "
+        "before naming suppliers on a scorecard row)" if att_rate is not None
+        and att_rate<PRICE_ATTRIBUTION_MIN_PCT else "")
+      +"; "+str(spike_unattributed)+" qualifying rise(s) name no supplier and are "
+      "disclosed rather than assigned. "
+      +("Restricted to the "+str(len(ordered_recent))+" ingredient(s) ordered in the "
+        "trailing "+str(PRICE_SPIKE_ORDERED_WEEKS)+" weeks."
+        if ordered_recent is not None else
+        "NOT restricted to recently-ordered ingredients: '"+ORDER_EMAIL_FEED+"' is parsed "
+        "from order-confirmation emails and keeps only per-order totals, so there is no "
+        "ingredient-level order line to filter on. Every priced ingredient is counted. "
+        "The emails do carry the lines; widening the parser in "
+        "daily_export.fetch_kobas_orders is what turns this filter on."))
     snap["supply"]={"week_spend":week_spend,"week_start":week_start,"week_end":week_end,
       "supplier_totals":supplier_totals,
       "supplier_totals_basis":supplier_totals_basis,
@@ -2218,15 +2672,30 @@ def main():
       # Supplier column is ever added to the report in Kobas.
       "price_supplier_names":sorted(price_supplier_seen)[:50],
       "price_has_supplier":bool(price_supplier_seen),
-      "price_supplier_basis":"the Weekly Ingredient Price Changes report carries seven "
-      "columns - Parent ID, Ingredient Name, Pack Size, Unit Volume, Measurement, Old "
-      "Price, New Price - and no supplier. The email parser keeps every column of the "
-      "attached sheet, so this is the report not carrying it, not the ETL dropping it. "
-      "The reports that do name a supplier (Outstanding Stock Orders, Ops Deliveries) "
-      "carry order and invoice totals with no ingredient or unit price, so the two "
-      "cannot be joined. Adding a Supplier column to the price report in Kobas is what "
-      "fills this in; the bake already reads one if it appears. Even then it would show "
-      "only suppliers that CHANGED a price, because the report is a log of changes - a "
+      "price_attribution":price_attribution,
+      "price_spikes":{"months":spike_months,
+        "current":(spike_months[-1] if spike_months else None),
+        "unattributed":spike_unattributed,"duplicate_skipped":spike_dupe_skipped,
+        "ordered_filter":(len(ordered_recent) if ordered_recent is not None else None),
+        "thresholds":{"pct":PRICE_SPIKE_PCT,
+          "max_per_supplier":PRICE_SPIKE_MAX_PER_SUPPLIER,
+          "ordered_weeks":PRICE_SPIKE_ORDERED_WEEKS},
+        "basis":_spike_basis},
+      "spikes_by_supplier":(spike_months[-1]["suppliers"] if spike_months else []),
+      "price_supplier_basis":"the Weekly Ingredient Price Changes report still carries "
+      "seven columns - Parent ID, Ingredient Name, Pack Size, Unit Volume, Measurement, "
+      "Old Price, New Price - and no supplier of its own. Since 16/09/2026 the supplier "
+      "is reconstructed from the Kobas pack-price export ('"+PACK_FEED+"'), which has one "
+      "line per SUPPLIER PACK carrying Supplier Name, Supplier Code, category and the "
+      "current price. The obvious key does not work and must not be re-added: the "
+      "report's Parent ID names the parent INGREDIENT and the export's Ingredient Id "
+      "names a pack line underneath it, and across 427 Parent IDs and 2,664 Ingredient "
+      "Ids the two sets share no value at all. Attribution instead runs three routes in "
+      "order of evidence - see price_attribution.basis - and publishes the rate it "
+      "achieves. Adding a Supplier column, or the pack line's own id, to the price "
+      "report in Kobas would make this exact and complete; the bake already prefers the "
+      "report's own answer the day one appears. Either way this only ever shows "
+      "suppliers that CHANGED a price, because the report is a log of changes - a "
       "supplier holding a steady quote never appears in it.",
       "price_flags_basis":"built from EVERY archived pull of the price-changes report, "
       "deduped by content into distinct reports and dated by the first pull that carried "
@@ -2453,10 +2922,6 @@ def main():
     #     pipeline was down as a dramatic improvement in every rate on the page.
     #  6. Denominators travel with every point, so a week of 3 task instances
     #     cannot be averaged against a week of 3,000.
-    def _mon(d):
-        """Monday of the ISO week containing YYYY-MM-DD."""
-        dt=datetime.date.fromisoformat(d[:10])
-        return (dt-datetime.timedelta(days=dt.weekday())).isoformat()
     _end=_mon((pull or datetime.date.today().isoformat())[:10])
     WEEKS=[(datetime.date.fromisoformat(_end)-datetime.timedelta(days=7*i)).isoformat()
            for i in range(3,-1,-1)]
@@ -2520,12 +2985,48 @@ def main():
         row("Supply","KR1 delivery issues / month","≤10","p-supi",
             not_measured="needs the GC Form Task Answers feed, which is absent from this bake")
 
-    # --- Supply KR2: price spikes (PROXY) ---
-    row("Supply","KR2 price spikes / month","≤3","p-supp",
-        not_measured=("item-level only — the Kobas Weekly Ingredient Price Changes report "
-          "carries no supplier or site column, so a change cannot be attributed. "
-          "Needs a supplier column on that report, or price lines joined to Kobas Orders "
-          "line items by ingredient code"))
+    # --- Supply KR2: price spikes per supplier ---
+    # GATED ON COVERAGE, ON PURPOSE (16/09/2026). The measure itself works:
+    # every spike below is attributed to the supplier whose pack line moved,
+    # and where the routes fire they agree with the export-diff ground truth
+    # every time. What is not yet true is that ENOUGH of the report can be
+    # attributed - 75.5% against the committed archive, against a bar of 90%.
+    # Publishing "6 suppliers over 3" off three quarters of the data would put
+    # a red chip and a named supplier next to a number that moves when an
+    # export lands, which is rule 4's "invented number" in a different costume.
+    # So the row stays grey and says the live rate, the per-supplier table is
+    # published for the Supply tab either way, and the row turns itself on the
+    # day the exports catch up - no code change, just a fresher Drive drop.
+    _sp=(snap.get("supply") or {}).get("price_spikes") or {}
+    _spcur=_sp.get("current")
+    _spb={w:(n_,d_,dd) for w,(n_,d_,dd) in (spike_weeks or {}).items()}
+    if _spcur and price_attribution.get("meets_bar"):
+        row("Supply","KR2 price spikes / month","≤3","p-supp",
+            value=_spcur["over"],
+            display=(f"{_spcur['over']} supplier{'' if _spcur['over']==1 else 's'} over "
+                     f"{PRICE_SPIKE_MAX_PER_SUPPLIER}"
+                     +(f" (worst: {_spcur['worst']})" if _spcur.get("worst") else "")),
+            rag=_spcur["rag"],basis=_sp.get("basis"),
+            trend=_trend(_spb,fmt=lambda num,den: num),
+            trend_unit="spikes / week",
+            trend_note=_note(_spb,"price report","2026-08-13"))
+    else:
+        row("Supply","KR2 price spikes / month","≤3","p-supp",
+            not_measured=(
+              "the spikes are counted and attributed - see Price spikes by supplier on "
+              "Supply & Fulfilment - but only "
+              +str(price_attribution.get("rate"))+"% of the price report can be tied to a "
+              "named supplier, under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% needed "
+              "before this system will put a supplier on a scorecard row. The price "
+              "report names a parent ingredient and a parent carries a pack line per "
+              "supplier, so the supplier is reconstructed from the Kobas pack-price "
+              "export; that export is taken by hand, roughly monthly, while the report is "
+              "weekly, so recent reports have none after them to read the answer from. "
+              "Taking the export weekly is what clears this, and the row then measures "
+              "itself"
+              if price_attribution.get("total") else
+              "needs the Kobas Weekly Ingredient Price Changes report and the Kobas "
+              "pack-price export, neither of which is in this bake"))
     # --- Supply KR3 / KR5: no source at all ---
     row("Supply","KR3 menu items unavailable","0","—",
         not_measured="no stock-out is recorded anywhere machine-readable. Needs a GC stock-out form, or Kobas 86'd items")

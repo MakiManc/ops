@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "for f in tests/*_test.mjs; do node \"$f\" || exit 1; done"
+    "test": "for f in tests/*_test.mjs; do node \"$f\" || exit 1; done; for f in tests/*_test.py; do python3 \"$f\" || exit 1; done"
   },
   "devDependencies": {
     "playwright": "^1.56.0"
