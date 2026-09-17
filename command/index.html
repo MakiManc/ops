@@ -249,7 +249,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="s">Lincoln's maintenance/repair tracker · outstanding + ongoing tasks in range · click a site for task detail</div></div>
     <div class="card-b" id="maint-bars"></div></div>
   <div class="card"><div class="card-h"><div class="t">Detail</div>
-    <div class="s">Site, outstanding/ongoing vs resolved counts, status</div></div>
+    <div class="s">Site, outstanding/ongoing vs resolved vs cancelled counts, status &middot; cancelled means the ticket was closed without the work happening, so it is never counted as outstanding and never as resolved</div></div>
     <div class="card-b" id="maint-tbl"></div></div>
 </div>
 
@@ -886,6 +886,18 @@ function openWeekSpendModal(site){
   const basis=(SNAP.supply&&SNAP.supply.week_spend_basis)||'';
   openModal(site,chips+supTable+orderTable+'<div class="prov">'+esc(basis)+capNote+'</div>');
 }
+/* Ross, 17/09/2026. This used to be a two-way ternary whose ELSE branch was a
+   green '✓ Resolved' chip, so EVERY status that was not the exact string
+   'ongoing' rendered as work that had been done — a cancelled ticket included,
+   and any future status nobody has taught this page about. An explicit map with
+   no catch-all done branch: an unknown status prints itself rather than
+   claiming something untrue about the job. */
+function maintChip(st){
+  if(st==='ongoing')   return chip('a','Outstanding/Ongoing');
+  if(st==='done')      return chip('g','Resolved');
+  if(st==='cancelled') return chip('n','Cancelled');
+  return chip('b',esc(st||'No status'));
+}
 function openMaintModal(site){
   const maint=(SNAP&&SNAP.maintenance)||{};
   const rows=(maint.tasks||[]).filter(t=>t.site===site && inEV(t.d)).slice()
@@ -896,8 +908,11 @@ function openMaintModal(site){
   }
   const html='<table><thead><tr><th>Date</th><th>Issue</th><th>Update</th><th>Status</th></tr></thead><tbody>'+
     rows.map(t=>`<tr><td>${esc(t.d||'—')}</td><td>${esc(t.issue||'—')}</td>`+
-      `<td>${esc(t.comment||'—')}</td><td>${t.status==='ongoing'?chip('a','Outstanding/Ongoing'):chip('g','Resolved')}</td></tr>`).join('')+
-    '</tbody></table><div class="prov">'+fmtN(rows.length)+' maintenance task'+(rows.length===1?'':'s')+' in '+esc(evLabel())+'</div>';
+      `<td>${maintChip(t.status)}</td></tr>`).join('')+
+    '</tbody></table><div class="prov">'+fmtN(rows.length)+' maintenance task'+(rows.length===1?'':'s')+
+    ' ('+fmtN(rows.filter(t=>t.status==='ongoing').length)+' outstanding, '+
+    fmtN(rows.filter(t=>t.status==='done').length)+' resolved, '+
+    fmtN(rows.filter(t=>t.status==='cancelled').length)+' cancelled) in '+esc(evLabel())+'</div>';
   openModal(site,html);
 }
 $('task-modal-x').onclick=()=>$('task-modal-ov').classList.remove('on');
@@ -1527,16 +1542,24 @@ function render(snap){
     ?'<div class="warn"><b>Read this first.</b> '+maint.gaps.map(esc).join(' · ')+'</div>':'';
   const maintTasksAll=maint.tasks||[];
   const maintTasks=maintTasksAll.filter(t=>inEV(t.d));
+  /* Ross, 17/09/2026: three buckets, not two. 'cancelled' is closed — it is
+     never outstanding — but it is counted separately from 'done' because a
+     cancelled ticket is not work that happened, and rolling it into Resolved
+     would put a green tick on a job nobody ever did. Anything else lands in
+     `other` and is shown as its own number rather than silently vanishing
+     from every total, which is how cancelled itself hid for a year. */
   const maintAgg={};
   maintTasks.forEach(t=>{
-    const a=maintAgg[t.site]=maintAgg[t.site]||{ongoing:0,done:0};
+    const a=maintAgg[t.site]=maintAgg[t.site]||{ongoing:0,done:0,cancelled:0,other:0};
     if(t.status==='ongoing') a.ongoing++;
     else if(t.status==='done') a.done++;
+    else if(t.status==='cancelled') a.cancelled++;
+    else a.other++;
   });
-  const maintSites=Object.entries(maintAgg).map(([site,a])=>({site,ongoing:a.ongoing,done:a.done}))
+  const maintSites=Object.entries(maintAgg).map(([site,a])=>({site,ongoing:a.ongoing,done:a.done,cancelled:a.cancelled,other:a.other}))
     .sort((a,b)=>(b.ongoing-a.ongoing)||(b.done-a.done));
   bars('maint-bars',maintSites.map(r=>({k:r.site,v:r.ongoing,
-    tip:`${r.site} — ${fmtN(r.ongoing)} outstanding/ongoing, ${fmtN(r.done)} resolved in range · click for detail`})),
+    tip:`${r.site} — ${fmtN(r.ongoing)} outstanding/ongoing, ${fmtN(r.done)} resolved, ${fmtN(r.cancelled)} cancelled in range · click for detail`})),
     i=>fmtN(i.v));
   [...document.querySelectorAll('#maint-bars .brow')].forEach((el,i)=>{
     const r=maintSites[i]; if(!r) return;
@@ -1544,8 +1567,12 @@ function render(snap){
   });
   if(maint.basis) $('maint-bars').insertAdjacentHTML('beforeend','<div class="prov">'+esc(maint.basis)+' · '+esc(evLabel())+
     (maint.source_as_of?' · sheet as of '+esc(maint.source_as_of):'')+'</div>');
-  table('maint-tbl',[{h:'Site'},{h:'Outstanding/Ongoing',n:1},{h:'Resolved',n:1},{h:'Status',raw:1}],
-    maintSites.map(r=>[r.site,fmtN(r.ongoing),fmtN(r.done),
+  /* Cancelled is its own column, sitting between the two it must not be
+     confused with. The Status chip stays keyed on r.ongoing alone — a site
+     with nothing outstanding IS clear, whether its closed tickets were done
+     or dropped — and the column beside it is what says which. */
+  table('maint-tbl',[{h:'Site'},{h:'Outstanding/Ongoing',n:1},{h:'Resolved',n:1},{h:'Cancelled',n:1},{h:'Status',raw:1}],
+    maintSites.map(r=>[r.site,fmtN(r.ongoing),fmtN(r.done),fmtN(r.cancelled),
       r.ongoing===0?chip('g','Clear'):r.ongoing>=3?chip('r','Needs attention'):chip('a','In progress')]),
     'No maintenance tasks dated in this range');
   [...document.querySelectorAll('#maint-tbl tbody tr')].forEach((tr,i)=>{
@@ -1554,12 +1581,14 @@ function render(snap){
   });
   const maintOngoingTot=maintSites.reduce((s,r)=>s+r.ongoing,0);
   const maintDoneTot=maintSites.reduce((s,r)=>s+r.done,0);
+  const maintCancelledTot=maintSites.reduce((s,r)=>s+r.cancelled,0);
   const maintOngoingList=maintTasks.filter(t=>t.status==='ongoing').slice().sort((a,b)=>(a.d||'').localeCompare(b.d||''));
   const maintOldest=maintOngoingList[0];
   $('maint-kpis').innerHTML=
     kpi(maintOngoingTot===0?'g':maintOngoingTot>=8?'r':'a','Outstanding/ongoing',fmtN(maintOngoingTot),'maintenance tasks not yet resolved, in range')+
     kpi('o','Sites affected',fmtN(maintSites.filter(r=>r.ongoing>0).length),'with an outstanding/ongoing task in range')+
-    kpi('o','Resolved',fmtN(maintDoneTot),'marked done, in range')+
+    kpi('o','Resolved',fmtN(maintDoneTot),'the work happened, in range')+
+    kpi('n','Cancelled',fmtN(maintCancelledTot),'closed without the work happening, in range')+
     kpi(maintOldest?'a':'n','Oldest open',maintOldest?maintOldest.d:'—',maintOldest?maintOldest.site:'no open tasks in range');
 
   /* ---- Supplier Issues tab (18/08/2026) ----

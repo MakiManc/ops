@@ -2836,13 +2836,29 @@ def main():
         for t in mtasks:
             key=t.get("site")
             if not key: continue
-            c=mcell.setdefault(key,{"ongoing":0,"done":0})
+            # Ross, 17/09/2026: three states, not two. 'cancelled' is closed -
+            # it never counts as outstanding - but it is tallied on its own
+            # rather than added to done, because a cancelled job is not work
+            # that happened and "Resolved" must not quietly include it.
+            c=mcell.setdefault(key,{"ongoing":0,"done":0,"cancelled":0})
             if t.get("status")=="ongoing": c["ongoing"]+=1
             elif t.get("status")=="done": c["done"]+=1
-        maint_sites=[{"site":s,"ongoing":c["ongoing"],"done":c["done"]}
-          for s,c in mcell.items()]
+            elif t.get("status")=="cancelled": c["cancelled"]+=1
+        maint_sites=[{"site":s,"ongoing":c["ongoing"],"done":c["done"],
+          "cancelled":c["cancelled"]} for s,c in mcell.items()]
         maint_sites.sort(key=lambda r:(-r["ongoing"],-r["done"]))
         maint_gaps=[]
+        # The tally above counts three literals and silently ignores anything
+        # else, which is exactly how 'cancelled' hid for a year. If the parser
+        # ever emits a fourth, say so on the tab rather than losing those rows
+        # out of every count on it.
+        _known={"ongoing","done","cancelled"}
+        _odd=sorted({t.get("status") for t in mtasks
+                     if t.get("status") not in _known and t.get("site")})
+        if _odd:
+            maint_gaps.append("task status(es) this dashboard cannot count, so "
+              "the rows carrying them appear in the drill-down but in none of "
+              "the totals above it: "+", ".join(repr(x) for x in _odd))
         if msrc.get("unresolved_site_labels"):
             maint_gaps.append("site label(s) not resolved to a canonical dashboard "
               "site name, shown as-is rather than guessed: "
@@ -2851,9 +2867,13 @@ def main():
           "source_as_of":msrc.get("source_as_of"),"pulled_at":msrc.get("pulled_at"),
           "gaps":maint_gaps,
           "basis":"per maintenance/repair task from "+msrc.get("source","(unlabelled source)")
-          +"; status is 'ongoing' (outstanding/in-progress, per the sheet's own "
-          "ON GOING/PENDING section) or 'done' (per its DONE section) - the sheet "
-          "does not distinguish outstanding from in-progress any further than that; "
+          +"; status is 'ongoing' (outstanding or in progress - the sheet does not "
+          "distinguish the two, and a blank status counts as outstanding), 'done' "
+          "(the work happened) or 'cancelled' (the ticket was closed WITHOUT the "
+          "work happening - counted as closed, never as outstanding, and never "
+          "added to Resolved). Those are the sheet's own four columns minus "
+          "'Delayed', which is deliberately counted as outstanding because "
+          "deferred work is still open work; "
           "event-dated on the sheet's own Date column, so the date-range filter "
           "slices both the per-site bars/table and the drill-down; NOT sourced from "
           "the warehouse - see 'source_as_of' (the date Lincoln stamped on the "

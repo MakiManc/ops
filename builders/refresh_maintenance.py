@@ -220,10 +220,41 @@ def _cells(row) -> list[str]:
 _DONE_WORDS = re.compile(
     r"^(completed?|done|resolved|fixed|sorted|closed|complete - .*)$", re.I)
 
+# Ross, 17/09/2026: "The cancelled maintenance tasks are classed as completed
+# and not open."
+#
+# CANCELLED IS A THIRD STATE, NOT A SYNONYM FOR DONE. It is first-class in the
+# source and always has been - the sheet's own summary worksheets are headed
+# "Name of the site | Total Requests | Completed | Ongoing | Cancelled |
+# Delayed | Expenses", and the month dashboard uses the same four. This parser
+# simply had no word for it: "Cancelled" matched nothing in _DONE_WORDS, so a
+# cancelled row fell through to "ongoing" and was counted as outstanding work.
+#
+# It is deliberately NOT added to _DONE_WORDS. Everything matching there is
+# work that actually happened; a cancelled job did not happen. Folding it in
+# would inflate "Resolved" with tasks nobody ever did and put a green tick
+# beside them - so it counts as CLOSED (not open, per Ross) while being
+# reported under its own name everywhere it is counted.
+#
+# DELAYED IS ABSENT FROM BOTH PATTERNS ON PURPOSE. It is the fourth column in
+# those same dashboards and deferred work is still outstanding work, so it goes
+# on falling through to "ongoing", which was already right.
+_CANCELLED_WORDS = re.compile(r"^(cancell?ed|cancel)$", re.I)
+
 
 def _status_of(status: str, completed_on: str) -> str:
-    if _DONE_WORDS.match((status or "").strip()):
+    """One of 'done', 'cancelled', 'ongoing'. Branch order is load-bearing."""
+    s = (status or "").strip()
+    if _CANCELLED_WORDS.match(s):
+        return "cancelled"
+    if _DONE_WORDS.match(s):
         return "done"
+    # This sits BELOW the cancelled test on purpose. A cancelled job can be
+    # date-stamped on the day it was dropped, and 15 of the committed rows do
+    # carry a Date of Completion, so running the date test first would keep
+    # reporting those as done. The consequence is worth stating plainly: this
+    # change can move rows OUT of "Resolved" as well as out of "Outstanding",
+    # so a small fall in the Resolved count is expected, not a regression.
     if iso_date(completed_on):
         return "done"
     return "ongoing"
@@ -279,7 +310,8 @@ def parse_form(values: list[list]) -> list[dict]:
         if not issue:
             continue                      # a row with no task is not a task
         site_raw = get(cs, "site")
-        status = _status_of(get(cs, "status"), get(cs, "completed"))
+        raw_status = get(cs, "status")
+        status = _status_of(raw_status, get(cs, "completed"))
         tasks.append({
             "site": canon_site(site_raw) or site_raw or "(no site given)",
             "raw_site": site_raw,
@@ -292,6 +324,12 @@ def parse_form(values: list[list]) -> list[dict]:
             "comment": " · ".join(x for x in (get(cs, "comment"),
                                               get(cs, "by")) if x),
             "status": status,
+            # The verbatim cell beside the classification, exactly as raw_site
+            # sits beside site. It is what lets a later reader re-derive these
+            # buckets - or notice a FIFTH status nobody has told this parser
+            # about - without re-pulling the sheet. Today's file cannot answer
+            # "which rows did the sheet call Cancelled?" at all.
+            "status_raw": raw_status or None,
             # Fields the recap never carried. Urgency is the one sites actually
             # fill in, and it is the only priority signal this system has.
             "urgency": get(cs, "urgency") or None,
@@ -394,11 +432,47 @@ def main() -> int:
 
     ongoing = sum(1 for t in built["tasks"] if t["status"] == "ongoing")
     done = sum(1 for t in built["tasks"] if t["status"] == "done")
-    log.info("parsed %d submissions (%d ongoing, %d done), dated %s..%s, "
-             "%d unresolved site label(s): %s", len(built["tasks"]),
-             ongoing, done, built["first_submission"], built["source_as_of"],
+    cancelled = sum(1 for t in built["tasks"] if t["status"] == "cancelled")
+    log.info("parsed %d submissions (%d ongoing, %d done, %d cancelled), "
+             "dated %s..%s, %d unresolved site label(s): %s",
+             len(built["tasks"]), ongoing, done, cancelled,
+             built["first_submission"], built["source_as_of"],
              len(built["unresolved_site_labels"]),
              ", ".join(built["unresolved_site_labels"]) or "none")
+
+    # Ross, 17/09/2026. The Cancelled bug was invisible for a year because a
+    # status this parser does not recognise is not an error here - it is
+    # silently counted as outstanding work. So say out loud which words fell
+    # through, and how many rows each took with it.
+    #
+    # It is a log line rather than a failure on purpose: a new dropdown option
+    # must not stop the Maintenance tab refreshing. But it is the one place a
+    # fifth status, a renamed Status header (every row would read blank at
+    # once), or a typo'd bulk edit would announce itself instead of quietly
+    # inflating the outstanding count.
+    _KNOWN_OPEN = {"", "ongoing", "on going", "pending", "delayed",
+                   "in progress", "outstanding"}
+    unknown = {}
+    for t in built["tasks"]:
+        if t["status"] != "ongoing":
+            continue
+        word = (t.get("status_raw") or "").strip()
+        if word.lower() in _KNOWN_OPEN:
+            continue
+        unknown[word] = unknown.get(word, 0) + 1
+    if unknown:
+        log.warning("status word(s) this parser does not recognise, counted as "
+                    "OUTSTANDING by default - check whether any of them mean "
+                    "closed: %s",
+                    ", ".join(f"{w!r} ({n})" for w, n
+                              in sorted(unknown.items(), key=lambda kv: -kv[1])))
+    blank = sum(1 for t in built["tasks"] if not (t.get("status_raw") or "").strip())
+    if blank == len(built["tasks"]) and built["tasks"]:
+        log.error("EVERY row has an empty Status cell (%d of %d). The Status "
+                  "column header has almost certainly been renamed - this "
+                  "parser matches it by the exact word 'status' - so every "
+                  "task is now classified on its completion date alone.",
+                  blank, len(built["tasks"]))
 
     # NEVER PUBLISH AN ANCIENT TAB QUIETLY. The form responses are the source
     # Ross chose, but this file's form worksheets have gone quiet before - the
