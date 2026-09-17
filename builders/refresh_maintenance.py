@@ -77,6 +77,12 @@ OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 SITE_CODES = {
     "m1":  "M1TOO Ltd",              "maki 1":  "M1TOO Ltd",
     "m1/2": "M1TOO Ltd",             "maki 1/2": "M1TOO Ltd",
+    # Ross, 16/09/2026: "Maki 2 is merged with Maki 1 to make Maki 1/2."
+    # So M2 is not a missing site, it is half of one that already resolves. The
+    # site's own Kobas name records the merge - bake_ops_command.py pairs
+    # M1TOO Ltd with the venue 'Maki 1/2 (Nicolson St)' - which is why 'm1/2'
+    # was already in this map and 'm2' was not. One submission, 26/05/2025.
+    "m2":  "M1TOO Ltd",              "maki 2":  "M1TOO Ltd",
     "m3":  "Fountain Good Food Ltd", "maki 3":  "Fountain Good Food Ltd",
     "m5":  "South Ikigai Ltd",       "maki 5":  "South Ikigai Ltd",
     "iki2": "South Ikigai Ltd",      "iki 2":   "South Ikigai Ltd",
@@ -98,6 +104,32 @@ SITE_CODES = {
     "m20": "Maki Southampton",       "maki 20": "Maki Southampton",
     "m21": "Maki Birmingham Ltd",    "maki 21": "Maki Birmingham Ltd",
     "maki nori": "Maki Nori",        "nori": "Maki Nori",
+    # Ross, 16/09/2026: "Maki 4 is the Leith site. MAF4 is Braehead."
+    #
+    # M4 is not in the M-code list this map was built from, which is why its 44
+    # submissions sat unresolved. 'Maki Leith' is a real Kobas venue, not a name
+    # invented to house them: it appears as `"Venue Placed":"Maki Leith"` with
+    # `"Region Placed":"Scotland"` in the Weekly Outstanding Stock Orders report
+    # archived on 13/08/2026, and bake_ops_command.py already names it as a
+    # Kobas-side site with no GetCompliant match.
+    #
+    # Do NOT "correct" this to Maki SJQ. The EC dashboard calls M7 "M7 Leith
+    # Street" because St James Quarter sits on Leith Street; Leith is a
+    # different part of Edinburgh and a different venue in Kobas. M4 and M7 are
+    # not the same site.
+    #
+    # It is a former site, so it will appear on the Maintenance tab and nowhere
+    # else: it is absent from the 26-entry estate directory the dashboard builds
+    # from GetCompliant Locations, its submissions run 15/02/2024 to 15/05/2026
+    # and stop, and the Kobas orders naming it are from 2024.
+    "m4":   "Maki Leith",            "maki 4":  "Maki Leith",
+    # MAF4 in the same sentence, recorded so the next person does not read M4
+    # and MAF4 as the same code and file Leith's maintenance against Braehead.
+    # These keys match nothing in the worksheet today - every one of the 1,264
+    # submissions uses an 'M'/'Maki N' label, never an MAF one - so they resolve
+    # 0 rows and are here to catch the label rather than to claim it exists.
+    "maf4": "Maki Braehead",         "braehead": "Maki Braehead",
+    "maki braehead": "Maki Braehead",
 }
 # The form and the recap use DIFFERENT vocabularies for the same estate, which
 # is why both spellings appear above: the recap writes 'Iki 2' and 'Maki 7',
@@ -107,16 +139,16 @@ SITE_CODES = {
 #
 # Deliberately NOT mapped, and they must stay that way until somebody decides
 # what they are:
-# Counts below are from the live worksheet, 1,264 submissions, 16/09/2026:
+# Counts below are from the live worksheet, 1,265 submissions, 16/09/2026:
 #   'MF Edinburgh' (20), 'MF Glasgow' (22), 'Factory - Dalkeith Road,
 #     Edinburgh' (4), 'Factory - Renfield St, Glasgow' (17) - four spellings of
 #     two factories. The only factory site on this dashboard is AA Factory1
 #     Limited, and mapping an Edinburgh or Glasgow factory onto it would
 #     attribute one site's maintenance to another.
-#   'Maki 4' (44) and 'Maki 2' (1) - M2 and M4 are not in the estate's M-code
-#     list this map was built from (M1, M3, M5-M21), so there is nothing to map
-#     them to. 44 submissions is too many to be noise; they may be a
-#     since-closed site. Until someone says which, they render as themselves.
+#   'Maki 4' and 'Maki 2' both left this list on 16/09/2026, when Ross said what
+#     they were - M4 is Leith, M2 is half of M1/2. What remains below is not a
+#     backlog of unanswered labels; it is four things that are not trading sites
+#     and one that is not confirmed.
 #   'RHQ' (22) - head office, not a trading site.
 #   'IKIGAI 1' (3) - Iki 2 is South Ikigai Ltd; there is no confirmed Iki 1 on
 #     this dashboard, so this is not assumed to be the same place.
