@@ -127,6 +127,34 @@ SITE_REGIONS = {
     # region here means who manages a site, never where it is.
     "Maki Braehead": "scotland",          # best-fit (franchise, Glasgow - host-region AM)
 }
+def maint_by_site(tasks):
+    """Per-site {ongoing, done, cancelled} tallies, highest outstanding first.
+
+    Ross, 17/09/2026: three states, not two. 'cancelled' is CLOSED - it never
+    counts as outstanding - but it is tallied on its own rather than added to
+    done, because a cancelled job is not work that happened and "Resolved" must
+    not quietly include it.
+
+    Module-level rather than inline in main() so it can be tested without a
+    warehouse: mutation testing showed that dropping the cancelled branch from
+    this tally was the ONE change to this feature that the whole suite failed to
+    notice, because nothing executes the baker's maintenance block.
+    """
+    cells = {}
+    for t in tasks:
+        key = t.get("site")
+        if not key:
+            continue
+        c = cells.setdefault(key, {"ongoing": 0, "done": 0, "cancelled": 0})
+        st = t.get("status")
+        if st in c:
+            c[st] += 1
+    rows = [{"site": s, "ongoing": c["ongoing"], "done": c["done"],
+             "cancelled": c["cancelled"]} for s, c in cells.items()]
+    rows.sort(key=lambda r: (-r["ongoing"], -r["done"]))
+    return rows
+
+
 SUPPLIER_MATCH = [("Lynas","Lynas"),("Solstice","Solstice"),("Solstice","Sosltice"),
                   ("TWF","TWF"),("M&R","M&R")]
 # Canonical supplier names + the needles that identify them (18/08/2026, for
@@ -2832,21 +2860,7 @@ def main():
     if os.path.exists(MAINT_SRC):
         msrc=json.load(open(MAINT_SRC))
         mtasks=msrc.get("tasks",[])
-        mcell={}
-        for t in mtasks:
-            key=t.get("site")
-            if not key: continue
-            # Ross, 17/09/2026: three states, not two. 'cancelled' is closed -
-            # it never counts as outstanding - but it is tallied on its own
-            # rather than added to done, because a cancelled job is not work
-            # that happened and "Resolved" must not quietly include it.
-            c=mcell.setdefault(key,{"ongoing":0,"done":0,"cancelled":0})
-            if t.get("status")=="ongoing": c["ongoing"]+=1
-            elif t.get("status")=="done": c["done"]+=1
-            elif t.get("status")=="cancelled": c["cancelled"]+=1
-        maint_sites=[{"site":s,"ongoing":c["ongoing"],"done":c["done"],
-          "cancelled":c["cancelled"]} for s,c in mcell.items()]
-        maint_sites.sort(key=lambda r:(-r["ongoing"],-r["done"]))
+        maint_sites=maint_by_site(mtasks)
         maint_gaps=[]
         # The tally above counts three literals and silently ignores anything
         # else, which is exactly how 'cancelled' hid for a year. If the parser

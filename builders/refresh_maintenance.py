@@ -450,21 +450,34 @@ def main() -> int:
     # fifth status, a renamed Status header (every row would read blank at
     # once), or a typo'd bulk edit would announce itself instead of quietly
     # inflating the outstanding count.
-    _KNOWN_OPEN = {"", "ongoing", "on going", "pending", "delayed",
-                   "in progress", "outstanding"}
+    # Deliberately checked in EVERY bucket, not just the outstanding one. A
+    # first draft of this only inspected rows that fell through to "ongoing",
+    # which left it blind in the direction that matters most: "Complete - not
+    # required" and "Cancelled - site closed" are both classified done (the
+    # first by the 'complete - .*' wildcard, the second by its completion date)
+    # and would have been reported as nothing at all, while rendering a green
+    # tick on work nobody did. The bucket each word landed in is named so the
+    # reader can judge whether it was the right one.
+    _KNOWN = {
+        "": "ongoing", "ongoing": "ongoing", "on going": "ongoing",
+        "pending": "ongoing", "delayed": "ongoing", "in progress": "ongoing",
+        "outstanding": "ongoing",
+        "completed": "done", "complete": "done", "done": "done",
+        "resolved": "done", "fixed": "done", "sorted": "done", "closed": "done",
+        "cancelled": "cancelled", "canceled": "cancelled", "cancel": "cancelled",
+    }
     unknown = {}
     for t in built["tasks"]:
-        if t["status"] != "ongoing":
-            continue
         word = (t.get("status_raw") or "").strip()
-        if word.lower() in _KNOWN_OPEN:
+        if word.lower() in _KNOWN:
             continue
-        unknown[word] = unknown.get(word, 0) + 1
+        key = (word, t["status"])
+        unknown[key] = unknown.get(key, 0) + 1
     if unknown:
-        log.warning("status word(s) this parser does not recognise, counted as "
-                    "OUTSTANDING by default - check whether any of them mean "
-                    "closed: %s",
-                    ", ".join(f"{w!r} ({n})" for w, n
+        log.warning("status word(s) this parser does not recognise, and the "
+                    "bucket each was given by default - check every one of "
+                    "them is in the right column: %s",
+                    ", ".join(f"{w!r} -> {b} ({n})" for (w, b), n
                               in sorted(unknown.items(), key=lambda kv: -kv[1])))
     blank = sum(1 for t in built["tasks"] if not (t.get("status_raw") or "").strip())
     if blank == len(built["tasks"]) and built["tasks"]:

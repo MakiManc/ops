@@ -154,6 +154,30 @@ page.on('console', msg => { if (msg.type() === 'error') consoleErrors.push(msg.t
     'the genuinely completed task is still labelled Resolved');
   assert(/1 outstanding, 1 resolved, 1 cancelled/.test(modal),
     `the modal's count line breaks down all three states (got "${modal.split('\n').pop()}")`);
+
+  // STRUCTURAL, not textual. The first draft of this change rewrote the row
+  // builder and silently dropped the Update cell, leaving 3 tds under 4 ths:
+  // the status chip slid left into the Update column, the Status column went
+  // empty, and every task's notes stopped rendering. Every innerText regex
+  // above still matched, because the words were all still somewhere on screen.
+  // Only counting the cells catches it.
+  const shape = await page.evaluate(() => {
+    const t = document.querySelector('#task-modal-b table');
+    return {
+      heads: [...t.querySelectorAll('thead th')].map(h => h.innerText.trim()),
+      widths: [...t.querySelectorAll('tbody tr')].map(r => r.querySelectorAll('td').length),
+      statusCol: [...t.querySelectorAll('tbody tr')].map(r =>
+        [...r.querySelectorAll('td')].findIndex(td => td.querySelector('.tag'))),
+    };
+  });
+  assert(shape.widths.every(w => w === shape.heads.length),
+    `every drill-down row has one cell per header (${shape.heads.length} headers, rows: ${JSON.stringify([...new Set(shape.widths)])})`);
+  assert(shape.statusCol.every(i => i === shape.heads.length - 1),
+    `the status chip sits in the Status column, the last one (got ${JSON.stringify([...new Set(shape.statusCol)])}, expected ${shape.heads.length - 1})`);
+  assert(/duplicated/.test(modal),
+    "the Update column still renders the task's own note - it is the only place Lincoln's updates appear");
+  assert(/KRIS/.test(modal),
+    'the Update column renders for resolved and outstanding rows too, not just cancelled ones');
   await page.locator('#task-modal-x').click();
 
   // -- an unknown status must not be claimed as done ----------------------

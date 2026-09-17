@@ -141,6 +141,74 @@ def main() -> int:
     check({t["status"] for t in tasks} <= {"ongoing", "done", "cancelled"},
           "parse_form emits only the three literals the consumers count")
 
+    # -- the baker's per-site tally ----------------------------------------
+    # Mutation testing on 17/09/2026 found that deleting the cancelled branch
+    # from this tally was the ONE change to this feature the whole suite did
+    # not notice - nothing executed the baker's maintenance block. It is a
+    # module-level function now, so it can be checked without a warehouse.
+    bspec = importlib.util.spec_from_file_location(
+        "bake_ops_command", os.path.join(REPO, "builders", "bake_ops_command.py"))
+    bake = importlib.util.module_from_spec(bspec)
+    bspec.loader.exec_module(bake)
+
+    rows = bake.maint_by_site([
+        {"site": "Maki Soho", "status": "ongoing"},
+        {"site": "Maki Soho", "status": "cancelled"},
+        {"site": "Maki Soho", "status": "cancelled"},
+        {"site": "Renfield Good Food Ltd", "status": "done"},
+        {"site": "Renfield Good Food Ltd", "status": "cancelled"},
+        {"site": "Renfield Good Food Ltd", "status": "ongoing"},
+        {"site": "Renfield Good Food Ltd", "status": "ongoing"},
+        {"site": None, "status": "ongoing"},          # no site: not countable
+        {"site": "Maki Soho", "status": "escalated"},  # unknown: counted nowhere
+    ])
+    by = {r["site"]: r for r in rows}
+    check(set(rows[0].keys()) == {"site", "ongoing", "done", "cancelled"},
+          "by_site rows carry all three counts plus the site")
+    check(by["Maki Soho"] == {"site": "Maki Soho", "ongoing": 1, "done": 0,
+                              "cancelled": 2},
+          f"cancelled is tallied on its own, not added to done (got {by.get('Maki Soho')})")
+    check(by["Renfield Good Food Ltd"]["cancelled"] == 1
+          and by["Renfield Good Food Ltd"]["done"] == 1
+          and by["Renfield Good Food Ltd"]["ongoing"] == 2,
+          "one site with all three states tallies them independently")
+    check(rows[0]["site"] == "Renfield Good Food Ltd",
+          "sites still sort by outstanding work first - cancelled does not raise a site's rank")
+    check(len(rows) == 2, f"a task with no site is not countable (got {len(rows)} sites)")
+    check(sum(r["ongoing"] + r["done"] + r["cancelled"] for r in rows) == 7,
+          "an unrecognised status is counted in no bucket - which is why the "
+          "baker names it in gaps rather than letting it vanish silently")
+
+    # -- the unknown-status alarm sees EVERY bucket, not just outstanding ----
+    # Its first draft only inspected rows that fell to 'ongoing', leaving it
+    # blind in the direction that renders a green tick on work nobody did.
+    import json as _json
+    import subprocess
+    import tempfile
+    dump = [header,
+            ["May", "01/05/2026 09:00:00", "Maki 8", "K", "A", "", "", "",
+             "Complete - not required", "", "", "", ""],
+            ["May", "02/05/2026 09:00:00", "Maki 8", "K", "B", "", "", "",
+             "Quoted", "", "", "", ""],
+            ["May", "03/05/2026 09:00:00", "Maki 8", "K", "C", "", "",
+             "05/05/2026", "Cancelled - site closed", "", "", "", ""]]
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        _json.dump(dump, fh)
+        dump_path = fh.name
+    proc = subprocess.run(
+        [sys.executable, os.path.join(REPO, "builders", "refresh_maintenance.py"),
+         "--from-json", dump_path, "--print"],
+        capture_output=True, text=True)
+    os.unlink(dump_path)
+    warn = proc.stderr
+    check("'Quoted' -> ongoing" in warn,
+          f"an unknown word that fell to outstanding is named, with its bucket")
+    check("'Complete - not required' -> done" in warn,
+          "an unknown word the 'complete - .*' wildcard swept into DONE is named too")
+    check("'Cancelled - site closed' -> done" in warn,
+          "an unknown word a completion date swept into DONE is named too - the "
+          "blind spot that would put a green tick on a cancelled job")
+
     print("\n" + ("all assertions passed" if not failures
                   else f"{failures} assertion(s) FAILED"))
     return 1 if failures else 0
