@@ -368,6 +368,12 @@ FACTORY_BROTH_BANDS = {
 #: counts those readings and says so, rather than quietly scoring thirteen months
 #: against a band that is three weeks old. Move this only if Ross re-dates the spec.
 FB_BAND_SET = "2026-08-27"
+#: How many months of the broth KR the scorecard's month picker offers. Each
+#: month carries its own basis (~1.5KB), and the feed gains a month forever, so
+#: this is a bound on the snapshot rather than a judgement about the data: two
+#: years is more than anyone compares a KR across, and the readings themselves
+#: stay whole on the Quality tab regardless.
+FB_MONTHS_MAX = 24
 def fb_grade(product, score):
     """'in' | 'low' | 'high' for a graded product, None when it has no band."""
     band = FACTORY_BROTH_BANDS.get(product or "")
@@ -2922,24 +2928,66 @@ def main():
     #     pipeline was down as a dramatic improvement in every rate on the page.
     #  6. Denominators travel with every point, so a week of 3 task instances
     #     cannot be averaged against a week of 3,000.
+    def _weeks_to(d):
+        """The 4 ISO weeks ending in the week containing d, oldest first."""
+        e=_mon(d[:10])
+        return [(datetime.date.fromisoformat(e)-datetime.timedelta(days=7*i)).isoformat()
+                for i in range(3,-1,-1)]
     _end=_mon((pull or datetime.date.today().isoformat())[:10])
-    WEEKS=[(datetime.date.fromisoformat(_end)-datetime.timedelta(days=7*i)).isoformat()
-           for i in range(3,-1,-1)]
-    def _trend(buckets, fmt=lambda num,den: round(100.0*num/den,1) if den else None):
+    WEEKS=_weeks_to(_end)
+    # `weeks` defaults to WEEKS, the four ending at this pull. A month the
+    # reader has SELECTED needs its own four, ending in that month - otherwise
+    # August's headline would sit beside September's sparkline. Rule 6 still
+    # holds either way: the denominator travels with every point.
+    def _trend(buckets, fmt=lambda num,den: round(100.0*num/den,1) if den else None,
+               weeks=None):
         """buckets: {monday: (numerator, denominator, days_observed)} -> 4 points."""
         out=[]
-        for w in WEEKS:
+        for w in (weeks or WEEKS):
             if w in buckets:
                 num,den,days=buckets[w]
                 out.append({"w":w,"v":fmt(num,den),"n":den,"days":days})
             else:
                 out.append({"w":w,"v":None,"n":0,"days":0})
         return out
-    def _note(buckets,what,since=None):
-        have=sum(1 for w in WEEKS if w in buckets)
+    def _note(buckets,what,since=None,weeks=None):
+        _w=weeks or WEEKS
+        have=sum(1 for w in _w if w in buckets)
         if have==4: return None
         return (f"{have} of 4 weeks"+(f" - {what} history starts {since}" if since else
                 f" - no {what} history for the missing weeks"))
+
+    # ---- month selection on the scorecard ---------------------------------
+    # Ross, 17/09/2026: let the reader pick the month the scorecard is showing.
+    #
+    # THE SHELL STILL DECIDES NOTHING. That is rule 1, and a month picker is
+    # exactly where it would be tempting to break it - recompute a percentage
+    # in JavaScript for whichever month is selected and colour it there. So the
+    # builder scores EVERY month up front and emits one pre-judged variant per
+    # month per monthly row; the picker chooses between finished answers. Every
+    # RAG on this page is still decided here.
+    #
+    # Only rows whose KR is genuinely a per-month measure carry variants. The
+    # rest - mandatory training, scheduled-task on-time, the unmeasured rows -
+    # are current-state or pull-window figures with no monthly form at all, so
+    # they carry none and the shell marks them as not following the picker
+    # rather than quietly showing today's number under an August heading.
+    _MONTHS=("January","February","March","April","May","June","July",
+             "August","September","October","November","December")
+    def _mlabel(ym):
+        """'2026-09' -> 'September 2026'."""
+        return _MONTHS[int(ym[5:7])-1]+" "+ym[:4]
+    def _mend(ym):
+        """Last day of month ym, capped at this pull - never a future week."""
+        y,m=int(ym[:4]),int(ym[5:7])
+        nxt=datetime.date(y+(m==12),1 if m==12 else m+1,1)
+        last=(nxt-datetime.timedelta(days=1)).isoformat()
+        return min(last,(pull or last)[:10])
+    def _mvar(m,**kw):
+        """One month of a monthly row, judged HERE exactly like the row itself."""
+        return {"m":m,"label":_mlabel(m),"value":None,"display":None,"rag":None,
+                "basis":None,"trend":None,"trend_unit":None,"trend_note":None,
+                "not_measured":None,**kw}
 
     # The append-only aggregates archive is the ONLY durable history this
     # system has: the task feed is a rolling ~9-day window, so without it a
@@ -2959,10 +3007,15 @@ def main():
 
     sc=[]
     def row(fn,kr,target,tab,**kw):
+        # `months`, when present, is the per-month variants this row can be
+        # switched to. The top-level value/display/rag/basis stay filled with
+        # the DEFAULT month, so a reader who never touches the picker - and any
+        # consumer that does not know about months, including every snapshot
+        # already committed - sees exactly what it saw before.
         sc.append({"function":fn,"kr":kr,"target":target,"tab":tab,
                    "value":None,"display":None,"rag":None,"basis":None,
                    "trend":None,"trend_unit":None,"trend_note":None,
-                   "not_measured":None,**kw})
+                   "not_measured":None,"months":None,**kw})
 
     # --- Supply KR1: delivery issues per month (MEASURED) ---
     _k=(snap["suppliers"].get("kr1") or {}).get("months") or []
@@ -2975,12 +3028,25 @@ def main():
             w=_mon(d); n_,_x,dd=_b.get(w,(0,0,set())); dd=set(dd); dd.add(d)
             _b[w]=(n_+1,0,dd)
         _b={w:(n_,0,len(dd)) for w,(n_,_x,dd) in _b.items()}
+        # One variant per month the KR1 block already scored. Its `rag` was
+        # decided in that block against its own target, so nothing is re-judged
+        # here - this only carries each month's finished answer onto the row.
+        def _k1var(m_):
+            _w=_weeks_to(_mend(m_["month"]))
+            return _mvar(m_["month"],
+                value=m_["issues"],display=str(m_["issues"]),rag=m_["rag"],
+                basis=(snap["suppliers"]["kr1"]["basis"]
+                       +(" — "+m_["coverage_note"] if m_.get("coverage_note") else "")),
+                trend=_trend(_b,fmt=lambda num,den: num,weeks=_w),
+                trend_unit="issues raised / week",
+                trend_note=_note(_b,"issue","2026-08-05",weeks=_w))
         row("Supply","KR1 delivery issues / month","≤10","p-supi",
             value=_cur["issues"],display=str(_cur["issues"]),rag=_cur["rag"],
             basis=(snap["suppliers"]["kr1"]["basis"]
                    +(" — "+_cur["coverage_note"] if _cur.get("coverage_note") else "")),
             trend=_trend(_b,fmt=lambda num,den: num),trend_unit="issues raised / week",
-            trend_note=_note(_b,"issue","2026-08-05"))
+            trend_note=_note(_b,"issue","2026-08-05"),
+            months=[_k1var(m_) for m_ in _k])
     else:
         row("Supply","KR1 delivery issues / month","≤10","p-supi",
             not_measured="needs the GC Form Task Answers feed, which is absent from this bake")
@@ -3000,16 +3066,30 @@ def main():
     _sp=(snap.get("supply") or {}).get("price_spikes") or {}
     _spcur=_sp.get("current")
     _spb={w:(n_,d_,dd) for w,(n_,d_,dd) in (spike_weeks or {}).items()}
+    def _spdisp(m_):
+        return (f"{m_['over']} supplier{'' if m_['over']==1 else 's'} over "
+                f"{PRICE_SPIKE_MAX_PER_SUPPLIER}"
+                +(f" (worst: {m_['worst']})" if m_.get("worst") else ""))
     if _spcur and price_attribution.get("meets_bar"):
+        # The coverage gate is a property of the price REPORT, not of any one
+        # month, so it opens or closes every month together. When it is shut
+        # the row carries no variants at all and the picker cannot make it
+        # publish a supplier name the attribution does not support.
+        def _spvar(m_):
+            _w=_weeks_to(_mend(m_["month"]))
+            return _mvar(m_["month"],value=m_["over"],display=_spdisp(m_),rag=m_["rag"],
+                basis=_sp.get("basis"),
+                trend=_trend(_spb,fmt=lambda num,den: num,weeks=_w),
+                trend_unit="spikes / week",
+                trend_note=_note(_spb,"price report","2026-08-13",weeks=_w))
         row("Supply","KR2 price spikes / month","≤3","p-supp",
             value=_spcur["over"],
-            display=(f"{_spcur['over']} supplier{'' if _spcur['over']==1 else 's'} over "
-                     f"{PRICE_SPIKE_MAX_PER_SUPPLIER}"
-                     +(f" (worst: {_spcur['worst']})" if _spcur.get("worst") else "")),
+            display=_spdisp(_spcur),
             rag=_spcur["rag"],basis=_sp.get("basis"),
             trend=_trend(_spb,fmt=lambda num,den: num),
             trend_unit="spikes / week",
-            trend_note=_note(_spb,"price report","2026-08-13"))
+            trend_note=_note(_spb,"price report","2026-08-13"),
+            months=[_spvar(m_) for m_ in (_sp.get("months") or [])])
     else:
         row("Supply","KR2 price spikes / month","≤3","p-supp",
             not_measured=(
@@ -3037,15 +3117,27 @@ def main():
     _o=(snap.get("supply") or {}).get("otif") or {}
     _om=(_o.get("months") or [])
     _last=_om[-1] if _om else None
+    def _otbasis(m_):
+        return ("PROXY, NOT OTIF — this is the issue-free delivery rate: nothing in the read "
+          "path observes whether a delivery was on time, so it can only be a lower bound. "
+          f"{m_.get('measurable_suppliers')} of {m_.get('measurable_of')} suppliers had "
+          "order-email coverage spanning the month. Real OTIF needs Mapal Supplier Orders "
+          "or a Lynas delivery file.")
     if _last and _last.get("otif_pct") is not None:
+        # A month whose coverage never spanned it has no defensible rate, so it
+        # gets a blocker rather than a number - the picker must not turn a
+        # month the data cannot speak for into a figure.
         row("Supply","KR4 OTIF",">=95%","p-supp",
             value=_last["otif_pct"],display=f"{_last['otif_pct']}%",rag=None,
-            basis=("PROXY, NOT OTIF — this is the issue-free delivery rate: nothing in the read "
-              "path observes whether a delivery was on time, so it can only be a lower bound. "
-              f"{_last.get('measurable_suppliers')} of {_last.get('measurable_of')} suppliers had "
-              "order-email coverage spanning the month. Real OTIF needs Mapal Supplier Orders "
-              "or a Lynas delivery file."),
-            not_measured=None)
+            basis=_otbasis(_last),
+            not_measured=None,
+            months=[(_mvar(m_["month"],value=m_["otif_pct"],
+                           display=f"{m_['otif_pct']}%",rag=None,basis=_otbasis(m_))
+                     if m_.get("otif_pct") is not None else
+                     _mvar(m_["month"],not_measured=(
+                       "no supplier had Kobas order-email coverage spanning "
+                       +_mlabel(m_["month"])+", so no defensible rate exists for it")))
+                    for m_ in _om])
     else:
         row("Supply","KR4 OTIF",">=95%","p-supp",
             not_measured=("no supplier-month has Kobas order-email coverage spanning the whole "
@@ -3150,71 +3242,91 @@ def main():
     # only the complement can be printed beside this denominator.
     _fg=[r_ for r_ in fb_readings if r_.get("grade")]
     _fmo=(pull or "")[:7]
-    _fmg=[r_ for r_ in _fg if r_["d"][:7]==_fmo]
-    # Previous calendar month, for the comparison clause.
-    _fpm=(f"{int(_fmo[:4])-1}-12" if _fmo[5:7]=="01"
-          else f"{_fmo[:4]}-{int(_fmo[5:7])-1:02d}") if len(_fmo)==7 else ""
-    _fpg=[r_ for r_ in _fg if r_["d"][:7]==_fpm]
     # The weekly trend spans the month boundary on purpose (see above), so it is
-    # built from every graded reading, not from this month's slice.
+    # built from every graded reading, not from any one month's slice. A
+    # selected month gets the four weeks ending in IT, via _weeks_to below.
     _fb={}
     for r_ in _fg:
         w=_mon(r_["d"]); i_,n_,dd=_fb.get(w,(0,0,set())); dd=set(dd); dd.add(r_["d"])
         _fb[w]=(i_+(1 if r_["grade"]=="in" else 0),n_+1,dd)
     _fb={w:(i_,n_,len(dd)) for w,(i_,n_,dd) in _fb.items()}
-    if _fmg:
-        _fin=sum(1 for r_ in _fmg if r_["grade"]=="in")
-        _fpct=round(100.0*_fin/len(_fmg),1)
-        _fdays=len({r_["d"] for r_ in _fmg})
-        # Month to date unless the pull lands on the month's last day. Adding a
-        # day either stays in the month (still running) or rolls over (finished).
-        _fpd=datetime.date.fromisoformat(pull[:10])
-        _fmtd=(_fpd+datetime.timedelta(days=1)).month==_fpd.month
-        # Summed from the trend's own buckets so the two can never disagree.
-        _fwi=sum(_fb[w][0] for w in WEEKS if w in _fb)
-        _fwn=sum(_fb[w][1] for w in WEEKS if w in _fb)
-        _fpre=sum(1 for r_ in _fmg if r_["d"]<FB_BAND_SET)
+    def _fprev(ym):
+        """The calendar month before ym."""
+        if len(ym)!=7: return ""
+        return (f"{int(ym[:4])-1}-12" if ym[5:7]=="01"
+                else f"{ym[:4]}-{int(ym[5:7])-1:02d}")
+    def _fvar(ym):
+        """Score ONE calendar month and return this row's kwargs for it.
+
+        Every month the picker can reach comes through here, so each one is
+        judged by the same code against the same band and the same target, and
+        each carries its own basis rather than one basis being re-pointed at a
+        number it was not written for.
+        """
+        _mg=[r_ for r_ in _fg if r_["d"][:7]==ym]
+        _pm=_fprev(ym); _pg=[r_ for r_ in _fg if r_["d"][:7]==_pm]
+        if not _mg:
+            return {"not_measured":
+              "no graded reading for "+_fmlabel(ym)+" - the KR is scored per calendar "
+              "month, and this month has not been read"
+              +(f" ({_fmlabel(_pm)} read {sum(1 for r_ in _pg if r_['grade']=='in')} of "
+                f"{len(_pg)})" if _pg else "")
+              +(". Normal for the first day or two of a month; needs a batch reading logged"
+                if ym==_fmo else "")}
+        _in=sum(1 for r_ in _mg if r_["grade"]=="in")
+        _pct=round(100.0*_in/len(_mg),1)
+        _days=len({r_["d"] for r_ in _mg})
+        # Month to date only for the month the pull lands in, and only while the
+        # pull is not on its last day. Every earlier month is finished.
+        _pd=datetime.date.fromisoformat(pull[:10])
+        _mtd=(ym==_fmo) and (_pd+datetime.timedelta(days=1)).month==_pd.month
+        # This month's own four weeks, so a selected month is never shown
+        # beside the sparkline of a different one. Summed from the trend's own
+        # buckets so the figure quoted and the figure drawn cannot disagree.
+        _w=_weeks_to(_mend(ym))
+        _wi=sum(_fb[x][0] for x in _w if x in _fb)
+        _wn=sum(_fb[x][1] for x in _w if x in _fb)
+        _pre=sum(1 for r_ in _mg if r_["d"]<FB_BAND_SET)
+        _ung=len([r_ for r_ in fb_readings if r_["d"][:7]==ym])-len(_mg)
         # Every non-zero exclusion. These are FEED-WIDE counts, not this
         # month's: fb_excl is accumulated over the whole pull and the rows it
         # counts were never appended to fb_readings, so they cannot be
         # re-filtered by month here. Said as "across the feed" so nobody
         # subtracts them from a monthly denominator they do not belong to.
-        _fex=", ".join(f"{_n} {_w}" for _w,_n in (
+        _ex=", ".join(f"{_n} {_t}" for _t,_n in (
             ("with no after-ice reading",fb_excl["no_after_ice"]),
             ("that could not be dated",fb_excl["undated"]),
             ("whose reading was not a number",fb_excl["non_numeric"])) if _n)
-        row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
-            value=_fpct,display=f"{_fpct}%",rag=("green" if _fpct>=95 else "red"),
-            basis=(f"{_fin} of {len(_fmg)} graded after-ice refractometer readings inside "
-                   f"their product's factory band ({_fbands}) in {_fmlabel(_fmo)}"
-                   +(f", across {_fdays} production day(s)" if _fdays else "")
+        return {
+          "value":_pct,"display":f"{_pct}%","rag":("green" if _pct>=95 else "red"),
+          "basis":(f"{_in} of {len(_mg)} graded after-ice refractometer readings inside "
+                   f"their product's factory band ({_fbands}) in {_fmlabel(ym)}"
+                   +(f", across {_days} production day(s)" if _days else "")
                    +f", from '{FB_FEED}'"
                    +(f" as at its own pull {fb_pull}" if fb_pull else "")
                    +(". MONTH TO DATE - the month is not finished, so this figure is still "
-                     "moving" if _fmtd else ". A complete month")
+                     "moving" if _mtd else ". A complete month")
                    +". The KR is scored per calendar month (Ross, 17/09/2026), NOT over the "
                    "feed's whole history"
-                   +(f"; {_fmlabel(_fpm)} read {sum(1 for r_ in _fpg if r_['grade']=='in')} "
-                     f"of {len(_fpg)} "
-                     f"({round(100.0*sum(1 for r_ in _fpg if r_['grade']=='in')/len(_fpg),1)}%)"
-                     if _fpg else f"; {_fmlabel(_fpm)} has no graded reading to compare against"
-                     if _fpm else "")
-                   +(f". The sparkline is the last four ISO WEEKS, a different window that "
-                     f"crosses the month boundary - it reads {_fwi} of {_fwn} "
-                     f"({round(100.0*_fwi/_fwn,1)}%)" if _fwn else "")
+                   +(f"; {_fmlabel(_pm)} read {sum(1 for r_ in _pg if r_['grade']=='in')} "
+                     f"of {len(_pg)} "
+                     f"({round(100.0*sum(1 for r_ in _pg if r_['grade']=='in')/len(_pg),1)}%)"
+                     if _pg else f"; {_fmlabel(_pm)} has no graded reading to compare against"
+                     if _pm else "")
+                   +(f". The sparkline is the four ISO WEEKS to {_w[-1]}, a different window "
+                     f"that crosses the month boundary - it reads {_wi} of {_wn} "
+                     f"({round(100.0*_wi/_wn,1)}%)" if _wn else "")
                    +". The Quality tab's factory cards are sliced by that page's own date-range "
                    "picker and default to All, so they will not match this row unless the "
                    "picker is set to this month - this KR is always the calendar month and "
                    "never follows that picker"
-                   +(f". {_fpre} of this month's readings were taken before {FB_BAND_SET}, the "
+                   +(f". {_pre} of this month's readings were taken before {FB_BAND_SET}, the "
                      f"day the after-ice band was agreed, so they are graded against a spec "
-                     f"that did not exist when the reading was taken" if _fpre else "")
+                     f"that did not exist when the reading was taken" if _pre else "")
                    +". Readings for a product with no agreed band are not graded and not counted"
-                   +(f" ({len([r_ for r_ in fb_readings if r_['d'][:7]==_fmo])-len(_fmg)} this "
-                     f"month)" if len([r_ for r_ in fb_readings if r_["d"][:7]==_fmo])>len(_fmg)
-                     else "")
-                   +(f"; across the feed {_fex} are excluded, never scored as zero"
-                     if _fex else "")
+                   +(f" ({_ung} this month)" if _ung>0 else "")
+                   +(f"; across the feed {_ex} are excluded, never scored as zero"
+                     if _ex else "")
                    +(f". {fb_grades['out_suspect']} out-of-band reading(s) across the feed are "
                      f"suspected keying slips, graded like any other - fix them at source and "
                      f"both numbers drop" if fb_grades["out_suspect"] else "")
@@ -3223,31 +3335,37 @@ def main():
                    +(f". NOTE: this feed's newest pull is {fb_pull}, behind this bake's "
                      f"{pull[:10]} - anything since is not in this figure"
                      if fb_pull and pull and fb_pull[:10]<pull[:10] else "")),
-            trend=_trend(_fb),trend_unit="% in band / week",
-            # No `since`: this feed's history predates all four WEEKS, so a
-            # missing week is a week the factory produced nothing (or the sheet
-            # went unfilled), not a week before the feed began - naming a start
-            # date would be a true sentence explaining the wrong thing.
-            trend_note=_note(_fb,"factory-reading"))
-    else:
-        # Three different empty states, three different blockers. Never 0% and
-        # never green: a month nobody has read a batch in is an absent
-        # measurement, not a month the factory missed spec on every batch.
-        # The third case is normal for a day or two at the turn of a month, so
-        # it carries last month's figure rather than going information-free.
+          "trend":_trend(_fb,weeks=_w),"trend_unit":"% in band / week",
+          # No `since`: this feed's history predates all four weeks, so a
+          # missing week is a week the factory produced nothing (or the sheet
+          # went unfilled), not a week before the feed began - naming a start
+          # date would be a true sentence explaining the wrong thing.
+          "trend_note":_note(_fb,"factory-reading",weeks=_w)}
+    if not fb_total:
+        # Never 0% and never green: an absent feed is an absent measurement,
+        # not a factory that missed spec on every batch. No month variants
+        # either - the picker must not offer months there is no feed for.
         row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
-            not_measured=("'"+FB_FEED+"' has not landed in the warehouse, so there is no "
-              "after-ice reading to grade. Needs the daily factory export"
-              if not fb_total else
-              "'"+FB_FEED+"' landed "+str(fb_total)+" response(s) but none is gradeable - no "
-              "after-ice reading, or no agreed band for the product. Needs the after-ice "
-              "question answered at source, and a band from Ross for the products in the form"
-              if not _fg else
-              "no graded reading yet for "+_fmlabel(_fmo)+" - the KR is scored per calendar "
-              "month, and this month has not been read yet"
-              +(f" ({_fmlabel(_fpm)} read {sum(1 for r_ in _fpg if r_['grade']=='in')} of "
-                f"{len(_fpg)})" if _fpg else "")
-              +". Normal for the first day or two of a month; needs a batch reading logged"))
+            not_measured="'"+FB_FEED+"' has not landed in the warehouse, so there is no "
+              "after-ice reading to grade. Needs the daily factory export")
+    elif not _fg:
+        row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
+            not_measured="'"+FB_FEED+"' landed "+str(fb_total)+" response(s) but none is "
+              "gradeable - no after-ice reading, or no agreed band for the product. Needs the "
+              "after-ice question answered at source, and a band from Ross for the products "
+              "in the form")
+    else:
+        # Every month the feed covers, newest last, plus the pull's own month
+        # even when nothing has been read in it yet - at the turn of a month
+        # that month must still be selectable, and it explains itself.
+        # FB_MONTHS_MAX bounds the snapshot: the basis strings are ~1.5KB each
+        # and the feed grows a month at a time forever.
+        _fmonths=sorted({r_["d"][:7] for r_ in _fg}|({_fmo} if len(_fmo)==7 else set()))
+        _fmonths=_fmonths[-FB_MONTHS_MAX:]
+        row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
+            months=[_mvar(m_,**_fvar(m_)) for m_ in _fmonths],
+            **_fvar(_fmo))
+
     # --- Quality: broth as served, by site (MEASURED, REPORTED, NO TARGET) ---
     # Kept, and kept SEPARATE. A different feed, a different band, a different
     # moment in the broth's life: 82.0% here and 93.8% above are two answers to
@@ -3340,9 +3458,24 @@ def main():
         m_=_re.match(r"KR(\d+)",r_["kr"])
         return int(m_.group(1)) if m_ else 99
     sc.sort(key=lambda r_:(_order.get(r_["function"],9),_krn(r_)))
+    # The months the picker offers: every month any monthly row can be scored
+    # for, newest first, with the pull's own month always present so the
+    # default is always selectable. A month appears here if ONE row can speak
+    # for it - the rows that cannot say so themselves, per month, rather than
+    # the month being withheld from all of them.
+    _scm=sorted({v_["m"] for r_ in sc for v_ in (r_.get("months") or [])}
+                |({pull[:7]} if pull else set()),reverse=True)
     snap["scorecard"]={"weeks":WEEKS,"rows":sc,
       "measured":sum(1 for r_ in sc if r_["value"] is not None),
       "total":len(sc),
+      "months":_scm,"month":(pull or "")[:7],
+      "monthly":sum(1 for r_ in sc if r_.get("months")),
+      "month_basis":("the month picker moves the rows whose KR is a per-month measure. "
+        "Every month it offers was scored HERE, in the builder, against the same target and "
+        "the same rule as the default month - the picker chooses between finished answers "
+        "and computes nothing. Rows without a monthly form (mandatory training, scheduled "
+        "task on-time, and the rows with no source) do not follow it and say so, rather than "
+        "showing today's figure under an earlier month's heading."),
       "basis":("one row per KR/KPI in the Master Operating Manual. A row with a value is "
         "measured from the feeds named in its basis; a row without one names the blocker "
         "instead, and that list is the data roadmap. RAG is green when the target is met and "

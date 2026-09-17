@@ -347,6 +347,160 @@ page.on('console', msg => {
     `the absent site row is grey and dashed, not 0% (got "${siteTds[2]}" / "${siteTds[3]}")`);
 }
 
+
+// =========================== the month picker ==============================
+// Ross, 17/09/2026: let the reader pick the month the scorecard shows. The
+// house rule is that the shell decides nothing (command/index.html carries no
+// numbers and no thresholds), so the builder scores EVERY month up front and
+// the picker only chooses between finished answers. These assertions exist to
+// pin that: the figure and the chip for an earlier month must be the ones the
+// builder emitted for THAT month, never recomputed here and never the current
+// month's figure wearing an earlier month's heading.
+const MONTHS = ['2026-09', '2026-08', '2026-07'];
+function monthVar(m, over = {}) {
+  const L = { '2026-09': 'September 2026', '2026-08': 'August 2026', '2026-07': 'July 2026' }[m];
+  return {
+    m, label: L, value: null, display: null, rag: null, basis: null,
+    trend: null, trend_unit: null, trend_note: null, not_measured: null, ...over,
+  };
+}
+// Real figures out of the builder for the broth KR, month by month.
+const BROTH_MONTHS = [
+  monthVar('2026-07', { value: 98.3, display: '98.3%', rag: 'green',
+    basis: '117 of 119 graded after-ice refractometer readings inside their product\'s ' +
+      'factory band (tonkotsu 8-9, chicken 5-6) in July 2026. A complete month.' }),
+  monthVar('2026-08', { value: 93.8, display: '93.8%', rag: 'red',
+    basis: '121 of 129 graded after-ice refractometer readings inside their product\'s ' +
+      'factory band (tonkotsu 8-9, chicken 5-6) in August 2026. A complete month.' }),
+  monthVar('2026-09', { value: 96.0, display: '96.0%', rag: 'green', basis: FACTORY_BASIS }),
+];
+// KR1's source only reaches back to August, so July must read as absent FOR
+// JULY rather than silently showing August's count.
+const KR1_MONTHS = [
+  monthVar('2026-08', { value: 46, display: '46', rag: 'red', basis: 'issues raised in August' }),
+  monthVar('2026-09', { value: 31, display: '31', rag: 'red', basis: 'issues raised in September' }),
+];
+function kr1Row(over = {}) {
+  return {
+    function: 'Supply', kr: 'KR1 delivery issues / month', target: '≤10', tab: 'p-supi',
+    value: 31, display: '31', rag: 'red', basis: 'issues raised in September',
+    trend: null, trend_unit: null, trend_note: null, not_measured: null,
+    months: KR1_MONTHS, ...over,
+  };
+}
+// A row with NO monthly form - current state, must not follow the picker.
+function trainingRow(over = {}) {
+  return {
+    function: 'People', kr: 'Mandatory training complete', target: '>=90%', tab: 'p-train',
+    value: 71.4, display: '71.4%', rag: 'red', basis: 'current state across sites',
+    trend: null, trend_unit: null, trend_note: null, not_measured: null, months: null, ...over,
+  };
+}
+function monthlyScorecard(rows) {
+  return { ...scorecardOf(rows), months: MONTHS, month: '2026-09',
+    monthly: rows.filter(r => r.months && r.months.length).length,
+    month_basis: 'the month picker moves the rows whose KR is a per-month measure; every ' +
+      'month it offers was scored in the builder.' };
+}
+
+{
+  const snap = { ...baseSnap, scorecard: monthlyScorecard(
+    [kr1Row(), factoryRow({ months: BROTH_MONTHS }), siteRow(), trainingRow()]) };
+  await page.evaluate((s) => window.render(s), snap);
+
+  // -- the picker exists and defaults to the snapshot's own month ----------
+  assert(await page.locator('#sc-month').count() === 1, 'the scorecard carries a month picker');
+  assert(await page.locator('#sc-month').inputValue() === '2026-09',
+    'the picker defaults to the month the snapshot was baked in');
+  const opts = await page.locator('#sc-month option').allInnerTexts();
+  assert(opts.length === 3 && /September 2026/.test(opts[0]) && /current/.test(opts[0]),
+    `the picker lists the months and marks the current one (got ${JSON.stringify(opts)})`);
+  assert(/July 2026/.test(opts[2]),
+    `the picker reaches back as far as the builder scored (got ${JSON.stringify(opts)})`);
+
+  const facNow = await qualRow(page, 'Broth conformance (factory, after ice)')
+    .locator('td').allInnerTexts();
+  assert(/96\.0%/.test(facNow[2]) && /On target/.test(facNow[3]),
+    `the default month shows September's figure (got "${facNow[2]}")`);
+
+  // -- selecting August swaps in AUGUST's pre-judged answer ----------------
+  await page.selectOption('#sc-month', '2026-08');
+  const facAug = await qualRow(page, 'Broth conformance (factory, after ice)')
+    .locator('td').allInnerTexts();
+  assert(/93\.8%/.test(facAug[2]),
+    `selecting August shows August's figure (got "${facAug[2]}")`);
+  assert(/Off target/.test(facAug[3]),
+    `August's chip is the builder's red, not recomputed in the shell (got "${facAug[3]}")`);
+  assert(/August 2026/.test(facAug[0]) && !/in September 2026/.test(facAug[0]),
+    'the basis shown is the one written for August, not September\'s re-pointed at it');
+
+  const kr1Aug = await page.locator('#scorecard table tbody tr', { hasText: 'KR1 delivery issues' })
+    .first().locator('td').allInnerTexts();
+  assert(/\b46\b/.test(kr1Aug[2]),
+    `every monthly row moves together, not just the broth KR (got "${kr1Aug[2]}")`);
+
+  // -- a row with no monthly form says so, rather than lying --------------
+  const trAug = await page.locator('#scorecard table tbody tr', { hasText: 'Mandatory training' })
+    .first().locator('td').allInnerTexts();
+  assert(/71\.4%/.test(trAug[2]),
+    `a current-state row keeps its figure (got "${trAug[2]}")`);
+  assert(/Not August 2026/.test(trAug[0]) && /does not follow the month picker/.test(trAug[0]),
+    `a row with no monthly form is marked as not following the picker (got "${trAug[0].replace(/\s+/g, ' ').slice(0, 130)}…")`);
+
+  // -- the footer says which month, and how much of the card it covers ----
+  const prov = await page.locator('#scorecard .prov').innerText();
+  assert(/showing/.test(prov) && /August 2026/.test(prov),
+    `the footer names the month on show (got "${prov.slice(0, 120)}…")`);
+  assert(/2 of 4 rows/.test(prov),
+    `the footer says how many rows the month actually covers (got "${prov.slice(0, 160)}…")`);
+
+  // -- a monthly row whose source cannot reach that month -----------------
+  await page.selectOption('#sc-month', '2026-07');
+  const kr1Jul = await page.locator('#scorecard table tbody tr', { hasText: 'KR1 delivery issues' })
+    .first().locator('td').allInnerTexts();
+  assert(kr1Jul[2].trim() === '—' && /Not measured/.test(kr1Jul[3]),
+    `a monthly row with no July figure reads absent for July (got "${kr1Jul[2]}" / "${kr1Jul[3]}")`);
+  assert(/no figure for July 2026/.test(kr1Jul[0]) &&
+         /scored August 2026 to September 2026 only/.test(kr1Jul[0]),
+    `and names the span its source actually covers, rather than assuming the gap runs backwards (got "${kr1Jul[0].replace(/\s+/g, ' ').slice(0, 150)}…")`);
+  assert(!/\b46\b|\b31\b/.test(kr1Jul[2]),
+    'an unreachable month never shows another month\'s number');
+  const facJul = await qualRow(page, 'Broth conformance (factory, after ice)')
+    .locator('td').allInnerTexts();
+  assert(/98\.3%/.test(facJul[2]),
+    `a row that CAN reach July still shows July (got "${facJul[2]}")`);
+
+  // -- getting back to the current month ----------------------------------
+  assert(await page.locator('#sc-month-now').count() === 1,
+    'an off-current month offers a way back');
+  await page.locator('#sc-month-now').click();
+  assert(await page.locator('#sc-month').inputValue() === '2026-09',
+    'the way back returns to the snapshot\'s own month');
+  assert(await page.locator('#sc-month-now').count() === 0,
+    'and the way back disappears once there is nowhere to go back to');
+  const trBack = await page.locator('#scorecard table tbody tr', { hasText: 'Mandatory training' })
+    .first().locator('td').allInnerTexts();
+  assert(!/Not September/.test(trBack[0]),
+    'a current-state row carries no off-month warning on the current month');
+}
+
+// ------------- a snapshot baked before the picker renders unchanged ---------
+// Every snapshot already committed carries no scorecard.months. Those must
+// render exactly as before - no picker, and certainly not an empty one.
+{
+  const snap = { ...baseSnap, scorecard: scorecardOf([factoryRow(), siteRow()]) };
+  await page.evaluate((s) => window.render(s), snap);
+  assert(await page.locator('#sc-month').count() === 0,
+    'a snapshot predating the picker draws no picker');
+  const tds = await qualRow(page, 'Broth conformance (factory, after ice)')
+    .locator('td').allInnerTexts();
+  assert(/96\.0%/.test(tds[2]) && /On target/.test(tds[3]),
+    `and still renders its row exactly as before (got "${tds[2]}")`);
+  const prov = await page.locator('#scorecard .prov').innerText();
+  assert(!/showing/.test(prov),
+    `with no month language in the footer (got "${prov.slice(0, 80)}…")`);
+}
+
 assert(consoleErrors.length === 0,
   `no console/page errors during any render() call (got ${consoleErrors.length}: ${consoleErrors.slice(0,3).join(' | ')})`);
 

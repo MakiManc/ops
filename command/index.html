@@ -186,7 +186,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page on" id="p-over">
   <div class="kpis" id="kpis"></div>
   <div class="card"><div class="card-h"><div class="t">OKR scorecard</div>
-    <div class="s">One row per KR in the Master Operating Manual. A row with a figure is measured from the feeds named in its basis &mdash; hover it. A grey row is <b>not measured</b> and names what it would take; that list is the data roadmap. Green means the target is met and red means it is not; there is no amber, because the Manual sets targets and no tolerances.</div></div>
+    <div class="s">One row per KR in the Master Operating Manual. A row with a figure is measured from the feeds named in its basis &mdash; hover it. A grey row is <b>not measured</b> and names what it would take; that list is the data roadmap. Green means the target is met and red means it is not; there is no amber, because the Manual sets targets and no tolerances. The <b>month</b> picker moves the KRs that are per-month measures; every month it offers was scored and coloured in the builder, and a row with no monthly form says on its own line that it is not following the picker.</div></div>
     <div class="card-b" id="scorecard"></div></div>
   <div class="card"><div class="card-h"><div class="t">Needs attention</div>
     <div class="s">Every signal carries its basis — hover to see how it was derived · these are current-state figures, not sliced by the date range filter (the filter applies inside each tab, to submission/answer/completion dates — never pull dates)</div></div>
@@ -1065,40 +1065,111 @@ function sparkline(points){
   const dots=xy.map(pt=>pt?`<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="2" fill="currentColor"/>`:'').join('');
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-hidden="true" style="vertical-align:middle;opacity:.85">${segs}${dots}</svg>`;
 }
+/* Which month the scorecard is showing. Survives a re-render so a refresh does
+   not snap the reader back to the current month while they are reading an
+   earlier one. Null means "whatever the snapshot says is default". */
+let SC_MONTH=null;
 function renderScorecard(snap){
   const el=$('scorecard'); if(!el) return;
   const s=snap&&snap.scorecard;
   if(!s||!(s.rows||[]).length){
     el.innerHTML='<div class="empty">This snapshot predates the OKR scorecard.</div>'; return;
   }
+  /* The months this snapshot can actually answer for. A snapshot baked before
+     the picker existed carries none, and then there is no picker - not an
+     empty one, and never a month synthesised in the shell. */
+  const months=s.months||[];
+  const defMonth=s.month||(months.length?months[0]:null);
+  if(SC_MONTH&&!months.includes(SC_MONTH)) SC_MONTH=null;   /* stale across a day change */
+  const sel=SC_MONTH||defMonth;
+  const isDefault=!sel||sel===defMonth;
+  /* THE PICKER CHOOSES BETWEEN FINISHED ANSWERS. Every variant below was
+     scored and coloured in the builder, per month, against the same target.
+     This function does not compute a rate and does not decide a RAG - if it
+     ever needs to, the fix is in bake_ops_command.py, not here.
+     It does count how many rows are on screen (`shown`, `monthly` below), and
+     that is not the same thing: those are facts about this table, which only
+     the shell knows because only the shell knows what is selected. No figure
+     about the business is calculated here, and no threshold is applied. */
+  const variantOf=r=>{
+    if(!r.months||!r.months.length||!sel) return r;
+    const v=r.months.find(x=>x.m===sel);
+    if(v) return v;
+    /* A monthly row with nothing for this month is NOT MEASURED for it - never
+       the default month's figure wearing this month's heading. The gap can run
+       either way (a source that starts late, or one that has not caught up
+       yet), so name the span the builder scored rather than guess a direction.
+       Reading two labels off the list is not computing a figure. */
+    const first=r.months[0], last=r.months[r.months.length-1];
+    return {...r,value:null,display:null,rag:null,basis:null,trend:null,
+      trend_unit:null,trend_note:null,
+      not_measured:'this KR has no figure for '+monthLabel(sel)+
+        ' - its source is scored '+monthLabel(first.m)+
+        (last.m!==first.m?' to '+monthLabel(last.m):'')+' only'};
+  };
   const ragChip=r=>r.rag==='green'?chip('g','On target')
                   :r.rag==='red'?chip('r','Off target')
                   :r.value!=null?chip('b','Reported')
                   :chip('n','Not measured');
-  let fn_='';
-  const body=s.rows.map(r=>{
-    const head=r.function!==fn_?(fn_=r.function,`<tr><td colspan="5" style="padding-top:12px;font-weight:650;opacity:.75;border:0">${esc(r.function)}</td></tr>`):'';
+  let fn_='',shown=0,monthly=0;
+  const body=s.rows.map(r0=>{
+    const r=variantOf(r0);
+    /* A row with no monthly form does not follow the picker. Say so on the row
+       rather than letting a current-state figure sit under an earlier month. */
+    const follows=!!(r0.months&&r0.months.length);
+    if(follows) monthly++;
+    const head=r0.function!==fn_?(fn_=r0.function,`<tr><td colspan="5" style="padding-top:12px;font-weight:650;opacity:.75;border:0">${esc(r0.function)}</td></tr>`):'';
     const measured=r.value!=null;
+    if(measured) shown++;
     const trend=r.trend?sparkline(r.trend):'';
     const trendNote=r.trend_note?`<div class="dt" style="opacity:.7">${esc(r.trend_note)}</div>`:'';
     const unit=r.trend&&r.trend_unit?`<div class="dt" style="opacity:.6">${esc(r.trend_unit)}</div>`:'';
     const detail=measured
       ? `<div class="dt">${esc(r.basis||'')}</div>`
       : `<div class="dt"><b>Needs:</b> ${esc(r.not_measured||'no source')}</div>`;
-    const link=(r.tab&&r.tab!=='—')
-      ? ` <button class="lnk" data-go="${esc(r.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
+    const offMonth=(!isDefault&&!follows)
+      ? `<div class="dt" style="opacity:.75"><b>Not ${esc(monthLabel(sel))}</b> — this KR has no monthly form, so it is current state and does not follow the month picker.</div>`
+      : '';
+    const link=(r0.tab&&r0.tab!=='—')
+      ? ` <button class="lnk" data-go="${esc(r0.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
       : '';
     return head+`<tr${measured?'':' style="opacity:.72"'}>`+
-      `<td><div>${esc(r.kr)}</div>${detail}</td>`+
-      `<td class="n" style="white-space:nowrap">${esc(r.target)}</td>`+
+      `<td><div>${esc(r0.kr)}</div>${detail}${offMonth}</td>`+
+      `<td class="n" style="white-space:nowrap">${esc(r0.target)}</td>`+
       `<td class="n" style="font-weight:650;white-space:nowrap">${esc(r.display||'—')}</td>`+
       `<td>${ragChip(r)}${link}</td>`+
       `<td>${trend}${unit}${trendNote}</td></tr>`;
   }).join('');
-  el.innerHTML='<table><thead><tr><th>KR / KPI</th><th class="n">Target</th><th class="n">Now</th>'+
-    '<th>Status</th><th>Last 4 weeks</th></tr></thead><tbody>'+body+'</tbody></table>'+
-    `<div class="prov">${esc(s.measured)} of ${esc(s.total)} measured. ${esc(s.basis||'')}</div>`;
+  const picker=months.length>1
+    ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">`+
+      `<label for="sc-month" style="opacity:.8">Month</label>`+
+      `<select id="sc-month">`+months.map(m=>
+        `<option value="${esc(m)}"${m===sel?' selected':''}>${esc(monthLabel(m))}`+
+        `${m===defMonth?' (current)':''}</option>`).join('')+`</select>`+
+      (isDefault?'':`<button class="lnk" id="sc-month-now" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0">back to ${esc(monthLabel(defMonth))} →</button>`)+
+      `</div>`
+    : '';
+  el.innerHTML=picker+
+    '<table><thead><tr><th>KR / KPI</th><th class="n">Target</th><th class="n">Now</th>'+
+    '<th>Status</th><th>'+(isDefault?'Last 4 weeks':'4 weeks to month end')+'</th></tr></thead><tbody>'+body+'</tbody></table>'+
+    `<div class="prov">${esc(shown)} of ${esc(s.total)} measured`+
+    (months.length>1?` · showing <b>${esc(monthLabel(sel))}</b>, which ${esc(monthly)} of ${esc(s.total)} rows are scored for`:'')+
+    `. ${esc(s.basis||'')}`+
+    (months.length>1&&s.month_basis?` ${esc(s.month_basis)}`:'')+`</div>`;
   el.querySelectorAll('button[data-go]').forEach(b=>b.onclick=()=>gotoPage(b.dataset.go));
+  const msel=$('sc-month');
+  if(msel) msel.onchange=()=>{ SC_MONTH=msel.value; renderScorecard(SNAP||snap); };
+  const mnow=$('sc-month-now');
+  if(mnow) mnow.onclick=()=>{ SC_MONTH=null; renderScorecard(SNAP||snap); };
+}
+/* '2026-09' -> 'September 2026'. A label, not a number: the figures and the
+   verdicts all arrive pre-computed from the builder. */
+function monthLabel(m){
+  if(!m||m.length<7) return m||'';
+  const MN=['January','February','March','April','May','June','July',
+            'August','September','October','November','December'];
+  const i=+m.slice(5,7)-1;
+  return (MN[i]||m.slice(5,7))+' '+m.slice(0,4);
 }
 
 /* ------------ render from a structured snapshot ------------ */
