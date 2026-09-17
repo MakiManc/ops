@@ -3065,18 +3065,16 @@ def main():
         ("KR5 Contact Sheets complete","100%","the Operations Setup sheet tab, or Drive")]:
         row("Maintenance",_kr,_tg,"p-maint",not_measured=_mt % _need)
 
-    # --- Quality: broth conformance (MEASURED, FACTORY after-ice readings) ---
+    # --- Quality: broth conformance (MEASURED, FACTORY after-ice, BY MONTH) ---
     # Ross, 16/09/2026: "Broth conformance OKR is based on factory broth
-    # readings not site". So the Quality KR is scored on the FACTORY's own
-    # refractometer readings of the batch it made - AFTER ice, graded against
-    # FACTORY_BROTH_BANDS - and no longer on the per-site GetCompliant checks of
-    # broth AS SERVED, which have their own band and their own moment in the
-    # broth's life. Only the KR's SOURCE moved. The two measurements are
-    # untouched and stay what they were: separate blocks, separate snapshot
-    # keys, separate rows, never averaged, summed or pooled into one
-    # denominator, and neither row's band text ever describing the other's
-    # readings. On this pull they read 93.8% and 82.0%; those are NOT two
-    # attempts at one number. See the blocks at ~line 921 and ~line 1004.
+    # readings not site". Ross, 17/09/2026: "OKR is based of monthly". So the
+    # Quality KR is the FACTORY's own refractometer reading of the batch it made
+    # - AFTER ice, graded against FACTORY_BROTH_BANDS - scored over ONE CALENDAR
+    # MONTH, and no longer the per-site GetCompliant checks of broth AS SERVED
+    # over the whole feed. The two measurements are untouched and stay what they
+    # were: separate blocks, separate snapshot keys, separate rows, never
+    # averaged, summed or pooled into one denominator, and neither row's band
+    # text ever describing the other's readings. See ~line 921 and ~line 1004.
     #
     # THE SITE FIGURE STAYS, in the row directly below, because the
     # refractometer form has NO SITE FIELD: a red factory row cannot be traced
@@ -3088,97 +3086,138 @@ def main():
     # green/red on the site row would invent a site target nobody has set
     # (rule 3), and rule 2 forbids splitting the difference with amber.
     #
-    # THE DENOMINATOR is readings that HAVE a grade. Four other counts sit within
-    # reach of this line and every one of them is wrong, plus one judgement call
-    # about which readings stay in it:
+    # THE WINDOW IS ONE CALENDAR MONTH, the pull's own, which is the same shape
+    # as Supply KR1 ("delivery issues / month") and for the same reason: a KR is
+    # a commitment about a period, so it has to be able to move when the period
+    # does. It previously scored the feed's whole 13 months, which read 93.8%
+    # and could not move - ~3 readings a day against a 1,585 denominator - and
+    # buried the months that actually differ. By month the KR does its job:
+    # Apr 93.7, May 87.3, Jun 97.8, Jul 98.3, Aug 93.8, Sep 96.0. It also
+    # retires a problem the whole-feed window had, that 1,462 of its 1,585
+    # readings predated the band being agreed on 27/08/2026; a month from
+    # September onward contains none. FB_BAND_SET still guards the months that
+    # straddle that date, so August correctly discloses its own pre-band share.
+    #
+    # THE HEADLINE IS THE MONTH, THE SPARKLINE IS FOUR WEEKS, and they are NOT
+    # the same window - deliberately, and exactly as KR1 does it. The trend is
+    # built from every graded reading so it draws four whole ISO weeks across
+    # the month boundary; the headline counts only this month. A reader
+    # comparing them will find they disagree, so the basis states the four-week
+    # figure next to the monthly one rather than leaving that to be discovered.
+    #
+    # A MONTH IS A SMALL DENOMINATOR - ~130 readings, and ~100 by mid-month -
+    # so the row carries LAST month's figure too. One green month after a red
+    # one is a bounce or a turn, and the row should not make a reader guess
+    # which. For the same reason the partial month says so in words: on the 16th
+    # this is 101 readings, not a finished month, and "month to date" is the
+    # honest label (KR1's shell says the same thing about its own figure).
+    #
+    # THE DENOMINATOR is readings that HAVE a grade, inside the month. Four
+    # other counts sit within reach and every one is wrong, plus one judgement
+    # call about which readings stay in:
     #  * NOT "responses" (1,643) - that counts the 58 responses predating the
     #    form's after-ice question, which are excluded and never scored as zero.
-    #  * NOT "scored" (1,585 only while nothing is ungraded) - a product with no
+    #  * NOT "scored" - that is the whole feed, not this month, and it equals
+    #    the graded count only while nothing is ungraded. A product with no
     #    agreed band ('Ikigai Chicken Broth', waiting on Ross) must never be
     #    counted as a miss for a decision nobody has made.
     #  * NOT sum(fb_grades.values()) - 'out_suspect' is a subset of low+high, so
-    #    that total double-counts.
+    #    that total double-counts, and it is feed-wide besides.
     #  * NOT snap["quality"]["factory"]["readings"], which is sliced to FB_CAP
-    #    newest-first. The day history passes 2,000 that slice silently becomes
-    #    "the most recent 2,000 readings" while 'scored' keeps telling the truth.
-    #    So this reads the LOCAL fb_readings, which is the full list and is in
-    #    scope here (initialised at the top of the factory block, so it is []
-    #    even when the feed never landed - the else branch covers that). Note
-    #    the honest consequence: the Quality tab's "Factory readings in spec"
-    #    tile renders the CAPPED list, so on the day the cap bites the row and
-    #    the tile diverge. They agree today and the fix is FB_CAP, not a capped
-    #    denominator here.
+    #    newest-first. This reads the LOCAL fb_readings, the full list, in scope
+    #    here (initialised at the top of the factory block, so it is [] even
+    #    when the feed never landed - the else branch covers that). The month
+    #    filter makes the cap harmless for this row either way: FB_CAP keeps the
+    #    NEWEST 2,000, so the current month is always inside it.
     #  * SUSPECT readings stay IN and are graded like anything else. The
     #    third-to-3x-median band is a typo test, not a spec test (see ~line
     #    1102): collapsing them would send someone to the factory over a lost
     #    decimal point, and dropping them would make this KR read better than
-    #    the sheet does. 'out_suspect' is disclosed in the basis when non-zero.
-    #
-    # THE WINDOW IS THE WHOLE FEED, and that is the one judgement here Ross has
-    # not made. The sheet is copied whole every day, so every pull carries all
-    # 13 months, and this is the span the p-qual tile shows on its default "All"
-    # range. The last four weeks read 95.2% and would turn this row GREEN -
-    # which is exactly why picking that window here would be inventing the
-    # target by the back door. Two things make it a real question rather than a
-    # settled one, so both are in the basis: the four-week figure is quoted
-    # beside the headline, and the band was only agreed on 27/08/2026, so most
-    # of this denominator is graded against a spec set after the reading was
-    # taken. If Ross names a period, change it here AND change the tile's
-    # default range in the same edit, or the two pages drift.
+    #    the sheet does. 'out_suspect' is feed-wide, so it is disclosed only as
+    #    a caution that some out-of-band readings may be mis-keys, never
+    #    subtracted from this month's count.
+    _FMONTHS=("January","February","March","April","May","June","July",
+              "August","September","October","November","December")
+    def _fmlabel(ym):
+        """'2026-09' -> 'September 2026'."""
+        return _FMONTHS[int(ym[5:7])-1]+" "+ym[:4]
     _fbands=", ".join(
         f"{(_p[:-6] if _p.endswith(' Broth') else _p).lower()} {_lo:g}-{_hi:g}"
         for _p,(_lo,_hi) in FACTORY_BROTH_BANDS.items())
     # Graded readings only. The ungraded count disclosed in the basis is this
-    # denominator's own complement rather than fb_grades["ungraded"]: the two
-    # are equal by construction, and the complement cannot drift from the
-    # figure it is printed beside.
+    # denominator's own complement rather than fb_grades["ungraded"]: the latter
+    # is feed-wide where this is one month, so they are different numbers and
+    # only the complement can be printed beside this denominator.
     _fg=[r_ for r_ in fb_readings if r_.get("grade")]
-    if _fg:
-        _fin=sum(1 for r_ in _fg if r_["grade"]=="in")
-        _fpct=round(100.0*_fin/len(_fg),1)
-        _fb={}
-        for r_ in _fg:
-            w=_mon(r_["d"]); i_,n_,dd=_fb.get(w,(0,0,set())); dd=set(dd); dd.add(r_["d"])
-            _fb[w]=(i_+(1 if r_["grade"]=="in" else 0),n_+1,dd)
-        _fb={w:(i_,n_,len(dd)) for w,(i_,n_,dd) in _fb.items()}
-        # The trend's own window, summed from the trend's own buckets so the two
-        # can never disagree - not a second pass over the readings.
+    _fmo=(pull or "")[:7]
+    _fmg=[r_ for r_ in _fg if r_["d"][:7]==_fmo]
+    # Previous calendar month, for the comparison clause.
+    _fpm=(f"{int(_fmo[:4])-1}-12" if _fmo[5:7]=="01"
+          else f"{_fmo[:4]}-{int(_fmo[5:7])-1:02d}") if len(_fmo)==7 else ""
+    _fpg=[r_ for r_ in _fg if r_["d"][:7]==_fpm]
+    # The weekly trend spans the month boundary on purpose (see above), so it is
+    # built from every graded reading, not from this month's slice.
+    _fb={}
+    for r_ in _fg:
+        w=_mon(r_["d"]); i_,n_,dd=_fb.get(w,(0,0,set())); dd=set(dd); dd.add(r_["d"])
+        _fb[w]=(i_+(1 if r_["grade"]=="in" else 0),n_+1,dd)
+    _fb={w:(i_,n_,len(dd)) for w,(i_,n_,dd) in _fb.items()}
+    if _fmg:
+        _fin=sum(1 for r_ in _fmg if r_["grade"]=="in")
+        _fpct=round(100.0*_fin/len(_fmg),1)
+        _fdays=len({r_["d"] for r_ in _fmg})
+        # Month to date unless the pull lands on the month's last day. Adding a
+        # day either stays in the month (still running) or rolls over (finished).
+        _fpd=datetime.date.fromisoformat(pull[:10])
+        _fmtd=(_fpd+datetime.timedelta(days=1)).month==_fpd.month
+        # Summed from the trend's own buckets so the two can never disagree.
         _fwi=sum(_fb[w][0] for w in WEEKS if w in _fb)
         _fwn=sum(_fb[w][1] for w in WEEKS if w in _fb)
-        _fd0=min(r_["d"] for r_ in _fg); _fd1=max(r_["d"] for r_ in _fg)
-        # Counted, never asserted. "Most of this predates the spec" was true on
-        # 16/09/2026 (1,462 of 1,585) and stops being true as the feed grows, so
-        # the basis prints the count and lets the reader judge "most".
-        _fpre=sum(1 for r_ in _fg if r_["d"]<FB_BAND_SET)
-        # EVERY non-zero exclusion, not just the common one. The Quality tab's
-        # own card already accounts for all three buckets; a row that carries a
-        # RAG owes the same account in its own basis, or "responses" minus the
-        # exclusions it happens to name will not reconcile with the denominator
-        # beside it. Across the live 13-month feed only no_after_ice fires (58 of
-        # 1,643, the responses predating the form's ice questions) and the other
-        # two are 0, so this normally prints the after-ice phrase alone.
+        _fpre=sum(1 for r_ in _fmg if r_["d"]<FB_BAND_SET)
+        # Every non-zero exclusion. These are FEED-WIDE counts, not this
+        # month's: fb_excl is accumulated over the whole pull and the rows it
+        # counts were never appended to fb_readings, so they cannot be
+        # re-filtered by month here. Said as "across the feed" so nobody
+        # subtracts them from a monthly denominator they do not belong to.
         _fex=", ".join(f"{_n} {_w}" for _w,_n in (
             ("with no after-ice reading",fb_excl["no_after_ice"]),
             ("that could not be dated",fb_excl["undated"]),
             ("whose reading was not a number",fb_excl["non_numeric"])) if _n)
         row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
             value=_fpct,display=f"{_fpct}%",rag=("green" if _fpct>=95 else "red"),
-            basis=(f"{_fin} of {len(_fg)} graded after-ice refractometer readings inside their "
-                   f"product's factory band ({_fbands}), from '{FB_FEED}'"
+            basis=(f"{_fin} of {len(_fmg)} graded after-ice refractometer readings inside "
+                   f"their product's factory band ({_fbands}) in {_fmlabel(_fmo)}"
+                   +(f", across {_fdays} production day(s)" if _fdays else "")
+                   +f", from '{FB_FEED}'"
                    +(f" as at its own pull {fb_pull}" if fb_pull else "")
-                   +f". This is the feed's WHOLE history, {_fd0} to {_fd1}, not a recent window"
-                   +(f"; the four weeks the trend draws read {_fwi} of {_fwn} "
+                   +(". MONTH TO DATE - the month is not finished, so this figure is still "
+                     "moving" if _fmtd else ". A complete month")
+                   +". The KR is scored per calendar month (Ross, 17/09/2026), NOT over the "
+                   "feed's whole history"
+                   +(f"; {_fmlabel(_fpm)} read {sum(1 for r_ in _fpg if r_['grade']=='in')} "
+                     f"of {len(_fpg)} "
+                     f"({round(100.0*sum(1 for r_ in _fpg if r_['grade']=='in')/len(_fpg),1)}%)"
+                     if _fpg else f"; {_fmlabel(_fpm)} has no graded reading to compare against"
+                     if _fpm else "")
+                   +(f". The sparkline is the last four ISO WEEKS, a different window that "
+                     f"crosses the month boundary - it reads {_fwi} of {_fwn} "
                      f"({round(100.0*_fwi/_fwn,1)}%)" if _fwn else "")
-                   +(f"; {_fpre} of the {len(_fg)} were taken before {FB_BAND_SET}, the day "
-                     f"the after-ice band was agreed, so they are graded against a spec that "
-                     f"did not exist when the reading was taken" if _fpre else "")
+                   +". The Quality tab's factory cards are sliced by that page's own date-range "
+                   "picker and default to All, so they will not match this row unless the "
+                   "picker is set to this month - this KR is always the calendar month and "
+                   "never follows that picker"
+                   +(f". {_fpre} of this month's readings were taken before {FB_BAND_SET}, the "
+                     f"day the after-ice band was agreed, so they are graded against a spec "
+                     f"that did not exist when the reading was taken" if _fpre else "")
                    +". Readings for a product with no agreed band are not graded and not counted"
-                   +(f" ({len(fb_readings)-len(_fg)} here)" if len(fb_readings)>len(_fg) else "")
-                   +(f"; of {fb_total} responses, {_fex} are excluded, never scored as zero"
+                   +(f" ({len([r_ for r_ in fb_readings if r_['d'][:7]==_fmo])-len(_fmg)} this "
+                     f"month)" if len([r_ for r_ in fb_readings if r_["d"][:7]==_fmo])>len(_fmg)
+                     else "")
+                   +(f"; across the feed {_fex} are excluded, never scored as zero"
                      if _fex else "")
-                   +(f"; {fb_grades['out_suspect']} of the out-of-band readings are suspected "
-                     f"keying slips, graded like any other - fix them at source and both "
-                     f"numbers drop" if fb_grades["out_suspect"] else "")
+                   +(f". {fb_grades['out_suspect']} out-of-band reading(s) across the feed are "
+                     f"suspected keying slips, graded like any other - fix them at source and "
+                     f"both numbers drop" if fb_grades["out_suspect"] else "")
                    +". The form carries no site field, so this is one group-wide figure and "
                    "cannot name the line to visit"
                    +(f". NOTE: this feed's newest pull is {fb_pull}, behind this bake's "
@@ -3191,16 +3230,24 @@ def main():
             # date would be a true sentence explaining the wrong thing.
             trend_note=_note(_fb,"factory-reading"))
     else:
-        # Never 0% and never green. has_feed is not a freshness test, so the two
-        # honest empty states are different blockers and are named as such.
+        # Three different empty states, three different blockers. Never 0% and
+        # never green: a month nobody has read a batch in is an absent
+        # measurement, not a month the factory missed spec on every batch.
+        # The third case is normal for a day or two at the turn of a month, so
+        # it carries last month's figure rather than going information-free.
         row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
             not_measured=("'"+FB_FEED+"' has not landed in the warehouse, so there is no "
               "after-ice reading to grade. Needs the daily factory export"
               if not fb_total else
               "'"+FB_FEED+"' landed "+str(fb_total)+" response(s) but none is gradeable - no "
               "after-ice reading, or no agreed band for the product. Needs the after-ice "
-              "question answered at source, and a band from Ross for the products in the form"))
-
+              "question answered at source, and a band from Ross for the products in the form"
+              if not _fg else
+              "no graded reading yet for "+_fmlabel(_fmo)+" - the KR is scored per calendar "
+              "month, and this month has not been read yet"
+              +(f" ({_fmlabel(_fpm)} read {sum(1 for r_ in _fpg if r_['grade']=='in')} of "
+                f"{len(_fpg)})" if _fpg else "")
+              +". Normal for the first day or two of a month; needs a batch reading logged"))
     # --- Quality: broth as served, by site (MEASURED, REPORTED, NO TARGET) ---
     # Kept, and kept SEPARATE. A different feed, a different band, a different
     # moment in the broth's life: 82.0% here and 93.8% above are two answers to
