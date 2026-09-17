@@ -356,6 +356,13 @@ FACTORY_BROTH_BANDS = {
     "Tonkotsu Broth": (8.0, 9.0),
     "Chicken Broth":  (5.0, 6.0),
 }
+#: The day the band above was agreed. The factory broth score is a data card and
+#: grades the whole feed against it, which is right for a card. The Quality KR is
+#: a JUDGEMENT on the same readings, and a reading taken before the spec existed
+#: was taken by a factory that had not been told the target - so the KR's basis
+#: counts those readings and says so, rather than quietly scoring thirteen months
+#: against a band that is three weeks old. Move this only if Ross re-dates the spec.
+FB_BAND_SET = "2026-08-27"
 def fb_grade(product, score):
     """'in' | 'low' | 'high' for a graded product, None when it has no band."""
     band = FACTORY_BROTH_BANDS.get(product or "")
@@ -2557,8 +2564,150 @@ def main():
         ("KR5 Contact Sheets complete","100%","the Operations Setup sheet tab, or Drive")]:
         row("Maintenance",_kr,_tg,"p-maint",not_measured=_mt % _need)
 
-    # --- Quality: broth conformance (MEASURED) ---
+    # --- Quality: broth conformance (MEASURED, FACTORY after-ice readings) ---
+    # Ross, 16/09/2026: "Broth conformance OKR is based on factory broth
+    # readings not site". So the Quality KR is scored on the FACTORY's own
+    # refractometer readings of the batch it made - AFTER ice, graded against
+    # FACTORY_BROTH_BANDS - and no longer on the per-site GetCompliant checks of
+    # broth AS SERVED, which have their own band and their own moment in the
+    # broth's life. Only the KR's SOURCE moved. The two measurements are
+    # untouched and stay what they were: separate blocks, separate snapshot
+    # keys, separate rows, never averaged, summed or pooled into one
+    # denominator, and neither row's band text ever describing the other's
+    # readings. On this pull they read 93.8% and 82.0%; those are NOT two
+    # attempts at one number. See the blocks at ~line 921 and ~line 1004.
+    #
+    # THE SITE FIGURE STAYS, in the row directly below, because the
+    # refractometer form has NO SITE FIELD: a red factory row cannot be traced
+    # to Glasgow, Edinburgh or Shoreditch, so the site checks are the only
+    # per-site broth signal this system has and the only thing a reader can act
+    # on. But it loses its RAG. ">=95% in band" is the Quality KR's target, the
+    # Quality KR is now the factory reading, and a target belongs to the
+    # measurement it was agreed against exactly as a band does - so leaving
+    # green/red on the site row would invent a site target nobody has set
+    # (rule 3), and rule 2 forbids splitting the difference with amber.
+    #
+    # THE DENOMINATOR is readings that HAVE a grade. Four other counts sit within
+    # reach of this line and every one of them is wrong, plus one judgement call
+    # about which readings stay in it:
+    #  * NOT "responses" (1,643) - that counts the 58 responses predating the
+    #    form's after-ice question, which are excluded and never scored as zero.
+    #  * NOT "scored" (1,585 only while nothing is ungraded) - a product with no
+    #    agreed band ('Ikigai Chicken Broth', waiting on Ross) must never be
+    #    counted as a miss for a decision nobody has made.
+    #  * NOT sum(fb_grades.values()) - 'out_suspect' is a subset of low+high, so
+    #    that total double-counts.
+    #  * NOT snap["quality"]["factory"]["readings"], which is sliced to FB_CAP
+    #    newest-first. The day history passes 2,000 that slice silently becomes
+    #    "the most recent 2,000 readings" while 'scored' keeps telling the truth.
+    #    So this reads the LOCAL fb_readings, which is the full list and is in
+    #    scope here (initialised at the top of the factory block, so it is []
+    #    even when the feed never landed - the else branch covers that). Note
+    #    the honest consequence: the Quality tab's "Factory readings in spec"
+    #    tile renders the CAPPED list, so on the day the cap bites the row and
+    #    the tile diverge. They agree today and the fix is FB_CAP, not a capped
+    #    denominator here.
+    #  * SUSPECT readings stay IN and are graded like anything else. The
+    #    third-to-3x-median band is a typo test, not a spec test (see ~line
+    #    1102): collapsing them would send someone to the factory over a lost
+    #    decimal point, and dropping them would make this KR read better than
+    #    the sheet does. 'out_suspect' is disclosed in the basis when non-zero.
+    #
+    # THE WINDOW IS THE WHOLE FEED, and that is the one judgement here Ross has
+    # not made. The sheet is copied whole every day, so every pull carries all
+    # 13 months, and this is the span the p-qual tile shows on its default "All"
+    # range. The last four weeks read 95.2% and would turn this row GREEN -
+    # which is exactly why picking that window here would be inventing the
+    # target by the back door. Two things make it a real question rather than a
+    # settled one, so both are in the basis: the four-week figure is quoted
+    # beside the headline, and the band was only agreed on 27/08/2026, so most
+    # of this denominator is graded against a spec set after the reading was
+    # taken. If Ross names a period, change it here AND change the tile's
+    # default range in the same edit, or the two pages drift.
+    _fbands=", ".join(
+        f"{(_p[:-6] if _p.endswith(' Broth') else _p).lower()} {_lo:g}-{_hi:g}"
+        for _p,(_lo,_hi) in FACTORY_BROTH_BANDS.items())
+    # Graded readings only. The ungraded count disclosed in the basis is this
+    # denominator's own complement rather than fb_grades["ungraded"]: the two
+    # are equal by construction, and the complement cannot drift from the
+    # figure it is printed beside.
+    _fg=[r_ for r_ in fb_readings if r_.get("grade")]
+    if _fg:
+        _fin=sum(1 for r_ in _fg if r_["grade"]=="in")
+        _fpct=round(100.0*_fin/len(_fg),1)
+        _fb={}
+        for r_ in _fg:
+            w=_mon(r_["d"]); i_,n_,dd=_fb.get(w,(0,0,set())); dd=set(dd); dd.add(r_["d"])
+            _fb[w]=(i_+(1 if r_["grade"]=="in" else 0),n_+1,dd)
+        _fb={w:(i_,n_,len(dd)) for w,(i_,n_,dd) in _fb.items()}
+        # The trend's own window, summed from the trend's own buckets so the two
+        # can never disagree - not a second pass over the readings.
+        _fwi=sum(_fb[w][0] for w in WEEKS if w in _fb)
+        _fwn=sum(_fb[w][1] for w in WEEKS if w in _fb)
+        _fd0=min(r_["d"] for r_ in _fg); _fd1=max(r_["d"] for r_ in _fg)
+        # Counted, never asserted. "Most of this predates the spec" was true on
+        # 16/09/2026 (1,462 of 1,585) and stops being true as the feed grows, so
+        # the basis prints the count and lets the reader judge "most".
+        _fpre=sum(1 for r_ in _fg if r_["d"]<FB_BAND_SET)
+        # EVERY non-zero exclusion, not just the common one. The Quality tab's
+        # own card already accounts for all three buckets; a row that carries a
+        # RAG owes the same account in its own basis, or "responses" minus the
+        # exclusions it happens to name will not reconcile with the denominator
+        # beside it. Across the live 13-month feed only no_after_ice fires (58 of
+        # 1,643, the responses predating the form's ice questions) and the other
+        # two are 0, so this normally prints the after-ice phrase alone.
+        _fex=", ".join(f"{_n} {_w}" for _w,_n in (
+            ("with no after-ice reading",fb_excl["no_after_ice"]),
+            ("that could not be dated",fb_excl["undated"]),
+            ("whose reading was not a number",fb_excl["non_numeric"])) if _n)
+        row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
+            value=_fpct,display=f"{_fpct}%",rag=("green" if _fpct>=95 else "red"),
+            basis=(f"{_fin} of {len(_fg)} graded after-ice refractometer readings inside their "
+                   f"product's factory band ({_fbands}), from '{FB_FEED}'"
+                   +(f" as at its own pull {fb_pull}" if fb_pull else "")
+                   +f". This is the feed's WHOLE history, {_fd0} to {_fd1}, not a recent window"
+                   +(f"; the four weeks the trend draws read {_fwi} of {_fwn} "
+                     f"({round(100.0*_fwi/_fwn,1)}%)" if _fwn else "")
+                   +(f"; {_fpre} of the {len(_fg)} were taken before {FB_BAND_SET}, the day "
+                     f"the after-ice band was agreed, so they are graded against a spec that "
+                     f"did not exist when the reading was taken" if _fpre else "")
+                   +". Readings for a product with no agreed band are not graded and not counted"
+                   +(f" ({len(fb_readings)-len(_fg)} here)" if len(fb_readings)>len(_fg) else "")
+                   +(f"; of {fb_total} responses, {_fex} are excluded, never scored as zero"
+                     if _fex else "")
+                   +(f"; {fb_grades['out_suspect']} of the out-of-band readings are suspected "
+                     f"keying slips, graded like any other - fix them at source and both "
+                     f"numbers drop" if fb_grades["out_suspect"] else "")
+                   +". The form carries no site field, so this is one group-wide figure and "
+                   "cannot name the line to visit"
+                   +(f". NOTE: this feed's newest pull is {fb_pull}, behind this bake's "
+                     f"{pull[:10]} - anything since is not in this figure"
+                     if fb_pull and pull and fb_pull[:10]<pull[:10] else "")),
+            trend=_trend(_fb),trend_unit="% in band / week",
+            # No `since`: this feed's history predates all four WEEKS, so a
+            # missing week is a week the factory produced nothing (or the sheet
+            # went unfilled), not a week before the feed began - naming a start
+            # date would be a true sentence explaining the wrong thing.
+            trend_note=_note(_fb,"factory-reading"))
+    else:
+        # Never 0% and never green. has_feed is not a freshness test, so the two
+        # honest empty states are different blockers and are named as such.
+        row("Quality","Broth conformance (factory, after ice)",">=95% in band","p-qual",
+            not_measured=("'"+FB_FEED+"' has not landed in the warehouse, so there is no "
+              "after-ice reading to grade. Needs the daily factory export"
+              if not fb_total else
+              "'"+FB_FEED+"' landed "+str(fb_total)+" response(s) but none is gradeable - no "
+              "after-ice reading, or no agreed band for the product. Needs the after-ice "
+              "question answered at source, and a band from Ross for the products in the form"))
+
+    # --- Quality: broth as served, by site (MEASURED, REPORTED, NO TARGET) ---
+    # Kept, and kept SEPARATE. A different feed, a different band, a different
+    # moment in the broth's life: 82.0% here and 93.8% above are two answers to
+    # two questions and neither is a check on the other. No target has been
+    # agreed for broth as served, so no RAG (rule 3) and no amber (rule 2).
+    # This is the row that tells a reader WHICH SITE; the row above is the KR.
     _cells=((snap.get("quality") or {}).get("broth") or {}).get("cells") or []
+    _sbands=", ".join(f"{_k} {_lo:g}-{_hi:g}" for _k,(_lo,_hi) in SITE_BROTH_BANDS.items())
     _g=[c for c in _cells if c.get("grade")]
     if _g:
         _in=sum(1 for c in _g if c["grade"]=="in")
@@ -2568,15 +2717,22 @@ def main():
             w=_mon(c["d"]); i_,n_,dd=_b.get(w,(0,0,set())); dd=set(dd); dd.add(c["d"])
             _b[w]=(i_+(1 if c["grade"]=="in" else 0),n_+1,dd)
         _b={w:(i_,n_,len(dd)) for w,(i_,n_,dd) in _b.items()}
-        row("Quality","Broth conformance (site)",">=95% in band","p-qual",
-            value=_pct,display=f"{_pct}%",rag=("green" if _pct>=95 else "red"),
-            basis=(f"{_in} of {len(_g)} graded site readings inside the band "
-                   f"(chicken 5-7, tonkotsu 6-7); readings for a product with no agreed band "
-                   f"are not graded and not counted"),
+        row("Quality","Broth as served, by site (reported)","not set","p-qual",
+            value=_pct,display=f"{_pct}%",rag=None,
+            basis=(f"{_in} of {len(_g)} graded site readings inside the SITE band ({_sbands}); "
+                   "readings for a check type with no agreed band are not graded and not "
+                   "counted. A DIFFERENT MEASUREMENT from the row above - GetCompliant checks "
+                   "of broth as served, not the factory's after-ice reading of the batch - so "
+                   "the two are never averaged and the gap between them is not an error. NO "
+                   "TARGET HAS BEEN SET for broth as served: the Manual's >=95% belongs to the "
+                   "factory reading (Ross, 16/09/2026), so this figure is reported, not judged. "
+                   "It is kept because the refractometer form has no site field, which makes "
+                   "this the only per-site broth signal there is - use it to pick a site, the "
+                   "row above to judge the KR."),
             trend=_trend(_b),trend_unit="% in band / week",trend_note=_note(_b,"broth-check"))
     else:
-        row("Quality","Broth conformance (site)",">=95% in band","p-qual",
-            not_measured="no graded broth readings in this bake")
+        row("Quality","Broth as served, by site (reported)","not set","p-qual",
+            not_measured="no graded site broth readings in this bake")
 
     # --- Compliance: scheduled-task on-time (MEASURED, but NO TARGET SET) ---
     _tb={}
