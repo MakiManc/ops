@@ -14,12 +14,19 @@
 //   2. the two Quality rows are NEVER CONFLATED - each basis names its own band
 //      and its own feed, and neither quotes the other's numbers. That is the one
 //      mistake the whole Quality & Broth page is built to prevent, and a
-//      scorecard that puts 93.8% and 82.0% two rows apart is where it would
+//      scorecard that puts 96.0% and 82.0% two rows apart is where it would
 //      happen first.
 //
+// The KR is scored per CALENDAR MONTH (Ross, 17/09/2026) while the sparkline
+// beside it is the last four ISO weeks - two different windows on one row, the
+// same shape Supply KR1 uses. The fixtures keep that mismatch rather than
+// tidying it away, because a row whose headline and sparkline disagree is
+// exactly what a reader will query.
+//
 // The scorecard.rows fixtures below are REAL rows out of bake_ops_command.py run
-// against the live warehouse (snapshot_2026-09-16.json: factory 1486 of 1585 =
-// 93.8% RED, site 1331 of 1624 = 82.0% reported), trimmed, not hand-invented.
+// against the live warehouse (snapshot_2026-09-16.json: factory September to
+// date 97 of 101 = 96.0% GREEN, August 121 of 129 = 93.8% RED, site 1331 of
+// 1624 = 82.0% reported), trimmed, not hand-invented.
 //
 // Pattern (same as factory_broth_test.mjs): load command/index.html in headless
 // Chromium via file://, call window.render(fixtureSnap), then assert on the DOM.
@@ -53,15 +60,28 @@ const WEEKS = ['2026-08-24', '2026-08-31', '2026-09-07', '2026-09-14'];
 // The real factory basis, as the builder emits it. Trimmed of the trailing
 // clauses that do not vary, kept verbatim where a clause is asserted below.
 const FACTORY_BASIS =
-  "1486 of 1585 graded after-ice refractometer readings inside their product's factory " +
-  "band (tonkotsu 8-9, chicken 5-6), from 'Factory Broth Readings' as at its own pull " +
-  '2026-09-16. This is the feed\'s WHOLE history, 2025-08-13 to 2026-09-16, not a recent ' +
-  'window; the four weeks the trend draws read 138 of 145 (95.2%); 1462 of the 1585 were ' +
-  'taken before 2026-08-27, the day the after-ice band was agreed, so they are graded ' +
-  'against a spec that did not exist when the reading was taken. Readings for a product ' +
-  'with no agreed band are not graded and not counted; of 1643 responses, 58 with no ' +
+  "97 of 101 graded after-ice refractometer readings inside their product's factory " +
+  'band (tonkotsu 8-9, chicken 5-6) in September 2026, across 15 production day(s), ' +
+  "from 'Factory Broth Readings' as at its own pull 2026-09-16. MONTH TO DATE - the " +
+  'month is not finished, so this figure is still moving. The KR is scored per calendar ' +
+  "month (Ross, 17/09/2026), NOT over the feed's whole history; August 2026 read 121 of " +
+  '129 (93.8%). The sparkline is the last four ISO WEEKS, a different window that ' +
+  'crosses the month boundary - it reads 138 of 145 (95.2%). The Quality tab\'s factory ' +
+  "cards are sliced by that page's own date-range picker and default to All, so they " +
+  'will not match this row unless the picker is set to this month - this KR is always ' +
+  'the calendar month and never follows that picker. Readings for a product ' +
+  'with no agreed band are not graded and not counted; across the feed 58 with no ' +
   'after-ice reading are excluded, never scored as zero. The form carries no site ' +
   'field, so this is one group-wide figure and cannot name the line to visit';
+
+// August, a COMPLETE month that missed the target - the red scenario below.
+const FACTORY_BASIS_AUG =
+  "121 of 129 graded after-ice refractometer readings inside their product's factory " +
+  'band (tonkotsu 8-9, chicken 5-6) in August 2026, across 29 production day(s), from ' +
+  "'Factory Broth Readings' as at its own pull 2026-08-31. A complete month. The KR is " +
+  "scored per calendar month (Ross, 17/09/2026), NOT over the feed's whole history; " +
+  'July 2026 read 117 of 119 (98.3%). The form carries no site field, so this is one ' +
+  'group-wide figure and cannot name the line to visit';
 
 const SITE_BASIS =
   '1331 of 1624 graded site readings inside the SITE band (chicken 5-7, tonkotsu 6-7); ' +
@@ -78,7 +98,7 @@ function factoryRow(over = {}) {
   return {
     function: 'Quality', kr: 'Broth conformance (factory, after ice)',
     target: '>=95% in band', tab: 'p-qual',
-    value: 93.8, display: '93.8%', rag: 'red', basis: FACTORY_BASIS,
+    value: 96.0, display: '96.0%', rag: 'green', basis: FACTORY_BASIS,
     trend: [{ w: WEEKS[0], v: 94.7, n: 38, days: 7 }, { w: WEEKS[1], v: 97.8, n: 46, days: 7 },
             { w: WEEKS[2], v: 93.3, n: 45, days: 6 }, { w: WEEKS[3], v: 93.8, n: 16, days: 3 }],
     trend_unit: '% in band / week', trend_note: null, not_measured: null, ...over,
@@ -122,7 +142,7 @@ page.on('console', msg => {
   if (msg.type() === 'error' && !NETWORK_NOISE.test(msg.text())) consoleErrors.push(msg.text());
 });
 
-// --------------------------------- the KR is the factory reading, and is red ---
+// ------------------ the KR is the factory reading, scored over one month ---
 {
   const snap = { ...baseSnap, scorecard: scorecardOf([factoryRow(), siteRow()]) };
   await page.evaluate((s) => window.render(s), snap);
@@ -130,12 +150,12 @@ page.on('console', msg => {
   const fac = qualRow(page, 'Broth conformance (factory, after ice)');
   assert(await fac.count() === 1, 'the factory broth KR is on the scorecard');
   const facTds = await fac.locator('td').allInnerTexts();
-  assert(/93\.8%/.test(facTds[2]),
-    `the Now column is the factory figure (got "${facTds[2]}")`);
+  assert(/96\.0%/.test(facTds[2]),
+    `the Now column is the factory figure for the month (got "${facTds[2]}")`);
   assert(/>=95% in band/.test(facTds[1]),
     `the factory row carries the KR target (got "${facTds[1]}")`);
-  assert(/Off target/.test(facTds[3]),
-    `93.8% against >=95% paints red, and the builder decided that (got "${facTds[3]}")`);
+  assert(/On target/.test(facTds[3]),
+    `96.0% against >=95% paints green, and the builder decided that (got "${facTds[3]}")`);
 
   // The KR label itself must say which measurement it is. A bare "Broth
   // conformance" next to a second broth row is the ambiguity this guards.
@@ -152,8 +172,30 @@ page.on('console', msg => {
     'the factory basis never calls its readings broth as served');
   assert(/no site field/.test(facBasis),
     'the factory basis says the KR cannot name a site, because the form has no site field');
-  assert(/1486 of 1585/.test(facBasis),
+  assert(/97 of 101/.test(facBasis),
     'the factory basis carries its own numerator and denominator');
+
+  // -- the window is a calendar month, and the row says so -----------------
+  // The headline and the sparkline are deliberately different windows, so the
+  // basis has to name the month AND reconcile the two, or the row reads as a
+  // mis-calculation to anyone who checks it.
+  assert(/September 2026/.test(facBasis),
+    'the basis names the month the KR is scored over');
+  assert(/per calendar month/.test(facBasis),
+    'the basis says the KR is a monthly measure');
+  assert(/MONTH TO DATE/.test(facBasis),
+    'an unfinished month is labelled month to date, not presented as a closed result');
+  assert(/August 2026 read 121 of 129/.test(facBasis),
+    'the basis carries last month, so one green month is not read as a trend on its own');
+  assert(/last four ISO WEEKS/.test(facBasis) && /138 of 145/.test(facBasis),
+    'the basis reconciles the four-week sparkline against the monthly headline');
+  // The "open →" button lands on a page whose cards default to the All range,
+  // so they show a different figure than this row. Warned in words, the way
+  // KR1 warns that it does not follow the picker either.
+  assert(/date-range picker/.test(facBasis) && /never follows that picker/.test(facBasis),
+    'the basis warns that the page it drills into uses a different, reader-controlled range');
+  assert(!/whole history, 2025/.test(facBasis),
+    'the basis no longer presents the feed\'s whole history as the KR');
 
   // -- the site row survives, reported and NOT judged ----------------------
   const site = qualRow(page, 'Broth as served, by site (reported)');
@@ -197,21 +239,49 @@ page.on('console', msg => {
     'both Quality rows count as measured in the footer');
 }
 
-// ------------------------------------- the factory KR can go green, and does ---
-// Guards the direction of the comparison: the shell must not decide that a
-// higher number is better, and 96.4% against >=95% is the builder's green.
+// ------------------------ a completed month that missed the target reads red ---
+// The point of a monthly KR is that it can turn. August closed at 93.8% and
+// September to date is 96.0%, so both verdicts have to render from the same row
+// shape - and the shell must not decide for itself which direction is good.
 {
-  const snap = { ...baseSnap, scorecard: scorecardOf(
-    [factoryRow({ value: 96.4, display: '96.4%', rag: 'green' }), siteRow()]) };
+  const snap = { ...baseSnap, scorecard: scorecardOf([factoryRow({
+    value: 93.8, display: '93.8%', rag: 'red', basis: FACTORY_BASIS_AUG,
+  }), siteRow()]) };
   await page.evaluate((s) => window.render(s), snap);
   const tds = await qualRow(page, 'Broth conformance (factory, after ice)')
     .locator('td').allInnerTexts();
-  assert(/96\.4%/.test(tds[2]) && /On target/.test(tds[2] + tds[3]),
-    `a factory figure at or above 95% paints green (got "${tds[2]}" / "${tds[3]}")`);
+  assert(/93\.8%/.test(tds[2]) && /Off target/.test(tds[3]),
+    `a month below 95% paints red (got "${tds[2]}" / "${tds[3]}")`);
+  assert(/August 2026/.test(tds[0]) && /A complete month/.test(tds[0]),
+    `a finished month says so instead of "month to date" (got "${tds[0].replace(/\s+/g, ' ').slice(0, 120)}…")`);
+  assert(!/MONTH TO DATE/.test(tds[0]),
+    'a complete month is never labelled month to date');
   // the site row's chip is unchanged by the factory row's verdict
   const siteChip = (await qualRow(page, 'by site (reported)').locator('td').allInnerTexts())[3];
   assert(/Reported/.test(siteChip),
     `the site row stays Reported whatever the KR does (got "${siteChip}")`);
+}
+
+// -------------------- a month nobody has read a batch in is not a failure ---
+// At the turn of a month the KR has nothing to score until the first batch is
+// logged. That must read as an absent measurement, never as 0% red - the row
+// would otherwise announce a total quality collapse every 1st of the month.
+{
+  const snap = { ...baseSnap, scorecard: scorecardOf([factoryRow({
+    value: null, display: null, rag: null, trend: null, trend_unit: null, basis: null,
+    not_measured: 'no graded reading yet for October 2026 - the KR is scored per calendar ' +
+      'month, and this month has not been read yet (September 2026 read 97 of 101). Normal ' +
+      'for the first day or two of a month; needs a batch reading logged',
+  }), siteRow()]) };
+  await page.evaluate((s) => window.render(s), snap);
+  const tds = await qualRow(page, 'Broth conformance (factory, after ice)')
+    .locator('td').allInnerTexts();
+  assert(tds[2].trim() === '—' && /Not measured/.test(tds[3]),
+    `an unread month is dashed and grey, not red (got "${tds[2]}" / "${tds[3]}")`);
+  assert(!/0\.0%|\b0%/.test(tds.join(' ')),
+    `an unread month is never rendered as 0% (got "${tds.join(' | ')}")`);
+  assert(/September 2026 read 97 of 101/.test(tds[0]),
+    'the blocker still carries last month, so the row is not information-free');
 }
 
 // ------------------------- no factory feed is a blocker, never a 0% failure ---
@@ -270,7 +340,7 @@ page.on('console', msg => {
   await page.evaluate((s) => window.render(s), snap);
   const facTds = await qualRow(page, 'Broth conformance (factory, after ice)')
     .locator('td').allInnerTexts();
-  assert(/93\.8%/.test(facTds[2]) && /Off target/.test(facTds[3]),
+  assert(/96\.0%/.test(facTds[2]) && /On target/.test(facTds[3]),
     `the KR still reads and still judges with the site feed gone (got "${facTds[2]}")`);
   const siteTds = await qualRow(page, 'by site (reported)').locator('td').allInnerTexts();
   assert(/Not measured/.test(siteTds[3]) && siteTds[2].trim() === '—',
