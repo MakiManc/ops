@@ -410,9 +410,16 @@ one from a courier template, which is what the brief assumed.
 **The specification documents no rate limit at all** — no 429 response on any of the 164
 endpoints, and no rate-limit headers.
 
-That is not the same as there being no limit. A single unauthenticated probe showed the
-API sits behind Cloudflare, which typically enforces limits at the edge and returns an
-HTML error page rather than the JSON an API client expects. So the discovery client
+That is not the same as there being no limit, and there are two hints that limits exist.
+
+One is in the spec itself: `PUT /api/Product/ProductPrices` is documented as having a
+*"Limit of 1 Concurrent Request per Mintsoft Customer"*. It is a write endpoint we will
+never call, but it establishes that Mintsoft does apply concurrency limits somewhere in
+its system — it simply does not say where they apply to reads.
+
+The other is infrastructural: a single unauthenticated probe showed the API sits behind
+Cloudflare, which typically enforces limits at the edge and returns an HTML error page
+rather than the JSON an API client expects. So the discovery client
 already assumes limits exist without knowing them: it paces itself between calls, backs
 off on a 429, honours `Retry-After`, and records every response that was not JSON. The
 run reports the latency spread and any throttling it actually met.
