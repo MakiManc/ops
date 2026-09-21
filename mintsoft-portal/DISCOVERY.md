@@ -585,9 +585,9 @@ what it *means*.
 | | |
 | --- | --- |
 | **Discovery script** | Written, typechecked, ready. Not yet run against the live API. |
-| **API models** | 45 models generated from the live specification, and the generator re-run to confirm it reproduces them exactly. |
-| **Read-only guarantee** | An allow-list of eleven named endpoints, enforced at runtime and exercised by tests. |
-| **Tests** | 47 passing. |
+| **API models** | 47 models generated from the live specification, and the generator re-run to confirm it reproduces them exactly. |
+| **Read-only guarantee** | An allow-list of eleven named endpoints plus two anchored id-bearing patterns, enforced at runtime and exercised by tests. |
+| **Tests** | 52 passing. |
 | **CI** | Runs the suite on every change to `mintsoft-portal/`, and warns if Mintsoft's spec drifts from our models. |
 
 Run them with `npm test` from `mintsoft-portal/`. What they actually cover:
@@ -625,14 +625,13 @@ says its items are excluded while also offering an `IncludeASNItems` flag — th
 recorded as a question for the live run rather than resolved by picking the reading I
 prefer.
 
-Every discrepancy in this document was then put to an independent adversarial check
-against the same specification — 21 checks in all, each one trying to refute the finding
-rather than confirm it. Nineteen came back upheld. Two came back as genuine corrections to
-things I had written, and both are now folded in above: the "last 7–9 shipments" window
-*is* implementable (via shipment dates, not product dates), and the catalogue-payload
-worry was materially overstated.
+Every finding was then put to an independent adversarial check against the same
+specification — **68 checks in all**, each one trying to refute the finding rather than
+confirm it. **61 came back upheld and 7 refuted.** Four of the seven concerned working
+notes that never made it into this document. Three were corrections to things I had
+written, and all three are folded in above.
 
-Four claims of my own needed correcting along the way, all worth naming:
+Five claims of my own needed correcting along the way, all worth naming:
 
 - `Product/StockLevels/UpdatedSince` returns a list of product ids, not stock figures. An
   earlier draft implied otherwise.
@@ -648,3 +647,7 @@ Four claims of my own needed correcting along the way, all worth naming:
   outbound shipment lists are date-filterable.
 - An earlier draft presented the nested-collections payload risk as likely rather than
   as the unlikely-but-cheap-to-check thing it is.
+- An earlier draft stated that Mintsoft's `Allocated` figure only moves once a real order
+  exists. That is a reasonable guess, but the specification never defines `Allocated` at
+  all — and stating it as fact quietly undercut the very question this document asks
+  Mercium to answer.
