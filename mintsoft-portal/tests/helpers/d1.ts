@@ -5,10 +5,20 @@
  * migration and the real queries against real SQLite exercises the actual constraints
  * and the actual SQL. Mocking the database instead would test our mocks.
  */
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { DatabaseSync, type StatementSync } from 'node:sqlite'
 
-const MIGRATION = readFileSync(new URL('../../migrations/0001_foundation.sql', import.meta.url), 'utf8')
+/**
+ * Every migration, in the order wrangler would apply them. Reading the directory rather
+ * than naming files means a new migration is covered by the tests the day it is written,
+ * instead of the day someone remembers to add it here.
+ */
+const MIGRATIONS_DIR = new URL('../../migrations/', import.meta.url)
+const MIGRATION = readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(new URL(f, MIGRATIONS_DIR), 'utf8'))
+  .join('\n')
 
 type Value = string | number | null
 
