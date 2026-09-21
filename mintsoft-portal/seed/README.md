@@ -47,5 +47,13 @@ npx wrangler d1 execute mintsoft-portal --local --file seed/seed.sql
 
 The script never writes to the database itself — it produces SQL you can read first.
 Re-running is safe: rows are matched on site code and email, so fixing a typo and
-re-seeding updates the row rather than adding a second one. Removing a site from a GM's
-`sites` column removes their access to it.
+re-seeding updates the row rather than adding a second one.
+
+**These files are the full list, not a set of additions.** Applying the generated SQL
+deactivates any user who is not in `users.csv` and closes any site that is not in
+`sites.csv`. That is how offboarding works — deleting someone's row is what revokes
+their access — so never apply a partial file. Removing a site from a GM's `sites`
+column removes their access to that site.
+
+Nothing is ever deleted outright. A departed user is deactivated and a closed site is
+marked inactive, so past orders still name who placed them.

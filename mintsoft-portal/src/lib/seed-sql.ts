@@ -121,7 +121,15 @@ ON CONFLICT (code) DO UPDATE SET
     const active = parseBool(values.active!, true)
     if (active === null) fail('users.csv', line, `active must be yes or no (got "${values.active}")`)
 
-    const codes = (values.sites ?? '').split(/[;|]/).map((s) => s.trim().toUpperCase()).filter(Boolean)
+    const rawCodes = (values.sites ?? '').split(/[;|]/).map((s) => s.trim().toUpperCase()).filter(Boolean)
+    const codes = [...new Set(rawCodes)]
+    if (codes.length !== rawCodes.length) {
+      // Trivially produced by copy-pasting in a spreadsheet, and the plain INSERT below
+      // would abort the whole apply on a primary-key clash -- from a file this tool has
+      // just called clean.
+      const repeated = rawCodes.filter((c, i) => rawCodes.indexOf(c) !== i)
+      fail('users.csv', line, `site ${[...new Set(repeated)].join(', ')} is listed more than once for ${email}`)
+    }
     for (const code of codes) {
       if (!siteCodes.has(code)) fail('users.csv', line, `site ${code} is not in sites.csv`)
     }
@@ -148,10 +156,37 @@ ON CONFLICT (email) DO UPDATE SET
     )
     for (const code of codes) {
       statements.push(
-        `INSERT INTO user_sites (user_id, site_id)
+        `INSERT OR IGNORE INTO user_sites (user_id, site_id)
 SELECT u.id, s.id FROM users u, sites s WHERE u.email = ${sqlString(email)} AND s.code = ${sqlString(code)};`,
       )
     }
+  }
+
+  // ---- offboarding ----
+  //
+  // Removing someone from users.csv has to actually remove their access. The CSV is the
+  // whole auth boundary -- there is no admin screen that writes to `users` -- and
+  // seed/README.md promises that anyone not in the file cannot get in. Without this
+  // sweep that promise was simply false: a GM who left kept an active row and their
+  // site link, because the loop above only ever touches rows that are still listed.
+  //
+  // Deactivated rather than deleted, so the audit trail still resolves who did what.
+  if (problems.length === 0 && seenUsers.size > 0) {
+    const emails = [...seenUsers.keys()].map((e) => sqlString(e)).join(', ')
+    statements.push(
+      `-- Anyone not in users.csv loses access. Deactivated, not deleted, so past orders still name them.
+UPDATE users SET active = 0, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+ WHERE email NOT IN (${emails}) AND active = 1;`,
+      `DELETE FROM user_sites WHERE user_id IN (SELECT id FROM users WHERE active = 0);`,
+    )
+  }
+  if (problems.length === 0 && seenSites.size > 0) {
+    const codes = [...seenSites.keys()].map((c) => sqlString(c)).join(', ')
+    statements.push(
+      `-- A site dropped from sites.csv is closed, not deleted: its order history stays.
+UPDATE sites SET active = 0, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+ WHERE code NOT IN (${codes}) AND active = 1;`,
+    )
   }
 
   return { statements, problems }

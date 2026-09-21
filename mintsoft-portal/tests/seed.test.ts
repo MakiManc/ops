@@ -174,3 +174,72 @@ describe('the CSV itself', () => {
     expect(buildSeedSql(`${site()}\n`, `${user()}\n`).problems).toEqual([])
   })
 })
+
+describe('offboarding', () => {
+  const apply = (db: FakeD1, sites: string, users: string) =>
+    db.exec(buildSeedSql(sites, users).statements.join('\n'))
+
+  const twoSites = `${site()}\nM19,Fountainbridge,restaurant,,2 Rd,,,Edinburgh,,EH3 9QG,,,,no,,yes`
+  const twoUsers = `${user()}\nross@example.com,Ross,admin,,yes`
+
+  it('revokes access when someone is removed from users.csv', () => {
+    const db = new FakeD1()
+    apply(db, site(), twoUsers)
+    // The only offboarding action available is deleting the row, and seed/README.md
+    // promises it works. Without the sweep it silently did nothing.
+    apply(db, site(), `email,name,role,sites,active\nross@example.com,Ross,admin,,yes`)
+
+    expect(db.sqlite.prepare(`SELECT email, active FROM users ORDER BY email`).all()).toEqual([
+      { email: 'gm.m9@example.com', active: 0 },
+      { email: 'ross@example.com', active: 1 },
+    ])
+    expect(db.sqlite.prepare(`SELECT COUNT(*) AS n FROM user_sites`).get()).toEqual({ n: 0 })
+  })
+
+  it('deactivates rather than deletes, so past orders still name them', () => {
+    const db = new FakeD1()
+    apply(db, site(), twoUsers)
+    apply(db, site(), `email,name,role,sites,active\nross@example.com,Ross,admin,,yes`)
+    // A deleted user would leave orders pointing at nobody.
+    expect(db.sqlite.prepare(`SELECT COUNT(*) AS n FROM users WHERE email = 'gm.m9@example.com'`).get())
+      .toEqual({ n: 1 })
+  })
+
+  it('closes a site dropped from sites.csv', () => {
+    const db = new FakeD1()
+    apply(db, twoSites, twoUsers)
+    apply(db, site(), twoUsers)
+    expect(db.sqlite.prepare(`SELECT code, active FROM sites ORDER BY code`).all()).toEqual([
+      { code: 'M19', active: 0 },
+      { code: 'M9', active: 1 },
+    ])
+  })
+
+  it('leaves everyone alone when the files are unchanged', () => {
+    const db = new FakeD1()
+    apply(db, site(), twoUsers)
+    apply(db, site(), twoUsers)
+    expect(db.sqlite.prepare(`SELECT COUNT(*) AS n FROM users WHERE active = 1`).get()).toEqual({ n: 2 })
+  })
+
+  it('emits no sweep at all when the file failed validation', () => {
+    // A rejected file must not deactivate anyone as a side effect of being wrong.
+    const { statements, problems } = buildSeedSql(site({ type: 'popup' }), twoUsers)
+    expect(problems.length).toBeGreaterThan(0)
+    expect(statements.join('\n')).not.toMatch(/SET active = 0/)
+  })
+})
+
+describe('a site code repeated in a GM\'s row', () => {
+  it('is reported rather than aborting the apply', () => {
+    // Easy to produce by copy-pasting in a spreadsheet; the plain INSERT used to abort
+    // the whole file on a primary-key clash, from something just called clean.
+    expect(messages(site(), user({ sites: 'M9;M9' })))
+      .toContainEqual(expect.stringContaining('listed more than once'))
+  })
+
+  it('catches it even when the casing differs', () => {
+    expect(messages(site(), user({ sites: 'M9; m9' })))
+      .toContainEqual(expect.stringContaining('listed more than once'))
+  })
+})
