@@ -20,7 +20,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { MintsoftReadOnlyClient } from '../src/lib/mintsoft/readonly-client.ts'
 import {
-  fieldReport, findDuplicates, inspectKeyShape, reconcileStock, redact,
+  compareToSpec, fieldReport, findDuplicates, inspectKeyShape, reconcileStock, redact,
 } from '../src/lib/mintsoft/discovery-analysis.ts'
 import type {
   ASN, BulkInventoryItem, Client, CourierService, Order, OrderStatus, Product, StockLevel, Warehouse,
@@ -160,6 +160,21 @@ async function main() {
       OrderStatus: fieldReport(orderStatuses as unknown as Record<string, unknown>[]),
       CourierService: fieldReport(couriers as unknown as Record<string, unknown>[]),
     },
+    /**
+     * Where the published spec and the live API disagree. This is the answer to
+     * "write typed models from real responses": the models come from the spec, and this
+     * says how far the spec can be trusted.
+     */
+    specVsReality: [
+      compareToSpec('Product', products.items as unknown as Record<string, unknown>[]),
+      compareToSpec('StockLevel', stockPlain as unknown as Record<string, unknown>[]),
+      compareToSpec('BulkInventoryItem', bulk.items as unknown as Record<string, unknown>[]),
+      compareToSpec('ASN', asns.items as unknown as Record<string, unknown>[]),
+      compareToSpec('ASNItem', asns.items.flatMap((a) => a.Items ?? []) as unknown as Record<string, unknown>[]),
+      compareToSpec('Order', orders as unknown as Record<string, unknown>[]),
+      compareToSpec('OrderStatus', orderStatuses as unknown as Record<string, unknown>[]),
+      compareToSpec('CourierService', couriers as unknown as Record<string, unknown>[]),
+    ].filter((r) => r.rowsSeen > 0),
     stockSemantics,
     duplicates: { ...duplicates, clusters: undefined, exampleClusters: duplicates.examples },
     orderStatusValues: orderStatuses.map((s) => ({ ID: s.ID, Name: s.Name, ExternalName: s.ExternalName })),
@@ -218,6 +233,11 @@ async function main() {
   console.log(`Duplicate clusters   : ${duplicates.clusterCount} (${duplicates.productsInvolved} products involved)`)
   console.log(`Order statuses       : ${orderStatuses.map((s) => `${s.ID}=${s.Name}`).join(', ')}`)
   console.log(`429s seen            : ${rateLimited.length}`)
+  const undocumented = summary.specVsReality.filter((r) => r.undocumentedFields.length)
+  if (undocumented.length) {
+    console.log('\nFields the live API sent that its spec does not document:')
+    for (const r of undocumented) console.log(`  ${r.model}: ${r.undocumentedFields.join(', ')}`)
+  }
   console.log(`Key re-auths needed  : ${client.reauthCount}`)
   console.log('\n"Available" hypothesis test (which field is free stock):')
   for (const [k, v] of Object.entries(stockSemantics.verdict)) console.log(`  ${v.padEnd(18)} ${k}`)

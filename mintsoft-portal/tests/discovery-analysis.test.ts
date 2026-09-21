@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  fieldReport, findDuplicates, inspectKeyShape, normaliseName, reconcileStock, redact, skuStem,
+  compareToSpec, fieldReport, findDuplicates, inspectKeyShape, normaliseName, reconcileStock,
+  redact, skuStem,
 } from '../src/lib/mintsoft/discovery-analysis.ts'
 import type { BulkInventoryItem, Product, StockLevel } from '../src/lib/mintsoft/types.ts'
 
@@ -134,5 +135,36 @@ describe('inspectKeyShape', () => {
 
   it('does not crash on something that merely looks like a JWT', () => {
     expect(inspectKeyShape('not.a.jwt').expiresAt).toBeNull()
+  })
+})
+
+describe('compareToSpec — how far the published spec can be trusted', () => {
+  it('flags a field the API sends that the spec never declares', () => {
+    const r = compareToSpec('StockLevel', [{ ProductId: 1, SomeNewField: 'surprise' }])
+    expect(r.undocumentedFields).toEqual(['SomeNewField'])
+  })
+
+  it('flags a declared field the API never actually sends', () => {
+    const r = compareToSpec('StockLevel', [{ ProductId: 1 }])
+    // The spec promises these; this run saw none of them.
+    expect(r.declaredButNeverSent).toContain('TotalStockLevel')
+    expect(r.declaredButNeverSent).toContain('Level')
+  })
+
+  it('separates "present but always null" from "never sent at all"', () => {
+    const r = compareToSpec('StockLevel', [{ Level: null }, { Level: null }])
+    expect(r.declaredButAlwaysNull).toEqual(['Level'])
+    expect(r.declaredButNeverSent).not.toContain('Level')
+  })
+
+  it('reports nothing surprising when the API matches its spec', () => {
+    const r = compareToSpec('StockLevel', [{ ProductId: 1, Level: 5 }])
+    expect(r.undocumentedFields).toEqual([])
+    expect(r.declaredButAlwaysNull).toEqual([])
+  })
+
+  it('treats an unknown model as fully undocumented rather than silently passing it', () => {
+    const r = compareToSpec('NotAModel', [{ Anything: 1 }])
+    expect(r.undocumentedFields).toEqual(['Anything'])
   })
 })

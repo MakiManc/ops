@@ -5,6 +5,7 @@
  * credentials and without touching the network — which matters, because the live
  * discovery run cannot be exercised in CI.
  */
+import { SPEC_FIELDS } from './types.ts'
 import type { BulkInventoryItem, Product, StockLevel } from './types.ts'
 
 /** Order fields that carry personal data. Names kept, values replaced. */
@@ -196,3 +197,46 @@ export function inspectKeyShape(key: string) {
   return shape
 }
 
+
+/**
+ * Compares what the API actually returned against what its published spec declares.
+ *
+ * The brief asked for typed models written from real responses. Ours are generated from
+ * Mintsoft's spec, which is more reliable than hand-typing but is still a document rather
+ * than the thing itself. This is the reconciliation: any field the live API sends that the
+ * spec does not declare is a real finding, and any declared field that never arrives is
+ * one we should not have built on.
+ */
+export function compareToSpec(
+  model: string,
+  rows: Record<string, unknown>[],
+): {
+  model: string
+  rowsSeen: number
+  undocumentedFields: string[]
+  declaredButNeverSent: string[]
+  declaredButAlwaysNull: string[]
+} {
+  const declared = new Set(SPEC_FIELDS[model] ?? [])
+  const seen = new Set<string>()
+  const everPopulated = new Set<string>()
+
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue
+    for (const [k, v] of Object.entries(row)) {
+      seen.add(k)
+      if (v !== null && v !== undefined) everPopulated.add(k)
+    }
+  }
+
+  return {
+    model,
+    rowsSeen: rows.length,
+    // Mintsoft sends it, the spec never mentions it. Worth knowing before we rely on it.
+    undocumentedFields: [...seen].filter((k) => !declared.has(k)).sort(),
+    // The spec promises it, the API never sent it. Do not build on these.
+    declaredButNeverSent: [...declared].filter((k) => !seen.has(k)).sort(),
+    // Present in every payload but never carrying a value — as good as absent.
+    declaredButAlwaysNull: [...seen].filter((k) => declared.has(k) && !everPopulated.has(k)).sort(),
+  }
+}

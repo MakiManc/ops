@@ -88,10 +88,14 @@ const lines: string[] = [
   '',
 ]
 
+const fieldsByModel: Record<string, string[]> = {}
+
 for (const name of [...needed].sort()) {
   const def = defs[name]
   if (!def) continue
   const required = new Set(def.required ?? [])
+  const keys = Object.keys(def.properties ?? {})
+  fieldsByModel[name] = keys
   lines.push(`export interface ${name} {`)
   for (const [key, schema] of Object.entries(def.properties ?? {})) {
     const optional = required.has(key) ? '' : '?'
@@ -100,6 +104,19 @@ for (const name of [...needed].sort()) {
   }
   lines.push('}', '')
 }
+
+// The same field names, available at runtime. Discovery compares what the live API
+// actually returns against this, so a field Mintsoft sends but does not document shows
+// up as a finding instead of being silently dropped by the type system.
+lines.push(
+  '/** Field names each model declares, per the published spec. Generated alongside the types. */',
+  'export const SPEC_FIELDS: Record<string, readonly string[]> = {',
+  ...Object.entries(fieldsByModel).map(
+    ([model, keys]) => `  ${model}: [${keys.map((k) => `'${k}'`).join(', ')}],`,
+  ),
+  '}',
+  '',
+)
 
 writeFileSync(OUT, lines.join('\n'))
 console.log(`Wrote ${needed.size} models to src/lib/mintsoft/types.ts`)
