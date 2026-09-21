@@ -121,7 +121,7 @@ describe('an admin', () => {
     const res = await get('/api/admin/settings', await as(ADMIN))
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({
-      settings: { available_formula: 'on_hand_minus_allocated' },
+      settings: { available_formula: 'on_hand' },
     })
   })
 

@@ -47,7 +47,8 @@ describe('the catalogue', () => {
       products: { name: string; available: number; status: string; stockSyncedAt: string; rechargeUnitPrice: number | null }[]
     }
     expect(body.site.code).toBe('M9')
-    expect(body.products[0]).toMatchObject({ name: 'Ramen Bowl', available: 35, status: 'in_stock' })
+    // 40 on hand is 40 free: Mintsoft has already deducted the 5 allocated.
+    expect(body.products[0]).toMatchObject({ name: 'Ramen Bowl', available: 40, status: 'in_stock' })
     expect(body.products[0]!.stockSyncedAt).toBe('2026-09-21T10:00:00Z')
   })
 
@@ -81,7 +82,7 @@ describe('the stock overview', () => {
     const res = await call('/api/approvals/stock', await as(APPROVER))
     expect(res.status).toBe(200)
     const body = await res.json() as { unmappedMintsoftLines: number; products: { available: number }[] }
-    expect(body.products[0]!.available).toBe(35)
+    expect(body.products[0]!.available).toBe(40)
     // One Mintsoft line is not mapped to anything, which is stock the portal cannot see.
     expect(body.unmappedMintsoftLines).toBe(1)
   })
@@ -114,8 +115,8 @@ describe('the mapping tool', () => {
     expect(res.status).toBe(200)
     const body = await (await call('/api/sites/1/catalogue', await as(GM))).json() as
       { products: { available: number; mappedLines: number }[] }
-    // 35 free from the first line plus 10 from the newly-mapped duplicate.
-    expect(body.products[0]).toMatchObject({ available: 45, mappedLines: 2 })
+    // 40 free from the first line plus 10 from the newly-mapped duplicate.
+    expect(body.products[0]).toMatchObject({ available: 50, mappedLines: 2 })
   })
 
   it('explains a rejected mapping instead of returning a constraint error', async () => {

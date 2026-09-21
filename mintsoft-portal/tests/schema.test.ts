@@ -233,9 +233,10 @@ describe('settings', () => {
     expect(() => run(`INSERT INTO settings (id) VALUES (2)`)).toThrow(/CHECK constraint failed/)
   })
 
-  it('records how available is worked out, since Mintsoft does not publish it', () => {
+  it('defaults to the formula discovery settled on, not one that double-deducts', () => {
     const s = one<{ available_formula: string }>(`SELECT available_formula FROM settings WHERE id = 1`)
-    expect(s.available_formula).toBe('on_hand_minus_allocated')
+    // Mintsoft's OnHand already excludes allocations, proven across all 334 products.
+    expect(s.available_formula).toBe('on_hand')
     expect(() => run(`UPDATE settings SET available_formula = 'vibes' WHERE id = 1`)).toThrow(/CHECK constraint failed/)
   })
 })

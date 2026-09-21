@@ -148,3 +148,68 @@ describe('inputs that are not really numbers', () => {
     }
   })
 })
+
+/**
+ * Settled by discovery on 2026-09-21, against all 334 products held at Witham.
+ *
+ * StockLevel == OnHand + Allocated held with no exceptions, which means Mintsoft has
+ * already taken allocations off OnHand. The numbers below are real rows from that run,
+ * kept as regression cases because the field naming invites the opposite reading and
+ * both of the formulas we originally shipped get these wrong.
+ */
+describe("the 'on_hand' formula, which is the one discovery settled on", () => {
+  // MRK008-R-R at Witham: 340 physically held, 300 of them spoken for, 40 free.
+  const rebrandedRamenBowl = { onHand: 40, allocated: 300, stockLevel: 340 }
+
+  it('reports what is free, without deducting allocations a second time', () => {
+    const a = deriveAvailability([rebrandedRamenBowl], 'on_hand')
+    expect(a.available).toBe(40)
+    expect(a.oversold).toBe(false)
+  })
+
+  it('still shows the allocation, so the missing 300 is explained rather than hidden', () => {
+    const a = deriveAvailability([rebrandedRamenBowl], 'on_hand')
+    expect(a.allocated).toBe(300)
+    expect(a.basis).toMatch(/40 free to order/)
+    expect(a.basis).toMatch(/300 more held but already allocated/)
+  })
+
+  it('does not claim stock for a product that is entirely allocated', () => {
+    // MRK010-BMB-L: 20 held, all 20 allocated. Nothing is free.
+    const a = deriveAvailability([{ onHand: 0, allocated: 20, stockLevel: 20 }], 'on_hand')
+    expect(a.available).toBe(0)
+  })
+
+  it('is unknown, not zero, when Mintsoft reports no figure', () => {
+    const a = deriveAvailability([{ onHand: null, allocated: 20, stockLevel: 20 }], 'on_hand')
+    expect(a.available).toBeNull()
+  })
+
+  it('sums across locations like the other formulas', () => {
+    const a = deriveAvailability(
+      [{ onHand: 40, allocated: 300, stockLevel: 340 }, { onHand: 5, allocated: 0, stockLevel: 5 }],
+      'on_hand',
+    )
+    expect(a.available).toBe(45)
+    expect(a.rowsSeen).toBe(2)
+  })
+})
+
+describe('why the other two formulas were wrong on real data', () => {
+  const rebrandedRamenBowl = { onHand: 40, allocated: 300, stockLevel: 340 }
+
+  it("on_hand_minus_allocated hides 40 real bowls and calls them oversold", () => {
+    const a = deriveAvailability([rebrandedRamenBowl], 'on_hand_minus_allocated')
+    expect(a.available).toBe(0)      // floored from -260
+    expect(a.oversold).toBe(true)    // and flagged, though nothing is wrong
+    // The honest answer is 40. A GM reading this would re-order something we hold.
+    expect(deriveAvailability([rebrandedRamenBowl], 'on_hand').available).toBe(40)
+  })
+
+  it('stock_level offers stock that is already spoken for', () => {
+    const fullyAllocated = { onHand: 0, allocated: 20, stockLevel: 20 }
+    expect(deriveAvailability([fullyAllocated], 'stock_level').available).toBe(20)
+    // Mercium could not ship any of those 20.
+    expect(deriveAvailability([fullyAllocated], 'on_hand').available).toBe(0)
+  })
+})

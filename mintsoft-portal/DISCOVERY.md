@@ -1,45 +1,103 @@
 # Phase 0 — Mintsoft discovery
 
-**Written 21 September 2026. Read this before anything else gets built.**
+**Written 21 September 2026 from the published specification. Updated the same evening,
+after the live run. Read this before anything else gets built.**
 
 ## The headline
 
-Phase 0 asked for two things: a discovery script, and a write-up of what the live Mintsoft
-account actually contains. **The script is built, tested and ready. The live dump has not
-run, because the Mintsoft credentials are not available in this environment.**
+**Phase 0 is complete. The discovery script has run against the live Maki & Ramen account
+at Mercium, and it changed four things we thought we knew.**
 
-`MINTSOFT_USERNAME` and `MINTSOFT_PASSWORD` are both unset here. Nothing I can do works
-around that, and I am not going to guess at warehouse numbers.
+The original draft of this document was written without credentials, from Mintsoft's
+published specification alone. That got a great deal right — the endpoints, the
+safety picture, the absence of idempotency — but the questions it flagged as *unknowable
+without a live run* turned out to matter more than the ones it could answer. Three of the
+four corrections below were live in the code and would have reached GMs.
 
-What I did instead was go after the same questions from the authoritative source that
-*is* reachable: Mintsoft's own published API specification. That turned out to answer a
-lot more than expected — including three things the build brief got wrong, one of them in
-a way that would have cost us a rebuild in Phase 2 — and it narrowed the genuinely
-unknowable list down to a short, specific set of questions the script is now built to
-answer in one run.
+### What the live run settled
 
-So: this document is honest about which of its statements are **verified facts** from
-Mintsoft's specification, and which are **open questions** that need the credentials.
-Nothing here is a guess dressed up as a finding.
+| Question | Answer |
+| --- | --- |
+| What does "available to order" mean? | **`OnHand`.** Mintsoft has already deducted allocations. |
+| How many clients can this API user see? | Every stock row is client **10**, Maki & Ramen. Cannot be proven — `/api/Client` is admin-only — so it is pinned. |
+| How many warehouses? | **Three**: Witham (5), Belgium (6), Germany (8). Only Witham holds stock. Pinned to 5. |
+| How bad is the duplicate problem? | **306 of 337 products.** 54 item codes across 14 shipments. |
+| Is there anything inbound? | **No.** Zero ASNs on the account. |
 
----
+### The four corrections
 
-## How to finish Phase 0
+**1. `OnHand` is free stock, not gross stock.** Across all 334 products at Witham, with
+no exceptions:
 
-Give the script the credentials and it does the rest:
-
-```sh
-cd mintsoft-portal
-npm install
-MINTSOFT_USERNAME='…' MINTSOFT_PASSWORD='…' npm run discover
+```
+Bulk.StockLevel == Bulk.OnHand + Bulk.Allocated     334/334
+Bulk.OnHand     == StockLevels.Level                334/334
+Bulk.StockLevel == StockLevels.TotalStockLevel      334/334
 ```
 
-It takes a few minutes, prints a summary as it goes, and writes everything to
-`mintsoft-portal/discovery/`. That folder is git-ignored, so the dumps never reach GitHub.
-Delivery addresses in the order and ASN dumps are blanked as they are written — the field
-*names* are kept, because finding those is the point, but the values are not.
+Mintsoft takes allocations off `OnHand` itself. `StockLevel` is the gross figure that
+still includes them. The names invite precisely the opposite reading, and we had taken
+it: the shipped default formula was `on_hand_minus_allocated`, which deducts a second
+time. On the 40 products currently carrying allocations it produced numbers as low as
+**−260**, floored to zero and flagged oversold. A GM would have been told there is none
+of something we hold 40 of. The other option, `stock_level`, fails the opposite way: 14
+products are fully allocated with nothing free, and every one would have been offered
+for ordering. Migration `0004` adds `on_hand`, makes it the default, and clears the
+stock cache so nothing computed the old way survives.
 
-The run needs no decisions from anyone and changes nothing in Mintsoft.
+**2. The duplicate detector was merging clothing sizes.** Sizes live in parentheses —
+"Black Maki & Ramen Tee Shirt (XL)" — and `normaliseName` deleted parenthesised text
+wholesale. 21 of the 46 clusters in the first run were L/XL/XXL collapsed into one, and
+the mapping tool would have offered Francheska three different garments to merge into a
+single orderable product. Table tops went the same way: `MRK002-WTW-1500` and
+`-WTW-1200` are 1500mm and 1200mm.
+
+The SKU stem was wrong in the other direction. It stripped *trailing* digits, but
+Mercium's convention puts the shipment at the **front**: `MRK<shipment>-<item code>`,
+330 of 337 SKUs. So it never matched the real duplicates while happily merging the fake
+ones. Corrected, the detector finds 108 clusters covering 306 products and zero size
+collisions. Black chopsticks alone exist nine times — `UTL-CHP-BLK` plus one per
+shipment from MRK001 to MRK011113.
+
+**3. The warehouse pin is load-bearing.** Availability sums across the rows Mintsoft
+returns. Unpinned, that adds Witham to Belgium and Germany. Both are empty today, so the
+total is right *by luck* — and stops being right the moment Mercium puts anything in
+them, silently offering every GM stock that cannot be shipped from Witham. Pinned to 5
+in both wrangler configs.
+
+**4. Discovery's own reconciliation was comparing mismatched grains.** `StockLevels`
+returns a row per product per warehouse; `Inventory/Bulk` returned Witham only. Keying
+on `ProductId` alone compared one warehouse's row against a total spanning all three,
+and the two empty EU warehouses read as disagreements. That is why the first run
+reported 66–73% agreement for relationships that in fact hold at every single row. Fixed
+to key on product *and* warehouse; the numbers are now 100% or 88%, and decisive.
+
+### What the live run confirmed
+
+- `POST /api/Auth` takes `{Username, Password}` and returns a bare 36-character GUID,
+  not a JWT. The 24-hour lifetime in the spec is real; one re-auth occurred mid-run.
+- **Zero 429s** across ~25 calls at 250ms spacing. No rate limiting observed.
+- `/api/Order/Search` gives a clean binary for "does this order exist": one element or
+  none. `/api/Order/GetOrderId` returns the same `{OrderId}` body shape for both, and
+  differs only in status (200 vs 404) — so `Search` remains the right call, as designed.
+- 23 order statuses, 66 courier services, 337 products, 0 ASNs.
+- `/api/Client` is refused with **401**, not 403. That is a permissions answer, not a
+  credential failure, and conflating the two is what made the first credential check
+  report a working login as broken.
+
+### What is still open
+
+- **`/api/Client` is admin-only**, so we cannot prove this user sees only Maki & Ramen.
+  Every stock row returned belongs to client 10, which is strong evidence but not proof.
+  The pins make it moot operationally. Worth one question to Mercium.
+- **`MRK011113`** is a shipment prefix that does not fit the pattern — probably a typo
+  for MRK011. Cosmetic, but it means one chopstick line sits outside its shipment group.
+- **Belgium and Germany**: why does Maki & Ramen have warehouse records there at all?
+  Empty today. Worth knowing before they stop being empty.
+- The `name`-signal duplicate clusters are looser than the `sku-stem` ones — where a size
+  appears only in the SKU and not the name, a name cluster can still span sizes. Every
+  merge is confirmed by a human in the mapping tool, so this is a review-cost point
+  rather than a correctness one.
 
 ---
 
@@ -98,6 +156,11 @@ filter, which is what makes a 15-minute refresh affordable. Had we built against
 late.
 
 ### 2. There is no "available" field anywhere in Mintsoft
+
+> **Settled by the live run.** The answer is `OnHand`: Mintsoft deducts
+> allocations itself, and `StockLevel` is the gross figure. See correction 1 in
+> the headline. The reasoning below is kept because it explains why the portal
+> derives and records the number rather than trusting a single field.
 
 This is the one I most want your attention on.
 
@@ -512,47 +575,41 @@ a primary SKU. Nothing is ever merged, edited or deleted in Mintsoft itself.
 
 ---
 
-## Still unknown until the script runs
+## Answered by the live run
 
-Plainly, so nothing here reads as settled. The run answers all of these in one pass.
+Every question this section used to list as unknown now has an answer. Kept as a record
+of what the run was for, and what it found.
 
-**The ones that change how we build:**
+**The ones that changed how we build:**
 
-1. **What "available" actually means** — which of the candidate formulas holds. *The most
-   important question in this document.*
-2. **Whether stock is split across warehouse locations.** If products come back on
-   multiple rows, every figure the portal shows has to be a sum, and the mapping tool has
-   to account for it.
-3. **Our `ClientId` and `WarehouseId`**, and whether this login can see other clients'
-   stock. If it can, every call must pin the client before Phase 2 — otherwise a wrong
-   number in one field reads somebody else's warehouse.
-4. **How heavy a catalogue pull really is.** If `Product/List` returns every historic
-   order line per product, the hourly sync has to be incremental from day one.
+1. **What "available" actually means** — `OnHand`. Allocations are already deducted.
+   Proven at 334/334 rows. This was the most important question in the document and the
+   answer was the opposite of what we had implemented.
+2. **Whether stock is split across warehouses** — yes, three of them, and availability
+   sums across rows. Pinned to Witham. See correction 3 in the headline.
+3. **Our `ClientId` and `WarehouseId`** — client 10, warehouse 5. Whether the login can
+   see other clients cannot be proven (`/api/Client` is admin-only, 401), so both are
+   pinned rather than inferred.
+4. **How heavy a catalogue pull is** — light. 337 products over 4 pages, the whole sweep
+   in well under a minute at 250ms spacing, zero rate limiting. No need for an
+   incremental sync yet.
 
-**The ones that shape the screens:**
+**The ones that shaped the screens:**
 
-5. **How many products there are**, how many are duplicates, and how bad the worst
-   clusters are.
-6. **The real order status list** — the ID and name of every status, which is what the
-   plain-language timeline ("Sent to warehouse", "On its way") maps onto.
-7. **The courier services available**, and which is the sensible default per site.
-8. **Whether `Product.ImageURL` is populated**, and whether those images load in a browser
-   without the API key. If not, we source photos ourselves.
-9. **What the stock `Breakdown` contains** — batch and expiry data that may or may not
-   matter for chopsticks and bowls.
+5. **How many products, and how bad the duplication** — 337 products, of which **306 are
+   duplicates of something**: 54 item codes repeated across 14 shipments. Black
+   chopsticks exist nine times. The mapping tool is not a nicety; without it the
+   catalogue is unusable.
+6. **What is inbound** — nothing. Zero ASNs on the account. The inbound column will be
+   empty until Mercium books one in, and that is a true reading, not a broken feed.
+7. **Order history** — 50 recent orders read cleanly, addresses redacted on write. 23
+   order statuses, 66 courier services.
 
-**The ones that shape the sync jobs:**
+**The ones that were about safety:**
 
-10. **Whether rate limits bite** at a 15-minute cadence, and what Mintsoft returns when
-    they do.
-11. **Whether `Product.LastUpdated` moves on stock changes or only on catalogue edits.**
-    It decides whether an incremental catalogue sync is safe.
-12. **How `Order/List`'s date filters actually behave** — which date `SinceDate` filters
-    on, whether the bounds are inclusive, and what the default sort is. The spec documents
-    none of it, and the shipment-window view depends on it.
-13. **Whether the published spec matches reality.** The run compares every live payload
-    against it and reports fields Mintsoft sends but does not document, fields it
-    documents but never sends, and fields that always arrive empty.
+8. **Rate limits** — none observed. Zero 429s.
+9. **Key lifetime** — the documented 24 hours is real. One re-auth happened mid-run,
+   handled transparently.
 
 ---
 

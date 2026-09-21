@@ -18,8 +18,17 @@
  *      surprising number on screen can see what it was worked out from.
  */
 
-/** Which formula to use. Set in settings, because Phase 0 could not settle it. */
-export type AvailableFormula = 'on_hand_minus_allocated' | 'stock_level'
+/**
+ * Which formula to use. Settled by discovery on 2026-09-21: 'on_hand' is correct, and
+ * is the default. The other two remain selectable so the decision is reversible, but a
+ * live read of all 334 Witham products showed both of them to be unsafe.
+ *
+ * Mintsoft's field names invite exactly the wrong reading. Across every product, with
+ * no exceptions, StockLevel == OnHand + Allocated. So OnHand is what is FREE — Mintsoft
+ * has already taken the allocations off — and StockLevel is the gross figure that still
+ * includes them. Deducting Allocated from OnHand takes it off twice.
+ */
+export type AvailableFormula = 'on_hand' | 'on_hand_minus_allocated' | 'stock_level'
 
 /** One row from Mintsoft's inventory feed, already narrowed to what we use. */
 export interface StockRow {
@@ -95,6 +104,28 @@ export function deriveAvailability(rows: StockRow[], formula: AvailableFormula):
 
   const onHand = total(rows, 'onHand')
   const allocated = total(rows, 'allocated')
+
+  if (formula === 'on_hand') {
+    if (onHand === null) {
+      return UNKNOWN('Mintsoft did not report stock on hand for every location.', rows.length)
+    }
+    // Allocated is reported alongside, and worth showing, but it is NOT subtracted:
+    // Mintsoft has already done that. It is carried here so the stock overview can say
+    // "40 free, 300 spoken for" rather than leaving the difference unexplained.
+    const across = rows.length === 1 ? '' : ` across ${rows.length} locations`
+    return {
+      available: Math.max(0, onHand),
+      onHand,
+      allocated,
+      basis: allocated
+        ? `${onHand} free to order${across}, with ${allocated} more held but already allocated.`
+        : `${onHand} free to order${across}.`,
+      // A negative OnHand would mean Mintsoft itself is reporting an impossible
+      // position, which is worth surfacing rather than hiding behind the floor.
+      oversold: onHand < 0,
+      rowsSeen: rows.length,
+    }
+  }
 
   if (onHand === null && allocated === null) {
     return UNKNOWN('Mintsoft reported neither stock on hand nor allocations.', rows.length)
