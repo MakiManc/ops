@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getMe, NotSignedIn, signOut, type Me } from './api.ts'
+import { ApprovalQueue } from './ApprovalQueue.tsx'
+import { Basket } from './Basket.tsx'
 import { Catalogue } from './Catalogue.tsx'
 import { Mapping } from './Mapping.tsx'
+import { MyOrders } from './MyOrders.tsx'
 import { SignIn } from './SignIn.tsx'
 import { StockOverview } from './StockOverview.tsx'
 
@@ -16,11 +19,12 @@ interface Screen { key: string; title: string; blurb: string; phase: number; rea
 
 const SCREENS: Record<Me['user']['role'], Screen[]> = {
   gm: [
-    { key: 'catalogue', title: 'Stock list', blurb: 'What your site can order, and how much is available.', phase: 2, ready: true },
-    { key: 'orders', title: 'My orders', blurb: 'Track what you have asked for and where it has got to.', phase: 4 },
+    { key: 'catalogue', title: 'Order stock', blurb: 'Browse what your site can order and build a request.', phase: 2, ready: true },
+    { key: 'basket', title: 'Current request', blurb: 'Check it over and send it for sign-off.', phase: 3, ready: true },
+    { key: 'orders', title: 'My orders', blurb: 'Track what you have asked for and where it has got to.', phase: 3, ready: true },
   ],
   approver: [
-    { key: 'queue', title: 'Approval queue', blurb: 'Requests waiting for sign-off, oldest first.', phase: 3 },
+    { key: 'queue', title: 'Approval queue', blurb: 'Requests waiting for sign-off, oldest first.', phase: 3, ready: true },
     { key: 'stock', title: 'Stock overview', blurb: 'What is on hand, allocated, inbound and how long it will last.', phase: 2, ready: true },
   ],
   admin: [
@@ -85,6 +89,13 @@ export function App({ googleClientId }: { googleClientId: string }) {
       if (!site) return <p className="text-gray-700">Your account is not linked to a site yet.</p>
       return <Catalogue siteId={site.id} />
     }
+    if (current?.key === 'basket') {
+      const site = me.sites[0]
+      if (!site) return <p className="text-gray-700">Your account is not linked to a site yet.</p>
+      return <Basket siteId={site.id} onSubmitted={() => setOpenScreen('orders')} />
+    }
+    if (current?.key === 'orders') return <MyOrders />
+    if (current?.key === 'queue') return <ApprovalQueue />
     if (current?.key === 'stock') return <StockOverview />
     if (current?.key === 'mapping') return <Mapping />
     return null
