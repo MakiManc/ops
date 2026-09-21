@@ -195,20 +195,45 @@ Reading the full specification turned up several endpoints and fields worth havi
 
 Three limitations worth knowing now rather than later:
 
-- **Products carry no creation date.** `Product` has `LastUpdated` but nothing recording
-  when a line was created, so "the duplicates from the last 7–9 shipments" cannot be
-  ordered by age directly. `Product.ID` is very likely a usable proxy for creation order,
-  but that is an assumption the discovery run should check rather than something to build
-  on. It also means duplicate detection has to work on names, SKU stems and barcodes —
-  which is what it does — rather than on "recently added".
+- **Products carry no creation date — but "the last 7–9 shipments" is still available.**
+  `Product` has `LastUpdated` and nothing recording when a line was created (across all 134
+  models, only `Batch.Created` and `Return.CreatedAt` exist). My first reading of that was
+  too pessimistic: I took it to mean duplicates could only be ranked by similarity, never
+  by recency. That is wrong, because the window you actually want is defined over
+  *shipments*, not over the product catalogue — and shipments are date-filterable.
+
+  `GET /api/ASN/List` takes `BookedInStartInterval` and `BookedInEndInterval` with
+  `IncludeASNItems`, and each `ASNItem` carries `ProductId`, `SKU`, `EAN`, `UPC` **and
+  `NAME` inline**. That is everything the duplicate finder needs, in the shipment line
+  itself, with no lookup back to the product record. `GET /api/Order/List` offers the same
+  on the outbound side (`SinceDate`, `ToDate`, `SinceDespatchDate`, `SortOldestFirst`),
+  though `OrderItem` carries no product name, so that path needs a join and the inbound one
+  does not.
+
+  So the Phase 2 mapping tool can honestly offer "products that arrived in the last N
+  shipments" rather than making you wade through the whole catalogue. The detection built
+  here still works on names, SKU stems and barcodes — that part stands — but it can now be
+  scoped to a real date window instead of running blind over everything.
 - **`Product` has no `Barcode` field.** It has `EAN` and `UPC` separately. Anything written
   against a `Barcode` field would silently read nothing.
-- **A catalogue pull may be much heavier than it looks.** `Product` nests
-  `OrderItems`, `ProductPrices`, `ProductSuppliers`, `ProductInCategories` and
-  `ProductCustomFields`. If `GET /api/Product/List` populates those — in particular
-  `OrderItems`, which is every order line ever placed for that product — a full pull could
-  be enormous. The discovery run measures the real response size, which decides whether the
-  hourly catalogue sync can pull the whole list or has to go incremental from day one.
+- **A catalogue pull is probably fine, but worth measuring once.** `Product` declares
+  nested `OrderItems`, `ProductPrices`, `ProductSuppliers`, `ProductInCategories` and
+  `ProductCustomFields`. I initially flagged this as a likely problem — if `OrderItems`
+  (every order line ever placed for that product) came back populated, a full pull would be
+  enormous. On a closer read it is much less likely than that, for three reasons.
+
+  In this API, nested collections are **opt-in**: `Order` declares `OrderItems` in exactly
+  the same way, and `Order/List` and `Order/Search` both gate it behind an
+  `IncludeOrderItems` flag that defaults to false, described as *"whether to populate the
+  order items"*. `Product/List` has no such flag at all, which is at least as consistent
+  with "never populated" as with "always populated". The `Product` graph is also cyclic
+  (`ProductGrowthRates.Product` points back at `Product`), so the server must prune these
+  navigation properties somewhere regardless. And `Limit` is capped at 100, so a single
+  page is bounded either way.
+
+  These look like artefacts of how Mintsoft generated its documentation rather than a real
+  payload. The run still measures the actual response size, because one live call settles
+  it — but this is a box to tick, not a redesign to plan for.
 
 Two more, about order lines and categories:
 
@@ -496,8 +521,9 @@ Plainly, so nothing here reads as settled. The run answers all of these in one p
     they do.
 11. **Whether `Product.LastUpdated` moves on stock changes or only on catalogue edits.**
     It decides whether an incremental catalogue sync is safe.
-12. **Whether `Product.ID` tracks creation order.** There is no created date, so this is
-    the only handle on "the duplicates from the last 7–9 shipments".
+12. **How `Order/List`'s date filters actually behave** — which date `SinceDate` filters
+    on, whether the bounds are inclusive, and what the default sort is. The spec documents
+    none of it, and the shipment-window view depends on it.
 13. **Whether the published spec matches reality.** The run compares every live payload
     against it and reports fields Mintsoft sends but does not document, fields it
     documents but never sends, and fields that always arrive empty.
@@ -581,7 +607,14 @@ says its items are excluded while also offering an `IncludeASNItems` flag — th
 recorded as a question for the live run rather than resolved by picking the reading I
 prefer.
 
-Two claims of my own needed correcting along the way, both worth naming:
+Every discrepancy in this document was then put to an independent adversarial check
+against the same specification — 21 checks in all, each one trying to refute the finding
+rather than confirm it. Nineteen came back upheld. Two came back as genuine corrections to
+things I had written, and both are now folded in above: the "last 7–9 shipments" window
+*is* implementable (via shipment dates, not product dates), and the catalogue-payload
+worry was materially overstated.
+
+Four claims of my own needed correcting along the way, all worth naming:
 
 - `Product/StockLevels/UpdatedSince` returns a list of product ids, not stock figures. An
   earlier draft implied otherwise.
@@ -592,3 +625,8 @@ Two claims of my own needed correcting along the way, both worth naming:
   specification carries real information in its descriptions as well as its structures:
   the page-size caps, the admin-only restriction on listing clients, and the warning that
   products with no inventory record are absent rather than zero all came from prose too.
+- An earlier draft said the missing product creation date meant duplicates could not be
+  ranked by recency. Wrong — the window is over shipments, and both the inbound and
+  outbound shipment lists are date-filterable.
+- An earlier draft presented the nested-collections payload risk as likely rather than
+  as the unlikely-but-cheap-to-check thing it is.
