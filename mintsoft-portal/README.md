@@ -55,8 +55,11 @@ npm test
 These are checked in `tests/readonly-guarantee.test.ts`, so they fail in CI rather than in
 the warehouse:
 
-- The discovery client issues only GETs, plus the one POST to `/api/Auth`. It implements
-  no write verb and names no write endpoint.
+- The discovery client works from an explicit allow-list of read endpoints and refuses
+  anything else before the request leaves the process. This matters more than it sounds:
+  around twenty of Mintsoft's state-changing operations are exposed as HTTP GETs
+  (`MarkDespatched`, `BookIn`, `Cancel`), so restricting a client to GET would not keep it
+  read-only. See `DISCOVERY.md`.
 - No credential or API key reaches a log or a dump.
 - Every address-bearing dump goes through the redactor.
 - `discovery/` stays git-ignored.

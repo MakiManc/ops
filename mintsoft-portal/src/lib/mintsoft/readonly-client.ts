@@ -1,16 +1,54 @@
 /**
  * A deliberately read-only Mintsoft client, used by Phase 0 discovery.
  *
- * This module can only issue GETs, plus the single POST to /api/Auth that exchanges
- * credentials for an API key. There is no code path here that can create, update or
- * delete anything in Mintsoft. That is a safety property of the module, not a
- * convention: the write verbs are simply not implemented.
+ * Restricting ourselves to GET is NOT sufficient safety on this API. Around twenty of
+ * Mintsoft's state-changing operations are exposed as HTTP GETs -- among them
+ * GET /api/Order/{id}/MarkDespatched, GET /api/ASN/{id}/BookIn and
+ * GET /api/Order/{id}/Cancel. A mistyped path or a copied snippet could book in a
+ * shipment or mark an order despatched, and the verb would look entirely innocent.
+ *
+ * So the guarantee here is not "we only use GET". It is an explicit allow-list: this
+ * client refuses to request any path that is not one of the named read endpoints below,
+ * and it refuses before the request goes out. The only non-GET is the POST to /api/Auth
+ * that exchanges credentials for a key.
  *
  * The portal's own client (Phase 2+) adds exactly one write — PUT /api/Order — behind
  * the MINTSOFT_WRITES_ENABLED flag and an approver check. Nothing else is ever written.
  */
 
 const BASE = 'https://api.mintsoft.co.uk'
+
+/**
+ * Every path this client is permitted to request. Read-only, and checked exactly.
+ *
+ * Adding to this list is a deliberate act. Before adding one, check it against the spec:
+ * a GET is not evidence that an endpoint is safe, since Mintsoft exposes Cancel, BookIn,
+ * Confirm and the whole Mark* family as GETs too.
+ */
+export const ALLOWED_READ_PATHS = Object.freeze([
+  '/api/Client',
+  '/api/Warehouse',
+  '/api/Product/List',
+  '/api/Product/StockLevels',
+  '/api/Product/Inventory/Bulk',
+  '/api/ASN/List',
+  '/api/Order/Statuses',
+  '/api/Order/List',
+  '/api/Order/Search',
+  '/api/Order/GetOrderId',
+  '/api/Courier/Services',
+])
+
+export class DisallowedEndpointError extends Error {
+  constructor(path: string) {
+    super(
+      `Refusing to call ${path}: it is not on the read-only allow-list. ` +
+        'If this endpoint is genuinely read-only, add it to ALLOWED_READ_PATHS deliberately ' +
+        '— and check the spec first, because many Mintsoft writes are GETs.',
+    )
+    this.name = 'DisallowedEndpointError'
+  }
+}
 
 export interface RequestLog {
   path: string
@@ -101,6 +139,10 @@ export class MintsoftReadOnlyClient {
     query: Record<string, string | number | boolean | undefined> = {},
     { retriedAuth = false, retriedRateLimit = 0 } = {},
   ): Promise<{ data: T | null; status: number; ms: number; raw: string }> {
+    // Checked before anything else, and before the key is even fetched: a path that is
+    // not on the list never reaches the network.
+    if (!ALLOWED_READ_PATHS.includes(path)) throw new DisallowedEndpointError(path)
+
     if (!this.key) await this.authenticate()
 
     const url = new URL(path, BASE)

@@ -216,6 +216,39 @@ Two more, about order lines and categories:
 
 ---
 
+## The most important safety finding: GET is not a safe verb here
+
+This one is worth reading even if you skip the rest.
+
+The normal assumption when working with an API is that `GET` reads and `POST`/`PUT`/
+`DELETE` write, so restricting a client to `GET` makes it safe. **On the Mintsoft API that
+assumption is false.** Around twenty state-changing operations are exposed as plain `GET`
+requests, including:
+
+```
+GET /api/Order/{id}/MarkDespatched        GET /api/ASN/{id}/BookIn
+GET /api/Order/{id}/Cancel                GET /api/ASN/{id}/Confirm
+GET /api/Order/{id}/MarkConfirmed         GET /api/ASN/{id}/MarkPutAwayComplete
+GET /api/WarehouseTransfer/{id}/Confirm   GET /api/ASN/{id}/PartBook
+```
+
+So a mistyped path, a copied snippet, or a helpful-looking "fetch the order and mark it
+read" could book in a shipment or mark an order despatched — and the request would look
+completely innocent in a log, because it is a GET.
+
+The brief's hard rules say never to create an ASN and never to write outside the single
+approved order. Those rules are sound, but "only issue GETs" is not how to keep them.
+
+**So the discovery client now works from an explicit allow-list of eleven named read
+endpoints, and refuses anything else before the request leaves the process** — it will not
+even spend an authentication on a disallowed path. Adding to that list is a deliberate
+act, and the tests check the list itself for anything that looks like a write.
+
+I would suggest Phase 2 and Phase 3 keep exactly the same discipline: name the endpoints
+the portal may call, refuse the rest, and treat the verb as telling you nothing.
+
+---
+
 ## Honest stock numbers: three traps
 
 The brief is firm that stock figures must be honest — every number stamped with when it
