@@ -73,6 +73,11 @@ npm test
 npm run build
 ```
 
+## Deploying
+
+Not deployed yet — it needs a Cloudflare account and a Google OAuth client id. See
+[DEPLOY.md](DEPLOY.md) for the one-time setup.
+
 ## How access works
 
 Sign-in is Google, from any domain — site logins are often shared gmail accounts, so
