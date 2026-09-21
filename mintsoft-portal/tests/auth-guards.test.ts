@@ -191,3 +191,41 @@ describe('site ids from the URL', () => {
     }
   })
 })
+
+describe('the guard patterns cover what we think they cover', () => {
+  /**
+   * These pin behaviour we rely on but do not own. The middleware is attached by path
+   * pattern, so if a future Hono version changed how ':siteId/*' matches, a route could
+   * quietly fall outside its guard and nothing else in this suite would notice.
+   */
+
+  it('guards a site route with no trailing segment, not just deeper ones', async () => {
+    // '/sites/:siteId/*' has to cover '/sites/1' itself, or a route added there later
+    // would be unguarded the day someone writes it.
+    const res = await get('/api/sites/2', await as(GM))
+    expect(res.status).not.toBe(200)
+  })
+
+  it('cannot be dodged by changing the case of the path', async () => {
+    const res = await get('/api/ADMIN/settings', await as(GM))
+    expect(res.status).toBe(404)
+  })
+
+  it('cannot be dodged with a doubled slash', async () => {
+    const res = await get('/api//admin/settings', await as(GM))
+    expect(res.status).toBe(404)
+  })
+
+  it('cannot be dodged with a trailing slash', async () => {
+    const res = await get('/api/admin/settings/', await as(GM))
+    expect(res.status).not.toBe(200)
+  })
+
+  it('leaves no protected route reachable without a session', async () => {
+    // A blunt sweep: every route the app registers, called with no cookie at all.
+    for (const path of ['/api/me', '/api/sites', '/api/sites/1/catalogue',
+                        '/api/approvals/queue', '/api/admin/settings']) {
+      expect((await get(path)).status, path).toBe(401)
+    }
+  })
+})
