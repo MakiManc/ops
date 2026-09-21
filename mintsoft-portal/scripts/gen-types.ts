@@ -16,7 +16,7 @@ const OUT = new URL('../src/lib/mintsoft/types.ts', import.meta.url)
 /** The models the portal actually touches. Their dependencies are pulled in automatically. */
 const SEED = [
   'MintsoftAuthRequest', 'Product', 'ProductCategory', 'StockLevel', 'StockLevelBreakdown',
-  'BulkInventoryItem', 'InventoryItem', 'ASN', 'ASNItem', 'ASNStatus', 'Order', 'OrderItem',
+  'BulkInventoryItem', 'InventoryItem', 'InventoryPreOrderBreakdown', 'ASN', 'ASNItem', 'ASNStatus', 'Order', 'OrderItem',
   'OrderStatus', 'OrderShipment', 'OrderShipmentTrackingEvent', 'CourierService',
   'NewOrderWithItems', 'NewOrderItem', 'NewOrderResult', 'NewOrderResultItems', 'Client', 'Warehouse',
 ]

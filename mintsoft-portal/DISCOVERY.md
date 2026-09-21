@@ -132,6 +132,19 @@ that is a finding too, and it needs a conversation with Mercium before Phase 2 p
 
 **Until that is settled, the portal shows no stock number to anybody.**
 
+There is one more source worth weighing, which I nearly dismissed too early.
+`GET /api/Product/{id}/Inventory/PreOrderBreakdown/All` returns the only model in the API
+that states a *view* rather than a raw count: alongside the usual numbers it carries
+**`OutOfStock`** — Mintsoft's own judgement about whether a product can be ordered — and
+**`ETAForNewOrders`**, its own answer to when more is coming. Neither can be derived from
+the stock feeds.
+
+It is per-product, so it is far too expensive to drive the catalogue. But it is the
+closest thing to a second opinion we have, so the run samples a handful of products and
+compares. If `OutOfStock` disagrees with whichever formula the reconciliation picks, the
+formula is wrong and the question re-opens — and `ETAForNewOrders` may turn out to be a
+better source for the "Inbound + date" chip than working it out from ASN lines.
+
 There is a second trap alongside it. `BulkInventoryItem` carries a `LocationId`, which
 means one product can come back on **several rows — one per warehouse location**. Any code
 that keys those rows by product and keeps the last one would show a single bin's stock as
@@ -301,9 +314,14 @@ would look completely normal on screen.
 ### The portal's "available to order" is its own bookkeeping, not Mintsoft's
 
 The brief defines available to order as the mapped stock minus quantities in other
-submitted-but-unapproved requests. **Mintsoft has no concept of that second term.** It has
-no soft reservation, no pending-order hold — its `Allocated` figure only moves once a real
-order exists in the warehouse.
+submitted-but-unapproved requests. **Mintsoft has no concept of that second term.** There
+is no soft reservation and no pending-order hold anywhere in the API — nothing that would
+let us tell Mintsoft "this stock is spoken for, but not yet ordered".
+
+A caveat on my own wording here: an earlier draft said Mintsoft's `Allocated` figure "only
+moves once a real order exists in the warehouse". That is a reasonable guess, but it is a
+guess — **the specification never defines what `Allocated` means**, on any of the fourteen
+models that carry it. It is exactly why the question for Mercium below is worth asking.
 
 So that subtraction happens entirely in our own database, and it has a consequence worth
 being deliberate about: between two sites requesting the same item, Mintsoft will keep

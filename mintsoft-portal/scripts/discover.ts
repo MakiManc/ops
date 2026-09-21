@@ -23,7 +23,8 @@ import {
   compareToSpec, fieldReport, findDuplicates, inspectKeyShape, reconcileStock, redact,
 } from '../src/lib/mintsoft/discovery-analysis.ts'
 import type {
-  ASN, BulkInventoryItem, Client, CourierService, Order, OrderStatus, Product, StockLevel, Warehouse,
+  ASN, BulkInventoryItem, Client, CourierService, InventoryPreOrderBreakdown, Order, OrderStatus,
+  Product, StockLevel, Warehouse,
 } from '../src/lib/mintsoft/types.ts'
 
 const OUT = new URL('../discovery/', import.meta.url)
@@ -105,6 +106,54 @@ async function probeOrderLookup(
       'exist" from "I could not tell". Only the first two are safe to act on. A 404 from ' +
       'GetOrderId means not-found OR not-accessible, so it is not on its own permission to ' +
       'create the order again.',
+  }
+}
+
+
+/**
+ * Asks Mintsoft directly whether a handful of products are orderable.
+ *
+ * InventoryPreOrderBreakdown is the one model in the API that states a view rather than a
+ * raw count: OutOfStock is Mintsoft's own judgement, and ETAForNewOrders is its own answer
+ * to "when can I have more". Neither can be derived from the stock feeds, and the spec
+ * never defines what Allocated means, so this is the closest thing to a second opinion on
+ * the availability question.
+ *
+ * It is per-product, so it is far too expensive to drive a catalogue. A sample is enough
+ * to tell us whether it agrees with whichever formula the reconciliation picks.
+ */
+async function probeOrderability(client: MintsoftReadOnlyClient, productIds: number[]) {
+  const rows = []
+  for (const id of productIds) {
+    const { data, status } = await client.get<InventoryPreOrderBreakdown[]>(
+      `/api/Product/${id}/Inventory/PreOrderBreakdown/All`,
+    )
+    if (!Array.isArray(data)) {
+      rows.push({ ProductId: id, status, note: 'no data' })
+      continue
+    }
+    for (const r of data) {
+      rows.push({
+        ProductId: r.ProductId ?? id,
+        SKU: r.SKU,
+        WarehouseId: r.WarehouseId,
+        StockLevel: r.StockLevel,
+        OutOfStock: r.OutOfStock,
+        PreOrderable: r.PreOrderable,
+        OnOrder: r.OnOrder,
+        RequiredByBackOrder: r.RequiredByBackOrder,
+        AvailableForPreOrder: r.AvailableForPreOrder,
+        ETAForNewOrders: r.ETAForNewOrders,
+      })
+    }
+  }
+  return {
+    sampled: productIds.length,
+    rows,
+    note:
+      'OutOfStock and ETAForNewOrders are Mintsoft stating a view, not a raw count. If ' +
+      'OutOfStock disagrees with the formula the reconciliation picks, trust this and ' +
+      're-open the question.',
   }
 }
 
@@ -219,6 +268,11 @@ async function main() {
     console.log(`  ${String(r.status).padEnd(3)} ${r.label.padEnd(24)} ${JSON.stringify(r.shape).slice(0, 90)}`)
   }
 
+  console.log('\nAsking Mintsoft whether a sample of products is orderable…')
+  const sampleIds = products.items.map((p) => p.ID).filter((id): id is number => id != null).slice(0, 8)
+  const orderability = await probeOrderability(client, sampleIds)
+  console.log(`  sampled ${orderability.sampled} product(s), ${orderability.rows.length} row(s)`)
+
   // ---- analysis -----------------------------------------------------------------
 
   const duplicates = findDuplicates(products.items)
@@ -279,6 +333,7 @@ async function main() {
       compareToSpec('CourierService', couriers as unknown as Record<string, unknown>[]),
     ].filter((r) => r.rowsSeen > 0),
     orderLookup,
+    orderability,
     stockSemantics,
     duplicates: { ...duplicates, clusters: undefined, exampleClusters: duplicates.examples },
     orderStatusValues: orderStatuses.map((s) => ({ ID: s.ID, Name: s.Name, ExternalName: s.ExternalName })),

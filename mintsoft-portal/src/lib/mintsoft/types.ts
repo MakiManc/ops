@@ -36,6 +36,16 @@ export interface ASN {
   LastUpdatedByUser?: string;
 }
 
+export interface ASNBreakdown {
+  Quantity?: number;
+  ASNId?: number;
+  ProductId?: number;
+  SKU?: string;
+  Reference?: string;
+  Shipped?: boolean;
+  ExpectedDeliveryDate?: string; // date-time
+}
+
 export interface ASNItem {
   ASNId?: number;
   ProductId?: number;
@@ -225,6 +235,20 @@ export interface InventoryItem {
   ID?: number;
   LastUpdated?: string; // date-time
   LastUpdatedByUser?: string;
+}
+
+export interface InventoryPreOrderBreakdown {
+  ProductId?: number;
+  SKU?: string;
+  StockLevel?: number;
+  OutOfStock?: boolean;
+  PreOrderable?: boolean;
+  WarehouseId?: number;
+  OnOrder?: number;
+  RequiredByBackOrder?: number;
+  AvailableForPreOrder?: number;
+  ETAForNewOrders?: string; // date-time
+  Breakdown?: ASNBreakdown[];
 }
 
 export interface MintsoftAuthRequest {
@@ -776,6 +800,7 @@ export interface WarehouseReferenceField {
 /** Field names each model declares, per the published spec. Generated alongside the types. */
 export const SPEC_FIELDS: Record<string, readonly string[]> = {
   ASN: ['CLIENTSHORTNAME', 'POReference', 'Supplier', 'ProductSupplierId', 'ProductSupplier', 'EstimatedDelivery', 'EstimatedTimeToDock', 'WarehouseBookedDate', 'BookedInDate', 'Comments', 'GoodsInType', 'Quantity', 'ASNStatus', 'ASNStatusId', 'Shipped', 'HoursLogged', 'Items', 'WarehouseId', 'ClientId', 'ID', 'LastUpdated', 'LastUpdatedByUser'],
+  ASNBreakdown: ['Quantity', 'ASNId', 'ProductId', 'SKU', 'Reference', 'Shipped', 'ExpectedDeliveryDate'],
   ASNItem: ['ASNId', 'ProductId', 'QuantityExpected', 'QuantityReceieved', 'QuantityBooked', 'OnOrder', 'SSCCNumber', 'Complete', 'Comments', 'SourceLineId', 'ASNItemNameValues', 'SKU', 'EAN', 'UPC', 'NAME', 'HasSerialNumber', 'HasExpiryDate', 'HasBatchNumber', 'ProductImageURL', 'ASNItemAllocations', 'ID', 'LastUpdated', 'LastUpdatedByUser'],
   ASNItemAllocation: ['ASNItemId', 'Quantity', 'LocationId', 'ExpiryDate', 'BatchNo', 'SerialNo', 'Complete', 'RobotPutaway', 'StorageItemId', 'ProductId', 'SKU', 'ID', 'LastUpdated', 'LastUpdatedByUser'],
   ASNItemNameValue: ['ID', 'LastUpdated', 'LastUpdatedByUser'],
@@ -789,6 +814,7 @@ export const SPEC_FIELDS: Record<string, readonly string[]> = {
   CourierService: ['CourierServiceTypeId', 'Name', 'TrackingURL', 'ActiveB', 'ID', 'LastUpdated', 'LastUpdatedByUser'],
   Currency: ['Name', 'Code', 'Symbol', 'ID', 'LastUpdated', 'LastUpdatedByUser'],
   InventoryItem: ['ProductId', 'StockLevel', 'Allocated', 'OnHand', 'OffHand', 'AwaitingReplen', 'OnOrder', 'RequiredByBackOrder', 'InQuarantine', 'InTransit', 'InTransition', 'Scrapped', 'SKU', 'WarehouseId', 'LocationId', 'Breakdown', 'ID', 'LastUpdated', 'LastUpdatedByUser'],
+  InventoryPreOrderBreakdown: ['ProductId', 'SKU', 'StockLevel', 'OutOfStock', 'PreOrderable', 'WarehouseId', 'OnOrder', 'RequiredByBackOrder', 'AvailableForPreOrder', 'ETAForNewOrders', 'Breakdown'],
   MintsoftAuthRequest: ['Username', 'Password'],
   NewOrderConnectAction: ['Type', 'SourceOrderId', 'Complete', 'AccountId', 'ExtraCode1', 'ExtraCode2', 'ExtraCode3', 'ExtraCode4', 'ExtraCode5', 'ExtraFlag1', 'ExtraFlag2', 'Messages', 'ExtraDate1'],
   NewOrderItem: ['SKU', 'ProductId', 'Quantity', 'Details', 'UnitPrice', 'UnitPriceVat', 'Discount', 'OrderItemNameValues', 'WarehouseId', 'RequestedSerialNo', 'RequestedBatchNo', 'RequestedBBEDate'],

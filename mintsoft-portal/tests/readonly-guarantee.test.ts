@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  ALLOWED_READ_PATHS, DisallowedEndpointError, MintsoftReadOnlyClient,
+  ALLOWED_READ_PATHS, ALLOWED_READ_PATTERNS, DisallowedEndpointError, MintsoftReadOnlyClient,
+  isAllowedReadPath,
 } from '../src/lib/mintsoft/readonly-client.ts'
 
 /**
@@ -60,6 +61,43 @@ describe('the allow-list', () => {
 
   it('is frozen, so it cannot be widened at runtime', () => {
     expect(Object.isFrozen(ALLOWED_READ_PATHS)).toBe(true)
+    expect(Object.isFrozen(ALLOWED_READ_PATTERNS)).toBe(true)
+  })
+})
+
+describe('the id-bearing read patterns', () => {
+  it('allows only the two per-product reads they are meant to allow', () => {
+    expect(isAllowedReadPath('/api/Product/4021/Inventory')).toBe(true)
+    expect(isAllowedReadPath('/api/Product/4021/Inventory/PreOrderBreakdown/All')).toBe(true)
+  })
+
+  it('does not let an id in the path become a way to reach a write', () => {
+    for (const path of [
+      '/api/Product/4021',                       // DELETE target; not a read we permit
+      '/api/Product/4021/Cartons',
+      '/api/Order/4021/Cancel',
+      '/api/Order/4021/MarkDespatched',
+      '/api/ASN/4021/BookIn',
+      '/api/Product/4021/Inventory/PreOrderBreakdown', // single-warehouse form, not allowed
+    ]) {
+      expect(isAllowedReadPath(path), `${path} must not be allowed`).toBe(false)
+    }
+  })
+
+  it('anchors the patterns so nothing can be appended or prefixed', () => {
+    expect(isAllowedReadPath('/api/Product/1/Inventory/../../Order/1/Cancel')).toBe(false)
+    expect(isAllowedReadPath('/evil/api/Product/1/Inventory')).toBe(false)
+    expect(isAllowedReadPath('/api/Product/1/InventoryX')).toBe(false)
+  })
+
+  it('requires a numeric id, not an arbitrary segment', () => {
+    expect(isAllowedReadPath('/api/Product/anything/Inventory')).toBe(false)
+  })
+
+  it('refuses a disallowed id-bearing path at the client, before the network', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+    await expect(client().get('/api/Order/7/Cancel')).rejects.toThrow(DisallowedEndpointError)
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 })
 

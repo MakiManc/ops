@@ -39,6 +39,19 @@ export const ALLOWED_READ_PATHS = Object.freeze([
   '/api/Courier/Services',
 ])
 
+/**
+ * Read endpoints that carry an id in the path. Same rule as the exact list: named
+ * explicitly, and nothing else gets through. Kept separate so the exact-match list stays
+ * the simple thing it is.
+ */
+export const ALLOWED_READ_PATTERNS: readonly RegExp[] = Object.freeze([
+  /^\/api\/Product\/\d+\/Inventory$/,
+  /^\/api\/Product\/\d+\/Inventory\/PreOrderBreakdown\/All$/,
+])
+
+export const isAllowedReadPath = (path: string) =>
+  ALLOWED_READ_PATHS.includes(path) || ALLOWED_READ_PATTERNS.some((re) => re.test(path))
+
 export class DisallowedEndpointError extends Error {
   constructor(path: string) {
     super(
@@ -141,7 +154,7 @@ export class MintsoftReadOnlyClient {
   ): Promise<{ data: T | null; status: number; ms: number; raw: string }> {
     // Checked before anything else, and before the key is even fetched: a path that is
     // not on the list never reaches the network.
-    if (!ALLOWED_READ_PATHS.includes(path)) throw new DisallowedEndpointError(path)
+    if (!isAllowedReadPath(path)) throw new DisallowedEndpointError(path)
 
     if (!this.key) await this.authenticate()
 
