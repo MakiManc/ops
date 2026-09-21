@@ -1,0 +1,89 @@
+name: Mintsoft portal tests
+
+# Ross, 21/09/2026. The portal's suite covers things that are cheap to get
+# wrong and expensive to find out about later, so it needs to run without
+# anyone remembering to run it - the same reasoning as dashboard_tests.yml.
+#
+# WHAT THIS SUITE IS ACTUALLY GUARDING
+#   Most of it is ordinary unit testing, but three of the assertions are there
+#   to stop a specific kind of accident:
+#
+#   1. The discovery client must never write to Mintsoft. That is asserted
+#      against the source itself - only GETs, plus the one POST that exchanges
+#      credentials for a key, and no write endpoint named anywhere. If someone
+#      later adds a write to the read path, this goes red here rather than in
+#      Mercium's warehouse.
+#   2. No credential and no API key may reach a log or a dump, and every dump
+#      that can carry a delivery address goes through the redactor.
+#   3. Lists must not truncate silently. A short list that says nothing is
+#      worse than one that fails, because it looks like an answer.
+#
+# WHY IT IS A SEPARATE FILE FROM dashboard_tests.yml
+#   mintsoft-portal/ is its own npm package with its own lockfile. Folding it
+#   into the dashboard job would mean one lockfile check standing in for two
+#   trees. It also needs no browser and no python, so it runs in well under a
+#   minute on its own.
+#
+# WHY THE PATH FILTER
+#   Nothing outside mintsoft-portal/ can affect this result, so a bake commit
+#   or a health push should not spend a runner on it.
+
+on:
+  push:
+    branches: [main]
+    paths: ["mintsoft-portal/**", ".github/workflows/mintsoft_portal_tests.yml"]
+  pull_request:
+    paths: ["mintsoft-portal/**", ".github/workflows/mintsoft_portal_tests.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: mintsoft-portal-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: mintsoft-portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mintsoft-portal/package-lock.json
+
+      # npm ci, not npm install: the lockfile is committed, so CI should fail
+      # on drift rather than quietly resolving something else.
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      # The API models are generated from Mintsoft's published spec. If that
+      # spec changes shape - a field renamed, a model withdrawn - we want to
+      # hear about it here rather than from a sync job returning nothing.
+      #
+      # This reads a public URL and needs no credentials. It is allowed to
+      # fail without failing the build, because Mintsoft being unreachable is
+      # not a reason to block a pull request; the point is the warning.
+      - name: Check the generated models still match Mintsoft's spec
+        continue-on-error: true
+        run: |
+          npm run gen:types
+          if ! git diff --quiet -- src/lib/mintsoft/types.ts; then
+            echo "::warning::Mintsoft's published spec no longer matches the committed models."
+            echo "Run 'npm run gen:types' in mintsoft-portal/ and review the diff."
+            git diff --stat -- src/lib/mintsoft/types.ts
+          else
+            echo "Generated models match the published spec."
+          fi
