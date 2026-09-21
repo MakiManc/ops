@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { MintsoftReadOnlyClient } from '../src/lib/mintsoft/readonly-client.ts'
-import { syncCatalogue, syncInbound, syncStock } from '../src/server/sync/jobs.ts'
+import { syncCatalogue, syncInbound, syncOrderStatus, syncStock } from '../src/server/sync/jobs.ts'
 import { lastSuccessfulSyncs, runSync } from '../src/server/sync/runner.ts'
 import type { Database } from '../src/server/db/repo.ts'
 import { FakeD1 } from './helpers/d1.ts'
@@ -28,6 +28,13 @@ function stubClient(pages: Record<string, unknown[]>): MintsoftReadOnlyClient {
 }
 
 const rows = (sql: string) => fake.sqlite.prepare(sql).all() as Record<string, unknown>[]
+
+/** A Mintsoft whose order search returns these rows. */
+function stubSearch(orders: unknown[], status = 200): MintsoftReadOnlyClient {
+  return {
+    async get<T>() { return { data: orders as T, status, ms: 1, raw: '' } },
+  } as unknown as MintsoftReadOnlyClient
+}
 
 describe('stock sync', () => {
   it('writes what is free, with an explanation attached', async () => {
@@ -243,5 +250,74 @@ describe('when Mintsoft changes the shape of what it reports', () => {
     // 7002 keeps its row and its old timestamp: we have not heard about it, which is
     // not the same as it being gone.
     expect(rows(`SELECT COUNT(*) AS n FROM stock_cache WHERE mintsoft_product_id = 7002`)[0]).toEqual({ n: 1 })
+  })
+})
+
+describe('reading back what the warehouse did', () => {
+  const postedOrder = (id: number, number: string) => {
+    fake.exec(`INSERT INTO sites (id, code, name, type) VALUES (${id}, 'S${id}', 'Site ${id}', 'restaurant')`)
+    fake.exec(`INSERT INTO orders (id, order_number, site_id, type, status, mintsoft_order_id)
+               VALUES (${id}, '${number}', ${id}, 'replenishment', 'posted', ${8800 + id})`)
+  }
+
+  it('marks an order despatched and keeps the tracking link Mintsoft supplies', async () => {
+    postedOrder(1, 'MR-S1-001')
+    const client = stubSearch([{
+      OrderNumber: 'MR-S1-001', ID: 8801, DespatchDate: '2026-09-22T09:00:00Z',
+      TrackingNumber: 'DPD123', TrackingURL: 'https://dpd.example/DPD123',
+    }])
+    const out = await syncOrderStatus(db, client)
+    expect(out.rowsWritten).toBe(1)
+    expect(rows(`SELECT status, despatched_at, tracking_url FROM orders WHERE id = 1`)[0]).toMatchObject({
+      status: 'despatched', despatched_at: '2026-09-22T09:00:00Z',
+      // Mintsoft computes the finished link itself; there is no template to assemble.
+      tracking_url: 'https://dpd.example/DPD123',
+    })
+  })
+
+  it('records the despatch in the order\'s trail', async () => {
+    postedOrder(1, 'MR-S1-001')
+    await syncOrderStatus(db, stubSearch([{ OrderNumber: 'MR-S1-001', ID: 8801, DespatchDate: '2026-09-22T09:00:00Z' }]))
+    expect(rows(`SELECT event, actor FROM order_events WHERE order_id = 1`)[0])
+      .toMatchObject({ event: 'despatched', actor: 'system' })
+  })
+
+  it('leaves an order alone while it is still being picked', async () => {
+    postedOrder(1, 'MR-S1-001')
+    await syncOrderStatus(db, stubSearch([{ OrderNumber: 'MR-S1-001', ID: 8801 }]))
+    expect(rows(`SELECT status FROM orders WHERE id = 1`)[0]).toEqual({ status: 'posted' })
+  })
+
+  it('takes tracking that arrives before the despatch date', async () => {
+    postedOrder(1, 'MR-S1-001')
+    await syncOrderStatus(db, stubSearch([{
+      OrderNumber: 'MR-S1-001', ID: 8801, TrackingNumber: 'DPD123', TrackingURL: 'https://dpd.example/DPD123',
+    }]))
+    const row = rows(`SELECT status, tracking_url FROM orders WHERE id = 1`)[0]!
+    expect(row.status).toBe('posted')
+    expect(row.tracking_url).toBe('https://dpd.example/DPD123')
+  })
+
+  it('says which orders it could not read rather than leaving them looking checked', async () => {
+    postedOrder(1, 'MR-S1-001')
+    const out = await syncOrderStatus(db, stubSearch([]))
+    // Not being able to read an order is not evidence about it.
+    expect(out.detail).toMatch(/could not read 1 order/)
+    expect(rows(`SELECT status FROM orders WHERE id = 1`)[0]).toEqual({ status: 'posted' })
+  })
+
+  it('never claims a delivery, because Mintsoft cannot confirm one', async () => {
+    postedOrder(1, 'MR-S1-001')
+    await syncOrderStatus(db, stubSearch([{
+      OrderNumber: 'MR-S1-001', ID: 8801, DespatchDate: '2026-09-22T09:00:00Z',
+      DeliveryDate: '2026-09-23T10:00:00Z',   // present on create models only; not a confirmation
+    }]))
+    expect(rows(`SELECT status FROM orders WHERE id = 1`)[0]).toEqual({ status: 'despatched' })
+  })
+
+  it('does nothing when no order is waiting on the warehouse', async () => {
+    const out = await syncOrderStatus(db, stubSearch([]))
+    expect(out).toMatchObject({ rowsWritten: 0 })
+    expect(out.detail).toMatch(/No orders are waiting/)
   })
 })

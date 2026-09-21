@@ -11,7 +11,7 @@
  * is the truth, while deleting it would assert something we do not know.
  */
 import type { MintsoftReadOnlyClient } from '../../lib/mintsoft/readonly-client.ts'
-import type { ASN, BulkInventoryItem, Product } from '../../lib/mintsoft/types.ts'
+import type { ASN, BulkInventoryItem, Order, Product } from '../../lib/mintsoft/types.ts'
 import type { Database } from '../db/repo.ts'
 import { deriveAvailability, type AvailableFormula, type StockRow } from './availability.ts'
 import { chunk, type SyncOutcome } from './runner.ts'
@@ -207,4 +207,86 @@ export async function syncCatalogue(
     rowsWritten: statements.length,
     detail: truncated ? 'stopped at the page ceiling — some products were not read' : undefined,
   }
+}
+
+/**
+ * Reads back what the warehouse has done with orders we sent.
+ *
+ * Only orders the portal posted and has not seen leave the building are checked, so the
+ * 15-minute job stays small however long the order history gets.
+ *
+ * It stops at despatched. Mintsoft's order record carries a DespatchDate but nothing at
+ * all to confirm a delivery -- the only DeliveryDate in the API is on the create models,
+ * a date you ask for rather than one that happened -- so the portal does not claim one.
+ */
+export async function syncOrderStatus(
+  db: Database,
+  client: MintsoftReadOnlyClient,
+  scope: Scope = {},
+): Promise<SyncOutcome> {
+  const { results: open } = await db
+    .prepare(
+      `SELECT id, order_number, mintsoft_order_id FROM orders
+        WHERE status = 'posted' AND mintsoft_order_id IS NOT NULL`,
+    )
+    .all<{ id: number; order_number: string; mintsoft_order_id: number }>()
+
+  if (!open?.length) return { rowsWritten: 0, detail: 'No orders are waiting on the warehouse.' }
+
+  const syncedAt = nowIso()
+  const statements: ReturnType<Database['prepare']>[] = []
+  let despatched = 0
+  const unreadable: string[] = []
+
+  for (const order of open) {
+    const { data, status } = await client.get<Order[]>('/api/Order/Search', {
+      OrderNumber: order.order_number, exactMatch: true,
+    })
+
+    if (status !== 200 || !Array.isArray(data)) {
+      // Not being able to read an order is not evidence about it. Say so rather than
+      // leaving it looking checked.
+      unreadable.push(order.order_number)
+      continue
+    }
+
+    const match = data.find((o) => o.OrderNumber === order.order_number)
+    if (!match) { unreadable.push(order.order_number); continue }
+
+    if (match.DespatchDate) {
+      despatched++
+      statements.push(
+        db.prepare(
+          `UPDATE orders SET status = 'despatched', despatched_at = ?,
+                  tracking_number = ?, tracking_url = ?, updated_at = ?
+             WHERE id = ? AND status = 'posted'`,
+        ).bind(
+          match.DespatchDate,
+          match.TrackingNumber ?? null,
+          // Mintsoft computes the finished tracking link itself; there is no courier
+          // template to assemble.
+          match.TrackingURL ?? null,
+          syncedAt, order.id,
+        ),
+        db.prepare(
+          `INSERT INTO order_events (order_id, actor, event, detail, at) VALUES (?, 'system', 'despatched', ?, ?)`,
+        ).bind(order.id, JSON.stringify({ despatchedAt: match.DespatchDate, tracking: match.TrackingNumber ?? null }), syncedAt),
+      )
+    } else if (match.TrackingNumber && match.TrackingURL) {
+      // Tracking can appear before the despatch date does.
+      statements.push(
+        db.prepare(`UPDATE orders SET tracking_number = ?, tracking_url = ?, updated_at = ? WHERE id = ?`)
+          .bind(match.TrackingNumber, match.TrackingURL, syncedAt, order.id),
+      )
+    }
+  }
+
+  for (const group of chunk(statements, BATCH)) await db.batch(group)
+
+  const notes: string[] = []
+  if (despatched) notes.push(`${despatched} order(s) have left the warehouse`)
+  if (unreadable.length) {
+    notes.push(`could not read ${unreadable.length} order(s) in Mintsoft: ${unreadable.slice(0, 5).join(', ')}`)
+  }
+  return { rowsWritten: despatched, detail: notes.join('; ') || undefined }
 }

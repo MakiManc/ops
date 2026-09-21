@@ -19,3 +19,6 @@ seed/seed.sql
 # Review agents occasionally drop probe files here; never commit them.
 tests/zz-*.test.ts
 tests/_*.test.ts
+
+# Preview screenshots are generated on demand, not committed.
+preview/

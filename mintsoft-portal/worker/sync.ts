@@ -14,7 +14,7 @@
 import { MintsoftReadOnlyClient } from '../src/lib/mintsoft/readonly-client.ts'
 import { readSettings } from '../src/server/db/settings.ts'
 import type { Database } from '../src/server/db/repo.ts'
-import { syncCatalogue, syncInbound, syncStock } from '../src/server/sync/jobs.ts'
+import { syncCatalogue, syncInbound, syncOrderStatus, syncStock } from '../src/server/sync/jobs.ts'
 import { runSync, type SyncJob } from '../src/server/sync/runner.ts'
 
 export interface SyncEnv {
@@ -27,9 +27,9 @@ export interface SyncEnv {
 }
 
 const CADENCE: Record<string, SyncJob[]> = {
-  '*/15 * * * *': ['stock'],
+  '*/15 * * * *': ['stock', 'orders'],
   '0 * * * *': ['catalogue', 'inbound'],
-  '0 3 * * *': ['stock', 'catalogue', 'inbound'],
+  '0 3 * * *': ['stock', 'orders', 'catalogue', 'inbound'],
 }
 
 export async function runJobs(env: SyncEnv, jobs: SyncJob[]): Promise<Record<string, unknown>> {
@@ -61,6 +61,7 @@ export async function runJobs(env: SyncEnv, jobs: SyncJob[]): Promise<Record<str
         case 'stock': return syncStock(db, client, settings.availableFormula, scope)
         case 'inbound': return syncInbound(db, client, scope)
         case 'catalogue': return syncCatalogue(db, client, scope)
+        case 'orders': return syncOrderStatus(db, client, scope)
         default: throw new Error(`No such job: ${job}`)
       }
     })
