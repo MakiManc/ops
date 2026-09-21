@@ -36,7 +36,9 @@ describe('a GM', () => {
     signedInAs(me('gm', [{ id: 1, code: 'M9', name: 'Leith Walk', type: 'restaurant', recharge: false }]))
     render(<App googleClientId="test" />)
 
-    await waitFor(() => expect(screen.getByText('Order stock')).toBeDefined())
+    // "Stock list" rather than "Order stock": until Phase 3 there is nothing to order,
+    // and a button promising otherwise is a small lie repeated on every visit.
+    await waitFor(() => expect(screen.getByText('Stock list')).toBeDefined())
     expect(screen.getByText('My orders')).toBeDefined()
     expect(screen.queryByText('Approval queue')).toBeNull()
     expect(screen.queryByText('Recharge report')).toBeNull()
@@ -79,7 +81,7 @@ describe('an approver', () => {
 
     await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
     expect(screen.getByText('Stock overview')).toBeDefined()
-    expect(screen.queryByText('Order stock')).toBeNull()
+    expect(screen.queryByText('Stock list')).toBeNull()
     expect(screen.queryByText('Sites and people')).toBeNull()
   })
 })
