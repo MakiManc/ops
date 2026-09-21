@@ -33,6 +33,81 @@ function dump(name: string, data: unknown, { pii = false } = {}) {
   writeFileSync(`${dir}${name}.json`, JSON.stringify(pii ? redact(data) : data, null, 2))
 }
 
+
+/**
+ * Probes the two ways of asking "does an order with this number already exist?".
+ *
+ * This is the check Phase 3's idempotent posting depends on, and the spec cannot describe
+ * it: GET /api/Order/GetOrderId declares its 200 body as a bare untyped object with no
+ * properties at all, so there is no way to know from the document whether it returns a
+ * number, an object, or something else. Its 404 is worse — Mintsoft's own description is
+ * "Order not found or not accessible", which is two very different situations behind one
+ * status code, and only one of them means it is safe to create the order.
+ *
+ * GET /api/Order/Search takes the same order number, returns a properly typed Order[],
+ * and hands back the order itself rather than just an id. It looks like the better check.
+ * This probe establishes which to trust, using orders that already exist — it creates
+ * nothing.
+ */
+async function probeOrderLookup(
+  client: MintsoftReadOnlyClient,
+  knownOrderNumber: string | undefined,
+  scope: { ClientId?: number; WarehouseId?: number },
+) {
+  // A number that cannot exist, to see what "definitely absent" looks like.
+  const absent = 'MR-DISCOVERY-PROBE-00000000-000'
+
+  const shapeOf = (raw: string) => {
+    const body = raw.trim()
+    if (body === '') return { kind: 'empty' as const }
+    try {
+      const parsed: unknown = JSON.parse(body)
+      if (Array.isArray(parsed)) {
+        const first = parsed[0]
+        return {
+          kind: 'array' as const,
+          length: parsed.length,
+          firstElementKeys: first && typeof first === 'object' ? Object.keys(first).sort() : null,
+        }
+      }
+      if (parsed && typeof parsed === 'object') {
+        return { kind: 'object' as const, keys: Object.keys(parsed).sort() }
+      }
+      return { kind: typeof parsed, isNumeric: typeof parsed === 'number' }
+    } catch {
+      return { kind: 'not-json' as const, first80: body.slice(0, 80) }
+    }
+  }
+
+  const probe = async (label: string, path: string, query: Record<string, string | number | boolean | undefined>) => {
+    const { status, raw } = await client.get(path, query)
+    // Shape and status only. The body can contain a delivery address; we never keep it.
+    return { label, path, status, shape: shapeOf(raw) }
+  }
+
+  const results = [
+    await probe('GetOrderId / absent', '/api/Order/GetOrderId', { orderNumber: absent, ...scope }),
+    await probe('Search / absent', '/api/Order/Search', { OrderNumber: absent, exactMatch: true }),
+  ]
+
+  if (knownOrderNumber) {
+    results.unshift(
+      await probe('GetOrderId / existing', '/api/Order/GetOrderId', { orderNumber: knownOrderNumber, ...scope }),
+      await probe('Search / existing', '/api/Order/Search', { OrderNumber: knownOrderNumber, exactMatch: true }),
+    )
+  }
+
+  return {
+    testedWithExistingOrder: Boolean(knownOrderNumber),
+    results,
+    note:
+      'Phase 3 must be able to tell "this order already exists" from "this order does not ' +
+      'exist" from "I could not tell". Only the first two are safe to act on. A 404 from ' +
+      'GetOrderId means not-found OR not-accessible, so it is not on its own permission to ' +
+      'create the order again.',
+  }
+}
+
 async function main() {
   const username = process.env.MINTSOFT_USERNAME
   const password = process.env.MINTSOFT_PASSWORD
@@ -120,6 +195,12 @@ async function main() {
   dump('orders_recent', orders, { pii: true })
   console.log(`  ${orders.length} orders`)
 
+  console.log('\nProbing how to check whether an order already exists…')
+  const orderLookup = await probeOrderLookup(client, orders.find((o) => o.OrderNumber)?.OrderNumber, scope)
+  for (const r of orderLookup.results) {
+    console.log(`  ${String(r.status).padEnd(3)} ${r.label.padEnd(24)} ${JSON.stringify(r.shape).slice(0, 90)}`)
+  }
+
   // ---- analysis -----------------------------------------------------------------
 
   const duplicates = findDuplicates(products.items)
@@ -175,6 +256,7 @@ async function main() {
       compareToSpec('OrderStatus', orderStatuses as unknown as Record<string, unknown>[]),
       compareToSpec('CourierService', couriers as unknown as Record<string, unknown>[]),
     ].filter((r) => r.rowsSeen > 0),
+    orderLookup,
     stockSemantics,
     duplicates: { ...duplicates, clusters: undefined, exampleClusters: duplicates.examples },
     orderStatusValues: orderStatuses.map((s) => ({ ID: s.ID, Name: s.Name, ExternalName: s.ExternalName })),

@@ -202,6 +202,77 @@ Two more, about order lines and categories:
 
 ---
 
+## The write path, and why idempotency needs care
+
+The portal makes exactly one kind of write to Mintsoft: `PUT /api/Order`. Phase 3 builds
+it, but four things about it are worth knowing now, because they change the design rather
+than the implementation.
+
+### A successful HTTP response does not mean the order was created
+
+`PUT /api/Order` returns an **array** of results, and each one carries its own `Success`
+flag and `Message`. There is no separate error response declared — a failure comes back as
+a 200 with `Success: false`.
+
+So "the request worked" and "the order exists" are different questions, and only the
+response body answers the second. The client has to parse every element of the array and
+require `Success` to be exactly `true` on each. Treating a 200 as success would lose
+orders silently, which is the worst possible failure for this system: a GM sees their
+request marked sent, and nothing arrives.
+
+The response being an array for a single-order request is a quirk worth respecting too —
+we iterate it rather than reading the first element and assuming a length of one.
+
+### Mintsoft has no idempotency of its own
+
+Worth stating plainly: across all 164 endpoints there is **no idempotency key, no dedupe
+on order number, and nothing that would reject a second order with the same
+`MR-<sitecode>-<yyyymmdd>-<seq>`**. If we send the same order twice, Mercium picks and
+ships it twice, and bills us twice.
+
+Every safeguard against duplicates is ours to build, which the brief already assumes. What
+the brief does not anticipate is the next point.
+
+### "Not found" does not mean "safe to create"
+
+The brief's retry rule is to call `GET /api/Order/GetOrderId` before re-sending, and
+create the order again if it comes back missing. That rule has a hole in it.
+
+Mintsoft's own description of that endpoint's 404 is **"Order not found or not
+accessible"** — one status code covering two very different situations. If the order does
+not exist, re-creating is correct. If it exists but our key cannot see it — wrong client
+id, wrong warehouse, a permissions quirk — then re-creating produces the exact duplicate
+we were trying to avoid.
+
+So a 404 must never on its own be treated as permission to create. Phase 3 needs three
+outcomes, not two: **found** (attach it, never create), **authoritatively absent** (safe to
+create), and **could not tell** (stop, and show it in the sync health screen for a human
+to look at). The third outcome is the one the brief is missing, and it is the one that
+prevents a double order.
+
+There is also a better endpoint for the check. `GET /api/Order/GetOrderId` declares its
+success response as a bare untyped object with **no properties at all**, so there is no way
+to know from the spec what it actually returns. `GET /api/Order/Search` takes the same
+order number, supports `exactMatch`, and returns a properly typed list of orders — so it
+tells us both that the order exists *and* which order it is, which is what we need to
+attach it.
+
+The discovery run probes both, against a real order number and against one that cannot
+exist, and records exactly what each returns. That decides which one Phase 3 uses. It
+creates nothing.
+
+### Two smaller things
+
+- **Cancelling returns a result object, not a boolean.** `GET /api/Order/{id}/Cancel`
+  returns `Success`, `Message` and `WarningMessage`. Same rule as creating: check the
+  body, not the status code.
+- **Orders can carry our own references.** `Tags` and `OrderNameValues` let us stamp the
+  portal's request id and site code onto the Mintsoft order. That gives us a second way to
+  find an order we created if a lookup by order number ever fails, and it makes the audit
+  trail legible from the Mintsoft side too.
+
+---
+
 ## Rate limits and the API key
 
 **The specification documents no rate limit at all** — no 429 response on any of the 164
