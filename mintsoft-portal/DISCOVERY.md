@@ -416,35 +416,43 @@ creates nothing.
 
 ---
 
-## Tracking: "despatched" is easy, "delivered" is not
+## Tracking: the timeline ends at "On its way"
 
-The portal's order states run through to `delivered`, and the brief treats the last three
-— posted, despatched, delivered — as driven by Mintsoft. Two of those three are.
+**Decided (Ross, 21 Sep): the portal does not claim a delivered state.** The order states
+are `draft → submitted → approved → posted → despatched`, with the side exits `rejected`,
+`cancelled` and `post_failed`. The GM-facing timeline runs "Waiting for sign-off" → "Sent
+to warehouse" → "On its way", and stops there.
+
+That follows the API rather than fighting it.
 
 **Despatched is straightforward.** `Order` carries `DespatchDate` and `DespatchedByUser`,
-and `Order/List` can filter on `SinceDespatchDate`.
+and `Order/List` filters on `SinceDespatchDate`. That is a clean read, and it is what
+drives the last step of the timeline.
 
-**Delivered is not available from the order record at all.** `Order` has no delivered flag
-and no actual delivery date. The only `DeliveryDate` field in the whole API sits on the
-*create* models — it is a date you ask for when placing an order, not a confirmation that
-anything arrived. `RequiredDeliveryDate` is the same thing under another name.
+**Delivered was never available from the order record.** `Order` has no delivered flag and
+no actual delivery date. The only `DeliveryDate` in the whole API sits on the *create*
+models — a date you ask for when placing an order, not a confirmation that anything
+arrived. `RequiredDeliveryDate` is the same thing under another name.
 
-So a genuine "delivered" state has to come from courier tracking events
-(`GET /api/Order/Shipments/TrackingEvents/List`, which filters by `TrackingStatusId` and
-`SinceLastUpdated`, with the status values themselves from
-`/api/Order/Shipments/TrackingEvents/Statuses`). Whether those events actually arrive for
-Mercium's couriers is a live question — `OrderShipment` has a `DownloadTrackingEvents`
-flag, which suggests it is something that can be switched off.
+The alternative was to infer it from courier tracking events
+(`GET /api/Order/Shipments/TrackingEvents/List`). That was never solid ground:
+`OrderShipment` carries a `DownloadTrackingEvents` flag, so the events can evidently be
+switched off, and whether they flow for Mercium's couriers was unknowable without a live
+run. A status that is right most of the time is worse than one we never claimed — a GM
+who sees "Delivered" on a box that has not arrived stops trusting the whole screen.
 
-That gives Phase 4 a decision to make, and it is better made deliberately than discovered
-late: either drive "delivered" from tracking events when they exist, or drop the state and
-end the GM-facing timeline at "On its way", which is honest and needs no guessing. I would
-lean towards the second unless the discovery run shows tracking events flowing reliably —
-a status that is sometimes right is worse than one we never claimed.
+**What this removes from the build:** the tracking-event sync, its status mapping, and the
+`delivered` state and its transitions. Phase 4 gets simpler, and Phase 2's 15-minute
+open-order sync only ever needs to watch for despatch.
 
-**The tracking link itself is easy.** `Order.TrackingURL` is marked `readOnly` in the
-spec, meaning Mintsoft computes and serves the finished link. There is no need to assemble
-one from a courier template, which is what the brief assumed.
+**What a GM still gets:** the tracking link. `Order.TrackingURL` is marked `readOnly` in
+the spec, so Mintsoft computes and serves the finished link — no courier template to
+assemble, which is what the brief assumed. Once an order is on its way, the courier's own
+page is the authoritative answer on where the box is, and it is better at that than we
+would be.
+
+If this ever needs revisiting, the door is not locked: the events endpoint is still there,
+and the discovery run records whether anything flows through it.
 
 ---
 
@@ -548,35 +556,35 @@ Plainly, so nothing here reads as settled. The run answers all of these in one p
 
 ---
 
-## Decisions I need from you
+## Decisions
 
-**1. The credentials.** Nothing else in Phase 0 can finish without them. The safest route
-is to set them as secrets on the environment running this work rather than sending them
-in a message. They are never logged, dumped or committed.
+### Settled
 
-**2. Where this code should live.** The brief asked for a new `MakiManc/mintsoft-portal`
-repository. I could not create it: this session only has access to `MakiManc/ops`, and
-that repository does not exist yet. So the work sits at `mintsoft-portal/` inside
-`MakiManc/ops`, on the branch `claude/mintsoft-ordering-portal-t69aoc`.
+**Where the code lives — `MakiManc/ops`.** Decided 21 Sep. The portal stays at
+`mintsoft-portal/` inside this repository rather than moving to a
+`MakiManc/mintsoft-portal` of its own. It sits beside the Ops Command data it will
+eventually write into, and it is covered by this repo's CI. No move is planned; the brief's
+call for a separate repository is superseded.
 
-Nothing is lost either way — splitting it into its own repository later keeps the full
-history and takes minutes. But it is your call, and the options are: create
-`MakiManc/mintsoft-portal` and grant access so I move it now; or leave it in `ops`, which
-is arguably the better home given the Phase 5 job writes into `ops` anyway.
+**No delivered state.** Decided 21 Sep. See the tracking section above — the timeline ends
+at "On its way", because Mintsoft's order record cannot honestly tell us anything past
+despatch.
 
-**3. Whether the portal should claim "delivered" at all.** Mintsoft's order record cannot
-tell us — there is no delivered flag and no actual delivery date, only a despatch date.
-A real delivered state depends on courier tracking events, which may or may not flow for
-Mercium's couriers. My recommendation is to end the GM-facing timeline at "On its way"
-unless the discovery run shows those events arriving reliably; a status that is sometimes
-right is worse than one we never claimed. Happy to build it either way.
+### Still open
 
-**4. One question for Mercium, worth asking early.** Does Mintsoft's `Allocated` figure
+**1. The credentials.** This is the only thing blocking the rest of Phase 0. Best set as
+secrets on the environment running the work rather than sent in a message. They are never
+logged, dumped or committed.
+
+**2. One question for Mercium, worth asking early.** Does Mintsoft's `Allocated` figure
 include stock reserved for orders that have not yet been picked? If it does, then
-`OnHand − Allocated` is the honest number for "what a site can order today" and we are
-fine. If it does not, sites could be shown stock that is already promised elsewhere. The
-discovery run will tell us which formula is *consistent*, but only Mercium can tell us
-what it *means*.
+`OnHand − Allocated` is the honest number for "what a site can order today". If it does
+not, sites could be shown stock that is already promised elsewhere.
+
+This matters more than it first appears: **the specification never defines `Allocated` at
+all**, on any of the fourteen models that carry it. The discovery run will tell us which
+formula is *consistent* across the account, and `OutOfStock` from the pre-order breakdown
+gives us a second opinion — but only Mercium can tell us what the number actually counts.
 
 ---
 

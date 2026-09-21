@@ -71,6 +71,7 @@ or delete a product in Mintsoft.
 
 ## Where this lives
 
-This currently sits inside `MakiManc/ops` rather than its own `MakiManc/mintsoft-portal`
-repo. See the note at the end of `DISCOVERY.md` — it is a decision for Ross, and moving it
-later is a routine `git subtree split`.
+Inside `MakiManc/ops`, at `mintsoft-portal/`. That was a deliberate choice rather than a
+default: the portal sits beside the Ops Command data it will eventually write into, and it
+is covered by this repository's CI. There is no plan to split it into a repository of its
+own.
