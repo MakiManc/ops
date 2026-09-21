@@ -1075,6 +1075,25 @@ function renderScorecard(snap){
   if(!s||!(s.rows||[]).length){
     el.innerHTML='<div class="empty">This snapshot predates the OKR scorecard.</div>'; return;
   }
+  /* A snapshot baked before 21/09/2026 carries the Master Operating Manual's
+     twenty rows, which have no objective, no score and no band. Rendering it
+     through the OKR layout would draw a table of empty columns under blank
+     objective headings, so say what it is instead. The rows themselves are
+     still readable below, exactly as they were. */
+  const isOKR=(s.rows||[]).some(r=>r&&r.objective);
+  if(!isOKR){
+    el.innerHTML='<div class="empty">This snapshot predates the OKR layout '+
+      '(the scorecard became the 2026 Operations Input sheet on 21 September 2026). '+
+      'It carries '+esc(s.rows.length)+' Manual rows with no objectives, bands or scores.</div>'+
+      '<table><thead><tr><th>KR / KPI</th><th class="n">Target</th><th class="n">Now</th>'+
+      '<th>Status</th></tr></thead><tbody>'+
+      s.rows.map(r=>'<tr><td>'+esc(r.kr||'')+'</td><td class="n">'+esc(r.target||'')+
+        '</td><td class="n">'+esc(r.display||'—')+'</td><td>'+
+        (r.rag==='green'?chip('g','On target'):r.rag==='red'?chip('r','Off target')
+         :r.value!=null?chip('b','Reported'):chip('n','Not measured'))+'</td></tr>').join('')+
+      '</tbody></table>';
+    return;
+  }
   /* The months this snapshot can actually answer for. A snapshot baked before
      the picker existed carries none, and then there is no picker - not an
      empty one, and never a month synthesised in the shell. */
@@ -1107,18 +1126,51 @@ function renderScorecard(snap){
         ' - its source is scored '+monthLabel(first.m)+
         (last.m!==first.m?' to '+monthLabel(last.m):'')+' only'};
   };
+  /* RAG follows the SCORE, and the builder decided both. This maps a colour
+     name to a chip and nothing else - it does not know what 80 means, only
+     that the builder called it amber. Amber exists on this page as of
+     21/09/2026 because Ross agreed banded tolerances; before that there was
+     deliberately no amber, because an un-agreed tolerance is a made-up number. */
   const ragChip=r=>r.rag==='green'?chip('g','On target')
+                  :r.rag==='amber'?chip('a','Within tolerance')
                   :r.rag==='red'?chip('r','Off target')
                   :r.value!=null?chip('b','Reported')
                   :chip('n','Not measured');
-  let fn_='',shown=0,monthly=0;
-  const body=s.rows.map(r0=>{
+  /* The score as the builder computed it. An em dash is NOT a zero: a KR with
+     no score was not measured, and the two must never look alike. */
+  const scoreCell=r=>{
+    if(r.score==null) return '<span style="opacity:.45">—</span>';
+    const cls=r.score===100?'g':r.score===0?'r':'a';
+    return `<span class="tag t-${cls}" style="font-weight:680;font-variant-numeric:tabular-nums">${esc(r.score)}</span>`;
+  };
+  const KIND={computed:'computed',sheet_log:'from sheet log',
+              sheet_finance:'Finance, from sheet'};
+  let obj_='',shown=0,monthly=0;
+  const objOf=id=>(s.objectives||[]).find(o=>o.objective===id);
+  const objPct=o=>{
+    if(!o) return null;
+    if(!sel||!o.months) return o;
+    return o.months.find(x=>x.m===sel)||{pct:null,scored:0,total:o.total};
+  };
+  const body=(s.rows||[]).map(r0=>{
     const r=variantOf(r0);
     /* A row with no monthly form does not follow the picker. Say so on the row
        rather than letting a current-state figure sit under an earlier month. */
     const follows=!!(r0.months&&r0.months.length);
     if(follows) monthly++;
-    const head=r0.function!==fn_?(fn_=r0.function,`<tr><td colspan="5" style="padding-top:12px;font-weight:650;opacity:.75;border:0">${esc(r0.function)}</td></tr>`):'';
+    let head='';
+    if(r0.objective!==obj_){
+      obj_=r0.objective;
+      const o=objOf(r0.objective), p=objPct(o);
+      const pct=p&&p.pct!=null?`${p.pct}%`:'—';
+      const cnt=p?`${p.scored} of ${p.total} scored`:'';
+      head=`<tr><td colspan="6" style="padding-top:14px;border:0">`+
+        `<span style="font-weight:680">${esc(r0.objective)}</span>`+
+        `<span style="opacity:.75"> · ${esc(o?o.label:'')}</span>`+
+        `<span style="float:right;font-variant-numeric:tabular-nums">`+
+        `<b>${esc(pct)}</b> <span style="opacity:.65;font-weight:400">${esc(cnt)}</span></span>`+
+        `</td></tr>`;
+    }
     const measured=r.value!=null;
     if(measured) shown++;
     const trend=r.trend?sparkline(r.trend):'';
@@ -1133,13 +1185,56 @@ function renderScorecard(snap){
     const link=(r0.tab&&r0.tab!=='—')
       ? ` <button class="lnk" data-go="${esc(r0.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
       : '';
+    /* A PROPOSED band scores exactly like an agreed one. The chip is the only
+       thing that separates them, and it stays until Matthew confirms the band. */
+    const prop=r0.band_status==='proposed'
+      ? ` <span class="tag t-b" style="font-size:10.5px">PROPOSED BAND</span>` : '';
+    const kind=KIND[r0.source_kind]
+      ? `<span class="dt" style="opacity:.55">${esc(KIND[r0.source_kind])}</span>` : '';
+    const owner=r0.owner&&r0.owner!=='Operations'
+      ? ` <span class="tag t-n" style="font-size:10.5px">${esc(r0.owner)}</span>` : '';
     return head+`<tr${measured?'':' style="opacity:.72"'}>`+
-      `<td><div>${esc(r0.kr)}</div>${detail}${offMonth}</td>`+
+      `<td><div>${esc(r0.kr)} <span style="opacity:.85">${esc(r0.text||'')}</span>${owner}${prop}</div>${kind}${detail}${offMonth}</td>`+
       `<td class="n" style="white-space:nowrap">${esc(r0.target)}</td>`+
       `<td class="n" style="font-weight:650;white-space:nowrap">${esc(r.display||'—')}</td>`+
+      `<td class="n">${scoreCell(r)}</td>`+
       `<td>${ragChip(r)}${link}</td>`+
       `<td>${trend}${unit}${trendNote}</td></tr>`;
   }).join('');
+  /* The Operating KPIs: real measurements Ross uses that are simply not on
+     Matthew's sheet. Kept below the OKRs, under their own heading, with no
+     score column - they have no band because nobody agreed one for them. */
+  const kpis=(s.operating_kpis||[]);
+  const kpiBody=kpis.map(k0=>{
+    const k=variantOf(k0);
+    const measured=k.value!=null;
+    const detail=measured
+      ? `<div class="dt">${esc(k.basis||'')}</div>`
+      : `<div class="dt"><b>Needs:</b> ${esc(k.not_measured||'no source')}</div>`;
+    const link=(k0.tab&&k0.tab!=='—')
+      ? ` <button class="lnk" data-go="${esc(k0.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
+      : '';
+    return `<tr${measured?'':' style="opacity:.72"'}>`+
+      `<td><div>${esc(k0.kr)}</div>${detail}</td>`+
+      `<td class="n" style="white-space:nowrap">${esc(k0.target)}</td>`+
+      `<td class="n" style="font-weight:650;white-space:nowrap">${esc(k.display||'—')}</td>`+
+      `<td>${ragChip(k)}${link}</td>`+
+      `<td>${k.trend?sparkline(k.trend):''}</td></tr>`;
+  }).join('');
+  const kpiTable=kpis.length
+    ? `<div style="margin-top:22px;font-weight:680">Operating KPIs (not OKRs)</div>`+
+      `<div class="prov" style="margin:2px 0 8px">Measurements Ross uses that are not on the 2026 Operations Input sheet, so they carry no OKR band and no score.</div>`+
+      `<table><thead><tr><th>KPI</th><th class="n">Target</th><th class="n">Now</th>`+
+      `<th>Status</th><th>Trend</th></tr></thead><tbody>${kpiBody}</tbody></table>`
+    : '';
+  const ops=s.operations||null;
+  const opsNow=ops&&ops.months&&sel?(ops.months.find(x=>x.m===sel)||ops):ops;
+  const opsLine=opsNow&&opsNow.pct!=null
+    ? `<div style="margin-bottom:10px;font-size:15px">`+
+      `<b style="font-size:20px;font-variant-numeric:tabular-nums">${esc(opsNow.pct)}%</b>`+
+      ` <span style="opacity:.75">Operations · mean of ${esc(opsNow.scored)} of ${esc(opsNow.total)} objectives with a score`+
+      `${sel?' in '+esc(monthLabel(sel)):''}. OO1 is Finance's and is excluded.</span></div>`
+    : '';
   const picker=months.length>1
     ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">`+
       `<label for="sc-month" style="opacity:.8">Month</label>`+
@@ -1149,10 +1244,11 @@ function renderScorecard(snap){
       (isDefault?'':`<button class="lnk" id="sc-month-now" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0">back to ${esc(monthLabel(defMonth))} →</button>`)+
       `</div>`
     : '';
-  el.innerHTML=picker+
-    '<table><thead><tr><th>KR / KPI</th><th class="n">Target</th><th class="n">Now</th>'+
-    '<th>Status</th><th>'+(isDefault?'Last 4 weeks':'4 weeks to month end')+'</th></tr></thead><tbody>'+body+'</tbody></table>'+
-    `<div class="prov">${esc(shown)} of ${esc(s.total)} measured`+
+  el.innerHTML=picker+opsLine+
+    '<table><thead><tr><th>Objective / KR</th><th class="n">Target</th><th class="n">Now</th>'+
+    '<th class="n">Score</th><th>Status</th><th>'+(isDefault?'Last 4 weeks':'4 weeks to month end')+'</th></tr></thead><tbody>'+body+'</tbody></table>'+
+    kpiTable+
+    `<div class="prov">${esc(shown)} of ${esc(s.total)} measured, ${esc(s.scored==null?'—':s.scored)} scored`+
     (months.length>1?` · showing <b>${esc(monthLabel(sel))}</b>, which ${esc(monthly)} of ${esc(s.total)} rows are scored for`:'')+
     `. ${esc(s.basis||'')}`+
     (months.length>1&&s.month_basis?` ${esc(s.month_basis)}`:'')+`</div>`;
