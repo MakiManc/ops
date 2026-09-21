@@ -9,6 +9,14 @@
  * somewhere a GM cannot edit.
  */
 import { Hono } from 'hono'
+import { catalogueForSite, stockStatus } from './db/catalogue.ts'
+import {
+  addLinesToProduct, createProductFromLines, duplicateSuggestions, MappingError,
+  setPrimaryLine, unmapLine, unmappedLines,
+} from './db/mapping.ts'
+import { readSettings, stockFreshness } from './db/settings.ts'
+import { stockOverview, unmappedLineCount } from './db/stock-overview.ts'
+import { lastSuccessfulSyncs } from './sync/runner.ts'
 import { verifyGoogleIdToken, InvalidIdTokenError } from './auth/google.ts'
 import {
   buildSessionCookie, clearSessionCookie, sessionTtlSeconds, signSession,
@@ -91,11 +99,118 @@ export const createApp = () => {
   app.get('/sites', async (c) =>
     c.json({ sites: await c.get('repo').sitesVisibleTo(c.get('user')) }))
 
-  // Placeholders proving the gates. Real screens land in later phases.
-  app.get('/sites/:siteId/catalogue', (c) =>
-    c.json({ siteId: Number(c.req.param('siteId')), products: [], phase: 2 }))
+  // ---- catalogue (GM) ------------------------------------------------------
+
+  app.get('/sites/:siteId/catalogue', async (c) => {
+    const siteId = Number(c.req.param('siteId'))
+    const site = await c.env.DB
+      .prepare(`SELECT id, code, name, recharge FROM sites WHERE id = ? AND active = 1`)
+      .bind(siteId)
+      .first<{ id: number; code: string; name: string; recharge: number }>()
+    if (!site) return c.json({ error: 'not_found' }, 404)
+
+    const settings = await readSettings(c.env.DB)
+    const items = await catalogueForSite(c.env.DB, siteId, settings.availableFormula, {
+      // Prices are a property of the site, not of who is asking.
+      showPrices: site.recharge === 1,
+    })
+
+    return c.json({
+      site: { id: site.id, code: site.code, name: site.name, recharge: site.recharge === 1 },
+      // The banner the brief asks for: every figure is shown with its age, and stale
+      // data is called stale rather than presented as current.
+      freshness: await stockFreshness(c.env.DB),
+      products: items.map((item) => ({ ...item, status: stockStatus(item) })),
+    })
+  })
 
   app.get('/approvals/queue', (c) => c.json({ requests: [], phase: 3 }))
+
+  // ---- stock overview (approver) -------------------------------------------
+
+  app.get('/approvals/stock', async (c) => {
+    const settings = await readSettings(c.env.DB)
+    return c.json({
+      freshness: await stockFreshness(c.env.DB),
+      unmappedMintsoftLines: await unmappedLineCount(c.env.DB),
+      products: await stockOverview(c.env.DB, settings.availableFormula),
+    })
+  })
+
+  // ---- catalogue mapping (admin) -------------------------------------------
+
+  app.get('/admin/mapping/suggestions', async (c) =>
+    c.json({ suggestions: await duplicateSuggestions(c.env.DB) }))
+
+  app.get('/admin/mapping/unmapped', async (c) =>
+    c.json({ lines: await unmappedLines(c.env.DB) }))
+
+  app.post('/admin/mapping/products', async (c) => {
+    try {
+      const body = await c.req.json<{
+        name: string; category?: string | null; stockType: 'internal' | 'expansion'
+        packSize?: number | null; unit?: string | null; rechargeUnitPrice?: number | null
+        mintsoftProductIds: number[]; primaryMintsoftProductId: number
+      }>()
+      const id = await createProductFromLines(c.env.DB, body)
+      return c.json({ productId: id }, 201)
+    } catch (err) {
+      // Mapping errors are for a human to act on, so their message is the useful part.
+      if (err instanceof MappingError) return c.json({ error: err.message }, 400)
+      if (err instanceof SyntaxError) return c.json({ error: 'bad_request' }, 400)
+      throw err
+    }
+  })
+
+  app.post('/admin/mapping/products/:productId/lines', async (c) => {
+    try {
+      const { mintsoftProductIds } = await c.req.json<{ mintsoftProductIds: number[] }>()
+      const added = await addLinesToProduct(c.env.DB, Number(c.req.param('productId')), mintsoftProductIds)
+      return c.json({ added })
+    } catch (err) {
+      if (err instanceof MappingError) return c.json({ error: err.message }, 400)
+      if (err instanceof SyntaxError) return c.json({ error: 'bad_request' }, 400)
+      throw err
+    }
+  })
+
+  app.post('/admin/mapping/products/:productId/primary/:mintsoftProductId', async (c) => {
+    try {
+      await setPrimaryLine(
+        c.env.DB, Number(c.req.param('productId')), Number(c.req.param('mintsoftProductId')),
+      )
+      return c.json({ ok: true })
+    } catch (err) {
+      if (err instanceof MappingError) return c.json({ error: err.message }, 400)
+      throw err
+    }
+  })
+
+  app.delete('/admin/mapping/lines/:mintsoftProductId', async (c) => {
+    try {
+      await unmapLine(c.env.DB, Number(c.req.param('mintsoftProductId')))
+      return c.json({ ok: true })
+    } catch (err) {
+      if (err instanceof MappingError) return c.json({ error: err.message }, 400)
+      throw err
+    }
+  })
+
+  // ---- sync health (admin) -------------------------------------------------
+
+  app.get('/admin/sync', async (c) => {
+    const { results } = await c.env.DB
+      .prepare(
+        `SELECT job, started_at, finished_at, status, rows_written, detail
+           FROM sync_runs ORDER BY started_at DESC LIMIT 50`,
+      )
+      .all()
+    return c.json({
+      lastSuccess: await lastSuccessfulSyncs(c.env.DB),
+      freshness: await stockFreshness(c.env.DB),
+      recent: results ?? [],
+    })
+  })
 
   app.get('/admin/settings', async (c) => {
     const row = await c.env.DB
