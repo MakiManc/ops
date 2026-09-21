@@ -101,9 +101,11 @@ late.
 This is the one I most want your attention on.
 
 The brief treats "available" as something we read. **It is not.** Across all 134 models
-there is no `Available` field. Mintsoft gives us `OnHand`, `Allocated` and `StockLevel`,
-and it is up to us to decide which of those — or which combination — means "stock a site
-can actually order today".
+there is no field named `Available`. The single near-match is
+`InventoryPreOrderBreakdown.AvailableForPreOrder`, which is about pre-orders and is not
+what we need. Mintsoft gives us `OnHand`, `Allocated` and `StockLevel`, and it is up to us
+to decide which of those — or which combination — means "stock a site can actually order
+today".
 
 The obvious reading is `available = OnHand − Allocated`, and `StockLevel` may well already
 be exactly that. But "may well" is not good enough for a number a GM sees before
@@ -164,7 +166,24 @@ Reading the full specification turned up several endpoints and fields worth havi
 - **`Order.Tags`** could carry the portal's own order reference, giving a second way to
   find an order we created if an order number lookup ever fails.
 
-Two limitations worth knowing now rather than in Phase 4:
+Three limitations worth knowing now rather than later:
+
+- **Products carry no creation date.** `Product` has `LastUpdated` but nothing recording
+  when a line was created, so "the duplicates from the last 7–9 shipments" cannot be
+  ordered by age directly. `Product.ID` is very likely a usable proxy for creation order,
+  but that is an assumption the discovery run should check rather than something to build
+  on. It also means duplicate detection has to work on names, SKU stems and barcodes —
+  which is what it does — rather than on "recently added".
+- **`Product` has no `Barcode` field.** It has `EAN` and `UPC` separately. Anything written
+  against a `Barcode` field would silently read nothing.
+- **A catalogue pull may be much heavier than it looks.** `Product` nests
+  `OrderItems`, `ProductPrices`, `ProductSuppliers`, `ProductInCategories` and
+  `ProductCustomFields`. If `GET /api/Product/List` populates those — in particular
+  `OrderItems`, which is every order line ever placed for that product — a full pull could
+  be enormous. The discovery run measures the real response size, which decides whether the
+  hourly catalogue sync can pull the whole list or has to go incremental from day one.
+
+Two more, about order lines and categories:
 
 - **Order lines do not carry a "quantity despatched".** `OrderItem` has `Quantity`,
   `Allocated`, `Commited` and `OnBackOrder`, but no despatched count. Detecting a partial

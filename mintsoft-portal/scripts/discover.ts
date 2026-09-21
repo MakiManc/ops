@@ -169,6 +169,30 @@ async function main() {
     breakdownTypeValues: [...new Set(
       stockBreak.flatMap((s) => (s.Breakdown ?? []).map((b) => b.Type)).filter(Boolean),
     )],
+    /**
+     * How heavy each endpoint actually is. Product.List nests OrderItems and several other
+     * collections, so a full catalogue pull could be far larger than it looks — this is
+     * what decides whether the hourly sync can pull everything or must go incremental.
+     */
+    payloadSizes: Object.entries(
+      client.log.filter((l) => l.status === 200).reduce<Record<string, { calls: number; bytes: number }>>(
+        (acc, l) => {
+          const e = acc[l.path] ?? { calls: 0, bytes: 0 }
+          e.calls++; e.bytes += l.bytes
+          acc[l.path] = e
+          return acc
+        }, {}),
+    ).map(([path, e]) => ({
+      path, calls: e.calls, totalKb: Math.round(e.bytes / 1024), avgKbPerCall: Math.round(e.bytes / e.calls / 1024),
+    })).sort((a, b) => b.totalKb - a.totalKb),
+    /** Whether Mintsoft actually populates the product photo we hoped to reuse. */
+    productImages: {
+      withImageUrl: products.items.filter((p) => p.ImageURL?.trim()).length,
+      ofTotal: products.items.length,
+      sampleUrl: products.items.find((p) => p.ImageURL?.trim())?.ImageURL ?? null,
+      note: 'If populated, check one URL loads in a browser without the ms-apikey header ' +
+        'before the catalogue relies on it.',
+    },
     rateLimits: {
       requests: client.log.length,
       rateLimitedResponses: rateLimited.length,
