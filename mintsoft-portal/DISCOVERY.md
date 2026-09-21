@@ -368,6 +368,38 @@ creates nothing.
 
 ---
 
+## Tracking: "despatched" is easy, "delivered" is not
+
+The portal's order states run through to `delivered`, and the brief treats the last three
+— posted, despatched, delivered — as driven by Mintsoft. Two of those three are.
+
+**Despatched is straightforward.** `Order` carries `DespatchDate` and `DespatchedByUser`,
+and `Order/List` can filter on `SinceDespatchDate`.
+
+**Delivered is not available from the order record at all.** `Order` has no delivered flag
+and no actual delivery date. The only `DeliveryDate` field in the whole API sits on the
+*create* models — it is a date you ask for when placing an order, not a confirmation that
+anything arrived. `RequiredDeliveryDate` is the same thing under another name.
+
+So a genuine "delivered" state has to come from courier tracking events
+(`GET /api/Order/Shipments/TrackingEvents/List`, which filters by `TrackingStatusId` and
+`SinceLastUpdated`, with the status values themselves from
+`/api/Order/Shipments/TrackingEvents/Statuses`). Whether those events actually arrive for
+Mercium's couriers is a live question — `OrderShipment` has a `DownloadTrackingEvents`
+flag, which suggests it is something that can be switched off.
+
+That gives Phase 4 a decision to make, and it is better made deliberately than discovered
+late: either drive "delivered" from tracking events when they exist, or drop the state and
+end the GM-facing timeline at "On its way", which is honest and needs no guessing. I would
+lean towards the second unless the discovery run shows tracking events flowing reliably —
+a status that is sometimes right is worse than one we never claimed.
+
+**The tracking link itself is easy.** `Order.TrackingURL` is marked `readOnly` in the
+spec, meaning Mintsoft computes and serves the finished link. There is no need to assemble
+one from a courier template, which is what the brief assumed.
+
+---
+
 ## Rate limits and the API key
 
 **The specification documents no rate limit at all** — no 429 response on any of the 164
@@ -473,7 +505,14 @@ history and takes minutes. But it is your call, and the options are: create
 `MakiManc/mintsoft-portal` and grant access so I move it now; or leave it in `ops`, which
 is arguably the better home given the Phase 5 job writes into `ops` anyway.
 
-**3. One question for Mercium, worth asking early.** Does Mintsoft's `Allocated` figure
+**3. Whether the portal should claim "delivered" at all.** Mintsoft's order record cannot
+tell us — there is no delivered flag and no actual delivery date, only a despatch date.
+A real delivered state depends on courier tracking events, which may or may not flow for
+Mercium's couriers. My recommendation is to end the GM-facing timeline at "On its way"
+unless the discovery run shows those events arriving reliably; a status that is sometimes
+right is worse than one we never claimed. Happy to build it either way.
+
+**4. One question for Mercium, worth asking early.** Does Mintsoft's `Allocated` figure
 include stock reserved for orders that have not yet been picked? If it does, then
 `OnHand − Allocated` is the honest number for "what a site can order today" and we are
 fine. If it does not, sites could be shown stock that is already promised elsewhere. The
@@ -487,14 +526,46 @@ what it *means*.
 | | |
 | --- | --- |
 | **Discovery script** | Written, typechecked, ready. Not yet run against the live API. |
-| **API models** | 45 models generated from the live specification; generator re-run and verified reproducible. |
-| **Read-only guarantee** | Enforced by tests, not by convention. |
-| **Tests** | 23 passing. |
+| **API models** | 45 models generated from the live specification, and the generator re-run to confirm it reproduces them exactly. |
+| **Read-only guarantee** | An allow-list of eleven named endpoints, enforced at runtime and exercised by tests. |
+| **Tests** | 47 passing. |
+| **CI** | Runs the suite on every change to `mintsoft-portal/`, and warns if Mintsoft's spec drifts from our models. |
 
-Run them with `npm test` from `mintsoft-portal/`. They cover the duplicate clustering, the
-redaction of delivery addresses, the "available" formula testing — including that a
-missing number is never quietly treated as zero — and the safety properties: only GETs,
-no write endpoint named anywhere, no credential in any log, and `discovery/` git-ignored.
+Run them with `npm test` from `mintsoft-portal/`. What they actually cover:
 
-The one thing tests cannot cover is the live run itself, which is the honest reason this
-phase is not finished.
+- **The duplicate clustering**, including that a standalone product is not swept into a
+  cluster with its neighbours.
+- **Redaction**, including inside nested objects and arrays, and that an empty field is
+  left empty rather than given an invented value.
+- **The "available" formula testing**, including that a missing number is never quietly
+  counted as zero, and that a product split across warehouse locations is summed rather
+  than read from one arbitrary row.
+- **Pagination honesty** — that a server-capped page size does not read as the end of the
+  list, and that hitting a ceiling is reported rather than passed off as a complete answer.
+- **The safety properties** — that five real state-changing GETs are refused before
+  anything reaches the network, that the allow-list is frozen and contains nothing
+  write-shaped, that no credential or key reaches a log, that every address-bearing dump
+  goes through the redactor, and that `discovery/` stays git-ignored.
+
+The one thing the tests cannot cover is the live run itself, which is the honest reason
+this phase is not finished.
+
+---
+
+## A note on how this was checked
+
+Every factual claim in this document was read out of Mintsoft's published specification
+directly, and the load-bearing ones were then re-checked against the raw file rather than
+taken from notes — the field lists, the misspellings, the state-changing GETs, the page
+caps, and the two order-lookup endpoints.
+
+Where I could not verify something, it is in the unknowns list rather than stated
+softly. Where the specification contradicts the brief, I have gone with the
+specification and said so. Where the specification contradicts *itself* — `ASN/List`
+says its items are excluded while also offering an `IncludeASNItems` flag — that is
+recorded as a question for the live run rather than resolved by picking the reading I
+prefer.
+
+One claim of my own needed correcting along the way:
+`Product/StockLevels/UpdatedSince` returns a list of product ids, not stock figures, and
+an earlier draft of this document implied otherwise.
