@@ -82,7 +82,12 @@ export interface ClientOptions {
 }
 
 export class MintsoftReadOnlyClient {
-  private key: string | null = null
+  /**
+   * Protected rather than private so the one subclass that may write can send it.
+   * Still never returned to a caller: `describeKey` exists so discovery can report on
+   * the key's shape without the key itself leaving the object.
+   */
+  protected key: string | null = null
   private authCount = 0
   readonly log: RequestLog[] = []
 
@@ -100,6 +105,12 @@ export class MintsoftReadOnlyClient {
    */
   describeKey<T>(describe: (key: string) => T): T | null {
     return this.key === null ? null : describe(this.key)
+  }
+
+  /** Headers for an authenticated call. Authenticates first if there is no key yet. */
+  protected async authorizedHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+    if (!this.key) await this.authenticate()
+    return { 'ms-apikey': this.key!, Accept: 'application/json', ...extra }
   }
 
   /**
