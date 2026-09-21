@@ -21,3 +21,9 @@ migrations_dir = "migrations"
 # Writes to Mintsoft stay off until Phase 3, and are switched on deliberately.
 # Even then, the one write there is requires an approver's sign-off as well.
 MINTSOFT_WRITES_ENABLED = "false"
+
+# Scope pins, identified by discovery on 2026-09-21. Both must match wrangler.sync.toml.
+# Client 10 is Maki & Ramen; warehouse 5 is Witham, the UK site we ship from. Leaving the
+# warehouse unpinned would sum Witham with Mercium's Belgium and Germany sites.
+MINTSOFT_CLIENT_ID = "10"
+MINTSOFT_WAREHOUSE_ID = "5"

@@ -22,7 +22,17 @@ crons = [
 ]
 
 [vars]
-# Set once discovery identifies them. Pinning the client matters: without it a sync
-# could read another of Mercium's customers if the API user can see more than Maki.
-MINTSOFT_CLIENT_ID = ""
-MINTSOFT_WAREHOUSE_ID = ""
+# Identified by discovery on 2026-09-21 against the live API.
+#
+# Client 10 is Maki & Ramen. Every row of an unpinned stock read belonged to it, so the
+# API user looks scoped to us already — but it is pinned anyway, because "scoped today"
+# and "scoped after Mercium next edits a permission" are different claims.
+MINTSOFT_CLIENT_ID = "10"
+# Warehouse 5 is Witham, the UK site our stock actually ships from. Mercium also exposes
+# Belgium (6) and Germany (8) on this account, both empty today.
+#
+# This pin is load-bearing. Availability sums across the rows Mintsoft returns, so an
+# unpinned read would add all three warehouses into one number. That happens to be
+# correct while the EU sites are empty, and silently inflates every GM's screen the
+# moment anything lands in them — stock they cannot order and Mercium cannot ship.
+MINTSOFT_WAREHOUSE_ID = "5"

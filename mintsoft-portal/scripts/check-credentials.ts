@@ -28,7 +28,7 @@ import {
   type ClientOptions,
 } from '../src/lib/mintsoft/readonly-client.ts'
 import { inspectKeyShape } from '../src/lib/mintsoft/discovery-analysis.ts'
-import type { Client, Warehouse } from '../src/lib/mintsoft/types.ts'
+import type { Client, StockLevel, Warehouse } from '../src/lib/mintsoft/types.ts'
 
 const BASE = 'https://api.mintsoft.co.uk'
 
@@ -143,48 +143,85 @@ async function check(candidate: Candidate): Promise<Result> {
     )
   }
 
-  process.stdout.write('  GET  /api/Client … ')
-  const clientsRes = await client.get<Client[]>('/api/Client')
-  const clients = clientsRes.data
-  if (!Array.isArray(clients)) {
-    // Mintsoft documents /api/Client as admin-only, so a 403 here is a scope answer, not
-    // a credential failure. A 401 is the credential failing.
-    const isAuth = clientsRes.status === 401
-    console.log(
-      (isAuth ? bad('rejected') : dim('refused')) + dim(`  (HTTP ${clientsRes.status})`),
-    )
-    if (isAuth) {
-      notes.push(
-        candidate.mode === 'password'
-          ? 'Authenticated, then the key was refused — unexpected; worth raising with Mercium.'
-          : 'The key was rejected. Mintsoft keys last 24 hours, so an old one reads exactly like this.',
-      )
-      return { candidate, passed: false, notes }
-    }
-    notes.push(
-      `/api/Client is admin-only and returned HTTP ${clientsRes.status}. That is not a ` +
-        'failure, but it means this run cannot confirm whether other clients are visible — ' +
-        'pin MINTSOFT_CLIENT_ID before Phase 2 rather than assume we are alone.',
-    )
-  } else {
-    console.log(ok('ok') + dim(`  (${clients.length} client(s) visible)`))
-    for (const c of clients) console.log(`       · ${c.Name ?? '(unnamed)'}  ${dim(`id ${c.ID}`)}`)
-    if (clients.length > 1) {
-      notes.push(
-        `${clients.length} clients are visible to this user. Every call must pin ` +
-          'MINTSOFT_CLIENT_ID, or we risk reading another client\'s stock.',
-      )
-    }
-  }
-
+  // The credential test is /api/Warehouse, NOT /api/Client. Mintsoft documents
+  // /api/Client as admin-only and answers 401 — not 403 — when a non-admin user asks.
+  // Testing the credential there conflates "this login is wrong" with "this login is
+  // not an admin", and the second is the normal, expected case for an integration user.
   process.stdout.write('  GET  /api/Warehouse … ')
   const whRes = await client.get<Warehouse[]>('/api/Warehouse')
   const warehouses = whRes.data
   if (!Array.isArray(warehouses)) {
-    console.log(dim(`refused  (HTTP ${whRes.status})`))
+    console.log(bad('rejected') + dim(`  (HTTP ${whRes.status})`))
+    notes.push(
+      candidate.mode === 'password'
+        ? 'The login was accepted but its key could not read anything. Raise with Mercium.'
+        : 'The key was rejected. Mintsoft keys last 24 hours, so an old one reads exactly like this.',
+    )
+    return { candidate, passed: false, notes }
+  }
+  console.log(ok('ok') + dim(`  (${warehouses.length} warehouse(s))`))
+  for (const w of warehouses) {
+    console.log(`       · ${w.Name ?? '(unnamed)'}  ${dim(`id ${w.ID}${w.Code ? `, ${w.Code}` : ''}`)}`)
+  }
+
+  // Scope probe, not a credential test. A refusal here is an answer about permissions.
+  process.stdout.write('  GET  /api/Client … ')
+  const clientsRes = await client.get<Client[]>('/api/Client')
+  const clients = clientsRes.data
+  if (!Array.isArray(clients)) {
+    console.log(dim(`refused  (HTTP ${clientsRes.status} — admin-only)`))
   } else {
-    console.log(ok('ok') + dim(`  (${warehouses.length} warehouse(s))`))
-    for (const w of warehouses) console.log(`       · ${w.Name ?? '(unnamed)'}  ${dim(`id ${w.ID}`)}`)
+    console.log(ok('ok') + dim(`  (${clients.length} client(s) visible)`))
+    for (const c of clients) console.log(`       · ${c.Name ?? '(unnamed)'}  ${dim(`id ${c.ID}`)}`)
+  }
+
+  // The scope question that actually matters, answered from data rather than permissions:
+  // an unpinned stock read returns everything this user can see. If more than one client
+  // or warehouse comes back, every later call must pin, or we risk reading — and one day
+  // writing against — stock that is not ours.
+  process.stdout.write('  GET  /api/Product/StockLevels … ')
+  const stockRes = await client.get<StockLevel[]>('/api/Product/StockLevels')
+  const stock = stockRes.data
+  if (!Array.isArray(stock)) {
+    console.log(dim(`refused  (HTTP ${stockRes.status})`))
+    notes.push('Could not read stock, so the scope of this login is unconfirmed.')
+  } else {
+    const clientIds = [...new Set(stock.map((r) => r.ClientId).filter((v) => v != null))]
+    const stocked = new Map<number, number>()
+    for (const r of stock) {
+      if ((r.Level ?? 0) > 0) stocked.set(r.WarehouseId!, (stocked.get(r.WarehouseId!) ?? 0) + (r.Level ?? 0))
+    }
+    console.log(ok('ok') + dim(`  (${stock.length} rows, unpinned)`))
+    console.log(`       client id(s) seen: ${clientIds.join(', ') || 'none'}`)
+    for (const w of warehouses) {
+      const units = stocked.get(w.ID!) ?? 0
+      console.log(`       ${(w.Name ?? '?').padEnd(10)} ${units === 0 ? dim('empty') : `${units} units`}`)
+    }
+
+    if (clientIds.length === 1) {
+      notes.push(
+        `Scoped to client ${clientIds[0]} — every stock row belongs to it. Pin ` +
+          `MINTSOFT_CLIENT_ID=${clientIds[0]} anyway, so a future permission change cannot widen us silently.`,
+      )
+    } else if (clientIds.length > 1) {
+      notes.push(
+        `${clientIds.length} clients appear in an unpinned stock read (${clientIds.join(', ')}). ` +
+          'MINTSOFT_CLIENT_ID must be pinned before Phase 2 reads anything for real.',
+      )
+    }
+
+    const withStock = warehouses.filter((w) => (stocked.get(w.ID!) ?? 0) > 0)
+    if (warehouses.length > 1) {
+      notes.push(
+        `${warehouses.length} warehouses are visible and availability sums across rows, so an ` +
+          'unpinned read adds them together. ' +
+          (withStock.length <= 1
+            ? `Only ${withStock[0]?.Name ?? 'none'} holds stock today, so the total is right by luck — ` +
+              'it stops being right the moment anything lands in the others. Pin MINTSOFT_WAREHOUSE_ID.'
+            : `${withStock.length} of them hold stock, so an unpinned read is already wrong. ` +
+              'Pin MINTSOFT_WAREHOUSE_ID before anyone orders against it.'),
+      )
+    }
   }
 
   if (candidate.mode === 'key') {
