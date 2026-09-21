@@ -18,7 +18,15 @@ export interface Env {
   DB: D1Database
   SESSION_SECRET: string
   GOOGLE_CLIENT_ID: string
+  /** Defaults to off. Only 'true' enables writes, and only for an approved order. */
   MINTSOFT_WRITES_ENABLED?: string
+  MINTSOFT_USERNAME?: string
+  MINTSOFT_PASSWORD?: string
+  MINTSOFT_CLIENT_ID?: string
+  MINTSOFT_WAREHOUSE_ID?: string
+  RESEND_API_KEY?: string
+  PORTAL_FROM_EMAIL?: string
+  PORTAL_URL?: string
 }
 
 export interface AppContext {

@@ -26,6 +26,9 @@ import {
   approverEmails, requestApproved, requestRejected, requestSubmitted, sendEmail, type EmailEnv,
 } from './email/send.ts'
 import { stockOverview, unmappedLineCount } from './db/stock-overview.ts'
+import { MintsoftOrderClient } from './mintsoft/order-client.ts'
+import { sendApprovedOrder } from './orders/send.ts'
+import { writesEnabled } from './orders/write-gate.ts'
 import { lastSuccessfulSyncs } from './sync/runner.ts'
 import { verifyGoogleIdToken, InvalidIdTokenError } from './auth/google.ts'
 import {
@@ -486,6 +489,41 @@ export const createApp = () => {
       if (err instanceof SyntaxError) return c.json({ error: 'bad_request' }, 400)
       throw err
     }
+  })
+
+  /**
+   * Sends an approved order to Mercium.
+   *
+   * Separate from approving on purpose. Approving is a judgement; sending is an action
+   * against someone else's system, and the two failing for different reasons should be
+   * visible as different things. It is also the only route in the portal that can cause
+   * a write to Mintsoft, and it does nothing on its own — sendApprovedOrder consults
+   * the write gate, which needs the flag AND an approver's sign-off.
+   */
+  app.post('/approvals/:orderId/send', async (c) => {
+    const user = currentUser(c)
+    if (!c.env.MINTSOFT_USERNAME || !c.env.MINTSOFT_PASSWORD) {
+      return c.json({ error: 'Mintsoft credentials are not configured, so nothing can be sent.' }, 503)
+    }
+
+    const client = new MintsoftOrderClient({
+      username: c.env.MINTSOFT_USERNAME,
+      password: c.env.MINTSOFT_PASSWORD,
+      throttleMs: 250,
+    })
+
+    const result = await sendApprovedOrder(c.env.DB, client, {
+      orderId: Number(c.req.param('orderId')),
+      actor: user.email,
+      writesEnabled: writesEnabled(c.env.MINTSOFT_WRITES_ENABLED),
+      clientId: c.env.MINTSOFT_CLIENT_ID ? Number(c.env.MINTSOFT_CLIENT_ID) : null,
+      warehouseId: c.env.MINTSOFT_WAREHOUSE_ID ? Number(c.env.MINTSOFT_WAREHOUSE_ID) : null,
+    })
+
+    // 'uncertain' is not a failure and must not read like one: the order may exist, and
+    // the client should be told to look rather than to try again.
+    const status = result.ok ? 200 : result.status === 'uncertain' ? 202 : 409
+    return c.json(result, status)
   })
 
   app.post('/approvals/:orderId/merge/:mergeId', async (c) => {

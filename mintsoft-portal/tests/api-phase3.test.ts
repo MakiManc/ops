@@ -252,3 +252,32 @@ describe('my orders', () => {
     expect((await call('/api/orders/99', await as(APPROVER))).status).toBe(200)
   })
 })
+
+describe('sending an approved order', () => {
+  it('refuses when Mintsoft credentials are not configured', async () => {
+    db.exec(`INSERT INTO orders (id, order_number, site_id, type, status, approved_by, approved_at)
+             VALUES (50, 'MR-M9-20260921-050', 1, 'replenishment', 'approved', 2, '2026-09-21T10:00:00Z')`)
+    const res = await post('/api/approvals/50/send', await as(APPROVER), {})
+    expect(res.status).toBe(503)
+    expect((await res.json() as { error: string }).error).toMatch(/credentials are not configured/)
+  })
+
+  it('is closed to a GM and to an admin', async () => {
+    for (const user of [GM, ADMIN]) {
+      expect((await post('/api/approvals/50/send', await as(user), {})).status).toBe(403)
+    }
+  })
+
+  it('sends nothing when the writes flag is off, even with credentials', async () => {
+    db.exec(`INSERT INTO orders (id, order_number, site_id, type, status, approved_by, approved_at)
+             VALUES (51, 'MR-M9-20260921-051', 1, 'replenishment', 'approved', 2, '2026-09-21T10:00:00Z')`)
+    const withCreds: Env = {
+      ...env, MINTSOFT_USERNAME: 'u', MINTSOFT_PASSWORD: 'p', MINTSOFT_WRITES_ENABLED: 'false',
+    }
+    const res = await app.fetch(new Request('https://portal.test/api/approvals/51/send', {
+      method: 'POST', headers: { Cookie: await as(APPROVER), 'Content-Type': 'application/json' }, body: '{}',
+    }), withCreds)
+    expect(res.status).toBe(409)
+    expect((await res.json() as { message: string }).message).toMatch(/switched off/)
+  })
+})
