@@ -135,11 +135,27 @@ async function main() {
     `${keyShape.expiresAt ? `, expires ${keyShape.expiresAt}` : ''})`)
 
   console.log('\nWho are we? (clients and warehouses this user can see)')
-  const clients = (await client.get<Client[]>('/api/Client')).data ?? []
-  const warehouses = (await client.get<Warehouse[]>('/api/Warehouse')).data ?? []
+  // GET /api/Client is documented "Available to Admin users only", so this call may well
+  // be refused. A refusal is not the same as "no other clients exist", and reporting it as
+  // an empty list would answer the cross-client question with a reassuring lie. Keep the
+  // status so the summary can say "could not check" instead.
+  const clientsRes = await client.get<Client[]>('/api/Client')
+  const warehousesRes = await client.get<Warehouse[]>('/api/Warehouse')
+  const clients = clientsRes.data ?? []
+  const warehouses = warehousesRes.data ?? []
+  const couldListClients = Array.isArray(clientsRes.data)
+  const couldListWarehouses = Array.isArray(warehousesRes.data)
   dump('clients', clients, { pii: true })
   dump('warehouses', warehouses, { pii: true })
-  console.log(`  ${clients.length} client(s), ${warehouses.length} warehouse(s)`)
+  console.log(
+    couldListClients
+      ? `  ${clients.length} client(s), ${couldListWarehouses ? `${warehouses.length} warehouse(s)` : 'warehouses: could not list'}`
+      : `  clients: could not list (HTTP ${clientsRes.status} — /api/Client is admin-only), ` +
+        `${couldListWarehouses ? `${warehouses.length} warehouse(s)` : 'warehouses: could not list'}`,
+  )
+  if (!couldListClients) {
+    console.warn('  ! Cannot confirm whether other clients are visible. Pin MINTSOFT_CLIENT_ID.')
+  }
 
   // If more than one client is visible, every later call MUST pin ClientId or we risk
   // reading — and one day writing to — somebody else's stock.
@@ -216,10 +232,14 @@ async function main() {
     apiKey: { ...keyShape, reauthsDuringRun: client.reauthCount },
     scope: { pinnedClientId: pinnedClientId ?? null, pinnedWarehouseId: pinnedWarehouseId ?? null },
     clients: {
-      count: clients.length,
-      otherClientsVisible: clients.length > 1,
+      // null, not false: "we could not check" is a different answer from "no".
+      couldList: couldListClients,
+      count: couldListClients ? clients.length : null,
+      otherClientsVisible: couldListClients ? clients.length > 1 : null,
+      listRefusedWithStatus: couldListClients ? null : clientsRes.status,
       list: clients.map((c) => ({ ID: c.ID, Name: c.Name, Code: c.Code, ShortName: c.ShortName, Active: c.Active })),
     },
+    couldListWarehouses,
     warehouses: warehouses.map((w) => ({ ID: (w as { ID?: number }).ID, Name: w.Name, Code: w.Code, Active: w.Active })),
     counts: {
       products: products.items.length,
@@ -311,8 +331,10 @@ async function main() {
   console.log('\n' + '─'.repeat(72))
   console.log('DISCOVERY COMPLETE')
   console.log('─'.repeat(72))
-  console.log(`Clients visible      : ${clients.length}${clients.length > 1 ? '  ** more than Maki — pin ClientId **' : ''}`)
-  console.log(`Warehouses visible   : ${warehouses.length}`)
+  console.log(`Clients visible      : ${couldListClients
+    ? `${clients.length}${clients.length > 1 ? '  ** more than Maki — pin ClientId **' : ''}`
+    : `— (refused with HTTP ${clientsRes.status}; not the same as none)`}`)
+  console.log(`Warehouses visible   : ${couldListWarehouses ? warehouses.length : '—'}`)
   console.log(`Products             : ${products.items.length}`)
   console.log(`Duplicate clusters   : ${duplicates.clusterCount} (${duplicates.productsInvolved} products involved)`)
   console.log(`Order statuses       : ${orderStatuses.map((s) => `${s.ID}=${s.Name}`).join(', ')}`)

@@ -171,8 +171,13 @@ assuming it is a bug.
 Reading the full specification turned up several endpoints and fields worth having:
 
 - **`GET /api/Client` and `GET /api/Warehouse`** answer "which client are we, which
-  warehouse is ours, and can this login see anybody else's stock" directly. The script
-  calls both first and warns loudly if more than one client is visible.
+  warehouse is ours, and can this login see anybody else's stock" directly. With one
+  caveat that matters: `/api/Client` is documented *"Available to Admin users only"*, so
+  our API user may simply be refused. A refusal is **not** the same as "no other clients
+  exist", and treating it as an empty list would answer the cross-client question with a
+  reassuring lie — so the run reports "could not check" and says to pin the client id
+  explicitly. There is no endpoint anywhere in the API that reports the caller's own
+  identity, which is why this matters.
 - **`Product.ImageURL`** — Mintsoft already holds a product photo. The catalogue can seed
   its images from there instead of us sourcing all of them by hand.
 - **`Order.TrackingNumber` and `Order.TrackingURL`** sit on the order itself, so the "track
@@ -416,11 +421,15 @@ A failed authentication returns **401 with a completely empty body** — no erro
 all. Worth knowing when the first real run fails: there will be nothing to read, and the
 cause is almost certainly the credentials themselves.
 
-**Key lifetime is unknown.** The specification says nothing. The script inspects the
-key's shape and, if it turns out to be a JSON Web Token, reads the expiry straight out of
-it. If it is opaque, the run still reports whether the key had to be renewed part-way
-through, which tells us whether the lifetime is shorter than a few minutes. The client
-re-authenticates once on a 401 either way, so a short-lived key does not break anything.
+**The API key lasts 24 hours.** Mintsoft states it plainly in the description of the auth
+endpoint: *"API keys last 24 hours. After that point you'll start receiving 401
+unauthorized responses and will need to renew the API key."*
+
+That is the behaviour the client already implements — cache the key, and on a 401
+re-authenticate once and retry. It also means the 15-minute sync jobs need no special
+handling: they will renew roughly once a day as a matter of course. The run still records
+whether the key had to be renewed mid-run, and reads an expiry out of the key directly if
+it turns out to be a JSON Web Token, but the headline question is answered.
 
 ---
 
@@ -478,12 +487,11 @@ Plainly, so nothing here reads as settled. The run answers all of these in one p
 
 10. **Whether rate limits bite** at a 15-minute cadence, and what Mintsoft returns when
     they do.
-11. **The API key's lifetime.**
-12. **Whether `Product.LastUpdated` moves on stock changes or only on catalogue edits.**
+11. **Whether `Product.LastUpdated` moves on stock changes or only on catalogue edits.**
     It decides whether an incremental catalogue sync is safe.
-13. **Whether `Product.ID` tracks creation order.** There is no created date, so this is
+12. **Whether `Product.ID` tracks creation order.** There is no created date, so this is
     the only handle on "the duplicates from the last 7–9 shipments".
-14. **Whether the published spec matches reality.** The run compares every live payload
+13. **Whether the published spec matches reality.** The run compares every live payload
     against it and reports fields Mintsoft sends but does not document, fields it
     documents but never sends, and fields that always arrive empty.
 
@@ -566,6 +574,14 @@ says its items are excluded while also offering an `IncludeASNItems` flag — th
 recorded as a question for the live run rather than resolved by picking the reading I
 prefer.
 
-One claim of my own needed correcting along the way:
-`Product/StockLevels/UpdatedSince` returns a list of product ids, not stock figures, and
-an earlier draft of this document implied otherwise.
+Two claims of my own needed correcting along the way, both worth naming:
+
+- `Product/StockLevels/UpdatedSince` returns a list of product ids, not stock figures. An
+  earlier draft implied otherwise.
+- An earlier draft said the key lifetime was unknown and that the specification said
+  nothing about it. **It does** — "API keys last 24 hours", in the auth endpoint's own
+  description. I had read the endpoint's parameters and response types but not its prose,
+  which is exactly the kind of thing a second pass is for. Worth knowing that the
+  specification carries real information in its descriptions as well as its structures:
+  the page-size caps, the admin-only restriction on listing clients, and the warning that
+  products with no inventory record are absent rather than zero all came from prose too.
