@@ -157,7 +157,8 @@ async function main() {
   const scope = { ClientId: pinnedClientId, WarehouseId: pinnedWarehouseId }
 
   console.log('\nProducts…')
-  const products = await client.getAllPages<Product>('/api/Product/List', { ClientId: scope.ClientId })
+  // Product/List documents "Default 100 - Max 100".
+  const products = await client.getAllPages<Product>('/api/Product/List', { ClientId: scope.ClientId }, { limit: 100 })
   dump('products', products.items)
   console.log(`  ${products.items.length} products over ${products.pages} page(s)` +
     `${products.truncated ? ' (TRUNCATED — raise maxPages)' : ''}`)
@@ -170,14 +171,15 @@ async function main() {
   console.log(`  ${stockPlain.length} rows plain, ${stockBreak.length} rows with breakdown`)
 
   console.log('\nBulk inventory…')
-  const bulk = await client.getAllPages<BulkInventoryItem>('/api/Product/Inventory/Bulk', { ...scope, Breakdown: false })
+  // Inventory/Bulk documents "Default 100 - Max 500".
+  const bulk = await client.getAllPages<BulkInventoryItem>('/api/Product/Inventory/Bulk', { ...scope, Breakdown: false }, { limit: 500 })
   const bulkBreak = (await client.get<BulkInventoryItem[]>('/api/Product/Inventory/Bulk', { ...scope, Breakdown: true, PageNo: 1, Limit: 50 })).data ?? []
   dump('inventory_bulk', bulk.items)
   dump('inventory_bulk_breakdown', bulkBreak)
   console.log(`  ${bulk.items.length} rows over ${bulk.pages} page(s)`)
 
   console.log('\nInbound ASNs (with items)…')
-  const asns = await client.getAllPages<ASN>('/api/ASN/List', { ...scope, IncludeASNItems: true }, { limit: 100, maxPages: 10 })
+  const asns = await client.getAllPages<ASN>('/api/ASN/List', { ...scope, IncludeASNItems: true }, { limit: 100, maxPages: 20 })
   dump('asns', asns.items, { pii: true })
   console.log(`  ${asns.items.length} ASNs`)
 

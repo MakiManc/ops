@@ -139,7 +139,18 @@ the whole holding, and would do it silently. Every figure has to be a sum across
 locations. The discovery run reports how many products are split this way, so we know
 whether this is a live concern in our account or a theoretical one.
 
-### 3. Three fields are spelled wrong in the API, and we have to match them
+### 3. The stock endpoint the brief points at cannot be paged
+
+`GET /api/Product/StockLevels` has **no `PageNo` and no `Limit`** — six parameters, none of
+them pagination — and no "changed since" filter either. A whole-catalogue call returns one
+unbounded array that cannot be resumed if it fails partway.
+
+`GET /api/Product/Inventory/Bulk` pages properly (Mintsoft documents "Default 100 – Max
+500"), takes `LastUpdatedSince`, and also takes an exact-match `SKU` filter, which gives us
+a cheap single-product refresh on the same model as the bulk feed. That is a second,
+independent reason it is the right source for the stock cache.
+
+### 4. Three fields are spelled wrong in the API, and we have to match them
 
 Mintsoft ships these typos, and code that spells them correctly silently reads nothing:
 
@@ -169,8 +180,11 @@ Reading the full specification turned up several endpoints and fields worth havi
 - **`ASN.EstimatedDelivery`** is the expected-arrival date behind the "Inbound + date"
   chip. Per line, `ASNItem.QuantityExpected` minus `QuantityReceieved` gives what is still
   genuinely coming.
-- **`GET /api/Product/StockLevels/UpdatedSince`** and the `LastUpdatedSince` filters make
-  incremental syncs cheap, which matters at a 15-minute cadence.
+- **`GET /api/Product/StockLevels/UpdatedSince`** returns a bare list of *product ids*, not
+  stock figures — it answers "what changed since this time", nothing more. That makes it a
+  cheap 15-minute poll to decide whether a fuller sync is worth running, but code that
+  expected stock records from it would fail at parse time. The real incremental lever is
+  `LastUpdatedSince` on `Inventory/Bulk`.
 - **`Order.Tags`** could carry the portal's own order reference, giving a second way to
   find an order we created if an order number lookup ever fails.
 
@@ -199,6 +213,54 @@ Two more, about order lines and categories:
 - **Mintsoft's product categories are just a name.** They are too thin to drive the
   catalogue's browsing structure, which confirms the plan to keep our own category on the
   Maki product record.
+
+---
+
+## Honest stock numbers: three traps
+
+The brief is firm that stock figures must be honest — every number stamped with when it
+was synced, unknown values shown as a dash rather than zero. Three things in the API make
+that harder than it looks.
+
+### "Not in the feed" is not the same as "none in stock"
+
+Mintsoft says this itself, in its description of `StockLevelsByWarehouse`: *"Based on
+Inventory so you'll only get results where inventory record exists"*. A product with no
+inventory record is **absent from the response**, not returned as zero. The same caveat
+notes that bundles never appear at all.
+
+If the portal builds its stock cache by writing what came back and leaving everything else
+at its previous value — or worse, at zero — then a product that dropped out of the feed
+shows a stale or invented number. Absent has to be stored as *unknown*, and unknown has to
+render as a dash. This is the single easiest way for the portal to start lying, and it
+would look completely normal on screen.
+
+### The portal's "available to order" is its own bookkeeping, not Mintsoft's
+
+The brief defines available to order as the mapped stock minus quantities in other
+submitted-but-unapproved requests. **Mintsoft has no concept of that second term.** It has
+no soft reservation, no pending-order hold — its `Allocated` figure only moves once a real
+order exists in the warehouse.
+
+So that subtraction happens entirely in our own database, and it has a consequence worth
+being deliberate about: between two sites requesting the same item, Mintsoft will keep
+reporting the stock as unallocated to both. The portal is the only thing that knows one of
+them has already asked for it. That makes the approval-time stock re-check (which the
+brief already requires) not a nicety but the actual safety mechanism, and it means the
+"other sites' pending demand" column on the approval screen is load-bearing rather than
+informational.
+
+### One parameter is spelled two different ways
+
+The batch/expiry breakdown flag is `Breakdown` on `/api/Product/StockLevels` and
+`/api/Product/Inventory/Bulk`, but `breakdown` on `/api/Product/{id}/Inventory`. A shared
+constant across the client would be silently ignored on one of them — and an ignored flag
+returns an empty breakdown array, which reads as "no batch data" rather than as a bug.
+
+One more, less likely to bite: `/api/Product/StockLevels` takes an `IncludeSubclients`
+flag, defaulting to false, described as *"currently disabled for most users"*. It only
+matters if Maki's Mintsoft account turns out to be a master client with sub-clients
+underneath it — which the discovery run will tell us.
 
 ---
 

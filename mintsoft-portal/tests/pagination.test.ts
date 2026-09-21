@@ -54,6 +54,30 @@ describe('getAllPages', () => {
     expect(r.truncated).toBe(false)
   })
 
+  it('keeps walking when the server caps the page size below what we asked for', async () => {
+    // Product/List documents "Max 100" and silently returns 100 when asked for 200.
+    // Treating that first short page as the end would truncate the catalogue at 100
+    // products and look like a complete answer.
+    const cap = 3
+    stubApi([
+      [1, 2, 3], // asked for 5, got the cap
+      [4, 5, 6],
+      [7],       // genuinely short: the end
+    ])
+    const r = await newClient().getAllPages<number>('/api/Product/List', {}, { limit: 5 })
+    expect(r.items).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(r.serverCappedPageSizeAt).toBe(cap)
+    expect(r.truncated).toBe(false)
+  })
+
+  it('does not cry "capped" when a single short page really was the whole list', async () => {
+    stubApi([[1, 2], []])
+    const r = await newClient().getAllPages<number>('/api/Product/List', {}, { limit: 100 })
+    expect(r.items).toEqual([1, 2])
+    expect(r.serverCappedPageSizeAt).toBeUndefined()
+    expect(r.pages).toBe(1)
+  })
+
   it('returns an empty result rather than inventing one when there is nothing', async () => {
     stubApi([[]])
     const r = await newClient().getAllPages<number>('/api/Product/List', {}, { limit: 10 })

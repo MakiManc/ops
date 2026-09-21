@@ -153,27 +153,56 @@ export class MintsoftReadOnlyClient {
     }
   }
 
-  /** Walks a paginated list endpoint until a short page, an error, or maxPages. */
+  /**
+   * Walks a paginated list endpoint to the end.
+   *
+   * The subtlety this handles: Mintsoft caps `Limit` per endpoint (100 on Product/List and
+   * ASN/List, 500 on Inventory/Bulk) and silently returns the cap rather than erroring when
+   * you ask for more. So a page shorter than requested is ambiguous — it means either "this
+   * is the last page" or "the server capped your page size". Stopping on the first short
+   * page would quietly truncate the catalogue at 100 products and look like a complete
+   * answer, which is the worst kind of wrong.
+   *
+   * We resolve the ambiguity by asking for the next page instead of guessing. If it has
+   * rows, the server capped us, and we carry on at the size it actually gave.
+   */
   async getAllPages<T>(
     path: string,
-    query: Record<string, string | number | boolean | undefined>,
-    { limit = 200, maxPages = 50 }: { limit?: number; maxPages?: number } = {},
-  ): Promise<{ items: T[]; pages: number; truncated: boolean }> {
+    query: Record<string, string | number | boolean | undefined> = {},
+    { limit = 100, maxPages = 100 }: { limit?: number; maxPages?: number } = {},
+  ): Promise<{ items: T[]; pages: number; truncated: boolean; serverCappedPageSizeAt?: number }> {
     const items: T[] = []
     let pagesWithData = 0
     let hitCeiling = false
+    let serverCappedPageSizeAt: number | undefined
+    let effectiveLimit = limit
+
     for (let page = 1; page <= maxPages; page++) {
       const { data } = await this.get<T[]>(path, { ...query, PageNo: page, Limit: limit })
       if (!Array.isArray(data) || data.length === 0) break
+
       items.push(...data)
       pagesWithData++
-      if (data.length < limit) break
-      // A full final page means there may be more that we are choosing not to fetch.
+
+      if (data.length < effectiveLimit) {
+        if (page === 1 && data.length > 0 && data.length < limit) {
+          // Ambiguous: last page, or a server-side cap? Only the next page can say.
+          effectiveLimit = data.length
+          serverCappedPageSizeAt = data.length
+          continue
+        }
+        break // genuinely the last page
+      }
+
       if (page === maxPages) hitCeiling = true
     }
+
+    // If the walk ended immediately after the probe, there was no cap — just one short page.
+    if (serverCappedPageSizeAt !== undefined && pagesWithData === 1) serverCappedPageSizeAt = undefined
+
     // Being explicit about hitting the ceiling matters: silently truncating a list is
     // exactly the kind of dishonest data the portal is meant to avoid.
-    return { items, pages: pagesWithData, truncated: hitCeiling }
+    return { items, pages: pagesWithData, truncated: hitCeiling, serverCappedPageSizeAt }
   }
 }
 
