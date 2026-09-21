@@ -13,9 +13,10 @@ around that, and I am not going to guess at warehouse numbers.
 
 What I did instead was go after the same questions from the authoritative source that
 *is* reachable: Mintsoft's own published API specification. That turned out to answer a
-lot more than expected — including two things the build brief got wrong in ways that
-would have caused real problems — and it narrowed the genuinely unknowable list down to
-a short, specific set of questions the script is now built to answer in one run.
+lot more than expected — including three things the build brief got wrong, one of them in
+a way that would have cost us a rebuild in Phase 2 — and it narrowed the genuinely
+unknowable list down to a short, specific set of questions the script is now built to
+answer in one run.
 
 So: this document is honest about which of its statements are **verified facts** from
 Mintsoft's specification, and which are **open questions** that need the credentials.
@@ -248,22 +249,45 @@ a primary SKU. Nothing is ever merged, edited or deleted in Mintsoft itself.
 
 ## Still unknown until the script runs
 
-Plainly, so nothing here reads as settled:
+Plainly, so nothing here reads as settled. The run answers all of these in one pass.
 
-1. **What "available" means** — which formula actually holds. *The most important one.*
-2. **Our `ClientId` and `WarehouseId`**, and whether this login can see other clients'
-   stock. If it can, every call must pin the client before Phase 2.
-3. **How many products there are**, how many are duplicates, and how bad the worst
+**The ones that change how we build:**
+
+1. **What "available" actually means** — which of the candidate formulas holds. *The most
+   important question in this document.*
+2. **Whether stock is split across warehouse locations.** If products come back on
+   multiple rows, every figure the portal shows has to be a sum, and the mapping tool has
+   to account for it.
+3. **Our `ClientId` and `WarehouseId`**, and whether this login can see other clients'
+   stock. If it can, every call must pin the client before Phase 2 — otherwise a wrong
+   number in one field reads somebody else's warehouse.
+4. **How heavy a catalogue pull really is.** If `Product/List` returns every historic
+   order line per product, the hourly sync has to be incremental from day one.
+
+**The ones that shape the screens:**
+
+5. **How many products there are**, how many are duplicates, and how bad the worst
    clusters are.
-4. **The real order status list** — the ID and name of every status, which is what the
+6. **The real order status list** — the ID and name of every status, which is what the
    plain-language timeline ("Sent to warehouse", "On its way") maps onto.
-5. **The courier services available**, and which is the sensible default per site.
-6. **Whether rate limits bite** at a 15-minute sync cadence.
-7. **The API key's lifetime.**
-8. **Whether `Product.ImageURL` is actually populated** for our products, or present but
-   empty.
+7. **The courier services available**, and which is the sensible default per site.
+8. **Whether `Product.ImageURL` is populated**, and whether those images load in a browser
+   without the API key. If not, we source photos ourselves.
 9. **What the stock `Breakdown` contains** — batch and expiry data that may or may not
    matter for chopsticks and bowls.
+
+**The ones that shape the sync jobs:**
+
+10. **Whether rate limits bite** at a 15-minute cadence, and what Mintsoft returns when
+    they do.
+11. **The API key's lifetime.**
+12. **Whether `Product.LastUpdated` moves on stock changes or only on catalogue edits.**
+    It decides whether an incremental catalogue sync is safe.
+13. **Whether `Product.ID` tracks creation order.** There is no created date, so this is
+    the only handle on "the duplicates from the last 7–9 shipments".
+14. **Whether the published spec matches reality.** The run compares every live payload
+    against it and reports fields Mintsoft sends but does not document, fields it
+    documents but never sends, and fields that always arrive empty.
 
 ---
 
