@@ -53,6 +53,32 @@ match the one the API checks against, or every sign-in fails.
 on is deliberate. Even then, the one write it allows also requires an approver's sign-off
 — the flag alone is not enough.
 
+## Where the Mintsoft credentials go
+
+Mintsoft does not take a standing API key. `POST /api/Auth` takes a
+`{ Username, Password }` pair and hands back a key that expires after 24 hours; the
+client mints and re-mints that key itself. So the two values to supply are always
+`MINTSOFT_USERNAME` and `MINTSOFT_PASSWORD` — the API user's login, not a key string.
+There is nowhere to paste a key, and a key pasted anywhere below stops working the
+next day.
+
+Four places, depending on what is meant to run.
+
+| Where | What to do | Why there |
+| --- | --- | --- |
+| A Claude Code session, so discovery and the stock sync can run here | Set `MINTSOFT_USERNAME` and `MINTSOFT_PASSWORD` as environment variables on the environment, in the Claude Code web settings. A session started afterwards picks them up; the one already running does not. | Keeps them out of the chat transcript and out of git. |
+| A one-off discovery run | `MINTSOFT_USERNAME='…' MINTSOFT_PASSWORD='…' npm run discover` | Read from `process.env` directly. Prefix the command with a space if the shell keeps history. |
+| Local development | Add both lines to `mintsoft-portal/.dev.vars` (git-ignored; `.env.example` is the template) | `wrangler pages dev` reads `.dev.vars` and ignores shell environment variables. |
+| Production | Two deployables, so two commands:<br>`npx wrangler pages secret put MINTSOFT_USERNAME --project-name mintsoft-portal`<br>`npx wrangler secret put MINTSOFT_USERNAME --config wrangler.sync.toml`<br>and the same pair again for `MINTSOFT_PASSWORD`. | The Pages project serves the API; the sync Worker holds the cron triggers. Neither can read the other's secrets. |
+
+The dashboard route for production is the same thing by hand: Workers & Pages → the
+project → Settings → Variables and Secrets → Add, with the type set to Secret rather
+than Text. A value added as Text is readable afterwards; a Secret is not.
+
+Nothing above turns on writes. `MINTSOFT_WRITES_ENABLED` stays `"false"`, and with
+valid credentials in place the client still refuses every path outside its read
+allow-list.
+
 ## Rotating SESSION_SECRET
 
 Changing it signs everyone out, and nothing else. That is the right move if it is ever
