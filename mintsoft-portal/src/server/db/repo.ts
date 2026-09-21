@@ -14,7 +14,17 @@ export interface Database {
 }
 
 export class Repository {
-  constructor(private readonly db: Database) {}
+  /**
+   * Written out rather than a constructor parameter property. Node's
+   * --experimental-strip-types cannot compile those, and the scripts run under it, so
+   * one anywhere in a script's import graph breaks it at load. Vite and Vitest both
+   * cope, which is why the tests never catch it.
+   */
+  private readonly db: Database
+
+  constructor(db: Database) {
+    this.db = db
+  }
 
   /**
    * Resolves a signed-in user by email.
