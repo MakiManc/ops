@@ -147,3 +147,45 @@ describe('sync health', () => {
     expect(body.recent).toHaveLength(1)
   })
 })
+
+describe('admin reporting and bulk edit', () => {
+  it('downloads the par-level grid as CSV', async () => {
+    const res = await call('/api/admin/par-levels.csv', await as(ADMIN))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Type')).toMatch(/text\/csv/)
+    expect(res.headers.get('Content-Disposition')).toMatch(/par-levels\.csv/)
+    expect(await res.text()).toContain('site_code,product_name,par_level')
+  })
+
+  it('applies an edited grid', async () => {
+    const csv = 'site_code,product_name,par_level,max_per_order,min_days_between_orders\nM9,Ramen Bowl,48,96,14'
+    const res = await call('/api/admin/par-levels', await as(ADMIN), { method: 'POST', body: csv })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ applied: 1, problems: [] })
+  })
+
+  it('rejects a bad grid with the problems listed, writing nothing', async () => {
+    const csv = 'site_code,product_name,par_level,max_per_order,min_days_between_orders\nM99,Ramen Bowl,48,,'
+    const res = await call('/api/admin/par-levels', await as(ADMIN), { method: 'POST', body: csv })
+    // 422: the request was fine, the contents were not.
+    expect(res.status).toBe(422)
+    expect((await res.json() as { problems: unknown[] }).problems).toHaveLength(1)
+  })
+
+  it('downloads the recharge report for a month', async () => {
+    const res = await call('/api/admin/recharge/2026-10/csv', await as(ADMIN))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Disposition')).toMatch(/recharge-2026-10\.csv/)
+  })
+
+  it('refuses a month it cannot parse', async () => {
+    expect((await call('/api/admin/recharge/October', await as(ADMIN))).status).toBe(400)
+  })
+
+  it('keeps all of it away from approvers and GMs', async () => {
+    for (const user of [APPROVER, GM]) {
+      expect((await call('/api/admin/par-levels.csv', await as(user))).status).toBe(403)
+      expect((await call('/api/admin/recharge/2026-10', await as(user))).status).toBe(403)
+    }
+  })
+})

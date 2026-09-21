@@ -19,6 +19,8 @@ import {
   mergeRequests, openRequestForSite, OrderError, orderById, ordersForSites,
   recentOrdersForSite, rejectOrder, setLineQty, submitRequest,
 } from './db/orders.ts'
+import { importParLevels, parLevels, parLevelsCsv, reorderInto } from './db/admin.ts'
+import { rechargeCsv, rechargeReport } from './reports/recharge.ts'
 import { readSettings, stockFreshness } from './db/settings.ts'
 import { checkApproval, rechargeTotals, type LineToApprove, type MappedSku } from './orders/approval.ts'
 import { checkBasket, type BasketLine } from './orders/basket-checks.ts'
@@ -296,6 +298,39 @@ export const createApp = () => {
       lines: await linesForOrder(c.env.DB, order.id),
       events: await eventsForOrder(c.env.DB, order.id),
     })
+  })
+
+  /** Starts a new request from a past one, copying the quantities that were approved. */
+  app.post('/orders/:orderId/reorder', async (c) => {
+    try {
+      const user = currentUser(c)
+      const order = await orderById(c.env.DB, Number(c.req.param('orderId')))
+      if (!order) return c.json({ error: 'not_found' }, 404)
+      if (user.role === 'gm' && !user.siteIds.includes(order.siteId)) {
+        return c.json({ error: 'not_found' }, 404)
+      }
+
+      const lines = await reorderInto(c.env.DB, { fromOrderId: order.id, siteId: order.siteId })
+      if (lines.length === 0) {
+        return c.json({ error: 'Nothing on that order can be ordered again.' }, 400)
+      }
+
+      const settings = await readSettings(c.env.DB)
+      const catalogue = await catalogueForSite(c.env.DB, order.siteId, settings.availableFormula, { showPrices: false })
+
+      let request
+      for (const line of lines) {
+        request = await addToBasket(c.env.DB, {
+          siteId: order.siteId, productId: line.productId, qty: line.qty,
+          actor: user.email,
+          availableNow: catalogue.find((p) => p.productId === line.productId)?.available ?? null,
+        })
+      }
+      return c.json({ request, added: lines.length })
+    } catch (err) {
+      if (err instanceof OrderError) return c.json({ error: err.message }, 400)
+      throw err
+    }
   })
 
   app.post('/orders/:orderId/cancel', async (c) => {
@@ -607,6 +642,56 @@ export const createApp = () => {
     } catch (err) {
       if (err instanceof MappingError) return c.json({ error: err.message }, 400)
       throw err
+    }
+  })
+
+  // ---- par levels and limits (admin) ---------------------------------------
+
+  app.get('/admin/par-levels', async (c) => c.json({ rows: await parLevels(c.env.DB) }))
+
+  app.get('/admin/par-levels.csv', async (c) => {
+    const csv = parLevelsCsv(await parLevels(c.env.DB))
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="par-levels.csv"',
+      },
+    })
+  })
+
+  app.post('/admin/par-levels', async (c) => {
+    const csv = await c.req.text()
+    if (!csv.trim()) return c.json({ error: 'Nothing was uploaded.' }, 400)
+    const result = await importParLevels(c.env.DB, csv)
+    // 422 rather than 400: the request was fine, the contents were not, and the
+    // problems list is the useful part.
+    return c.json(result, result.problems.length ? 422 : 200)
+  })
+
+  // ---- recharge report (admin) ---------------------------------------------
+
+  app.get('/admin/recharge/:month', async (c) => {
+    try {
+      return c.json(await rechargeReport(c.env.DB, c.req.param('month')))
+    } catch (err) {
+      return c.json({ error: err instanceof Error ? err.message : 'bad_request' }, 400)
+    }
+  })
+
+  // A path segment rather than a file extension: ':month.csv' would make Hono name the
+  // parameter 'month.csv', and the handler would read undefined.
+  app.get('/admin/recharge/:month/csv', async (c) => {
+    const month = c.req.param('month')
+    try {
+      const csv = rechargeCsv(await rechargeReport(c.env.DB, month))
+      return new Response(csv, {
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="recharge-${month}.csv"`,
+        },
+      })
+    } catch (err) {
+      return c.json({ error: err instanceof Error ? err.message : 'bad_request' }, 400)
     }
   })
 

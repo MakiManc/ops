@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getMe, NotSignedIn, signOut, type Me } from './api.ts'
+import { ParLevels, RechargeReport, SyncHealth } from './AdminScreens.tsx'
 import { ApprovalQueue } from './ApprovalQueue.tsx'
 import { Basket } from './Basket.tsx'
 import { Catalogue } from './Catalogue.tsx'
@@ -28,10 +29,11 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'stock', title: 'Stock overview', blurb: 'What is on hand, allocated, inbound and how long it will last.', phase: 2, ready: true },
   ],
   admin: [
-    { key: 'sites', title: 'Sites and people', blurb: 'Who can sign in, and which sites they order for.', phase: 4 },
     { key: 'mapping', title: 'Catalogue mapping', blurb: 'Combine duplicate warehouse lines into one product.', phase: 2, ready: true },
-    { key: 'recharge', title: 'Recharge report', blurb: 'Monthly totals per franchise site, for Finance.', phase: 4 },
-    { key: 'sync', title: 'Sync health', blurb: 'Last successful sync per job, and anything that failed.', phase: 4 },
+    { key: 'par', title: 'Par levels and limits', blurb: 'Edit the grid of levels and caps as a spreadsheet.', phase: 4, ready: true },
+    { key: 'recharge', title: 'Recharge report', blurb: 'Monthly totals per franchise site, for Finance.', phase: 4, ready: true },
+    { key: 'sync', title: 'Sync health', blurb: 'Last successful sync per job, and anything that failed.', phase: 4, ready: true },
+    { key: 'sites', title: 'Sites and people', blurb: 'Who can sign in, and which sites they order for.', phase: 5 },
   ],
 }
 
@@ -98,6 +100,9 @@ export function App({ googleClientId }: { googleClientId: string }) {
     if (current?.key === 'queue') return <ApprovalQueue />
     if (current?.key === 'stock') return <StockOverview />
     if (current?.key === 'mapping') return <Mapping />
+    if (current?.key === 'par') return <ParLevels />
+    if (current?.key === 'recharge') return <RechargeReport />
+    if (current?.key === 'sync') return <SyncHealth />
     return null
   }
 

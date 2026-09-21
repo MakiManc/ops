@@ -64,6 +64,7 @@ function Timeline({ order }: { order: Order }) {
 export function MyOrders() {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [error, setError] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/my-orders', { credentials: 'same-origin' })
@@ -79,6 +80,12 @@ export function MyOrders() {
   if (orders.length === 0) return <p className="text-gray-700">You have not requested anything yet.</p>
 
   return (
+    <>
+    {message && (
+      <p role="status" className="mb-3 text-green-900 bg-green-50 border border-green-300 rounded p-3">
+        {message}
+      </p>
+    )}
     <ul className="grid gap-3">
       {orders.map((order) => {
         const plain = PLAIN[order.status]
@@ -121,6 +128,23 @@ export function MyOrders() {
               </a>
             )}
 
+            {['despatched', 'posted', 'rejected', 'cancelled'].includes(order.status) && (
+              <button
+                onClick={async () => {
+                  const res = await fetch(`/api/orders/${order.id}/reorder`, {
+                    method: 'POST', credentials: 'same-origin',
+                  })
+                  const body = await res.json().catch(() => ({})) as { error?: string; added?: number }
+                  setMessage(res.ok
+                    ? `Added ${body.added} item${body.added === 1 ? '' : 's'} to your current request.`
+                    : body.error ?? 'That could not be reordered.')
+                }}
+                className="mt-3 ml-0 px-4 py-2 rounded-lg border border-gray-400 text-gray-900"
+              >
+                Order the same again
+              </button>
+            )}
+
             {order.recharge && order.rechargeTotal !== null && (
               <p className="mt-2 text-sm text-purple-900">
                 Recharged to your site: £{order.rechargeTotal.toFixed(2)}
@@ -130,5 +154,6 @@ export function MyOrders() {
         )
       })}
     </ul>
+    </>
   )
 }
