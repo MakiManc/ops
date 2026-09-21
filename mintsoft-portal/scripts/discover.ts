@@ -54,8 +54,8 @@ async function main() {
 
   console.log('\nAuthenticating…')
   await client.authenticate()
-  // Read once for shape analysis only; never dumped, never logged.
-  const keyShape = inspectKeyShape((client as unknown as { key: string }).key)
+  // The key itself never leaves the client; only this description of it does.
+  const keyShape = client.describeKey(inspectKeyShape) ?? { length: 0, looksLikeJwt: false, expiresAt: null }
   console.log(`  key acquired (${keyShape.length} chars, jwt=${keyShape.looksLikeJwt}` +
     `${keyShape.expiresAt ? `, expires ${keyShape.expiresAt}` : ''})`)
 

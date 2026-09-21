@@ -43,6 +43,15 @@ export class MintsoftReadOnlyClient {
   }
 
   /**
+   * Describes the key without handing it out, so discovery can report on its lifetime
+   * without the key ever leaving this object. `describe` receives the key, and only its
+   * return value escapes — which keeps the one place that touches the raw key right here.
+   */
+  describeKey<T>(describe: (key: string) => T): T | null {
+    return this.key === null ? null : describe(this.key)
+  }
+
+  /**
    * Exchanges credentials for an API key.
    *
    * The spec types the 200 response as a bare `string`, not an object, so we read it as
@@ -151,16 +160,20 @@ export class MintsoftReadOnlyClient {
     { limit = 200, maxPages = 50 }: { limit?: number; maxPages?: number } = {},
   ): Promise<{ items: T[]; pages: number; truncated: boolean }> {
     const items: T[] = []
-    let page = 1
-    for (; page <= maxPages; page++) {
+    let pagesWithData = 0
+    let hitCeiling = false
+    for (let page = 1; page <= maxPages; page++) {
       const { data } = await this.get<T[]>(path, { ...query, PageNo: page, Limit: limit })
       if (!Array.isArray(data) || data.length === 0) break
       items.push(...data)
+      pagesWithData++
       if (data.length < limit) break
+      // A full final page means there may be more that we are choosing not to fetch.
+      if (page === maxPages) hitCeiling = true
     }
     // Being explicit about hitting the ceiling matters: silently truncating a list is
     // exactly the kind of dishonest data the portal is meant to avoid.
-    return { items, pages: page, truncated: page > maxPages }
+    return { items, pages: pagesWithData, truncated: hitCeiling }
   }
 }
 
