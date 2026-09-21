@@ -55,28 +55,80 @@ on is deliberate. Even then, the one write it allows also requires an approver's
 
 ## Where the Mintsoft credentials go
 
-Mintsoft does not take a standing API key. `POST /api/Auth` takes a
-`{ Username, Password }` pair and hands back a key that expires after 24 hours; the
-client mints and re-mints that key itself. So the two values to supply are always
-`MINTSOFT_USERNAME` and `MINTSOFT_PASSWORD` — the API user's login, not a key string.
-There is nowhere to paste a key, and a key pasted anywhere below stops working the
-next day.
+Mintsoft accepts one thing on the wire: an `ms-apikey` header. There are three ways to
+end up holding one, and they are not interchangeable.
 
-Four places, depending on what is meant to run.
-
-| Where | What to do | Why there |
+| Form | What it is | Good for |
 | --- | --- | --- |
-| A Claude Code session, so discovery and the stock sync can run here | Set `MINTSOFT_USERNAME` and `MINTSOFT_PASSWORD` as environment variables on the environment, in the Claude Code web settings. A session started afterwards picks them up; the one already running does not. | Keeps them out of the chat transcript and out of git. |
-| A one-off discovery run | `MINTSOFT_USERNAME='…' MINTSOFT_PASSWORD='…' npm run discover` | Read from `process.env` directly. Prefix the command with a space if the shell keeps history. |
-| Local development | Add both lines to `mintsoft-portal/.dev.vars` (git-ignored; `.env.example` is the template) | `wrangler pages dev` reads `.dev.vars` and ignores shell environment variables. |
-| Production | Two deployables, so two commands:<br>`npx wrangler pages secret put MINTSOFT_USERNAME --project-name mintsoft-portal`<br>`npx wrangler secret put MINTSOFT_USERNAME --config wrangler.sync.toml`<br>and the same pair again for `MINTSOFT_PASSWORD`. | The Pages project serves the API; the sync Worker holds the cron triggers. Neither can read the other's secrets. |
+| `MINTSOFT_USERNAME` + `MINTSOFT_PASSWORD` | The API user's login. `POST /api/Auth` exchanges it for a key, and the client re-exchanges it when that key expires. | Everything, including the scheduled sync. |
+| `MINTSOFT_API_KEY` | A key already minted. It dies 24 hours after it was issued and the client cannot renew it. | A one-off run today. |
+| `MINTSOFT_PROXY_AUTH=true` | The key is held outside the session and a proxy attaches the header. Nothing in the process ever sees it. | A one-off run today, without the key entering the session. |
 
-The dashboard route for production is the same thing by hand: Workers & Pages → the
-project → Settings → Variables and Secrets → Add, with the type set to Secret rather
-than Text. A value added as Text is readable afterwards; a Secret is not.
+Mintsoft states the lifetime itself, in the auth endpoint's description: *"API keys last
+24 hours. After that point you'll start receiving 401 unauthorized responses and will
+need to renew the API key."* So a bare key is never enough for anything scheduled — the
+15-minute sync would stop working by this time tomorrow.
 
-Nothing above turns on writes. `MINTSOFT_WRITES_ENABLED` stays `"false"`, and with
-valid credentials in place the client still refuses every path outside its read
+Supply exactly one form. Two at once is refused rather than silently preferred, so that
+a failure always names the credential it was about.
+
+Check whichever you have set with:
+
+```bash
+npm run check:credentials
+```
+
+It reads `/api/Client` and `/api/Warehouse`, prints no secret, writes nothing, and says
+per form whether it works and what it is good for. Run it before `npm run discover`.
+
+### Setting them
+
+**In a Claude Code cloud session**, so discovery and the sync can run there. Open
+[claude.ai/code](https://claude.ai/code), select the cloud icon showing the environment
+name in the row above the message box, hover the environment and select the settings
+icon. There is no direct URL for it. Then, in the **Update cloud environment** dialog:
+
+- For the login, use **Environment variables** — `.env` format, one `KEY=value` per line.
+  Note the dialog's own warning: anyone who uses the environment can read these values.
+- For a bare key, prefer **API credentials** below it (Pro and Max plans, organisation
+  admin role). Select **Add credential**, keep **Credential type** as **Bearer**, set
+  **Allowed websites** to `api.mintsoft.co.uk`, and under **Custom headers** change the
+  header **Name** to `ms-apikey` and **clear the prefix** so the bare value is sent.
+  Then set `MINTSOFT_PROXY_AUTH=true` as an environment variable, which tells the client
+  to send no header of its own and let the proxy attach it. The key never reaches the
+  session, its environment, or any file.
+
+Either way, a session copies the environment's values once at startup. Editing them
+affects sessions started afterwards; a session already running keeps what it started
+with, so start a new one.
+
+**Locally**, add the lines to `mintsoft-portal/.dev.vars` (git-ignored; `.env.example` is
+the template). `wrangler pages dev` reads that file and ignores shell environment
+variables, which is a trap worth knowing about.
+
+**For a one-off script run**, prefix the command:
+
+```bash
+MINTSOFT_USERNAME='…' MINTSOFT_PASSWORD='…' npm run discover
+```
+
+**In production**, two deployables, so four commands:
+
+```bash
+npx wrangler pages secret put MINTSOFT_USERNAME --project-name mintsoft-portal
+npx wrangler pages secret put MINTSOFT_PASSWORD --project-name mintsoft-portal
+npx wrangler secret put MINTSOFT_USERNAME --config wrangler.sync.toml
+npx wrangler secret put MINTSOFT_PASSWORD --config wrangler.sync.toml
+```
+
+The Pages project serves the API; the sync Worker holds the cron triggers. Neither can
+read the other's secrets. The dashboard route is the same thing by hand: Workers & Pages
+→ the project → Settings → Variables and Secrets → Add, with the type set to **Secret**
+rather than Text. A value added as Text is readable afterwards; a Secret is not. Only the
+login belongs here — a 24-hour key would expire before the next deploy.
+
+Nothing above turns on writes. `MINTSOFT_WRITES_ENABLED` stays `"false"`, and with a
+valid credential in place the client still refuses every path outside its read
 allow-list.
 
 ## Rotating SESSION_SECRET
