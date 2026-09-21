@@ -13,7 +13,8 @@
     "dev": "vite",
     "build": "vite build",
     "db:migrate:local": "wrangler d1 migrations apply mintsoft-portal --local",
-    "db:migrate:remote": "wrangler d1 migrations apply mintsoft-portal --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply mintsoft-portal --remote",
+    "seed": "node --experimental-strip-types --no-warnings scripts/seed.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260921.1",

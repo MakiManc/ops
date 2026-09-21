@@ -10,3 +10,8 @@ dist/
 .dev.vars
 .env
 .env.local
+
+# Real seed data carries staff email addresses. Templates are committed instead.
+seed/sites.csv
+seed/users.csv
+seed/seed.sql
