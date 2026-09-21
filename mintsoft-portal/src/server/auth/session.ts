@@ -8,7 +8,15 @@
  * worth nothing.
  */
 
-const COOKIE_NAME = 'mrsession'
+/**
+ * The __Host- prefix is load-bearing, not decoration.
+ *
+ * Browsers refuse to accept a __Host- cookie unless it is Secure, Path=/ and has no
+ * Domain — which means a subdomain cannot set one that shadows ours. Without it, a
+ * cookie set on a sibling host can sit in front of the real session in the Cookie
+ * header, and whoever reads the first match gets the attacker's value.
+ */
+const COOKIE_NAME = '__Host-mrsession'
 const DEFAULT_TTL_SECONDS = 12 * 60 * 60 // a working day, not a fortnight
 
 export interface SessionPayload {
@@ -102,11 +110,16 @@ export const clearSessionCookie = (): string =>
 
 export function readSessionCookie(cookieHeader: string | null | undefined): string | undefined {
   if (!cookieHeader) return undefined
+  const found: string[] = []
   for (const part of cookieHeader.split(';')) {
     const [name, ...rest] = part.trim().split('=')
-    if (name === COOKIE_NAME) return rest.join('=')
+    if (name === COOKIE_NAME) found.push(rest.join('='))
   }
-  return undefined
+  // More than one cookie of this name should be impossible with the __Host- prefix.
+  // If it ever happens, something is shadowing the session, and picking either one is
+  // worse than picking neither.
+  if (found.length !== 1) return undefined
+  return found[0]
 }
 
 export const sessionTtlSeconds = DEFAULT_TTL_SECONDS

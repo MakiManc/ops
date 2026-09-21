@@ -155,9 +155,10 @@ export interface NewProductInput {
 /**
  * Creates a Maki product from a set of Mintsoft lines.
  *
- * Written as one batch so it either all lands or none does. A product created with only
- * half its lines mapped would show half its stock, which is the confident-undercount
- * failure again.
+ * The product row and its mappings go in one batch, so it either all lands or none
+ * does. A product created with only half its lines mapped would show half its stock --
+ * the confident-undercount failure again -- and a product created with no mappings at
+ * all would sit in the catalogue permanently unorderable.
  */
 export async function createProductFromLines(db: Database, input: NewProductInput): Promise<number> {
   const ids = [...new Set(input.mintsoftProductIds)]
@@ -198,28 +199,31 @@ export async function createProductFromLines(db: Database, input: NewProductInpu
     throw new MappingError(`These Mintsoft lines are not in the catalogue mirror: ${unknown.join(', ')}.`)
   }
 
-  const created = await db
-    .prepare(
+  // The mappings reference the product by name rather than by a captured id, so the
+  // insert and the mappings can travel in the same batch.
+  const name = input.name.trim()
+  await db.batch([
+    db.prepare(
       `INSERT INTO products (name, category, stock_type, pack_size, unit, recharge_unit_price)
-       VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
-    )
-    .bind(
-      input.name.trim(), input.category ?? null, input.stockType,
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).bind(
+      name, input.category ?? null, input.stockType,
       input.packSize ?? null, input.unit ?? null, input.rechargeUnitPrice ?? null,
-    )
-    .first<{ id: number }>()
-
-  if (!created) throw new MappingError('Could not create the product.')
-
-  await db.batch(
-    ids.map((id) =>
+    ),
+    ...ids.map((id) =>
       db.prepare(
         `INSERT INTO product_mintsoft_map (product_id, mintsoft_product_id, sku, is_primary)
-         SELECT ?, mintsoft_product_id, sku, ? FROM mintsoft_products WHERE mintsoft_product_id = ?`,
-      ).bind(created.id, id === input.primaryMintsoftProductId ? 1 : 0, id),
+         SELECT (SELECT MAX(id) FROM products), mintsoft_product_id, sku, ?
+           FROM mintsoft_products WHERE mintsoft_product_id = ?`,
+      ).bind(id === input.primaryMintsoftProductId ? 1 : 0, id),
     ),
-  )
+  ])
 
+  const created = await db
+    .prepare(`SELECT id FROM products WHERE name = ? ORDER BY id DESC LIMIT 1`)
+    .bind(name)
+    .first<{ id: number }>()
+  if (!created) throw new MappingError('Could not create the product.')
   return created.id
 }
 

@@ -42,12 +42,33 @@ export class Repository {
     return { ...user, siteIds: await this.siteIdsForUser(user.id) }
   }
 
+  /**
+   * The sites a GM may act for.
+   *
+   * Joined to `sites` on active = 1 deliberately. Without the join, closing a site
+   * removes it from every list while still admitting requests for it — the guard and
+   * the site list would disagree, and the guard is the one that decides. Deactivating
+   * a site has to mean nobody can order for it, not merely that nobody can see it.
+   */
   private async siteIdsForUser(userId: number): Promise<number[]> {
     const { results } = await this.db
-      .prepare(`SELECT site_id FROM user_sites WHERE user_id = ?`)
+      .prepare(
+        `SELECT us.site_id FROM user_sites us
+           JOIN sites s ON s.id = us.site_id AND s.active = 1
+          WHERE us.user_id = ?`,
+      )
       .bind(userId)
       .all<{ site_id: number }>()
     return (results ?? []).map((r) => r.site_id)
+  }
+
+  /** Whether a site exists and is open. Used by the site guard for unscoped roles. */
+  async activeSiteExists(siteId: number): Promise<boolean> {
+    const row = await this.db
+      .prepare(`SELECT 1 AS ok FROM sites WHERE id = ? AND active = 1`)
+      .bind(siteId)
+      .first<{ ok: number }>()
+    return Boolean(row)
   }
 
   async touchLastSeen(userId: number, at: string): Promise<void> {

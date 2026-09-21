@@ -44,41 +44,69 @@ export async function syncStock(
   )
 
   const syncedAt = nowIso()
-  const statements = items
-    .filter((row) => row.ProductId != null)
-    .map((row) => {
-      // Availability is per inventory row here; rows for the same product are summed
-      // when read, because the grain is product x warehouse x location.
-      const stockRow: StockRow = {
-        onHand: row.OnHand, allocated: row.Allocated, stockLevel: row.StockLevel,
-      }
-      const derived = deriveAvailability([stockRow], formula)
-      return db
-        .prepare(
+
+  // Group by product, because each product's rows are replaced as a set.
+  //
+  // Upserting row by row looks equivalent and is not. Mintsoft's grain can change --
+  // the same product might come back once with no location, then split across two --
+  // and an upsert leaves the old shape behind alongside the new one. Every reader sums
+  // those rows, so 100 units in the warehouse reads as 200. Replacing a product's rows
+  // wholesale also drops a location that has emptied, which an upsert would leave
+  // sitting there at its last known count.
+  const byProduct = new Map<number, BulkInventoryItem[]>()
+  for (const row of items) {
+    if (row.ProductId == null) continue
+    byProduct.set(row.ProductId, [...(byProduct.get(row.ProductId) ?? []), row])
+  }
+
+  let written = 0
+  const statements: ReturnType<Database['prepare']>[] = []
+
+  for (const [productId, rows] of byProduct) {
+    statements.push(
+      db.prepare(`DELETE FROM stock_cache WHERE mintsoft_product_id = ?`).bind(productId),
+    )
+    for (const row of rows) {
+      const derived = deriveAvailability(
+        [{ onHand: row.OnHand, allocated: row.Allocated, stockLevel: row.StockLevel }],
+        formula,
+      )
+      statements.push(
+        db.prepare(
           `INSERT INTO stock_cache (mintsoft_product_id, warehouse_id, location_id,
                                     on_hand, allocated, available, available_basis, synced_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT (mintsoft_product_id, ifnull(warehouse_id, -1), ifnull(location_id, -1))
-           DO UPDATE SET on_hand = excluded.on_hand, allocated = excluded.allocated,
-                         available = excluded.available, available_basis = excluded.available_basis,
-                         synced_at = excluded.synced_at`,
-        )
-        .bind(
-          row.ProductId!, row.WarehouseId ?? null, row.LocationId ?? null,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).bind(
+          productId, row.WarehouseId ?? null, row.LocationId ?? null,
           row.OnHand ?? null, row.Allocated ?? null,
           derived.available, derived.basis, syncedAt,
-        )
-    })
+        ),
+      )
+      written++
+    }
+  }
 
-  for (const group of chunk(statements, BATCH)) await db.batch(group)
+  // Chunk on product boundaries so a product's delete and its inserts always land in
+  // the same batch. Splitting them could leave a product with no rows at all if the
+  // run died between the two, which reads as "gone" rather than "unknown".
+  let batchGroup: typeof statements = []
+  const flush = async () => {
+    if (batchGroup.length) { await db.batch(batchGroup); batchGroup = [] }
+  }
+  let index = 0
+  for (const [, rows] of byProduct) {
+    const size = rows.length + 1
+    if (batchGroup.length + size > BATCH) await flush()
+    batchGroup.push(...statements.slice(index, index + size))
+    index += size
+  }
+  await flush()
 
-  // Say so when a list was cut short. A quietly short sync looks like a warehouse that
-  // has quietly emptied.
   const notes: string[] = []
   if (truncated) notes.push('stopped at the page ceiling — some stock was not read')
   if (serverCappedPageSizeAt) notes.push(`Mintsoft capped pages at ${serverCappedPageSizeAt}`)
 
-  return { rowsWritten: statements.length, detail: notes.join('; ') || undefined }
+  return { rowsWritten: written, detail: notes.join('; ') || undefined }
 }
 
 /**

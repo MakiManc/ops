@@ -26,6 +26,15 @@ export interface GoogleIdentity {
 
 interface Jwk { kid: string; n: string; e: string; alg?: string; kty: string }
 
+export class InvalidIdTokenError extends Error {
+  constructor(reason: string) {
+    // The reason is for our logs, never for the browser: telling a caller precisely
+    // why a token failed is a gift to anyone probing the endpoint.
+    super(`Google ID token rejected: ${reason}`)
+    this.name = 'InvalidIdTokenError'
+  }
+}
+
 const base64UrlToBytes = (value: string): Uint8Array<ArrayBuffer> => {
   const padded = value.replace(/-/g, '+').replace(/_/g, '/')
     .padEnd(value.length + ((4 - (value.length % 4)) % 4), '=')
@@ -35,8 +44,20 @@ const base64UrlToBytes = (value: string): Uint8Array<ArrayBuffer> => {
   return bytes
 }
 
-const decodeJson = (segment: string): unknown =>
-  JSON.parse(new TextDecoder().decode(base64UrlToBytes(segment)))
+/**
+ * Decodes a JWT segment.
+ *
+ * Anything malformed is a rejected token, not a server error: atob throws on invalid
+ * base64 and JSON.parse throws on a bad body, and letting either escape turns a junk
+ * token into a 500. A caller sending rubbish should be told no, not shown a crash.
+ */
+const decodeJson = (segment: string, what: string): unknown => {
+  try {
+    return JSON.parse(new TextDecoder().decode(base64UrlToBytes(segment)))
+  } catch {
+    throw new InvalidIdTokenError(`${what} is not valid base64url JSON`)
+  }
+}
 
 /**
  * Google rotates its signing keys, so the set is fetched rather than pinned. Cached in
@@ -44,33 +65,44 @@ const decodeJson = (segment: string): unknown =>
  * refetch, which is what makes rotation a non-event.
  */
 let cachedKeys: { keys: Jwk[]; fetchedAt: number } | null = null
+let lastRefetchAt = 0
 const KEY_CACHE_MS = 60 * 60 * 1000
+/**
+ * Minimum gap between refetches prompted by an unknown key id.
+ *
+ * The key id comes from the token, which means anyone can ask for one we have never
+ * seen. Without a cooldown, a stream of junk tokens turns into a stream of outbound
+ * requests to Google — before any signature has been checked.
+ */
+const REFETCH_COOLDOWN_MS = 60 * 1000
 
 async function getSigningKey(kid: string, now: number): Promise<Jwk | null> {
-  const fresh = cachedKeys && now - cachedKeys.fetchedAt < KEY_CACHE_MS
-  if (fresh) {
+  const cacheFresh = cachedKeys && now - cachedKeys.fetchedAt < KEY_CACHE_MS
+  if (cacheFresh) {
     const hit = cachedKeys!.keys.find((k) => k.kid === kid)
     if (hit) return hit
+    // An unknown kid with a fresh cache means either a rotation or a made-up id.
+    // Refetch for the first, rate-limited so the second costs nothing.
+    if (now - lastRefetchAt < REFETCH_COOLDOWN_MS) return null
   }
 
+  lastRefetchAt = now
   const res = await fetch(GOOGLE_JWKS_URL)
   if (!res.ok) throw new Error(`Could not fetch Google signing keys: HTTP ${res.status}`)
-  const body = (await res.json()) as { keys: Jwk[] }
-  cachedKeys = { keys: body.keys ?? [], fetchedAt: now }
-  return cachedKeys.keys.find((k) => k.kid === kid) ?? null
+  const body = (await res.json().catch(() => null)) as { keys?: Jwk[] } | null
+  const keys = Array.isArray(body?.keys) ? body.keys.filter((k) => k && k.kid) : []
+
+  // A 200 carrying no usable keys -- an intercepting proxy, a captive portal, a
+  // reshaped response -- must not replace a good cache with an empty one and lock
+  // every sign-in out for the next hour.
+  if (keys.length === 0) return cachedKeys?.keys.find((k) => k.kid === kid) ?? null
+
+  cachedKeys = { keys, fetchedAt: now }
+  return keys.find((k) => k.kid === kid) ?? null
 }
 
 /** For tests: forget the cached keys so a stubbed fetch is actually consulted. */
-export const resetGoogleKeyCache = () => { cachedKeys = null }
-
-export class InvalidIdTokenError extends Error {
-  constructor(reason: string) {
-    // The reason is for our logs, never for the browser: telling a caller precisely
-    // why a token failed is a gift to anyone probing the endpoint.
-    super(`Google ID token rejected: ${reason}`)
-    this.name = 'InvalidIdTokenError'
-  }
-}
+export const resetGoogleKeyCache = () => { cachedKeys = null; lastRefetchAt = 0 }
 
 export async function verifyGoogleIdToken(
   idToken: string,
@@ -81,7 +113,7 @@ export async function verifyGoogleIdToken(
   if (parts.length !== 3) throw new InvalidIdTokenError('not a three-part JWT')
   const [rawHeader, rawPayload, rawSignature] = parts as [string, string, string]
 
-  const header = decodeJson(rawHeader) as { alg?: string; kid?: string }
+  const header = decodeJson(rawHeader, 'header') as { alg?: string; kid?: string }
   // Pinning the algorithm closes the "alg: none" and HMAC-confusion families of attack.
   if (header.alg !== 'RS256') throw new InvalidIdTokenError(`unexpected algorithm ${header.alg}`)
   if (!header.kid) throw new InvalidIdTokenError('no key id')
@@ -97,15 +129,21 @@ export async function verifyGoogleIdToken(
     ['verify'],
   )
 
-  const signatureValid = await crypto.subtle.verify(
-    'RSASSA-PKCS1-v1_5',
-    key,
-    base64UrlToBytes(rawSignature),
-    new TextEncoder().encode(`${rawHeader}.${rawPayload}`),
-  )
+  let signatureValid: boolean
+  try {
+    signatureValid = await crypto.subtle.verify(
+      'RSASSA-PKCS1-v1_5',
+      key,
+      base64UrlToBytes(rawSignature),
+      new TextEncoder().encode(`${rawHeader}.${rawPayload}`),
+    )
+  } catch {
+    // A signature that is not even decodable is a refusal, not a crash.
+    throw new InvalidIdTokenError('signature is not valid base64url')
+  }
   if (!signatureValid) throw new InvalidIdTokenError('signature does not verify')
 
-  const claims = decodeJson(rawPayload) as {
+  const claims = decodeJson(rawPayload, 'payload') as {
     iss?: string; aud?: string; exp?: number; nbf?: number
     email?: string; email_verified?: boolean | string; name?: string; picture?: string; sub?: string
   }

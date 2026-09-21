@@ -89,6 +89,13 @@ export const requireSiteAccess = (param = 'siteId'): MiddlewareHandler<AppContex
       return c.json({ error: 'bad_site' }, 400)
     }
     if (!canActForSite(c.get('user'), siteId)) return c.json({ error: 'not_found' }, 404)
+
+    // A GM's links are already filtered to active sites, but approvers and admins are
+    // not site-scoped at all, so this is where a closed or non-existent site is caught
+    // for them. Same 404 either way: the status code must not reveal which case it was.
+    const site = await c.get('repo').activeSiteExists(siteId)
+    if (!site) return c.json({ error: 'not_found' }, 404)
+
     await next()
   }
 

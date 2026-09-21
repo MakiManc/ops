@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createApp } from '../src/server/app.ts'
 import type { Env } from '../src/server/auth/middleware.ts'
-import { buildSessionCookie, signSession, sessionTtlSeconds } from '../src/server/auth/session.ts'
+import {
+  buildSessionCookie, sessionCookieName, sessionTtlSeconds, signSession,
+} from '../src/server/auth/session.ts'
 import { FakeD1, seedRoles } from './helpers/d1.ts'
 
 /**
@@ -157,7 +159,7 @@ describe('sessions follow the database, not the cookie', () => {
     const forged = await signSession(
       { userId: ADMIN, expiresAt: Math.floor(Date.now() / 1000) + 3600 }, 'attackers-secret',
     )
-    expect((await get('/api/admin/settings', `mrsession=${forged}`)).status).toBe(401)
+    expect((await get('/api/admin/settings', `${sessionCookieName}=${forged}`)).status).toBe(401)
   })
 
   it('refuses a session whose payload was edited', async () => {
@@ -167,17 +169,17 @@ describe('sessions follow the database, not the cookie', () => {
     const [body, signature] = real.split('.') as [string, string]
     const tampered = btoa(JSON.stringify({ userId: ADMIN, expiresAt: Math.floor(Date.now() / 1000) + 3600 }))
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-    expect((await get('/api/admin/settings', `mrsession=${tampered}.${signature}`)).status).toBe(401)
+    expect((await get('/api/admin/settings', `${sessionCookieName}=${tampered}.${signature}`)).status).toBe(401)
   })
 
   it('refuses an expired session', async () => {
     const stale = await signSession({ userId: ADMIN, expiresAt: Math.floor(Date.now() / 1000) - 1 }, SECRET)
-    expect((await get('/api/admin/settings', `mrsession=${stale}`)).status).toBe(401)
+    expect((await get('/api/admin/settings', `${sessionCookieName}=${stale}`)).status).toBe(401)
   })
 
   it('refuses junk in the cookie', async () => {
     for (const value of ['', 'nonsense', 'a.b.c', '....']) {
-      expect((await get('/api/me', `mrsession=${value}`)).status).toBe(401)
+      expect((await get('/api/me', `${sessionCookieName}=${value}`)).status).toBe(401)
     }
   })
 })
@@ -227,5 +229,70 @@ describe('the guard patterns cover what we think they cover', () => {
                         '/api/approvals/queue', '/api/admin/settings']) {
       expect((await get(path)).status, path).toBe(401)
     }
+  })
+})
+
+describe('closing a site', () => {
+  it('stops its GM ordering for it, not just seeing it', async () => {
+    const cookie = await as(GM)
+    expect((await get('/api/sites/1/catalogue', cookie)).status).toBe(200)
+
+    db.exec(`UPDATE sites SET active = 0 WHERE id = 1`)
+
+    // Without the join to sites.active, the site list and the guard disagree: the site
+    // disappears from every screen while still accepting requests for it.
+    expect((await get('/api/sites/1/catalogue', cookie)).status).toBe(404)
+    const body = await (await get('/api/me', cookie)).json() as { sites: unknown[] }
+    expect(body.sites).toEqual([])
+  })
+
+  it('stops an approver reaching it too, even though they are not site-scoped', async () => {
+    db.exec(`UPDATE sites SET active = 0 WHERE id = 1`)
+    expect((await get('/api/sites/1/catalogue', await as(APPROVER))).status).toBe(404)
+  })
+
+  it('gives the same answer for a site that never existed', async () => {
+    // The status code must not tell a caller which of the two it was.
+    expect((await get('/api/sites/9999/catalogue', await as(APPROVER))).status).toBe(404)
+  })
+})
+
+describe('a route added without a guard', () => {
+  it('is refused rather than public, because authentication is opt-out', async () => {
+    // The real risk is a route added in a later phase that nobody remembers to protect.
+    // Opt-in guards fail silently and openly; opt-out fails loudly and closed.
+    const res = await get('/api/some/route/nobody/guarded')
+    expect(res.status).toBe(401)
+  })
+
+  it('still lets the sign-in endpoints through', async () => {
+    const res = await app.fetch(new Request('https://portal.test/api/auth/google', {
+      method: 'POST', body: JSON.stringify({ idToken: 'nope' }),
+    }), env)
+    // 401 from the token check, not from the session guard — it was reached.
+    expect(await res.json()).toEqual({ error: 'sign_in_failed' })
+  })
+
+  it('lets sign-out through without a session', async () => {
+    const res = await app.fetch(new Request('https://portal.test/api/auth/signout', { method: 'POST' }), env)
+    expect(res.status).toBe(200)
+  })
+})
+
+describe('the session cookie name', () => {
+  it('uses the __Host- prefix, which browsers only accept from the exact host', () => {
+    // Without it, a cookie set on a sibling subdomain can shadow the real session.
+    expect(sessionCookieName).toBe('__Host-mrsession')
+    expect(buildSessionCookie('x', 60)).toContain('Secure')
+    expect(buildSessionCookie('x', 60)).toContain('Path=/')
+    // A Domain attribute would make the browser reject a __Host- cookie outright.
+    expect(buildSessionCookie('x', 60)).not.toContain('Domain=')
+  })
+
+  it('ignores the request entirely if two session cookies arrive', async () => {
+    const good = (await as(ADMIN)).split('=').slice(1).join('=')
+    const res = await get('/api/admin/settings', `${sessionCookieName}=forged; ${sessionCookieName}=${good}`)
+    // Picking either one is worse than picking neither: one of them is not ours.
+    expect(res.status).toBe(401)
   })
 })

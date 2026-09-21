@@ -30,6 +30,21 @@ export const createApp = () => {
 
   app.use('*', withRepository)
 
+  /**
+   * Everything requires a signed-in user unless it is on this list.
+   *
+   * Deliberately the opposite way round from opting each route into a guard. With
+   * opt-in, a route added later is public until somebody remembers to protect it, and
+   * nothing fails to tell you. With opt-out, forgetting means a route returns 401 —
+   * annoying, and immediately obvious.
+   */
+  const PUBLIC_PATHS = new Set(['/api/auth/google', '/api/auth/signout'])
+
+  app.use('*', async (c, next) => {
+    if (PUBLIC_PATHS.has(new URL(c.req.url).pathname)) return next()
+    return requireUser(c, next)
+  })
+
   // ---- sign in / out -------------------------------------------------------
 
   /**
@@ -75,11 +90,10 @@ export const createApp = () => {
 
   // ---- everything below requires a signed-in, active user ------------------
 
-  app.use('/me', requireUser)
-  app.use('/sites', requireUser)
-  app.use('/sites/:siteId/*', requireUser, requireSiteAccess())
-  app.use('/approvals/*', requireUser, requireRole('approver'))
-  app.use('/admin/*', requireUser, requireRole('admin'))
+  // Role and site rules on top of that baseline.
+  app.use('/sites/:siteId/*', requireSiteAccess())
+  app.use('/approvals/*', requireRole('approver'))
+  app.use('/admin/*', requireRole('admin'))
 
   /** What the browser uses to decide which screens to draw. */
   app.get('/me', async (c) => {

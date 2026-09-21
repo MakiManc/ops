@@ -159,13 +159,44 @@ describe('Google rotating its signing keys', () => {
     await verifyGoogleIdToken(await makeToken(), CLIENT_ID)
     const afterFirst = spy.mock.calls.length
 
-    // A token under a new kid must not fail just because the cache predates it.
+    // A token under a new kid must not fail forever just because the cache predates it.
     const rotated = await makeToken({}, { header: { kid: 'rotated-key' } })
     spy.mockImplementation(async () => new Response(
       JSON.stringify({ keys: [{ ...publicJwk, kid: 'rotated-key' }] }), { status: 200 },
     ))
-    await expect(verifyGoogleIdToken(rotated, CLIENT_ID)).resolves.toMatchObject({ subject: '1234567890' })
+    // Past the refetch cooldown, which exists so junk key ids cannot drive traffic.
+    const later = Date.now() + 61_000
+    await expect(verifyGoogleIdToken(rotated, CLIENT_ID, { now: later }))
+      .resolves.toMatchObject({ subject: '1234567890' })
     expect(spy.mock.calls.length).toBeGreaterThan(afterFirst)
+  })
+
+  it('does not fetch Google again for every made-up key id', async () => {
+    const spy = serveKeys([{ ...publicJwk, kid: KID }])
+    await verifyGoogleIdToken(await makeToken(), CLIENT_ID)
+    const afterFirst = spy.mock.calls.length
+
+    // The key id comes from the token, so anyone can ask for one we have never seen.
+    // Without a cooldown this is an outbound request per junk token, before any
+    // signature is checked. The cost is that a real rotation takes up to a minute to
+    // be picked up, which is the better side of that trade.
+    for (let i = 0; i < 5; i++) {
+      const junk = await makeToken({}, { header: { kid: `made-up-${i}` } })
+      await expect(verifyGoogleIdToken(junk, CLIENT_ID)).rejects.toThrow(InvalidIdTokenError)
+    }
+    expect(spy.mock.calls.length).toBe(afterFirst)
+  })
+
+  it('keeps working when Google answers 200 with no usable keys', async () => {
+    const spy = serveKeys([{ ...publicJwk, kid: KID }])
+    await verifyGoogleIdToken(await makeToken(), CLIENT_ID)
+
+    // A captive portal or an intercepting proxy can return a 200 of the wrong shape.
+    // Letting that replace the cache would lock every sign-in out for an hour.
+    spy.mockImplementation(async () => new Response(JSON.stringify({ keys: [] }), { status: 200 }))
+    const later = Date.now() + 61_000
+    await expect(verifyGoogleIdToken(await makeToken(), CLIENT_ID, { now: later }))
+      .resolves.toMatchObject({ email: 'gm.m9@example.com' })
   })
 
   it('reuses the cached key set for a kid it already holds', async () => {

@@ -191,3 +191,57 @@ describe('recording the runs', () => {
     expect(Object.keys(last)).toEqual(['stock'])
   })
 })
+
+describe('when Mintsoft changes the shape of what it reports', () => {
+  it('replaces a product\'s rows rather than stacking a new grain on the old', async () => {
+    // First sync: one row, no location breakdown.
+    await syncStock(db, stubClient({
+      '/api/Product/Inventory/Bulk': [{ ProductId: 7001, WarehouseId: 1, LocationId: null, OnHand: 100, Allocated: 0 }],
+    }), 'on_hand_minus_allocated')
+
+    // Second sync: the same 100 units, now split across two locations.
+    await syncStock(db, stubClient({
+      '/api/Product/Inventory/Bulk': [
+        { ProductId: 7001, WarehouseId: 1, LocationId: 10, OnHand: 60, Allocated: 0 },
+        { ProductId: 7001, WarehouseId: 1, LocationId: 11, OnHand: 40, Allocated: 0 },
+      ],
+    }), 'on_hand_minus_allocated')
+
+    // Upserting would leave the old no-location row beside the two new ones, and every
+    // reader sums them: 100 units in the warehouse reading as 200.
+    expect(rows(`SELECT COUNT(*) AS n FROM stock_cache`)[0]).toEqual({ n: 2 })
+    expect(rows(`SELECT SUM(on_hand) AS t FROM stock_cache`)[0]).toEqual({ t: 100 })
+  })
+
+  it('drops a location that has emptied instead of leaving its last count behind', async () => {
+    await syncStock(db, stubClient({
+      '/api/Product/Inventory/Bulk': [
+        { ProductId: 7001, WarehouseId: 1, LocationId: 10, OnHand: 60, Allocated: 0 },
+        { ProductId: 7001, WarehouseId: 1, LocationId: 11, OnHand: 40, Allocated: 0 },
+      ],
+    }), 'on_hand_minus_allocated')
+
+    await syncStock(db, stubClient({
+      '/api/Product/Inventory/Bulk': [{ ProductId: 7001, WarehouseId: 1, LocationId: 10, OnHand: 60, Allocated: 0 }],
+    }), 'on_hand_minus_allocated')
+
+    expect(rows(`SELECT SUM(on_hand) AS t FROM stock_cache`)[0]).toEqual({ t: 60 })
+  })
+
+  it('leaves a product absent from the feed alone, so it goes stale rather than vanishing', async () => {
+    await syncStock(db, stubClient({
+      '/api/Product/Inventory/Bulk': [
+        { ProductId: 7001, OnHand: 10, Allocated: 0 },
+        { ProductId: 7002, OnHand: 20, Allocated: 0 },
+      ],
+    }), 'on_hand_minus_allocated')
+
+    await syncStock(db, stubClient({
+      '/api/Product/Inventory/Bulk': [{ ProductId: 7001, OnHand: 15, Allocated: 0 }],
+    }), 'on_hand_minus_allocated')
+
+    // 7002 keeps its row and its old timestamp: we have not heard about it, which is
+    // not the same as it being gone.
+    expect(rows(`SELECT COUNT(*) AS n FROM stock_cache WHERE mintsoft_product_id = 7002`)[0]).toEqual({ n: 1 })
+  })
+})
