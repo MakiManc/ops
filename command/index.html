@@ -1149,7 +1149,10 @@ function renderScorecard(snap){
   const objOf=id=>(s.objectives||[]).find(o=>o.objective===id);
   const objPct=o=>{
     if(!o) return null;
-    if(!sel||!o.months) return o;
+    /* No month variants at all means this objective has one figure, not a
+       series - use it. Only an objective that DOES carry variants can be
+       missing the selected month, and that is the case that reads as a dash. */
+    if(!sel||!o.months||!o.months.length) return o;
     return o.months.find(x=>x.m===sel)||{pct:null,scored:0,total:o.total};
   };
   const body=(s.rows||[]).map(r0=>{
@@ -1228,7 +1231,7 @@ function renderScorecard(snap){
       `<th>Status</th><th>Trend</th></tr></thead><tbody>${kpiBody}</tbody></table>`
     : '';
   const ops=s.operations||null;
-  const opsNow=ops&&ops.months&&sel?(ops.months.find(x=>x.m===sel)||ops):ops;
+  const opsNow=ops&&ops.months&&ops.months.length&&sel?(ops.months.find(x=>x.m===sel)||ops):ops;
   const opsLine=opsNow&&opsNow.pct!=null
     ? `<div style="margin-bottom:10px;font-size:15px">`+
       `<b style="font-size:20px;font-variant-numeric:tabular-nums">${esc(opsNow.pct)}%</b>`+
