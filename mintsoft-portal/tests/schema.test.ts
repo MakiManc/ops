@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -10,7 +10,17 @@ import { beforeEach, describe, expect, it } from 'vitest'
  * D1 is SQLite, so running the real migration against SQLite exercises the actual
  * CHECKs, partial indexes and triggers rather than a description of them.
  */
-const MIGRATION = readFileSync(new URL('../migrations/0001_foundation.sql', import.meta.url), 'utf8')
+/**
+ * Every migration in order, not just the first. Naming one file meant a later
+ * migration that changed a constraint left this suite asserting the old one -- which
+ * is exactly what happened when the one-open-request index was narrowed to drafts.
+ */
+const MIGRATIONS_DIR = new URL('../migrations/', import.meta.url)
+const MIGRATION = readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(new URL(f, MIGRATIONS_DIR), 'utf8'))
+  .join('\n')
 
 let db: DatabaseSync
 
@@ -69,9 +79,9 @@ describe('order states', () => {
 
   it('accepts every state the portal actually uses', () => {
     for (const s of ['draft', 'submitted', 'approved', 'posted', 'despatched', 'rejected', 'cancelled', 'post_failed']) {
-      // Each open-ended state would collide on the one-open-per-site index, so vary the site.
-      expect(() => order(s, ['draft', 'submitted'].includes(s) ? 2 : 1)).not.toThrow()
-      if (['draft', 'submitted'].includes(s)) run(`DELETE FROM orders WHERE site_id = 2`)
+      // Only drafts collide on the one-open-basket index, so vary the site for those.
+      expect(() => order(s, s === 'draft' ? 2 : 1)).not.toThrow()
+      if (s === 'draft') run(`DELETE FROM orders WHERE site_id = 2`)
     }
   })
 
@@ -84,22 +94,29 @@ describe('order states', () => {
   })
 })
 
-describe('one open request per site', () => {
+describe('one open basket per site', () => {
   const open = (site: number, number: string, status = 'draft') =>
     run(`INSERT INTO orders (order_number, site_id, type, status) VALUES (?, ?, 'replenishment', ?)`, number, site, status)
 
-  it('refuses a second open request for the same site', () => {
-    // Mercium bills per order, so items join the open request rather than starting another.
+  it('refuses a second draft for the same site', () => {
+    // Mercium bills per order, so items join the open basket rather than starting another.
     open(1, 'MR-M9-20260921-001', 'draft')
-    expect(() => open(1, 'MR-M9-20260921-002', 'submitted')).toThrow(/UNIQUE constraint failed/)
-  })
-
-  it('counts draft and submitted as the same kind of open', () => {
-    open(1, 'MR-M9-20260921-001', 'submitted')
     expect(() => open(1, 'MR-M9-20260921-002', 'draft')).toThrow(/UNIQUE constraint failed/)
   })
 
-  it('lets a site open a new request once the previous one has moved on', () => {
+  it('allows a new draft while an earlier request is with the approver', () => {
+    // Otherwise a site is blocked until sign-off, and the approver's merge -- which
+    // exists precisely to consolidate two pending requests -- could never be reached.
+    open(1, 'MR-M9-20260921-001', 'submitted')
+    expect(() => open(1, 'MR-M9-20260921-002', 'draft')).not.toThrow()
+  })
+
+  it('allows two requests to be pending at once, for the approver to merge', () => {
+    open(1, 'MR-M9-20260921-001', 'submitted')
+    expect(() => open(1, 'MR-M9-20260921-002', 'submitted')).not.toThrow()
+  })
+
+  it('lets a site open a new basket once the previous one has moved on', () => {
     open(1, 'MR-M9-20260921-001', 'draft')
     run(`UPDATE orders SET status = 'approved' WHERE order_number = 'MR-M9-20260921-001'`)
     expect(() => open(1, 'MR-M9-20260921-002', 'draft')).not.toThrow()
