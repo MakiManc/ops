@@ -1,0 +1,17 @@
+{
+  "name": "mintsoft-portal",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "discover": "node --experimental-strip-types --no-warnings scripts/discover.ts",
+    "gen:types": "node --experimental-strip-types --no-warnings scripts/gen-types.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}
