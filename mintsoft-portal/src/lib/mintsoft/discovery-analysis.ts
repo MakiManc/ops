@@ -129,8 +129,25 @@ export function findDuplicates(products: Product[]) {
  * report how often each holds. The portal must not show a stock figure until this is settled.
  */
 export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
-  const bulkByProduct = new Map<number, BulkInventoryItem>()
-  for (const b of bulk) if (b.ProductId != null) bulkByProduct.set(b.ProductId, b)
+  // BulkInventoryItem carries a LocationId, so a product can appear on several rows --
+  // one per warehouse location. Keying a map on ProductId would silently keep whichever
+  // row happened to come last, and every figure downstream would be one bin's worth of
+  // stock presented as the whole. So group first, then sum.
+  const rowsByProduct = new Map<number, BulkInventoryItem[]>()
+  for (const b of bulk) {
+    if (b.ProductId == null) continue
+    rowsByProduct.set(b.ProductId, [...(rowsByProduct.get(b.ProductId) ?? []), b])
+  }
+
+  /** Sums a field across a product's rows, or undefined if no row carries it. */
+  const total = (rows: BulkInventoryItem[], field: keyof BulkInventoryItem) => {
+    const values = rows
+      .map((r) => r[field])
+      .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+    return values.length ? values.reduce((a, b) => a + b, 0) : undefined
+  }
+
+  const multiRowProducts = [...rowsByProduct.values()].filter((rows) => rows.length > 1).length
 
   const hypotheses: Record<string, { tested: number; held: number }> = {
     'StockLevel.Level === Bulk.StockLevel': { tested: 0, held: 0 },
@@ -150,23 +167,28 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
 
   const samples: unknown[] = []
   for (const s of stock) {
-    const b = s.ProductId != null ? bulkByProduct.get(s.ProductId) : undefined
-    if (!b) continue
-    test('StockLevel.Level === Bulk.StockLevel', s.Level, b.StockLevel)
-    test('StockLevel.Level === Bulk.OnHand', s.Level, b.OnHand)
-    test('StockLevel.Level === Bulk.OnHand - Bulk.Allocated',
-      s.Level, b.OnHand != null && b.Allocated != null ? b.OnHand - b.Allocated : undefined)
-    test('StockLevel.TotalStockLevel === Bulk.OnHand', s.TotalStockLevel, b.OnHand)
-    test('StockLevel.TotalStockLevel === Bulk.StockLevel', s.TotalStockLevel, b.StockLevel)
-    test('Bulk.StockLevel === Bulk.OnHand - Bulk.Allocated',
-      b.StockLevel, b.OnHand != null && b.Allocated != null ? b.OnHand - b.Allocated : undefined)
+    const rows = s.ProductId != null ? rowsByProduct.get(s.ProductId) : undefined
+    if (!rows?.length) continue
+
+    const onHand = total(rows, 'OnHand')
+    const allocated = total(rows, 'Allocated')
+    const stockLevel = total(rows, 'StockLevel')
+    const free = onHand != null && allocated != null ? onHand - allocated : undefined
+
+    test('StockLevel.Level === Bulk.StockLevel', s.Level, stockLevel)
+    test('StockLevel.Level === Bulk.OnHand', s.Level, onHand)
+    test('StockLevel.Level === Bulk.OnHand - Bulk.Allocated', s.Level, free)
+    test('StockLevel.TotalStockLevel === Bulk.OnHand', s.TotalStockLevel, onHand)
+    test('StockLevel.TotalStockLevel === Bulk.StockLevel', s.TotalStockLevel, stockLevel)
+    test('Bulk.StockLevel === Bulk.OnHand - Bulk.Allocated', stockLevel, free)
 
     if (samples.length < 25) {
       samples.push({
-        ProductId: s.ProductId, SKU: s.SKU,
+        ProductId: s.ProductId, SKU: s.SKU, bulkRows: rows.length,
         StockLevel_Level: s.Level, StockLevel_Total: s.TotalStockLevel,
-        Bulk_StockLevel: b.StockLevel, Bulk_OnHand: b.OnHand, Bulk_Allocated: b.Allocated,
-        Bulk_OnOrder: b.OnOrder, Bulk_InTransit: b.InTransit, Bulk_AwaitingReplen: b.AwaitingReplen,
+        Bulk_StockLevel: stockLevel, Bulk_OnHand: onHand, Bulk_Allocated: allocated,
+        Bulk_OnOrder: total(rows, 'OnOrder'), Bulk_InTransit: total(rows, 'InTransit'),
+        Bulk_AwaitingReplen: total(rows, 'AwaitingReplen'),
       })
     }
   }
@@ -180,10 +202,15 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
     ]),
   )
   const overlappingProducts = hypotheses['StockLevel.Level === Bulk.StockLevel']?.tested ?? 0
-  return { overlappingProducts, verdict, samples }
+  return {
+    overlappingProducts,
+    /** If this is above zero, every stock figure must be a sum across locations. */
+    productsWithMultipleBulkRows: multiRowProducts,
+    verdict,
+    samples,
+  }
 }
 
-/** The key may be a JWT. If it is, its exp claim answers the key-lifetime question outright. */
 export function inspectKeyShape(key: string) {
   const parts = key.split('.')
   const payload = parts.length === 3 ? parts[1] : undefined

@@ -168,3 +168,50 @@ describe('compareToSpec — how far the published spec can be trusted', () => {
     expect(r.undocumentedFields).toEqual(['Anything'])
   })
 })
+
+describe('reconcileStock — a product spread across warehouse locations', () => {
+  it('sums a product across its locations instead of keeping one arbitrary row', () => {
+    // BulkInventoryItem carries a LocationId, so one product can arrive on several rows.
+    // Reading only one of them would show a single bin's stock as the whole holding.
+    const stock = [{ ProductId: 1, SKU: 'CHOP', Level: 300, TotalStockLevel: 500 }] as StockLevel[]
+    const bulk = [
+      { ProductId: 1, LocationId: 10, StockLevel: 100, OnHand: 200, Allocated: 100 },
+      { ProductId: 1, LocationId: 11, StockLevel: 200, OnHand: 300, Allocated: 100 },
+    ] as BulkInventoryItem[]
+
+    const r = reconcileStock(stock, bulk)
+    expect(r.productsWithMultipleBulkRows).toBe(1)
+    // 300 free vs Level 300, and 500 on hand vs TotalStockLevel 500 — both only hold
+    // once the locations are added up.
+    expect(r.verdict['StockLevel.Level === Bulk.OnHand - Bulk.Allocated']).toBe('1/1 (100%)')
+    expect(r.verdict['StockLevel.TotalStockLevel === Bulk.OnHand']).toBe('1/1 (100%)')
+  })
+
+  it('records how many locations each figure came from', () => {
+    const r = reconcileStock(
+      [{ ProductId: 1, Level: 2 }] as StockLevel[],
+      [
+        { ProductId: 1, LocationId: 1, StockLevel: 1 },
+        { ProductId: 1, LocationId: 2, StockLevel: 1 },
+      ] as BulkInventoryItem[],
+    )
+    expect((r.samples[0] as { bulkRows: number }).bulkRows).toBe(2)
+  })
+
+  it('still reports nothing when no row carries the field at all', () => {
+    const r = reconcileStock(
+      [{ ProductId: 1, Level: 5 }] as StockLevel[],
+      [{ ProductId: 1, LocationId: 1 }, { ProductId: 1, LocationId: 2 }] as BulkInventoryItem[],
+    )
+    // Two rows, neither with a stock figure: that is unknown, not zero.
+    expect(r.verdict['StockLevel.Level === Bulk.StockLevel']).toMatch(/not testable/)
+  })
+
+  it('counts a single-location product as single-row', () => {
+    const r = reconcileStock(
+      [{ ProductId: 1, Level: 5 }] as StockLevel[],
+      [{ ProductId: 1, LocationId: 1, StockLevel: 5 }] as BulkInventoryItem[],
+    )
+    expect(r.productsWithMultipleBulkRows).toBe(0)
+  })
+})

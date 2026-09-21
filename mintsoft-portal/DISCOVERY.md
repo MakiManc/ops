@@ -131,6 +131,13 @@ that is a finding too, and it needs a conversation with Mercium before Phase 2 p
 
 **Until that is settled, the portal shows no stock number to anybody.**
 
+There is a second trap alongside it. `BulkInventoryItem` carries a `LocationId`, which
+means one product can come back on **several rows — one per warehouse location**. Any code
+that keys those rows by product and keeps the last one would show a single bin's stock as
+the whole holding, and would do it silently. Every figure has to be a sum across
+locations. The discovery run reports how many products are split this way, so we know
+whether this is a live concern in our account or a theoretical one.
+
 ### 3. Three fields are spelled wrong in the API, and we have to match them
 
 Mintsoft ships these typos, and code that spells them correctly silently reads nothing:
