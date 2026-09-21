@@ -165,20 +165,24 @@ export async function addToBasket(
   let orderId = draft?.id
   if (!orderId) {
     const site = await db
-      .prepare(`SELECT code, type FROM sites WHERE id = ? AND active = 1`)
+      .prepare(`SELECT code, type, recharge FROM sites WHERE id = ? AND active = 1`)
       .bind(siteId)
-      .first<{ code: string; type: string }>()
+      .first<{ code: string; type: string; recharge: number }>()
     if (!site) throw new OrderError('That site is not open for ordering.')
 
     const now = new Date()
     const orderNumber = buildOrderNumber(site.code, now, await nextSequence(db, site.code, now))
     const created = await db
       .prepare(
-        `INSERT INTO orders (order_number, site_id, type, status, requested_by)
-         VALUES (?, ?, 'replenishment', 'draft', (SELECT id FROM users WHERE email = ?))
+        // The recharge flag is copied from the site at creation rather than read live
+        // at approval, so an order carries the arrangement that applied when it was
+        // placed. Without it every order defaulted to not-recharged, and a franchise
+        // site's stock would quietly have been given away.
+        `INSERT INTO orders (order_number, site_id, type, status, recharge, requested_by)
+         VALUES (?, ?, 'replenishment', 'draft', ?, (SELECT id FROM users WHERE email = ?))
          RETURNING id`,
       )
-      .bind(orderNumber, siteId, actor)
+      .bind(orderNumber, siteId, site.recharge, actor)
       .first<{ id: number }>()
     if (!created) throw new OrderError('Could not start a request.')
     orderId = created.id

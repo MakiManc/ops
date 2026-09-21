@@ -302,3 +302,28 @@ describe('the audit trail', () => {
       .toThrow(/append-only/)
   })
 })
+
+describe('the recharge flag', () => {
+  it('is copied from the site when the request is opened', async () => {
+    // Without this every order defaulted to not-recharged, and a franchise site's
+    // stock would quietly have been given away.
+    const franchise = await addToBasket(db, {
+      siteId: 2, productId: 1, qty: 10, actor: GM, availableNow: 100,
+    })
+    expect(franchise.recharge).toBe(true)
+  })
+
+  it('stays off for a corporate site', async () => {
+    const corporate = await add(1, 10, 1)
+    expect(corporate.recharge).toBe(false)
+  })
+
+  it('records the arrangement that applied when the order was placed', async () => {
+    const order = await addToBasket(db, {
+      siteId: 2, productId: 1, qty: 10, actor: GM, availableNow: 100,
+    })
+    // A site switching to corporate later must not un-recharge an order already placed.
+    fake.exec(`UPDATE sites SET recharge = 0 WHERE id = 2`)
+    expect((await orderById(db, order.id))!.recharge).toBe(true)
+  })
+})
