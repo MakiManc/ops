@@ -56,17 +56,44 @@ function main(rows: Row[]) {
 
   const matched: { id: number; code: string; file: string; name: string }[] = []
   const missing: { code: string; name: string; lines: number }[] = []
+  const ambiguous: { code: string; file: string; products: Row[] }[] = []
 
+  // A stem is not an identity. Mercium reuses one across unrelated items, so two
+  // products can want the same code — STS is both a sakura tree and a square tabletop.
+  // Linking one file to both would put the wrong picture on a product silently, which
+  // is worse than no picture, so a shared code is reported and neither is linked.
+  const byCode = new Map<string, Row[]>()
   for (const r of rows) {
     const code = itemCode(r.a_sku)
+    const sharing = byCode.get(code)
+    if (sharing) sharing.push(r)
+    else byCode.set(code, [r])
+  }
+
+  for (const [code, sharing] of byCode) {
+    // A file named after the product itself settles a shared code, and overrides the
+    // stem for anything the stem cannot tell apart.
+    for (const r of sharing) {
+      const own = photos.get(`P${r.id}`)
+      if (own) matched.push({ id: r.id, code: `P${r.id}`, file: own, name: r.name })
+    }
+
+    // Whoever is left is who the stem file would have to mean. One claimant: link it.
+    // More than one: it is guesswork, so hold it back and say who is competing.
+    const unsettled = sharing.filter((r) => !photos.has(`P${r.id}`))
     const file = photos.get(code)
-    if (file) matched.push({ id: r.id, code, file, name: r.name })
-    else missing.push({ code, name: r.name, lines: r.lines })
+    if (!file) {
+      for (const r of unsettled) missing.push({ code, name: r.name, lines: r.lines })
+    } else if (unsettled.length === 1) {
+      matched.push({ id: unsettled[0]!.id, code, file, name: unsettled[0]!.name })
+    } else if (unsettled.length > 1) {
+      ambiguous.push({ code, file, products: unsettled })
+    }
   }
 
   // A file nobody claims is worth naming: it is usually a typo in the filename, and
   // silence would leave the product looking un-photographed for no visible reason.
-  const claimed = new Set(matched.map((m) => m.file))
+  const claimed = new Set([...matched.map((m) => m.file), ...ambiguous.map((a) => a.file)])
   const orphans = [...photos.values()].filter((f) => !claimed.has(f))
 
   console.log(`\n${matched.length} of ${rows.length} products have a photo.`)
@@ -80,6 +107,14 @@ function main(rows: Row[]) {
   if (orphans.length) {
     console.log(`\n${orphans.length} file(s) match no product — check the filename:`)
     for (const f of orphans) console.log(`  ${f}`)
+  }
+  if (ambiguous.length) {
+    console.log(`\n${ambiguous.length} file(s) claimed by more than one product — NOT linked.`)
+    console.log('Name a file after the product instead, e.g. P103.jpg, and it wins over the code:')
+    for (const a of ambiguous) {
+      console.log(`  ${a.file}`)
+      for (const r of a.products) console.log(`      P${r.id}  ${r.name.slice(0, 46)}`)
+    }
   }
 
   if (!matched.length) { console.log('\nNothing to link yet.\n'); return }

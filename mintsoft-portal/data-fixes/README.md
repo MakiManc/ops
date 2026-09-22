@@ -13,3 +13,14 @@ none of this is.
 Applied with:
 
     npx wrangler d1 execute mintsoft-portal --remote --file data-fixes/<file>.sql
+
+## Applied
+
+A file in this folder is not proof it ran — one sat here unapplied for an afternoon
+because nothing said either way. So each one is recorded here once it is live:
+
+| File | Applied |
+|------|---------|
+| `2026-09-22-merge-legacy-duplicates.sql` | 2026-09-22 |
+| `2026-09-22-split-rtr-lines.sql` | 2026-09-22 |
+| `2026-09-22-split-sts-merge-stb.sql` | 2026-09-22 |

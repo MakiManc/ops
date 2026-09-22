@@ -10,6 +10,16 @@ mapping: a GM sees one product, not eight.
 
 `.jpg`, `.jpeg`, `.png` and `.webp` all work, and matching ignores case.
 
+## When two products want the same code
+
+A stem is not an identity — Mercium reuses one across unrelated items. `STS` is both
+Sakura Trees and Square Table Top (Copper), so `STS.jpg` cannot mean both. When that
+happens the script says so and links neither, because the wrong picture on a product is
+worse than none.
+
+Settle it by naming a file after the product instead — `P103.jpg` for product 103. That
+beats the code, and the stem file then belongs to whoever is left.
+
 Then:
 
     npm run photos                        # what is matched, what is missing, what is orphaned
