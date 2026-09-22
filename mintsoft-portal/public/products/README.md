@@ -41,6 +41,32 @@ credentials of its own. Add `-- --local` to check against the local database ins
 Vite copies this folder into `dist/`, so a photo is live at `/products/<CODE>.jpg` on the
 next deploy. A photo is a commit, the same way a stock refresh is.
 
+## Why they cannot be sourced from the web either
+
+Asked on 2026-09-22 whether the commodity items — chopsticks, aprons, a wok — could take
+a freely-licensed stock photo instead of being shot. They cannot. Every avenue was tried
+and every one returns images that would mislead:
+
+| Source | What it actually returns |
+|---|---|
+| Openverse CC0/PDM photos | Documentary scenes. "wok" gave a frying pan of chicken skewers and a stove in a busy kitchen; "chest freezer" gave a supermarket aisle. |
+| Targeted queries | Zero results. Openverse search is strict AND, so "wok isolated white background" matches nothing. |
+| rawpixel (CC0) | Museum archives — a 1936 pewter teapot, a 1935 apron watercolour, "Apron Mills East Side, Minneapolis" (a building). |
+| rawpixel PNG stickers | Clean and accurate, but served as JPEG with the transparency checkerboard baked into the pixels. No alpha, despite the .png URL. |
+| svgsilh silhouettes | Patchy: 105 for apron, 2 for chopsticks, 0 for wok. A half-iconned catalogue looks broken. |
+| Flickr CC-BY | Also documentary. "Wok-N-Roll Oxford" is a restaurant sign; "chopsticks" is an art piece of coloured sticks round a green lid. |
+
+There is no public-domain corpus of modern product photography for restaurant supplies.
+The material that is free is archival, documentary or artistic, and none of it depicts
+the thing a GM is ordering.
+
+This matters more here than it would elsewhere, because a thumbnail is read at a glance
+and never questioned. The same rule the upload path enforces applies to sourcing: **a
+wrong photo is worse than no photo.** A blank square is honest.
+
+So the photos have to be taken. They do not have to be good — a phone, a clear worktop
+and decent daylight beats anything above.
+
 ## Why these are not Mintsoft's
 
 135 of Mintsoft's 337 product lines carry an `ImageURL`, and every one points at
