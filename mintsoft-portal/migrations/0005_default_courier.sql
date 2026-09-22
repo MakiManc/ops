@@ -1,0 +1,15 @@
+-- Mintsoft refuses an order with no courier service.
+--
+-- Found by Phase 3's live test order on 2026-09-22, which came back:
+--   "No CourierService Specified! Either use CourierService or CourierServiceId"
+--
+-- The portal already had sites.default_courier_service_id, but nothing populates it —
+-- the site directory carries no courier — so every site had NULL and every order would
+-- have been refused. A GM would have met this on the first real request.
+--
+-- 169 is not a guess. Of the 50 most recent orders on the account, 44 used service 169
+-- (DPD Next Day - Parcel). The other two in use are 2028 (Van) and 2030 (Manual), which
+-- look like the routes for things that do not go by parcel.
+--
+-- A site's own default still wins where one is set; this is the fallback beneath it.
+ALTER TABLE settings ADD COLUMN default_courier_service_id INTEGER NOT NULL DEFAULT 169;

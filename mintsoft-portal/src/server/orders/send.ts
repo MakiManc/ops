@@ -10,6 +10,7 @@
  * plain failure, because a failure invites a retry and a retry could be a duplicate.
  */
 import { auditStatement, orderById, linesForOrder } from '../db/orders.ts'
+import { readSettings } from '../db/settings.ts'
 import type { Database } from '../db/repo.ts'
 import type { Role } from '../db/types.ts'
 import { allocateLine, type MappedSku } from './approval.ts'
@@ -35,6 +36,8 @@ export async function sendApprovedOrder(
 ): Promise<SendResult> {
   const order = await orderById(db, orderId)
   if (!order) return { ok: false, status: 'refused', message: 'That order no longer exists.' }
+
+  const settings = await readSettings(db)
 
   const approver = await db
     .prepare(
@@ -141,7 +144,10 @@ export async function sendApprovedOrder(
     deliveryNotes: site.delivery_notes,
     requiredDate: order.requiredDate,
     comments: order.notes,
-    courierServiceId: site.default_courier_service_id,
+    // A site's own courier wins; otherwise the account default. Never null: Mintsoft
+    // refuses an order with no courier service, and a refusal at this point looks to a
+    // GM like the portal is broken rather than like a missing setting.
+    courierServiceId: site.default_courier_service_id ?? settings.defaultCourierServiceId,
     clientId, warehouseId,
     lines: allocations.flatMap((a) => (a.kind === 'allocated' ? a.parts : []))
       .map((p) => ({ sku: p.sku, quantity: p.qty })),

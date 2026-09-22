@@ -6,13 +6,21 @@ export interface Settings {
   defaultMinDaysBetweenOrders: number
   passOrderFeeToFranchise: boolean
   availableFormula: AvailableFormula
+  /**
+   * Courier service used when a site has none of its own.
+   *
+   * Mintsoft REFUSES an order that carries no courier service, so this is not a
+   * preference — without it nothing can be sent at all.
+   */
+  defaultCourierServiceId: number
 }
 
 export async function readSettings(db: Database): Promise<Settings> {
   const row = await db
     .prepare(
       `SELECT mercium_order_fee, default_min_days_between_orders,
-              pass_order_fee_to_franchise, available_formula
+              pass_order_fee_to_franchise, available_formula,
+              default_courier_service_id
          FROM settings WHERE id = 1`,
     )
     .first<{
@@ -20,6 +28,7 @@ export async function readSettings(db: Database): Promise<Settings> {
       default_min_days_between_orders: number
       pass_order_fee_to_franchise: number
       available_formula: AvailableFormula
+      default_courier_service_id: number
     }>()
 
   // The row is created by the migration, so its absence means something is badly wrong.
@@ -30,6 +39,7 @@ export async function readSettings(db: Database): Promise<Settings> {
     defaultMinDaysBetweenOrders: row.default_min_days_between_orders,
     passOrderFeeToFranchise: row.pass_order_fee_to_franchise === 1,
     availableFormula: row.available_formula,
+    defaultCourierServiceId: row.default_courier_service_id,
   }
 }
 

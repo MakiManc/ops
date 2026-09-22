@@ -191,3 +191,42 @@ describe('when we do not know whether it went', () => {
     expect(again.puts).toHaveLength(0)
   })
 })
+
+/**
+ * Mintsoft refuses an order that carries no courier service:
+ *
+ *   "No CourierService Specified! Either use CourierService or CourierServiceId"
+ *
+ * Phase 3's live test order hit exactly that. The portal had
+ * sites.default_courier_service_id, but nothing populates it — the site directory
+ * carries no courier — so every site had NULL and every order would have been refused.
+ * A GM would have met it on their first real request, and it would have looked like the
+ * portal was broken rather than like a missing setting.
+ */
+describe('the courier service, which Mintsoft will not accept an order without', () => {
+  const courierOf = (puts: unknown[]) =>
+    (puts[0] as Record<string, unknown> | undefined)?.CourierServiceId
+
+  it('falls back to the account default when the site has none', async () => {
+    fake.exec(`UPDATE sites SET default_courier_service_id = NULL WHERE id = 1`)
+    const { client, puts } = stub()
+    await send(client)
+    // 169 is DPD Next Day - Parcel: 44 of the account's 50 most recent orders used it.
+    expect(courierOf(puts)).toBe(169)
+  })
+
+  it("prefers the site's own courier when it has one", async () => {
+    fake.exec(`UPDATE sites SET default_courier_service_id = 2028 WHERE id = 1`)  // Van
+    const { client, puts } = stub()
+    await send(client)
+    expect(courierOf(puts)).toBe(2028)
+  })
+
+  it('never sends an order with no courier at all', async () => {
+    fake.exec(`UPDATE sites SET default_courier_service_id = NULL WHERE id = 1`)
+    const { client, puts } = stub()
+    await send(client)
+    expect(courierOf(puts)).toBeDefined()
+    expect(courierOf(puts)).not.toBeNull()
+  })
+})
