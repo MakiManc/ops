@@ -12,7 +12,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "mintsoft-portal"
-database_id = ""   # same database as the Pages project
+database_id = "349649e2-8441-4e01-b102-f3f4eec636ad"   # same database as the Pages project
 
 [triggers]
 crons = [
