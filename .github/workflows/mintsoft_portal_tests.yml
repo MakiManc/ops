@@ -18,6 +18,11 @@ name: Mintsoft portal tests
 #   3. Lists must not truncate silently. A short list that says nothing is
 #      worse than one that fails, because it looks like an answer.
 #
+#   From Phase 1, it also covers the role boundary: three users, three sets of
+#   screens, proved at the API (where it is enforced) and in the UI (where it is
+#   drawn). Roles deliberately do not nest, and a test asserts that an admin is
+#   not quietly also an approver.
+#
 # WHY IT IS A SEPARATE FILE FROM dashboard_tests.yml
 #   mintsoft-portal/ is its own npm package with its own lockfile. Folding it
 #   into the dashboard job would mean one lockfile check standing in for two
@@ -68,6 +73,11 @@ jobs:
 
       - name: Test
         run: npm test
+
+      # The front end is what GMs actually see, so a build that no longer compiles
+      # should fail here rather than at deploy time.
+      - name: Build
+        run: npm run build
 
       # The API models are generated from Mintsoft's published spec. If that
       # spec changes shape - a field renamed, a model withdrawn - we want to

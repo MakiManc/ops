@@ -3,6 +3,9 @@
  *
  *   MINTSOFT_USERNAME=... MINTSOFT_PASSWORD=... npm run discover
  *
+ * A pre-minted MINTSOFT_API_KEY, or MINTSOFT_PROXY_AUTH=true, works here too — this run
+ * is short enough to finish inside a key's 24-hour life. Only the sync needs the login.
+ *
  * Authenticates, reads a representative slice of the Maki & Ramen account, writes the raw
  * responses to ./discovery/ (git-ignored) and an analysis to ./discovery/SUMMARY.json, then
  * prints a report. DISCOVERY.md is written from that summary.
@@ -18,7 +21,10 @@
  * kept (discovering them is the whole point) but their VALUES are replaced.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { MintsoftReadOnlyClient } from '../src/lib/mintsoft/readonly-client.ts'
+import {
+  MintsoftReadOnlyClient, resolveAuthMode,
+  type AuthMode, type ClientOptions,
+} from '../src/lib/mintsoft/readonly-client.ts'
 import {
   compareToSpec, fieldReport, findDuplicates, inspectKeyShape, reconcileStock, redact,
 } from '../src/lib/mintsoft/discovery-analysis.ts'
@@ -158,13 +164,25 @@ async function probeOrderability(client: MintsoftReadOnlyClient, productIds: num
 }
 
 async function main() {
-  const username = process.env.MINTSOFT_USERNAME
-  const password = process.env.MINTSOFT_PASSWORD
-  if (!username || !password) {
+  // Any of the three credential forms will do for a read-only run. resolveAuthMode
+  // rejects none-supplied and more-than-one-supplied, so a failure below always names
+  // one credential rather than leaving it ambiguous which was at fault.
+  const credential: ClientOptions = {
+    username: process.env.MINTSOFT_USERNAME,
+    password: process.env.MINTSOFT_PASSWORD,
+    apiKey: process.env.MINTSOFT_API_KEY,
+    proxyAuth: process.env.MINTSOFT_PROXY_AUTH === 'true',
+  }
+  let authMode: AuthMode
+  try {
+    authMode = resolveAuthMode(credential)
+  } catch (err) {
     console.error(
-      'MINTSOFT_USERNAME and MINTSOFT_PASSWORD must be set.\n' +
-      'Set them in your shell for a one-off run, or in .dev.vars (git-ignored) for repeat runs.\n' +
-      'They are never written to ./discovery/ or to any log.',
+      `${(err as Error).message}\n\n` +
+      'Set them in your shell for a one-off run, or in .dev.vars (git-ignored) for repeat\n' +
+      'runs. See DEPLOY.md — "Where the Mintsoft credentials go". Run `npm run\n' +
+      'check:credentials` first if you want to confirm one works before a full run.\n' +
+      'Credentials are never written to ./discovery/ or to any log.',
     )
     process.exit(1)
   }
@@ -172,16 +190,19 @@ async function main() {
   mkdirSync(dir, { recursive: true })
   const startedAt = new Date().toISOString()
   const client = new MintsoftReadOnlyClient({
-    username, password, throttleMs: Number(process.env.DISCOVER_THROTTLE_MS ?? 250),
+    ...credential, throttleMs: Number(process.env.DISCOVER_THROTTLE_MS ?? 250),
     onLog: (e) => console.log(`  ${String(e.status).padEnd(3)} ${String(e.ms).padStart(5)}ms  ${e.path}`),
   })
 
-  console.log('\nAuthenticating…')
-  await client.authenticate()
-  // The key itself never leaves the client; only this description of it does.
+  console.log(`\nAuthenticating… (${authMode})`)
+  if (authMode === 'password') await client.authenticate()
+  // The key itself never leaves the client; only this description of it does. In proxy
+  // mode there is no key here to describe, which is the point of that mode.
   const keyShape = client.describeKey(inspectKeyShape) ?? { length: 0, looksLikeJwt: false, expiresAt: null }
-  console.log(`  key acquired (${keyShape.length} chars, jwt=${keyShape.looksLikeJwt}` +
-    `${keyShape.expiresAt ? `, expires ${keyShape.expiresAt}` : ''})`)
+  console.log(authMode === 'proxy'
+    ? '  no key in this process — the proxy attaches one upstream'
+    : `  key in hand (${keyShape.length} chars, jwt=${keyShape.looksLikeJwt}` +
+      `${keyShape.expiresAt ? `, expires ${keyShape.expiresAt}` : ''})`)
 
   console.log('\nWho are we? (clients and warehouses this user can see)')
   // GET /api/Client is documented "Available to Admin users only", so this call may well

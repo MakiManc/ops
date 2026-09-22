@@ -73,20 +73,89 @@ export interface RequestLog {
   note?: string
 }
 
+/**
+ * How the client gets its `ms-apikey`. Exactly one of these three must be supplied.
+ *
+ * Mintsoft's keys last 24 hours, so only the username/password pair can drive anything
+ * scheduled — the other two are for one-off runs and for checking a credential works.
+ */
 export interface ClientOptions {
-  username: string
-  password: string
+  /** The API user's login. The only form that can re-mint an expired key. */
+  username?: string
+  password?: string
+  /**
+   * A key already minted by `POST /api/Auth`. Dies 24 hours after it was issued, and
+   * this client cannot renew it, so a 401 on this form is reported rather than retried.
+   */
+  apiKey?: string
+  /**
+   * Send no `ms-apikey` header at all and let an upstream proxy attach one — the shape a
+   * Claude Code environment API credential takes. The key never enters this process, so
+   * there is nothing here to log, dump or leak. Same 24-hour expiry applies upstream.
+   */
+  proxyAuth?: boolean
   /** Pause between calls, to stay polite with an API whose limits we do not know. */
   throttleMs?: number
   onLog?: (entry: RequestLog) => void
 }
 
+/** Which of the three credential forms a client was built with. */
+export type AuthMode = 'password' | 'key' | 'proxy'
+
+export function resolveAuthMode(opts: ClientOptions): AuthMode {
+  const forms: AuthMode[] = []
+  if (opts.username && opts.password) forms.push('password')
+  if (opts.apiKey) forms.push('key')
+  if (opts.proxyAuth) forms.push('proxy')
+
+  if (forms.length === 1) return forms[0]!
+  if (forms.length === 0) {
+    throw new Error(
+      'No Mintsoft credential. Supply MINTSOFT_USERNAME and MINTSOFT_PASSWORD, or ' +
+        'MINTSOFT_API_KEY, or set MINTSOFT_PROXY_AUTH=true to let the proxy attach one.',
+    )
+  }
+  throw new Error(
+    `Ambiguous Mintsoft credential: ${forms.join(' and ')} were both supplied. ` +
+      'Pick one, so it is unambiguous which credential a failure is about.',
+  )
+}
+
 export class MintsoftReadOnlyClient {
-  private key: string | null = null
+  /**
+   * Protected rather than private so the one subclass that may write can send it.
+   * Still never returned to a caller: `describeKey` exists so discovery can report on
+   * the key's shape without the key itself leaving the object.
+   */
+  protected key: string | null = null
   private authCount = 0
   readonly log: RequestLog[] = []
 
-  constructor(private readonly opts: ClientOptions) {}
+  /** Fixed at construction, so a failure always names the credential it was about. */
+  readonly authMode: AuthMode
+
+  /**
+   * Written out rather than declared as a constructor parameter property: Node's
+   * --experimental-strip-types cannot compile those, and the discovery script runs
+   * under exactly that. Vitest and Vite both cope, so the tests never caught it.
+   */
+  private readonly opts: ClientOptions
+
+  constructor(opts: ClientOptions) {
+    this.opts = opts
+    this.authMode = resolveAuthMode(opts)
+    if (this.authMode === 'key') this.key = opts.apiKey!
+  }
+
+  /** True when a rejected key can be replaced by minting a new one. */
+  private get canReauthenticate(): boolean {
+    return this.authMode === 'password'
+  }
+
+  /** The auth header for a call, or none at all when a proxy supplies it. */
+  private authHeader(): Record<string, string> {
+    return this.authMode === 'proxy' ? {} : { 'ms-apikey': this.key! }
+  }
 
   /** Number of times we exchanged credentials for a key. >1 means a key expired mid-run. */
   get reauthCount() {
@@ -102,6 +171,12 @@ export class MintsoftReadOnlyClient {
     return this.key === null ? null : describe(this.key)
   }
 
+  /** Headers for an authenticated call. Authenticates first if there is no key yet. */
+  protected async authorizedHeaders(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+    if (!this.key && this.authMode === 'password') await this.authenticate()
+    return { ...this.authHeader(), Accept: 'application/json', ...extra }
+  }
+
   /**
    * Exchanges credentials for an API key.
    *
@@ -110,6 +185,16 @@ export class MintsoftReadOnlyClient {
    * in the body and are never logged, echoed, or included in any dump.
    */
   async authenticate(): Promise<void> {
+    // The other two forms have nothing to exchange: the key is already in hand, or it
+    // lives upstream and never enters this process.
+    if (this.authMode !== 'password') {
+      throw new Error(
+        `Cannot authenticate in '${this.authMode}' mode: this client was given a key ` +
+          'rather than a login, and Mintsoft keys cannot be renewed without one. ' +
+          'Supply MINTSOFT_USERNAME and MINTSOFT_PASSWORD for anything long-running.',
+      )
+    }
+
     const started = performance.now()
     const res = await fetch(`${BASE}/api/Auth`, {
       method: 'POST',
@@ -156,7 +241,7 @@ export class MintsoftReadOnlyClient {
     // not on the list never reaches the network.
     if (!isAllowedReadPath(path)) throw new DisallowedEndpointError(path)
 
-    if (!this.key) await this.authenticate()
+    if (!this.key && this.authMode === 'password') await this.authenticate()
 
     const url = new URL(path, BASE)
     for (const [k, v] of Object.entries(query)) {
@@ -165,7 +250,7 @@ export class MintsoftReadOnlyClient {
 
     const started = performance.now()
     const res = await fetch(url, {
-      headers: { 'ms-apikey': this.key!, Accept: 'application/json' },
+      headers: { ...this.authHeader(), Accept: 'application/json' },
     })
     const raw = await res.text()
     const ms = Math.round(performance.now() - started)
@@ -174,11 +259,17 @@ export class MintsoftReadOnlyClient {
     this.log.push(entry)
     this.opts.onLog?.(entry)
 
-    if (res.status === 401 && !retriedAuth) {
+    if (res.status === 401 && !retriedAuth && this.canReauthenticate) {
       entry.note = 'key rejected — re-authenticating once'
       this.key = null
       await this.authenticate()
       return this.get<T>(path, query, { retriedAuth: true, retriedRateLimit })
+    }
+
+    if (res.status === 401 && !this.canReauthenticate) {
+      // Nothing to retry with. Mintsoft keys last 24 hours, so this is overwhelmingly
+      // likely to be an expired one rather than a wrong one.
+      entry.note = `401 in '${this.authMode}' mode — key expired or rejected, and it cannot be renewed here`
     }
 
     // The spec documents no 429 anywhere, so if one appears it is undocumented

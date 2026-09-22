@@ -28,15 +28,56 @@ describe('redact', () => {
 })
 
 describe('duplicate detection', () => {
-  it('strips shipment and version suffixes from a SKU to find the stem', () => {
-    expect(skuStem('BOWL-RAMEN-01')).toBe('BOWL-RAMEN')
-    expect(skuStem('bowl-ramen-v2')).toBe('BOWL-RAMEN')
-    expect(skuStem('CHOPSTICK_SHP7')).toBe('CHOPSTICK')
+  /**
+   * Mercium's real convention, confirmed against the live catalogue: 330 of 337 SKUs
+   * are MRK<shipment>-<item code>, with 54 item codes recurring across 14 shipments.
+   * The shipment is a PREFIX. An earlier version of this test encoded an invented
+   * trailing-suffix convention that nothing in the catalogue actually uses.
+   */
+  it('strips the shipment prefix so one item is one stem across shipments', () => {
+    expect(skuStem('MRK004-BMB-XL')).toBe('BMB-XL')
+    expect(skuStem('MRK011-BMB-XL')).toBe('BMB-XL')
+    expect(skuStem('mrk001-bcb')).toBe('BCB')
+  })
+
+  it('keeps the size, so different garments do not collapse into one', () => {
+    expect(skuStem('MRK002-BMB-L')).toBe('BMB-L')
+    expect(skuStem('MRK002-BMB-XL')).toBe('BMB-XL')
+    expect(skuStem('MRK002-BMB-L')).not.toBe(skuStem('MRK002-BMB-XL'))
+  })
+
+  it('keeps dimensions apart — a 1500mm table top is not a 1200mm one', () => {
+    expect(skuStem('MRK002-WTW-1500')).not.toBe(skuStem('MRK002-WTW-1200'))
+  })
+
+  it('leaves a SKU that carries no shipment prefix alone', () => {
+    // The seven legacy SKUs predate the MRK scheme.
+    expect(skuStem('UTL-CHP-BLK')).toBe('UTL-CHP-BLK')
   })
 
   it('normalises names so shipment markers do not split one product into many', () => {
     expect(normaliseName('Ramen Bowl (shipment 7)')).toBe('ramen bowl')
     expect(normaliseName('Ramen  Bowl v2')).toBe('ramen bowl')
+    // The marker appears in real names as a trailing "- MRK001".
+    expect(normaliseName('BLACK MAKI & RAMEN TEE SHIRT (L) - MRK001'))
+      .toBe(normaliseName('Black Maki & Ramen Tee Shirt (L)'))
+  })
+
+  /**
+   * 21 of the 46 clusters the first live run produced were this mistake: sizes live in
+   * parentheses, the old normaliser deleted parenthesised text wholesale, and L, XL and
+   * XXL became one cluster. The mapping tool would have offered to merge three different
+   * garments into a single orderable product.
+   */
+  it('keeps sizes apart, because an XL tee shirt is not an L one', () => {
+    const l = normaliseName('Black Maki & Ramen Tee Shirt (L)')
+    const xl = normaliseName('Black Maki & Ramen Tee Shirt (XL)')
+    const xxl = normaliseName('Black Maki & Ramen Tee Shirt (XXL)')
+    expect(new Set([l, xl, xxl]).size).toBe(3)
+  })
+
+  it('matches the same size however the name is written', () => {
+    expect(normaliseName('Black Tee Shirt (XL)')).toBe(normaliseName('BLACK TEE SHIRT (xl)'))
   })
 
   it('clusters the duplicate lines Mintsoft accumulated across shipments', () => {

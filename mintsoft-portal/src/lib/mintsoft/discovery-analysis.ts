@@ -61,17 +61,62 @@ export function fieldReport(rows: Record<string, unknown>[]) {
   )
 }
 
-/** Strips the trailing shipment/version marker that turns one product into many lines. */
-export const skuStem = (sku: string) =>
-  sku.trim().toUpperCase().replace(/[\s_-]*(v|ver|rev|batch|shp|shipment)?[\s_-]*\d{1,4}$/i, '')
+/**
+ * A size or dimension. These DISTINGUISH products and must never be normalised away:
+ * an XL tee shirt is not an L one, and a 1500mm table top is not a 1200mm one.
+ */
+const SIZE_TOKEN = /^(xxxl|xxl|xl|[sml]|\d{3,4}|\d+(?:\.\d+)?)$/i
 
-export const normaliseName = (name: string) =>
-  name.toLowerCase()
-    .replace(/\(.*?\)/g, ' ')
+/**
+ * The shipment marker. Mercium re-creates a product for each shipment rather than
+ * restocking the existing one, so the SKU is MRK<shipment>-<item code> and the same
+ * physical item appears once per shipment. Discovery found 54 item codes spread over
+ * 14 shipments this way, which is the duplication the mapping tool exists to hide.
+ *
+ * This is the part that VARIES between duplicates, so it is what gets stripped.
+ */
+const SHIPMENT_PREFIX = /^MRK\d+[-\s]+/i
+const SHIPMENT_IN_NAME = /\bmrk\s*\d+\b/gi
+
+/**
+ * Reduces a SKU to the item it identifies, independent of which shipment brought it in.
+ *
+ * MRK004-BMB-XL and MRK011-BMB-XL are the same XL tee shirt from two shipments, and
+ * both reduce to BMB-XL. MRK002-BMB-L does not: it keeps its own -L and stays separate,
+ * which is the whole point. An earlier version stripped TRAILING digits instead, which
+ * left every shipment in its own cluster while merging MRK002-WTW-1500 with
+ * MRK002-WTW-1200 — two different table tops.
+ */
+export const skuStem = (sku: string) =>
+  sku.trim().toUpperCase().replace(SHIPMENT_PREFIX, '').trim()
+
+/**
+ * Reduces a product name to comparable form, keeping anything that distinguishes it.
+ *
+ * Sizes live in parentheses here — "Black Maki & Ramen Tee Shirt (XL)" — so the
+ * parenthesised part is kept when it reads as a size and dropped otherwise. Deleting it
+ * outright, as this once did, collapsed L, XL and XXL into one cluster and would have
+ * had the mapping tool propose merging three different garments into a single orderable
+ * product. 21 of the 46 clusters in the first live run were that mistake.
+ */
+export const normaliseName = (name: string) => {
+  const sizes: string[] = []
+  const withoutParens = name.toLowerCase().replace(/\(([^)]*)\)/g, (_, inner: string) => {
+    const token = inner.trim().replace(/\s+/g, '')
+    if (SIZE_TOKEN.test(token)) sizes.push(token)
+    return ' '
+  })
+
+  const base = withoutParens
+    .replace(SHIPMENT_IN_NAME, ' ')
     .replace(/\b(v|ver|rev|batch|shipment|shp)\s*\d{1,4}\b/gi, ' ')
     .replace(/\b(new|old|copy|duplicate|dup)\b/gi, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
+
+  // Appended rather than left in place, so "Tee Shirt (XL)" and "XL Tee Shirt" agree.
+  return sizes.length ? `${base} ${[...sizes].sort().join(' ')}`.trim() : base
+}
 
 export function findDuplicates(products: Product[]) {
   const byName = new Map<string, Product[]>()
@@ -129,14 +174,26 @@ export function findDuplicates(products: Product[]) {
  * report how often each holds. The portal must not show a stock figure until this is settled.
  */
 export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
-  // BulkInventoryItem carries a LocationId, so a product can appear on several rows --
-  // one per warehouse location. Keying a map on ProductId would silently keep whichever
-  // row happened to come last, and every figure downstream would be one bin's worth of
-  // stock presented as the whole. So group first, then sum.
-  const rowsByProduct = new Map<number, BulkInventoryItem[]>()
+  // Keyed on product AND warehouse, then summed across bin locations within it.
+  //
+  // BulkInventoryItem carries a LocationId, so a product can appear on several rows in
+  // one warehouse. Keeping whichever came last would present one bin's worth of stock
+  // as the whole holding, so rows are grouped and summed rather than overwritten.
+  //
+  // The two feeds do not cover the same ground: /api/Product/StockLevels returns a row
+  // per product per warehouse, while /api/Product/Inventory/Bulk returned only the one
+  // warehouse that holds stock. Keying on ProductId compares a single warehouse's row
+  // against a total spanning all of them, and the empty warehouses then read as
+  // disagreements. That is how the first live run reported 66-73% agreement for
+  // relationships that in fact hold for every row: the noise was entirely the two empty
+  // EU warehouses being matched against Witham's figures.
+  const rowsByProductWarehouse = new Map<string, BulkInventoryItem[]>()
+  const key = (productId: number, warehouseId: number | null | undefined) =>
+    `${productId}:${warehouseId ?? 'none'}`
   for (const b of bulk) {
     if (b.ProductId == null) continue
-    rowsByProduct.set(b.ProductId, [...(rowsByProduct.get(b.ProductId) ?? []), b])
+    const k = key(b.ProductId, b.WarehouseId)
+    rowsByProductWarehouse.set(k, [...(rowsByProductWarehouse.get(k) ?? []), b])
   }
 
   /** Sums a field across a product's rows, or undefined if no row carries it. */
@@ -147,7 +204,8 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
     return values.length ? values.reduce((a, b) => a + b, 0) : undefined
   }
 
-  const multiRowProducts = [...rowsByProduct.values()].filter((rows) => rows.length > 1).length
+  // Several rows for one product in one warehouse means several bin locations.
+  const multiRowProducts = [...rowsByProductWarehouse.values()].filter((rows) => rows.length > 1).length
 
   const hypotheses: Record<string, { tested: number; held: number }> = {
     'StockLevel.Level === Bulk.StockLevel': { tested: 0, held: 0 },
@@ -156,6 +214,11 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
     'StockLevel.TotalStockLevel === Bulk.OnHand': { tested: 0, held: 0 },
     'StockLevel.TotalStockLevel === Bulk.StockLevel': { tested: 0, held: 0 },
     'Bulk.StockLevel === Bulk.OnHand - Bulk.Allocated': { tested: 0, held: 0 },
+    // The one that actually holds, at every row of the first live run: Mintsoft's
+    // OnHand already has allocations taken off, and StockLevel is the gross figure.
+    // Kept in the list so a future run would show it breaking if Mercium ever changed
+    // how they use the fields.
+    'Bulk.StockLevel === Bulk.OnHand + Bulk.Allocated': { tested: 0, held: 0 },
   }
   const test = (name: string, left?: number | null, right?: number | null) => {
     const h = hypotheses[name]
@@ -166,9 +229,13 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
   }
 
   const samples: unknown[] = []
+  let skippedNoCounterpart = 0
   for (const s of stock) {
-    const rows = s.ProductId != null ? rowsByProduct.get(s.ProductId) : undefined
-    if (!rows?.length) continue
+    const rows = s.ProductId != null ? rowsByProductWarehouse.get(key(s.ProductId, s.WarehouseId)) : undefined
+    // No bulk row for this product in this warehouse means there is nothing to compare
+    // it against — not that the two feeds disagree. Counted, so a run that skips most
+    // of its rows says so rather than quietly reporting a verdict from a handful.
+    if (!rows?.length) { skippedNoCounterpart++; continue }
 
     const onHand = total(rows, 'OnHand')
     const allocated = total(rows, 'Allocated')
@@ -181,10 +248,12 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
     test('StockLevel.TotalStockLevel === Bulk.OnHand', s.TotalStockLevel, onHand)
     test('StockLevel.TotalStockLevel === Bulk.StockLevel', s.TotalStockLevel, stockLevel)
     test('Bulk.StockLevel === Bulk.OnHand - Bulk.Allocated', stockLevel, free)
+    test('Bulk.StockLevel === Bulk.OnHand + Bulk.Allocated', stockLevel,
+      onHand != null && allocated != null ? onHand + allocated : undefined)
 
     if (samples.length < 25) {
       samples.push({
-        ProductId: s.ProductId, SKU: s.SKU, bulkRows: rows.length,
+        ProductId: s.ProductId, SKU: s.SKU, WarehouseId: s.WarehouseId, bulkRows: rows.length,
         StockLevel_Level: s.Level, StockLevel_Total: s.TotalStockLevel,
         Bulk_StockLevel: stockLevel, Bulk_OnHand: onHand, Bulk_Allocated: allocated,
         Bulk_OnOrder: total(rows, 'OnOrder'), Bulk_InTransit: total(rows, 'InTransit'),
@@ -204,6 +273,8 @@ export function reconcileStock(stock: StockLevel[], bulk: BulkInventoryItem[]) {
   const overlappingProducts = hypotheses['StockLevel.Level === Bulk.StockLevel']?.tested ?? 0
   return {
     overlappingProducts,
+    /** Stock rows with no bulk counterpart in the same warehouse, so nothing to compare. */
+    skippedNoCounterpart,
     /** If this is above zero, every stock figure must be a sum across locations. */
     productsWithMultipleBulkRows: multiRowProducts,
     verdict,

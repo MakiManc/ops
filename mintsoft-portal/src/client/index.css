@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Every interactive target is at least 44px, which is the smallest a thumb reliably
+   hits. GMs use this one-handed, often while doing something else. */
+@layer base {
+  button, [role="button"], a.tappable, input, select {
+    min-height: 44px;
+  }
+
+  /* A visible focus ring on everything keyboard-reachable. Removing focus styling is
+     the single most common way a form becomes unusable without a mouse. */
+  :focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,79 @@
+name: Mintsoft stock feed
+
+# Phase 5. Bakes data/ops_command/mintsoft_stock.json from the live Mintsoft account
+# at Mercium and commits it, on the same "a refresh is a commit" model as the rest of
+# data/ops_command/ - anything reading the folder picks it up without a deploy.
+#
+# WHY THIS ONE IS SCHEDULED HERE AND THE OTHERS ARE NOT
+#   ops_command_refresh.yml and verify.yml had their schedules retired in the Neon exit
+#   (Aug 2026): they read the warehouse, the warehouse holds employee names, so the
+#   scheduled versions moved to MakiManc/maki-hospitality-etl where the data lives.
+#   This job has no such constraint. It reads Mintsoft's API directly and writes stock
+#   levels, SKUs and product names - no personal data at any point - so it can and
+#   should run in the public repo alongside the file it produces.
+#
+# WHY IT IS NOT IN feeds_manifest.json
+#   That manifest is specifically the ETL feeds landing in Neon Postgres, verified by
+#   row counts in etl_feed_rows. This is not one of those: it is a JSON file built from
+#   a third-party API. Registering it there would have verify.yml looking for Postgres
+#   rows that never arrive. The builder carries its own floor instead (MIN_PRODUCTS).
+#
+# 03:10 UTC. After Mercium's overnight picking, before anyone opens the dashboard.
+# Allocations move a lot overnight - the catalogue had 1,648 units allocated at 23:47
+# on 21/09 and 80 by 10:18 the next morning - so the time this runs is the time the
+# numbers describe.
+#
+# SECRETS: MINTSOFT_USERNAME and MINTSOFT_PASSWORD. Mintsoft has no standing API key;
+# POST /api/Auth exchanges the login for a key that expires in 24 hours, so only the
+# login works for anything scheduled.
+
+on:
+  schedule:
+    - cron: "10 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: mintsoft-stock-feed
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: mintsoft-portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mintsoft-portal/package-lock.json
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      # The builder refuses to write a catalogue below its floor, so a truncated walk
+      # or a permissions change fails the run rather than committing a thin file over
+      # a good one. Nothing is committed unless the file actually changed.
+      - name: Build the stock feed
+        env:
+          MINTSOFT_USERNAME: ${{ secrets.MINTSOFT_USERNAME }}
+          MINTSOFT_PASSWORD: ${{ secrets.MINTSOFT_PASSWORD }}
+          MINTSOFT_CLIENT_ID: "10"
+          MINTSOFT_WAREHOUSE_ID: "5"
+        run: npm run feed:stock
+
+      - name: Commit if changed
+        working-directory: .
+        run: |
+          git config user.name  "mintsoft-stock-feed"
+          git config user.email "ops@makiramen.com"
+          git add data/ops_command/mintsoft_stock.json
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "mintsoft: stock feed $(date -u +%F)"
+          git push

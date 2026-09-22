@@ -1,0 +1,38 @@
+# The sync Worker, deployed separately from the Pages project because Pages Functions
+# cannot carry a cron trigger.
+#
+#   npx wrangler deploy --config wrangler.sync.toml
+#   npx wrangler secret put MINTSOFT_USERNAME --config wrangler.sync.toml
+#   npx wrangler secret put MINTSOFT_PASSWORD --config wrangler.sync.toml
+name = "mintsoft-portal-sync"
+main = "worker/sync.ts"
+compatibility_date = "2026-09-21"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mintsoft-portal"
+database_id = ""   # same database as the Pages project
+
+[triggers]
+crons = [
+  "*/15 * * * *",   # stock
+  "0 * * * *",      # catalogue and inbound
+  "0 3 * * *",      # nightly full pass
+]
+
+[vars]
+# Identified by discovery on 2026-09-21 against the live API.
+#
+# Client 10 is Maki & Ramen. Every row of an unpinned stock read belonged to it, so the
+# API user looks scoped to us already — but it is pinned anyway, because "scoped today"
+# and "scoped after Mercium next edits a permission" are different claims.
+MINTSOFT_CLIENT_ID = "10"
+# Warehouse 5 is Witham, the UK site our stock actually ships from. Mercium also exposes
+# Belgium (6) and Germany (8) on this account, both empty today.
+#
+# This pin is load-bearing. Availability sums across the rows Mintsoft returns, so an
+# unpinned read would add all three warehouses into one number. That happens to be
+# correct while the EU sites are empty, and silently inflates every GM's screen the
+# moment anything lands in them — stock they cannot order and Mercium cannot ship.
+MINTSOFT_WAREHOUSE_ID = "5"

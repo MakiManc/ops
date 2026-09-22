@@ -1,0 +1,29 @@
+# Cloudflare Pages project for the ordering portal.
+#
+# Create the database once, then paste its id below:
+#   npx wrangler d1 create mintsoft-portal
+#
+# Secrets are set with `wrangler pages secret put <NAME>` and never live in this file:
+#   MINTSOFT_USERNAME, MINTSOFT_PASSWORD, GOOGLE_CLIENT_ID, SESSION_SECRET, RESEND_API_KEY
+name = "mintsoft-portal"
+compatibility_date = "2026-09-21"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mintsoft-portal"
+# Filled in from `wrangler d1 create`. Left blank so a stray copy cannot point at a real database.
+database_id = ""
+migrations_dir = "migrations"
+
+[vars]
+# Writes to Mintsoft stay off until Phase 3, and are switched on deliberately.
+# Even then, the one write there is requires an approver's sign-off as well.
+MINTSOFT_WRITES_ENABLED = "false"
+
+# Scope pins, identified by discovery on 2026-09-21. Both must match wrangler.sync.toml.
+# Client 10 is Maki & Ramen; warehouse 5 is Witham, the UK site we ship from. Leaving the
+# warehouse unpinned would sum Witham with Mercium's Belgium and Germany sites.
+MINTSOFT_CLIENT_ID = "10"
+MINTSOFT_WAREHOUSE_ID = "5"
