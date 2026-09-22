@@ -16,7 +16,9 @@
     "db:migrate:remote": "wrangler d1 migrations apply mintsoft-portal --remote",
     "seed": "node --experimental-strip-types --no-warnings scripts/seed.ts",
     "check:credentials": "node --experimental-strip-types --no-warnings scripts/check-credentials.ts",
-    "spot-check": "node --experimental-strip-types --no-warnings scripts/spot-check.ts"
+    "spot-check": "node --experimental-strip-types --no-warnings scripts/spot-check.ts",
+    "demo": "node --experimental-strip-types --no-warnings scripts/demo.ts",
+    "demo:serve": "rm -rf .wrangler/demo && wrangler d1 migrations apply mintsoft-portal --local --persist-to .wrangler/demo && node --experimental-strip-types --no-warnings scripts/seed.ts --out seed/seed.sql && wrangler d1 execute mintsoft-portal --local --persist-to .wrangler/demo --file seed/seed.sql && wrangler d1 execute mintsoft-portal --local --persist-to .wrangler/demo --file seed/demo.sql && npm run build && wrangler pages dev dist --persist-to .wrangler/demo --local-protocol https --port 8788"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260921.1",
