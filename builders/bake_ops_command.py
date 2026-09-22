@@ -3884,6 +3884,60 @@ def main():
                                          "tab": "p-qual"}
     _okr_extra.update(_okr_broth)
 
+    # --- OO4 KR5: aggregated supplier performance, UNWEIGHTED (Phase 2) ----
+    # Matthew has two KRs on the same data. OO3 KR4 is the POOLED estate rate -
+    # every measurable delivery in one denominator - and this one is the
+    # UNWEIGHTED MEAN of the per-supplier rates, each supplier counting once
+    # whatever its volume. Ross's default, 21/09/2026. They share a source and
+    # differ only in weighting, and the basis says so on both rows, because two
+    # rows showing different percentages off one dataset is otherwise read as
+    # one of them being broken.
+    #
+    # THE WEIGHTING IS NOT A DETAIL, AND THE BASIS SAYS WHICH WAY IT CUTS.
+    # September 2026: pooled 94.2% (score 80) against an unweighted mean of
+    # 97.1% (score 100) - a whole band apart, off identical rows. The reason is
+    # Lynas: 216 deliveries and 42 issues, an 80.6% rate, which dominates the
+    # pooled denominator and counts exactly once in the mean. So the unweighted
+    # figure systematically FLATTERS the estate by giving the worst-performing
+    # high-volume supplier the same say as one with three deliveries. That is
+    # what "aggregated supplier performance" asks for, so it is what this row
+    # computes - but a reader comparing it with the row four lines above
+    # deserves to be told which direction the difference runs.
+    _okr_k5 = []
+    for _m in (_o.get("months") or []):
+        _rates = [s_["otif_pct"] for s_ in (_m.get("suppliers") or [])
+                  if s_.get("otif_pct") is not None]
+        if not _rates:
+            continue
+        _mean = round(sum(_rates) / len(_rates), 1)
+        _s = okr_score("pct95", _mean)
+        _worst = min((s_ for s_ in _m["suppliers"] if s_.get("otif_pct") is not None),
+                     key=lambda s_: s_["otif_pct"])
+        _pooled = _m.get("otif_pct")
+        _okr_k5.append(_mvar(
+            _m["month"], value=_mean, display=f"{_mean}%", score=_s, rag=_rag_of(_s),
+            basis=(f"UNWEIGHTED MEAN of {len(_rates)} per-supplier issue-free rate(s) in "
+                   f"{_mlabel(_m['month'])}, each supplier counting once regardless of "
+                   f"volume. THE SAME DATA AS OO3 KR4 above, differing only in weighting: "
+                   f"that row pools every measurable delivery into one denominator and "
+                   f"reads {_pooled}%"
+                   + (f", a different band from this row's {_mean}%" if _pooled is not None
+                      and okr_score("pct95", _pooled) != _s else "")
+                   + f". The gap is volume: {_worst['supplier']} is the weakest supplier at "
+                     f"{_worst['otif_pct']}% on {_worst['deliveries']} deliveries and "
+                     f"{_worst['issues']} issue(s), which weighs heavily in the pooled rate "
+                     f"and counts once here - so an unweighted mean FLATTERS the estate "
+                     f"whenever the worst performer is also a big one. "
+                   + f"{_m.get('measurable_suppliers')} of {_m.get('measurable_of')} "
+                     f"suppliers had order-email coverage spanning the month; the rest are "
+                     f"excluded rather than scored as 0%, and the per-supplier rates are "
+                     f"published in full on the Supply tab. "
+                   + "Issue-free is not on-time-in-full: nothing here observes lateness, so "
+                     "like OO3 KR4 this is a lower bound.")))
+    if _okr_k5:
+        _okr_extra[("OO4", "KR5")] = {"months": _okr_k5, "source_kind": "computed",
+                                      "tab": "p-supp"}
+
     # --- assemble the thirty rows ------------------------------------------
     okr = []
     for _obj, _kr, _text, _owner, _target, _band in OKR_SPEC:
