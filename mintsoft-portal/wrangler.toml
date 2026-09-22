@@ -14,7 +14,7 @@ pages_build_output_dir = "dist"
 binding = "DB"
 database_name = "mintsoft-portal"
 # Filled in from `wrangler d1 create`. Left blank so a stray copy cannot point at a real database.
-database_id = ""
+database_id = "349649e2-8441-4e01-b102-f3f4eec636ad"
 migrations_dir = "migrations"
 
 [vars]
