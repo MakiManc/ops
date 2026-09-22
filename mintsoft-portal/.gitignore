@@ -27,3 +27,6 @@ tests/_*.test.ts
 
 # Preview screenshots and hand-off spreadsheets are generated on demand.
 preview/
+
+# Product photos ARE committed — they are the catalogue, and Pages serves them as
+# static assets. public/products/ is deliberately not ignored.
