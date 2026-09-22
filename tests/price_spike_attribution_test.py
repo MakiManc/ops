@@ -208,16 +208,44 @@ def main() -> int:
           f"one supplier is over target, and it is named with its count "
           f"(got over={cur.get('over')}, worst={cur.get('worst')})")
 
-    print("\n-- the scorecard row stays gated --")
+    print("\n-- the scorecard row is no longer gated (Ross, 21/09/2026) --")
+    # THIS SECTION USED TO ASSERT THE OPPOSITE, and the change is the point.
+    # Until 21/09/2026 the KR2 row sat unmeasured whenever supplier
+    # attribution ran under the 90% bar, because the row NAMED SUPPLIERS and
+    # this system will not name a supplier it cannot prove. Ross has since
+    # re-read the KR as Matthew words it - "Price change spike (3 items)" - and
+    # it is a COUNT OF ITEMS. A count needs no attribution, so the gate does
+    # not apply to it, and the per-supplier table it superseded stays on the
+    # Supply tab as this row's drill-down, still gated, still honest.
+    #
+    # The attribution rate in this fixture is deliberately left under the bar:
+    # that is exactly the condition that used to grey the row, so if the gate
+    # ever comes back this assertion is what catches it.
     kr2 = next((r for r in snap["scorecard"]["rows"]
-                if r["kr"].startswith("KR2 price")), None)
-    check(kr2 is not None, "the KR2 row is present")
+                if (r.get("objective"), r.get("kr")) == ("OO3", "KR2")), None)
+    check(kr2 is not None, "the OO3 KR2 row is present")
     check(att.get("rate", 0) < att.get("min_pct", 90),
           f"this fixture attributes {att.get('rate')}%, under the bar - so the "
-          "gated branch is what gets exercised here")
-    check(kr2 and kr2["value"] is None and kr2["not_measured"]
-          and str(att.get("rate")) in kr2["not_measured"],
-          "under the bar the row is unmeasured and quotes the live rate")
+          "formerly-gated branch is what gets exercised here")
+    check(kr2 and kr2["value"] is not None,
+          f"the row is MEASURED despite attribution being under the bar "
+          f"(got value={kr2 and kr2['value']}, not_measured="
+          f"{kr2 and kr2['not_measured']})")
+    # Alpha's 4 lines + Beta's 2 = 6 estate-wide. TRINKET names no supplier and
+    # is still dropped by the spike rule itself, which is a separate exclusion
+    # from the attribution gate and is disclosed in the basis.
+    check(kr2 and kr2["value"] == 6,
+          f"the value is the ESTATE-WIDE line count, 4 + 2 (got "
+          f"{kr2 and kr2['value']})")
+    check(kr2 and kr2["score"] == 0 and kr2["rag"] == "red",
+          f"6 lines against a limit of 3 scores 0 on the `spikes` band "
+          f"(got score={kr2 and kr2['score']}, rag={kr2 and kr2['rag']})")
+    check(kr2 and "ESTATE-WIDE" in (kr2["basis"] or ""),
+          "the basis says the count is estate-wide")
+    check(kr2 and "no longer applies" in (kr2["basis"] or "")
+          and str(spikes.get("unattributed")) in (kr2["basis"] or ""),
+          "the basis says the attribution bar no longer gates this row, and "
+          "still discloses the rises that name no supplier")
 
     print("\n" + ("all assertions passed" if not failures
                   else f"{failures} assertion(s) FAILED"))
