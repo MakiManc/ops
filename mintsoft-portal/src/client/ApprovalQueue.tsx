@@ -171,7 +171,7 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
               key={candidate.id}
               onClick={() => void act(`/api/approvals/${item.order.id}/merge/${candidate.id}`, {})}
               disabled={busy}
-              className="mt-2 px-3 py-2 rounded-lg bg-blue-900 text-white text-sm"
+              className="mt-2 px-3 py-2 rounded-lg bg-everglade text-paper text-sm"
             >
               Merge {candidate.orderNumber} into this one
             </button>
@@ -193,7 +193,7 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
             lines: item.lines.map((l) => ({ productId: l.productId, qtyApproved: quantities[l.productId] ?? 0 })),
           })}
           disabled={busy}
-          className="px-4 py-3 rounded-lg bg-gray-900 text-white font-semibold disabled:bg-gray-400"
+          className="px-4 py-3 rounded-lg bg-maki-orange text-woodsmoke font-semibold disabled:bg-gray-400 disabled:text-white"
         >
           Approve
         </button>

@@ -1,16 +1,62 @@
 @import "tailwindcss";
 
-/* Every interactive target is at least 44px, which is the smallest a thumb reliably
-   hits. GMs use this one-handed, often while doing something else. */
+/* ---------------------------------------------------------------------------
+   Maki & Ramen brand, from Brand Guidelines 2024 v1.
+
+   The palette is the guideline's, but which colour may carry text is decided by
+   contrast, not by preference. Measured against WCAG AA:
+
+     Woodsmoke  on White          18.42   body text
+     Everglade  on White          10.44   body text
+     White      on Everglade      10.44   body text
+     Woodsmoke  on Maki Orange     5.87   body text
+     Woodsmoke  on Cherry Blossom 11.90   body text
+     Maki Orange on White           3.14   LARGE TEXT AND UI ONLY
+     White      on Maki Orange      3.14   FAILS — never use
+
+   So Maki Orange is a surface and an accent, never small text on white, and its
+   labels are Woodsmoke rather than white. White-on-orange is the obvious-looking
+   choice and it is the one that fails: 3.14 against a 4.5 bar.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-maki-orange: #E66E2D;
+  --color-cherry: #FFBFBE;
+  --color-everglade: #1C463E;
+  --color-paper: #FEFEFE;
+  --color-woodsmoke: #131313;
+
+  /* Josefin Sans for headings, per the guideline's secondary type. The primary
+     "San Serif" is unnamed there, and the tertiary Gill Sans MT is not licensed
+     for the web, so body text uses a system stack that sits beside Josefin
+     without pretending to be either. */
+  --font-heading: "Josefin Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+}
+
 @layer base {
+  body {
+    background: var(--color-paper);
+    color: var(--color-woodsmoke);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    letter-spacing: 0.01em;
+  }
+
+  /* Every interactive target is at least 44px, which is the smallest a thumb reliably
+     hits. GMs use this one-handed, often while doing something else. */
   button, [role="button"], a.tappable, input, select {
     min-height: 44px;
   }
 
   /* A visible focus ring on everything keyboard-reachable. Removing focus styling is
-     the single most common way a form becomes unusable without a mouse. */
+     the single most common way a form becomes unusable without a mouse. Maki Orange
+     is a non-text UI component here, so the 3:1 bar applies and it clears it. */
   :focus-visible {
-    outline: 3px solid #2563eb;
+    outline: 3px solid var(--color-maki-orange);
     outline-offset: 2px;
   }
 }

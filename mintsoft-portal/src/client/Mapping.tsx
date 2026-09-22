@@ -142,7 +142,7 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
       <button
         onClick={() => void submit()}
         disabled={busy || selected.length === 0 || (!alreadyMapped && !name.trim())}
-        className="mt-3 px-4 py-2 rounded-lg bg-gray-900 text-white disabled:bg-gray-400"
+        className="mt-3 px-4 py-2 rounded-lg bg-everglade text-paper disabled:bg-gray-400"
       >
         {busy ? 'Saving…' : alreadyMapped ? 'Add to that product' : 'Combine into one product'}
       </button>

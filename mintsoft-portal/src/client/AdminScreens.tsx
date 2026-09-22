@@ -99,7 +99,7 @@ export function RechargeReport() {
 
               <a
                 href={`/api/admin/recharge/${month}/csv`}
-                className="tappable inline-block px-4 py-3 rounded-lg bg-gray-900 text-white"
+                className="tappable inline-block px-4 py-3 rounded-lg bg-everglade text-paper"
               >
                 Download CSV for Finance
               </a>
@@ -140,7 +140,7 @@ export function ParLevels() {
         in a spreadsheet, paste it back.
       </p>
 
-      <a href="/api/admin/par-levels.csv" className="tappable inline-block px-4 py-3 rounded-lg bg-gray-900 text-white">
+      <a href="/api/admin/par-levels.csv" className="tappable inline-block px-4 py-3 rounded-lg bg-everglade text-paper">
         Download the current grid
       </a>
 
@@ -162,7 +162,7 @@ export function ParLevels() {
 
       <button
         onClick={() => void upload()} disabled={busy || !csv.trim()}
-        className="px-4 py-3 rounded-lg bg-gray-900 text-white disabled:bg-gray-400"
+        className="px-4 py-3 rounded-lg bg-everglade text-paper disabled:bg-gray-400"
       >
         {busy ? 'Checking…' : 'Apply'}
       </button>

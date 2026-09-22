@@ -220,7 +220,7 @@ export function Basket({ siteId, onSubmitted }: { siteId: number; onSubmitted: (
       <button
         onClick={() => void submit()}
         disabled={!canSubmit}
-        className="w-full px-4 py-3 rounded-lg bg-gray-900 text-white font-semibold disabled:bg-gray-400"
+        className="w-full px-4 py-3 rounded-lg bg-maki-orange text-woodsmoke font-semibold disabled:bg-gray-400 disabled:text-white"
       >
         {busy ? 'Submitting…' : 'Send for sign-off'}
       </button>

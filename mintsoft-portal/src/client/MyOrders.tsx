@@ -122,7 +122,7 @@ export function MyOrders() {
                 href={order.trackingUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="tappable mt-3 inline-block px-4 py-2 rounded-lg bg-gray-900 text-white"
+                className="tappable mt-3 inline-block px-4 py-2 rounded-lg bg-everglade text-paper"
               >
                 Track this delivery
               </a>
