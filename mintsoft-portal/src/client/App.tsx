@@ -24,8 +24,15 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'basket', title: 'Current request', blurb: 'Check it over and send it for sign-off.', phase: 3, ready: true },
     { key: 'orders', title: 'My orders', blurb: 'Track what you have asked for and where it has got to.', phase: 3, ready: true },
   ],
+  // An approver signs orders off and can order for any site, but gets none of the admin
+  // tools: merging and splitting products, par levels and the recharge report are the
+  // administrator's alone. Ordering needs no extra permission — approvers were never
+  // site-scoped, so the API already allowed it and only the menu withheld it.
   approver: [
     { key: 'queue', title: 'Approval queue', blurb: 'Requests waiting for sign-off, oldest first.', phase: 3, ready: true },
+    { key: 'catalogue', title: 'Order stock', blurb: 'Browse and build a request for any site.', phase: 2, ready: true },
+    { key: 'basket', title: 'Current request', blurb: 'Check it over and send it for sign-off.', phase: 3, ready: true },
+    { key: 'orders', title: 'All orders', blurb: 'Track what every site has asked for and where it has got to.', phase: 3, ready: true },
     { key: 'stock', title: 'Stock overview', blurb: 'What is on hand, allocated, inbound and how long it will last.', phase: 2, ready: true },
   ],
   // An administrator gets everything: the admin tools, plus the approver's queue and

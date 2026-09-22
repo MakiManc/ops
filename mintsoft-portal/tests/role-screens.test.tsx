@@ -74,14 +74,36 @@ describe('a GM', () => {
 })
 
 describe('an approver', () => {
-  it('sees the queue and stock, not the GM or admin screens', async () => {
+  it('sees the queue and stock, and no admin screens', async () => {
+    // 'Order stock' used to be asserted absent here. It is deliberately present now:
+    // approvers order for any site. What stays out is the admin tooling.
     signedInAs(me('approver'))
     render(<App googleClientId="test" />)
 
     await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
     expect(screen.getByText('Stock overview')).toBeDefined()
-    expect(screen.queryByText('Order stock')).toBeNull()
     expect(screen.queryByText('Sites and people')).toBeNull()
+  })
+
+  it('gets no admin tools — the nesting does not work upward', async () => {
+    // Merging and splitting products, par levels and the recharge report are the
+    // administrator's alone. An approver signs orders off; they do not shape the
+    // catalogue.
+    signedInAs(me('approver'))
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
+    expect(screen.queryByText('Catalogue mapping')).toBeNull()
+    expect(screen.queryByText('Par levels and limits')).toBeNull()
+    expect(screen.queryByText('Recharge report')).toBeNull()
+    expect(screen.queryByText('Sites and people')).toBeNull()
+  })
+
+  it('can order for any site, not just sign off', async () => {
+    signedInAs(me('approver'))
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
+    expect(screen.getByText('Order stock')).toBeDefined()
+    expect(screen.getByText('Current request')).toBeDefined()
   })
 })
 
@@ -104,14 +126,6 @@ describe('an admin', () => {
     await waitFor(() => expect(screen.getByText('Sites and people')).toBeDefined())
     expect(screen.getByText('Approval queue')).toBeDefined()
     expect(screen.getByText('Order stock')).toBeDefined()
-  })
-
-  it('does not make the nesting work the other way — an approver gets no admin tools', async () => {
-    signedInAs(me('approver'))
-    render(<App googleClientId="test" />)
-    await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
-    expect(screen.queryByText('Catalogue mapping')).toBeNull()
-    expect(screen.queryByText('Sites and people')).toBeNull()
   })
 })
 
