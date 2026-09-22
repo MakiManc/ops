@@ -114,13 +114,63 @@ function siteRow(over = {}) {
     trend_unit: '% in band / week', trend_note: null, not_measured: null, ...over,
   };
 }
-// Only the two Quality rows, so a locator by row text cannot collide with
-// another function's row and the assertions stay about this change.
-function scorecardOf(rows) {
+// Ross, 21/09/2026: THERE ARE NOW FOUR BROTH ROWS ON THIS PAGE, and keeping
+// them apart is the whole job of this file.
+//
+//   OO5 KR1  Maintain Pork broth density within 8-9     <- OKR, scored on the
+//   OO5 KR2  Maintain Chicken broth density within 5-6     MONTHLY MEAN
+//   Broth conformance (factory, after ice)              <- Operating KPI, the
+//   Broth as served, by site (reported)                    pooled % in band
+//
+// The first two are Matthew's KRs and are scored. The second two are not on
+// his sheet, so they moved to Operating KPIs and carry no band and no score.
+// All four read the same refractometer feed and none of them is a check on any
+// other. A reader who averages any two of these numbers has been misled by
+// this page, so every basis below must name its own band, its own product and
+// its own denominator, and quote nobody else's.
+function okrBrothRow(over = {}) {
   return {
-    weeks: WEEKS, rows,
-    measured: rows.filter(r => r.value != null).length, total: rows.length,
-    basis: 'one row per KR/KPI in the Master Operating Manual; test basis string',
+    objective: 'OO5', kr: 'KR1', text: 'KR1: Maintain Pork broth density within 8-9',
+    owner: 'Operations', target: '8-9', band: 'density', band_status: 'proposed',
+    tab: 'p-qual', source_kind: 'computed',
+    value: 8.35, display: '8.35 avg - 94.7% of 94 readings in band',
+    score: 100, rag: 'green',
+    basis: 'Mean after-ice refractometer reading for Tonkotsu Broth in August 2026: ' +
+      '8.35 against a band of 8-9, inside band. 89 of 94 reading(s) were individually ' +
+      'in band (94.7%), across 29 production day(s). THE SCORE IS ON THE MEAN, which ' +
+      'is what the band was agreed against; the in-band percentage is shown beside it ' +
+      'because a mean can sit inside band while individual batches miss it in both ' +
+      'directions.',
+    trend: null, trend_unit: null, trend_note: null, not_measured: null,
+    months: null, ...over,
+  };
+}
+// Only the rows under test, so a locator by row text cannot collide with
+// another row and the assertions stay about this change.
+function scorecardOf(kpis, okrRows) {
+  const rows = okrRows || [
+    okrBrothRow(),
+    okrBrothRow({ kr: 'KR2', text: 'KR2: Maintain Chicken broth density within 5-6',
+      target: '5-6', value: 5.34, score: 100, rag: 'green',
+      display: '5.34 avg - 91.4% of 35 readings in band',
+      basis: 'Mean after-ice refractometer reading for Chicken Broth in August 2026: ' +
+        '5.34 against a band of 5-6, inside band. 32 of 35 reading(s) were individually ' +
+        'in band (91.4%), across 24 production day(s).' }),
+  ];
+  const scored = rows.filter(r => r.score != null).map(r => r.score);
+  const pct = scored.length
+    ? Math.round((scored.reduce((a, b) => a + b, 0) / scored.length) * 10) / 10 : null;
+  return {
+    weeks: WEEKS, rows, operating_kpis: kpis,
+    objectives: [{ objective: 'OO5', label: 'Production', pct,
+                   scored: scored.length, total: rows.length, months: [] }],
+    operations: { pct, scored: pct == null ? 0 : 1, total: 5, months: [] },
+    bands: { density: { direction: 'le', table: [[0, 100], [0.5, 80], [1, 50]],
+                        status: 'proposed' } },
+    measured: rows.filter(r => r.value != null).length,
+    scored: scored.length, total: rows.length,
+    months: [], month: '2026-09',
+    basis: 'one row per KR on the 2026 Operations Input sheet; test basis string',
   };
 }
 const qualRow = (page, text) =>
@@ -218,25 +268,34 @@ page.on('console', msg => {
   assert(iFac > -1 && iSite > -1 && iFac < iSite,
     `the judged KR row is listed above the reported site row (got ${iFac} then ${iSite})`);
 
-  // One "Quality" heading for both rows - they must stay contiguous.
-  const heads = await page.locator('#scorecard table tbody tr td[colspan="5"]').allInnerTexts();
-  assert(heads.filter(t => t.trim() === 'Quality').length === 1,
-    `both broth rows sit under one Quality heading (got ${JSON.stringify(heads)})`);
+  // The two pooled broth rows are NOT OKRs and must not be rendered as if they
+  // were. They live in the Operating KPIs table, which carries no Score column
+  // at all - there is no band for them, so there must be nowhere to show one.
+  const kpiHead = await page.locator('#scorecard table').nth(1).locator('thead th').allInnerTexts();
+  assert(!kpiHead.some(h => /score/i.test(h)),
+    `the Operating KPIs table has no Score column (got ${JSON.stringify(kpiHead)})`);
+  assert(await page.locator('#scorecard table').nth(1).locator('tbody tr').count() === 2,
+    'both pooled broth rows sit in the Operating KPIs table');
+  // The objective headings above use colspan 6, one per objective, never per
+  // Manual "function" - the row list is Matthew's sheet now.
+  const heads = await page.locator('#scorecard table tbody tr td[colspan="6"]').allInnerTexts();
+  assert(heads.length === 1 && /OO5/.test(heads[0]) && /Production/.test(heads[0]),
+    `the OKR rows sit under one OO5 objective heading (got ${JSON.stringify(heads)})`);
 
   // Both rows drill through to the page that carries both measurements.
   const gos = await page.locator('#scorecard button[data-go]').evaluateAll(
     bs => bs.map(b => b.dataset.go));
-  assert(gos.filter(g => g === 'p-qual').length === 2,
-    `both broth rows open the Quality & Broth page (got ${JSON.stringify(gos)})`);
+  assert(gos.filter(g => g === 'p-qual').length === 4,
+    `all four broth rows - two OKRs and two KPIs - open the Quality & Broth page (got ${JSON.stringify(gos)})`);
 
   // And that page still teaches the distinction the two rows depend on.
   const note = await page.locator('#p-qual .note').innerText();
   assert(/never averaged/.test(note),
     `the Quality page still says the two measurements are never averaged (got "${note.slice(0, 60)}…")`);
 
-  assert(await page.locator('#scorecard .prov').innerText()
-    .then(t => /2 of 2 measured/.test(t)),
-    'both Quality rows count as measured in the footer');
+  assert(await page.locator('#scorecard .prov').last().innerText()
+    .then(t => /2 of 2 measured, 2 scored/.test(t)),
+    'the footer counts the OKR rows, measured and scored, not the Operating KPIs');
 }
 
 // ------------------------ a completed month that missed the target reads red ---
@@ -304,9 +363,13 @@ page.on('console', msg => {
     `the chip says not measured rather than off target (got "${tds[3]}")`);
   assert(/Needs:/.test(tds[0]) && /has not landed/.test(tds[0]),
     `the blocker is named on the dashboard (got "${tds[0].replace(/\s+/g, ' ').slice(0, 80)}…")`);
-  assert(await page.locator('#scorecard .prov').innerText()
-    .then(t => /1 of 2 measured/.test(t)),
-    'the unmeasured KR is excluded from the measured count');
+  // This row moved to Operating KPIs on 21/09/2026, so it is no longer in the
+  // OKR footer's count at all. That separation is the assertion worth making:
+  // an Operating KPI going dark must not move the OKR numbers, because the two
+  // lists answer to different documents.
+  assert(await page.locator('#scorecard .prov').last().innerText()
+    .then(t => /2 of 2 measured, 2 scored/.test(t)),
+    'an unmeasured Operating KPI does not change the OKR measured/scored counts');
 }
 
 // ----------------- a feed that landed but cannot be graded says so instead ---
@@ -396,8 +459,20 @@ function trainingRow(over = {}) {
     trend: null, trend_unit: null, trend_note: null, not_measured: null, months: null, ...over,
   };
 }
+// The picker scenarios are about OKR ROW behaviour, so these fixtures go in
+// `rows`, not in the Operating KPIs - the KPI table has no month variants and
+// no off-month warning, which is exactly the behaviour under test. The rows
+// keep their Manual labels as `text` so the locators below still find them by
+// name; what they gain is the objective identity the OKR layout needs.
+function asOkr(r, i) {
+  return { ...r, objective: 'OO3', kr: 'KR' + (i + 1), text: r.kr,
+    owner: 'Operations', band: null, band_status: null,
+    source_kind: r.value != null ? 'computed' : 'not_measured', score: null,
+    months: r.months ? r.months.map(v => ({ ...v, score: null })) : null };
+}
 function monthlyScorecard(rows) {
-  return { ...scorecardOf(rows), months: MONTHS, month: '2026-09',
+  const okrRows = rows.map(asOkr);
+  return { ...scorecardOf([], okrRows), months: MONTHS, month: '2026-09',
     monthly: rows.filter(r => r.months && r.months.length).length,
     month_basis: 'the month picker moves the rows whose KR is a per-month measure; every ' +
       'month it offers was scored in the builder.' };
@@ -420,7 +495,7 @@ function monthlyScorecard(rows) {
 
   const facNow = await qualRow(page, 'Broth conformance (factory, after ice)')
     .locator('td').allInnerTexts();
-  assert(/96\.0%/.test(facNow[2]) && /On target/.test(facNow[3]),
+  assert(/96\.0%/.test(facNow[2]) && /On target/.test(facNow[4]),
     `the default month shows September's figure (got "${facNow[2]}")`);
 
   // -- selecting August swaps in AUGUST's pre-judged answer ----------------
@@ -429,8 +504,8 @@ function monthlyScorecard(rows) {
     .locator('td').allInnerTexts();
   assert(/93\.8%/.test(facAug[2]),
     `selecting August shows August's figure (got "${facAug[2]}")`);
-  assert(/Off target/.test(facAug[3]),
-    `August's chip is the builder's red, not recomputed in the shell (got "${facAug[3]}")`);
+  assert(/Off target/.test(facAug[4]),
+    `August's chip is the builder's red, not recomputed in the shell (got "${facAug[4]}")`);
   assert(/August 2026/.test(facAug[0]) && !/in September 2026/.test(facAug[0]),
     'the basis shown is the one written for August, not September\'s re-pointed at it');
 
@@ -448,7 +523,7 @@ function monthlyScorecard(rows) {
     `a row with no monthly form is marked as not following the picker (got "${trAug[0].replace(/\s+/g, ' ').slice(0, 130)}…")`);
 
   // -- the footer says which month, and how much of the card it covers ----
-  const prov = await page.locator('#scorecard .prov').innerText();
+  const prov = await page.locator('#scorecard .prov').last().innerText();
   assert(/showing/.test(prov) && /August 2026/.test(prov),
     `the footer names the month on show (got "${prov.slice(0, 120)}…")`);
   assert(/2 of 4 rows/.test(prov),
@@ -458,8 +533,11 @@ function monthlyScorecard(rows) {
   await page.selectOption('#sc-month', '2026-07');
   const kr1Jul = await page.locator('#scorecard table tbody tr', { hasText: 'KR1 delivery issues' })
     .first().locator('td').allInnerTexts();
-  assert(kr1Jul[2].trim() === '—' && /Not measured/.test(kr1Jul[3]),
-    `a monthly row with no July figure reads absent for July (got "${kr1Jul[2]}" / "${kr1Jul[3]}")`);
+  // td indices differ between the two tables: the OKR table carries a Score
+  // column (KR, Target, Now, Score, Status, Trend) and the Operating KPIs
+  // table does not (KPI, Target, Now, Status, Trend). These are OKR rows.
+  assert(kr1Jul[2].trim() === '—' && /Not measured/.test(kr1Jul[4]),
+    `a monthly row with no July figure reads absent for July (got "${kr1Jul[2]}" / "${kr1Jul[4]}")`);
   assert(/no figure for July 2026/.test(kr1Jul[0]) &&
          /scored August 2026 to September 2026 only/.test(kr1Jul[0]),
     `and names the span its source actually covers, rather than assuming the gap runs backwards (got "${kr1Jul[0].replace(/\s+/g, ' ').slice(0, 150)}…")`);
@@ -496,7 +574,7 @@ function monthlyScorecard(rows) {
     .locator('td').allInnerTexts();
   assert(/96\.0%/.test(tds[2]) && /On target/.test(tds[3]),
     `and still renders its row exactly as before (got "${tds[2]}")`);
-  const prov = await page.locator('#scorecard .prov').innerText();
+  const prov = await page.locator('#scorecard .prov').last().innerText();
   assert(!/showing/.test(prov),
     `with no month language in the footer (got "${prov.slice(0, 80)}…")`);
 }

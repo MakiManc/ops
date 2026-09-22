@@ -122,6 +122,29 @@ MANIFEST_PATH = os.path.join(OUT_DIR, "feeds_manifest.json")
 HEALTH_PATH = os.path.join(OUT_DIR, "health_latest.json")
 HISTORY_PATH = os.path.join(OUT_DIR, "verify_history.json")
 MAINT_PATH = os.path.join(OUT_DIR, "maintenance_source.json")
+OKR_SHEET_PATH = os.path.join(OUT_DIR, "okr_sheet.json")
+#: How stale the hand-entered sheet may get before the page is lying by
+#: omission. 35 days rather than a week: these are MONTHLY figures typed by
+#: Matthew after a month closes, so a gap of four weeks is a normal cadence and
+#: five is not.
+OKR_SHEET_AGE_WARN_DAYS = 35
+
+#: Column headings that exist ONLY on the "2026 OKRs" tab's OO1 blocks. If one
+#: of these reaches a snapshot, something has started reading the Finance
+#: percentage columns, and this repository is PUBLIC.
+#:
+#: NOTE WHAT IS DELIBERATELY *NOT* HERE: "Actual W/R", "Actual FR", "Actual V/R"
+#: and "Actual NP". Those are the KR TITLES on the summary tab - the scorecard
+#: shows "KR1: Actual W/R% (20%)" as a row label, which is a name and carries
+#: no figure. Listing them made this check fire on its own row labels. The
+#: strings below are the PREDICTED / VARIANCE / EFFICIENCY columns, which are
+#: never legitimate here under any layout.
+OO1_FORBIDDEN = ("Predicted W/R", "Predicted F/R", "Predicted VAR",
+                 "Predicted NP", "KR 1 - Predicted", "KR 2 - Predicted",
+                 "KR 3- Predicted", "KR4 - Predicted",
+                 "KR1 Variance", "KR2 Variance", "KR3 Variance",
+                 "KR4 Variance", "KR1 Efficiency", "KR2 Efficiency",
+                 "KR3 Efficiency", "KR4 Efficiency")
 
 RAW_BASE = ("https://raw.githubusercontent.com/MakiManc/ops/main/"
             "data/ops_command/")
@@ -683,6 +706,184 @@ def check_price_attribution(snap: dict | None) -> None:
             f"{floor}% floor")
 
 
+# --------------------------------------------------------------- check 4d
+def check_okr_scorecard(snap: dict | None, today: str) -> None:
+    """Is the Overview still the thirty KRs on Matthew's sheet, scored right?
+
+    Added 21/09/2026 with the scorecard rebuild. Five assertions, and they are
+    not all the same kind of worry:
+
+      1. THIRTY ROWS IN SIX OBJECTIVES. The row list is the contract with
+         Matthew's sheet. A KR that quietly disappears takes its objective's
+         percentage with it - the mean is over the KRs that scored, so losing a
+         failing row makes the objective go UP. That is the worst possible
+         silent failure on this page, so it is critical.
+      2. EVERY SCORED ROW HAS A BAND. A score with no band means something
+         invented a threshold outside OKR_BANDS, which is the one thing rule 2
+         forbids.
+      3. THE OBJECTIVE PERCENTAGE IS THE MEAN OF ITS SCORED ROWS. Recomputed
+         here from the rows themselves rather than trusted. If the roll-up and
+         the rows ever disagree, the number a reader sees at the top of an
+         objective is not the number underneath it.
+      4. OO1 PERCENTAGES ARE ABSENT. Critical, and it fails the bake. See below.
+      5. THE SHEET IS NOT ANCIENT. A warning, because staleness is visible on
+         the page and a stale sheet must not stop a dashboard baking.
+    """
+    if not snap:
+        return
+    sc = snap.get("scorecard") or {}
+    rows = sc.get("rows") or []
+    if not rows:
+        add("4d-okr", "critical",
+            "snapshot has no scorecard rows at all - the Overview is empty")
+        return
+    if not any(r.get("objective") for r in rows):
+        # A pre-21/09 snapshot. Not a failure; it is simply the old layout, and
+        # the shell already says so.
+        add("4d-okr", "ok",
+            f"scorecard is the pre-OKR layout ({len(rows)} Manual rows) - "
+            "nothing to check against the sheet's KR list")
+        return
+
+    # 1. thirty rows, six objectives, five each
+    by_obj = {}
+    for r in rows:
+        by_obj.setdefault(r.get("objective"), []).append(r)
+    if len(rows) != 30 or len(by_obj) != 6:
+        add("4d-okr", "critical",
+            f"scorecard carries {len(rows)} row(s) in {len(by_obj)} objective(s), "
+            f"expected 30 in 6 ({', '.join(f'{k}:{len(v)}' for k, v in sorted(by_obj.items()))}). "
+            "The row list is the contract with the 2026 Operations Input sheet, "
+            "and a missing KR raises its objective's percentage rather than "
+            "lowering it - the mean is over the rows that scored")
+    else:
+        odd = {k: len(v) for k, v in by_obj.items() if len(v) != 5}
+        if odd:
+            add("4d-okr", "critical",
+                f"objective(s) without five KRs: {odd}")
+        else:
+            add("4d-okr", "ok", "scorecard carries 30 KRs in 6 objectives, five each")
+
+    # 2. a score implies a band
+    bandless = [f"{r.get('objective')} {r.get('kr')}" for r in rows
+                if r.get("score") is not None and not r.get("band")]
+    if bandless:
+        add("4d-okr", "critical",
+            f"{len(bandless)} row(s) carry a score with no band: "
+            f"{', '.join(bandless[:6])}. Every threshold on this page must come "
+            "from OKR_BANDS - a score without one is an invented tolerance")
+    # ...and a band that is not in the published table
+    known = set((sc.get("bands") or {}).keys())
+    if known:
+        unknown = sorted({r.get("band") for r in rows
+                          if r.get("band") and r["band"] not in known})
+        if unknown:
+            add("4d-okr", "critical",
+                f"row(s) reference band(s) not in scorecard.bands: {unknown}")
+
+    # 3. every objective percentage is the mean of its own scored rows
+    dflt = sc.get("month")
+    drift = []
+    for o in (sc.get("objectives") or []):
+        mine = by_obj.get(o.get("objective")) or []
+        for blk in [o] + list(o.get("months") or []):
+            m = blk.get("m", dflt)
+            got = []
+            for r in mine:
+                if r.get("months"):
+                    v = next((x.get("score") for x in r["months"] if x.get("m") == m), None)
+                elif m == dflt:
+                    v = r.get("score")
+                else:
+                    v = None
+                if v is not None:
+                    got.append(v)
+            want = round(sum(got) / len(got), 1) if got else None
+            if blk.get("pct") != want or blk.get("scored") != len(got):
+                drift.append(f"{o.get('objective')} {m}: says "
+                             f"{blk.get('pct')} over {blk.get('scored')}, "
+                             f"rows give {want} over {len(got)}")
+    if drift:
+        add("4d-okr", "critical",
+            f"{len(drift)} objective roll-up(s) disagree with their own rows: "
+            f"{'; '.join(drift[:4])}. The percentage at the top of an objective "
+            "must be the mean of the KRs underneath it")
+    elif sc.get("objectives"):
+        add("4d-okr", "ok",
+            "every objective percentage equals the mean of its scored rows, "
+            "in every month offered")
+
+    # 4. NO OO1 PERCENTAGE ANYWHERE IN THE SNAPSHOT.
+    #
+    # This is critical and it fails the bake, which is heavier than anything
+    # else in this file, and deliberately: MakiManc/ops is PUBLIC. OO1 is Net
+    # Profit, and the sheet's OKRs tab carries the W/R, FR, V/R and NP
+    # percentages behind it. refresh_okr_sources.py has no code path that can
+    # read those columns - but "the code cannot do it" is an argument about
+    # today's code, and this is a check about tomorrow's. It sweeps the whole
+    # serialised snapshot for the sheet's own column names, so it catches a
+    # field somebody ADDS, not just the ones we know to look for. A stale
+    # dashboard is recoverable; a published profit figure is not.
+    blob = json.dumps(snap)
+    leaked = sorted({n for n in OO1_FORBIDDEN if n in blob})
+    # The structural half, and the stronger of the two: an OO1 row may carry a
+    # SCORE and nothing else. A value or a display on one of those rows is a
+    # published Finance percentage whatever it happens to be called, so this
+    # catches a leak under a key nobody thought to add to the list above.
+    oo1_rows = [r for r in rows if r.get("objective") == "OO1"]
+    with_value = [f"{r.get('kr')} ({r.get('display') or r.get('value')})"
+                  for r in oo1_rows
+                  if r.get("value") is not None or r.get("display") is not None]
+    for r in oo1_rows:
+        for mv in (r.get("months") or []):
+            if mv.get("value") is not None or mv.get("display") is not None:
+                with_value.append(f"{r.get('kr')} {mv.get('m')}")
+    if leaked or with_value:
+        add("4d-okr", "critical",
+            "OO1 FINANCE FIGURES IN A PUBLIC SNAPSHOT"
+            + (f" - forbidden field name(s) {leaked}" if leaked else "")
+            + (f" - OO1 row(s) carrying a value or display: "
+               f"{', '.join(with_value[:6])}" if with_value else "")
+            + ". This repository is public and OO1 is Net Profit. Those rows "
+              "carry a 0-100 SCORE and nothing else - no percentage, no "
+              "variance, no efficiency. Remove it before this is pushed; do "
+              "not relax this check")
+    else:
+        add("4d-okr", "ok",
+            f"OO1 is scores only ({len(oo1_rows)} row(s), none carrying a value "
+            "or a display) and no Finance percentage column name appears "
+            "anywhere in the snapshot")
+
+    # 5. the hand-entered sheet is not ancient
+    try:
+        with open(OKR_SHEET_PATH, encoding="utf-8") as fh:
+            ks = json.load(fh)
+    except FileNotFoundError:
+        add("4d-okr", "warning",
+            "okr_sheet.json is absent, so the KRs that are only typed into the "
+            "2026 Operations Input sheet stay grey. Expected until Matthew "
+            "shares the sheet with the service account - it is shared to the "
+            "makiramen.com domain, which does not cover one")
+        return
+    except (OSError, ValueError) as exc:
+        add("4d-okr", "warning", f"okr_sheet.json unreadable: {exc}")
+        return
+    pulled = (ks.get("pulled_at") or "")[:10]
+    age = ((date.fromisoformat(today) - date.fromisoformat(pulled)).days
+           if pulled else None)
+    if age is None:
+        add("4d-okr", "warning", "okr_sheet.json has no pulled_at date")
+    elif age > OKR_SHEET_AGE_WARN_DAYS:
+        add("4d-okr", "warning",
+            f"okr_sheet.json was pulled {age} days ago ({pulled}), over the "
+            f"{OKR_SHEET_AGE_WARN_DAYS}-day bar. The refresh may have been "
+            "failing silently - check the bake log for a 403 on the sheet")
+    else:
+        add("4d-okr", "ok",
+            f"okr_sheet.json pulled {pulled} ({age}d), newest entered month "
+            f"{ks.get('source_as_of') or 'none'}")
+
+
 # --------------------------------------------------------------- check 6
 def check_side_channels(cur, today: str) -> dict:
     sizes = {}
@@ -956,6 +1157,7 @@ def main() -> None:
                 sizes = check_side_channels(cur, today)
             recomputed = check_consistency(pg_latest, snap_latest)
             check_price_attribution(recomputed)
+            check_okr_scorecard(recomputed, today)
             archive_aggregates(conn, recomputed)
         finally:
             conn.close()

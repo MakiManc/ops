@@ -381,6 +381,217 @@ def fb_grade(product, score):
         return None
     lo, hi = band
     return "low" if score < lo else "high" if score > hi else "in"
+
+
+# ---- THE OKR SCORECARD: the bands, and the thirty KRs they score -----------
+# Ross, 21/09/2026. The Overview is scored against Matthew's "2026 Operations
+# Input" sheet now - six objectives, thirty KRs - not the Master Operating
+# Manual. The rules this obeys are in the comment block above the scorecard
+# section; RULE 2 CHANGED on that date and this table is the change.
+#
+# EVERY BAND IS WRITTEN DOWN HERE AND NOWHERE ELSE. A threshold that is not in
+# this table does not exist: the shell colours nothing and decides nothing, and
+# no row invents a tolerance of its own. Adding a band means adding it here, in
+# front of Ross, which is the whole point of having a table.
+#
+# THE SHAPE IS DELIBERATELY DULL. Each band is (direction, [(threshold, score)])
+# evaluated in order, 0 if nothing matches. 'ge' means the value must be >= the
+# threshold, 'le' that it must be <=. Somebody checking whether 93.5 scores 50
+# or 0 should be able to do it by eye - and the sheet's own formulas are the
+# cautionary tale. Its OO2 KR4 efficiency formula is NON-MONOTONIC: written as
+# nested IFs with a gap nobody spotted, it scores 93.5 as 0 while scoring a
+# WORSE 93.0 as 50. A sorted threshold list cannot have a gap. Do not port the
+# sheet's formulas; they are the thing this replaces.
+OKR_BANDS = {
+    # >=95% targets. OO2 KR1 (PPM), OO3 KR4 (OTIF), OO4 KR3 (tracked), OO4 KR5.
+    "pct95":       ("ge", [(95, 100), (90, 80), (85, 50)]),
+    # OO2 KR2, repeat maintenance issues: the value is the PERCENTAGE CHANGE
+    # against the baseline, so -20 is a 20% reduction and lower is better.
+    "repeat":      ("le", [(-20, 100), (-10, 80), (0, 50)]),
+    # Count-to-zero KRs. OO2 KR3 (closures), OO4 KR1 (logistics disruptions).
+    "zero":        ("le", [(0, 100), (1, 80), (3, 50)]),
+    # OO3 KR3 (menu items unavailable) is the strict one: the sheet gives it no
+    # 80 band at all, so one failure drops straight to 50.
+    "zero_strict": ("le", [(0, 100), (1, 50)]),
+    # 100% targets. OO2 KR4 (statutory), OO4 KR4 (credit notes).
+    "full":        ("ge", [(100, 100), (99, 80), (98, 50)]),
+    "contact":     ("ge", [(100, 100), (95, 80), (90, 50)]),   # OO2 KR5
+    "issues":      ("le", [(10, 100), (20, 80), (40, 50)]),    # OO3 KR1, Ross 21/09
+    "spikes":      ("le", [(3, 100), (4, 80), (5, 50)]),       # OO3 KR2
+    # OO3 KR5: the value is the DAY OF THE MONTH the statement was generated on.
+    "audit":       ("le", [(3, 100), (10, 50)]),
+    "damaged":     ("le", [(5, 100), (7, 80), (10, 50)]),      # OO4 KR2
+    # OO5 KR1/KR2. NOTE THE INPUT: not the mean, but how far the monthly mean
+    # falls OUTSIDE its product's band (0 when it is inside). Keeping the table
+    # uniform costs one line at the call site and buys a band you can read.
+    "density":     ("le", [(0, 100), (0.5, 80), (1.0, 50)]),
+    # OO5 KR3: the value is the ABSOLUTE variance, so sign is dropped first.
+    "stock":       ("le", [(5, 100), (7.5, 80), (10, 50)]),
+    "comp":        ("ge", [(95, 100), (94, 80), (92.5, 50)]),  # OO5 KR4
+    "prod":        ("ge", [(98, 100), (97, 80), (95, 50)]),    # OO5 KR5
+}
+
+#: Which bands Ross has actually agreed, and which are still PROPOSED. A
+#: proposed band scores exactly like an agreed one - the difference is that the
+#: row says so, on the page, until Matthew confirms it. Rule 3 still holds
+#: above all of this: no target, no score.
+OKR_BAND_STATUS = {
+    "pct95": "agreed", "zero": "agreed", "zero_strict": "agreed",
+    "full": "agreed", "contact": "agreed", "issues": "agreed",
+    "spikes": "agreed", "comp": "agreed", "prod": "agreed",
+    "repeat": "proposed", "audit": "proposed", "damaged": "proposed",
+    "density": "proposed", "stock": "proposed",
+}
+
+#: A KR with no source yet names the PHASE that will give it one. Rule 4 has
+#: not changed - a grey row states its blocker - but the blocker is now also a
+#: schedule, so the grey rows read as the build's remaining work rather than as
+#: something nobody noticed.
+OKR_PENDING = {
+    ("OO1", "KR1"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
+    ("OO1", "KR2"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
+    ("OO1", "KR3"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
+    ("OO1", "KR4"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
+    ("OO1", "KR5"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
+    ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet; read in Phase 2",
+    ("OO4", "KR2"): "factory-attributed damage on broth and sauce lines in the GetCompliant issue forms; Phase 2. Step 0 found ZERO such forms in the covered window - the factory has never been named as a supplier on one - so expect this to stay grey until the Supplier? picker in GetCompliant offers the factory",
+    ("OO4", "KR3"): "internal orders marked received in Kobas; Phase 2. Step 0 found internal orders CAN be isolated (factory as sending venue) but carry no received status at all, so this may stay grey",
+    ("OO4", "KR4"): "Finance-entered on the Operations Input sheet; read in Phase 2",
+    ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates; Phase 2, from the same data as OO3 KR4",
+    ("OO5", "KR4"): "factory scheduled-task on-time from GetCompliant; Phase 3",
+    ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the site-orders table; Phase 3",
+    ("OO6", "KR1"): "no agreed measure. Ross signs one off after Step 0 before anything is built",
+    ("OO6", "KR2"): "no agreed measure, and no dated demand event exists in any feed to build one from",
+    ("OO6", "KR3"): "no agreed measure. Step 0 found no site has ever stock-counted a frozen-ramen SKU",
+    ("OO6", "KR4"): "no agreed measure, and no par-level field for frozen ramen exists in any feed",
+    ("OO6", "KR5"): "no agreed measure, and no feed carries a product dimension on an invoice",
+}
+
+#: RAG follows the SCORE, never the other way round, and never in the shell.
+#: This is the only place the mapping exists.
+OKR_RAG = {100: "green", 80: "amber", 50: "amber", 0: "red"}
+
+
+def okr_score(band, value):
+    """The 100/80/50/0 score for `value` under `band`, or None.
+
+    None in, None out - rule 3. A KR with no value is not a KR that scored
+    zero, and the distinction is the difference between "nobody measured this"
+    and "this failed", which are the two things a scorecard must never confuse.
+    """
+    if value is None or band is None:
+        return None
+    spec = OKR_BANDS.get(band)
+    if spec is None:
+        return None
+    direction, table = spec
+    for threshold, score in table:
+        if (value >= threshold) if direction == "ge" else (value <= threshold):
+            return score
+    return 0
+
+
+def okr_density_outside(mean, band):
+    """How far a monthly mean falls outside its band; 0 when inside.
+
+    Feeds the `density` band. Bounds are INCLUSIVE, matching FACTORY_BROTH_BANDS.
+    """
+    if mean is None or not band:
+        return None
+    lo, hi = band
+    if mean < lo:
+        return round(lo - mean, 4)
+    if mean > hi:
+        return round(mean - hi, 4)
+    return 0.0
+
+
+#: The six objectives, in sheet order, with the labels the sheet gives them.
+OKR_OBJECTIVES = [
+    ("OO1", "7% Net Profit"),
+    ("OO2", "Maintenance"),
+    ("OO3", "Supply Chain"),
+    ("OO4", "Logistics"),
+    ("OO5", "Production"),
+    ("OO6", "Frozen Ramen"),
+]
+
+#: OO1 is FINANCE'S, and it is excluded from the Operations %. It is shown
+#: because Ross is measured on the same sheet, not because he owns it.
+OKR_OPERATIONS_OBJECTIVES = ("OO2", "OO3", "OO4", "OO5", "OO6")
+
+#: The thirty KRs, in sheet order. `text` is VERBATIM from the sheet, including
+#: its spacing, its misspellings and its inconsistent "KR 1:" / "KR2 :" / "KR:"
+#: prefixes. Do not tidy them: this list is the contract with Matthew's sheet,
+#: and a KR that reads differently here from there is a KR two people will
+#: disagree about in a meeting.
+#:
+#: (objective, kr, text, owner, target, band)
+#: band None means the KR carries no band - OO1, which is read from the sheet
+#: already scored, and the OO6 rows nobody has defined a measure for yet.
+OKR_SPEC = [
+    ("OO1", "KR1", "KR1: Actual W/R% (20%)", "Finance", "per sheet", None),
+    ("OO1", "KR2", "KR2: Actual FR% (35%)", "Finance", "per sheet", None),
+    ("OO1", "KR3", "KR3: Actual V/R% (13%)", "Finance", "per sheet", None),
+    ("OO1", "KR4", "KR4: Actual NP% (4-10%)", "Finance", "per sheet", None),
+    ("OO1", "KR5", "KR5: MA Completion by 7th of every month", "Finance",
+     "per sheet", None),
+
+    ("OO2", "KR1", "KR1: Complete ≥95% of planned preventative maintenance "
+     "(PPM) tasks on time", "Operations", "≥95%", "pct95"),
+    ("OO2", "KR2", "KR2: Reduce repeat maintenance issues by ≥20%",
+     "Operations", "≥-20% vs baseline", "repeat"),
+    ("OO2", "KR3", "KR3: Achieve zero unplanned restaurant closures due to "
+     "maintenance failures", "Operations", "0", "zero"),
+    ("OO2", "KR4", "KR4: Maintain 100% statutory compliance across all sites",
+     "Operations", "100%", "full"),
+    ("OO2", "KR5", "KR5: 100% Completion of Maintenance Contact Sheets - Proof "
+     "Required", "Operations", "100%", "contact"),
+
+    ("OO3", "KR1", "KR 1: Minimise delivery issues with suppliers", "Operations",
+     "≤10", "issues"),
+    ("OO3", "KR2", "KR2 : Price change spike (3 items)", "Operations",
+     "≤3", "spikes"),
+    ("OO3", "KR3", "KR3: Zero menu items unavailable due to supply failure",
+     "Operations", "0", "zero_strict"),
+    ("OO3", "KR4", "KR 4: ≥95% on-time, in-full deliveries", "Operations",
+     "≥95%", "pct95"),
+    ("OO3", "KR5", "KR5: Monthly Supplier Audit Completion", "Operations",
+     "statement by the 3rd", "audit"),
+
+    ("OO4", "KR1", "KR1: Zero service disruptions caused by logistics delays "
+     "(24 hour Max)", "Operations", "0", "zero"),
+    ("OO4", "KR2", "KR2: 5 critical SKUs damaged in transit (Broth and Sauces)",
+     "Operations", "≤5", "damaged"),
+    ("OO4", "KR3", "KR3: ≥95% of deliveries tracked end-to-end "
+     "(departure → receipt) (KOBAS)", "Operations", "≥95%", "pct95"),
+    # "KR:" not "KR4:" - the sheet's own typo, kept verbatim.
+    ("OO4", "KR4", "KR: 100% of delivery credit notes and refunds actioned "
+     "through MAPAL and Finance", "Finance", "100%", "full"),
+    ("OO4", "KR5", "KR5 95% Aggregated Supplier perfomance", "Operations",
+     "≥95%", "pct95"),
+
+    ("OO5", "KR1", "KR1: Maintain Pork broth density within 8-9", "Operations",
+     "8-9", "density"),
+    ("OO5", "KR2", "KR2: Maintain Chicken broth density within 5-6",
+     "Operations", "5-6", "density"),
+    ("OO5", "KR3", "KR3: +/-5% Variance on stocktake", "Operations",
+     "+/-5%", "stock"),
+    ("OO5", "KR4", "KR4: Aggregated Weekly Compliance Score", "Operations",
+     "≥95", "comp"),
+    ("OO5", "KR5", "KR5: ≥98% of production orders completed in full",
+     "Operations", "≥98%", "prod"),
+
+    ("OO6", "KR1", "KR1:Maintain 100% Supply Chain availibility", "Operations",
+     "100%", None),
+    ("OO6", "KR2", "KR2: 98% On time demand creation", "Operations", "98%", None),
+    ("OO6", "KR3", "KR3: Live inventory of all forzen ramen and all locations",
+     "Operations", "not set", None),
+    ("OO6", "KR4", "KR4: Updated Par Levels", "Operations", "not set", None),
+    ("OO6", "KR5", "KR5: Seperation of Invoices associated with Frozen Ramen at "
+     "Factory Level", "Operations", "not set", None),
+]
+
 #: A Brix reading this instrument can physically produce. Used ONLY to decide
 #: how to read an ambiguous cell format - never to reject a reading.
 FB_PLAUSIBLE_LO, FB_PLAUSIBLE_HI = 0.5, 30.0
@@ -2906,17 +3117,35 @@ def main():
     snap["gaps"]=gaps
     # ---- OKR scorecard (Overview) -----------------------------------------
     # Ross, 09/09/2026: the Overview is an OKR SCORECARD now, not four ranked
-    # signals. One row per KR/KPI from the Master Operating Manual, each with
-    # its target, its RAG, a 4-week trend and the tab that drills into it.
+    # signals. One row per KR, each with its target, its score, its RAG, a
+    # 4-week trend and the tab that drills into it.
+    #
+    # Ross, 21/09/2026: THE KR LIST IS MATTHEW'S "2026 OPERATIONS INPUT" SHEET,
+    # not the Master Operating Manual. Six objectives, thirty KRs, in the
+    # sheet's own order and its own wording - because that sheet is what Ross
+    # is actually scored on, and a scorecard that measures a different list
+    # from the one in the review is a scorecard nobody can use in the review.
+    # The Manual-only rows did not become wrong; they became a different thing,
+    # and they are rendered below as Operating KPIs.
     #
     # THE RULES THIS BLOCK OBEYS, because they are what stop a scorecard
     # becoming a wall of invented numbers:
     #
     #  1. RAG is decided HERE, in the builder, never in the shell. The shell
     #     maps a colour name to a chip; it does not know what "good" is.
-    #  2. Green when the target is met, red when it is not. There is NO amber
-    #     band, because the Manual gives targets and no tolerances, and a
-    #     tolerance nobody agreed is a number we made up.
+    #  2. CHANGED 21/09/2026. This rule used to read "green when the target is
+    #     met, red when it is not, and NO amber band, because the Manual gives
+    #     targets and no tolerances, and a tolerance nobody agreed is a number
+    #     we made up." The reason it said that has gone: Ross has now agreed
+    #     banded scoring. Every KR scores 100, 80, 50 or 0 from OKR_BANDS, and
+    #     RAG FOLLOWS THE SCORE - 100 green, 80 or 50 amber, 0 red. So there is
+    #     an amber band now, and it is not made up: it is written down, in one
+    #     table, in front of Ross. The old rule's real point survives intact -
+    #     a threshold that is not in OKR_BANDS still does not exist, and no row
+    #     may invent one. A KR whose band is still marked PROPOSED scores
+    #     exactly like an agreed one and SAYS SO on the row until Matthew
+    #     confirms it, so a reader can tell an agreed tolerance from a
+    #     suggested one without leaving the page.
     #  3. A KR with no target gets NO RAG - grey, and the words "no target
     #     set". Scheduled-task on-time is 96.1%, which looks like a pass, but
     #     nobody has set the target, so colouring it green would be inventing
@@ -3113,13 +3342,20 @@ def main():
     row("Supply","KR5 monthly supplier audit","100%","—",
         not_measured="no audit is recorded. Needs a supplier audit checklist in GetCompliant or Asana")
 
-    # --- Supply KR4: OTIF (PROXY, and say so) ---
+    # --- Supply KR4 -> OO3 KR4: issue-free deliveries, now the DEFINITION ---
+    # Ross, 21/09/2026: this row carried "PROXY, NOT OTIF" from the day it was
+    # built, and sat unscored because of it. He has now agreed that issue-free
+    # deliveries / orders IS what this KR means, so it is scored. The sentence
+    # about lateness stays - it is still true, and a reader deserves to know what
+    # the number cannot see - it just no longer withholds the judgement.
     _o=(snap.get("supply") or {}).get("otif") or {}
     _om=(_o.get("months") or [])
     _last=_om[-1] if _om else None
     def _otbasis(m_):
-        return ("PROXY, NOT OTIF — this is the issue-free delivery rate: nothing in the read "
-          "path observes whether a delivery was on time, so it can only be a lower bound. "
+        return ("ISSUE-FREE DELIVERY RATE, and Ross agreed on 21/09/2026 that this IS the "
+          "definition of this KR, so it is scored. It still cannot observe whether a "
+          "delivery arrived on time - only whether an issue was filed against that "
+          "supplier in the same month - so it remains a LOWER BOUND. "
           f"{m_.get('measurable_suppliers')} of {m_.get('measurable_of')} suppliers had "
           "order-email coverage spanning the month. Real OTIF needs Mapal Supplier Orders "
           "or a Lynas delivery file.")
@@ -3458,6 +3694,292 @@ def main():
         m_=_re.match(r"KR(\d+)",r_["kr"])
         return int(m_.group(1)) if m_ else 99
     sc.sort(key=lambda r_:(_order.get(r_["function"],9),_krn(r_)))
+
+    # ---- THE OKR SCORECARD: thirty KRs, six objectives, in sheet order -----
+    # Ross, 21/09/2026. Everything above this line still computes exactly what
+    # it computed before; this stage RE-HOMES those answers onto Matthew's KR
+    # list and scores them. Nothing is recomputed here except the two KRs whose
+    # HEADLINE changed shape (OO3 KR2 and OO5 KR1/KR2, below), because a
+    # re-homing stage that also quietly re-measures things is a stage nobody
+    # can audit.
+    #
+    # WHY A SECOND PASS RATHER THAN THIRTY NEW ROW() CALLS. The value, the
+    # basis, the trend and the month variants for the measured KRs are built by
+    # ~600 lines above, each with its own coverage rules and disclosures. Those
+    # rules ARE the measurement. Rewriting them into a new shape would fork
+    # every one of them, so instead the rows are built as they always were and
+    # mapped here, by an explicit table, with the leftovers going to Operating
+    # KPIs. If a row ever stops matching its key the KR goes grey and says so -
+    # it cannot silently pick up the wrong row's number.
+    _okr_src = {(r_["function"], r_["kr"]): r_ for r_ in sc}
+    _OKR_FROM_ROW = {
+        ("Supply", "KR1 delivery issues / month"):       ("OO3", "KR1"),
+        ("Supply", "KR2 price spikes / month"):          ("OO3", "KR2"),
+        ("Supply", "KR3 menu items unavailable"):        ("OO3", "KR3"),
+        ("Supply", "KR4 OTIF"):                          ("OO3", "KR4"),
+        ("Supply", "KR5 monthly supplier audit"):        ("OO3", "KR5"),
+        ("Maintenance", "KR1 PPM on time"):              ("OO2", "KR1"),
+        ("Maintenance", "KR2 repeat issues vs baseline"): ("OO2", "KR2"),
+        ("Maintenance", "KR3 unplanned closures"):       ("OO2", "KR3"),
+        ("Maintenance", "KR4 statutory compliance"):     ("OO2", "KR4"),
+        ("Maintenance", "KR5 Contact Sheets complete"):  ("OO2", "KR5"),
+        # The Manual's "Stock variance" and the sheet's OO5 KR3 are the same
+        # measurement under two names, and both are unmeasured today. Phase 3
+        # gives it the Weekly Report workbook.
+        ("Production", "Stock variance"):                ("OO5", "KR3"),
+    }
+    _okr_by_id = {}
+    for _key, _id in _OKR_FROM_ROW.items():
+        if _key in _okr_src:
+            _okr_by_id[_id] = _okr_src[_key]
+    # The rows that are NOT on Matthew's sheet. They keep every field they had
+    # and are rendered below the OKRs under their own heading - they are real
+    # measurements Ross uses, they are simply not what he is scored on.
+    operating_kpis = [r_ for r_ in sc
+                      if (r_["function"], r_["kr"]) not in _OKR_FROM_ROW]
+
+    def _rag_of(score):
+        """RAG follows the score. The one mapping, in the one place."""
+        return OKR_RAG.get(score) if score is not None else None
+
+    def _okr_months(src, band, value_of=None):
+        """Re-score a built row's month variants under an OKR band.
+
+        Each variant already carries a finished value and basis for its month;
+        this adds the score and replaces the RAG the old rule set, so a month
+        the picker selects is judged by exactly the same band as the default.
+        """
+        out = []
+        for v_ in (src.get("months") or []):
+            _v = (value_of(v_) if value_of else v_.get("value"))
+            _s = okr_score(band, _v)
+            out.append({**v_, "score": _s, "rag": _rag_of(_s)})
+        return out
+
+    # --- OO3 KR2: price spikes, counted ESTATE-WIDE (Ross, 21/09/2026) ------
+    # The row used to be per-supplier, and sat grey because supplier
+    # attribution ran at 75.5% against a 90% bar this system requires before it
+    # names a supplier on a scorecard row. Ross's 16/09 per-supplier row is
+    # SUPERSEDED: the KR as Matthew words it is "Price change spike (3 items)",
+    # a count of items, and a count needs no attribution at all. So the gate no
+    # longer applies to this row and it gets a number.
+    #
+    # The spike RULE is untouched - same 10% single-report rise, same five
+    # exclusions, same once-per-line-per-report dedupe. Only the grouping
+    # changed, from "per supplier" to "how many lines moved across the estate".
+    # spikes_by_supplier, the per-supplier table and the attribution-rate note
+    # all stay exactly as they are, as this row's drill-down.
+    #
+    # WORTH KNOWING BEFORE READING THE SCORE: estate-wide this runs 115 (Aug)
+    # and 50 (Sep) against a target of <=3, so it scores 0 and will keep scoring
+    # 0. Two things make that so. The ordered-in-trailing-8-weeks filter Ross
+    # asked for is INERT - 'Kobas Orders' keeps only per-order totals, so there
+    # is no ingredient-level line to filter on - and Matthew's target of 3 was
+    # written against three NAMED items (his February note lists sugar, vanilla
+    # ice cream and big soba noodles), not against an estate-wide count. Those
+    # are two different metrics sharing one target. The row reports the count it
+    # was told to report and says all of this in its basis rather than quietly
+    # choosing a number that looks better.
+    _sp2 = (snap.get("supply") or {}).get("price_spikes") or {}
+    _sp_blocks = list(_sp2.get("months") or [])
+    if _sp2.get("current"):
+        _sp_blocks = [b for b in _sp_blocks
+                      if b.get("month") != _sp2["current"].get("month")]
+        _sp_blocks.append(_sp2["current"])
+
+    def _spike_basis(blk):
+        _n = sum(x.get("spikes") or 0 for x in (blk.get("suppliers") or []))
+        _thr = (_sp2.get("thresholds") or {}).get("pct")
+        return (f"{_n} distinct supplier pack line(s) rose by {_thr or 10}% or more in a "
+                f"single weekly report during {_mlabel(blk['month'])}, counted ESTATE-WIDE "
+                f"across {len(blk.get('suppliers') or [])} named supplier(s) - one count per "
+                f"line per report, by the report's own first-seen date. "
+                f"Same rule and the same five exclusions as the per-supplier table on the "
+                f"Supply tab, which remains this row's drill-down: a first-ever price "
+                f"('New'), a move of 100% or more, either side priced 0.00, a line the "
+                f"export holds twice, and a line whose supplier cannot be named"
+                + (f" ({_sp2['unattributed']} qualifying rise(s) this pull)"
+                   if _sp2.get("unattributed") else "")
+                + ". Counting items rather than naming suppliers, so the 90% attribution bar "
+                "that greyed this row until 21/09/2026 no longer applies to it"
+                + (". NOT restricted to recently-ordered ingredients: 'Kobas Orders' keeps "
+                   "only per-order totals, so there is no ingredient-level order line to "
+                   "filter on and every priced ingredient is counted"
+                   if not _sp2.get("ordered_filter") else "")
+                + ". Matthew's target of 3 was set against three NAMED items, not against an "
+                "estate-wide count - the two are different measures and the target has not "
+                "been re-agreed for this one")
+
+    _okr_extra = {}
+    if _sp_blocks:
+        _sv = []
+        for _b in sorted(_sp_blocks, key=lambda b: b["month"]):
+            _n = sum(x.get("spikes") or 0 for x in (_b.get("suppliers") or []))
+            _s = okr_score("spikes", _n)
+            _sv.append(_mvar(_b["month"], value=_n, display=str(_n), score=_s,
+                             rag=_rag_of(_s), basis=_spike_basis(_b)))
+        _okr_extra[("OO3", "KR2")] = {"months": _sv,
+                                      "source_kind": "computed",
+                                      "tab": "p-supp"}
+
+    # --- OO5 KR1/KR2: broth density, per product, as a MONTHLY MEAN ---------
+    # Matthew's KRs are "Maintain Pork broth density within 8-9" and "within
+    # 5-6" - one KR per product, and the number is the density itself. The
+    # dashboard's existing Quality row is one POOLED "% of readings in band"
+    # across both products, which answers a different question and cannot be
+    # split after the fact. So these two are computed here from the same graded
+    # readings, with every exclusion the broth block already applies.
+    #
+    # BOTH FIGURES ARE SHOWN, and that is deliberate. The KR value is the mean,
+    # because that is what the band Ross agreed is written against, but the
+    # display carries the in-band percentage beside it - because THE MEAN ON ITS
+    # OWN CANNOT FAIL. Across every month of 2026 both products' means sit
+    # comfortably inside band (tonkotsu 8.25-8.40, chicken 5.06-5.34) and score
+    # 100, including April, when only 77.3% of chicken readings were actually in
+    # band: a symmetric spread of misses leaves the mean dead centre. A reader
+    # who sees "5.10 avg - 77.3% of 22 readings in band" can see that; a reader
+    # who sees "5.10" cannot. Flagged for Ross on 21/09/2026 - if he wants the
+    # SCORE moved onto the in-band percentage, change the band, not the display.
+    _okr_broth = {}
+    for _oid, _prod in (("KR1", "Tonkotsu Broth"), ("KR2", "Chicken Broth")):
+        _band = FACTORY_BROTH_BANDS.get(_prod)
+        _rs = [r_ for r_ in _fg if (r_.get("product") or "") == _prod]
+        if not _band or not _rs:
+            continue
+        _bym = {}
+        for r_ in _rs:
+            _bym.setdefault(r_["d"][:7], []).append(r_)
+        _vars = []
+        for _m in sorted(_bym)[-FB_MONTHS_MAX:]:
+            _rows = _bym[_m]
+            _mean = round(sum(x["score"] for x in _rows) / len(_rows), 2)
+            _in = sum(1 for x in _rows if x.get("grade") == "in")
+            _pct = round(100.0 * _in / len(_rows), 1)
+            _out = okr_density_outside(_mean, _band)
+            _s = okr_score("density", _out)
+            _days = len({x["d"] for x in _rows})
+            _mtd = (_m == (pull or "")[:7])
+            _vars.append(_mvar(
+                _m, value=_mean,
+                display=f"{_mean:g} avg - {_pct}% of {len(_rows)} readings in band",
+                score=_s, rag=_rag_of(_s),
+                basis=(f"Mean after-ice refractometer reading for {_prod} in "
+                       f"{_mlabel(_m)}: {_mean:g} against a band of "
+                       f"{_band[0]:g}-{_band[1]:g}"
+                       + (", inside band" if not _out else
+                          f", {_out:g} outside band")
+                       + f". {_in} of {len(_rows)} reading(s) were individually in band "
+                         f"({_pct}%), across {_days} production day(s), from '{FB_FEED}'"
+                       + (f" as at its own pull {fb_pull}" if fb_pull else "")
+                       + (". MONTH TO DATE - the month is not finished, so this figure is "
+                          "still moving" if _mtd else "")
+                       + ". THE SCORE IS ON THE MEAN, which is what the band was agreed "
+                         "against; the in-band percentage is shown beside it because a mean "
+                         "can sit inside band while individual batches miss it in both "
+                         "directions. Readings with no after-ice value, no usable date or a "
+                         "non-numeric value are excluded and never scored as zero, exactly "
+                         "as on the Quality tab")))
+        if _vars:
+            _okr_broth[("OO5", _oid)] = {"months": _vars, "source_kind": "computed",
+                                         "tab": "p-qual"}
+    _okr_extra.update(_okr_broth)
+
+    # --- assemble the thirty rows ------------------------------------------
+    okr = []
+    for _obj, _kr, _text, _owner, _target, _band in OKR_SPEC:
+        _id = (_obj, _kr)
+        _src = _okr_by_id.get(_id)
+        _ext = _okr_extra.get(_id)
+        _r = {
+            "objective": _obj, "kr": _kr, "text": _text, "owner": _owner,
+            "target": _target, "band": _band,
+            "band_status": OKR_BAND_STATUS.get(_band) if _band else None,
+            "value": None, "display": None, "score": None, "rag": None,
+            "basis": None, "source_kind": "not_measured", "not_measured": None,
+            "tab": "—", "trend": None, "trend_unit": None,
+            "trend_note": None, "months": None,
+        }
+        if _ext:
+            # A KR this stage computed itself (OO3 KR2, OO5 KR1/KR2). Its
+            # variants already carry finished scores.
+            _r.update({k: v for k, v in _ext.items() if k != "months"})
+            _r["months"] = _ext["months"]
+            _dm = next((v for v in _ext["months"] if v["m"] == (pull or "")[:7]),
+                       _ext["months"][-1])
+            _r.update({k: _dm.get(k) for k in
+                       ("value", "display", "score", "rag", "basis",
+                        "trend", "trend_unit", "trend_note")})
+        elif _src is not None:
+            _r["tab"] = _src.get("tab") or "—"
+            _r["not_measured"] = _src.get("not_measured")
+            _r["basis"] = _src.get("basis")
+            for _k in ("value", "display", "trend", "trend_unit", "trend_note"):
+                _r[_k] = _src.get(_k)
+            if _src.get("months"):
+                _r["months"] = _okr_months(_src, _band)
+                _dm = next((v for v in _r["months"] if v["m"] == (pull or "")[:7]),
+                           _r["months"][-1])
+                _r.update({k: _dm.get(k) for k in
+                           ("value", "display", "score", "rag", "basis",
+                            "trend", "trend_unit", "trend_note")})
+            else:
+                _r["score"] = okr_score(_band, _r["value"])
+                _r["rag"] = _rag_of(_r["score"])
+            if _r["value"] is not None or _r["months"]:
+                _r["source_kind"] = "computed"
+        else:
+            # No source at all yet. Name the phase that will give it one, so
+            # the grey rows read as a roadmap rather than as an oversight -
+            # rule 4, which has not changed.
+            _r["not_measured"] = OKR_PENDING.get(_id, "no source reaches this "
+                                                     "system yet")
+        okr.append(_r)
+
+    # --- objective roll-up (Ross, 21/09/2026) -------------------------------
+    # pct = the MEAN of the scores of that objective's KRs that have a score
+    # that month. An unscored KR is LEFT OUT of the mean; it is never counted
+    # as a zero, because "nobody measured this" and "this failed" are the two
+    # things a scorecard must never confuse. The row says "n of 5 scored" so
+    # the reader can see how much of the objective the percentage speaks for -
+    # a 100% built on one KR of five is not the same claim as one built on five.
+    #
+    # A KR WITH NO MONTHLY FORM counts towards the DEFAULT month only. Those
+    # rows (contact sheets, the unmeasured ones) hold a current-state figure,
+    # and carrying today's answer back into August would be inventing a history
+    # the measurement does not have.
+    _dflt = (pull or "")[:7]
+
+    def _score_at(r_, m_):
+        if r_.get("months"):
+            return next((v.get("score") for v in r_["months"] if v["m"] == m_), None)
+        return r_.get("score") if m_ == _dflt else None
+
+    def _rollup(rows_, m_):
+        _sc = [s for s in (_score_at(r_, m_) for r_ in rows_) if s is not None]
+        return {"pct": round(sum(_sc) / len(_sc), 1) if _sc else None,
+                "scored": len(_sc), "total": len(rows_)}
+
+    _okr_months_all = sorted({v["m"] for r_ in okr for v in (r_.get("months") or [])}
+                             | ({_dflt} if _dflt else set()), reverse=True)
+    objectives = []
+    for _obj, _label in OKR_OBJECTIVES:
+        _rows = [r_ for r_ in okr if r_["objective"] == _obj]
+        objectives.append({
+            "objective": _obj, "label": _label,
+            **_rollup(_rows, _dflt),
+            "months": [{"m": m_, **_rollup(_rows, m_)} for m_ in _okr_months_all],
+        })
+
+    def _ops_pct(m_):
+        _p = [o for o in objectives
+              if o["objective"] in OKR_OPERATIONS_OBJECTIVES]
+        _v = [next((x["pct"] for x in o["months"] if x["m"] == m_), None) for o in _p]
+        _v = [x for x in _v if x is not None]
+        return {"pct": round(sum(_v) / len(_v), 1) if _v else None,
+                "scored": len(_v), "total": len(_p)}
+    operations = {**_ops_pct(_dflt),
+                  "months": [{"m": m_, **_ops_pct(m_)} for m_ in _okr_months_all]}
+
     # The months the picker offers: every month any monthly row can be scored
     # for, newest first, with the pull's own month always present so the
     # default is always selectable. A month appears here if ONE row can speak
@@ -3465,22 +3987,37 @@ def main():
     # the month being withheld from all of them.
     _scm=sorted({v_["m"] for r_ in sc for v_ in (r_.get("months") or [])}
                 |({pull[:7]} if pull else set()),reverse=True)
-    snap["scorecard"]={"weeks":WEEKS,"rows":sc,
-      "measured":sum(1 for r_ in sc if r_["value"] is not None),
-      "total":len(sc),
-      "months":_scm,"month":(pull or "")[:7],
-      "monthly":sum(1 for r_ in sc if r_.get("months")),
+    snap["scorecard"]={"weeks":WEEKS,"rows":okr,
+      "operating_kpis":operating_kpis,
+      "objectives":objectives,
+      "operations":operations,
+      "measured":sum(1 for r_ in okr if r_["value"] is not None),
+      "scored":sum(1 for r_ in okr if r_["score"] is not None),
+      "total":len(okr),
+      "months":_okr_months_all,"month":(pull or "")[:7],
+      "monthly":sum(1 for r_ in okr if r_.get("months")),
+      "bands":{k:{"direction":v[0],"table":[list(t) for t in v[1]],
+                  "status":OKR_BAND_STATUS.get(k)} for k,v in OKR_BANDS.items()},
       "month_basis":("the month picker moves the rows whose KR is a per-month measure. "
-        "Every month it offers was scored HERE, in the builder, against the same target and "
+        "Every month it offers was scored HERE, in the builder, against the same band and "
         "the same rule as the default month - the picker chooses between finished answers "
-        "and computes nothing. Rows without a monthly form (mandatory training, scheduled "
-        "task on-time, and the rows with no source) do not follow it and say so, rather than "
-        "showing today's figure under an earlier month's heading."),
-      "basis":("one row per KR/KPI in the Master Operating Manual. A row with a value is "
-        "measured from the feeds named in its basis; a row without one names the blocker "
-        "instead, and that list is the data roadmap. RAG is green when the target is met and "
-        "red when it is not; there is no amber band because the Manual sets targets and no "
-        "tolerances, and a KR with no agreed target carries no RAG at all.")}
+        "and computes nothing. A KR with no monthly form does not follow it, and counts "
+        "towards the default month's objective percentage only: carrying a current-state "
+        "figure back into an earlier month would invent a history the measurement does "
+        "not have."),
+      "basis":("one row per KR on the 2026 Operations Input sheet - six objectives, thirty "
+        "KRs, in the sheet's own order and wording. Every KR scores 100, 80, 50 or 0 from "
+        "the band table in the builder (scorecard.bands), and RAG follows the score: 100 "
+        "green, 80 or 50 amber, 0 red. A band still marked PROPOSED scores exactly like an "
+        "agreed one and says so on the row until Matthew confirms it. A KR with no target "
+        "gets no score, and a KR with no source is grey with its blocker named - that list "
+        "is the remaining build. An objective's percentage is the mean of the KRs that "
+        "HAVE a score that month; an unscored KR is left out of the mean and never counted "
+        "as a zero, which is why each objective also says how many of its five scored. The "
+        "Operations percentage is the mean of OO2-OO6; OO1 is Finance's and is excluded. "
+        "The Operating KPIs below the scorecard are measurements that are not on Matthew's "
+        "sheet - they are real and Ross uses them, they are simply not what he is scored "
+        "on.")}
 
     # ---- signals, each with basis ----
     sig=[]
