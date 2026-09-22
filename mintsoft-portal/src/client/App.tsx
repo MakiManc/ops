@@ -160,7 +160,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
             </div>
           )}
           {current.key === 'catalogue'
-            ? <Catalogue siteId={activeSiteId} />
+            ? <Catalogue siteId={activeSiteId} onGoToBasket={() => setOpenScreen('basket')} />
             : <Basket siteId={activeSiteId} onSubmitted={() => setOpenScreen('orders')} />}
         </div>
       )

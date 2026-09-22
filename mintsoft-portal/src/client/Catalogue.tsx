@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FreshnessBanner, type Freshness } from './Freshness.tsx'
 import { money, qty, shortDate, STATUS_CHIP, timeAgo, type StockStatus } from './format.ts'
 
@@ -6,7 +6,7 @@ import { money, qty, shortDate, STATUS_CHIP, timeAgo, type StockStatus } from '.
  * The catalogue a GM browses.
  *
  * Read-only in Phase 2: this is where the stock figures become visible and get
- * checked against reality. The basket and ordering arrive in Phase 3.
+ * checked against reality, and each row can be added to the open request.
  */
 
 export interface CatalogueProduct {
@@ -43,7 +43,102 @@ function StatusChip({ status }: { status: StockStatus }) {
   )
 }
 
-function ProductCard({ product, showPrices }: { product: CatalogueProduct; showPrices: boolean }) {
+
+/**
+ * Adding one product to the open request.
+ *
+ * The stepper defaults to 1 rather than the par shortfall: a GM who wants a case knows
+ * it, and a box pre-filled with a number they did not choose is the kind of thing that
+ * gets submitted unread.
+ *
+ * Nothing here decides whether the quantity is allowed. The server re-checks against
+ * stock, par levels and the ordering gap, and the basket shows what it said — so a
+ * refusal arrives with a reason rather than the button just being disabled.
+ */
+function AddToRequest({ siteId, product, onAdded }: {
+  siteId: number; product: CatalogueProduct; onAdded: () => void
+}) {
+  const [qtyWanted, setQtyWanted] = useState(1)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [added, setAdded] = useState(false)
+
+  const add = useCallback(async () => {
+    setBusy(true); setError(null)
+    try {
+      const res = await fetch(`/api/sites/${siteId}/request/lines`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.productId, qty: qtyWanted }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(body.error ?? `Could not add it (${res.status}).`)
+      }
+      setAdded(true)
+      onAdded()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not add it.')
+    } finally { setBusy(false) }
+  }, [siteId, product.productId, qtyWanted, onAdded])
+
+  return (
+    <div className="mt-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="sr-only" htmlFor={`qty-${product.productId}`}>
+          Quantity of {product.name}
+        </label>
+        <div className="flex items-center">
+          <button
+            type="button"
+            aria-label={`One fewer ${product.name}`}
+            className="min-h-[44px] min-w-[44px] rounded-l-lg border border-gray-400 text-lg"
+            onClick={() => setQtyWanted((q) => Math.max(1, q - 1))}
+            disabled={busy || qtyWanted <= 1}
+          >
+            −
+          </button>
+          <input
+            id={`qty-${product.productId}`}
+            inputMode="numeric"
+            className="min-h-[44px] w-16 border-y border-gray-400 text-center"
+            value={qtyWanted}
+            onChange={(e) => {
+              const n = Number(e.target.value.replace(/[^0-9]/g, ''))
+              setQtyWanted(Number.isFinite(n) && n > 0 ? n : 1)
+            }}
+          />
+          <button
+            type="button"
+            aria-label={`One more ${product.name}`}
+            className="min-h-[44px] min-w-[44px] rounded-r-lg border border-gray-400 text-lg"
+            onClick={() => setQtyWanted((q) => q + 1)}
+            disabled={busy}
+          >
+            +
+          </button>
+        </div>
+        <button
+          type="button"
+          className="min-h-[44px] px-4 rounded-lg bg-everglade text-paper font-semibold disabled:opacity-60"
+          onClick={() => void add()}
+          disabled={busy}
+        >
+          {busy ? 'Adding…' : added ? 'Add more' : 'Add to request'}
+        </button>
+        {added && !error && (
+          <span className="text-sm text-everglade font-medium" role="status">In the request</span>
+        )}
+      </div>
+      {error && <p className="mt-1 text-sm text-red-700">{error}</p>}
+    </div>
+  )
+}
+
+function ProductCard({ product, showPrices, siteId, onAdded }: {
+  product: CatalogueProduct; showPrices: boolean; siteId: number; onAdded: () => void
+}) {
   const unknown = product.available === null
 
   return (
@@ -101,16 +196,34 @@ function ProductCard({ product, showPrices }: { product: CatalogueProduct; showP
           {unknown ? 'No stock reading' : `Stock read ${timeAgo(product.stockSyncedAt)}`}
           {product.mappedLines > 1 && ` · combines ${product.mappedLines} warehouse lines`}
         </p>
+
+        <AddToRequest siteId={siteId} product={product} onAdded={onAdded} />
       </div>
     </li>
   )
 }
 
-export function Catalogue({ siteId }: { siteId: number }) {
+export function Catalogue({ siteId, onGoToBasket }: {
+  siteId: number; onGoToBasket?: () => void
+}) {
   const [data, setData] = useState<CatalogueResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
+  // How much is already in the open request. Without it, adding something gives no
+  // sign it worked and no way to reach the basket from here.
+  const [inRequest, setInRequest] = useState(0)
+
+  const refreshRequest = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/sites/${siteId}/request`, { credentials: 'same-origin' })
+      if (!res.ok) return
+      const body = await res.json() as { lines?: unknown[] }
+      setInRequest(body.lines?.length ?? 0)
+    } catch { /* the count is a convenience; the basket screen is the source of truth */ }
+  }, [siteId])
+
+  useEffect(() => { void refreshRequest() }, [refreshRequest])
 
   useEffect(() => {
     let cancelled = false
@@ -187,6 +300,24 @@ export function Catalogue({ siteId }: { siteId: number }) {
         {shown === total ? `${total} products` : `${shown} of ${total} products`}
       </p>
 
+      {inRequest > 0 && (
+        <div className="sticky top-2 z-10 rounded-lg bg-everglade text-paper px-3 py-2
+                        flex flex-wrap items-center justify-between gap-3">
+          <span>
+            <strong>{inRequest}</strong> {inRequest === 1 ? 'product' : 'products'} in this request
+          </span>
+          {onGoToBasket && (
+            <button
+              type="button"
+              onClick={onGoToBasket}
+              className="min-h-[44px] px-4 rounded-lg bg-paper text-everglade font-semibold"
+            >
+              Review and send
+            </button>
+          )}
+        </div>
+      )}
+
       {groups.length === 0 ? (
         <p className="text-gray-700">Nothing matches that search.</p>
       ) : (
@@ -197,7 +328,13 @@ export function Catalogue({ siteId }: { siteId: number }) {
             </h2>
             <ul className="mt-2 grid gap-3">
               {items.map((p) => (
-                <ProductCard key={p.productId} product={p} showPrices={data.site.recharge} />
+                <ProductCard
+                  key={p.productId}
+                  product={p}
+                  showPrices={data.site.recharge}
+                  siteId={siteId}
+                  onAdded={() => void refreshRequest()}
+                />
               ))}
             </ul>
           </section>

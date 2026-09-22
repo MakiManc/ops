@@ -24,10 +24,18 @@ function serve(
     { lastSuccessAt: new Date().toISOString(), minutesOld: 2, stale: false },
   recharge = false,
 ) {
-  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
-    site: { id: 1, code: 'M9', name: 'Leith Walk', recharge },
-    freshness, products,
-  }), { status: 200 }))
+  // A fresh Response per call, and the open-request fetch answered separately. One
+  // shared Response was only ever valid while the catalogue made exactly one fetch:
+  // a body can be read once, so the second reader got a consumed stream.
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    if (String(input).includes('/request')) {
+      return new Response(JSON.stringify({ lines: [] }), { status: 200 })
+    }
+    return new Response(JSON.stringify({
+      site: { id: 1, code: 'M9', name: 'Leith Walk', recharge },
+      freshness, products,
+    }), { status: 200 })
+  })
 }
 
 beforeEach(() => vi.restoreAllMocks())
