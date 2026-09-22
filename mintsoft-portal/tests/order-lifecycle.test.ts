@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   addToBasket, approvalQueue, approveOrder, cancelOrder, eventsForOrder, linesForOrder,
-  mergeRequests, openRequestForSite, OrderError, orderById, rejectOrder, setLineQty, submitRequest,
+  mergeRequests, openRequestForSite, OrderError, orderById, rejectOrder, setLineQty,
+  submitRequest,
 } from '../src/server/db/orders.ts'
 import type { Database } from '../src/server/db/repo.ts'
 import { FakeD1 } from './helpers/d1.ts'
@@ -156,15 +157,29 @@ describe('approving', () => {
     expect(approved!.detail).toMatchObject({ quantityChanges: [{ productId: 1, from: 24, to: 12 }] })
   })
 
-  it('refuses anyone who is not an approver', async () => {
+  it('refuses a GM, who may request but never sign off', async () => {
     const order = await add()
     await submit(order.id)
-    for (const role of ['gm', 'admin'] as const) {
-      await expect(approveOrder(db, {
-        orderId: order.id, actor: 'someone@example.com', actorRole: role,
-        lines: [], rechargeTotal: null, orderFee: null,
-      })).rejects.toThrow(OrderError)
-    }
+    await expect(approveOrder(db, {
+      orderId: order.id, actor: 'someone@example.com', actorRole: 'gm',
+      lines: [], rechargeTotal: null, orderFee: null,
+    })).rejects.toThrow(OrderError)
+  })
+
+  it('accepts an admin, and records who signed it', async () => {
+    // Who held the pen matters later, even though both roles are now entitled to hold
+    // it. The role itself is resolved from the user at send time rather than frozen on
+    // the order, so what the order has to carry is the identity.
+    const order = await add()
+    await submit(order.id)
+    await approveOrder(db, {
+      orderId: order.id, actor: 'admin@example.com', actorRole: 'admin',
+      lines: [], rechargeTotal: null, orderFee: null,
+    })
+    expect((await orderById(db, order.id))!.status).toBe('approved')
+    const events = await eventsForOrder(db, order.id)
+    expect(events.map((e) => e.event)).toContain('approved')
+    expect(events.find((e) => e.event === 'approved')!.actor).toBe('admin@example.com')
   })
 
   it('refuses an order that is not waiting for sign-off', async () => {

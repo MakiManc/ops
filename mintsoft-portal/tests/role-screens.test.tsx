@@ -96,11 +96,22 @@ describe('an admin', () => {
     }
   })
 
-  it('is not shown the approval queue — the roles do not nest', async () => {
+  it('is shown the approval queue and the ordering screens too', async () => {
+    // Changed deliberately: an administrator can do everything an approver can, so
+    // that an order does not sit unapproved while the approver is away.
     signedInAs(me('admin'))
     render(<App googleClientId="test" />)
     await waitFor(() => expect(screen.getByText('Sites and people')).toBeDefined())
-    expect(screen.queryByText('Approval queue')).toBeNull()
+    expect(screen.getByText('Approval queue')).toBeDefined()
+    expect(screen.getByText('Order stock')).toBeDefined()
+  })
+
+  it('does not make the nesting work the other way — an approver gets no admin tools', async () => {
+    signedInAs(me('approver'))
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
+    expect(screen.queryByText('Catalogue mapping')).toBeNull()
+    expect(screen.queryByText('Sites and people')).toBeNull()
   })
 })
 

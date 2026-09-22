@@ -262,10 +262,11 @@ describe('sending an approved order', () => {
     expect((await res.json() as { error: string }).error).toMatch(/credentials are not configured/)
   })
 
-  it('is closed to a GM and to an admin', async () => {
-    for (const user of [GM, ADMIN]) {
-      expect((await post('/api/approvals/50/send', await as(user), {})).status).toBe(403)
-    }
+  it('is closed to a GM, but open to an admin', async () => {
+    expect((await post('/api/approvals/50/send', await as(GM), {})).status).toBe(403)
+    // Not 403: an admin may reach it. What happens next is the write gate's business,
+    // not the route guard's.
+    expect((await post('/api/approvals/50/send', await as(ADMIN), {})).status).not.toBe(403)
   })
 
   it('sends nothing when the writes flag is off, even with credentials', async () => {

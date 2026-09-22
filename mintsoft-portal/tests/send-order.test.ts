@@ -71,8 +71,15 @@ describe('the gate', () => {
     expect((await eventsForOrder(db, 1)).map((e) => e.event)).toContain('send_refused')
   })
 
-  it('refuses an order approved by an admin rather than an approver', async () => {
-    fake.exec(`UPDATE orders SET approved_by = 3 WHERE id = 1`)
+  it('sends an order approved by an admin — an admin may sign off too', async () => {
+    fake.exec(`UPDATE orders SET approved_by = 3 WHERE id = 1`)   // user 3 is the admin
+    const { client, puts } = stub()
+    expect((await send(client)).ok).toBe(true)
+    expect(puts).toHaveLength(1)
+  })
+
+  it('still refuses an order approved by a GM', async () => {
+    fake.exec(`UPDATE orders SET approved_by = 1 WHERE id = 1`)   // user 1 is a GM
     const { client, puts } = stub()
     expect((await send(client)).status).toBe('refused')
     expect(puts).toHaveLength(0)

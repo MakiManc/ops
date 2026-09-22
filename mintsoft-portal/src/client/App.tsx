@@ -28,7 +28,15 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'queue', title: 'Approval queue', blurb: 'Requests waiting for sign-off, oldest first.', phase: 3, ready: true },
     { key: 'stock', title: 'Stock overview', blurb: 'What is on hand, allocated, inbound and how long it will last.', phase: 2, ready: true },
   ],
+  // An administrator gets everything: the admin tools, plus the approver's queue and
+  // the ordering screens. Ordering needs a site, and an admin is not site-scoped, so
+  // the catalogue and basket screens ask which site they are acting for.
   admin: [
+    { key: 'queue', title: 'Approval queue', blurb: 'Requests waiting for sign-off, oldest first.', phase: 3, ready: true },
+    { key: 'catalogue', title: 'Order stock', blurb: 'Browse and build a request for any site.', phase: 2, ready: true },
+    { key: 'basket', title: 'Current request', blurb: 'Check it over and send it for sign-off.', phase: 3, ready: true },
+    { key: 'orders', title: 'All orders', blurb: 'Track what every site has asked for and where it has got to.', phase: 3, ready: true },
+    { key: 'stock', title: 'Stock overview', blurb: 'What is on hand, allocated, inbound and how long it will last.', phase: 2, ready: true },
     { key: 'mapping', title: 'Catalogue mapping', blurb: 'Combine duplicate warehouse lines into one product.', phase: 2, ready: true },
     { key: 'par', title: 'Par levels and limits', blurb: 'Edit the grid of levels and caps as a spreadsheet.', phase: 4, ready: true },
     { key: 'recharge', title: 'Recharge report', blurb: 'Monthly totals per franchise site, for Finance.', phase: 4, ready: true },
@@ -46,6 +54,17 @@ export function App({ googleClientId }: { googleClientId: string }) {
   const [state, setState] = useState<'loading' | 'ready' | 'signed-out' | 'error'>('loading')
   /** Which screen is open. Null is the menu. Kept in state rather than the URL for now. */
   const [openScreen, setOpenScreen] = useState<string | null>(null)
+  /**
+   * Which site the ordering screens act for.
+   *
+   * Null until chosen, and only auto-filled when there is exactly one site to choose.
+   * It used to take sites[0] unconditionally, which is silent and wrong for anyone
+   * covering more than one: a GM across two sites always ordered for the first, and an
+   * administrator — who can see all 22 — would have ordered for Aberdeen without being
+   * told. Ordering for the wrong restaurant is not a mistake the screen should be able
+   * to make quietly.
+   */
+  const [siteId, setSiteId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setState('loading')
@@ -70,7 +89,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
         <p role="alert" className="text-red-800 bg-red-50 border border-red-300 rounded-lg p-4">
           The portal could not be reached. Try again in a moment.
         </p>
-        <button onClick={() => void load()} className="mt-4 px-4 py-2 rounded-lg bg-gray-900 text-white">
+        <button onClick={() => void load()} className="mt-4 px-4 py-2 rounded-lg bg-everglade text-paper">
           Try again
         </button>
       </main>
@@ -85,16 +104,56 @@ export function App({ googleClientId }: { googleClientId: string }) {
   const current = screens.find((s) => s.key === openScreen)
 
   /** The screens that exist so far. The rest are named but not yet built. */
+  /** The site in play: the only one, or the one picked. */
+  const activeSiteId = me.sites.length === 1 ? me.sites[0]!.id : siteId
+  const activeSite = me.sites.find((s) => s.id === activeSiteId) ?? null
+
+  /** Asks which site to act for, when the answer is not obvious. */
+  const sitePicker = (verb: string) => (
+    <div className="space-y-3">
+      <label htmlFor="site-picker" className="block font-medium text-gray-900">
+        Which site are you {verb} for?
+      </label>
+      <select
+        id="site-picker"
+        className="w-full min-h-[44px] rounded-lg border border-gray-400 px-3 py-2 bg-white"
+        value={activeSiteId ?? ''}
+        onChange={(e) => setSiteId(e.target.value ? Number(e.target.value) : null)}
+      >
+        <option value="">Choose a site…</option>
+        {me.sites.map((s) => (
+          <option key={s.id} value={s.id}>{s.code} · {s.name}</option>
+        ))}
+      </select>
+    </div>
+  )
+
   const renderScreen = () => {
-    if (current?.key === 'catalogue') {
-      const site = me.sites[0]
-      if (!site) return <p className="text-gray-700">Your account is not linked to a site yet.</p>
-      return <Catalogue siteId={site.id} />
-    }
-    if (current?.key === 'basket') {
-      const site = me.sites[0]
-      if (!site) return <p className="text-gray-700">Your account is not linked to a site yet.</p>
-      return <Basket siteId={site.id} onSubmitted={() => setOpenScreen('orders')} />
+    if (current?.key === 'catalogue' || current?.key === 'basket') {
+      if (me.sites.length === 0) {
+        return <p className="text-gray-700">Your account is not linked to a site yet.</p>
+      }
+      const verb = current.key === 'catalogue' ? 'ordering' : 'checking the request'
+      if (activeSiteId === null) return sitePicker(verb)
+      return (
+        <div className="space-y-4">
+          {me.sites.length > 1 && (
+            <div className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-800 flex items-center justify-between gap-3">
+              <span>Acting for <strong>{activeSite?.code}</strong> · {activeSite?.name}</span>
+              <button
+                type="button"
+                onClick={() => setSiteId(null)}
+                className="underline min-h-[44px] px-2"
+              >
+                Change
+              </button>
+            </div>
+          )}
+          {current.key === 'catalogue'
+            ? <Catalogue siteId={activeSiteId} />
+            : <Basket siteId={activeSiteId} onSubmitted={() => setOpenScreen('orders')} />}
+        </div>
+      )
     }
     if (current?.key === 'orders') return <MyOrders />
     if (current?.key === 'queue') return <ApprovalQueue />
@@ -108,7 +167,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
 
   return (
     <div className="min-h-dvh bg-gray-50">
-      <header className="bg-gray-900 text-white">
+      <header className="bg-everglade text-paper">
         <div className="mx-auto max-w-3xl px-4 py-3 flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="font-semibold truncate">Maki &amp; Ramen Ordering</p>
@@ -118,7 +177,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
           </div>
           <button
             onClick={async () => { await signOut(); void load() }}
-            className="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm whitespace-nowrap"
+            className="px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-paper text-sm whitespace-nowrap"
           >
             Sign out
           </button>

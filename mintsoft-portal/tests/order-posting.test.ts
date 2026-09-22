@@ -70,12 +70,17 @@ describe('the write gate', () => {
     }
   })
 
-  it('refuses an order approved by someone who is not an approver', () => {
-    // An admin is not an approver. Status alone could be reached by a bug or a direct
-    // database edit, so the sign-off has to be attributable to the right role.
-    const d = mayWriteToMintsoft({ ...approved, approvedByRole: 'admin' }, { writesEnabled: true })
+  it('refuses an order approved by a GM', () => {
+    // Status alone could be reached by a bug or a direct database edit, so the sign-off
+    // still has to be attributable to a role entitled to give it. A GM never is.
+    const d = mayWriteToMintsoft({ ...approved, approvedByRole: 'gm' }, { writesEnabled: true })
     expect(d.allowed).toBe(false)
-    expect(d.reason).toMatch(/approved by a admin/)
+    expect(d.reason).toMatch(/may not sign off/)
+  })
+
+  it('allows an order approved by an admin, who may sign off as well as an approver', () => {
+    const d = mayWriteToMintsoft({ ...approved, approvedByRole: 'admin' }, { writesEnabled: true })
+    expect(d.allowed).toBe(true)
   })
 
   it('refuses an order marked approved with nobody recorded as approving it', () => {

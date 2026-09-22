@@ -125,10 +125,8 @@ describe('an admin', () => {
     })
   })
 
-  it('cannot approve orders just by being an admin', async () => {
-    // Ross is both, but through two accounts' worth of rights, not one implying the
-    // other. Silent role nesting is how someone ends up approving their own order.
-    expect((await get('/api/approvals/queue', await as(ADMIN))).status).toBe(403)
+  it('can reach the approval queue, because an admin can do everything an approver can', async () => {
+    expect((await get('/api/approvals/queue', await as(ADMIN))).status).toBe(200)
   })
 })
 

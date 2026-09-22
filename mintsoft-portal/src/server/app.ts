@@ -9,6 +9,7 @@
  * somewhere a GM cannot edit.
  */
 import { Hono } from 'hono'
+import { APPROVING_ROLES } from './db/types.ts'
 import { catalogueForSite, stockStatus } from './db/catalogue.ts'
 import {
   addLinesToProduct, createProductFromLines, duplicateSuggestions, MappingError,
@@ -107,7 +108,9 @@ export const createApp = () => {
 
   // Role and site rules on top of that baseline.
   app.use('/sites/:siteId/*', requireSiteAccess())
-  app.use('/approvals/*', requireRole('approver'))
+  // An administrator can do everything an approver can. The reverse is not true:
+  // /admin/* stays closed to approvers.
+  app.use('/approvals/*', requireRole(...APPROVING_ROLES))
   app.use('/admin/*', requireRole('admin'))
 
   /** What the browser uses to decide which screens to draw. */

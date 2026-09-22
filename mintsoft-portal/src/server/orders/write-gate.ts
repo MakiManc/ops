@@ -9,6 +9,7 @@
  * not a convention: the posting code takes its permission from here, and refuses
  * without it.
  */
+import { canApprove } from '../db/types.ts'
 import type { OrderStatus, Role } from '../db/types.ts'
 
 export interface WriteDecision {
@@ -52,14 +53,14 @@ export function mayWriteToMintsoft(
   }
 
   // Status alone is not enough. An order could reach 'approved' through a bug or a
-  // direct database edit; the sign-off has to be attributable to someone who held the
-  // role. An admin is not an approver here, the same as everywhere else.
-  if (order.approvedByRole !== 'approver') {
+  // direct database edit; the sign-off has to be attributable to someone who held a
+  // role entitled to give it. canApprove is the single definition of that set.
+  if (!canApprove(order.approvedByRole)) {
     return {
       allowed: false,
       reason: order.approvedByRole === null
         ? `${order.orderNumber} is marked approved but nobody is recorded as approving it.`
-        : `${order.orderNumber} was approved by a ${order.approvedByRole}, and only an approver may sign off an order.`,
+        : `${order.orderNumber} was approved by a ${order.approvedByRole}, who may not sign off an order.`,
     }
   }
 

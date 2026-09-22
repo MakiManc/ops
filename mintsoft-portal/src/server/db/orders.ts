@@ -9,6 +9,7 @@
  */
 import { buildOrderNumber } from '../orders/order-number.ts'
 import type { Database } from './repo.ts'
+import { canApprove } from './types.ts'
 import type { OrderStatus, Role } from './types.ts'
 
 const nowIso = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z')
@@ -323,10 +324,10 @@ export async function approveOrder(
     rechargeTotal: number | null; orderFee: number | null
   },
 ): Promise<void> {
-  if (actorRole !== 'approver') {
+  if (!canApprove(actorRole)) {
     // Belt and braces with the route guard: this is the function that sets the state
     // the write gate later trusts.
-    throw new OrderError('Only an approver can sign an order off.')
+    throw new OrderError('Only an approver or an administrator can sign an order off.')
   }
   const order = await orderById(db, orderId)
   if (!order) throw new OrderError('That request no longer exists.')
@@ -366,7 +367,7 @@ export async function rejectOrder(
     orderId: number; actor: string; actorRole: Role; reason: string
   },
 ): Promise<void> {
-  if (actorRole !== 'approver') throw new OrderError('Only an approver can send a request back.')
+  if (!canApprove(actorRole)) throw new OrderError('Only an approver or an administrator can send a request back.')
   if (!reason.trim()) throw new OrderError('Say why, so the site knows what to change.')
 
   const order = await orderById(db, orderId)
@@ -392,7 +393,7 @@ export async function mergeRequests(
     keepId: number; mergeId: number; actor: string; actorRole: Role
   },
 ): Promise<void> {
-  if (actorRole !== 'approver') throw new OrderError('Only an approver can merge requests.')
+  if (!canApprove(actorRole)) throw new OrderError('Only an approver or an administrator can merge requests.')
   if (keepId === mergeId) throw new OrderError('Those are the same request.')
 
   const keep = await orderById(db, keepId)
