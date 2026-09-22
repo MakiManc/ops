@@ -24,3 +24,4 @@ because nothing said either way. So each one is recorded here once it is live:
 | `2026-09-22-merge-legacy-duplicates.sql` | 2026-09-22 |
 | `2026-09-22-split-rtr-lines.sql` | 2026-09-22 |
 | `2026-09-22-split-sts-merge-stb.sql` | 2026-09-22 |
+| `2026-09-22-sushi-kimono-xl-mislabel.sql` | 2026-09-22 |
