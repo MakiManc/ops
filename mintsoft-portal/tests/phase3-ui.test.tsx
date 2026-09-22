@@ -5,6 +5,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MyOrders } from '../src/client/MyOrders.tsx'
 import { Basket } from '../src/client/Basket.tsx'
+import { ApprovalQueue } from '../src/client/ApprovalQueue.tsx'
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: 1, orderNumber: 'MR-M9-20260921-001', siteCode: 'M9', status: 'submitted',
@@ -129,5 +130,54 @@ describe('the basket', () => {
     serve({ request: null, lines: [], recharge: false, checks: [] })
     render(<Basket siteId={1} onSubmitted={() => {}} />)
     await waitFor(() => expect(screen.getByText(/Nothing in this request yet/)).toBeDefined())
+  })
+})
+
+/**
+ * The approve box used to pre-fill with the quantity asked for, whatever the stock said.
+ * The server re-checks and refuses to approve more than is free, so on any short line
+ * the default action failed: press Approve, get "12 approved but only 0 in stock".
+ */
+describe('the approval queue', () => {
+  const queueItem = (lines: Record<string, unknown>[]) => ({
+    requests: [{
+      order: order({ status: 'submitted', siteName: 'Maki & Ramen Leith Walk' }),
+      lines, recentOrders: [], mergeCandidates: [],
+    }],
+    settings: { merciumOrderFee: 0, passOrderFeeToFranchise: false },
+  })
+  const line = (over: Record<string, unknown> = {}) => ({
+    id: 1, productId: 1, productName: 'Chairs', qtyRequested: 12, qtyApproved: null,
+    available: 0, availableBasis: '0 free to order.', rechargeUnitPrice: null,
+    availableAtRequest: 0, ...over,
+  })
+
+  it('offers only what is actually free, so the default action succeeds', async () => {
+    serve(queueItem([line({ qtyRequested: 12, available: 0 })]))
+    render(<ApprovalQueue />)
+    const box = await screen.findByRole('spinbutton') as HTMLInputElement
+    expect(box.value).toBe('0')
+    // The ask is still on screen, so nothing is hidden from the approver.
+    expect(screen.getByText(/of 12 asked for/)).toBeTruthy()
+  })
+
+  it('offers the full amount when there is enough', async () => {
+    serve(queueItem([line({ qtyRequested: 6, available: 40 })]))
+    render(<ApprovalQueue />)
+    expect((await screen.findByRole('spinbutton') as HTMLInputElement).value).toBe('6')
+  })
+
+  it('caps at what is free when there is some but not enough', async () => {
+    serve(queueItem([line({ qtyRequested: 24, available: 13 })]))
+    render(<ApprovalQueue />)
+    expect((await screen.findByRole('spinbutton') as HTMLInputElement).value).toBe('13')
+  })
+
+  it('leaves an unknown line at the requested amount rather than zeroing it', async () => {
+    // A missing Mintsoft record is not evidence there is none. Silently zeroing the
+    // line would drop it from the order without anyone deciding to.
+    serve(queueItem([line({ qtyRequested: 9, available: null })]))
+    render(<ApprovalQueue />)
+    expect((await screen.findByRole('spinbutton') as HTMLInputElement).value).toBe('9')
   })
 })

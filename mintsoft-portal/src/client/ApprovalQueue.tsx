@@ -29,8 +29,24 @@ interface QueueItem {
 }
 
 function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => void }) {
+  /**
+   * Pre-fill with what can actually be approved, not what was asked for.
+   *
+   * The server re-checks stock and refuses to approve more than is free, so defaulting
+   * to the requested quantity meant the default action failed: a line with 0 available
+   * and 12 requested pre-filled 12, and pressing Approve returned "12 approved but only
+   * 0 in stock". The approver still sees "of 12 asked for" beside the box, so nothing
+   * is hidden — the difference is that the obvious action now works.
+   *
+   * An unknown figure is left at the requested quantity. We cannot say it is too many,
+   * and silently zeroing a line because a Mintsoft record is missing would quietly drop
+   * it from the order.
+   */
   const [quantities, setQuantities] = useState<Record<number, number>>(
-    Object.fromEntries(item.lines.map((l) => [l.productId, l.qtyRequested])),
+    Object.fromEntries(item.lines.map((l) => [
+      l.productId,
+      l.available === null ? l.qtyRequested : Math.min(l.qtyRequested, l.available),
+    ])),
   )
   const [rejectReason, setRejectReason] = useState('')
   const [rejecting, setRejecting] = useState(false)
