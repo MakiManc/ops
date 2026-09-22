@@ -7,9 +7,29 @@ GMs request stock for their site. Nothing reaches Mintsoft until Ross or Franche
 approves it. The portal then creates the order through the Mintsoft API and tracks it
 through to delivery.
 
-**Status: Phase 1 (foundation).** Phase 0's discovery tooling is built but has not been
-run — it needs the Mintsoft credentials. Phase 1 adds the database, sign-in and the role
-boundary.
+**Status: Phases 0-4 built and deployed. Phase 5 part-built.** Live at
+https://mintsoft-portal.pages.dev against Cloudflare D1, with the sync Worker on three
+cron triggers.
+
+| Phase | What it was | State |
+| --- | --- | --- |
+| 0 | Discovery against the live account | Done. `DISCOVERY.md`. |
+| 1 | Database, Google sign-in, role boundary | Done. 22 sites, 24 users, guards tested on both sides. |
+| 2 | Catalogue, stock, duplicate mapping | Done. 93 products over 337 Mintsoft lines. |
+| 3 | Ordering, approval, one live write | Code done and proven — see the caveat below. |
+| 4 | Par levels, recharge, sync health, photos | Screens done; par levels and photos hold no data yet. |
+| 5 | Nightly feed, sites-and-people admin, pilot | Feed done and green. Sites-and-people not built. Pilot not started. |
+
+**Phase 3's caveat.** The portal's own code has created a real Mintsoft order — 2322,
+order number `MR-M9-20260922-001`, which is this codebase's number format rather than
+Mercium's `MRK-nnnn`. But it was driven from a local run against live Mintsoft, so the
+*deployed* portal has still never written: `MINTSOFT_WRITES_ENABLED` is `"false"` and the
+`orders` table is empty. The order-tracking sync has therefore never exercised its real
+path either — it has no posted orders to poll, so it returns "nothing waiting" and
+records a success. Order 2322 is still open at Mercium and needs voiding.
+
+**Before a pilot**, three things carry real cost if missed: `mercium_order_fee` is still
+`0`, every furniture product is priced at a placeholder £45, and no par levels are set.
 
 ## Why this exists
 
