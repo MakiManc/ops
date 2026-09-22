@@ -7,7 +7,7 @@ GMs request stock for their site. Nothing reaches Mintsoft until Ross or Franche
 approves it. The portal then creates the order through the Mintsoft API and tracks it
 through to delivery.
 
-**Status: Phases 0-4 built and deployed. Phase 5 part-built.** Live at
+**Status: every screen built and deployed; the pilot has not run.** Live at
 https://mintsoft-portal.pages.dev against Cloudflare D1, with the sync Worker on three
 cron triggers.
 
@@ -18,7 +18,7 @@ cron triggers.
 | 2 | Catalogue, stock, duplicate mapping | Done. 93 products over 337 Mintsoft lines. |
 | 3 | Ordering, approval, one live write | Code done and proven — see the caveat below. |
 | 4 | Par levels, recharge, sync health, photos | Screens done; par levels and photos hold no data yet. |
-| 5 | Nightly feed, sites-and-people admin, pilot | Feed done and green. Sites-and-people not built. Pilot not started. |
+| 5 | Nightly feed, sites-and-people admin, pilot | Feed done and green. Sites and people built. Pilot not started. |
 
 **Phase 3's caveat.** The portal's own code has created a real Mintsoft order — 2322,
 order number `MR-M9-20260922-001`, which is this codebase's number format rather than
