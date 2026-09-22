@@ -33,6 +33,9 @@ import { MintsoftOrderClient } from './mintsoft/order-client.ts'
 import { sendApprovedOrder } from './orders/send.ts'
 import { writesEnabled } from './orders/write-gate.ts'
 import { lastSuccessfulSyncs } from './sync/runner.ts'
+import {
+  ACCEPTED_TYPES, MAX_BYTES, PhotoRejected, deletePhoto, getPhoto, photoStatus, putPhoto,
+} from './db/photos.ts'
 import { verifyGoogleIdToken, InvalidIdTokenError } from './auth/google.ts'
 import {
   buildSessionCookie, clearSessionCookie, sessionTtlSeconds, signSession,
@@ -721,6 +724,76 @@ export const createApp = () => {
                   FROM settings WHERE id = 1`)
       .first()
     return c.json({ settings: row })
+  })
+
+  // ---- product photos ------------------------------------------------------
+
+  /**
+   * Serves a photo to anyone signed in, because every GM's catalogue needs it. Only
+   * uploading is restricted.
+   *
+   * Immutable with a long max-age: the URL is per product and the ETag is content-
+   * addressed, so a replaced photo arrives with a new tag and the old copy can never be
+   * served from a cache that has moved on.
+   */
+  app.get('/photos/:productId', async (c) => {
+    const productId = Number(c.req.param('productId'))
+    if (!Number.isInteger(productId)) return c.json({ error: 'not_found' }, 404)
+
+    const photo = await getPhoto(c.env.DB, productId)
+    if (!photo) return c.json({ error: 'not_found' }, 404)
+
+    // Saves re-sending 60KB to a phone on restaurant wifi that already has it.
+    if (c.req.header('If-None-Match') === photo.etag) {
+      return new Response(null, { status: 304, headers: { ETag: photo.etag } })
+    }
+
+    return new Response(photo.bytes as unknown as BodyInit, {
+      headers: {
+        'Content-Type': photo.contentType,
+        'Content-Length': String(photo.bytes.byteLength),
+        ETag: photo.etag,
+        'Cache-Control': 'private, max-age=86400',
+      },
+    })
+  })
+
+  /** The working list: every active product and whether it has a photo yet. */
+  app.get('/admin/photos', async (c) => c.json({ rows: await photoStatus(c.env.DB) }))
+
+  /**
+   * Takes the raw image as the request body rather than multipart, because the browser
+   * has already resized it to a Blob and there is nothing else to send.
+   */
+  app.put('/admin/photos/:productId', async (c) => {
+    const productId = Number(c.req.param('productId'))
+    if (!Number.isInteger(productId)) return c.json({ error: 'bad_request' }, 400)
+
+    const product = await c.env.DB
+      .prepare(`SELECT id FROM products WHERE id = ?`)
+      .bind(productId)
+      .first<{ id: number }>()
+    if (!product) return c.json({ error: 'not_found' }, 404)
+
+    const contentType = (c.req.header('Content-Type') ?? '').split(';')[0]!.trim().toLowerCase()
+    const bytes = new Uint8Array(await c.req.arrayBuffer())
+
+    try {
+      const stored = await putPhoto(c.env.DB, productId, bytes, contentType, c.get('user').id)
+      return c.json({ ok: true, byteSize: bytes.byteLength, etag: stored.etag })
+    } catch (err) {
+      if (err instanceof PhotoRejected) {
+        return c.json({ error: err.message, reason: err.reason, accepted: ACCEPTED_TYPES, maxBytes: MAX_BYTES }, 400)
+      }
+      throw err
+    }
+  })
+
+  app.delete('/admin/photos/:productId', async (c) => {
+    const productId = Number(c.req.param('productId'))
+    if (!Number.isInteger(productId)) return c.json({ error: 'bad_request' }, 400)
+    const removed = await deletePhoto(c.env.DB, productId)
+    return removed ? c.json({ ok: true }) : c.json({ error: 'not_found' }, 404)
   })
 
   app.notFound((c) => c.json({ error: 'not_found' }, 404))

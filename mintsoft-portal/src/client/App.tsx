@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getMe, NotSignedIn, signOut, type Me } from './api.ts'
 import { ParLevels, RechargeReport, SyncHealth } from './AdminScreens.tsx'
+import { Photos } from './Photos.tsx'
 import { ApprovalQueue } from './ApprovalQueue.tsx'
 import { Basket } from './Basket.tsx'
 import { Catalogue } from './Catalogue.tsx'
@@ -47,6 +48,7 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'mapping', title: 'Catalogue mapping', blurb: 'Combine duplicate warehouse lines into one product.', phase: 2, ready: true },
     { key: 'par', title: 'Par levels and limits', blurb: 'Edit the grid of levels and caps as a spreadsheet.', phase: 4, ready: true },
     { key: 'recharge', title: 'Recharge report', blurb: 'Monthly totals per franchise site, for Finance.', phase: 4, ready: true },
+    { key: 'photos', title: 'Product photos', blurb: 'Add the picture a GM sees when ordering. Mintsoft cannot supply these.', phase: 4, ready: true },
     { key: 'sync', title: 'Sync health', blurb: 'Last successful sync per job, and anything that failed.', phase: 4, ready: true },
     { key: 'sites', title: 'Sites and people', blurb: 'Who can sign in, and which sites they order for.', phase: 5 },
   ],
@@ -168,6 +170,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
     if (current?.key === 'mapping') return <Mapping />
     if (current?.key === 'par') return <ParLevels />
     if (current?.key === 'recharge') return <RechargeReport />
+    if (current?.key === 'photos') return <Photos />
     if (current?.key === 'sync') return <SyncHealth />
     return null
   }

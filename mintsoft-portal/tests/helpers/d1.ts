@@ -20,7 +20,9 @@ const MIGRATION = readdirSync(MIGRATIONS_DIR)
   .map((f) => readFileSync(new URL(f, MIGRATIONS_DIR), 'utf8'))
   .join('\n')
 
-type Value = string | number | null
+// Uint8Array is here for photo bytes: D1 stores them as a BLOB, and node:sqlite binds
+// and returns them as Uint8Array, so the stand-in has to carry them through unchanged.
+type Value = string | number | null | Uint8Array
 
 class FakeStatement {
   private bound: Value[] = []

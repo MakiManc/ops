@@ -1,5 +1,14 @@
 # Product photos
 
+**Most of the time, use the Product photos screen in the portal instead of this folder.**
+An administrator picks a file, the browser resizes it and it is live immediately — no
+commit, no deploy, and it works from a phone. The bytes go to D1; see
+`migrations/0006_product_photos.sql`.
+
+This folder is the bulk path, for when a supplier sends the whole catalogue at once and
+committing 97 files beats 97 taps. A photo here and a photo uploaded through the screen
+both end up in `products.image_url`, so the last one set wins.
+
 Drop photos here, named after the **item code** — the SKU with its `MRK<shipment>`
 prefix removed:
 

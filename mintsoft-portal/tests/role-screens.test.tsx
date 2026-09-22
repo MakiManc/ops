@@ -95,6 +95,7 @@ describe('an approver', () => {
     expect(screen.queryByText('Catalogue mapping')).toBeNull()
     expect(screen.queryByText('Par levels and limits')).toBeNull()
     expect(screen.queryByText('Recharge report')).toBeNull()
+    expect(screen.queryByText('Product photos')).toBeNull()
     expect(screen.queryByText('Sites and people')).toBeNull()
   })
 
@@ -113,7 +114,7 @@ describe('an admin', () => {
     render(<App googleClientId="test" />)
 
     await waitFor(() => expect(screen.getByText('Sites and people')).toBeDefined())
-    for (const title of ['Catalogue mapping', 'Recharge report', 'Sync health']) {
+    for (const title of ['Catalogue mapping', 'Recharge report', 'Sync health', 'Product photos']) {
       expect(screen.getByText(title)).toBeDefined()
     }
   })
