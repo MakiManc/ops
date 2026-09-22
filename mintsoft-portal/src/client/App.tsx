@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getMe, NotSignedIn, signOut, type Me } from './api.ts'
 import { ParLevels, RechargeReport, SyncHealth } from './AdminScreens.tsx'
 import { Photos } from './Photos.tsx'
+import { SitesAndPeople } from './SitesAndPeople.tsx'
 import { ApprovalQueue } from './ApprovalQueue.tsx'
 import { Basket } from './Basket.tsx'
 import { Catalogue } from './Catalogue.tsx'
@@ -50,7 +51,7 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'recharge', title: 'Recharge report', blurb: 'Monthly totals per franchise site, for Finance.', phase: 4, ready: true },
     { key: 'photos', title: 'Product photos', blurb: 'Add the picture a GM sees when ordering. Mintsoft cannot supply these.', phase: 4, ready: true },
     { key: 'sync', title: 'Sync health', blurb: 'Last successful sync per job, and anything that failed.', phase: 4, ready: true },
-    { key: 'sites', title: 'Sites and people', blurb: 'Who can sign in, and which sites they order for.', phase: 5 },
+    { key: 'sites', title: 'Sites and people', blurb: 'Who can sign in, and which sites they order for.', phase: 5, ready: true },
   ],
 }
 
@@ -171,6 +172,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
     if (current?.key === 'par') return <ParLevels />
     if (current?.key === 'recharge') return <RechargeReport />
     if (current?.key === 'photos') return <Photos />
+    if (current?.key === 'sites') return <SitesAndPeople />
     if (current?.key === 'sync') return <SyncHealth />
     return null
   }

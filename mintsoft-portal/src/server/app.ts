@@ -36,6 +36,9 @@ import { lastSuccessfulSyncs } from './sync/runner.ts'
 import {
   ACCEPTED_TYPES, MAX_BYTES, PhotoRejected, deletePhoto, getPhoto, photoStatus, putPhoto,
 } from './db/photos.ts'
+import {
+  PeopleError, createPerson, createSite, listPeople, listSites, updatePerson, updateSite,
+} from './db/people.ts'
 import { verifyGoogleIdToken, InvalidIdTokenError } from './auth/google.ts'
 import {
   buildSessionCookie, clearSessionCookie, sessionTtlSeconds, signSession,
@@ -795,6 +798,36 @@ export const createApp = () => {
     const removed = await deletePhoto(c.env.DB, productId)
     return removed ? c.json({ ok: true }) : c.json({ error: 'not_found' }, 404)
   })
+
+  // ---- sites and people (admin) --------------------------------------------
+
+  app.get('/admin/people', async (c) => c.json({
+    sites: await listSites(c.env.DB),
+    people: await listPeople(c.env.DB),
+  }))
+
+  /** Turns a PeopleError into a 400 naming the field, and lets anything else surface. */
+  const people = async (c: { json: (b: unknown, s?: 200 | 400) => Response }, run: () => Promise<unknown>) => {
+    try {
+      const result = await run()
+      return c.json({ ok: true, ...(result as object ?? {}) })
+    } catch (err) {
+      if (err instanceof PeopleError) return c.json({ error: err.message, field: err.field }, 400)
+      throw err
+    }
+  }
+
+  app.post('/admin/sites', async (c) =>
+    people(c, async () => ({ id: await createSite(c.env.DB, await c.req.json()) })))
+
+  app.patch('/admin/sites/:id', async (c) =>
+    people(c, async () => { await updateSite(c.env.DB, Number(c.req.param('id')), await c.req.json()) }))
+
+  app.post('/admin/people', async (c) =>
+    people(c, async () => ({ id: await createPerson(c.env.DB, await c.req.json()) })))
+
+  app.patch('/admin/people/:id', async (c) =>
+    people(c, async () => { await updatePerson(c.env.DB, Number(c.req.param('id')), await c.req.json()) }))
 
   app.notFound((c) => c.json({ error: 'not_found' }, 404))
 
