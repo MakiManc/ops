@@ -16,6 +16,9 @@ Then:
     npm run photos -- --out seed/photos.sql
     npx wrangler d1 execute mintsoft-portal --remote --file seed/photos.sql
 
+It reads the product list from the live database through wrangler, so it needs no
+credentials of its own. Add `-- --local` to check against the local database instead.
+
 Vite copies this folder into `dist/`, so a photo is live at `/products/<CODE>.jpg` on the
 next deploy. A photo is a commit, the same way a stock refresh is.
 

@@ -3,6 +3,9 @@
  *
  *   npm run photos              # report what is matched and what is still missing
  *   npm run photos -- --out seed/photos.sql
+ *   npm run photos -- --local   # against the local database instead of the live one
+ *
+ * The product list comes from the deployed database, read through wrangler.
  *
  * Mintsoft cannot supply these. 135 of its 337 lines carry an ImageURL, but every one
  * points at om.mintsoft.co.uk/Image/GetImage/<id>, which answers 500 both anonymously
@@ -24,7 +27,7 @@
  * credentials — a photo is a commit, the same way a stock refresh is.
  */
 import { readdirSync, writeFileSync } from 'node:fs'
-import { MintsoftReadOnlyClient } from '../src/lib/mintsoft/readonly-client.ts'
+import { execFileSync } from 'node:child_process'
 
 const DIR = new URL('../public/products/', import.meta.url).pathname
 const ACCEPTED = /\.(jpe?g|png|webp)$/i
@@ -89,14 +92,46 @@ function main(rows: Row[]) {
   else console.log(`\nRun again with --out <file> to write the ${matched.length} UPDATE statement(s).\n`)
 }
 
-// The product list comes from the deployed database via wrangler, piped in as JSON, so
-// this script needs no database credentials of its own.
-let raw = ''
-process.stdin.setEncoding('utf8')
-process.stdin.on('data', (c) => { raw += c })
-process.stdin.on('end', () => {
+// The product list lives in the deployed database. The script fetches it itself with
+// wrangler, which holds the Cloudflare credentials, so this needs none of its own — and
+// nobody has to remember an undocumented SQL query to run it.
+const QUERY = `
+  SELECT p.id,
+         p.name,
+         (SELECT m.sku FROM product_mintsoft_map m
+           WHERE m.product_id = p.id ORDER BY m.is_primary DESC, m.id LIMIT 1) AS a_sku,
+         (SELECT COUNT(*) FROM product_mintsoft_map m WHERE m.product_id = p.id) AS lines
+    FROM products p
+   WHERE p.active = 1
+   ORDER BY p.id`
+
+function rowsFrom(raw: string): Row[] {
   const parsed: unknown = JSON.parse(raw)
-  const rows = (Array.isArray(parsed) ? parsed[0] : (parsed as { result: unknown[] }).result?.[0]) as
+  const first = (Array.isArray(parsed) ? parsed[0] : (parsed as { result: unknown[] }).result?.[0]) as
     { results: Row[] }
-  main(rows.results)
-})
+  return first.results
+}
+
+function fromWrangler(): Row[] {
+  const local = process.argv.includes('--local')
+  const out = execFileSync(
+    'npx',
+    ['wrangler', 'd1', 'execute', 'mintsoft-portal', local ? '--local' : '--remote', '--json', '--command', QUERY],
+    { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 },
+  )
+  // wrangler prints warnings above the JSON, so start at the array.
+  return rowsFrom(out.slice(out.indexOf('[')))
+}
+
+if (process.stdin.isTTY) {
+  main(fromWrangler())
+} else {
+  // Still accepts a piped wrangler --json dump, for a database this machine cannot reach.
+  let raw = ''
+  process.stdin.setEncoding('utf8')
+  process.stdin.on('data', (c) => { raw += c })
+  process.stdin.on('end', () => {
+    if (!raw.trim()) { main(fromWrangler()); return }
+    main(rowsFrom(raw))
+  })
+}
