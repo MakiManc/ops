@@ -136,16 +136,20 @@ export async function stockOverview(
     if (mappedLines === 0) {
       availability = combineMappedLines([])
       flags.push('Not mapped to any Mintsoft line, so it cannot be ordered.')
-    } else if (!lines || lines.size < mappedLines) {
-      const missing = mappedLines - (lines?.size ?? 0)
-      availability = {
-        available: null, onHand: null, allocated: null, oversold: false,
-        rowsSeen: lines ? [...lines.values()].flat().length : 0,
-        basis: `${missing} of the ${mappedLines} mapped Mintsoft lines are missing from the stock feed.`,
-      }
-      flags.push(`${missing} mapped Mintsoft line(s) did not appear in the last stock sync.`)
     } else {
-      availability = combineMappedLines([...lines.values()].map((rows) => deriveAvailability(rows, formula)))
+      // Mapped lines that never appeared in the stock feed are counted rather than
+      // fatal: the figure becomes a floor built from the lines that did report.
+      const missing = mappedLines - (lines?.size ?? 0)
+      availability = combineMappedLines(
+        [...(lines?.values() ?? [])].map((rows) => deriveAvailability(rows, formula)),
+        { linesMissingFromFeed: missing },
+      )
+      if (missing > 0) {
+        flags.push(
+          `${missing} mapped Mintsoft line(s) did not appear in the last stock sync` +
+          `${availability.available === null ? '.' : ', so the figure shown is a minimum.'}`,
+        )
+      }
     }
 
     if (mappedLines > 1) {

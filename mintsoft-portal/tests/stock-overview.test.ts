@@ -128,8 +128,12 @@ describe('flags an approver needs to see', () => {
   it('says when a mapped line went missing from the stock feed', async () => {
     map(7001, 1); map(7002); stock(7001, 10, 0)   // 7002 absent
     const [item] = await read()
-    expect(item!.available).toBeNull()
+    // The 10 we can see are shown, as a floor, and the flag says why it is a floor.
+    // An approver deciding on a request needs both halves of that.
+    expect(item!.available).toBe(10)
     expect(item!.flags).toContainEqual(expect.stringContaining('did not appear in the last stock sync'))
+    expect(item!.flags).toContainEqual(expect.stringContaining('minimum'))
+    expect(item!.availableBasis).toMatch(/At least 10/)
   })
 
   it('says when a product is mapped to nothing and therefore cannot be ordered', async () => {

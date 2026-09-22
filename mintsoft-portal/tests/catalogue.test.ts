@@ -49,19 +49,27 @@ describe('combining the duplicate Mintsoft lines', () => {
     expect((await read())[0]!.available).toBe(12)
   })
 
-  it('will not report a total when a mapped line is missing from the stock feed', async () => {
+  it('reports a floor when a mapped line is missing from the stock feed', async () => {
     map(1, 7001); map(1, 7002)
     stock(7001, 12, 2)   // 7002 never arrived in the feed
     const [item] = await read()
-    // Summing only the line we have would be a confident undercount, which is exactly
-    // what a site would then order against.
-    expect(item!.available).toBeNull()
+    // 12 on hand less 2 allocated under this test's formula. Those 10 are real and
+    // orderable; blanking the product because of the second line would hide stock we
+    // plainly hold, and understating it cannot cause an overorder.
+    expect(item!.available).toBe(10)
+    expect(item!.availableBasis).toMatch(/At least 10/)
     expect(item!.availableBasis).toMatch(/1 of the 2 Mintsoft lines/)
   })
 
-  it('will not report a total when one line has an unknown figure', async () => {
+  it('reports a floor when one line has an unknown figure', async () => {
     map(1, 7001); map(1, 7002)
     stock(7001, 12, 2); stock(7002, null, null)
+    expect((await read())[0]!.available).toBe(10)
+  })
+
+  it('is still unknown when no mapped line can be read at all', async () => {
+    map(1, 7001); map(1, 7002)
+    stock(7001, null, null); stock(7002, null, null)
     expect((await read())[0]!.available).toBeNull()
   })
 

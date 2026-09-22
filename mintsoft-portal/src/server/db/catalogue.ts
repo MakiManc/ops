@@ -156,18 +156,13 @@ export async function catalogueForSite(
     let availability: Availability
     if (mappedLines === 0) {
       availability = combineMappedLines([])
-    } else if (!lines || lines.size < mappedLines) {
-      // Some mapped line has no stock row at all. Summing the ones we do have would be
-      // a confident undercount, so the whole figure is unknown.
-      availability = {
-        available: null, onHand: null, allocated: null, oversold: false,
-        rowsSeen: lines ? [...lines.values()].flat().length : 0,
-        basis: `${mappedLines - (lines?.size ?? 0)} of the ${mappedLines} Mintsoft lines for this ` +
-          'product are missing from the latest stock feed, so the total is unknown.',
-      }
     } else {
+      // A mapped line can be absent from the stock feed entirely — Mintsoft simply has
+      // no inventory record for it. combineMappedLines is told how many, so it can sum
+      // the lines that did report and present the result as a floor.
       availability = combineMappedLines(
-        [...lines.values()].map((rows) => deriveAvailability(rows, formula)),
+        [...(lines?.values() ?? [])].map((rows) => deriveAvailability(rows, formula)),
+        { linesMissingFromFeed: mappedLines - (lines?.size ?? 0) },
       )
     }
 

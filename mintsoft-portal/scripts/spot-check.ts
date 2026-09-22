@@ -211,10 +211,57 @@ async function main() {
     })
   }
 
-  const honestOk = unlisted.length === 0 || honest === unlisted.length
+  // A product whose mapped lines are PART readable. This is the case that decides
+  // whether one missing inventory record can black out a product we plainly hold.
+  console.log('\n6. A product mapped across readable and unreadable lines.')
+  let floorOk = true
+  const missingSku = unlisted[0]?.SKU
+  const stem = missingSku ? missingSku.replace(/^MRK\d+[-\s]+/i, '') : null
+  const siblings = stem
+    ? products.filter((p) => p.SKU !== missingSku &&
+        p.SKU!.replace(/^MRK\d+[-\s]+/i, '').toUpperCase() === stem.toUpperCase() &&
+        inStockFeed.has(p.ID!))
+    : []
+
+  if (!missingSku || siblings.length === 0) {
+    console.log(dim('   No product today has both a readable and an unreadable line.'))
+  } else {
+    const all = [...siblings.map((p) => p.SKU!), missingSku]
+    // Sections 4 and 5 may already hold some of these lines, and a Mintsoft line maps
+    // to at most one Maki product by design. Release them before remapping.
+    for (const sku of all) {
+      db.sqlite.prepare(`DELETE FROM product_mintsoft_map WHERE mintsoft_product_id = ?`)
+        .run(idBySku.get(sku)!)
+    }
+    db.sqlite.prepare(
+      `INSERT INTO products (id, name, category, stock_type) VALUES (200, ?, 'Spot check', 'internal')`,
+    ).run(`${stem} (all shipments)`)
+    for (const [n, sku] of all.entries()) {
+      db.sqlite.prepare(
+        `INSERT INTO product_mintsoft_map (product_id, mintsoft_product_id, sku, is_primary)
+         VALUES (200, ?, ?, ?)`,
+      ).run(idBySku.get(sku)!, sku, n === 0 ? 1 : 0)
+    }
+    const row = (await stockOverview(db, 'on_hand')).find((o) => o.productId === 200)
+    const readable = siblings.reduce((n, p) => n + (levelBySku.get(p.SKU!)?.Level ?? 0), 0)
+    floorOk = row?.available === readable && readable > 0
+
+    console.log(`   ${all.length} lines: ${all.join(', ')}`)
+    console.log(`   ${siblings.length} readable (${readable} units), 1 with no inventory record.`)
+    console.log(`   portal shows: ${row?.available ?? '—'}  ` +
+      (floorOk ? ok('the floor, correctly') : bad('not the floor')))
+    console.log(dim(`   basis: ${row?.availableBasis}`))
+    if (floorOk) {
+      console.log(dim('   Before this rule changed, the whole product read "—" despite ' +
+        `${readable} units being present and orderable.`))
+    }
+  }
+
+  const honestOk = (unlisted.length === 0 || honest === unlisted.length) && floorOk
   if (!honestOk) {
-    console.log('\n' + bad('A product with no stock record read as a number.'))
-    console.log('   That is the one failure mode that looks fine on screen.\n')
+    console.log('\n' + bad('An unreadable line was not handled correctly.'))
+    console.log('   Either a product with no record reported a number, or a product with')
+    console.log('   readable lines refused to report its floor.\n')
     process.exit(1)
   }
   if (passed === ten.length && ten.length === 10) {

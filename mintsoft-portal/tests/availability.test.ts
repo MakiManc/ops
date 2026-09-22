@@ -116,11 +116,53 @@ describe('a Maki product mapped to several Mintsoft lines', () => {
     expect(a.basis).toBe('12 on hand less 2 allocated.')
   })
 
-  it('is unknown if any mapped line is unknown, and says how many', () => {
+  /**
+   * Changed deliberately. This used to blank the whole product when any mapped line was
+   * unreadable, which meant one missing inventory record could hide a product with
+   * thousands of units across its other shipment lines — on screen indistinguishable
+   * from a broken feed. Summing what is known understates instead, and a site can only
+   * order against the floor, so the error runs in the safe direction.
+   */
+  it('sums the lines it can read and presents the total as a floor', () => {
     const unknown = deriveAvailability(rows({ onHand: null, allocated: null }), 'on_hand_minus_allocated')
     const a = combineMappedLines([line(10, 12, 2), unknown])
+    expect(a.available).toBe(10)
+    expect(a.linesUnknown).toBe(1)
+    expect(a.basis).toMatch(/At least 10/)
+    expect(a.basis).toMatch(/1 of the 2 Mintsoft lines/)
+    expect(a.basis).toMatch(/there may be more/)
+  })
+
+  it('withholds on-hand and allocated totals while a line is missing', () => {
+    // A partial "12 on hand" invites subtracting against a figure that is not the whole
+    // picture. The floor is the only number that survives a missing line intact.
+    const unknown = deriveAvailability(rows({ onHand: null, allocated: null }), 'on_hand_minus_allocated')
+    const a = combineMappedLines([line(10, 12, 2), unknown])
+    expect(a.onHand).toBeNull()
+    expect(a.allocated).toBeNull()
+  })
+
+  it('is still unknown when NO line can be read, because there is no floor', () => {
+    const unknown = deriveAvailability(rows({ onHand: null, allocated: null }), 'on_hand_minus_allocated')
+    const a = combineMappedLines([unknown, unknown])
     expect(a.available).toBeNull()
-    expect(a.basis).toMatch(/1 of 2/)
+    expect(a.linesUnknown).toBe(2)
+    expect(a.basis).toMatch(/None of the 2/)
+  })
+
+  it('counts a line absent from the feed the same as one that cannot be read', () => {
+    const a = combineMappedLines([line(10, 12, 2)], { linesMissingFromFeed: 2 })
+    expect(a.available).toBe(10)
+    expect(a.linesUnknown).toBe(2)
+    expect(a.basis).toMatch(/1 of the 3 Mintsoft lines/)
+    expect(a.basis).toMatch(/other 2 lines have/)
+  })
+
+  it('reports a complete total without any floor language', () => {
+    const a = combineMappedLines([line(10, 12, 2), line(5, 5, 0)])
+    expect(a.available).toBe(15)
+    expect(a.linesUnknown).toBe(0)
+    expect(a.basis).not.toMatch(/At least/)
   })
 
   it('says plainly when a product is mapped to nothing at all', () => {
