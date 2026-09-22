@@ -14,12 +14,16 @@ dist/
 # Real seed data carries staff email addresses. Templates are committed instead.
 seed/sites.csv
 seed/users.csv
-seed/seed.sql
+
+# Generated SQL. All of it is derived — from the CSVs above, or from a live read of
+# Mintsoft — and a committed stock snapshot is wrong within the hour. Regenerate with
+# `npm run seed`, `npm run demo`, or the catalogue build; the feed that IS meant to be
+# committed is data/ops_command/mintsoft_stock.json, which carries its own timestamp.
+seed/*.sql
 
 # Review agents occasionally drop probe files here; never commit them.
 tests/zz-*.test.ts
 tests/_*.test.ts
 
-# Preview screenshots are generated on demand, not committed.
+# Preview screenshots and hand-off spreadsheets are generated on demand.
 preview/
-seed/demo.sql
