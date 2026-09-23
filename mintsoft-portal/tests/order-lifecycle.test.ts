@@ -174,7 +174,10 @@ describe('approving', () => {
     await submit(order.id)
     await approveOrder(db, {
       orderId: order.id, actor: 'admin@example.com', actorRole: 'admin',
-      lines: [], rechargeTotal: null, orderFee: null,
+      // The real line, not an empty payload: an approval has to cover every line, and
+      // this test is about who signed it rather than about approving nothing.
+      lines: [{ productId: 1, qtyApproved: 10, rechargeUnitPrice: null, availableAtApproval: 100 }],
+      rechargeTotal: null, orderFee: null,
     })
     expect((await orderById(db, order.id))!.status).toBe('approved')
     const events = await eventsForOrder(db, order.id)

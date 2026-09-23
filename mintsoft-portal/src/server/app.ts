@@ -29,6 +29,7 @@ import {
   approverEmails, requestApproved, requestRejected, requestSubmitted, sendEmail, type EmailEnv,
 } from './email/send.ts'
 import { stockOverview, unmappedLineCount } from './db/stock-overview.ts'
+import { awaitingSend } from './db/orders.ts'
 import { MintsoftOrderClient } from './mintsoft/order-client.ts'
 import { sendApprovedOrder } from './orders/send.ts'
 import { writesEnabled } from './orders/write-gate.ts'
@@ -544,6 +545,10 @@ export const createApp = () => {
    * a write to Mintsoft, and it does nothing on its own — sendApprovedOrder consults
    * the write gate, which needs the flag AND an approver's sign-off.
    */
+  /** Approved orders with nowhere else to appear, so they can actually be sent. */
+  app.get('/approvals/awaiting-send', async (c) =>
+    c.json({ orders: await awaitingSend(c.env.DB) }))
+
   app.post('/approvals/:orderId/send', async (c) => {
     const user = currentUser(c)
     if (!c.env.MINTSOFT_USERNAME || !c.env.MINTSOFT_PASSWORD) {

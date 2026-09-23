@@ -228,15 +228,116 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
   )
 }
 
+
+interface Awaiting {
+  id: number; orderNumber: string; siteCode: string; siteName: string
+  status: string; requesterName: string | null; approvedAt: string | null
+  postError: string | null
+}
+
+/**
+ * Sending an approved order to Mercium.
+ *
+ * The one irreversible thing the portal does, so it is its own deliberate action rather
+ * than something approving does for you — and the button says which warehouse it is
+ * talking to rather than just "Send".
+ *
+ * Every outcome is shown in the server's own words. "Uncertain" especially must not read
+ * like a failure: a failure invites pressing it again, and pressing it again is how one
+ * order becomes two pallets.
+ */
+function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState<{ tone: 'ok' | 'wait' | 'bad'; message: string } | null>(null)
+
+  const send = async () => {
+    setBusy(true)
+    setResult(null)
+    try {
+      const res = await fetch(`/api/approvals/${order.id}/send`, {
+        method: 'POST', credentials: 'same-origin',
+      })
+      // The send endpoint answers with `message`, but the credential guard and the
+      // generic error handler answer with `error`. Reading only one threw away the
+      // server's actual reason and showed a status code instead.
+      const body = await res.json().catch(() => ({})) as { message?: string; error?: string }
+      const tone = res.status === 200 ? 'ok' : res.status === 202 ? 'wait' : 'bad'
+      setResult({
+        tone,
+        message: body.message ?? body.error ?? `The warehouse could not be reached (${res.status}).`,
+      })
+      if (res.status === 200) onSent()
+    } catch {
+      // The request itself failed, so whether Mercium got it is unknown. Say that
+      // rather than inviting a retry.
+      setResult({
+        tone: 'wait',
+        message: 'The portal lost contact before it heard back. Reload before trying again — '
+          + 'the order may already be with Mercium.',
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const TONE = {
+    ok: 'bg-green-50 border-green-300 text-green-900',
+    wait: 'bg-amber-50 border-amber-400 text-amber-900',
+    bad: 'bg-red-50 border-red-300 text-red-900',
+  }
+
+  return (
+    <li className="bg-white border border-gray-300 rounded-xl p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-gray-900">{order.siteCode} · {order.siteName}</h3>
+          <p className="text-sm text-gray-700">
+            {order.requesterName ?? 'Unknown'} · {order.orderNumber}
+            {order.approvedAt && ` · signed off ${timeAgo(order.approvedAt)}`}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void send()}
+          className="min-h-[44px] px-4 rounded-lg bg-everglade text-paper font-semibold disabled:opacity-60"
+        >
+          {busy ? 'Sending…' : 'Send to Mercium'}
+        </button>
+      </div>
+
+      {order.postError && !result && (
+        <p className="mt-2 text-sm border rounded p-2 bg-red-50 border-red-300 text-red-900">
+          Last attempt stopped: {order.postError}
+        </p>
+      )}
+      {result && (
+        <p
+          role={result.tone === 'bad' ? 'alert' : 'status'}
+          className={`mt-2 text-sm border rounded p-2 ${TONE[result.tone]}`}
+        >
+          {result.message}
+        </p>
+      )}
+    </li>
+  )
+}
+
 export function ApprovalQueue() {
   const [items, setItems] = useState<QueueItem[] | null>(null)
+  const [awaiting, setAwaiting] = useState<Awaiting[]>([])
   const [error, setError] = useState(false)
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/approvals/queue', { credentials: 'same-origin' })
-      if (!res.ok) throw new Error()
-      setItems((await res.json() as { requests: QueueItem[] }).requests)
+      const [queue, ready] = await Promise.all([
+        fetch('/api/approvals/queue', { credentials: 'same-origin' }),
+        fetch('/api/approvals/awaiting-send', { credentials: 'same-origin' }),
+      ])
+      if (!queue.ok) throw new Error()
+      setItems((await queue.json() as { requests: QueueItem[] }).requests)
+      // Not fatal: the sign-off half of this screen still works without it.
+      if (ready.ok) setAwaiting((await ready.json() as { orders: Awaiting[] }).orders)
     } catch {
       setError(true)
     }
@@ -246,18 +347,35 @@ export function ApprovalQueue() {
 
   if (error) return <p role="alert" className="text-red-800">The queue could not be loaded.</p>
   if (!items) return <p role="status" className="text-gray-700">Loading the queue…</p>
-  if (items.length === 0) return <p className="text-gray-700">Nothing waiting for sign-off.</p>
-
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600">
-        {items.length} request{items.length === 1 ? '' : 's'} waiting, oldest first.
-      </p>
-      <ul className="grid gap-3">
-        {items.map((item) => (
-          <RequestCard key={item.order.id} item={item} onChanged={() => void load()} />
-        ))}
-      </ul>
+      {awaiting.length > 0 && (
+        <section aria-labelledby="to-send" className="space-y-2">
+          <h2 id="to-send" className="text-sm font-semibold uppercase tracking-wide text-gray-600">
+            Signed off, not yet sent ({awaiting.length})
+          </h2>
+          <ul className="grid gap-3">
+            {awaiting.map((order) => (
+              <SendCard key={order.id} order={order} onSent={() => void load()} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {items.length === 0 ? (
+        <p className="text-gray-700">Nothing waiting for sign-off.</p>
+      ) : (
+        <>
+          <p className="text-sm text-gray-600">
+            {items.length} request{items.length === 1 ? '' : 's'} waiting, oldest first.
+          </p>
+          <ul className="grid gap-3">
+            {items.map((item) => (
+              <RequestCard key={item.order.id} item={item} onChanged={() => void load()} />
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }

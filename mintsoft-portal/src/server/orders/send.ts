@@ -163,10 +163,35 @@ export async function sendApprovedOrder(
     ])
   }
 
+  /**
+   * A line nobody approved stops the send. It used to inherit the GM's requested
+   * quantity — `line.qtyApproved ?? line.qtyRequested` — which silently turned "no
+   * approver has looked at this" into "send what the GM asked for".
+   *
+   * It is reachable without touching the API: two pending requests per site are allowed
+   * so that merging works, and merging adds lines to an order an approver may already
+   * have open. Approving from that stale screen leaves the merged-in lines with
+   * qty_approved NULL while the order flips to approved, and those lines were never
+   * stock-checked or priced either.
+   */
+  const unapproved = lines.filter((line) => line.qtyApproved === null)
+  if (unapproved.length > 0) {
+    const names = unapproved.map((l) => l.productName).join(', ')
+    const message = `${order.orderNumber} has lines nobody has approved: ${names}. `
+      + 'It was most likely changed after it was signed off. Send it back through approval.'
+    await db.batch([
+      db.prepare(`UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ? WHERE id = ?`)
+        .bind(message, nowIso(), orderId),
+      auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
+    ])
+    await releaseClaim(db, orderId)
+    return { ok: false, status: 'refused', message }
+  }
+
   const allocations = lines.map((line) => allocateLine({
     productId: line.productId,
     productName: line.productName,
-    qtyApproved: line.qtyApproved ?? line.qtyRequested,
+    qtyApproved: line.qtyApproved!,
     skus: skusByProduct.get(line.productId) ?? [],
     rechargeUnitPrice: line.rechargeUnitPrice,
   }))
@@ -174,6 +199,29 @@ export async function sendApprovedOrder(
   const short = allocations.filter((a) => a.kind === 'short')
   if (short.length > 0) {
     const message = short.map((a) => (a.kind === 'short' ? a.message : '')).join(' ')
+    await db.batch([
+      db.prepare(`UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ? WHERE id = ?`)
+        .bind(message, nowIso(), orderId),
+      auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
+    ])
+    await releaseClaim(db, orderId)
+    return { ok: false, status: 'refused', message }
+  }
+
+  /**
+   * An approval of zero on every line allocates nothing, and the assembled order would
+   * carry no items at all. Mintsoft accepts that — every required field is present — so
+   * Mercium would open a job, pick nothing, and bill the per-order fee, while the portal
+   * marked it posted and refused to send it ever again. The site's stock would never go
+   * and the GM would be told it had.
+   *
+   * Checked here, against the items actually assembled, rather than upstream: this is
+   * the last point before the one irreversible call.
+   */
+  const itemCount = allocations.flatMap((a) => (a.kind === 'allocated' ? a.parts : [])).length
+  if (itemCount === 0) {
+    const message = `${order.orderNumber} has nothing to send — every line was approved at zero. `
+      + 'Reject it instead, so the site knows, rather than sending Mercium an empty order.'
     await db.batch([
       db.prepare(`UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ? WHERE id = ?`)
         .bind(message, nowIso(), orderId),

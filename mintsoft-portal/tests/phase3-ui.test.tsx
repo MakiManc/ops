@@ -14,8 +14,15 @@ const order = (over: Record<string, unknown> = {}) => ({
   createdAt: new Date().toISOString(), recharge: false, rechargeTotal: null, ...over,
 })
 
+// A fresh Response per call, and the awaiting-send list answered separately. One shared
+// Response only works while a screen makes exactly one fetch: a body can be read once.
 const serve = (body: unknown) =>
-  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }))
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+    if (String(input).includes('awaiting-send')) {
+      return new Response(JSON.stringify({ orders: [] }), { status: 200 })
+    }
+    return new Response(JSON.stringify(body), { status: 200 })
+  })
 
 beforeEach(() => vi.restoreAllMocks())
 afterEach(() => cleanup())

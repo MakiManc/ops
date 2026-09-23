@@ -278,6 +278,31 @@ export async function submitRequest(
 }
 
 /** Requests waiting for sign-off, oldest first — the queue an approver works through. */
+/**
+ * Approved orders that have not reached Mercium yet.
+ *
+ * Signing an order off and sending it are deliberately two actions, so an approved order
+ * needs somewhere to wait. Without this it left the queue and nothing offered to send
+ * it — the endpoint existed and no screen could reach it.
+ *
+ * post_failed is included on purpose. It is not a dead end: it means the send stopped
+ * before anything reached Mintsoft — short stock, a line nobody approved, an order
+ * approved at zero — and once the cause is fixed the order should be sendable rather
+ * than needing someone with database access. Anything already carrying a Mintsoft id is
+ * excluded, because that one has gone.
+ */
+export async function awaitingSend(db: Database): Promise<OrderSummary[]> {
+  const { results } = await db
+    .prepare(
+      `${ORDER_SELECT}
+        WHERE o.status IN ('approved', 'post_failed')
+          AND o.mintsoft_order_id IS NULL
+        ORDER BY o.approved_at ASC`,
+    )
+    .all<RawOrder>()
+  return (results ?? []).map(toSummary)
+}
+
 export async function approvalQueue(db: Database): Promise<OrderSummary[]> {
   const { results } = await db
     .prepare(`${ORDER_SELECT} WHERE o.status = 'submitted' ORDER BY o.submitted_at ASC`)
@@ -334,6 +359,29 @@ export async function approveOrder(
   if (order.status !== 'submitted') throw new OrderError(`This request is ${order.status}, not waiting for sign-off.`)
 
   const existing = await linesForOrder(db, orderId)
+
+  /**
+   * The approval has to cover every line on the order.
+   *
+   * Each UPDATE below is keyed `WHERE order_id = ? AND product_id = ?`, so a line the
+   * payload omits simply keeps qty_approved NULL while the order flips to approved —
+   * approved as a whole, with a line nobody decided on. It was never stock-checked or
+   * priced either, because checkApproval only sees what it is handed.
+   *
+   * The way in is not the API. Two pending requests per site are allowed so that
+   * merging works, and merging adds lines to an order another approver may already have
+   * open; approving from that screen submits the lines it was loaded with. So this is
+   * a stale-screen check, and the message says so rather than blaming the data.
+   */
+  const covered = new Set(lines.map((l) => l.productId))
+  const missed = existing.filter((e) => !covered.has(e.productId))
+  if (missed.length > 0) {
+    throw new OrderError(
+      `This request has changed since you opened it — ${missed.map((m) => m.productName).join(', ')} `
+        + `${missed.length === 1 ? 'is' : 'are'} on it now. Reload the queue and look again before signing it off.`,
+    )
+  }
+
   const changes = lines
     .map((l) => {
       const before = existing.find((e) => e.productId === l.productId)
