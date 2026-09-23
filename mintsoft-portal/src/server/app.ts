@@ -120,13 +120,23 @@ export const createApp = () => {
     try {
       identity = await verifyGoogleIdToken(idToken, c.env.GOOGLE_CLIENT_ID)
     } catch (err) {
-      if (err instanceof InvalidIdTokenError) return c.json({ error: 'sign_in_failed' }, 401)
+      if (err instanceof InvalidIdTokenError) {
+        // The browser deliberately cannot tell a bad token from an unknown account —
+        // that would let anyone discover which emails have access. But somebody has to
+        // be able to find out, so the reason goes to the Worker log. The reason only:
+        // never the token, never the address.
+        console.error('sign-in refused: token rejected —', err.message)
+        return c.json({ error: 'sign_in_failed' }, 401)
+      }
       throw err
     }
 
     const user = await c.get('repo').findActiveUserByEmail(identity.email)
     // Not on the list, or switched off. Same response as a bad token, on purpose.
-    if (!user) return c.json({ error: 'sign_in_failed' }, 401)
+    if (!user) {
+      console.error('sign-in refused: token was valid, but no active user matched it')
+      return c.json({ error: 'sign_in_failed' }, 401)
+    }
 
     const expiresAt = Math.floor(Date.now() / 1000) + sessionTtlSeconds
     const cookie = await signSession({ userId: user.id, expiresAt }, c.env.SESSION_SECRET)
