@@ -1,0 +1,24 @@
+-- An atomic claim on an order about to be sent to Mintsoft.
+--
+-- Found by an adversarial review of the write path, immediately before writes were to be
+-- switched on for the first time. sendApprovedOrder read the order, ran the write gate
+-- over that read, then did the PUT — with no write to the orders row in between. The
+-- gate's "already has a mintsoft_order_id" check and the Order/Search lookup are both
+-- reads, so neither closes the window:
+--
+--   Francheska presses Send        Lincoln presses Send
+--   reads order, id is NULL        reads order, id is NULL
+--   gate passes                    gate passes
+--   Search says absent             Search says absent
+--   PUT -> Mercium order A         PUT -> Mercium order B
+--
+-- Mintsoft has no idempotency, so Mercium picks, ships and bills both. That is the exact
+-- outcome post.ts was written to prevent, and it survived because every guard was a read.
+--
+-- The claim is a conditional UPDATE, which SQLite serialises. Only the writer that
+-- changes a row proceeds; the loser is told the order is already being sent.
+--
+-- It does not replace the Order/Search lookup, which covers a different case: a process
+-- that dies between the PUT and recording the id. The claim closes the concurrent race,
+-- the lookup closes the crash window. Both are needed.
+ALTER TABLE orders ADD COLUMN send_claimed_at TEXT;

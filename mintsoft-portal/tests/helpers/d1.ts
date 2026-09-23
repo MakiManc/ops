@@ -42,8 +42,15 @@ class FakeStatement {
   }
 
   async run() {
-    this.stmt.run(...(this.bound as never[]))
-    return { success: true as const, results: [] }
+    // changes is what an atomic claim turns on: a conditional UPDATE that matches no row
+    // is how the loser of a race learns it lost. Returning a fixed shape without it made
+    // every claim look successful, so the stand-in has to carry it.
+    const result = this.stmt.run(...(this.bound as never[]))
+    return {
+      success: true as const,
+      results: [],
+      meta: { changes: Number(result.changes ?? 0) },
+    }
   }
 }
 

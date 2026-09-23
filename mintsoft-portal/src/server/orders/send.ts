@@ -19,9 +19,54 @@ import { mayWriteToMintsoft } from './write-gate.ts'
 
 const nowIso = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z')
 
+/**
+ * How long a claim is honoured before another send may take it.
+ *
+ * A process that dies between claiming and recording the outcome would otherwise strand
+ * the order forever, fixable only with database access. Reclaiming is safe because the
+ * Order/Search lookup still runs before the PUT: if the dead process did create the
+ * order, the lookup finds it and attaches rather than creating a second one.
+ */
+const CLAIM_HOLDS_MS = 10 * 60 * 1000
+
+/**
+ * Takes the order, or reports that somebody else has it.
+ *
+ * A conditional UPDATE, because SQLite serialises writers: of two sends racing, exactly
+ * one changes a row. Every earlier guard was a read, which is how two approvers pressing
+ * Send at the same moment could both pass and both create a real order at Mercium.
+ */
+async function claimForSending(db: Database, orderId: number): Promise<boolean> {
+  const staleBefore = new Date(Date.now() - CLAIM_HOLDS_MS).toISOString().replace(/\.\d+Z$/, 'Z')
+  const claimed = await db
+    .prepare(
+      `UPDATE orders SET send_claimed_at = ?, updated_at = ?
+        WHERE id = ?
+          AND status = 'approved'
+          AND mintsoft_order_id IS NULL
+          AND (send_claimed_at IS NULL OR send_claimed_at < ?)`,
+    )
+    .bind(nowIso(), nowIso(), orderId, staleBefore)
+    .run()
+  return (claimed as { meta?: { changes?: number } }).meta?.changes === 1
+}
+
+/**
+ * Gives the order back, so a refusal or a plain failure can be retried.
+ *
+ * Never called once a PUT has gone out with an uncertain result: there the order may
+ * exist at Mercium, and holding the claim is what stops a retry duplicating it.
+ */
+async function releaseClaim(db: Database, orderId: number): Promise<void> {
+  await db
+    .prepare(`UPDATE orders SET send_claimed_at = NULL, updated_at = ? WHERE id = ?`)
+    .bind(nowIso(), orderId)
+    .run()
+}
+
 export interface SendResult {
   ok: boolean
-  status: 'posted' | 'already_posted' | 'refused' | 'rejected' | 'uncertain'
+  status: 'posted' | 'already_posted' | 'refused' | 'rejected' | 'uncertain' | 'in_flight'
   message: string
   mintsoftOrderId?: number
 }
@@ -68,6 +113,7 @@ export async function sendApprovedOrder(
     }
   }
 
+
   const site = await db
     .prepare(
       `SELECT code, name, address_1, address_2, address_3, town, county, postcode, country,
@@ -82,7 +128,10 @@ export async function sendApprovedOrder(
       contact_phone: string | null; delivery_notes: string | null
       default_courier_service_id: number | null
     }>()
-  if (!site) return { ok: false, status: 'refused', message: 'That order has no site.' }
+  if (!site) {
+    await releaseClaim(db, orderId)
+    return { ok: false, status: 'refused', message: 'That order has no site.' }
+  }
 
   // Work out which warehouse SKUs each line is ordered against, re-reading stock now
   // rather than trusting what was on screen at approval.
@@ -130,6 +179,7 @@ export async function sendApprovedOrder(
         .bind(message, nowIso(), orderId),
       auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
     ])
+    await releaseClaim(db, orderId)
     return { ok: false, status: 'refused', message }
   }
 
@@ -153,9 +203,20 @@ export async function sendApprovedOrder(
       .map((p) => ({ sku: p.sku, quantity: p.qty })),
   }
 
-  const outcome = await postOrder(client, toPost)
+  // The claim fires inside postOrder, once the lookup has said the order is absent and
+  // immediately before the create. Not around the whole send: a retry has to be able to
+  // run the lookup and attach an order a dead process already created.
+  const outcome = await postOrder(client, toPost, () => claimForSending(db, orderId))
 
   switch (outcome.kind) {
+    case 'in_flight':
+      await auditStatement(db, orderId, actor, 'send_refused', { reason: 'already being sent' }).run()
+      return {
+        ok: false,
+        status: 'in_flight',
+        message: `${order.orderNumber} is already being sent. Wait for that to finish rather than sending it again.`,
+      }
+
     case 'created':
     case 'already_exists': {
       await db.batch([
@@ -184,6 +245,8 @@ export async function sendApprovedOrder(
           .bind(outcome.reason, nowIso(), orderId),
         auditStatement(db, orderId, actor, 'post_rejected', { reason: outcome.reason }),
       ])
+      // Mintsoft answered Success:false, so nothing was created and a retry is safe.
+      await releaseClaim(db, orderId)
       return { ok: false, status: 'rejected', message: `Mintsoft refused the order: ${outcome.reason}` }
     }
 
@@ -197,6 +260,10 @@ export async function sendApprovedOrder(
           .bind(outcome.reason, nowIso(), orderId),
         auditStatement(db, orderId, actor, 'post_uncertain', { reason: outcome.reason }),
       ])
+      // The claim is deliberately NOT released. The order may exist at Mercium, and
+      // holding it is what stops a retry turning a maybe into a duplicate. It ages out
+      // after CLAIM_HOLDS_MS, by which time the Order/Search lookup will find any order
+      // that was in fact created.
       return { ok: false, status: 'uncertain', message: outcome.reason }
     }
   }

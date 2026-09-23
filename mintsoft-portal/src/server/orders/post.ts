@@ -140,6 +140,8 @@ export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
 export type PostOutcome =
   | { kind: 'created'; mintsoftOrderId: number }
   | { kind: 'already_exists'; mintsoftOrderId: number }
+  /** Another send holds the order. Nothing was attempted; wait for that one. */
+  | { kind: 'in_flight' }
   /** Mintsoft refused it. The message is Mintsoft's own. */
   | { kind: 'rejected'; reason: string }
   /**
@@ -157,6 +159,16 @@ export type PostOutcome =
 export async function postOrder(
   client: MintsoftWriteClient,
   order: OrderToPost,
+  /**
+   * Called only once the lookup has said "absent", immediately before the create, and
+   * only proceeds if it returns true.
+   *
+   * It sits here rather than around the whole send because the lookup is a read and is
+   * the safe way out of an uncertain order: a retry has to be able to run it and attach
+   * what it finds. Guarding the whole send would block that recovery, which is the one
+   * path a timed-out order depends on.
+   */
+  claimBeforeCreate: () => Promise<boolean> = async () => true,
 ): Promise<PostOutcome> {
   const existing = await lookupExistingOrder(client, order.orderNumber)
   if (existing.kind === 'found') {
@@ -165,6 +177,10 @@ export async function postOrder(
   if (existing.kind === 'unknown') {
     return { kind: 'uncertain', reason: existing.reason }
   }
+
+  // The lookup said absent, so this call is about to create. Two sends can both reach
+  // here — every check before this point is a read — so exactly one may continue.
+  if (!(await claimBeforeCreate())) return { kind: 'in_flight' }
 
   let response
   try {
