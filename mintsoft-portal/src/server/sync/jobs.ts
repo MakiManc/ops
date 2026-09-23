@@ -59,10 +59,67 @@ export async function syncStock(
     byProduct.set(row.ProductId, [...(byProduct.get(row.ProductId) ?? []), row])
   }
 
+  /**
+   * What is already cached, so a product whose stock has not moved can be left alone.
+   *
+   * Replacing every product's rows on every run cost a DELETE and an INSERT each — about
+   * 63,000 row writes a day for roughly 330 products on a quarter-hourly cadence, nearly
+   * all of it rewriting figures that had not changed. That exhausted D1's free daily
+   * write allowance and took the portal down: sign-in, baskets, approvals and sends all
+   * failed, because every one of them needs a write.
+   *
+   * The signature deliberately excludes synced_at. Including it would make every row
+   * differ on every run, which is exactly the behaviour being removed.
+   */
+  const { results: cachedRows } = await db
+    .prepare(
+      `SELECT mintsoft_product_id, warehouse_id, location_id, on_hand, allocated,
+              available, available_basis
+         FROM stock_cache`,
+    )
+    .all<{
+      mintsoft_product_id: number; warehouse_id: number | null; location_id: number | null
+      on_hand: number | null; allocated: number | null
+      available: number | null; available_basis: string | null
+    }>()
+
+  const signature = (parts: (string | number | null)[][]) =>
+    parts.map((p) => p.join('\u0001')).sort().join('\u0002')
+
+  const cachedByProduct = new Map<number, (string | number | null)[][]>()
+  for (const r of cachedRows ?? []) {
+    cachedByProduct.set(r.mintsoft_product_id, [
+      ...(cachedByProduct.get(r.mintsoft_product_id) ?? []),
+      [r.warehouse_id, r.location_id, r.on_hand, r.allocated, r.available, r.available_basis],
+    ])
+  }
+
   let written = 0
+  let unchanged = 0
   const statements: ReturnType<Database['prepare']>[] = []
+  const changedProducts: number[] = []
 
   for (const [productId, rows] of byProduct) {
+    const incoming = rows.map((row) => {
+      const derived = deriveAvailability(
+        [{ onHand: row.OnHand, allocated: row.Allocated, stockLevel: row.StockLevel }],
+        formula,
+      )
+      return [
+        row.WarehouseId ?? null, row.LocationId ?? null,
+        row.OnHand ?? null, row.Allocated ?? null,
+        derived.available, derived.basis,
+      ] as (string | number | null)[]
+    })
+
+    const before = cachedByProduct.get(productId)
+    // A product absent from the cache has no signature, so it is always written.
+    if (before && signature(before) === signature(incoming)) {
+      unchanged++
+      continue
+    }
+    changedProducts.push(productId)
+
     statements.push(
       db.prepare(`DELETE FROM stock_cache WHERE mintsoft_product_id = ?`).bind(productId),
     )
@@ -94,8 +151,8 @@ export async function syncStock(
     if (batchGroup.length) { await db.batch(batchGroup); batchGroup = [] }
   }
   let index = 0
-  for (const [, rows] of byProduct) {
-    const size = rows.length + 1
+  for (const productId of changedProducts) {
+    const size = (byProduct.get(productId)?.length ?? 0) + 1
     if (batchGroup.length + size > BATCH) await flush()
     batchGroup.push(...statements.slice(index, index + size))
     index += size
@@ -105,6 +162,9 @@ export async function syncStock(
   const notes: string[] = []
   if (truncated) notes.push('stopped at the page ceiling — some stock was not read')
   if (serverCappedPageSizeAt) notes.push(`Mintsoft capped pages at ${serverCappedPageSizeAt}`)
+  // Worth showing on Sync Health: it is the difference between a healthy run and one
+  // quietly burning the daily write allowance.
+  if (unchanged) notes.push(`${unchanged} product(s) unchanged, so not rewritten`)
 
   return { rowsWritten: written, detail: notes.join('; ') || undefined }
 }
@@ -184,8 +244,49 @@ export async function syncCatalogue(
   )
 
   const syncedAt = nowIso()
+
+  /**
+   * Skip products whose details have not changed.
+   *
+   * Same reasoning as the stock sync: an upsert that rewrites an identical row still
+   * costs a write, and doing that hourly for every product spent thousands of the daily
+   * allowance on nothing. A product's SKU, name, barcodes and image change rarely; its
+   * stock, which does move, lives in a different table.
+   *
+   * last_updated comes from Mintsoft and is deliberately not compared: it is their
+   * bookkeeping timestamp, and treating a change in it alone as a reason to rewrite
+   * would put us back where we started.
+   */
+  const { results: known } = await db
+    .prepare(
+      `SELECT mintsoft_product_id, sku, name, ean, upc, image_url, discontinued, client_id
+         FROM mintsoft_products`,
+    )
+    .all<Record<string, string | number | null>>()
+
+  const fingerprint = (v: (string | number | null | undefined)[]) =>
+    v.map((x) => (x === undefined ? null : x)).join('\u0001')
+
+  const seen = new Map<number, string>()
+  for (const r of known ?? []) {
+    seen.set(Number(r.mintsoft_product_id), fingerprint([
+      r.sku, r.name, r.ean, r.upc, r.image_url, r.discontinued, r.client_id,
+    ]))
+  }
+
+  let unchanged = 0
   const statements = items
     .filter((p) => p.ID != null && p.SKU)
+    .filter((p) => {
+      const before = seen.get(p.ID!)
+      const now = fingerprint([
+        p.SKU, p.Name ?? null, p.EAN ?? null, p.UPC ?? null, p.ImageURL ?? null,
+        p.DisCont == null ? null : (p.DisCont ? 1 : 0),   // sic: Mintsoft's spelling
+        p.ClientId ?? null,
+      ])
+      if (before !== undefined && before === now) { unchanged++; return false }
+      return true
+    })
     .map((p) => db.prepare(
       `INSERT INTO mintsoft_products (mintsoft_product_id, sku, name, ean, upc, image_url,
                                       discontinued, client_id, last_updated, synced_at)
@@ -203,10 +304,11 @@ export async function syncCatalogue(
 
   for (const group of chunk(statements, BATCH)) await db.batch(group)
 
-  return {
-    rowsWritten: statements.length,
-    detail: truncated ? 'stopped at the page ceiling — some products were not read' : undefined,
-  }
+  const notes: string[] = []
+  if (truncated) notes.push('stopped at the page ceiling — some products were not read')
+  if (unchanged) notes.push(`${unchanged} product(s) unchanged, so not rewritten`)
+
+  return { rowsWritten: statements.length, detail: notes.join('; ') || undefined }
 }
 
 /**

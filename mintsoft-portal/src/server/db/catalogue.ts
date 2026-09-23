@@ -127,10 +127,31 @@ export async function catalogueForSite(
     linesByProduct.set(row.product_id, lines)
   }
 
+  /**
+   * When each product's figure was last READ, which is not the same as when its row was
+   * last written.
+   *
+   * The stock sync no longer rewrites a product whose figures have not moved — doing so
+   * cost tens of thousands of pointless writes a day and exhausted the database's daily
+   * allowance, taking the whole portal down. So a row's synced_at now records when the
+   * number last CHANGED, and using it here would tell a GM "stock read 6 hours ago"
+   * about a figure confirmed four minutes ago. Every mapped product is read on every
+   * run, so the last successful run is the honest answer for all of them.
+   *
+   * A product with no stock row at all still gets null: never read is not the same as
+   * read and unchanged.
+   */
+  const lastRead = await db
+    .prepare(`SELECT MAX(finished_at) AS at FROM sync_runs WHERE job = 'stock' AND status = 'ok'`)
+    .first<{ at: string | null }>()
+
   const oldestSync = new Map<number, string>()
   for (const row of stock ?? []) {
-    const current = oldestSync.get(row.product_id)
-    if (!current || row.synced_at < current) oldestSync.set(row.product_id, row.synced_at)
+    if (lastRead?.at) oldestSync.set(row.product_id, lastRead.at)
+    else {
+      const current = oldestSync.get(row.product_id)
+      if (!current || row.synced_at < current) oldestSync.set(row.product_id, row.synced_at)
+    }
   }
 
   const mappedCount = new Map<number, number>()
