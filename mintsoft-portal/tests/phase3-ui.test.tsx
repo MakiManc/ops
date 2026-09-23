@@ -122,7 +122,7 @@ describe('the basket', () => {
   it('asks for a name, because site logins are shared', async () => {
     serve(basket())
     render(<Basket siteId={1} onSubmitted={() => {}} />)
-    await waitFor(() => expect(screen.getByLabelText('Your name')).toBeDefined())
+    await waitFor(() => expect(screen.getByLabelText(/Your name/)).toBeDefined())
     expect(screen.getByText(/So the approver knows who to come back to/)).toBeDefined()
   })
 

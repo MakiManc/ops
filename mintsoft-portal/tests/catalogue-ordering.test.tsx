@@ -21,7 +21,11 @@ const product = (over: Partial<CatalogueProduct> = {}): CatalogueProduct => ({
 })
 
 /** Routes the catalogue fetch, the open-request fetch and the add-line POST. */
-function serve({ products = [product()], lines = [], addFails = null as string | null } = {}) {
+function serve({
+  products = [product()],
+  lines = [] as { productId: number }[],
+  addFails = null as string | null,
+} = {}) {
   const posts: { url: string; body: unknown }[] = []
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const url = String(input)

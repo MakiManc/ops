@@ -85,8 +85,21 @@ export function Basket({ siteId, onSubmitted }: { siteId: number; onSubmitted: (
     ? data.lines.reduce((sum, l) => sum + l.qtyRequested * (l.rechargeUnitPrice ?? 0), 0)
     : null
 
-  const canSubmit = blocking.length === 0 && requesterName.trim().length > 0 &&
-    (!needsEarlyReason || earlyReason.trim().length > 0) && !busy
+  /**
+   * Why the button is off, in the order a person would fix them. Derived in one place
+   * rather than as separate conditions beside each message: a disabled button whose
+   * reason lives somewhere else is how "Send" ends up dead and silent, which is what
+   * happened to the missing name — three fields are marked optional, the required one
+   * was marked nothing, and no message rendered unless some other check was already
+   * failing.
+   */
+  const blockedBecause =
+    blocking.length > 0 ? 'Fix the problems above before sending this.'
+      : !requesterName.trim() ? 'Put your name above, then you can send this.'
+        : needsEarlyReason && !earlyReason.trim() ? 'Say why this cannot wait, then you can send this.'
+          : null
+
+  const canSubmit = blockedBecause === null && !busy
 
   return (
     <div className="space-y-4">
@@ -156,12 +169,15 @@ export function Basket({ siteId, onSubmitted }: { siteId: number; onSubmitted: (
       <div className="space-y-3 bg-white border border-gray-300 rounded-xl p-4">
         <div>
           <label htmlFor="requester" className="block text-sm font-medium text-gray-800">
-            Your name
+            Your name <span className="text-gray-600">(needed)</span>
           </label>
           {/* Site logins are often shared, so the login does not answer who asked. */}
-          <p className="text-sm text-gray-600">So the approver knows who to come back to.</p>
+          <p id="requester-why" className="text-sm text-gray-600">
+            So the approver knows who to come back to.
+          </p>
           <input
             id="requester" value={requesterName} onChange={(e) => setRequesterName(e.target.value)}
+            aria-describedby="requester-why" aria-required="true"
             className="mt-1 w-full rounded-lg border border-gray-400 px-3 py-2"
           />
         </div>
@@ -204,22 +220,23 @@ export function Basket({ siteId, onSubmitted }: { siteId: number; onSubmitted: (
 
       {error && <p role="alert" className="text-red-800 bg-red-50 border border-red-300 rounded p-3">{error}</p>}
 
-      {blocking.length > 0 && (
-        <p role="alert" className="text-sm text-red-900">
-          Fix the problems above before submitting.
+      {blockedBecause && (
+        <p
+          id="cannot-send"
+          role={blocking.length > 0 ? 'alert' : undefined}
+          className={`text-sm ${blocking.length > 0 ? 'text-red-900' : 'text-amber-900'}`}
+        >
+          {blockedBecause}
         </p>
       )}
-      {needsReason.length > 0 && blocking.length === 0 && (
-        <p className="text-sm text-amber-900">
-          {needsEarlyReason && !earlyReason.trim()
-            ? 'Say why this cannot wait, then you can submit.'
-            : 'The approver will see the notes above.'}
-        </p>
+      {!blockedBecause && needsReason.length > 0 && (
+        <p className="text-sm text-amber-900">The approver will see the notes above.</p>
       )}
 
       <button
         onClick={() => void submit()}
         disabled={!canSubmit}
+        aria-describedby={blockedBecause ? 'cannot-send' : undefined}
         className="w-full px-4 py-3 rounded-lg bg-maki-orange text-woodsmoke font-semibold disabled:bg-gray-400 disabled:text-white"
       >
         {busy ? 'Submitting…' : 'Send for sign-off'}
