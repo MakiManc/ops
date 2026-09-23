@@ -61,12 +61,42 @@ export const createApp = () => {
    * nothing fails to tell you. With opt-out, forgetting means a route returns 401 —
    * annoying, and immediately obvious.
    */
-  const PUBLIC_PATHS = new Set(['/api/auth/google', '/api/auth/signout'])
+  const PUBLIC_PATHS = new Set(['/api/auth/google', '/api/auth/signout', '/api/config'])
 
   app.use('*', async (c, next) => {
     if (PUBLIC_PATHS.has(new URL(c.req.url).pathname)) return next()
     return requireUser(c, next)
   })
+
+  /**
+   * What the browser needs before anyone has signed in.
+   *
+   * The Google client id used to be baked in at build time from VITE_GOOGLE_CLIENT_ID,
+   * defaulting to an empty string when it was not set. Nothing failed at build, nothing
+   * failed at deploy, and the sign-in page rendered a Google button with no client id —
+   * so every visitor got "Access blocked: Missing required parameter: client_id" and the
+   * only clue was in Google's error page. Served from the environment instead, it cannot
+   * be missed by whoever runs the build.
+   *
+   * An OAuth client id is public by design; it identifies the app, it does not authorise
+   * anything. The secret half never leaves the server.
+   */
+  app.get('/config', (c) => c.json({
+    googleClientId: c.env.GOOGLE_CLIENT_ID ?? '',
+    /**
+     * Whether each required value reached the Worker — names and booleans only, never
+     * values. Sign-in broke because a missing configuration value produced a page that
+     * looked fine and failed on Google's servers, with nothing on our side to check.
+     * This is the thing to look at first when something cannot sign in or send.
+     */
+    configured: {
+      googleClientId: Boolean(c.env.GOOGLE_CLIENT_ID),
+      sessionSecret: Boolean(c.env.SESSION_SECRET),
+      mintsoftUsername: Boolean(c.env.MINTSOFT_USERNAME),
+      mintsoftPassword: Boolean(c.env.MINTSOFT_PASSWORD),
+      writesEnabled: writesEnabled(c.env.MINTSOFT_WRITES_ENABLED),
+    },
+  }))
 
   // ---- sign in / out -------------------------------------------------------
 

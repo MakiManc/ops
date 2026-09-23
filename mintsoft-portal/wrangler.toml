@@ -18,9 +18,18 @@ database_id = "349649e2-8441-4e01-b102-f3f4eec636ad"
 migrations_dir = "migrations"
 
 [vars]
-# Writes to Mintsoft stay off until Phase 3, and are switched on deliberately.
-# Even then, the one write there is requires an approver's sign-off as well.
-MINTSOFT_WRITES_ENABLED = "false"
+# Switched on 2026-09-23, at Ross's instruction, after an adversarial review of the write
+# path closed three ways a bad order could have reached Mercium: two sends both creating
+# it, a line nobody approved going at the GM's quantity, and an order approved at zero on
+# every line being created carrying nothing.
+#
+# This flag is one half of the gate, not the whole of it. Every write still needs an
+# order approved by an approver or an administrator, and pressing Send is a separate,
+# deliberate act — approving does not send.
+#
+# Setting this back to "false" stops every write immediately and is the first thing to do
+# if anything looks wrong at Mercium.
+MINTSOFT_WRITES_ENABLED = "true"
 
 # Scope pins, identified by discovery on 2026-09-21. Both must match wrangler.sync.toml.
 # Client 10 is Maki & Ramen; warehouse 5 is Witham, the UK site we ship from. Leaving the

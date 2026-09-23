@@ -35,6 +35,17 @@ export function SignIn({ clientId, onSignedIn }: { clientId: string; onSignedIn:
 
     const render = () => {
       if (cancelled || !window.google || !buttonRef.current) return false
+      // Without this, Google renders a button that fails only when pressed, and the
+      // sole evidence is "Access blocked: Missing required parameter: client_id" on
+      // Google's own page. Say it here, where whoever deployed it will see it.
+      if (!clientId) {
+        setError(
+          'The portal is not configured for Google sign-in — no client id reached the '
+          + 'browser. Nobody can sign in until that is fixed; this is not a problem with '
+          + 'your account.',
+        )
+        return true
+      }
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: async ({ credential }) => {

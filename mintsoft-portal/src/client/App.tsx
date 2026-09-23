@@ -61,6 +61,15 @@ const ROLE_LABEL: Record<Me['user']['role'], string> = {
 
 export function App({ googleClientId }: { googleClientId: string }) {
   const [me, setMe] = useState<Me | null>(null)
+  /**
+   * The Google client id, from the server unless the build supplied one.
+   *
+   * It was previously baked in at build time with an empty-string default, so a build
+   * that did not set VITE_GOOGLE_CLIENT_ID shipped a sign-in page with no client id.
+   * Nothing failed at build or deploy; people simply met Google's "Access blocked:
+   * Missing required parameter: client_id" and there was no sign of it from our side.
+   */
+  const [clientId, setClientId] = useState(googleClientId)
   const [state, setState] = useState<'loading' | 'ready' | 'signed-out' | 'error'>('loading')
   /** Which screen is open. Null is the menu. Kept in state rather than the URL for now. */
   const [openScreen, setOpenScreen] = useState<string | null>(null)
@@ -78,6 +87,14 @@ export function App({ googleClientId }: { googleClientId: string }) {
 
   const load = useCallback(async () => {
     setState('loading')
+    if (!googleClientId) {
+      // Failure here is not fatal to the rest of the app, and SignIn says plainly when
+      // it has no client id rather than rendering a button that cannot work.
+      try {
+        const res = await fetch('/api/config', { credentials: 'same-origin' })
+        if (res.ok) setClientId((await res.json() as { googleClientId?: string }).googleClientId ?? '')
+      } catch { /* leaves clientId empty, which SignIn reports */ }
+    }
     try {
       setMe(await getMe())
       setState('ready')
@@ -85,7 +102,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
       if (err instanceof NotSignedIn) { setMe(null); setState('signed-out') }
       else setState('error')
     }
-  }, [])
+  }, [googleClientId])
 
   useEffect(() => { void load() }, [load])
 
@@ -107,7 +124,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
   }
 
   if (state === 'signed-out' || !me) {
-    return <SignIn clientId={googleClientId} onSignedIn={() => void load()} />
+    return <SignIn clientId={clientId} onSignedIn={() => void load()} />
   }
 
   const screens = SCREENS[me.user.role]
