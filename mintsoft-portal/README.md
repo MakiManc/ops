@@ -81,8 +81,15 @@ npx wrangler pages dev                        # the API, on :8788
 npm run dev                                   # the front end, proxying /api to it
 ```
 
-Sign-in needs a Google OAuth client id: `VITE_GOOGLE_CLIENT_ID` for the browser and a
-`GOOGLE_CLIENT_ID` secret for the API. `SESSION_SECRET` signs the session cookie.
+Sign-in needs a Google OAuth client id as a `GOOGLE_CLIENT_ID` secret for the API; the
+browser reads it back from `/api/config`, so that one value is enough. `VITE_GOOGLE_CLIENT_ID`
+still works locally as a shortcut, and is deliberately not needed for a deploy.
+`SESSION_SECRET` signs the session cookie.
+
+The Google client's consent screen has to be **External** and published **In production**.
+Site logins are shared gmail accounts, which belong to no Google organisation, so an
+Internal consent screen turns every GM away before the portal sees them. DEPLOY.md has the
+symptoms.
 
 Other scripts:
 

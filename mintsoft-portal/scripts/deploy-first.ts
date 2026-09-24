@@ -13,14 +13,17 @@
  * Everything is checked before anything is created, because a half-built project is
  * worse than none: you end up unsure which of the steps ran.
  *
- * ORDER MATTERS, and the old runbook had it wrong. GOOGLE_CLIENT_ID is baked into the
- * bundle at BUILD time as VITE_GOOGLE_CLIENT_ID. Building before it is known produces a
- * deployable site where every sign-in fails, and no amount of setting the secret
- * afterwards fixes it — the id has to be in the bundle. So: check, build, deploy.
+ * GOOGLE_CLIENT_ID used to be baked into the bundle at BUILD time, so building before it
+ * was known produced a deployable site where every sign-in failed. The browser now reads
+ * it from /api/config instead, which is what makes that unable to happen again; it is
+ * still passed to the build below, harmlessly, for local parity.
  *
- * The one thing that genuinely cannot be done in advance is registering the deployed
- * URL as an authorised JavaScript origin on the Google client, because the URL does not
- * exist until the deploy finishes. This prints the exact value to paste.
+ * Two things genuinely cannot be done in advance. Registering the deployed URL as an
+ * authorised JavaScript origin on the Google client, because the URL does not exist until
+ * the deploy finishes — this prints the exact value to paste. And setting that client's
+ * consent screen to External, published In production: site logins are shared gmail
+ * accounts, and an Internal consent screen lets in only the makiramen.com Workspace, so
+ * every GM is refused by Google before the portal is reached. See DEPLOY.md.
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
@@ -94,9 +97,9 @@ function main() {
     '--out', 'seed/seed.sql'], { stdio: 'inherit' })
   run(['d1', 'execute', DB, '--remote', '--file', 'seed/seed.sql'])
 
-  // 4. Build BEFORE deploying, with the client id in the bundle. This is the ordering
-  // the old runbook had backwards.
-  console.log('\n4. Building with the Google client id baked in…')
+  // 4. Build. The client id no longer has to be in the bundle — the browser asks
+  // /api/config for it — but passing it keeps a local build behaving like a deployed one.
+  console.log('\n4. Building…')
   execFileSync('npm', ['run', 'build'], {
     stdio: 'inherit',
     env: { ...process.env, VITE_GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID },

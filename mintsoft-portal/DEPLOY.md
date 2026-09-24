@@ -8,6 +8,13 @@ has been run yet — the portal has only been run locally.
 - A Cloudflare account with Pages and D1 (the free tier covers this comfortably).
 - A Google OAuth **client ID** for a web application, from the Google Cloud console.
   Add the portal's URL to its authorised JavaScript origins.
+- That client's consent screen set to **External**, published **In production**. This
+  matters more than it sounds: most site logins are shared gmail accounts, and a gmail
+  account belongs to no Google organisation at all. An Internal consent screen admits
+  only the makiramen.com Workspace, so every GM is turned away by Google before the
+  portal ever sees them. External does not widen who can get in — the allow-list in
+  `users` is what does that — and with only `openid email profile` requested there is
+  no Google verification review to wait on.
 - A long random string for signing session cookies. Generate one, don't invent one:
   `openssl rand -base64 48`
 
@@ -36,9 +43,10 @@ npx wrangler pages secret put SESSION_SECRET    --project-name mintsoft-portal
 npx wrangler pages secret put GOOGLE_CLIENT_ID  --project-name mintsoft-portal
 ```
 
-The browser also needs the Google client id at build time, as `VITE_GOOGLE_CLIENT_ID`.
-It is not a secret — it is visible in the page source by design — but it does have to
-match the one the API checks against, or every sign-in fails.
+The browser gets the client id from the API, at `/api/config`, so `GOOGLE_CLIENT_ID`
+above is the only place it is set. It is not a secret — it is visible in the page source
+by design. It used to be baked in at build time as `VITE_GOOGLE_CLIENT_ID`, which meant a
+build that forgot it shipped a sign-in button that could not work; that is why it moved.
 
 ## Secrets this project uses
 
@@ -139,8 +147,43 @@ verifying on its next request.
 
 ## A note on the first deploy
 
-Sign in as yourself first and check you land on the admin screens. If sign-in fails, the
-usual causes, in order: the client id in the build does not match the one the API checks;
-the portal's URL is not in the Google client's authorised origins; or your email is not in
-`users.csv`. The portal deliberately gives the same message for all three, so check them
-in that order rather than reading anything into the wording.
+Sign in as yourself first and check you land on the admin screens. Then have someone on a
+**gmail** account try, before telling any GM the portal is ready. Every successful sign-in
+so far being a makiramen.com account is not proof that gmail works — it is equally
+consistent with gmail being blocked, which is exactly what happened.
+
+## When someone cannot sign in
+
+Read the message they actually saw, and work out **who** refused first. The two look
+nothing alike, and confusing them has cost hours twice.
+
+**Google refused — the message is on a Google page,** and mentions an organisation, a
+verification process, or testers. Nothing reached the portal, so there is no log line and
+nothing to find in D1. This is the consent screen, not the account: Google Cloud console →
+APIs & Services → OAuth consent screen (**Audience** in the newer console).
+
+| What they saw | What it means | Fix |
+| --- | --- | --- |
+| "can only be used within its organisation", `Error 403: org_internal` | consent screen is **Internal** | set it to **External** |
+| "has not completed the Google verification process", "developer-approved testers" | External, but still **Testing** | press **Publish app** to move it to In production |
+| "origin is not allowed", `Error 400: redirect_uri_mismatch` | portal URL missing from the client | add it to authorised JavaScript origins |
+
+Neither of the first two is a per-person problem, so there is no point checking that
+one GM's row: if one gmail account is blocked, all of them are.
+
+**The portal refused — the message is the portal's own,** "That account cannot sign in to
+the ordering portal." Google issued a token and we turned it down. The reason is in the
+logs, deliberately not in the browser:
+
+```sh
+npx wrangler pages deployment tail --project-name mintsoft-portal
+```
+
+Causes, in order: the email is not in `users`; it is there but `active = 0`; the client id
+in `/api/config` does not match the one the API verifies against; or D1 is refusing the
+write — sign-in stamps `last_seen_at`, so a database at its daily write limit reads as a
+rejected account. Check the tail before theorising; it names which one it was.
+
+**Neither — no button, or an error about configuration.** `curl -s
+https://mintsoft-portal.pages.dev/api/config` and check `googleClientId` is not empty. If
+it is, the secret is missing and nobody can sign in.
