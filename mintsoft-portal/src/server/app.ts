@@ -34,6 +34,7 @@ import { MintsoftOrderClient } from './mintsoft/order-client.ts'
 import { sendApprovedOrder } from './orders/send.ts'
 import { writesEnabled } from './orders/write-gate.ts'
 import { lastSuccessfulSyncs } from './sync/runner.ts'
+import { budgetState } from './sync/budget.ts'
 import {
   ACCEPTED_TYPES, MAX_BYTES, PhotoRejected, deletePhoto, getPhoto, photoStatus, putPhoto,
 } from './db/photos.ts'
@@ -761,6 +762,10 @@ export const createApp = () => {
     return c.json({
       lastSuccess: await lastSuccessfulSyncs(c.env.DB),
       freshness: await stockFreshness(c.env.DB),
+      // What the jobs have spent today. Shown because the day the allowance ran out,
+      // there was nothing anywhere to look at: the first sign was a person being told
+      // their account could not sign in.
+      budget: await budgetState(c.env.DB),
       recent: results ?? [],
     })
   })

@@ -31,6 +31,8 @@ interface Scope { clientId?: number; warehouseId?: number }
  * no since-filter. Bulk pages properly (Mintsoft documents max 500) and carries every
  * figure we need.
  */
+import { MAX_WRITES_PER_RUN, chargeFor } from './budget.ts'
+
 export async function syncStock(
   db: Database,
   client: MintsoftReadOnlyClient,
@@ -150,6 +152,24 @@ export async function syncStock(
   const flush = async () => {
     if (batchGroup.length) { await db.batch(batchGroup); batchGroup = [] }
   }
+  /**
+   * A run this large is a bug, not a busy day.
+   *
+   * Replacing every product costs about 670 writes. An order of magnitude past that
+   * means something has stopped matching — a changed availability formula, a comparison
+   * that no longer lines up — and the right response is to stop at one run rather than
+   * spend the day's budget before anyone notices.
+   */
+  if (statements.length > MAX_WRITES_PER_RUN) {
+    return {
+      rowsWritten: 0,
+      writesCharged: chargeFor(0),
+      detail: `Refused to write ${statements.length} rows in one run, over the ${MAX_WRITES_PER_RUN} `
+        + 'ceiling. That many changes at once means something is wrong with the comparison '
+        + 'rather than with the stock. Nothing was written.',
+    }
+  }
+
   let index = 0
   for (const productId of changedProducts) {
     const size = (byProduct.get(productId)?.length ?? 0) + 1
@@ -166,7 +186,11 @@ export async function syncStock(
   // quietly burning the daily write allowance.
   if (unchanged) notes.push(`${unchanged} product(s) unchanged, so not rewritten`)
 
-  return { rowsWritten: written, detail: notes.join('; ') || undefined }
+  return {
+    rowsWritten: written,
+    writesCharged: chargeFor(statements.length),
+    detail: notes.join('; ') || undefined,
+  }
 }
 
 /**
@@ -225,7 +249,11 @@ export async function syncInbound(
   if (skippedWithoutItems) {
     notes.push(`${skippedWithoutItems} ASN(s) arrived with no line items, so their contents are unknown`)
   }
-  return { rowsWritten: statements.length, detail: notes.join('; ') || undefined }
+  return {
+    rowsWritten: statements.length,
+    writesCharged: chargeFor(statements.length),
+    detail: notes.join('; ') || undefined,
+  }
 }
 
 /**

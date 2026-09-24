@@ -196,8 +196,11 @@ export function ParLevels() {
 
 interface SyncRun {
   job: string; started_at: string; finished_at: string | null
-  status: 'running' | 'ok' | 'failed'; rows_written: number | null; detail: string | null
+  status: 'running' | 'ok' | 'failed' | 'skipped'
+  rows_written: number | null; detail: string | null
 }
+
+interface Budget { spent: number; budget: number; remaining: number; mayWrite: boolean }
 
 const JOB_LABEL: Record<string, string> = {
   stock: 'Stock levels', catalogue: 'Product catalogue', inbound: 'Inbound shipments',
@@ -205,7 +208,9 @@ const JOB_LABEL: Record<string, string> = {
 }
 
 export function SyncHealth() {
-  const [data, setData] = useState<{ lastSuccess: Record<string, string | null>; recent: SyncRun[] } | null>(null)
+  const [data, setData] = useState<{
+    lastSuccess: Record<string, string | null>; recent: SyncRun[]; budget?: Budget
+  } | null>(null)
   const [error, setError] = useState(false)
 
   const load = useCallback(async () => {
@@ -222,9 +227,37 @@ export function SyncHealth() {
   if (!data) return <p role="status" className="text-gray-700">Loading…</p>
 
   const jobs = ['stock', 'orders', 'catalogue', 'inbound']
+  const budget = data.budget
+  // Amber well before it bites, because the day it ran out the first sign was somebody
+  // being told their account could not sign in.
+  const pressure = budget ? budget.spent / budget.budget : 0
 
   return (
     <div className="space-y-4">
+      {budget && (
+        <section
+          aria-labelledby="write-budget"
+          className={`rounded-lg border p-3 ${
+            !budget.mayWrite ? 'bg-red-50 border-red-300 text-red-900'
+              : pressure > 0.7 ? 'bg-amber-50 border-amber-400 text-amber-900'
+                : 'bg-gray-50 border-gray-300 text-gray-800'}`}
+        >
+          <h2 id="write-budget" className="text-sm font-semibold uppercase tracking-wide">
+            Database writes today
+          </h2>
+          <p className="mt-1">
+            Syncing has used <strong>{budget.spent.toLocaleString()}</strong> of its{' '}
+            <strong>{budget.budget.toLocaleString()}</strong> daily budget.
+          </p>
+          <p className="mt-1 text-sm">
+            {!budget.mayWrite
+              ? 'Syncing has stood down for today so that ordering keeps working. Stock '
+                + 'figures will be stale until midnight UTC, and the catalogue says so.'
+              : 'The rest of the day\u2019s allowance is kept for ordering, so a busy sync '
+                + 'can never stop somebody signing in or sending an order.'}
+          </p>
+        </section>
+      )}
       <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-600">Last success</h2>
       <ul className="grid gap-2">
         {jobs.map((job) => {
@@ -252,10 +285,13 @@ export function SyncHealth() {
                 <span className="text-gray-900">{JOB_LABEL[run.job] ?? run.job}</span>
                 <span className={
                   run.status === 'ok' ? 'text-green-900'
-                    : run.status === 'failed' ? 'text-red-900 font-medium'
+                    : run.status === 'skipped' ? 'text-amber-900 font-medium'
+                      : run.status === 'failed' ? 'text-red-900 font-medium'
                     : 'text-amber-900'
                 }>
-                  {run.status === 'ok' ? 'Worked' : run.status === 'failed' ? 'Failed' : 'Still running'}
+                  {run.status === 'ok' ? 'Worked'
+                    : run.status === 'skipped' ? 'Stood down'
+                      : run.status === 'failed' ? 'Failed' : 'Still running'}
                 </span>
               </div>
               <p className="text-sm text-gray-600">
