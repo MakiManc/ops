@@ -263,6 +263,11 @@ export function SitesAndPeople() {
   const done = () => { setEditingSite(null); setEditingPerson(null); void load() }
   const siteName = (id: number) => sites.find((s) => s.id === id)?.code ?? `#${id}`
   const admins = people.filter((p) => p.active && p.role === 'admin').length
+  // A GM who has never signed in is invisible otherwise, and one who cannot sign in
+  // looks exactly the same as one who has not got round to it. Counting them is what
+  // makes the difference between those two readable at all.
+  const gms = people.filter((p) => p.active && p.role === 'gm')
+  const noGmHasEverSignedIn = gms.length > 0 && gms.every((p) => !p.lastSeenAt)
 
   return (
     <div className="space-y-4">
@@ -284,6 +289,16 @@ export function SitesAndPeople() {
               account goes away.
             </p>
           )}
+          {noGmHasEverSignedIn && (
+            <p className="rounded-lg bg-amber-50 border border-amber-300 px-3 py-2 text-sm text-gray-900">
+              <strong>No general manager has ever signed in.</strong> On a portal this new
+              that may mean nothing. It is also exactly what it looks like when Google is
+              turning them all away on its own page, before the portal ever sees them —
+              which is invisible from here, because nothing reaches us to log. Worth having
+              one GM try before you tell the rest it is ready. DEPLOY.md, “When someone
+              cannot sign in”, says how to tell the two apart.
+            </p>
+          )}
           {editingPerson
             ? <PersonForm person={editingPerson} sites={sites} onDone={done}
                           onCancel={() => setEditingPerson(null)} />
@@ -298,7 +313,10 @@ export function SitesAndPeople() {
                   <h3 className="font-semibold text-gray-900">
                     {p.name}{!p.active && <span className="text-gray-600 font-normal"> · cannot sign in</span>}
                   </h3>
-                  <p className="text-sm text-gray-700">{p.email} · {ROLE_LABEL[p.role]}</p>
+                  <p className="text-sm text-gray-700">
+                    {p.email} · {ROLE_LABEL[p.role]}
+                    {p.active && !p.lastSeenAt && <span className="text-gray-600"> · has never signed in</span>}
+                  </p>
                   <p className="text-sm text-gray-700">
                     {p.role === 'gm'
                       ? (p.siteIds.length

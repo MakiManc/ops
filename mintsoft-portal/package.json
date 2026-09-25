@@ -21,7 +21,8 @@
     "demo:serve": "rm -rf .wrangler/demo && wrangler d1 migrations apply mintsoft-portal --local --persist-to .wrangler/demo && node --experimental-strip-types --no-warnings scripts/seed.ts --out seed/seed.sql && wrangler d1 execute mintsoft-portal --local --persist-to .wrangler/demo --file seed/seed.sql && wrangler d1 execute mintsoft-portal --local --persist-to .wrangler/demo --file seed/demo.sql && npm run build && wrangler pages dev dist --persist-to .wrangler/demo --local-protocol https --port 8788",
     "feed:stock": "node --experimental-strip-types --no-warnings scripts/build-stock-feed.ts",
     "deploy:first": "node --experimental-strip-types --no-warnings scripts/deploy-first.ts",
-    "photos": "node --experimental-strip-types --no-warnings scripts/link-photos.ts"
+    "photos": "node --experimental-strip-types --no-warnings scripts/link-photos.ts",
+    "testers": "node --experimental-strip-types --no-warnings scripts/google-test-users.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260921.1",
