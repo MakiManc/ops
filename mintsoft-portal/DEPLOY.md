@@ -8,13 +8,12 @@ has been run yet — the portal has only been run locally.
 - A Cloudflare account with Pages and D1 (the free tier covers this comfortably).
 - A Google OAuth **client ID** for a web application, from the Google Cloud console.
   Add the portal's URL to its authorised JavaScript origins.
-- That client's consent screen set to **External**, published **In production**. This
-  matters more than it sounds: most site logins are shared gmail accounts, and a gmail
-  account belongs to no Google organisation at all. An Internal consent screen admits
-  only the makiramen.com Workspace, so every GM is turned away by Google before the
-  portal ever sees them. External does not widen who can get in — the allow-list in
-  `users` is what does that — and with only `openid email profile` requested there is
-  no Google verification review to wait on.
+- That client's audience set to **External**. This matters more than it sounds: most site
+  logins are shared gmail accounts, and a gmail account belongs to no Google organisation
+  at all. An Internal audience admits only the makiramen.com Workspace, so every GM is
+  turned away by Google before the portal ever sees them. External does not widen who can
+  get in — the allow-list in `users` is what does that. Publishing status does not matter
+  either way for this app; see "When someone cannot sign in" below for why.
 - A long random string for signing session cookies. Generate one, don't invent one:
   `openssl rand -base64 48`
 
@@ -164,12 +163,40 @@ APIs & Services → OAuth consent screen (**Audience** in the newer console).
 
 | What they saw | What it means | Fix |
 | --- | --- | --- |
-| "can only be used within its organisation", `Error 403: org_internal` | consent screen is **Internal** | set it to **External** |
-| "has not completed the Google verification process", "developer-approved testers" | External, but still **Testing** | press **Publish app** to move it to In production |
+| "can only be used within its organisation", `Error 403: org_internal` | audience is **Internal** | change it to **External** |
 | "origin is not allowed", `Error 400: redirect_uri_mismatch` | portal URL missing from the client | add it to authorised JavaScript origins |
 
-Neither of the first two is a per-person problem, so there is no point checking that
-one GM's row: if one gmail account is blocked, all of them are.
+The first is not a per-person problem, so there is no point checking one GM's row: if a
+single gmail account is blocked that way, every one of them is.
+
+**Publishing status and test users are a blind alley here, and it is worth knowing why
+before an hour goes into them.** Google's own wording, on managing an app's audience:
+
+> Projects configured with a publishing status of Testing are limited to up to 100 test
+> users listed in the OAuth consent screen. The only exception to this behavior is if
+> your app requests a subset of the following: name, email address, and user profile. […]
+> For such requests, your users do not need to be in the trusted user list […] and their
+> authorizations will not expire after 7 days. If your app uses Sign in with Google to
+> authenticate users then this exception also applies.
+
+That exception is exactly this portal. `SignIn.tsx` uses `google.accounts.id` — Sign in
+with Google, nothing else. It never calls `initTokenClient`, never names a scope, and
+never asks for Drive, Gmail or Calendar, so the only scopes in play are openid, email and
+profile. The consequences are worth stating plainly, because each one is a thing not to
+go and do:
+
+- **Testing and In production behave identically for us.** Publishing changes nothing.
+- **The test user list does nothing.** Adding twenty-four GMs to it will not let one of
+  them in, and leaving it empty will not keep anyone out.
+- **The 7-day expiry does not apply**, and could not anyway: we verify an ID token once at
+  sign-in and then issue our own cookie. There is no refresh token to expire.
+- **There is no verification review to wait for.** It is only triggered by sensitive or
+  restricted scopes, and we request none.
+
+So `Internal` versus `External` is the whole of it, and it is the only Google setting that
+can lock a GM out. If the Publish button is missing or will not work, that is a symptom of
+Internal, not a separate problem — an Internal app has nothing to publish. The control to
+look for is the one that changes the audience to External, not the one that publishes.
 
 **The portal refused — the message is the portal's own,** "That account cannot sign in to
 the ordering portal." Google issued a token and we turned it down. The reason is in the

@@ -14,7 +14,7 @@ dist/
 # Real seed data carries staff email addresses. Templates are committed instead.
 seed/sites.csv
 seed/users.csv
-# Same addresses again, in the shape Google's test user list wants. `npm run testers`.
+# Same addresses again, as one pasteable block. `npm run testers`.
 seed/google-test-users.txt
 
 # Generated SQL. All of it is derived — from the CSVs above, or from a live read of

@@ -1,23 +1,24 @@
 /**
- * The list of emails to paste into the Google OAuth consent screen's test users.
+ * Everyone who may sign in, in the shape Google's test user box wants.
  *
  *   npm run testers
  *
- * Why this exists. Site logins are shared gmail accounts, and a gmail account belongs to
- * no Google organisation, so the consent screen cannot be Internal. If it also cannot be
- * published to In production, the only way in is External + Testing, where Google admits
- * nobody except the accounts named on the test user list. That list is maintained by
- * hand in the Cloud console — there is no API for it — and it is entirely separate from
- * the portal's own `users` table.
+ * Read this before using it, because the obvious reason to want it is the wrong one.
+ * Google's test user list does NOT gate access to this portal and adding people to it
+ * will not let anybody in. An app that asks only for name, email address and profile --
+ * which is all Sign in with Google asks for, and all SignIn.tsx uses -- is exempt from
+ * the Testing-status rules by Google's own documentation: its users "do not need to be
+ * in the trusted user list". DEPLOY.md quotes the passage. What does gate access is the
+ * audience being Internal rather than External, and no list can work around that.
  *
- * So the two lists drift, silently, in the one direction that hurts: add a GM on Sites
- * and people and they are a valid portal user who Google will not let through the door.
- * The symptom is a sign-in failure that looks nothing like a missing account, because it
- * happens on Google's page before the portal is ever reached.
+ * So this exists for two narrower jobs. One: if the portal ever asks for a real scope --
+ * reading a calendar, sending mail as someone -- the exemption stops applying, Testing
+ * status starts turning people away, and the list suddenly matters. Two: it is simply
+ * the current roster in one pasteable block, which is worth having whether or not Google
+ * ever wants it.
  *
- * This prints the list to paste, and — the point of it — names who is new since the last
- * time it was pasted, so a single added GM does not have to be spotted by eye among
- * twenty-four unchanged lines.
+ * Either way it names who is new since the last run, because nobody spots one changed
+ * line among twenty-four unchanged ones.
  *
  * Reads the deployed database through wrangler, which already holds the Cloudflare
  * credentials. READ ONLY.
@@ -29,8 +30,9 @@ const ok = (s: string) => `\x1b[32m${s}\x1b[0m`
 const bad = (s: string) => `\x1b[31m${s}\x1b[0m`
 const dim = (s: string) => `\x1b[2m${s}\x1b[0m`
 
-/** Google's cap on the test user list. Twenty-four sites is nowhere near it, but a
- *  franchise network that grows past it has a hard problem, not a slow one. */
+/** Google's cap on the test user list, for the day the exemption above stops applying.
+ *  Twenty-four sites is nowhere near it; a network that grows past it cannot use Testing
+ *  status at all and has to publish. */
 const GOOGLE_TEST_USER_CAP = 100
 
 const OUT = 'seed/google-test-users.txt'
@@ -89,4 +91,5 @@ if (emails.length > GOOGLE_TEST_USER_CAP) {
 
 writeFileSync(OUT, `${emails.join('\n')}\n`)
 console.log(dim(`\nWritten to ${OUT}. It is git-ignored — these are staff addresses.\n`))
-console.log(dim('Paste into: Google Cloud console -> Google Auth Platform -> Audience -> Test users -> Add users.\n'))
+console.log(dim('If the list is wanted: Google Cloud console -> Google Auth Platform -> Audience -> Test users -> Add users.'))
+console.log(dim('It is not what lets anyone in, though. See the header of this script, and DEPLOY.md.\n'))
