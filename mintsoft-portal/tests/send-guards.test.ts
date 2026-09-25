@@ -20,8 +20,8 @@ beforeEach(() => {
   fake = new FakeD1()
   db = fake as unknown as Database
   fake.exec(`
-    INSERT INTO sites (id, code, name, type, address_1, town, postcode, default_courier_service_id)
-      VALUES (1, 'M9', 'Maki Leith Walk', 'restaurant', '1 Example St', 'Edinburgh', 'EH6 5AA', 3);
+    INSERT INTO sites (id, code, name, type, address_1, town, postcode)
+      VALUES (1, 'M9', 'Maki Leith Walk', 'restaurant', '1 Example St', 'Edinburgh', 'EH6 5AA');
     INSERT INTO users (id, email, name, role) VALUES (2, '${ACTOR}', 'Francheska', 'approver');
     INSERT INTO products (id, name, stock_type) VALUES
       (1, 'Ramen Bowl', 'internal'), (2, 'Chilli Oil', 'internal');

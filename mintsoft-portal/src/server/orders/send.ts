@@ -117,7 +117,7 @@ export async function sendApprovedOrder(
   const site = await db
     .prepare(
       `SELECT code, name, address_1, address_2, address_3, town, county, postcode, country,
-              contact_name, contact_phone, delivery_notes, default_courier_service_id
+              contact_name, contact_phone, delivery_notes
          FROM sites WHERE id = ?`,
     )
     .bind(order.siteId)
@@ -126,7 +126,6 @@ export async function sendApprovedOrder(
       address_3: string | null; town: string | null; county: string | null
       postcode: string | null; country: string; contact_name: string | null
       contact_phone: string | null; delivery_notes: string | null
-      default_courier_service_id: number | null
     }>()
   if (!site) {
     await releaseClaim(db, orderId)
@@ -232,7 +231,7 @@ export async function sendApprovedOrder(
   }
 
   const toPost: OrderToPost = {
-    orderNumber: order.orderNumber,
+    reference: order.orderNumber,
     siteCode: site.code,
     companyName: site.name,
     contactName: site.contact_name,
@@ -242,10 +241,10 @@ export async function sendApprovedOrder(
     deliveryNotes: site.delivery_notes,
     requiredDate: order.requiredDate,
     comments: order.notes,
-    // A site's own courier wins; otherwise the account default. Never null: Mintsoft
-    // refuses an order with no courier service, and a refusal at this point looks to a
-    // GM like the portal is broken rather than like a missing setting.
-    courierServiceId: site.default_courier_service_id ?? settings.defaultCourierServiceId,
+    // Not a choice about how the order ships -- Mercium makes that when they raise the
+    // shipment. It is here because Mintsoft will not accept an order without one, and a
+    // refusal at this point looks to a GM like the portal is broken.
+    courierServiceId: settings.defaultCourierServiceId,
     clientId, warehouseId,
     lines: allocations.flatMap((a) => (a.kind === 'allocated' ? a.parts : []))
       .map((p) => ({ sku: p.sku, quantity: p.qty })),
@@ -269,20 +268,24 @@ export async function sendApprovedOrder(
     case 'already_exists': {
       await db.batch([
         db.prepare(
-          `UPDATE orders SET status = 'posted', mintsoft_order_id = ?, posted_at = ?,
-                  post_error = NULL, updated_at = ? WHERE id = ?`,
-        ).bind(outcome.mintsoftOrderId, nowIso(), nowIso(), orderId),
+          `UPDATE orders SET status = 'posted', mintsoft_order_id = ?, mintsoft_order_number = ?,
+                  posted_at = ?, post_error = NULL, updated_at = ? WHERE id = ?`,
+        ).bind(outcome.mintsoftOrderId, outcome.mintsoftOrderNumber, nowIso(), nowIso(), orderId),
         auditStatement(db, orderId, actor, outcome.kind === 'created' ? 'posted' : 'attached_existing', {
           mintsoftOrderId: outcome.mintsoftOrderId,
+          mintsoftOrderNumber: outcome.mintsoftOrderNumber,
           lines: toPost.lines,
         }),
       ])
+      // Say the number Mercium will say. The internal id is the fallback for the case
+      // where Mintsoft created the order but did not echo a number for it.
+      const named = outcome.mintsoftOrderNumber ?? `${outcome.mintsoftOrderId}`
       return {
         ok: true,
         status: outcome.kind === 'created' ? 'posted' : 'already_posted',
         message: outcome.kind === 'created'
-          ? `Sent to Mercium as order ${outcome.mintsoftOrderId}.`
-          : `Already in Mintsoft as order ${outcome.mintsoftOrderId}; attached rather than sent again.`,
+          ? `Sent to Mercium as order ${named}.`
+          : `Already in Mintsoft as order ${named}; attached rather than sent again.`,
         mintsoftOrderId: outcome.mintsoftOrderId,
       }
     }

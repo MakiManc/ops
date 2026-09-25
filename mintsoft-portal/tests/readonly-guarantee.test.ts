@@ -66,9 +66,31 @@ describe('the allow-list', () => {
 })
 
 describe('the id-bearing read patterns', () => {
-  it('allows only the two per-product reads they are meant to allow', () => {
+  it('allows only the per-product reads they are meant to allow', () => {
     expect(isAllowedReadPath('/api/Product/4021/Inventory')).toBe(true)
     expect(isAllowedReadPath('/api/Product/4021/Inventory/PreOrderBreakdown/All')).toBe(true)
+  })
+
+  it('allows reading one order by id, which is how despatch is now checked', () => {
+    // Added deliberately when the despatch sync stopped being able to search by our own
+    // order number. Its only parameter in the spec is the id, and it answers with an
+    // Order -- unlike the Cancel and Mark* GETs sitting one segment further on.
+    expect(isAllowedReadPath('/api/Order/2322')).toBe(true)
+  })
+
+  it('does not let that open the rest of the order endpoints', () => {
+    for (const path of [
+      '/api/Order/2322/Cancel',
+      '/api/Order/2322/CancelNoStock',
+      '/api/Order/2322/MarkConfirmed',
+      '/api/Order/2322/MarkPrinted',
+      '/api/Order/2322/Tag',
+      '/api/Order/2322/Items',
+      '/api/Order/abc',
+      '/api/Order/2322x',
+    ]) {
+      expect(isAllowedReadPath(path), `${path} must not be allowed`).toBe(false)
+    }
   })
 
   it('does not let an id in the path become a way to reach a write', () => {

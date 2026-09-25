@@ -37,6 +37,8 @@ export interface OrderSummary {
   approvedAt: string | null
   rejectedReason: string | null
   mintsoftOrderId: number | null
+  /** What Mercium calls it: MRK-<id>, assigned by Mintsoft. Null until the order is sent. */
+  mintsoftOrderNumber: string | null
   postError: string | null
   despatchedAt: string | null
   trackingUrl: string | null
@@ -58,7 +60,7 @@ const ORDER_SELECT = `
   SELECT o.id, o.order_number, o.site_id, s.code AS site_code, s.name AS site_name,
          o.type, o.status, o.requester_name, o.required_date, o.notes, o.early_order_reason,
          o.recharge, o.recharge_total, o.order_fee, o.submitted_at, o.approved_at,
-         o.rejected_reason, o.mintsoft_order_id, o.post_error, o.despatched_at,
+         o.rejected_reason, o.mintsoft_order_id, o.mintsoft_order_number, o.post_error, o.despatched_at,
          o.tracking_url, o.created_at
     FROM orders o JOIN sites s ON s.id = o.site_id`
 
@@ -68,7 +70,8 @@ interface RawOrder {
   required_date: string | null; notes: string | null; early_order_reason: string | null
   recharge: number; recharge_total: number | null; order_fee: number | null
   submitted_at: string | null; approved_at: string | null; rejected_reason: string | null
-  mintsoft_order_id: number | null; post_error: string | null; despatched_at: string | null
+  mintsoft_order_id: number | null; mintsoft_order_number: string | null
+  post_error: string | null; despatched_at: string | null
   tracking_url: string | null; created_at: string
 }
 
@@ -78,7 +81,8 @@ const toSummary = (r: RawOrder): OrderSummary => ({
   requiredDate: r.required_date, notes: r.notes, earlyOrderReason: r.early_order_reason,
   recharge: r.recharge === 1, rechargeTotal: r.recharge_total, orderFee: r.order_fee,
   submittedAt: r.submitted_at, approvedAt: r.approved_at, rejectedReason: r.rejected_reason,
-  mintsoftOrderId: r.mintsoft_order_id, postError: r.post_error, despatchedAt: r.despatched_at,
+  mintsoftOrderId: r.mintsoft_order_id, mintsoftOrderNumber: r.mintsoft_order_number,
+  postError: r.post_error, despatchedAt: r.despatched_at,
   trackingUrl: r.tracking_url, createdAt: r.created_at,
 })
 

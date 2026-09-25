@@ -7,10 +7,12 @@ export interface Settings {
   passOrderFeeToFranchise: boolean
   availableFormula: AvailableFormula
   /**
-   * Courier service used when a site has none of its own.
+   * The courier service every order is sent with.
    *
-   * Mintsoft REFUSES an order that carries no courier service, so this is not a
-   * preference — without it nothing can be sent at all.
+   * Not a choice about how anything ships — Mercium makes that when they raise the
+   * shipment, and they are the ones who can. It is here because Mintsoft REFUSES an
+   * order that carries no courier service, so without a value nothing can be sent at
+   * all. Sites used to be able to override it; none ever did, and the column is gone.
    */
   defaultCourierServiceId: number
 }

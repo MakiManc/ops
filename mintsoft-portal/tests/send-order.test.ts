@@ -18,8 +18,8 @@ beforeEach(() => {
   fake = new FakeD1()
   db = fake as unknown as Database
   fake.exec(`
-    INSERT INTO sites (id, code, name, type, address_1, town, postcode, default_courier_service_id)
-      VALUES (1, 'M9', 'Maki Leith Walk', 'restaurant', '1 Example St', 'Edinburgh', 'EH6 5AA', 3);
+    INSERT INTO sites (id, code, name, type, address_1, town, postcode)
+      VALUES (1, 'M9', 'Maki Leith Walk', 'restaurant', '1 Example St', 'Edinburgh', 'EH6 5AA');
     INSERT INTO users (id, email, name, role) VALUES
       (1, 'gm@example.com', 'GM', 'gm'),
       (2, '${ACTOR}', 'Francheska', 'approver'),
@@ -49,7 +49,10 @@ function stub(opts: { search?: unknown[]; searchStatus?: number; put?: unknown; 
     async putOrder(body) {
       puts.push(body)
       if (opts.putThrows) throw opts.putThrows
-      return { data: (opts.put ?? [{ Success: true, OrderId: 8811 }]) as never, status: 200, raw: '' }
+      return {
+        data: (opts.put ?? [{ Success: true, OrderId: 8811, OrderNumber: 'MRK-8811' }]) as never,
+        status: 200, raw: '',
+      }
     },
   }
   return { client, puts }
@@ -105,6 +108,27 @@ describe('a clean send', () => {
     expect((await eventsForOrder(db, 1)).map((e) => e.event)).toContain('posted')
   })
 
+  it("records the number Mintsoft gave it, which is the one Mercium will quote", async () => {
+    const { client } = stub()
+    const result = await send(client)
+    expect(result.message).toContain('MRK-8811')
+
+    const { results } = await db.prepare(`SELECT mintsoft_order_number FROM orders WHERE id = 1`)
+      .all<{ mintsoft_order_number: string | null }>()
+    expect(results[0]?.mintsoft_order_number).toBe('MRK-8811')
+  })
+
+  it('still records the send when Mintsoft reports success but echoes no number', async () => {
+    // Success and an id, no OrderNumber. The order exists; falling over here would
+    // strand a real order over a missing label.
+    const { client } = stub({ put: [{ Success: true, OrderId: 8811 }] })
+    const result = await send(client)
+    expect(result).toMatchObject({ ok: true, status: 'posted', mintsoftOrderId: 8811 })
+    const { results } = await db.prepare(`SELECT mintsoft_order_number FROM orders WHERE id = 1`)
+      .all<{ mintsoft_order_number: string | null }>()
+    expect(results[0]?.mintsoft_order_number).toBeNull()
+  })
+
   it('splits the line across warehouse SKUs when the primary cannot cover it', async () => {
     const { client, puts } = stub()
     await send(client)
@@ -121,7 +145,7 @@ describe('a clean send', () => {
     await send(client)
     expect(puts[0]).toMatchObject({
       CompanyName: 'Maki Leith Walk', Address1: '1 Example St',
-      Town: 'Edinburgh', PostCode: 'EH6 5AA', CourierServiceId: 3,
+      Town: 'Edinburgh', PostCode: 'EH6 5AA', CourierServiceId: 169,
     })
   })
 })
@@ -174,7 +198,7 @@ describe('when we do not know whether it went', () => {
     const first = stub({ putThrows: new Error('socket hang up') })
     await send(first.client)
 
-    const second = stub({ search: [{ OrderNumber: 'MR-M9-20260921-001', ID: 8811 }] })
+    const second = stub({ search: [{ OrderNumber: 'MRK-8811', ExternalOrderReference: 'MR-M9-20260921-001', ID: 8811 }] })
     const result = await send(second.client)
 
     expect(result).toMatchObject({ ok: true, status: 'already_posted', mintsoftOrderId: 8811 })
@@ -197,36 +221,34 @@ describe('when we do not know whether it went', () => {
  *
  *   "No CourierService Specified! Either use CourierService or CourierServiceId"
  *
- * Phase 3's live test order hit exactly that. The portal had
- * sites.default_courier_service_id, but nothing populates it — the site directory
- * carries no courier — so every site had NULL and every order would have been refused.
- * A GM would have met it on their first real request, and it would have looked like the
- * portal was broken rather than like a missing setting.
+ * Phase 3's live test order hit exactly that, which is why one is still sent. What
+ * changed is what it means. It used to be a choice, with a per-site column above an
+ * account default; nobody at Maki was ever in a position to make that choice, and the
+ * data agreed -- all 23 sites left it NULL, so the fallback carried every order anyway.
+ * Mercium decides how a thing ships, when they raise the shipment. This value only has
+ * to get the order through the door.
  */
 describe('the courier service, which Mintsoft will not accept an order without', () => {
   const courierOf = (puts: unknown[]) =>
     (puts[0] as Record<string, unknown> | undefined)?.CourierServiceId
 
-  it('falls back to the account default when the site has none', async () => {
-    fake.exec(`UPDATE sites SET default_courier_service_id = NULL WHERE id = 1`)
+  it('is the account default, the same one for every site', async () => {
     const { client, puts } = stub()
     await send(client)
     // 169 is DPD Next Day - Parcel: 44 of the account's 50 most recent orders used it.
     expect(courierOf(puts)).toBe(169)
   })
 
-  it("prefers the site's own courier when it has one", async () => {
-    fake.exec(`UPDATE sites SET default_courier_service_id = 2028 WHERE id = 1`)  // Van
-    const { client, puts } = stub()
-    await send(client)
-    expect(courierOf(puts)).toBe(2028)
-  })
-
-  it('never sends an order with no courier at all', async () => {
-    fake.exec(`UPDATE sites SET default_courier_service_id = NULL WHERE id = 1`)
+  it('is never absent, whatever the site looks like', async () => {
     const { client, puts } = stub()
     await send(client)
     expect(courierOf(puts)).toBeDefined()
     expect(courierOf(puts)).not.toBeNull()
+  })
+
+  it('cannot be varied per site any more, because that column is gone', async () => {
+    const { results } = await fake.prepare(`SELECT name FROM pragma_table_info('sites')`)
+      .all<{ name: string }>()
+    expect(results.map((c) => c.name)).not.toContain('default_courier_service_id')
   })
 })

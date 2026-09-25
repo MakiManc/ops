@@ -356,10 +356,11 @@ export async function syncOrderStatus(
 ): Promise<SyncOutcome> {
   const { results: open } = await db
     .prepare(
-      `SELECT id, order_number, mintsoft_order_id FROM orders
+      `SELECT id, order_number, mintsoft_order_id, mintsoft_order_number FROM orders
         WHERE status = 'posted' AND mintsoft_order_id IS NOT NULL`,
     )
-    .all<{ id: number; order_number: string; mintsoft_order_id: number }>()
+    .all<{ id: number; order_number: string; mintsoft_order_id: number
+           mintsoft_order_number: string | null }>()
 
   if (!open?.length) return { rowsWritten: 0, detail: 'No orders are waiting on the warehouse.' }
 
@@ -369,19 +370,28 @@ export async function syncOrderStatus(
   const unreadable: string[] = []
 
   for (const order of open) {
-    const { data, status } = await client.get<Order[]>('/api/Order/Search', {
-      OrderNumber: order.order_number, exactMatch: true,
-    })
+    // By id, not by number. This used to search on our own MR-<site>-<date>-<seq>, which
+    // worked only while we were the ones naming the order. Mintsoft names them now, so
+    // searching for our reference would match nothing and every posted order would sit
+    // here unreadable forever, with the GM never seeing a tracking link.
+    const { data, status } = await client.get<Order>(`/api/Order/${order.mintsoft_order_id}`)
 
-    if (status !== 200 || !Array.isArray(data)) {
+    if (status !== 200 || !data || Array.isArray(data)) {
       // Not being able to read an order is not evidence about it. Say so rather than
       // leaving it looking checked.
       unreadable.push(order.order_number)
       continue
     }
 
-    const match = data.find((o) => o.OrderNumber === order.order_number)
-    if (!match) { unreadable.push(order.order_number); continue }
+    const match = data
+
+    // First sight of the number Mintsoft gave it, if the create did not echo one.
+    if (!order.mintsoft_order_number && match.OrderNumber) {
+      statements.push(
+        db.prepare(`UPDATE orders SET mintsoft_order_number = ? WHERE id = ? AND mintsoft_order_number IS NULL`)
+          .bind(match.OrderNumber, order.id),
+      )
+    }
 
     if (match.DespatchDate) {
       despatched++

@@ -31,8 +31,8 @@ beforeEach(() => {
   fake = new FakeD1()
   db = fake as unknown as Database
   fake.exec(`
-    INSERT INTO sites (id, code, name, type, address_1, town, postcode, default_courier_service_id)
-      VALUES (1, 'M9', 'Maki Leith Walk', 'restaurant', '1 Example St', 'Edinburgh', 'EH6 5AA', 3);
+    INSERT INTO sites (id, code, name, type, address_1, town, postcode)
+      VALUES (1, 'M9', 'Maki Leith Walk', 'restaurant', '1 Example St', 'Edinburgh', 'EH6 5AA');
     INSERT INTO users (id, email, name, role) VALUES
       (2, '${ACTOR}', 'Francheska', 'approver'),
       (4, '${OTHER}', 'Lincoln', 'approver');
@@ -165,7 +165,7 @@ describe('the claim does not replace the lookup', () => {
   it('still attaches an order that already exists at Mercium rather than creating a second', async () => {
     // The crash-window case: a previous process created it but died before recording.
     const { client, puts } = sharedClient({
-      search: [{ ID: 9999, OrderNumber: 'MR-M9-20260921-001' }],
+      search: [{ ID: 9999, OrderNumber: 'MRK-9999', ExternalOrderReference: 'MR-M9-20260921-001' }],
     })
     const result = await send(client, ACTOR)
 

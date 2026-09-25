@@ -11,14 +11,20 @@ import { mayWriteToMintsoft, writesEnabled, type OrderForWrite } from '../src/se
  */
 
 const order: OrderToPost = {
-  orderNumber: 'MR-M9-20260921-001', siteCode: 'M9', companyName: 'Maki & Ramen Leith Walk',
+  reference: 'MR-M9-20260921-001', siteCode: 'M9', companyName: 'Maki & Ramen Leith Walk',
   contactName: 'Site Manager', address1: '1 Example Street', address2: null, address3: null,
   town: 'Edinburgh', county: null, postcode: 'EH6 5AA', country: 'GB', phone: null,
   deliveryNotes: null, requiredDate: null, comments: null, courierServiceId: 3,
   clientId: 42, warehouseId: 1, lines: [{ sku: 'BOWL-01', quantity: 24 }],
 }
 
-/** A Mintsoft that records what it was asked to do. */
+/**
+ * A Mintsoft that records what it was asked to do.
+ *
+ * `searchResults` is what /api/Order/List answers with. It answers the same page every
+ * time, which is fine while the fixtures are shorter than a page: the lookup stops at
+ * the first short page.
+ */
 function stubMintsoft(opts: {
   searchResults?: unknown[]
   searchStatus?: number
@@ -38,7 +44,7 @@ function stubMintsoft(opts: {
       puts.push(body)
       if (opts.putThrows) throw opts.putThrows
       return {
-        data: (opts.putResult ?? [{ Success: true, OrderId: 8811, OrderNumber: order.orderNumber }]) as never,
+        data: (opts.putResult ?? [{ Success: true, OrderId: 8811, OrderNumber: 'MRK-8811' }]) as never,
         status: opts.putStatus ?? 200,
         raw: '',
       }
@@ -124,51 +130,133 @@ describe('order numbers', () => {
 
 describe('looking up an existing order', () => {
   it('finds one that is already there', async () => {
-    const { client } = stubMintsoft({ searchResults: [{ OrderNumber: order.orderNumber, ID: 8811 }] })
-    expect(await lookupExistingOrder(client, order.orderNumber)).toEqual({ kind: 'found', mintsoftOrderId: 8811 })
+    const { client } = stubMintsoft({
+      searchResults: [{ OrderNumber: 'MRK-8811', ExternalOrderReference: order.reference, ID: 8811 }],
+    })
+    expect(await lookupExistingOrder(client, order.reference))
+      .toEqual({ kind: 'found', mintsoftOrderId: 8811, mintsoftOrderNumber: 'MRK-8811' })
   })
 
   it('reports absent when Mintsoft answers with an empty list', async () => {
     const { client } = stubMintsoft({ searchResults: [] })
-    expect(await lookupExistingOrder(client, order.orderNumber)).toEqual({ kind: 'absent' })
+    expect(await lookupExistingOrder(client, order.reference)).toEqual({ kind: 'absent' })
   })
 
   it('treats a 404 as unknown, not as absent', async () => {
     // Mintsoft's own words: "Order not found or not accessible". Those need different
     // actions, and creating against the wrong one makes the duplicate.
     const { client } = stubMintsoft({ searchStatus: 404 })
-    const outcome = await lookupExistingOrder(client, order.orderNumber)
+    const outcome = await lookupExistingOrder(client, order.reference)
     expect(outcome.kind).toBe('unknown')
   })
 
   it('treats a network failure as unknown', async () => {
     const { client } = stubMintsoft({ searchThrows: new Error('connection reset') })
-    expect((await lookupExistingOrder(client, order.orderNumber)).kind).toBe('unknown')
+    expect((await lookupExistingOrder(client, order.reference)).kind).toBe('unknown')
   })
 
-  it('ignores an order whose number merely resembles ours', async () => {
-    const { client } = stubMintsoft({ searchResults: [{ OrderNumber: 'MR-M9-20260921-0010', ID: 9999 }] })
-    expect(await lookupExistingOrder(client, order.orderNumber)).toEqual({ kind: 'absent' })
+  it('ignores an order whose reference merely resembles ours', async () => {
+    const { client } = stubMintsoft({
+      searchResults: [{ OrderNumber: 'MRK-9999', ExternalOrderReference: 'MR-M9-20260921-0010', ID: 9999 }],
+    })
+    expect(await lookupExistingOrder(client, order.reference)).toEqual({ kind: 'absent' })
+  })
+
+  it('ignores Mercium\'s own orders, which carry no reference of ours', async () => {
+    const { client } = stubMintsoft({
+      searchResults: [{ OrderNumber: 'MRK-2313', ExternalOrderReference: null, ID: 2313 }],
+    })
+    expect(await lookupExistingOrder(client, order.reference)).toEqual({ kind: 'absent' })
+  })
+})
+
+/**
+ * The lookup walks pages, so the end of the list has to be told apart from the end of
+ * our patience. Getting that wrong in the wrong direction creates the duplicate.
+ */
+describe('looking up across pages', () => {
+  /** A Mintsoft with `total` portal orders, none of them ours, served 200 at a time. */
+  function stubPages(total: number) {
+    const calls: number[] = []
+    const client = {
+      async get<T>(_path: string, query?: Record<string, unknown>) {
+        const page = Number(query?.PageNo ?? 1)
+        calls.push(page)
+        const start = (page - 1) * 200
+        const rows = Array.from({ length: Math.max(0, Math.min(200, total - start)) }, (_, i) => ({
+          ID: start + i + 1,
+          OrderNumber: `MRK-${start + i + 1}`,
+          ExternalOrderReference: `MR-OTHER-20260101-${start + i + 1}`,
+        }))
+        return { data: rows as T, status: 200, ms: 1, raw: '' }
+      },
+      async putOrder() { throw new Error('must not create during a lookup test') },
+    } as unknown as MintsoftWriteClient
+    return { client, calls }
+  }
+
+  it('keeps going past a full page rather than stopping at the first one', async () => {
+    const { client, calls } = stubPages(250)
+    expect(await lookupExistingOrder(client, order.reference)).toEqual({ kind: 'absent' })
+    expect(calls).toEqual([1, 2])
+  })
+
+  it('finds an order sitting on a later page', async () => {
+    const { client } = stubPages(250)
+    const wrapped = {
+      ...client,
+      async get<T>(path: string, query?: Record<string, unknown>) {
+        const res = await client.get<Record<string, unknown>[]>(path, query as never)
+        if (Number(query?.PageNo) === 2 && Array.isArray(res.data)) {
+          res.data[0] = { ID: 8811, OrderNumber: 'MRK-8811', ExternalOrderReference: order.reference }
+        }
+        return res as unknown as { data: T; status: number; ms: number; raw: string }
+      },
+    } as unknown as MintsoftWriteClient
+    expect(await lookupExistingOrder(wrapped, order.reference))
+      .toEqual({ kind: 'found', mintsoftOrderId: 8811, mintsoftOrderNumber: 'MRK-8811' })
+  })
+
+  it('says unknown, never absent, when it runs out of pages still looking', async () => {
+    // The dangerous case. "I have not seen it yet" must never be read as "it is not
+    // there", because that reading is what sends a second pallet.
+    const { client } = stubPages(200 * 40)
+    const outcome = await lookupExistingOrder(client, order.reference)
+    expect(outcome.kind).toBe('unknown')
+  })
+
+  it('refuses to create when the pages ran out, rather than risking a duplicate', async () => {
+    const { client } = stubPages(200 * 40)
+    const puts: unknown[] = []
+    const watched = { ...client, async putOrder(body: unknown) { puts.push(body); return { data: null, status: 200, raw: '' } } } as unknown as MintsoftWriteClient
+    expect((await postOrder(watched, order)).kind).toBe('uncertain')
+    expect(puts).toHaveLength(0)
   })
 })
 
 describe('posting an order', () => {
   it('creates it and returns the Mintsoft id', async () => {
     const { client, puts } = stubMintsoft()
-    expect(await postOrder(client, order)).toEqual({ kind: 'created', mintsoftOrderId: 8811 })
+    expect(await postOrder(client, order))
+      .toEqual({ kind: 'created', mintsoftOrderId: 8811, mintsoftOrderNumber: 'MRK-8811' })
     expect(puts).toHaveLength(1)
   })
 
   it('sends the lines as SKU and quantity', async () => {
-    const body = buildOrderBody(order) as { OrderItems: { SKU: string; Quantity: number }[]; OrderNumber: string }
+    const body = buildOrderBody(order) as { OrderItems: { SKU: string; Quantity: number }[] }
     expect(body.OrderItems).toEqual([{ SKU: 'BOWL-01', Quantity: 24 }])
-    expect(body.OrderNumber).toBe('MR-M9-20260921-001')
+  })
+
+  it('names no order number, so Mintsoft assigns its own', async () => {
+    // Mercium's orders are MRK-<id>. Ours used to arrive as MR-<site>-<date>-<seq>, so
+    // the two sides had different names for the same order.
+    expect(buildOrderBody(order)).not.toHaveProperty('OrderNumber')
   })
 
   it('tags the order so it can be found from the Mintsoft side too', async () => {
     const body = buildOrderBody(order) as { Tags: string; ExternalOrderReference: string }
     expect(body.Tags).toContain('maki-portal')
-    expect(body.ExternalOrderReference).toBe(order.orderNumber)
+    expect(body.ExternalOrderReference).toBe(order.reference)
   })
 
   it('treats a 200 carrying Success:false as a rejection, not a success', async () => {
@@ -213,10 +301,13 @@ describe('a timeout after a successful create must not duplicate the order', () 
     expect(first.puts).toHaveLength(1)   // it really was sent
 
     // Retry. Mintsoft now has the order, because the create had in fact succeeded.
-    const second = stubMintsoft({ searchResults: [{ OrderNumber: order.orderNumber, ID: 8811 }] })
+    const second = stubMintsoft({
+      searchResults: [{ OrderNumber: 'MRK-8811', ExternalOrderReference: order.reference, ID: 8811 }],
+    })
     const secondOutcome = await postOrder(second.client, order)
 
-    expect(secondOutcome).toEqual({ kind: 'already_exists', mintsoftOrderId: 8811 })
+    expect(secondOutcome)
+      .toEqual({ kind: 'already_exists', mintsoftOrderId: 8811, mintsoftOrderNumber: 'MRK-8811' })
     // The whole point: no second order was sent.
     expect(second.puts).toHaveLength(0)
   })

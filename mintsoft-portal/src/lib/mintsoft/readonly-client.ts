@@ -45,6 +45,10 @@ export const ALLOWED_READ_PATHS = Object.freeze([
  * the simple thing it is.
  */
 export const ALLOWED_READ_PATTERNS: readonly RegExp[] = Object.freeze([
+  // GET /api/Order/{id}. Checked against the spec before adding: its only parameter is
+  // the id in the path and it answers with an Order, unlike its neighbours
+  // /api/Order/{id}/Cancel and the Mark* family, which are writes wearing a GET.
+  /^\/api\/Order\/\d+$/,
   /^\/api\/Product\/\d+\/Inventory$/,
   /^\/api\/Product\/\d+\/Inventory\/PreOrderBreakdown\/All$/,
 ])

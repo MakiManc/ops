@@ -23,7 +23,7 @@ import type { NewOrderResult, Order } from '../../lib/mintsoft/types.ts'
 
 export type LookupOutcome =
   /** The order is in Mintsoft. Attach it; never create. */
-  | { kind: 'found'; mintsoftOrderId: number }
+  | { kind: 'found'; mintsoftOrderId: number; mintsoftOrderNumber: string | null }
   /** Mintsoft answered, and it is genuinely not there. Safe to create. */
   | { kind: 'absent' }
   /** We could not get a trustworthy answer. Stop and let a human look. */
@@ -38,56 +38,94 @@ export interface MintsoftWriteClient {
 }
 
 /**
- * Does an order with this number already exist in Mintsoft?
+ * The tag every order the portal creates carries. It is what makes our orders findable
+ * among Mercium's own without knowing the number Mintsoft gave them.
+ */
+export const PORTAL_TAG = 'maki-portal'
+
+/** One page of /api/Order/List, and how many we will walk before giving up. */
+const LOOKUP_PAGE_SIZE = 200
+const LOOKUP_MAX_PAGES = 25
+
+/**
+ * Has an order carrying this reference already reached Mintsoft?
  *
- * Uses /api/Order/Search rather than /api/Order/GetOrderId. Both take the order number,
- * but GetOrderId declares its success body as a bare untyped object with no properties
- * at all, so there is no way to know what it returns without a live call. Search returns
- * a typed Order[], which tells us both that the order exists and which order it is —
- * and that second part is what we need in order to attach it.
+ * This used to ask /api/Order/Search, which takes an OrderNumber and nothing else. That
+ * worked only while we were choosing the order number ourselves. Mintsoft numbers its
+ * own orders now, and we cannot search for a number we have not been told yet — which is
+ * precisely the case this check exists for, the send whose reply never arrived.
+ *
+ * So it asks /api/Order/List for orders tagged as ours and matches on
+ * ExternalOrderReference, which still carries MR-<site>-<date>-<seq>. Confirmed live on
+ * 2026-09-25: IncludeTags=maki-portal returns our orders and none of Mercium's, and the
+ * rows carry ExternalOrderReference.
+ *
+ * Every uncertainty answers "unknown" rather than "absent". Absent is a licence to
+ * create, and a wrong one costs a second pallet.
  */
 export async function lookupExistingOrder(
   client: Pick<MintsoftWriteClient, 'get'>,
-  orderNumber: string,
+  reference: string,
+  scope: { clientId?: number | null } = {},
 ): Promise<LookupOutcome> {
-  let response
-  try {
-    response = await client.get<Order[]>('/api/Order/Search', {
-      OrderNumber: orderNumber, exactMatch: true,
-    })
-  } catch (err) {
-    // A network failure tells us nothing about whether the order exists.
-    return { kind: 'unknown', reason: `Could not reach Mintsoft to check: ${err instanceof Error ? err.message : 'unknown error'}` }
-  }
-
-  if (response.status === 404) {
-    // Mintsoft answered, and its answer is "not found or not accessible". We cannot
-    // tell those apart, and only one of them is safe to create against.
-    return {
-      kind: 'unknown',
-      reason: 'Mintsoft returned 404, which means the order does not exist OR is not visible to this API user. ' +
-        'Those need different actions, so this needs a human.',
+  for (let page = 1; page <= LOOKUP_MAX_PAGES; page++) {
+    let response
+    try {
+      response = await client.get<Order[]>('/api/Order/List', {
+        IncludeTags: PORTAL_TAG,
+        ClientId: scope.clientId ?? undefined,
+        PageNo: page,
+        Limit: LOOKUP_PAGE_SIZE,
+      })
+    } catch (err) {
+      // A network failure tells us nothing about whether the order exists.
+      return { kind: 'unknown', reason: `Could not reach Mintsoft to check: ${err instanceof Error ? err.message : 'unknown error'}` }
     }
+
+    if (response.status === 404) {
+      // Mintsoft answered, and its answer is "not found or not accessible". We cannot
+      // tell those apart, and only one of them is safe to create against.
+      return {
+        kind: 'unknown',
+        reason: 'Mintsoft returned 404, which means there are no orders to list OR they are not visible to this API user. ' +
+          'Those need different actions, so this needs a human.',
+      }
+    }
+
+    if (response.status !== 200 || !Array.isArray(response.data)) {
+      return { kind: 'unknown', reason: `Mintsoft answered with HTTP ${response.status} rather than a list of orders.` }
+    }
+
+    const match = response.data.find((o) => o.ExternalOrderReference === reference)
+    if (match) {
+      if (match.ID == null) {
+        return { kind: 'unknown', reason: `Mintsoft returned an order referenced ${reference} with no id.` }
+      }
+      return { kind: 'found', mintsoftOrderId: match.ID, mintsoftOrderNumber: match.OrderNumber ?? null }
+    }
+
+    // A short page is the last page. Having walked all of them without a match, it is
+    // genuinely not there.
+    if (response.data.length < LOOKUP_PAGE_SIZE) return { kind: 'absent' }
   }
 
-  if (response.status !== 200 || !Array.isArray(response.data)) {
-    return { kind: 'unknown', reason: `Mintsoft answered with HTTP ${response.status} rather than a list of orders.` }
+  // Ran out of pages still looking. "Not seen yet" is not "not there", and treating it
+  // as absent is how a duplicate gets created.
+  return {
+    kind: 'unknown',
+    reason: `Walked ${LOOKUP_MAX_PAGES} pages of portal orders without reaching the end, so whether ` +
+      `${reference} is already in Mintsoft is unanswered. The list needs narrowing before this can be trusted.`,
   }
-
-  // exactMatch was requested, but trust our own comparison rather than the parameter.
-  const match = response.data.find((o) => o.OrderNumber === orderNumber)
-  if (!match) return { kind: 'absent' }
-
-  if (match.ID == null) {
-    return { kind: 'unknown', reason: `Mintsoft returned an order numbered ${orderNumber} with no id.` }
-  }
-  return { kind: 'found', mintsoftOrderId: match.ID }
 }
 
 export interface OrderLine { sku: string; quantity: number }
 
 export interface OrderToPost {
-  orderNumber: string
+  /**
+   * Ours, not Mintsoft's: MR-<site>-<date>-<seq>. It goes out as ExternalOrderReference
+   * and is what the lookup above matches on. Mintsoft assigns the order number itself.
+   */
+  reference: string
   siteCode: string
   companyName: string
   contactName: string | null
@@ -112,10 +150,11 @@ export interface OrderToPost {
 export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
   const [firstName, ...rest] = (order.contactName ?? order.siteCode).trim().split(/\s+/)
   return {
-    OrderNumber: order.orderNumber,
-    // A second handle on the order, so we can still find it if a number lookup fails.
-    ExternalOrderReference: order.orderNumber,
-    Tags: `maki-portal,${order.siteCode}`,
+    // No OrderNumber. Mintsoft assigns one -- MRK-<id>, the same shape as every order
+    // Mercium raises itself -- so both sides have one name for the order instead of two.
+    // Ours stays as the reference, which is what the lookup matches on.
+    ExternalOrderReference: order.reference,
+    Tags: `${PORTAL_TAG},${order.siteCode}`,
     CompanyName: order.companyName,
     FirstName: firstName || order.siteCode,
     LastName: rest.join(' ') || order.siteCode,
@@ -138,8 +177,8 @@ export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
 }
 
 export type PostOutcome =
-  | { kind: 'created'; mintsoftOrderId: number }
-  | { kind: 'already_exists'; mintsoftOrderId: number }
+  | { kind: 'created'; mintsoftOrderId: number; mintsoftOrderNumber: string | null }
+  | { kind: 'already_exists'; mintsoftOrderId: number; mintsoftOrderNumber: string | null }
   /** Another send holds the order. Nothing was attempted; wait for that one. */
   | { kind: 'in_flight' }
   /** Mintsoft refused it. The message is Mintsoft's own. */
@@ -170,9 +209,13 @@ export async function postOrder(
    */
   claimBeforeCreate: () => Promise<boolean> = async () => true,
 ): Promise<PostOutcome> {
-  const existing = await lookupExistingOrder(client, order.orderNumber)
+  const existing = await lookupExistingOrder(client, order.reference, { clientId: order.clientId })
   if (existing.kind === 'found') {
-    return { kind: 'already_exists', mintsoftOrderId: existing.mintsoftOrderId }
+    return {
+      kind: 'already_exists',
+      mintsoftOrderId: existing.mintsoftOrderId,
+      mintsoftOrderNumber: existing.mintsoftOrderNumber,
+    }
   }
   if (existing.kind === 'unknown') {
     return { kind: 'uncertain', reason: existing.reason }
@@ -229,5 +272,11 @@ export async function postOrder(
     }
   }
 
-  return { kind: 'created', mintsoftOrderId: withId.OrderId }
+  // Mintsoft echoes the number it assigned. Recording it is what lets Maki and Mercium
+  // talk about the same order; without it the portal knows only an internal id.
+  return {
+    kind: 'created',
+    mintsoftOrderId: withId.OrderId,
+    mintsoftOrderNumber: withId.OrderNumber ?? null,
+  }
 }

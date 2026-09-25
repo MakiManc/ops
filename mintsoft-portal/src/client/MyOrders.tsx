@@ -20,6 +20,7 @@ interface Order {
   submittedAt: string | null
   approvedAt: string | null
   despatchedAt: string | null
+  mintsoftOrderNumber: string | null
   trackingUrl: string | null
   createdAt: string
   recharge: boolean
@@ -93,8 +94,13 @@ export function MyOrders() {
           <li key={order.id} className="bg-white border border-gray-300 rounded-xl p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-gray-900">{order.orderNumber}</h3>
+                {/* Once it has gone, lead with the number Mercium uses. Quoting our own
+                    reference at them means looking up which order it is first. */}
+                <h3 className="font-semibold text-gray-900">
+                  {order.mintsoftOrderNumber ?? order.orderNumber}
+                </h3>
                 <p className="text-sm text-gray-600">
+                  {order.mintsoftOrderNumber && <>ours: {order.orderNumber} · </>}
                   {order.requesterName ? `${order.requesterName} · ` : ''}{timeAgo(order.createdAt)}
                 </p>
               </div>
