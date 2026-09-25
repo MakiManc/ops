@@ -210,6 +210,14 @@ row and no Testing/production split — so there is nothing for an Internal app 
 It is a symptom, not a second problem. The control to look for is the one that changes the
 audience to External, not the one that publishes.
 
+And if Publish stays greyed out afterwards, **leave it greyed out**. Google's help page
+says a project "is considered In production after selecting the Publish app button", and
+that button is reported to require a valid app name, support email, homepage URL and
+privacy policy URL before it will enable. None of that is worth doing here. By the
+exception above, External and Testing already admits every GM, so this portal has never
+needed a homepage or a privacy policy URL to let someone sign in. Make the audience
+External and stop there.
+
 **The portal refused — the message is the portal's own,** "That account cannot sign in to
 the ordering portal." Google issued a token and we turned it down. The reason is in the
 logs, deliberately not in the browser:
