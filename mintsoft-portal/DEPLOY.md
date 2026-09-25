@@ -163,7 +163,7 @@ APIs & Services → OAuth consent screen (**Audience** in the newer console).
 
 | What they saw | What it means | Fix |
 | --- | --- | --- |
-| "can only be used within its organisation", `Error 403: org_internal` | audience is **Internal** | change it to **External** |
+| an organisation is mentioned; HTTP 403, reason `org_internal`, "This client is restricted to users within its organization" | audience is **Internal** | change it to **External** |
 | "origin is not allowed", `Error 400: redirect_uri_mismatch` | portal URL missing from the client | add it to authorised JavaScript origins |
 
 The first is not a per-person problem, so there is no point checking one GM's row: if a
@@ -193,10 +193,22 @@ go and do:
 - **There is no verification review to wait for.** It is only triggered by sensitive or
   restricted scopes, and we request none.
 
-So `Internal` versus `External` is the whole of it, and it is the only Google setting that
-can lock a GM out. If the Publish button is missing or will not work, that is a symptom of
-Internal, not a separate problem — an Internal app has nothing to publish. The control to
-look for is the one that changes the audience to External, not the one that publishes.
+Google's own comparison of OAuth app states says the same thing from the other side. Of
+External + Testing: "Only test users on allowlist (max 100)", and then the exception, "If
+the app only requests basic identity scopes (openid, email, profile), any user can access".
+Of Internal: "All users within your organization can access."
+
+That is what makes the diagnosis an elimination rather than a guess. If the audience were
+External, a GM on gmail would be let in whatever the publishing status — the exception
+covers us. They are not being let in. So the audience is Internal, and `Internal` versus
+`External` is the whole of it: the only Google setting that can lock a GM out of this
+portal.
+
+Which also answers the Publish button, if it will not do anything. Publishing status is a
+property of External apps — it is how Google's table is laid out, with Internal a single
+row and no Testing/production split — so there is nothing for an Internal app to publish.
+It is a symptom, not a second problem. The control to look for is the one that changes the
+audience to External, not the one that publishes.
 
 **The portal refused — the message is the portal's own,** "That account cannot sign in to
 the ordering portal." Google issued a token and we turned it down. The reason is in the
