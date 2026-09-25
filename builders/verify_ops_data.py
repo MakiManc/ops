@@ -63,7 +63,10 @@ CHECKS (v2, Phase 2 complete)
                            manifest cannot quietly fall behind reality.
   check 6  SIDE CHANNELS   maintenance_source.json age (its pulled_at is a
                            daily heartbeat from the refresher, so >3 days
-                           means the refresh chain is dead) and DB size
+                           means the refresh chain is dead),
+                           facilities_ppm.json age (warning >2 days,
+                           critical >7, capped at warning while the
+                           manifest files it best_effort) and DB size
                            (warn at 400 MB, CRITICAL at 450 -- Neon free
                            cap is 512 MB and a rejected insert loses the
                            day; the archive+trim keeps steady state near
@@ -180,6 +183,23 @@ DB_SIZE_CRIT_MB = 450
 # for the refresh dying while the export carries on working.
 MAINT_AGE_WARN_DAYS = 3
 
+# Ross, 25/09/2026. facilities_ppm.json is the M&R Facilities app's feed (OO2
+# KR1/KR2/KR4 and two Maintenance cards), pulled by refresh_facilities.py
+# before every bake. Like maintenance_source.json its pulled_at is stamped only
+# on a successful pull, so it is a true heartbeat. Tighter than maintenance's 3
+# because the bake itself greys the three KRs past 3 days: a warning at 2 is
+# the day's notice before that happens, not after. 7 is the point where the
+# likeliest cause - a free PythonAnywhere site that expired - has had a week.
+#
+# The critical is CAPPED BY THE MANIFEST TIER. The feed sits in
+# feeds_manifest.json as best_effort (store: side_channel), which caps it at
+# warning exactly as it caps a warehouse feed: nothing pages on it until
+# someone flips it to expected. The tier lives in the manifest, not here.
+FACILITIES_PATH = os.path.join(OUT_DIR, "facilities_ppm.json")
+FACILITIES_FILE = "facilities_ppm.json"
+FACILITIES_AGE_WARN_DAYS = 2
+FACILITIES_AGE_CRIT_DAYS = 7
+
 # Timing-deferrable failure classes (morning run defers them to 12:00).
 # A missing receipt on the morning run is indistinguishable from an export
 # still in flight (the 75-min timeout can outlast it); by 12:00 it is
@@ -198,6 +218,18 @@ def domain_of(feed: str) -> str:
     return "other"
 
 PRIORITY_DOMAINS = {"gc-compliance", "kobas-supply"}
+
+
+def side_channel(f: dict) -> bool:
+    """A manifest entry for a committed JSON file, not a warehouse feed.
+
+    It is in the manifest for its TIER (which caps its severity) and so the
+    manifest stays the one list of what this system expects. It has no rows in
+    the store, so checks 1-3 must not look for any - "has NEVER landed" every
+    day would be a standing warning about something that is working. Its
+    freshness is check 6's job.
+    """
+    return f.get("store") == "side_channel"
 
 RESULTS: list[dict] = []
 
@@ -343,6 +375,8 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
 
     for f in manifest["feeds"]:
         name, status = f["name"], f["status"]
+        if side_channel(f):
+            continue                      # a file, not a feed - see check 6
         if status == "known_broken":
             add("1-landed", "known_broken",
                 f"not verified (known_broken: {f.get('note', '')})", name)
@@ -445,7 +479,8 @@ def check_event_dates(cur, manifest: dict, today: str):
     last_pull = dict(cur.fetchall())
     for f in manifest["feeds"]:
         field = f.get("event_date_field")
-        if not field or f["status"] not in ("expected", "best_effort"):
+        if (not field or side_channel(f)
+                or f["status"] not in ("expected", "best_effort")):
             continue
         name = f["name"]
         window = int(f.get("event_fresh_days", 7))
@@ -606,6 +641,12 @@ def check_consistency(pg_latest: str, snap_latest: str):
         if os.path.exists(MANIFEST_PATH):
             shutil.copy(MANIFEST_PATH, os.path.join(
                 tmp, "data", "ops_command", "feeds_manifest.json"))
+        # And the Facilities feed, or the recompute scores OO2 KR1/KR2/KR4 as
+        # "file absent" and the scorecard check below tests a different
+        # snapshot from the live one.
+        if os.path.exists(FACILITIES_PATH):
+            shutil.copy(FACILITIES_PATH, os.path.join(
+                tmp, "data", "ops_command", FACILITIES_FILE))
         r = subprocess.run(
             [sys.executable, os.path.join(tmp, "builders",
                                           "bake_ops_command.py")],
@@ -885,6 +926,83 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
 
 
 # --------------------------------------------------------------- check 6
+def check_facilities(today: str, manifest: dict | None = None,
+                     path: str | None = None) -> dict:
+    """Age of facilities_ppm.json, severity capped by its manifest tier.
+
+    Reads the manifest itself when not handed one (and the file at `path`, for
+    a test), so check_side_channels keeps its signature. Returns the keys it
+    adds to health["sizes"].
+    """
+    path = path or FACILITIES_PATH
+    if manifest is None:
+        try:
+            with open(MANIFEST_PATH, encoding="utf-8") as fh:
+                manifest = json.load(fh)
+        except Exception:  # noqa: BLE001 - main() has already read it once
+            manifest = {}
+    entry = next((f for f in manifest.get("feeds", [])
+                  if side_channel(f) and f.get("file") == FACILITIES_FILE), {})
+    tier = entry.get("status") or "best_effort"
+    name = entry.get("name")
+    if tier == "known_broken":
+        add("6-side", "known_broken",
+            f"{FACILITIES_FILE} not verified (known_broken: "
+            f"{entry.get('note', '')})", name)
+        return {}
+
+    def sev(level: str, detail: str) -> None:
+        if level == "critical" and tier != "expected":
+            level = "warning"
+            detail += (f" [would be critical; capped at warning because "
+                       f"feeds_manifest.json files it {tier} - flip it to "
+                       "expected once something pages on the Maintenance tab]")
+        add("6-side", level, detail, name)
+
+    fix = ("builders/refresh_facilities.py runs in the Ops Command bake "
+           "(maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves "
+           "the file untouched when it cannot reach the app - its log line in "
+           "the most recent bake says why. A free PythonAnywhere site expires "
+           "every 3 months unless 'Run until 1 month from today' is clicked")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            m = json.load(fh)
+    except FileNotFoundError:
+        sev("critical", f"{FACILITIES_FILE} missing from the repo - OO2 "
+            f"KR1/KR2/KR4 are grey and the Facilities cards are dark. {fix}")
+        return {}
+    except Exception as e:  # noqa: BLE001
+        sev("critical", f"{FACILITIES_FILE} unreadable: {e}")
+        return {}
+    if not isinstance(m, dict):
+        sev("critical", f"{FACILITIES_FILE} is not a JSON object")
+        return {}
+    pulled = str(m.get("pulled_at") or "")[:10]
+    try:
+        age = (date.fromisoformat(today) - date.fromisoformat(pulled)).days
+    except ValueError:
+        age = None
+    out = {"facilities_pulled_at": m.get("pulled_at"),
+           "facilities_as_of": m.get("as_of")}
+    if age is None:
+        add("6-side", "warning",
+            f"{FACILITIES_FILE} has no usable pulled_at date", name)
+    elif age > FACILITIES_AGE_CRIT_DAYS:
+        sev("critical", f"{FACILITIES_FILE} last pulled {pulled} ({age}d ago, "
+            f"critical past {FACILITIES_AGE_CRIT_DAYS}) - OO2 KR1/KR2/KR4 have "
+            f"been grey on the Overview since it turned 4 days old. {fix}")
+    elif age > FACILITIES_AGE_WARN_DAYS:
+        add("6-side", "warning",
+            f"{FACILITIES_FILE} last pulled {pulled} ({age}d ago, warning past "
+            f"{FACILITIES_AGE_WARN_DAYS}) - the bake greys OO2 KR1/KR2/KR4 past "
+            f"3 days. {fix}", name)
+    else:
+        add("6-side", "ok",
+            f"facilities feed pulled {pulled} ({age}d ago), app data as of "
+            f"{m.get('as_of')}", name)
+    return out
+
+
 def check_side_channels(cur, today: str) -> dict:
     sizes = {}
     try:
@@ -916,6 +1034,8 @@ def check_side_channels(cur, today: str) -> dict:
             "repo - the Maintenance tab is dark")
     except Exception as e:  # noqa: BLE001
         add("6-side", "warning", f"maintenance_source.json unreadable: {e}")
+
+    sizes.update(check_facilities(today))
 
     if ARCHIVE_MODE:
         # pg_database_size and the 512 MB Neon cap mean nothing against the
