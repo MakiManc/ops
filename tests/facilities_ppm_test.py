@@ -32,6 +32,7 @@ tests/price_spike_attribution_test.py does; exits non-zero on any failure)
 
 from __future__ import annotations
 
+import atexit
 import copy
 import datetime
 import gzip
@@ -127,7 +128,13 @@ check(all(s["oldest_overdue_days"] is None for s in tab["sites"] if not s["overd
       "a site with nothing overdue shows no 'oldest overdue' age, not 0 days")
 check([m["logged"] for m in tab["kr2"]["months"]] == [False] * 5 + [True],
       "KR2 months Apr-Aug flagged as pre-log zero-fill, Sep as logged")
-check(tab["faults"] == {"open": 0, "open_over_14d": 0, "assets_down": 0}, "fault queue passed through")
+check(tab["faults"] == {"open": 0, "open_over_14d": 0, "assets_down": 0}, "fault queue passed through (real: all zero)")
+check("franchise" not in tab["notes"]["faults"] and "every site" not in tab["notes"]["faults"],
+      "the fault card makes no scope claim the feed does not support")
+_ct = sum(c["tasks"] for c in FEED["contractors"])          # 161 in the trimmed fixture
+check(f"{_ct} of the 227 tracked items" in tab["notes"]["contractors"]
+      and f"{227 - _ct} have no contractor assigned" in tab["notes"]["contractors"],
+      f"the contractor card says how many items have no contractor ({227 - _ct} in the fixture)")
 check(len(tab["contractors"]) == 8 and tab["contractors"][0]["name"] == "IDES",
       "contractor scorecard in the app's order")
 check(tab["links"]["compliance"] == "https://rossmward.eu.pythonanywhere.com/compliance"
@@ -151,6 +158,7 @@ check(all("absent" in nope["rows"][k]["not_measured"] for k in (KR1, KR2, KR4))
       and nope["gap"] and nope["tab"]["status"] == "missing",
       "file absent: all three grey, a top-level gap, status missing")
 tmpd = tempfile.mkdtemp(prefix="facfix-")
+atexit.register(shutil.rmtree, tmpd, True)      # even when an assertion path dies
 bad = os.path.join(tmpd, "facilities_ppm.json")
 with open(bad, "w") as fh:
     fh.write("{not json")
@@ -195,23 +203,104 @@ check("value" not in block(f1)["rows"][KR1], "KR1 with kr1_n 0: grey, not 100% o
 f4 = copy.deepcopy(FEED)
 f4["group"]["kr4_pct"] = 50
 d4 = block(f4)["rows"][KR4]
-check(d4.get("value") == 50 and "does not match its own counts (37.0%)" in d4["basis"],
-      "KR4 quoted as the app gives it, with a note when it disagrees with its counts")
-f4["group"]["kr4_pct"] = None
-check("value" not in block(f4)["rows"][KR4], "KR4 null: grey, never rebuilt from the site rows")
+check(d4.get("value") == 37.0 and "does not match its counts (37.0%)" in d4["basis"],
+      "KR4 app figure disagreeing with its own counts: scored on the counts, and said")
+# The app rounds to a whole percent, and the band is 'full'. 226 of 227 is
+# 99.56%, which the app sends as 100: that must never score 100 / green.
+f4 = copy.deepcopy(FEED)
+f4["group"].update(current=212, due30=14, overdue=1, no_evidence=0, tasks=227, kr4_pct=100)
+d4 = block(f4)["rows"][KR4]
+check(d4.get("value") == 99.5 and bake.okr_score("full", d4["value"]) != 100
+      and "rounded to a whole percent" in d4["basis"],
+      f"KR4 226/227 with the app showing 100: scored 99.5, not green (got {d4.get('value')})")
+f4 = copy.deepcopy(FEED)
+f4["group"].update(current=227, due30=0, overdue=0, no_evidence=0, kr4_pct=100)
+check(block(f4)["rows"][KR4].get("value") == 100.0, "KR4 227/227: exactly 100")
+for bad_kr4, what in ((None, "null"), (137, "out of range")):
+    f4 = copy.deepcopy(FEED)
+    f4["group"]["kr4_pct"] = bad_kr4
+    b4 = block(f4)
+    check("value" not in b4["rows"][KR4] and b4["tab"]["group"]["kr4_pct"] is None
+          and b4["tab"].get("group_note"),
+          f"KR4 {what}: grey, and the tab's group row shows no figure either")
+f4 = copy.deepcopy(FEED)
+del f4["group"]["current"]
+b4 = block(f4)
+check("value" not in b4["rows"][KR4] and "group.current" in b4["rows"][KR4]["not_measured"]
+      and b4["tab"]["group"]["kr4_pct"] is None, "KR4 without its counts: grey on the Overview and the tab")
+f4 = copy.deepcopy(FEED)
+f4["sites"] = []
+b4 = block(f4)["rows"][KR4]
+check("across 0 sites" not in b4["basis"] and "no usable per-site rows" in b4["basis"]
+      and "sum to 0 items against the group's 227" in b4["basis"],
+      "KR4 with no site rows: says so, never 'across 0 sites'")
+fk = copy.deepcopy(FEED)
+for k in ("repeats", "sites"):
+    del fk["kr2_repeat_issues"]["months"][-1][k]
+bk = block(fk)
+check(all("None" not in (bk["rows"][k].get("not_measured") or bk["rows"][k].get("basis") or "")
+          for k in (KR1, KR2, KR4)), "a month missing its counts never prints 'None' into a reason")
+
+# ---- 5. malformed feeds never crash, and never publish invalid JSON ---------
+MALFORMED = [
+    ("kr2 pairs is a count", lambda f: f["kr2_repeat_issues"].__setitem__("pairs", 2)),
+    ("kr2 months is a count", lambda f: f["kr2_repeat_issues"].__setitem__("months", 6)),
+    ("kr2 months is true", lambda f: f["kr2_repeat_issues"].__setitem__("months", True)),
+    ("kr2 by_site is a count", lambda f: f["kr2_repeat_issues"].__setitem__("by_site", 3)),
+    ("contractors is a count", lambda f: f.__setitem__("contractors", 19)),
+    ("source is an object", lambda f: f.__setitem__("source", {"name": "x", "v": 2})),
+    ("a site is a string", lambda f: f["sites"].append("M99")),
+    ("a site kr4_pct is 137", lambda f: f["sites"][0].__setitem__("kr4_pct", 137)),
+]
+for what, mutate in MALFORMED:
+    fm = copy.deepcopy(FEED)
+    mutate(fm)
+    try:
+        bm = block(fm)
+        ok = all(k in bm["rows"] for k in (KR1, KR2, KR4))
+        json.dumps(bm, allow_nan=False)
+    except Exception as e:  # noqa: BLE001
+        ok = False
+        print("   raised:", type(e).__name__, e)
+    check(ok, f"malformed feed ({what}): no exception, all three rows present")
+fm = copy.deepcopy(FEED)
+fm["kr2_repeat_issues"]["months"] = 6
+check("no kr2_repeat_issues.months list" in block(fm)["rows"][KR2]["not_measured"],
+      "KR2 with months not a list: grey, naming the field (not a baseline story)")
+fm = copy.deepcopy(FEED)
+fm["sites"][0]["kr4_pct"] = 137
+check(all(s["kr4_pct"] is None or 0 <= s["kr4_pct"] <= 100 for s in block(fm)["tab"]["sites"]),
+      "a site kr4_pct outside 0-100 never becomes a 'Compliant' figure")
+nan_path = os.path.join(tmpd, "nan.json")
+with open(nan_path, "w") as fh:
+    fh.write(json.dumps(FEED).replace('"kr4_pct": 37', '"kr4_pct": NaN', 1))
+nb = bake.facilities_block(*bake.load_facilities(nan_path), TODAY)
+check(all("unreadable" in nb["rows"][k]["not_measured"] for k in (KR1, KR2, KR4))
+      and "NaN" in nb["rows"][KR4]["not_measured"],
+      "a NaN in the file: unreadable, grey - never passed on to the snapshot")
+check(bake._fac_num(float("nan")) is None and bake._fac_num(float("inf")) is None
+      and bake._fac_num(True) is None and bake._fac_num(3) == 3, "_fac_num: finite numbers only, no bools")
 
 
-# ---- 5. the real builder, end to end ----------------------------------------
-def bake_with(feed_or_none, out):
-    """Run bake_ops_command.py over a one-row archive into `out`."""
+# ---- 6. the real builder, end to end ----------------------------------------
+def bake_with(feed_or_raw, out, manifest=None):
+    """Run bake_ops_command.py over a one-row archive into `out`.
+
+    feed_or_raw: a dict (written as JSON), a str (written verbatim - for a NaN),
+    or None (no file). manifest: a dict to use instead of the real one.
+    """
     arch = os.path.join(out, "arch", "2026-09-25")
     os.makedirs(arch, exist_ok=True)
     with gzip.open(os.path.join(arch, "Dummy.jsonl.gz"), "wt") as fh:
         fh.write(json.dumps({"row_num": 0, "data": {"x": 1}}) + "\n")
-    shutil.copy(MANIFEST, out)
-    if feed_or_none is not None:
+    if manifest is None:
+        shutil.copy(MANIFEST, out)
+    else:
+        with open(os.path.join(out, "feeds_manifest.json"), "w", encoding="utf-8") as fh:
+            json.dump(manifest, fh)
+    if feed_or_raw is not None:
         with open(os.path.join(out, "facilities_ppm.json"), "w", encoding="utf-8") as fh:
-            json.dump(feed_or_none, fh)
+            fh.write(feed_or_raw if isinstance(feed_or_raw, str) else json.dumps(feed_or_raw))
     env = dict(os.environ, OPS_WAREHOUSE_SOURCE="archive",
                OPS_ARCHIVE_DIR=os.path.join(out, "arch"), OPS_OUT_DIR=out)
     p = subprocess.run([sys.executable, BAKE, "--date", "2026-09-25"],
@@ -220,7 +309,8 @@ def bake_with(feed_or_none, out):
         print("builder failed:\n", p.stdout[-2000:], p.stderr[-2000:])
         return None
     with open(os.path.join(out, "snapshot_2026-09-25.json"), encoding="utf-8") as fh:
-        return json.load(fh)
+        # Strict: the browser's JSON.parse rejects NaN, so the test does too.
+        return json.loads(fh.read(), parse_constant=lambda c: (_ for _ in ()).throw(ValueError(c)))
 
 
 def oo2(snap, kr):
@@ -229,9 +319,18 @@ def oo2(snap, kr):
 
 
 # The bake judges age against the wall clock, so stamp the copy relative to now.
+# The real fixture's fault queue is all zeros and its pairs / by_site are
+# empty, which cannot catch two fields swapped in the wiring - so the fresh
+# copy carries distinct test values there (the fixture file stays as the app
+# sent it).
 utc = datetime.datetime.now(datetime.timezone.utc)
 fresh = copy.deepcopy(FEED)
 fresh["pulled_at"] = utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+fresh["faults"] = {"open": 3, "open_over_14d": 1, "assets_down": 2}
+fresh["kr2_repeat_issues"]["by_site"] = [{"site": "Maki 9", "repeats": 1}, {"site": "Maki 3", "repeats": 2}]
+fresh["kr2_repeat_issues"]["pairs"] = [{"site": "Maki 3", "asset": "Fryer 2", "first": "2026-09-02",
+                                        "fix_date": "2026-09-04", "second": "2026-09-20", "days": 18,
+                                        "note": "x"}]
 stale = copy.deepcopy(FEED)
 stale["pulled_at"] = (utc - datetime.timedelta(days=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -258,6 +357,11 @@ if snap:
     fac = snap["maintenance"]["facilities"]
     check(fac["status"] == "ok" and len(fac["sites"]) == 19 and fac["n_sites"] == 19,
           "snap.maintenance.facilities carries the 19-site drill-down")
+    check(fac["faults"] == {"open": 3, "open_over_14d": 1, "assets_down": 2},
+          "fault queue wired field-for-field (distinct values)")
+    check([(b["site"], b["repeats"]) for b in fac["kr2"]["by_site"]] == [("Maki 3", 2), ("Maki 9", 1)],
+          "KR2 by-site sorted most repeats first")
+    check(fac["kr2"]["pairs"] == fresh["kr2_repeat_issues"]["pairs"], "KR2 pairs wired field-for-field")
     check(not any("acilities" in g for g in snap["gaps"]), "no Facilities gap on a fresh file")
     check("Facilities PPM summary" not in [r["feed"] for r in snap["feed_health"]],
           "the side-channel manifest entry never appears in feed_health")
@@ -279,20 +383,29 @@ if snap:
           "no file at all: the bake still succeeds and OO2 KR4 is grey")
     check(any("facilities_ppm.json" in g for g in snap["gaps"]), "no file at all: a named top-level gap")
 
-# ---- 6. the verifier's check 6, and the manifest entry ----------------------
+for what, raw in (("pairs is a count", dict(fresh, kr2_repeat_issues=dict(fresh["kr2_repeat_issues"], pairs=2))),
+                  ("source is an object", dict(fresh, source={"v": 2})),
+                  ("a NaN", json.dumps(fresh).replace('"kr4_pct": 37', '"kr4_pct": NaN', 1))):
+    snap = bake_with(raw, os.path.join(tmpd, "bad-" + what.replace(" ", "_")))
+    check(snap is not None and all(k in (oo2(snap, "KR4") or {}) for k in ("value", "not_measured")),
+          f"malformed feed ({what}): the real bake exits 0 and publishes strict JSON")
+
+# ---- 7. the verifier's check 6, and the manifest entry ----------------------
 with open(MANIFEST, encoding="utf-8") as fh:
     man = json.load(fh)
 ent = [f for f in man["feeds"] if f.get("store") == "side_channel"]
 check(len(ent) == 1 and ent[0]["file"] == "facilities_ppm.json" and ent[0]["status"] == "best_effort",
       "manifest: one side_channel entry, facilities_ppm.json, best_effort")
-check(ent and ent[0]["name"] not in bake.expected_feeds(),
-      "the bake never counts the side-channel entry as an expected warehouse feed")
 for days, want in ((0, "ok"), (2, "ok"), (3, "warning"), (7, "warning"), (8, "warning")):
     verify.RESULTS.clear()
     verify.check_facilities((TODAY + datetime.timedelta(days=days)).isoformat(), man, FIXTURE)
     got = verify.RESULTS[-1]
     check(got["level"] == want and (days < 8 or "would be critical" in got["detail"]),
           f"check 6 at {days}d: {want}" + (" (critical capped by best_effort)" if days == 8 else ""))
+# The manifest note tells an operator to flip the entry to expected once the
+# tab is depended on. The side-channel filters only matter from that moment,
+# so they are tested against the FLIPPED manifest - with the entry left
+# best_effort they would pass with the filters deleted.
 man_x = copy.deepcopy(man)
 for f in man_x["feeds"]:
     if f.get("store") == "side_channel":
@@ -300,6 +413,23 @@ for f in man_x["feeds"]:
 verify.RESULTS.clear()
 verify.check_facilities((TODAY + datetime.timedelta(days=8)).isoformat(), man_x, FIXTURE)
 check(verify.RESULTS[-1]["level"] == "critical", "check 6 at 8d with the entry flipped to expected: critical")
+_mx = os.path.join(tmpd, "flipped")
+os.makedirs(_mx, exist_ok=True)
+with open(os.path.join(_mx, "feeds_manifest.json"), "w", encoding="utf-8") as fh:
+    json.dump(man_x, fh)
+_saved, bake.OUT_DIR = bake.OUT_DIR, _mx
+try:
+    _exp = bake.expected_feeds()
+finally:
+    bake.OUT_DIR = _saved
+check(ent and ent[0]["name"] not in _exp and len(_exp) > 30,
+      "flipped to expected: the bake still never counts the file as a warehouse feed")
+snap = bake_with(fresh, os.path.join(tmpd, "fresh-flipped"), manifest=man_x)
+# The one-row archive holds no warehouse feed, so every expected WAREHOUSE feed
+# is legitimately MISSING here; the file must not be one of them.
+check(snap is not None and "Facilities PPM summary" not in [r["feed"] for r in snap["feed_health"]]
+      and snap["summary"]["feeds_missing"] == len(_exp),
+      "flipped to expected: no MISSING row for the file; 'Feeds missing' counts warehouse feeds only")
 
 
 class _EmptyStore:
@@ -314,13 +444,41 @@ class _EmptyStore:
         return (None,)
 
 
-verify.RESULTS.clear()
-verify.check_feeds(_EmptyStore(), man, TODAY.isoformat(), {})
-_named = {r.get("feed") for r in verify.RESULTS}
-check(ent and ent[0]["name"] not in _named and len(_named) > 30,
-      "check 1 skips the side-channel entry (no 'has NEVER landed' for a file) "
-      "while still checking every warehouse feed")
+for m_, which in ((man, "best_effort"), (man_x, "flipped to expected")):
+    verify.RESULTS.clear()
+    verify.check_feeds(_EmptyStore(), m_, TODAY.isoformat(), {})
+    _named = {r.get("feed") for r in verify.RESULTS}
+    check(ent and ent[0]["name"] not in _named and len(_named) > 30,
+          f"check 1 skips the side-channel entry ({which}) while still checking every warehouse feed")
 
-shutil.rmtree(tmpd, ignore_errors=True)
+# ---- 8. refresh_facilities.py: a bad pull never replaces a good file --------
+refresh = _load("refresh", os.path.join(REPO, "builders", "refresh_facilities.py"))
+_good = os.path.join(tmpd, "refresh", "facilities_ppm.json")
+os.makedirs(os.path.dirname(_good), exist_ok=True)
+refresh.OUT_DIR, refresh.OUT_PATH = os.path.dirname(_good), _good
+os.environ["FACILITIES_API_KEY"] = "test-key"
+_orig_fetch = refresh.fetch
+try:
+    for what, served in (
+            ("pairs is a count", dict(FEED, kr2_repeat_issues=dict(FEED["kr2_repeat_issues"], pairs=2))),
+            ("faults is a list", dict(FEED, faults=[{"id": 1}])),
+            ("a NaN", dict(FEED, group=dict(FEED["group"], kr4_pct=float("nan"))))):
+        with open(_good, "w") as fh:
+            fh.write('{"sentinel": true}')
+        refresh.fetch = lambda _k, _s=served: copy.deepcopy(_s)
+        rc = refresh.main()
+        with open(_good) as fh:
+            check(rc == 0 and fh.read() == '{"sentinel": true}',
+                  f"refresh, served a feed where {what}: exit 0, previous file untouched")
+    refresh.fetch = lambda _k: copy.deepcopy(FEED)
+    rc = refresh.main()
+    with open(_good) as fh:
+        written = json.load(fh)
+    check(rc == 0 and written.get("as_of") == "2026-09-25" and written.get("pulled_at"),
+          "refresh, served a good feed: writes it with a fresh pulled_at")
+finally:
+    refresh.fetch = _orig_fetch
+    os.environ.pop("FACILITIES_API_KEY", None)
+
 print("\n" + ("all assertions passed" if not failures else f"{failures} assertion(s) FAILED"))
 sys.exit(1 if failures else 0)

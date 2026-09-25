@@ -254,7 +254,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="s">M&amp;R Facilities app fault log · repeats per site by month, the repeat pairs, and repeats by site</div></div>
     <div class="card-b" id="fac-kr2"></div></div>
   <div class="card"><div class="card-h"><div class="t">Open faults</div>
-    <div class="s">M&amp;R Facilities app · the fault queue as of the feed's date, every site with assets</div></div>
+    <div class="s">M&amp;R Facilities app · the fault queue as of the feed's date</div></div>
     <div class="card-b" id="fac-faults"></div></div>
   <div class="card"><div class="card-h"><div class="t">Contractor scorecard</div>
     <div class="s">M&amp;R Facilities app · statutory items per contractor · on-time over the last 12 months, where the app has logged completions</div></div>
@@ -1710,21 +1710,24 @@ function render(snap){
       '<div class="note" style="color:inherit"><b>Statutory compliance &amp; PPM</b> — from the '+esc(fac.source||'M&R Facilities app')+when+
       (links?' · '+links:'')+(fac.basis?'<div class="prov">'+esc(fac.basis)+'</div>':'')+'</div>';
   }
-  /* KR4 by site. The total row is the app's own group figure, not a sum or a
-     mean taken here. */
+  /* KR4 by site. The total row is the builder's group figure - the app's own
+     group counts, exactly as the Overview scores them - never a sum or a mean
+     taken here. When the builder refused to quote KR4 there is no total row,
+     only its reason. */
   const facG=(facData&&fac.group)||{};
   const facSites=(facData&&fac.sites)||[];
   const facSiteRows=facSites.map(r=>[r.code||'—',
     (r.site||'—')+(r.trading_name&&r.trading_name!==r.site?' · '+r.trading_name:'')+(r.franchise?' (franchise, excluded)':''),
     r.kr4_pct==null?'—':r.kr4_pct+'%',fmtN(r.current),fmtN(r.due30),fmtN(r.overdue),fmtN(r.no_evidence),fmtN(r.oldest_overdue_days)]);
   if(facSiteRows.length&&facG.kr4_pct!=null){
-    const t=['Group',(fac.n_sites!=null?fac.n_sites+' sites':'all sites')+' · the app\'s figure',facG.kr4_pct+'%',
+    const t=['Group',(fac.n_sites!=null?fac.n_sites+' sites':'all sites')+' · group total, as scored on the Overview',facG.kr4_pct+'%',
       fmtN(facG.current),fmtN(facG.due30),fmtN(facG.overdue),fmtN(facG.no_evidence),'—'];
     t._tot=1; facSiteRows.push(t);
   }
   table('fac-kr4',[{h:'Code'},{h:'Site'},{h:'Compliant',n:1},{h:'Current',n:1},{h:'Due ≤30d',n:1},
     {h:'Overdue',n:1},{h:'No evidence',n:1},{h:'Oldest overdue (days)',n:1}],facSiteRows,facEmpty);
   if(facData) $('fac-kr4').insertAdjacentHTML('beforeend',
+    (fac.group_note?'<div class="prov"><b>No group total:</b> '+esc(fac.group_note)+'</div>':'')+
     (facNotes.kr4?'<div class="prov">'+esc(facNotes.kr4)+'</div>':'')+okrLine('KR4')+okrLine('KR1'));
   /* KR2: the months as the app counts them, then the pairs and the by-site
      tally. A month from before the fault log is "no log", never a zero. */

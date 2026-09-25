@@ -65,7 +65,7 @@ USAGE
   Exit 0 on success, 1 on any failure (nothing partially written).
 """
 from __future__ import annotations
-import argparse, collections, datetime, hashlib, json, os, re, sys
+import argparse, collections, datetime, hashlib, json, math, os, re, sys
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
 # OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
@@ -788,8 +788,30 @@ _FAC_MON = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
 
 
 def _fac_num(v):
-    """A real number from the feed, or None. A bool is not a count."""
-    return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+    """A real, finite number from the feed, or None. A bool is not a count."""
+    return (v if isinstance(v, (int, float)) and not isinstance(v, bool)
+            and math.isfinite(v) else None)
+
+
+def _fac_list(v):
+    """A list from the feed, or []. A count where a list belongs is absent.
+
+    `x or []` only guards a falsy value: "pairs": 2 would reach a for loop and
+    raise, and a raise here is a bake that does not publish (review, 25/09).
+    """
+    return v if isinstance(v, list) else []
+
+
+def _fac_str(v, default=None):
+    """A non-empty string from the feed, or `default`."""
+    return v.strip() if isinstance(v, str) and v.strip() else default
+
+
+def _fac_reject_constant(name):
+    """json.load hook: NaN / Infinity are not JSON, and one reaching the
+    snapshot makes the browser's JSON.parse throw, blanking the whole
+    dashboard. Refused at the door, so the file reads as unreadable."""
+    raise ValueError(f"non-JSON constant {name}")
 
 
 def _fac_ym(ym):
@@ -804,7 +826,7 @@ def load_facilities(path):
     """(feed, None) when the file parses to an object, else (None, reason)."""
     try:
         with open(path, encoding="utf-8") as fh_:
-            feed = json.load(fh_)
+            feed = json.load(fh_, parse_constant=_fac_reject_constant)
     except FileNotFoundError:
         return None, "absent"
     except Exception as e:  # noqa: BLE001 - a bad file must never fail the bake
@@ -900,7 +922,8 @@ def facilities_block(feed, err, today,
             # not "overdue by zero days", so it travels as null.
             "oldest_overdue_days": (_fac_num(s.get("oldest_overdue_days"))
                                     if ovd else None),
-            "kr4_pct": _fac_num(s.get("kr4_pct")),
+            "kr4_pct": (_fac_num(s.get("kr4_pct"))
+                        if 0 <= (_fac_num(s.get("kr4_pct")) or 0) <= 100 else None),
             "franchise": _franchise(s)})
     # Worst first. Franchise sites (none today - the app already leaves them
     # out) and sites with no figure sink to the bottom rather than reading as 0.
@@ -910,7 +933,7 @@ def facilities_block(feed, err, today,
     n_sites = sum(1 for r in sites if not r["franchise"] and (r["tasks"] or 0) > 0)
 
     k2 = feed["kr2_repeat_issues"]
-    months = [m for m in (k2.get("months") or [])
+    months = [m for m in _fac_list(k2.get("months"))
               if isinstance(m, dict) and isinstance(m.get("month"), str)]
     rule = k2.get("rule") if isinstance(k2.get("rule"), str) else None
     chasers = _fac_num(k2.get("chasers"))
@@ -921,9 +944,16 @@ def facilities_block(feed, err, today,
                     "ontime_pct_12m": _fac_num(c.get("ontime_pct_12m")),
                     "avg_days_late": _fac_num(c.get("avg_days_late")),
                     "last_cert": c.get("last_cert")}
-                   for c in (feed.get("contractors") or []) if isinstance(c, dict)]
+                   for c in _fac_list(feed.get("contractors")) if isinstance(c, dict)]
+    # The contractor rows do not have to cover every item - an item with no
+    # contractor assigned is in the group total and on no row (29 of 227 on
+    # 25/09/2026). Said on the card rather than implied away.
+    con_t = sum(c["tasks"] or 0 for c in contractors)
+    g_t = _fac_num(g.get("tasks"))
+    src = _fac_str(feed.get("source"), "M&R Facilities app")
+    k2_last = months[-1] if months else {}
     tab.update({
-        "source": feed.get("source") or "M&R Facilities app",
+        "source": src,
         "as_of": as_of, "generated_at": feed.get("generated_at"),
         "pulled_at": feed.get("pulled_at") or None, "age_days": age,
         "group": {k: _fac_num(g.get(k)) for k in
@@ -944,12 +974,12 @@ def facilities_block(feed, err, today,
                            for m in months],
                 "by_site": sorted(
                     [{"site": b.get("site"), "repeats": _fac_num(b.get("repeats"))}
-                     for b in (k2.get("by_site") or []) if isinstance(b, dict)],
+                     for b in _fac_list(k2.get("by_site")) if isinstance(b, dict)],
                     key=lambda b: -(b["repeats"] or 0)),
                 "pairs": [{k: p.get(k) for k in ("site", "asset", "first",
                                                  "fix_date", "second", "days",
                                                  "note")}
-                          for p in (k2.get("pairs") or []) if isinstance(p, dict)]},
+                          for p in _fac_list(k2.get("pairs")) if isinstance(p, dict)]},
         "faults": {k: _fac_num(faults.get(k))
                    for k in ("open", "open_over_14d", "assets_down")},
         "contractors": contractors,
@@ -969,23 +999,32 @@ def facilities_block(feed, err, today,
                     + f"Months before {_fac_ym(fault_log_start)} are zero-filled "
                     "rows from before the app's fault log existed - shown as 'no "
                     "log', never as 0, and never used as a baseline"),
+            # No scope claim: the feed does not say which sites the queue
+            # covers, so neither does this.
             "faults": ("open fault reports in the app's queue, how many have been "
-                       "open more than 14 days, and assets currently marked down; "
-                       "every site with assets, franchise included"),
+                       "open more than 14 days, and assets currently marked down, "
+                       "as the app reports them"),
             "contractors": ("per contractor: statutory items assigned, overdue, "
                             "with no certificate on file, the share of its PPM "
                             "completions done on time over the last 12 months "
                             "(blank until the app has logged one against a due "
                             f"date - it counts from {FACILITIES_KR1_START}), and "
-                            "its newest certificate; franchise sites excluded; "
-                            "in the app's own order"),
+                            "its newest certificate; in the app's own order"
+                            + (f". These rows hold {con_t:g} of the {g_t:g} tracked "
+                               "items; the other "
+                               f"{g_t - con_t:g} have no contractor assigned"
+                               if g_t is not None and contractors and con_t < g_t
+                               else "")),
         },
-        "basis": ("read-only, from the " + (feed.get("source") or "M&R Facilities app")
+        "basis": ("read-only, from the " + src
                   + f" as of {as_of}, pulled {pulled_s[:10] or 'at an unknown time'} "
                   f"by builders/refresh_facilities.py into {label}. Statutory "
-                  "compliance and the contractor scorecard exclude franchise sites; "
-                  "the fault queue and repeat issues count every site with assets. "
-                  "The app is the system of record - fix a figure there, not here"),
+                  "compliance excludes franchise sites and KR2 counts every site "
+                  "with assets - both the app's own rules"
+                  + (f" ({_fac_num(k2_last.get('sites')):g} sites in "
+                     f"{_fac_ym(k2_last['month'])})"
+                     if _fac_num(k2_last.get("sites")) is not None else "")
+                  + ". The app is the system of record - fix a figure there, not here"),
     })
 
     if pulled is None:
@@ -1008,42 +1047,63 @@ def facilities_block(feed, err, today,
     cnt = {k: _fac_num(g.get(k)) for k in
            ("tasks", "current", "due30", "overdue", "no_evidence")}
     miss = [k for k, v in cnt.items() if v is None]
+    kr4_why = None
     if kr4 is None or not 0 <= kr4 <= 100:
-        rows["KR4 statutory compliance"] = {"not_measured": (
-            f"the Facilities feed (as of {as_of}) carries no usable group.kr4_pct, "
-            "and this system does not rebuild it from the site rows - the group "
-            "figure is the app's own (current+due30)/tasks")}
-    elif miss or not cnt["tasks"]:
-        rows["KR4 statutory compliance"] = {"not_measured": (
-            f"the Facilities feed (as of {as_of}) gives kr4_pct {kr4:g} but not the "
-            "counts behind it (" + (", ".join("group." + k for k in miss)
-                                    or "group.tasks is 0")
-            + "), and no number is quoted here without its basis")}
+        kr4_why = (f"the Facilities feed (as of {as_of}) carries no usable "
+                   "group.kr4_pct, and this system does not rebuild it from the site "
+                   "rows - the group figure is the app's own (current+due30)/tasks")
+    elif miss or not cnt["tasks"] or cnt["current"] + cnt["due30"] > cnt["tasks"]:
+        kr4_why = (f"the Facilities feed (as of {as_of}) gives kr4_pct {kr4:g} but not "
+                   "usable counts behind it (" + (
+                       ", ".join("group." + k for k in miss) if miss
+                       else "group.tasks is 0" if not cnt["tasks"]
+                       else "current+due30 exceeds tasks")
+                   + "), and no number is quoted here without its basis")
+    if kr4_why:
+        rows["KR4 statutory compliance"] = {"not_measured": kr4_why}
+        # The tab's group row must not show the figure the Overview refused.
+        tab["group"]["kr4_pct"] = None
+        tab["group_note"] = kr4_why
     else:
         ok4 = cnt["current"] + cnt["due30"]
         calc = 100.0 * ok4 / cnt["tasks"]
-        # The app rounds to a whole percent, so half a point is agreement.
-        drift = (f" NOTE: the app's kr4_pct ({kr4:g}) does not match its own "
-                 f"counts ({calc:.1f}%) - quoted as the app gives it; fix it there."
+        # SCORED ON THE EXACT RATIO, ROUNDED DOWN (review, 25/09/2026). The app
+        # rounds kr4_pct to a whole percent, and the band is 'full': 226 of 227
+        # items is 99.56%, which the app sends as 100 and which would score 100
+        # and go green with an item overdue. This is the same group formula
+        # the app uses - (current+due30)/tasks over every item, from the app's
+        # own group counts - at a precision that cannot round up into the band.
+        value = math.floor(round(calc * 10, 6)) / 10
+        tab["group"]["kr4_pct"] = value
+        tab["group"]["kr4_pct_app"] = kr4
+        rounded = (f" The app shows {kr4:g}%, rounded to a whole percent; this is "
+                   f"scored on the exact {ok4:g}/{cnt['tasks']:g}, rounded down."
+                   if abs(calc - kr4) <= 0.5 and value != kr4 else "")
+        drift = (f" NOTE: the app's own kr4_pct is {kr4:g}, which does not match its "
+                 f"counts ({calc:.1f}%) - scored on the counts; fix it in the app."
                  if abs(calc - kr4) > 0.5 else "")
         sum_t = sum(r["tasks"] or 0 for r in sites if not r["franchise"])
         split = (f" The per-site rows sum to {sum_t:g} items against the group's "
-                 f"{cnt['tasks']:g}." if sites and sum_t != cnt["tasks"] else "")
+                 f"{cnt['tasks']:g}." if sum_t != cnt["tasks"] else "")
+        where = (f"across {n_sites} sites" if n_sites else
+                 "(the feed carries no usable per-site rows, so there is no site "
+                 "count or per-site breakdown)")
         rows["KR4 statutory compliance"] = {
-            "value": kr4,
-            "display": f"{kr4:g}% ({ok4:g} of {cnt['tasks']:g})",
+            "value": value,
+            "display": f"{value:g}% ({ok4:g} of {cnt['tasks']:g})",
             "source_kind": "facilities_app",
             "basis": (
-                f"{ok4:g} of {cnt['tasks']:g} tracked statutory items across "
-                f"{n_sites} sites current or due within 30 days; "
+                f"{ok4:g} of {cnt['tasks']:g} tracked statutory items {where} "
+                "current or due within 30 days; "
                 f"{cnt['overdue']:g} overdue, {cnt['no_evidence']:g} with no "
                 "certificate on file (placeholder date, not counted as compliant); "
                 f"franchise sites excluded; from the Facilities app, as of {as_of}. "
                 "The group figure is the app's (current+due30)/tasks over every "
                 "item - never an average of the site percentages. CURRENT STATE "
                 "ONLY: the app keeps no history table yet, so there are no month "
-                "variants and this row does not follow the month picker. Per-site "
-                "breakdown on the Maintenance tab." + split + drift)}
+                "variants and this row does not follow the month picker."
+                + (" Per-site breakdown on the Maintenance tab." if n_sites else "")
+                + split + rounded + drift)}
 
     # ---- OO2 KR1: PPM on time ---------------------------------------------
     kr1 = _fac_num(g.get("kr1_pct"))
@@ -1085,13 +1145,24 @@ def facilities_block(feed, err, today,
             base_ok.append(ps)
     cur2 = months[-1] if months else None
     cur2_ps = _fac_num((cur2 or {}).get("per_site"))
+
+    def _counts(m):
+        """'N repeat(s) across S sites', or None when the feed omits either."""
+        r_, s_ = _fac_num(m.get("repeats")), _fac_num(m.get("sites"))
+        return (f"{r_:g} repeat(s) across {s_:g} sites"
+                if r_ is not None and s_ is not None else None)
     now_s = ""
-    if cur2 is not None:
-        now_s = (f" So far: {_fac_ym(cur2['month'])} has "
-                 f"{_fac_num(cur2.get('repeats'))} repeat(s) across "
-                 f"{_fac_num(cur2.get('sites'))} sites"
+    if cur2 is not None and _counts(cur2):
+        now_s = (f" So far: {_fac_ym(cur2['month'])} has {_counts(cur2)}"
                  + (f" ({cur2_ps:g} per site)" if cur2_ps is not None else "") + ".")
-    if len(base_ok) < len(FACILITIES_KR2_BASELINE):
+    elif cur2 is not None and cur2_ps is not None:
+        now_s = (f" So far: {_fac_ym(cur2['month'])} is {cur2_ps:g} repeats per "
+                 "site (the feed gives no repeat or site count for it).")
+    if not isinstance(k2.get("months"), list):
+        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
+            f"{label} carries no kr2_repeat_issues.months list, so there is no "
+            f"month to score and no baseline. Rule {rule_s}; {ch_s}")}
+    elif len(base_ok) < len(FACILITIES_KR2_BASELINE):
         rows["KR2 repeat issues vs baseline"] = {"not_measured": (
             "baseline needs Jun–Aug; the app's fault log starts "
             f"{_fac_ym(fault_log_start)} — the sheet-based KR2 build (plan of 17 "
@@ -1105,10 +1176,11 @@ def facilities_block(feed, err, today,
             "the Jun–Aug baseline from the app's fault log is 0 repeats per site, "
             "and a percentage change against zero is undefined - this needs a "
             f"re-agreed baseline, not a number. Rule {rule_s}; {ch_s}.{now_s}")}
-    elif cur2 is None or cur2_ps is None:
+    elif cur2 is None or cur2_ps is None or not _counts(cur2):
         rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            f"the Facilities feed (as of {as_of}) has no per_site figure for its "
-            f"latest month. Rule {rule_s}; {ch_s}")}
+            f"the Facilities feed (as of {as_of}) has no per_site figure, or no "
+            f"repeat/site counts behind it, for its latest month. Rule {rule_s}; "
+            f"{ch_s}")}
     else:
         base = sum(base_ok) / len(base_ok)
         base_s = ", ".join(f"{_fac_ym(ym)} {by_m[ym]['per_site']:g}"
@@ -1121,8 +1193,7 @@ def facilities_block(feed, err, today,
             return {"m": m["month"], "value": chg,
                     "display": f"{chg:+g}% ({ps:g}/site vs {base:.2f})",
                     "basis": (
-                        f"{_fac_num(m.get('repeats'))} repeat issue(s) across "
-                        f"{_fac_num(m.get('sites'))} sites in {_fac_ym(m['month'])}"
+                        f"{_counts(m)} in {_fac_ym(m['month'])}"
                         f" = {ps:g} per site, against a Jun–Aug 2026 baseline mean "
                         f"of {base:.2f} per site ({base_s}): {chg:+g}%. Rule "
                         f"{rule_s}; {ch_s}. The baseline is from the app's own "
@@ -1131,7 +1202,7 @@ def facilities_block(feed, err, today,
         variants = [_k2(m) for m in months
                     if m["month"] > FACILITIES_KR2_BASELINE[-1]
                     and m["month"] >= fault_log_start
-                    and _fac_num(m.get("per_site")) is not None]
+                    and _fac_num(m.get("per_site")) is not None and _counts(m)]
         head = _k2(cur2)
         rows["KR2 repeat issues vs baseline"] = {
             "value": head["value"], "display": head["display"],
@@ -3491,8 +3562,18 @@ def main():
     # wall clock, not `pull`, decides staleness: the file is a current-state
     # pull taken minutes before this bake, and "is it older than three days"
     # is a question about today.
-    fac = facilities_block(*load_facilities(os.path.join(OUT_DIR, FACILITIES_FILE)),
-                           datetime.datetime.utcnow().date())
+    #
+    # The try is the backstop the review asked for (25/09/2026): the block
+    # type-checks every field it reads, but a feed shape nobody anticipated must
+    # still land on the 'unreadable' path - three grey KRs naming the file - and
+    # never fail the bake.
+    _fac_today = datetime.datetime.utcnow().date()
+    try:
+        fac = facilities_block(*load_facilities(os.path.join(OUT_DIR, FACILITIES_FILE)),
+                               _fac_today)
+    except Exception as e:  # noqa: BLE001 - a broken feed must never fail the bake
+        print(f"[bake] facilities_ppm.json could not be read: {type(e).__name__}: {e}")
+        fac = facilities_block(None, f"unreadable ({type(e).__name__}: {e})", _fac_today)
     snap["maintenance"]["facilities"] = fac["tab"]
     if fac["gap"]:
         gaps.append(fac["gap"])

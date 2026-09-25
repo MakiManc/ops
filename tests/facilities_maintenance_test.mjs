@@ -38,7 +38,25 @@ function assert(cond, msg) {
 }
 
 /* Bake the fixture with pulled_at `daysAgo` days before now (the bake judges
-   staleness on the wall clock), and return the baked snapshot. */
+   staleness on the wall clock), and return the baked snapshot.
+
+   The real fixture's fault queue is all zeros, its pairs / by_site are empty
+   and it carries 8 contractors - none of which could catch two fields swapped
+   in the wiring or the >25-row scroll wrapper. So the COPY written here gets
+   distinct values for those (the fixture file itself stays as the app sent
+   it), padded with 20 synthetic contractors to reach 28 rows. */
+const overlay = {
+  faults: { open: 3, open_over_14d: 1, assets_down: 2 },
+  kr2_repeat_issues: {
+    ...fixture.kr2_repeat_issues,
+    by_site: [{ site: 'Maki 9', repeats: 1 }, { site: 'Maki 3', repeats: 2 }],
+    pairs: [{ site: 'Maki 3', asset: 'Fryer 2', first: '2026-09-02', fix_date: '2026-09-04',
+              second: '2026-09-20', days: 18, note: 'x' }],
+  },
+  contractors: [...fixture.contractors, ...Array.from({ length: 20 }, (_, i) => ({
+    name: `Synthetic contractor ${i + 1}`, tasks: 1, overdue: 0, no_evidence: 0,
+    ontime_pct_12m: null, avg_days_late: null, last_cert: null }))],
+};
 const tmp = mkdtempSync(path.join(os.tmpdir(), 'facmjs-'));
 function bakeWith(daysAgo) {
   const out = path.join(tmp, 'd' + daysAgo);
@@ -48,7 +66,7 @@ function bakeWith(daysAgo) {
     gzipSync(JSON.stringify({ row_num: 0, data: { x: 1 } }) + '\n'));
   copyFileSync(path.join(snapDir, 'feeds_manifest.json'), path.join(out, 'feeds_manifest.json'));
   const pulled = new Date(Date.now() - daysAgo * 86400e3).toISOString().slice(0, 19) + 'Z';
-  writeFileSync(path.join(out, 'facilities_ppm.json'), JSON.stringify({ ...fixture, pulled_at: pulled }));
+  writeFileSync(path.join(out, 'facilities_ppm.json'), JSON.stringify({ ...fixture, ...overlay, pulled_at: pulled }));
   const p = spawnSync('python3', [path.join(repoRoot, 'builders', 'bake_ops_command.py'), '--date', '2026-09-25'], {
     env: { ...process.env, OPS_WAREHOUSE_SOURCE: 'archive', OPS_ARCHIVE_DIR: path.join(out, 'arch'), OPS_OUT_DIR: out },
     encoding: 'utf-8',
@@ -114,7 +132,7 @@ const okrRow = kr => page.locator('#scorecard table tbody tr', { hasText: kr }).
   assert(rows.length === 20, `KR4 drill-down: 19 sites + the group row (got ${rows.length})`);
   assert(rows[0][2] === '0%' && rows[18][0] === 'M15' && rows[18][2] === '79%', 'KR4 drill-down sorted worst first');
   const g = rows[19];
-  assert(g[0] === 'Group' && g[2] === '37%' && g[3] === '70' && g[4] === '14' && g[5] === '37' && g[6] === '106',
+  assert(g[0] === 'Group' && /as scored on the Overview/.test(g[1]) && g[2] === '37%' && g[3] === '70' && g[4] === '14' && g[5] === '37' && g[6] === '106',
     `group row is the app's own figure (got ${JSON.stringify(g)})`);
   const m20 = rows.find(r => r[0] === 'M20');
   assert(m20 && m20[7] === '—', 'a site with nothing overdue shows no oldest-overdue age');
@@ -127,19 +145,28 @@ const okrRow = kr => page.locator('#scorecard table tbody tr', { hasText: kr }).
   assert(months[0][0] === 'Sep 2026' && months[0][1] === '0', 'KR2: September is a logged month');
   const aug = months.find(r => r[0] === 'Aug 2026');
   assert(aug && aug[1] === 'no log' && /baseline/.test(aug[4]), 'KR2: August reads "no log", never 0, and is marked baseline');
+  const cells = sel => page.locator(sel + ' tbody tr').evaluateAll(trs =>
+    trs.map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim())));
+  const bySite = await cells('#fac-kr2-s');
+  assert(JSON.stringify(bySite) === JSON.stringify([['Maki 3', '2'], ['Maki 9', '1']]),
+    `KR2 by site: most repeats first (got ${JSON.stringify(bySite)})`);
+  const pairs = await cells('#fac-kr2-p');
+  assert(JSON.stringify(pairs) === JSON.stringify([['Maki 3', 'Fryer 2', '2026-09-02', '2026-09-04', '2026-09-20', '18', 'x']]),
+    `KR2 pairs: site · asset · first · fixed · re-reported · days · note (got ${JSON.stringify(pairs)})`);
   const kr2 = await page.locator('#fac-kr2').innerText();
-  assert(/No repeat pairs under the rule yet/.test(kr2) && /No site has a repeat issue/.test(kr2),
-    'KR2: empty pairs / by-site say so');
   assert(/chaser/.test(kr2) && /reported→reported/.test(kr2), 'KR2: the rule and the chaser count are on the card');
 
   const faults = await page.locator('#fac-faults .kpi').allInnerTexts();
-  assert(faults.length === 3 && /Open faults\s+0/i.test(faults[0]) && /Open over 14 days\s+0/i.test(faults[1])
-    && /Assets down\s+0/i.test(faults[2]), 'Open faults card: open / over 14 days / assets down');
+  assert(faults.length === 3 && /Open faults\s+3/i.test(faults[0]) && /Open over 14 days\s+1/i.test(faults[1])
+    && /Assets down\s+2/i.test(faults[2]), `Open faults card: open 3 / over 14 days 1 / assets down 2 (got ${JSON.stringify(faults)})`);
+  assert(!/franchise/i.test(await page.locator('#fac-faults').innerText()), 'Open faults card makes no franchise claim');
 
-  const con = await page.locator('#fac-contractors tbody tr').evaluateAll(trs =>
-    trs.map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim())));
-  assert(con.length === 8 && con[0][0] === 'IDES' && con[0][1] === '50' && con[0][2] === '5' && con[0][3] === '33'
+  const con = await cells('#fac-contractors');
+  assert(con.length === 28 && con[0][0] === 'IDES' && con[0][1] === '50' && con[0][2] === '5' && con[0][3] === '33'
     && con[0][4] === '—' && con[0][5] === '2026-08-15', 'Contractor scorecard: name · items · overdue · no evidence · on-time · last cert');
+  assert(await page.locator('#fac-contractors .tscroll table').count() === 1, 'more than 25 contractors: the table scrolls');
+  assert(/have no contractor assigned/.test(await page.locator('#fac-contractors').innerText()),
+    'Contractor scorecard says how many items have no contractor');
 }
 
 // ---- stale: the three KRs grey naming the file; the tab keeps its data -----

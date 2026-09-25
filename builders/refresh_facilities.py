@@ -78,11 +78,25 @@ def fetch(key: str) -> dict:
 
 
 def sanity(feed: dict) -> None:
-    """Refuse to overwrite a good file with a broken one."""
-    for k in ("as_of", "group", "sites", "kr2_repeat_issues", "faults"):
-        if k not in feed:
-            raise ValueError(f"feed missing '{k}'")
-    if not isinstance(feed["sites"], list) or len(feed["sites"]) < 5:
+    """Refuse to overwrite a good file with a broken one.
+
+    Type-checks what the bake type-checks (25/09/2026): a feed that passed on
+    key names alone - "pairs": 2, "faults": [...] - used to overwrite the last
+    good file and grey the three KRs the next morning, instead of getting the
+    three-day grace a failed pull gets.
+    """
+    if not isinstance(feed, dict):
+        raise ValueError("feed is not a JSON object")
+    for k, t in (("as_of", str), ("group", dict), ("sites", list),
+                 ("kr2_repeat_issues", dict), ("faults", dict)):
+        if not isinstance(feed.get(k), t):
+            raise ValueError(f"feed '{k}' missing or not {t.__name__}")
+    for k in ("months", "by_site", "pairs"):
+        if k in feed["kr2_repeat_issues"] and not isinstance(feed["kr2_repeat_issues"][k], list):
+            raise ValueError(f"feed 'kr2_repeat_issues.{k}' is not a list")
+    if "contractors" in feed and not isinstance(feed["contractors"], list):
+        raise ValueError("feed 'contractors' is not a list")
+    if len(feed["sites"]) < 5:
         raise ValueError(f"feed has {len(feed.get('sites', []))} sites — expected the estate")
     if feed["group"].get("tasks", 0) < 50:
         raise ValueError(f"feed has only {feed['group'].get('tasks')} PPM tasks — looks empty")
@@ -97,28 +111,38 @@ def main() -> int:
     try:
         feed = fetch(key)
         sanity(feed)
+        feed["pulled_at"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        feed["feed_url"] = FEED_URL
+        # allow_nan=False: NaN/Infinity are not JSON. One in the committed file
+        # would reach the public snapshot, where the browser's JSON.parse
+        # throws and the whole dashboard goes blank. Refused here, file untouched.
+        body = json.dumps(feed, indent=1, ensure_ascii=False, sort_keys=True, allow_nan=False)
     except urllib.error.HTTPError as e:
         log.error("Facilities feed HTTP %s (%s) — key wrong or app down; file untouched", e.code, e.reason)
         return 0
     except Exception as e:  # noqa: BLE001 — fail soft by design
         log.error("Facilities feed unusable (%s: %s) — file untouched", type(e).__name__, e)
         return 0
-    feed["pulled_at"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    feed["feed_url"] = FEED_URL
-    os.makedirs(OUT_DIR, exist_ok=True)
-    tmp = OUT_PATH + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(feed, f, indent=1, ensure_ascii=False, sort_keys=True)
-    os.replace(tmp, OUT_PATH)
-    # Read defensively: sanity() does not check kr2_repeat_issues.months, and a
-    # KeyError here - after the file is written - would exit 1 and fail the
-    # workflow step, which is the one thing this script must never do.
-    g = feed["group"]
-    k2m = (feed.get("kr2_repeat_issues") or {}).get("months") or []
-    k2 = k2m[-1] if isinstance(k2m, list) and k2m and isinstance(k2m[-1], dict) else {}
-    log.info("wrote %s — as_of %s, KR4 %s%%, KR1 %s%%, %d sites, KR2 %s repeats this month, %s open faults",
-             OUT_PATH, feed["as_of"], g.get("kr4_pct"), g.get("kr1_pct"), len(feed["sites"]), k2.get("repeats"),
-             (feed.get("faults") or {}).get("open"))
+    try:
+        os.makedirs(OUT_DIR, exist_ok=True)
+        tmp = OUT_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(body)
+        os.replace(tmp, OUT_PATH)
+    except OSError as e:
+        log.error("could not write %s (%s) — previous file left in place", OUT_PATH, e)
+        return 0
+    # Nothing after the write may change the exit code: a raise here would exit
+    # 1 and fail the workflow step, the one thing this script must never do.
+    try:
+        g = feed["group"]
+        k2m = feed["kr2_repeat_issues"].get("months") or []
+        k2 = k2m[-1] if k2m and isinstance(k2m[-1], dict) else {}
+        log.info("wrote %s — as_of %s, KR4 %s%%, KR1 %s%%, %d sites, KR2 %s repeats this month, %s open faults",
+                 OUT_PATH, feed["as_of"], g.get("kr4_pct"), g.get("kr1_pct"), len(feed["sites"]), k2.get("repeats"),
+                 feed["faults"].get("open"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("wrote %s; the summary line itself failed (%s)", OUT_PATH, e)
     return 0
 
 
