@@ -243,6 +243,22 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 </div>
 
 <div class="page" id="p-maint">
+  <!-- M&R Facilities app (25/09/2026): the system of record for statutory
+       compliance and PPM, and the drill-down for OO2 KR1/KR2/KR4 on the
+       Overview. Read-only; every figure is baked into snap.maintenance.facilities. -->
+  <div id="fac-head"></div>
+  <div class="card"><div class="card-h"><div class="t">OO2 KR4 · Statutory compliance, by site</div>
+    <div class="s">M&amp;R Facilities app · current or due within 30 days ÷ tracked statutory items, per site · worst first · the Overview figure is the app's group total, never an average of these rows</div></div>
+    <div class="card-b" id="fac-kr4"></div></div>
+  <div class="card"><div class="card-h"><div class="t">OO2 KR2 · Repeat maintenance issues</div>
+    <div class="s">M&amp;R Facilities app fault log · repeats per site by month, the repeat pairs, and repeats by site</div></div>
+    <div class="card-b" id="fac-kr2"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Open faults</div>
+    <div class="s">M&amp;R Facilities app · the fault queue as of the feed's date</div></div>
+    <div class="card-b" id="fac-faults"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Contractor scorecard</div>
+    <div class="s">M&amp;R Facilities app · statutory items per contractor · on-time over the last 12 months, where the app has logged completions</div></div>
+    <div class="card-b" id="fac-contractors"></div></div>
   <div id="maint-note"></div>
   <div class="kpis" id="maint-kpis"></div>
   <div class="card"><div class="card-h"><div class="t">Maintenance tasks — outstanding &amp; ongoing, by site</div>
@@ -1120,7 +1136,9 @@ function renderScorecard(snap){
        yet), so name the span the builder scored rather than guess a direction.
        Reading two labels off the list is not computing a figure. */
     const first=r.months[0], last=r.months[r.months.length-1];
-    return {...r,value:null,display:null,rag:null,basis:null,trend:null,
+    /* score too: the base row's score belongs to the default month, and
+       leaving it would put a scored chip beside "Not measured". */
+    return {...r,value:null,display:null,rag:null,score:null,basis:null,trend:null,
       trend_unit:null,trend_note:null,
       not_measured:'this KR has no figure for '+monthLabel(sel)+
         ' - its source is scored '+monthLabel(first.m)+
@@ -1144,7 +1162,8 @@ function renderScorecard(snap){
     return `<span class="tag t-${cls}" style="font-weight:680;font-variant-numeric:tabular-nums">${esc(r.score)}</span>`;
   };
   const KIND={computed:'computed',sheet_log:'from sheet log',
-              sheet_finance:'Finance, from sheet'};
+              sheet_finance:'Finance, from sheet',
+              facilities_app:'from the Facilities app'};
   let obj_='',shown=0,monthly=0;
   const objOf=id=>(s.objectives||[]).find(o=>o.objective===id);
   const objPct=o=>{
@@ -1660,6 +1679,93 @@ function render(snap){
     kpi('o','Sites affected',fmtN(maintSites.filter(r=>r.ongoing>0).length),'with an outstanding/ongoing task in range')+
     kpi('o','Resolved',fmtN(maintDoneTot),'marked done, in range')+
     kpi(maintOldest?'a':'n','Oldest open',maintOldest?maintOldest.d:'—',maintOldest?maintOldest.site:'no open tasks in range');
+
+  /* ---- M&R Facilities app (25/09/2026) ----
+     The drill-down for OO2 KR1/KR2/KR4 on the Overview, plus the fault queue
+     and the contractor scorecard. Everything is read from
+     snap.maintenance.facilities as facilities_block() in the builder left it:
+     rows arrive already sorted, every provenance line is the builder's, and
+     no colour here comes from a threshold - these cards report, the Overview
+     scores. A stale feed still shows, under a banner saying how old it is;
+     the Overview rows are the ones that go grey. None of this is sliced by
+     the date range: it is one current-state pull from the app. */
+  const fac=maint.facilities||null;
+  const facData=!!(fac&&fac.sites);
+  const facNotes=(fac&&fac.notes)||{};
+  const facEmpty=fac?(fac.note||'No data in the Facilities feed'):'This snapshot predates the Facilities app feed.';
+  const facLink=(u,t)=>/^https:\/\//.test(u||'')
+    ?`<a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--maki-orange);font-weight:600;text-decoration:none">${esc(t)} ↗</a>`:'';
+  const okrRow=kr=>(((snap.scorecard||{}).rows)||[]).find(r=>r.objective==='OO2'&&r.kr===kr);
+  const okrLine=kr=>{const r=okrRow(kr); if(!r) return '';
+    return '<div class="prov"><b>Overview '+esc('OO2 '+kr)+':</b> '+esc(r.value!=null?(r.display||'')+' — '+(r.basis||''):'not measured — '+(r.not_measured||''))+'</div>';};
+  if(!fac){
+    $('fac-head').innerHTML='<div class="note">'+esc(facEmpty)+'</div>';
+  } else {
+    const L=fac.links||{};
+    const links=[facLink(L.compliance,'Compliance register'),facLink(L.insights,'Insights')].filter(Boolean).join(' · ');
+    const when=facData?' · as of <b>'+esc(fac.as_of||'—')+'</b> · pulled '+esc(String(fac.pulled_at||'—').slice(0,10))+
+      (fac.age_days!=null?' ('+esc(fac.age_days)+'d ago)':''):'';
+    $('fac-head').innerHTML=
+      (fac.status!=='ok'?'<div class="warn"><b>Read this first.</b> '+esc(fac.note||'the Facilities feed is not usable this bake')+'</div>':'')+
+      '<div class="note" style="color:inherit"><b>Statutory compliance &amp; PPM</b> — from the '+esc(fac.source||'M&R Facilities app')+when+
+      (links?' · '+links:'')+(fac.basis?'<div class="prov">'+esc(fac.basis)+'</div>':'')+'</div>';
+  }
+  /* KR4 by site. The total row is the builder's group figure - the app's own
+     group counts, exactly as the Overview scores them - never a sum or a mean
+     taken here. When the builder refused to quote KR4 there is no total row,
+     only its reason. */
+  const facG=(facData&&fac.group)||{};
+  const facSites=(facData&&fac.sites)||[];
+  const facSiteRows=facSites.map(r=>[r.code||'—',
+    (r.site||'—')+(r.trading_name&&r.trading_name!==r.site?' · '+r.trading_name:'')+(r.franchise?' (franchise, excluded)':''),
+    r.kr4_pct==null?'—':r.kr4_pct+'%',fmtN(r.current),fmtN(r.due30),fmtN(r.overdue),fmtN(r.no_evidence),fmtN(r.oldest_overdue_days)]);
+  if(facSiteRows.length&&facG.kr4_pct!=null){
+    const t=['Group',(fac.n_sites!=null?fac.n_sites+' sites':'all sites')+' · group total, as scored on the Overview',facG.kr4_pct+'%',
+      fmtN(facG.current),fmtN(facG.due30),fmtN(facG.overdue),fmtN(facG.no_evidence),'—'];
+    t._tot=1; facSiteRows.push(t);
+  }
+  table('fac-kr4',[{h:'Code'},{h:'Site'},{h:'Compliant',n:1},{h:'Current',n:1},{h:'Due ≤30d',n:1},
+    {h:'Overdue',n:1},{h:'No evidence',n:1},{h:'Oldest overdue (days)',n:1}],facSiteRows,facEmpty);
+  if(facData) $('fac-kr4').insertAdjacentHTML('beforeend',
+    (fac.group_note?'<div class="prov"><b>No group total:</b> '+esc(fac.group_note)+'</div>':'')+
+    (facNotes.kr4?'<div class="prov">'+esc(facNotes.kr4)+'</div>':'')+okrLine('KR4')+okrLine('KR1'));
+  /* KR2: the months as the app counts them, then the pairs and the by-site
+     tally. A month from before the fault log is "no log", never a zero. */
+  const k2=(facData&&fac.kr2)||null;
+  if(!k2){
+    $('fac-kr2').innerHTML='<div class="empty">'+esc(facEmpty)+'</div>';
+  } else {
+    $('fac-kr2').innerHTML='<div class="cols"><div id="fac-kr2-m"></div><div id="fac-kr2-s"></div></div><div id="fac-kr2-p" style="margin-top:14px"></div>';
+    const base=k2.baseline_months||[];
+    table('fac-kr2-m',[{h:'Month'},{h:'Repeats',n:1},{h:'Sites',n:1},{h:'Per site',n:1},{h:''}],
+      (k2.months||[]).slice().reverse().map(m=>m.logged
+        ?[m.label||m.month,fmtN(m.repeats),fmtN(m.sites),m.per_site==null?'—':String(m.per_site),base.includes(m.month)?'baseline':'']
+        :[m.label||m.month,'no log','no log','no log',base.includes(m.month)?'baseline (no log)':'']),
+      'The feed carries no KR2 months');
+    table('fac-kr2-s',[{h:'Site'},{h:'Repeats',n:1}],(k2.by_site||[]).map(b=>[b.site||'—',fmtN(b.repeats)]),
+      'No site has a repeat issue under the rule');
+    table('fac-kr2-p',[{h:'Site'},{h:'Asset'},{h:'First report'},{h:'Fixed'},{h:'Re-reported'},{h:'Days',n:1},{h:'Note'}],
+      (k2.pairs||[]).map(p=>[p.site||'—',p.asset||'—',p.first||'—',p.fix_date||'—',p.second||'—',fmtN(p.days),p.note||'']),
+      'No repeat pairs under the rule yet');
+    $('fac-kr2').insertAdjacentHTML('beforeend',(facNotes.kr2?'<div class="prov">'+esc(facNotes.kr2)+'</div>':'')+okrLine('KR2'));
+  }
+  const facF=(facData&&fac.faults)||null;
+  $('fac-faults').innerHTML=facF
+    ?'<div class="kpis">'+
+      kpi('o','Open faults',fmtN(facF.open),'in the app\'s fault queue')+
+      kpi('o','Open over 14 days',fmtN(facF.open_over_14d),'reported more than 14 days ago, still open')+
+      kpi('o','Assets down',fmtN(facF.assets_down),'marked out of service')+'</div>'+
+      (facNotes.faults?'<div class="prov">'+esc(facNotes.faults)+' · as of '+esc(fac.as_of||'—')+'</div>':'')
+    :'<div class="empty">'+esc(facEmpty)+'</div>';
+  const facC=(facData&&fac.contractors)||[];
+  table('fac-contractors',[{h:'Contractor'},{h:'Items',n:1},{h:'Overdue',n:1},{h:'No evidence',n:1},
+    {h:'On time (12m)',n:1},{h:'Last cert'}],
+    facC.map(c=>[c.name||'—',fmtN(c.tasks),fmtN(c.overdue),fmtN(c.no_evidence),
+      c.ontime_pct_12m==null?'—':c.ontime_pct_12m+'%',c.last_cert||'—']),
+    facData?'No contractors in the Facilities feed':facEmpty);
+  const facCt=$('fac-contractors').querySelector('table');
+  if(facCt&&facC.length>25) facCt.outerHTML='<div class="tscroll">'+facCt.outerHTML+'</div>';
+  if(facData&&facNotes.contractors) $('fac-contractors').insertAdjacentHTML('beforeend','<div class="prov">'+esc(facNotes.contractors)+'</div>');
 
   /* ---- Supplier Issues tab (18/08/2026) ----
      The issue cards that used to live on Supply & Fulfilment moved here
