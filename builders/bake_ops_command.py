@@ -1209,6 +1209,45 @@ def facilities_block(feed, err, today,
             "basis": head["basis"], "source_kind": "facilities_app",
             "months": variants or None}
     return {"rows": rows, "tab": tab, "gap": None}
+def update_snapshot_index(out_dir, pull, generated_at):
+    """Record `pull` in snapshot_index.json and point `latest` at the NEWEST date.
+
+    Snapshot dates are ISO (YYYY-MM-DD), so lexicographic order IS chronological
+    and a reverse sort is the whole of "newest first".
+
+    WHY THIS SORTS INSTEAD OF PREPENDING (28/09/2026). It used to be:
+
+        if pull not in idx["dates"]: idx["dates"].insert(0, pull)
+        idx["latest"] = idx["dates"][0]
+
+    which assumes every bake is of the newest date. That holds for the daily run
+    and for nothing else. Bake a date that is NOT the newest - a backfill, or a
+    re-run against a source that had fallen behind - and it landed at position 0
+    and became `latest`. The shell reads `latest` unless the roll-back selector
+    says otherwise, so the entire dashboard moved to an older day with nothing
+    failing and nothing logged: nobody finds that except by noticing the numbers
+    changed. Found while checking whether the Neon rollback path was safe to run
+    after the export stopped writing Neon on 11/09/2026 - it would have baked
+    pull_date 2026-09-11 over a 2026-09-21 index.
+
+    Re-baking a date already in the index is the ordinary case (the daily run
+    re-bakes the same day repeatedly) and must not duplicate it.
+    """
+    ip = os.path.join(out_dir, "snapshot_index.json")
+    idx = (json.load(open(ip)) if os.path.exists(ip) else
+           {"note": "Ops Command snapshots. Newest first; the daily refresh "
+                    "adds today's. Shell reads latest unless the roll-back "
+                    "selector says otherwise.",
+            "dates": []})
+    if pull not in idx["dates"]:
+        idx["dates"].append(pull)
+    # Sort every time, not just on insert: an index written by the old
+    # prepending code can already be out of order, and this repairs it.
+    idx["dates"].sort(reverse=True)
+    idx["latest"] = idx["dates"][0]
+    idx["generated_at"] = generated_at
+    json.dump(idx, open(ip, "w"), indent=1)
+    return idx
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=None, help="pull date to stamp (default: max pull_date in warehouse)")
@@ -4575,11 +4614,7 @@ def main():
     os.makedirs(OUT_DIR,exist_ok=True)
     out=os.path.join(OUT_DIR,f"snapshot_{pull}.json")
     json.dump(snap,open(out,"w"),separators=(",",":"))
-    ip=os.path.join(OUT_DIR,"snapshot_index.json")
-    idx=json.load(open(ip)) if os.path.exists(ip) else {"note":"Ops Command snapshots. Newest first; the daily refresh prepends.","dates":[]}
-    if pull not in idx["dates"]: idx["dates"].insert(0,pull)
-    idx["latest"]=idx["dates"][0]; idx["generated_at"]=snap["generated_at"]
-    json.dump(idx,open(ip,"w"),indent=1)
+    update_snapshot_index(OUT_DIR,pull,snap["generated_at"])
     conn.close()
     print(f"baked {out}: {len(fh)} feeds, {len(training)} training sites, "
           f"{len(forms)} forms, {len(sig)} signals, {len(gaps)} gaps")
