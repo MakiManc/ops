@@ -220,6 +220,41 @@ def domain_of(feed: str) -> str:
 PRIORITY_DOMAINS = {"gc-compliance", "kobas-supply"}
 
 
+def tier_severity(f: dict, sev: str) -> str:
+    """This check's severity for feed `f`, after the tier cap and any override.
+
+    A feed's manifest tier answers TWO different questions with one field:
+    etl_receipt.py (in the ETL repo) reads it to decide whether a fetch failure
+    turns the ETL RUN red, and this verifier reads it to decide how loudly to
+    report the feed. Usually the same answer serves both. For one feed it does
+    not, and `verify_severity` is how they come apart: an explicit level here
+    wins over the best_effort cap, so a feed softened to keep a dead upstream
+    from failing every ETL run keeps its real severity in these checks.
+
+    WHY (28/09/2026). The Outstanding Stock Orders report has been dead at
+    source since 01/09 (newest Order Placed 17/08), so it failed at fetch on
+    every daily export for three weeks and the export was permanently red. That
+    is how the 21/09 Actions stoppage went unnoticed for SEVEN DAYS: the run
+    had been red every morning for weeks, so "red after 2 seconds having done
+    nothing" arrived looking exactly like "red after 29 minutes having written
+    76,000 rows".
+
+    Quietening the run meant re-tiering the feed, and without this split that
+    would also have demoted check 3 to warning - the one check that saw this
+    very report die (28/08, six days before the arrival check noticed), and the
+    reason check 3's severity stopped being pinned to warning on 03/09. Undoing
+    that to fix the exit code would have traded one blind spot for the one it
+    replaced. So the tier now softens only the ETL exit code, and the override
+    keeps the verifier's own judgement.
+    """
+    override = f.get("verify_severity")
+    if override:
+        return override
+    if f.get("status") == "best_effort":
+        return "warning"
+    return sev
+
+
 def side_channel(f: dict) -> bool:
     """A manifest entry for a committed JSON file, not a warehouse feed.
 
@@ -398,8 +433,12 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
         # still appears in every check with its real result, so a best_effort
         # feed that quietly dies for a month is visible as a standing warning
         # (and keeps the health amber). What it cannot do is page anyone.
-        if status == "best_effort":
-            sev = "warning"
+        #
+        # ...unless the entry sets verify_severity, which wins over the cap:
+        # see tier_severity(). That is for a feed tiered best_effort purely to
+        # stop a dead upstream failing every ETL run, where the tier must not
+        # also quieten these checks.
+        sev = tier_severity(f, sev)
         lp = latest.get(name)
         wf = f.get("workflow", "daily-export")
         # Feed missing while its producing run has no receipt today: the
@@ -495,8 +534,10 @@ def check_event_dates(cur, manifest: dict, today: str):
         # arrival check noticed anything, and it sat at warning the whole
         # time while an uninformative critical took the attention.
         sev = "critical" if domain_of(name) in PRIORITY_DOMAINS else "warning"
-        if f["status"] == "best_effort":
-            sev = "warning"
+        # verify_severity wins over the best_effort cap here above all: this is
+        # the check that caught the Outstanding Stock Orders stoppage, and that
+        # feed is exactly the one now tiered best_effort for its exit code.
+        sev = tier_severity(f, sev)
         try:
             if f.get("event_date_format") == "uk":
                 cur.execute(
@@ -952,7 +993,12 @@ def check_facilities(today: str, manifest: dict | None = None,
         return {}
 
     def sev(level: str, detail: str) -> None:
-        if level == "critical" and tier != "expected":
+        # An explicit verify_severity wins over the tier cap, same as for feed
+        # checks 1-3 (see tier_severity()) - one meaning for the field wherever
+        # it appears, so a side channel softened for an exit code it does not
+        # even have cannot quietly lose its severity here.
+        if (level == "critical" and tier != "expected"
+                and not entry.get("verify_severity")):
             level = "warning"
             detail += (f" [would be critical; capped at warning because "
                        f"feeds_manifest.json files it {tier} - flip it to "
