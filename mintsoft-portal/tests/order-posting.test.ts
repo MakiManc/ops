@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { buildOrderNumber, parseOrderNumber } from '../src/server/orders/order-number.ts'
 import {
-  buildOrderBody, LOOKUP_PAGE_SIZE, lookupExistingOrder, postOrder, type MintsoftWriteClient, type OrderToPost,
+  AUTO_ORDER_NUMBER, buildOrderBody, LOOKUP_PAGE_SIZE, lookupExistingOrder, postOrder, type MintsoftWriteClient, type OrderToPost,
 } from '../src/server/orders/post.ts'
 import { mayWriteToMintsoft, writesEnabled, type OrderForWrite } from '../src/server/orders/write-gate.ts'
 
@@ -267,12 +267,25 @@ describe('posting an order', () => {
     expect(body.OrderItems).toEqual([{ SKU: 'BOWL-01', Quantity: 24 }])
   })
 
-  it('names the order with our reference, because Mintsoft will not name it for us', async () => {
-    // Leaving OrderNumber out was tried: the API answers "Invalid Data! OrderNumber is
-    // Required". The reference is unique by construction, so it serves as both.
+  it('asks Mintsoft to generate the number with the form\'s own sentinel', async () => {
+    // Leaving OrderNumber out was tried: "Invalid Data! OrderNumber is Required". The
+    // reference still travels as ExternalOrderReference, which is what the lookup uses.
     const body = buildOrderBody(order) as { OrderNumber: string; ExternalOrderReference: string }
-    expect(body.OrderNumber).toBe(order.reference)
+    expect(body.OrderNumber).toBe(AUTO_ORDER_NUMBER)
     expect(body.ExternalOrderReference).toBe(order.reference)
+  })
+
+  it('warns when Mintsoft took AUTO as a name instead of an instruction', async () => {
+    const { client } = stubMintsoft({ putResult: [{ Success: true, OrderId: 8812, OrderNumber: 'AUTO' }] })
+    const outcome = await postOrder(client, order)
+    expect(outcome.kind).toBe('created')
+    expect(outcome.kind === 'created' && outcome.warning).toMatch(/literally called "AUTO"/)
+  })
+
+  it('carries no warning when a real number comes back', async () => {
+    const { client } = stubMintsoft({ putResult: [{ Success: true, OrderId: 8813, OrderNumber: 'MRK-8813' }] })
+    const outcome = await postOrder(client, order)
+    expect(outcome.kind === 'created' && outcome.warning).toBeUndefined()
   })
 
   it('tags the order so it can be found from the Mintsoft side too', async () => {

@@ -152,16 +152,19 @@ export interface OrderToPost {
   lines: OrderLine[]
 }
 
+/** The sentinel Mintsoft's order form sends to have a number generated. */
+export const AUTO_ORDER_NUMBER = 'AUTO'
+
 /** The body Mintsoft expects. Field names and casing are theirs. */
 export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
   const [firstName, ...rest] = (order.contactName ?? order.siteCode).trim().split(/\s+/)
   return {
-    // Our reference is the order number too. The API will not assign one: leave it out
-    // and Mintsoft answers "OrderNumber is Required" (29 Sep 2026). The web form's
-    // "Auto Generate" toggle is the form's, not the API's. So Mercium sees
-    // MR-<site>-<date>-<seq> on the pick sheet -- the same number the GM sees here --
-    // and the lookup still matches on ExternalOrderReference, which carries it too.
-    OrderNumber: order.reference,
+    // "AUTO" is what Mintsoft's own order form posts when "Auto Generate OrderNumber"
+    // is on, and Ross chose to try it over the API (29 Sep 2026). Leaving the field out
+    // was refused: "OrderNumber is Required". If the API takes AUTO literally rather
+    // than generating a number, the reply names the order "AUTO" and postOrder says so.
+    // Ours stays as the reference, which is what the lookup matches on either way.
+    OrderNumber: AUTO_ORDER_NUMBER,
     ExternalOrderReference: order.reference,
     Tags: `${PORTAL_TAG},${order.siteCode}`,
     CompanyName: order.companyName,
@@ -186,7 +189,7 @@ export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
 }
 
 export type PostOutcome =
-  | { kind: 'created'; mintsoftOrderId: number; mintsoftOrderNumber: string | null }
+  | { kind: 'created'; mintsoftOrderId: number; mintsoftOrderNumber: string | null; warning?: string }
   | { kind: 'already_exists'; mintsoftOrderId: number; mintsoftOrderNumber: string | null }
   /** Another send holds the order. Nothing was attempted; wait for that one. */
   | { kind: 'in_flight' }
@@ -283,9 +286,19 @@ export async function postOrder(
 
   // Mintsoft echoes the number it assigned. Recording it is what lets Maki and Mercium
   // talk about the same order; without it the portal knows only an internal id.
+  //
+  // If the echo is the sentinel itself, Mintsoft took "AUTO" as a name rather than an
+  // instruction. The order exists and is tracked by id, but it is called AUTO in
+  // Mercium's system and a second one would collide, so the outcome carries a warning
+  // rather than a number.
+  const echoed = withId.OrderNumber ?? null
   return {
     kind: 'created',
     mintsoftOrderId: withId.OrderId,
-    mintsoftOrderNumber: withId.OrderNumber ?? null,
+    mintsoftOrderNumber: echoed,
+    warning: echoed !== null && echoed.trim().toUpperCase() === AUTO_ORDER_NUMBER
+      ? `Mintsoft did not generate an order number: the order is literally called "${echoed}" (id ${withId.OrderId}). ` +
+        'Rename or cancel it in Mintsoft before sending another, or the next one will collide.'
+      : undefined,
   }
 }

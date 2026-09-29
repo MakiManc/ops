@@ -280,11 +280,12 @@ export async function sendApprovedOrder(
       // Say the number Mercium will say. The internal id is the fallback for the case
       // where Mintsoft created the order but did not echo a number for it.
       const named = outcome.mintsoftOrderNumber ?? `${outcome.mintsoftOrderId}`
+      const warning = outcome.kind === 'created' ? outcome.warning : undefined
       return {
         ok: true,
         status: outcome.kind === 'created' ? 'posted' : 'already_posted',
         message: outcome.kind === 'created'
-          ? `Sent to Mercium as order ${named}.`
+          ? (warning ? `Sent to Mercium, but: ${warning}` : `Sent to Mercium as order ${named}.`)
           : `Already in Mintsoft as order ${named}; attached rather than sent again.`,
         mintsoftOrderId: outcome.mintsoftOrderId,
       }
