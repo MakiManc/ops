@@ -43,9 +43,15 @@ export interface MintsoftWriteClient {
  */
 export const PORTAL_TAG = 'maki-portal'
 
-/** One page of /api/Order/List, and how many we will walk before giving up. */
-const LOOKUP_PAGE_SIZE = 200
-const LOOKUP_MAX_PAGES = 25
+/**
+ * One page of /api/Order/List, and how many we will walk before giving up.
+ *
+ * Mintsoft caps Limit at 100 and answers HTTP 400 to anything larger (confirmed live,
+ * 29 Sep 2026, and in DISCOVERY.md). At 200 every send stopped at the duplicate check
+ * with "HTTP 400 rather than a list of orders" — safely, but every time.
+ */
+export const LOOKUP_PAGE_SIZE = 100
+const LOOKUP_MAX_PAGES = 50
 
 /**
  * Has an order carrying this reference already reached Mintsoft?

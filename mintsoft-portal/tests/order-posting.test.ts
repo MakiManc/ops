@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { buildOrderNumber, parseOrderNumber } from '../src/server/orders/order-number.ts'
 import {
-  buildOrderBody, lookupExistingOrder, postOrder, type MintsoftWriteClient, type OrderToPost,
+  buildOrderBody, LOOKUP_PAGE_SIZE, lookupExistingOrder, postOrder, type MintsoftWriteClient, type OrderToPost,
 } from '../src/server/orders/post.ts'
 import { mayWriteToMintsoft, writesEnabled, type OrderForWrite } from '../src/server/orders/write-gate.ts'
 
@@ -129,6 +129,24 @@ describe('order numbers', () => {
 })
 
 describe('looking up an existing order', () => {
+  it('never asks Mintsoft for more than 100 per page, which is all it will give', async () => {
+    // Limit=200 gets HTTP 400, and a 400 at the duplicate check means no order can ever
+    // be sent. Found the hard way on the first real send.
+    const queries: Record<string, unknown>[] = []
+    const client: MintsoftWriteClient = {
+      async get<T>(_path: string, query?: Record<string, unknown>) {
+        queries.push(query ?? {})
+        return { data: [] as T, status: 200, ms: 1, raw: '' }
+      },
+      async putOrder() { throw new Error('not expected') },
+    }
+    await lookupExistingOrder(client, order.reference)
+    expect(queries).toHaveLength(1)
+    expect(queries[0]!.Limit).toBe(LOOKUP_PAGE_SIZE)
+    expect(Number(queries[0]!.Limit)).toBeLessThanOrEqual(100)
+  })
+
+
   it('finds one that is already there', async () => {
     const { client } = stubMintsoft({
       searchResults: [{ OrderNumber: 'MRK-8811', ExternalOrderReference: order.reference, ID: 8811 }],
@@ -182,8 +200,10 @@ describe('looking up across pages', () => {
       async get<T>(_path: string, query?: Record<string, unknown>) {
         const page = Number(query?.PageNo ?? 1)
         calls.push(page)
-        const start = (page - 1) * 200
-        const rows = Array.from({ length: Math.max(0, Math.min(200, total - start)) }, (_, i) => ({
+        // The stub honours the Limit it is asked for, as Mintsoft does (up to 100).
+        const size = Math.min(100, Number(query?.Limit ?? 100))
+        const start = (page - 1) * size
+        const rows = Array.from({ length: Math.max(0, Math.min(size, total - start)) }, (_, i) => ({
           ID: start + i + 1,
           OrderNumber: `MRK-${start + i + 1}`,
           ExternalOrderReference: `MR-OTHER-20260101-${start + i + 1}`,
@@ -198,7 +218,7 @@ describe('looking up across pages', () => {
   it('keeps going past a full page rather than stopping at the first one', async () => {
     const { client, calls } = stubPages(250)
     expect(await lookupExistingOrder(client, order.reference)).toEqual({ kind: 'absent' })
-    expect(calls).toEqual([1, 2])
+    expect(calls).toEqual([1, 2, 3])
   })
 
   it('finds an order sitting on a later page', async () => {
@@ -220,13 +240,13 @@ describe('looking up across pages', () => {
   it('says unknown, never absent, when it runs out of pages still looking', async () => {
     // The dangerous case. "I have not seen it yet" must never be read as "it is not
     // there", because that reading is what sends a second pallet.
-    const { client } = stubPages(200 * 40)
+    const { client } = stubPages(LOOKUP_PAGE_SIZE * 60)
     const outcome = await lookupExistingOrder(client, order.reference)
     expect(outcome.kind).toBe('unknown')
   })
 
   it('refuses to create when the pages ran out, rather than risking a duplicate', async () => {
-    const { client } = stubPages(200 * 40)
+    const { client } = stubPages(LOOKUP_PAGE_SIZE * 60)
     const puts: unknown[] = []
     const watched = { ...client, async putOrder(body: unknown) { puts.push(body); return { data: null, status: 200, raw: '' } } } as unknown as MintsoftWriteClient
     expect((await postOrder(watched, order)).kind).toBe('uncertain')
