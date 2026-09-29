@@ -194,12 +194,11 @@ None of this should constrain UI work. If it does, you have wandered.
 ---
 ## 6. How to work on this
 
-**Verify every finding before you act on it.** What follows in §7 was produced by ten
-independent audits of the code, each one re-checked by a second reader who opened the
-files it cited. Findings that could not be reproduced were dropped. Even so, the line
-numbers will drift as you edit, and a couple of the counts are approximate — I have marked
-the ones I checked myself against the live database. Open the file before you believe the
-finding.
+**Verify every finding before you act on it.** §7 came from ten independent audits, each
+re-checked by a second reader who opened the files it cited; §10 says how that went and
+where I overruled it. Even so, line numbers drift as you edit and a few counts are
+approximate — the ones I checked myself against the live database are marked. Open the file
+before you believe the finding.
 
 **Change the screen and the test together.** Every UI change should land with its test.
 The existing `tests/*.test.tsx` show the house style: render the real component, stub
@@ -298,12 +297,17 @@ state while it is in flight.
 **5. A fifth of the ordering catalogue is furniture for opening new restaurants.**
 `high` · `S` · `src/server/db/catalogue.ts:85-95`
 
-I checked this against the live database: of 93 active products, **20 are `stock_type =
-'expansion'`** — chairs, tables, signage for new-site openings. They are in every GM's
-ordering catalogue. Alphabetically, `CHAIRS` lands near the top; when I walked an order
-through the deployed UI as the Aberdeen GM, the first product on the screen was `CHAIRS -
-MRK001`. It roughly doubles the scrolling distance to the things a restaurant actually
-orders, and puts furniture one mis-tap from a stock request.
+Checked against the live database twice. Of 93 active products, **20 are
+`stock_type = 'expansion'`** — and all 20 are the `Furniture` category. The catalogue
+sorts `ORDER BY COALESCE(p.category, 'zzz'), p.name` (`catalogue.ts:92`), and *Furniture*
+is alphabetically first, ahead of Other, Packaging, Signage, Tableware, Uniform and
+Utensils.
+
+So it is not that furniture is mixed in. **The first twenty products a GM sees, before
+anything a restaurant actually orders, are chairs and tables for opening new sites.** That
+is why the first product on screen was `CHAIRS - MRK001` when I walked an order through
+the deployed UI as the Aberdeen GM. It puts £45 furniture one mis-tap from a stock request
+and buries the tableware.
 
 Filter `stock_type = 'expansion'` out of the ordering catalogue, behind an option so the
 approver's stock overview — which legitimately wants everything — is unaffected.
@@ -317,11 +321,17 @@ GM needs is a separate scroll-to-top-and-search cycle. Put search, the checkbox 
 of category chips into one `sticky top-0` block; the categories are already derived in the
 `groups` memo.
 
-**7. Back is unreachable on long screens; the only persistent button is Sign out.**
-`high` · `M` · `App.tsx:199-224`. The header is not sticky and holds exactly one control.
-The app name is a `<p>`, not a link home. The real back button renders once at the top of
-`<main>`. Deep in a 93-product catalogue, the only control on screen signs you out. Make
-the header sticky, move back into it, demote Sign out.
+**7. Back is unreachable on long screens.**
+`high` · `M` · `App.tsx:199-224`. The header is not sticky and holds exactly one control,
+Sign out. The app name is a `<p>`, not a link home. The real back button renders once at
+the top of `<main>` and scrolls away. Make the header sticky, move back into it, demote
+Sign out.
+
+One qualification, which a verifier caught in my first draft: the catalogue is not as bare
+as the rest. `Catalogue.tsx:303-319` renders a `sticky top-2` banner with a "Review and
+send" button that stays on screen for the whole scroll — but **only once `inRequest > 0`**.
+So a GM who has added nothing, which is everyone at the start, has nothing pinned but Sign
+out. Every other screen has nothing pinned at all.
 
 **8. The basket cannot reach the catalogue.** `high` · `S` · `Basket.tsx:77-79`.
 Catalogue → basket is one tap. The return is three taps and a scroll — which is exactly
@@ -361,10 +371,13 @@ offers it. A GM who realises mid-service that the request is wrong has to phone 
 hope. Add it for `submitted`, `approved` and `draft`, behind a confirmation.
 
 **14. Basket quantities save on blur only, and clearing the box deletes the line.**
-`high` · `M` · `Basket.tsx:46-53, 120-137`. A failed save is silent. The likely outcomes
-are sending a quantity you thought you had changed, or losing a line you meant to edit.
-Give it the same −/+ stepper the catalogue uses, save on a debounce, and show when a save
-fails.
+`high` · `M` · `Basket.tsx:46-53, 120-137`. The input is uncontrolled, so when a save
+fails the number does **not** spring back — React will not overwrite a DOM input the user
+has typed into. The box goes on showing the quantity the GM chose while the server holds
+the old one, and Send does not wait for the save either. The failure mode is therefore not
+"my change was lost", which a person would notice; it is a screen that agrees with them
+and an order that does not. Give it the same −/+ stepper the catalogue uses, make it
+controlled, save on a debounce, and show when a save fails.
 
 ### 7.4 For the approver and the admin
 
@@ -378,6 +391,8 @@ line to fix, plus a site filter.
 *the order's* site; the basket screen renders `activeSiteId`. An approver acting for M3 who
 reorders an M9 order gets a green confirmation and then an empty M3 basket. At minimum,
 name the site in the confirmation; properly, route them to the site they just filled.
+`siteId` is already on the wire — `ORDER_SELECT` selects `o.site_id` and `toSummary`
+returns it — so this needs no server change.
 
 **17. The admin's eleven menu items are one flat undifferentiated list, and the
 "Not built yet / Phase N" card is now unreachable.** `low` · `S` · `App.tsx:21, 273-282`.
@@ -402,30 +417,184 @@ These are mine rather than the audit's, from reading all thirteen client files:
   need a reference for how a screen here should feel, use that one — and spend your effort
   on the GM screens, which are the ones that need it.
 
+### 7.6 The other eight audits
+
+These landed after the first draft: the approver's screens, the admin screens, loading and
+error states, accessibility, phone behaviour, the visual system, the copy, and forms and
+destructive actions. Ninety-nine findings in total, each re-checked by a second reader who
+opened the files: none was refuted outright, nineteen came back imprecise and were
+corrected — four of those corrections are folded into §7.1–7.4 above, which is why some of
+it reads differently from the first version.
+
+Where several lenses found the same thing independently, I have said so. That agreement is
+the most reliable signal in here.
+
+**18. Typing a quantity in the catalogue gives you the wrong number.** `blocker` · `S` ·
+`Catalogue.tsx:102-111`
+
+I sat and walked this one because it seemed too bad to be true. The input is controlled at
+`value={qtyWanted}`, and `onChange` does `setQtyWanted(n > 0 ? n : 1)`. A GM wanting six of
+something backspaces the `1` — the field is now empty, `Number('')` is `0`, so it snaps
+straight back to `1` — and then types `6` beside the `1` that reappeared. **They get 16.**
+On a phone, backspace-then-type is how you change a number; there is no comfortable
+select-all. The most repeated action in the app silently multiplies the order.
+
+Hold the raw string in state, allow it to be empty while editing, and coerce on blur.
+
+**19. After an uncertain send, the button re-arms directly under its own warning.**
+`high` · `S` · `ApprovalQueue.tsx:253-281, 299-306`
+
+`finally { setBusy(false) }` runs whatever happened, and the button is gated on `busy`
+alone. So after a 202 or a dropped connection, the approver reads *"the order may already
+be with Mercium"* and sits looking at a live **Send to Mercium** button. Found twice, by
+the approver lens and the states lens.
+
+One correction to what the audit said about it, which I know because I wrote the send path:
+this will **not** produce a duplicate order. `postOrder` looks the order up before it
+creates anything, and returns `uncertain` rather than creating if it cannot get a
+trustworthy answer. So the cost is confusion, not a second pallet — which is why I have it
+at `high` rather than `blocker`. It is still wrong for the screen to offer the action its
+own message tells you not to take. Keep the button disabled after a `wait` outcome and give
+it a reload control instead.
+
+**20. Merging a request and then approving it signs the merged-in lines off at zero.**
+`blocker` · `S` · `ApprovalQueue.tsx:45-50, 133-134, 192-194`
+
+The card itself recommends the merge. Take the offer, and the merged-in lines arrive with
+`0` in their approve boxes; press Approve — which is what the card is inviting — and those
+lines go through at zero. The GM is emailed that their request was approved. The stock does
+not come. This is the worst of the new findings because the UI leads you into it.
+
+**21. A failed par-level paste crashes the screen and takes the grid with it.**
+`blocker` · `S` · `AdminScreens.tsx:123-134, 170, 177`
+
+`setResult(await res.json() as never)` assumes every response is an import result, so a 401
+from an overnight session — the realistic case, Ross pasting a grid in the morning — reads
+`result.problems.length` on something that has no `problems`, and the whole admin screen
+goes blank. The pasted grid is gone with it. Found by three lenses independently (admin,
+states, forms), which is as strong as the agreement gets in here. This is also the one
+screen that has to be used to get par levels off zero.
+
+**22. The portal prints the server's internal codes at people.** `blocker` · `M` ·
+ten inline `fetch` sites, listed at `Catalogue.tsx:76`, `Basket.tsx:67`,
+`ApprovalQueue.tsx:65` and `:267`, `SitesAndPeople.tsx:63` and `:166`, `Mapping.tsx:64`,
+`MyOrders.tsx`, `Photos.tsx`, `AdminScreens.tsx`
+
+A lapsed session shows the user the string **`not_signed_in`**. This is the same root as
+§7.5's "every screen does its own fetch": there is no shared error boundary, so every
+screen invents its own handling and several just render whatever the server said. Fixing
+the shared hook fixes this at the same time.
+
+**23. The basket shows "Loading…" forever when its fetch fails.** `high` · `S` ·
+`Basket.tsx:39-44, 76`. No error, no retry, no timeout. An expired session on the basket
+screen is indistinguishable from a slow one, permanently.
+
+**24. Sign-in can end as a blank page with no button and nothing to press.** `high` · `S` ·
+`SignIn.tsx:73-78, 89`. The Google script is polled for ten seconds and then the polling
+stops silently. On restaurant wifi — the network this app lives on — that is a white screen
+on the first thing a GM ever sees.
+
+**25. An approver can sign an order off at zero on every line.** `high` · `S` ·
+`ApprovalQueue.tsx:130-136`, `src/server/orders/send.ts:220-231`. The GM is emailed that it
+is approved; the send then refuses it as empty. The guard exists in the right place, but it
+fires far too late to help anyone.
+
+**26. A product with no stock is chipped "Inbound" and survives the hide-out-of-stock
+filter.** `high` · `S` · `format.ts:47`, `Catalogue.tsx:162, 249`. A GM filtering to what
+they can actually order is shown things they cannot.
+
+**27. A site created through the admin screen has no delivery notes and no contact phone.**
+`high` · `S` · `SitesAndPeople.tsx:72-129`. The form has no fields for them, and both go to
+the warehouse on the order. Ross opens a site, everything looks fine, and the first delivery
+arrives at the wrong door with nobody to ring.
+
+**28. Both admin forms throw away the field the server named.** `high` · `S` ·
+`SitesAndPeople.tsx:63, 130, 166`. The server says *which* field it rejected; the form
+shows one message at the bottom, off screen on a phone. Tapping Save appears to do nothing.
+
+**29. Disabled buttons sit at about 2.6:1** — below the 3:1 floor — `high` · `S` ·
+`Basket.tsx:240`, `ApprovalQueue.tsx:196, 221`, `AdminScreens.tsx:165`, `Mapping.tsx:145`.
+`disabled:opacity-60` on everglade. These are exactly the buttons that are stopping someone
+finishing, so they are the ones that most need to be readable.
+
+**30. The 44px base rule stretches every checkbox into a 16×44 sliver.** `high` · `S` ·
+`index.css:51-53`. Found by the visual and mobile lenses independently. The rule is right;
+it just needs to exclude `input[type="checkbox"]` and `[type="radio"]`, with the tap target
+moved to the wrapping `<label>`. Note that `Catalogue.tsx:285` already wraps correctly and
+`Mapping.tsx:103` does not, so the two need different fixes.
+
+**31. The disabled Send button removes itself from the tab order, so the explanation of why
+it is disabled is never read.** `high` · `M` · `Basket.tsx:223-243`. There is an
+`aria-describedby` saying what is blocking the order. A keyboard user tabs to "Anything
+else" and then off the end of the page, having never met the button or its reason.
+
+**32. Whether a basket warning blocks the order is carried by background colour alone.**
+`high` · `S` · `Basket.tsx:24-28, 146-167`. Nothing in the text distinguishes "this stops
+you sending" from "this is worth knowing".
+
+**33. "Add something from the stock list" names a screen that does not exist.** `high` · `S`
+· `Basket.tsx:77-79`. The screen is called **Order stock**. Small, and exactly the kind of
+thing that strands someone who is already unsure.
+
+**34. Stock ages freeze at page load.** `medium` · `M` · `Catalogue.tsx:228-240`. The
+freshness banner is computed once, so a tab left open for three hours still says the stock
+was checked four minutes ago. The banner was written to stop people trusting stale numbers
+and currently becomes the thing telling them to.
+
+**35. The visual system, as one job.** `medium` · `M-L`. The primary button is written
+**twelve** different ways across the app; Everglade and Maki Orange both mean "primary", so
+the irreversible Send button looks like a CSV download link; red/amber/green are defined
+four times in four files and the definitions disagree; there is no type scale, so a product
+name is the same size as body text in a small-x-height display face; sixteen copies of the
+card with three near-misses and three radii. Cherry is never used at all and `paper` is
+painted over by `bg-gray-50`. This is one afternoon of extracting `Button`, `Card`, `Field`
+and a single tone map — and doing it first will make every other fix in this document
+faster.
+
+Smaller things I have not written up individually, all confirmed: the catalogue's empty
+state blames a search the user may not have made; "30 also requested by other sites" has no
+unit and no product name; the stock overview's five headline figures are warehouse jargon
+with no units; removing a product photo is one unconfirmed tap beside "Replace"; switching
+the People/Sites tab silently empties a half-filled form; a non-numeric "minimum days
+between orders" saves as *no minimum*, quietly removing a site's ordering gap; the mapping
+screen can only act on lines its own detector clustered, and counts the rest before throwing
+them away; and the recharge report fetches every priced line and renders none of them, so
+the unpriced-line warning it shows cannot be acted on.
+
 ---
 
 ## 8. Where to start
 
-If you do nothing else, do these four, in this order. They are all small, and between them
-they fix the "did that work?" problem that runs through the whole GM journey:
+Six things, all small, all `S` effort. Between them they fix every way the app currently
+lies to somebody about what it just did. Do these before anything structural.
 
-1. **Finding 1** — add `status` to the basket payload type and stop showing a sent request
-   as editable. Half a day, removes the worst lie the app tells.
-2. **Finding 3** — confirm the send. The banner already exists; wire it up.
-3. **Finding 5** — filter expansion stock out of the ordering catalogue. One server-side
-   condition, and a fifth of the scrolling disappears.
-4. **Finding 8** — let the basket reach the catalogue. One prop, mirroring one that is
-   already there.
+1. **§7.6 #18** — the quantity field. A GM asking for six gets sixteen. Most-used control
+   in the app, wrong answer, no sign of it.
+2. **§7.1 #1** — add `status` to the basket payload type. Stop showing a sent request as
+   editable with a live Send button.
+3. **§7.1 #3** — confirm the send. The banner already exists in `MyOrders`; wire it up.
+   With #2 this closes the "did that work → go back → the app says no → press again" loop
+   that runs through the whole GM journey.
+4. **§7.6 #21** — stop the par-level paste crashing the admin screen. One `res.ok` check,
+   and it is the only route to getting par levels off zero.
+5. **§7.6 #20** — merged-in lines arriving at zero. The card recommends the merge, so the
+   UI is leading approvers into signing off stock that will never arrive.
+6. **§7.1 #5** — filter expansion stock out of the ordering catalogue. One condition, and
+   the first twenty products a GM sees stop being furniture.
 
-Then **finding 2** (the URL), because findings 10 and 11 partly fall out of it and because
-the back gesture leaving the portal is the thing most likely to make a GM give up.
+Then **§7.6 #35, the visual system**, before the rest. Extracting `Button`, `Card`, `Field`
+and one tone map is an afternoon, and it makes every remaining fix faster rather than
+slower. Doing it late means doing several of them twice.
 
-Then the doubling pair (**4**), the catalogue controls (**6**) and the sticky header
-(**7**).
+Then **§7.1 #2** (the URL and the back gesture) — §7.2 #10 and #11 partly fall out of it,
+and a back gesture that throws you out of the portal is the thing most likely to make a GM
+stop using it.
 
-Leave **17** until last. It is tidying, and it touches the file everything else touches.
+Then the doubling pair (§7.1 #4), the catalogue controls (§7.2 #6), the sticky header
+(§7.2 #7), and the shared fetch hook from §7.5 — which also fixes §7.6 #22 and #23, and is
+where the missing retry belongs.
 
----
+Leave §7.4 #17 until last. It is tidying, and it touches the file everything else touches.
 
 ## 9. How to know it worked
 
@@ -450,27 +619,52 @@ changed and what still needs watching when the first real order goes through.
 
 ---
 
-## 10. What this covers, and what it does not
+## 10. What this covers, and how much to trust it
 
-§7.1–7.4 came from two systematic audits — the app shell and navigation, and the GM
-ordering journey end to end — where every finding cites code the reviewer had opened. I
-spot-checked several myself against the files and the live database, and those are marked.
-§7.5 is my own reading of all thirteen client files.
+Ten systematic audits of `src/client/`, each through one lens: the app shell and
+navigation, the GM ordering journey, the approver's screens, the admin screens,
+accessibility against WCAG 2.2 AA, phone and touch behaviour, loading and error states, the
+visual system, the copy, and forms and destructive actions. Every finding had to cite code
+the reviewer had opened.
 
-Eight further audits were still running when I wrote this: the approver's job, the admin
-screens, accessibility against WCAG 2.2 AA, phone and touch behaviour, loading and error
-states, the visual system, the copy, and forms and destructive actions. When they land,
-this file gets a §7.6 rather than a rewrite — nothing above is expected to change.
+Each lens was then re-checked by a second reader who opened the same files and tried to
+break the findings. **99 findings: none refuted outright, 19 corrected as imprecise.** Four
+of those corrections changed things I had already written — the furniture is first because
+of category sort order rather than alphabetics; the catalogue does keep one control on
+screen, but only once something is in the request; a failed basket save keeps the typed
+number rather than reverting it; and `siteId` was already on the wire. §7.1–7.4 have been
+edited accordingly.
 
-Two things worth knowing about what is already good, so you do not go looking for problems
-that are not there:
+Zero refutations is a high pass rate and I would treat it with some suspicion, except that
+the three findings I checked line by line myself — the missing `status` field, the
+expansion-stock counts, the empty-state copy — were all exactly as described, and the
+nineteen corrections show the second readers were doing real work rather than nodding
+along. **Two things I corrected against the audit from my own knowledge of the code:** the
+furniture count is 20, not the 22 a verifier gave (checked twice against the live
+database), and the re-arming Send button cannot actually produce a duplicate order, because
+`postOrder` looks up before it creates. Findings are a place to start looking, not a
+verdict. Open the file.
+
+**The thing to keep in mind through all of it:** no order has ever been sent from this
+portal and only three people have ever signed in. Every judgement here is reasoning about
+code, not watching a GM struggle. The first hour of watching a real GM will be worth more
+than this whole document, and it cannot happen until the Google consent screen is fixed
+(§1).
+
+Two things are already good, so do not go looking for problems that are not there:
 
 - **The base accessibility layer is real.** `src/client/index.css` gives every button,
   input and select a 44px minimum height and every focusable thing a 3px focus ring, and
   the palette is annotated with measured WCAG ratios — including the note that
   white-on-Maki-Orange fails at 3.14:1 and must never be used. I re-measured two of the
   riskier combinations in use (`text-gray-300` on the everglade header at 8.0:1,
-  `text-gray-600` on `bg-gray-50` at 7.2:1); both pass comfortably.
+  `text-gray-600` on `bg-gray-50` at 7.2:1); both pass comfortably. The 44px rule has one
+  bug — §7.6 #30, checkboxes — and is otherwise doing its job.
 - **The catalogue already has search, an in-stock filter and category grouping**, with
   sensible ARIA on the groups. The problem is that the controls scroll away, not that they
   are missing. Do not rebuild them.
+
+And one screen worth copying rather than fixing: **the approval queue** has the best
+information design in the app — real context per request, the early-order reason surfaced,
+stock per line. Its problems are all in what happens *after* you press something. Use its
+card layout as the reference and spend your effort on the GM screens.
