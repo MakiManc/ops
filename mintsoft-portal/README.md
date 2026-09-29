@@ -102,8 +102,16 @@ npm run build
 
 ## Deploying
 
-Not deployed yet — it needs a Cloudflare account and a Google OAuth client id. See
-[DEPLOY.md](DEPLOY.md) for the one-time setup.
+Live at <https://mintsoft-portal.pages.dev>. See [DEPLOY.md](DEPLOY.md) for the one-time
+setup and for what to check when somebody cannot sign in.
+
+```sh
+npm run build
+npx wrangler pages deploy dist --project-name mintsoft-portal
+```
+
+[HANDOVER-UI.md](HANDOVER-UI.md) is the brief for making the screens easier to use: who is
+on the other side of them, what is already good, and what to fix first.
 
 ## How access works
 
