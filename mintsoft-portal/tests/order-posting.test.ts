@@ -70,10 +70,20 @@ describe('the write gate', () => {
   })
 
   it('refuses an order that has not been approved', () => {
-    for (const status of ['draft', 'submitted', 'rejected', 'cancelled', 'post_failed'] as const) {
+    for (const status of ['draft', 'submitted', 'rejected', 'cancelled', 'posted', 'despatched'] as const) {
       const d = mayWriteToMintsoft({ ...approved, status }, { writesEnabled: true })
       expect(d.allowed, status).toBe(false)
     }
+  })
+
+  it('lets a failed send be tried again, since the approval still stands', () => {
+    // The first real send was refused by Mintsoft, the order became post_failed, and
+    // the gate then refused the retry too -- a dead end the awaiting-send list had
+    // promised was not one. Every other check still applies.
+    expect(mayWriteToMintsoft({ ...approved, status: 'post_failed' }, { writesEnabled: true }).allowed).toBe(true)
+    expect(mayWriteToMintsoft({ ...approved, status: 'post_failed', approvedByRole: 'gm' }, { writesEnabled: true }).allowed).toBe(false)
+    expect(mayWriteToMintsoft({ ...approved, status: 'post_failed', approvedByRole: null }, { writesEnabled: true }).allowed).toBe(false)
+    expect(mayWriteToMintsoft({ ...approved, status: 'post_failed', mintsoftOrderId: 8811 }, { writesEnabled: true }).allowed).toBe(false)
   })
 
   it('refuses an order approved by a GM', () => {

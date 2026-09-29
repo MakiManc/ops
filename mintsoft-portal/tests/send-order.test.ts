@@ -178,6 +178,22 @@ describe('when Mintsoft refuses', () => {
     expect((await orderById(db, 1))!.postError).toMatch(/discontinued/)
     expect((await orderById(db, 1))!.status).toBe('post_failed')
   })
+
+  it('can be sent again once the cause is fixed', async () => {
+    // The first real send was refused ("OrderNumber is Required"), the fix shipped,
+    // and the retry then met "Only an approved order may be sent. X is post_failed".
+    const first = stub({ put: [{ Success: false, Message: 'OrderNumber is Required' }] })
+    expect((await send(first.client)).status).toBe('rejected')
+
+    const second = stub()
+    const result = await send(second.client)
+    expect(result.ok).toBe(true)
+    expect(result.status).toBe('posted')
+    expect(second.puts).toHaveLength(1)
+    const after = (await orderById(db, 1))!
+    expect(after.status).toBe('posted')
+    expect(after.postError).toBeNull()
+  })
 })
 
 describe('when we do not know whether it went', () => {

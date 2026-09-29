@@ -42,7 +42,7 @@ async function claimForSending(db: Database, orderId: number): Promise<boolean> 
     .prepare(
       `UPDATE orders SET send_claimed_at = ?, updated_at = ?
         WHERE id = ?
-          AND status = 'approved'
+          AND status IN ('approved', 'post_failed')
           AND mintsoft_order_id IS NULL
           AND (send_claimed_at IS NULL OR send_claimed_at < ?)`,
     )

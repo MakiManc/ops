@@ -45,7 +45,14 @@ export function mayWriteToMintsoft(
     return { allowed: false, reason: 'Writes to Mintsoft are switched off (MINTSOFT_WRITES_ENABLED is not true).' }
   }
 
-  if (order.status !== 'approved') {
+  // post_failed is an approved order whose send stopped -- Mintsoft refused it, or a
+  // check before the send did. The approval still stands (approvedByRole and approvedAt
+  // are checked below exactly as for 'approved'), and the awaiting-send list has always
+  // offered these for retry; the gate used to refuse them anyway, which left "Only an
+  // approved order may be sent. X is post_failed" as the only way out of the first
+  // real send's failure. Anything that actually reached Mintsoft carries an id and is
+  // refused further down.
+  if (order.status !== 'approved' && order.status !== 'post_failed') {
     return {
       allowed: false,
       reason: `Only an approved order may be sent. ${order.orderNumber} is ${order.status}.`,
