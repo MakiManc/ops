@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FreshnessBanner, type Freshness } from './Freshness.tsx'
 import { qty, shortDate, timeAgo } from './format.ts'
+import { card } from './ui.ts'
 
 /**
  * What an approver looks at before signing anything off.
@@ -45,7 +46,7 @@ function Figure({ label, value }: { label: string; value: string }) {
 
 function ProductRow({ product }: { product: OverviewProduct }) {
   return (
-    <li className="bg-white border border-gray-300 rounded-xl p-4">
+    <li className={card}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-gray-900">{product.name}</h3>

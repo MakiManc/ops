@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { btnSecondary, card, input } from './ui.ts'
 
 /**
  * The mapping tool.
@@ -91,7 +92,7 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
             id={`name-${suggestion.key}`}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-400 px-3 py-2"
+            className={`mt-1 ${input}`}
           />
         </div>
       )}
@@ -126,7 +127,7 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
             id={`primary-${suggestion.key}`}
             value={primary ?? ''}
             onChange={(e) => setPrimary(Number(e.target.value))}
-            className="mt-1 w-full rounded-lg border border-gray-400 px-3 py-2 bg-white"
+            className={`mt-1 ${input}`}
           >
             {unmapped.filter((l) => selected.includes(l.mintsoftProductId)).map((l) => (
               <option key={l.mintsoftProductId} value={l.mintsoftProductId}>
@@ -142,7 +143,7 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
       <button
         onClick={() => void submit()}
         disabled={busy || selected.length === 0 || (!alreadyMapped && !name.trim())}
-        className="mt-3 px-4 py-2 rounded-lg bg-everglade text-paper disabled:bg-gray-400"
+        className={`mt-3 ${btnSecondary}`}
       >
         {busy ? 'Saving…' : alreadyMapped ? 'Add to that product' : 'Combine into one product'}
       </button>
@@ -193,7 +194,7 @@ export function Mapping() {
       ) : (
         <ul className="grid gap-3">
           {suggestions.map((s) => (
-            <li key={`${s.signal}-${s.key}`} className="bg-white border border-gray-300 rounded-xl p-4">
+            <li key={`${s.signal}-${s.key}`} className={card}>
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-semibold text-gray-900">
                   {s.lines.length} lines that look like one product

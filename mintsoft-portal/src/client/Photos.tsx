@@ -11,6 +11,7 @@
  * signal carries 60KB, not 4MB.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { card } from './ui.ts'
 
 interface PhotoRow {
   productId: number
@@ -105,7 +106,7 @@ function Row({ row, onChanged }: { row: PhotoRow; onChanged: () => void }) {
   const has = row.byteSize !== null
 
   return (
-    <li className="bg-white border border-gray-300 rounded-xl p-4 flex gap-4 items-start">
+    <li className={`${card} flex gap-4 items-start`}>
       {has ? (
         <img
           src={`/api/photos/${row.productId}?v=${version}`}

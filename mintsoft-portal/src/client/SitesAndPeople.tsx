@@ -10,6 +10,7 @@
  * names, rather than the form guessing at rules that could drift out of step.
  */
 import { useCallback, useEffect, useState } from 'react'
+import { btnQuiet, btnSecondary, card } from './ui.ts'
 
 interface Site {
   id: number; code: string; name: string; type: string; cluster: string | null
@@ -29,8 +30,8 @@ const ROLE_LABEL = { gm: 'General Manager', approver: 'Approver', admin: 'Admini
 
 const field = 'w-full min-h-[44px] rounded-lg border border-gray-400 px-3 py-2'
 const label = 'block text-sm font-medium text-gray-900'
-const primary = 'min-h-[44px] px-4 rounded-lg bg-everglade text-paper font-semibold disabled:opacity-60'
-const secondary = 'min-h-[44px] px-4 rounded-lg border border-gray-400 text-gray-900 disabled:opacity-60'
+const primary = btnSecondary
+const secondary = btnQuiet
 
 function Problem({ error }: { error: string | null }) {
   if (!error) return null
@@ -68,7 +69,7 @@ function SiteForm({ site, onDone, onCancel }: {
   }
 
   return (
-    <div className="bg-white border border-gray-300 rounded-xl p-4 space-y-3">
+    <div className={`${card} space-y-3`}>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className={label} htmlFor="site-code">Code</label>
@@ -173,7 +174,7 @@ function PersonForm({ person, sites, onDone, onCancel }: {
   const role = draft.role ?? 'gm'
 
   return (
-    <div className="bg-white border border-gray-300 rounded-xl p-4 space-y-3">
+    <div className={`${card} space-y-3`}>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className={label} htmlFor="p-email">Email</label>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { money, qty, shortDate, timeAgo } from './format.ts'
+import { btnDanger, btnPrimary, btnQuiet, btnSecondary, card, input } from './ui.ts'
 
 /**
  * The queue an approver works through, oldest first.
@@ -76,7 +77,7 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
     : null
 
   return (
-    <li className="bg-white border border-gray-300 rounded-xl p-4">
+    <li className={card}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-gray-900">
@@ -171,7 +172,7 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
               key={candidate.id}
               onClick={() => void act(`/api/approvals/${item.order.id}/merge/${candidate.id}`, {})}
               disabled={busy}
-              className="mt-2 px-3 py-2 rounded-lg bg-everglade text-paper text-sm"
+              className={`mt-2 ${btnSecondary} text-sm`}
             >
               Merge {candidate.orderNumber} into this one
             </button>
@@ -193,13 +194,13 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
             lines: item.lines.map((l) => ({ productId: l.productId, qtyApproved: quantities[l.productId] ?? 0 })),
           })}
           disabled={busy}
-          className="px-4 py-3 rounded-lg bg-maki-orange text-woodsmoke font-semibold disabled:bg-gray-400 disabled:text-white"
+          className={btnPrimary}
         >
           Approve
         </button>
         <button
           onClick={() => setRejecting((r) => !r)}
-          className="px-4 py-3 rounded-lg border border-gray-400 text-gray-900"
+          className={btnQuiet}
         >
           Send back
         </button>
@@ -213,12 +214,12 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
           <textarea
             id={`reject-${item.order.id}`} rows={2} value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-400 px-3 py-2"
+            className={`mt-1 ${input}`}
           />
           <button
             onClick={() => void act(`/api/approvals/${item.order.id}/reject`, { reason: rejectReason })}
             disabled={busy || !rejectReason.trim()}
-            className="mt-2 px-4 py-2 rounded-lg bg-red-800 text-white disabled:bg-gray-400"
+            className={`mt-2 ${btnDanger}`}
           >
             Send it back
           </button>
@@ -287,7 +288,7 @@ function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
   }
 
   return (
-    <li className="bg-white border border-gray-300 rounded-xl p-4">
+    <li className={card}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold text-gray-900">{order.siteCode} · {order.siteName}</h3>
@@ -300,7 +301,7 @@ function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
           type="button"
           disabled={busy}
           onClick={() => void send()}
-          className="min-h-[44px] px-4 rounded-lg bg-everglade text-paper font-semibold disabled:opacity-60"
+          className={btnSecondary}
         >
           {busy ? 'Sending…' : 'Send to Mercium'}
         </button>
