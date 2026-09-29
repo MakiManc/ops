@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { money, timeAgo } from './format.ts'
+import { btnSecondary, card } from './ui.ts'
 
 /**
  * The admin screens: recharge reporting, par levels, and sync health.
@@ -72,7 +73,7 @@ export function RechargeReport() {
             <>
               <ul className="grid gap-3">
                 {report.siteTotals.map((site) => (
-                  <li key={site.siteCode} className="bg-white border border-gray-300 rounded-xl p-4">
+                  <li key={site.siteCode} className={card}>
                     <div className="flex items-start justify-between gap-3">
                       <h3 className="font-semibold text-gray-900">{site.siteCode} · {site.siteName}</h3>
                       <p className="font-semibold text-gray-900">{money(site.total)}</p>
@@ -99,7 +100,7 @@ export function RechargeReport() {
 
               <a
                 href={`/api/admin/recharge/${month}/csv`}
-                className="tappable inline-block px-4 py-3 rounded-lg bg-everglade text-paper"
+                className={`tappable ${btnSecondary}`}
               >
                 Download CSV for Finance
               </a>
@@ -140,7 +141,7 @@ export function ParLevels() {
         in a spreadsheet, paste it back.
       </p>
 
-      <a href="/api/admin/par-levels.csv" className="tappable inline-block px-4 py-3 rounded-lg bg-everglade text-paper">
+      <a href="/api/admin/par-levels.csv" className={`tappable ${btnSecondary}`}>
         Download the current grid
       </a>
 
@@ -162,7 +163,7 @@ export function ParLevels() {
 
       <button
         onClick={() => void upload()} disabled={busy || !csv.trim()}
-        className="px-4 py-3 rounded-lg bg-everglade text-paper disabled:bg-gray-400"
+        className={btnSecondary}
       >
         {busy ? 'Checking…' : 'Apply'}
       </button>
@@ -263,7 +264,7 @@ export function SyncHealth() {
         {jobs.map((job) => {
           const at = data.lastSuccess[job]
           return (
-            <li key={job} className="bg-white border border-gray-300 rounded-lg p-3 flex justify-between gap-3">
+            <li key={job} className={`${card} p-3 flex justify-between gap-3`}>
               <span className="text-gray-900">{JOB_LABEL[job] ?? job}</span>
               <span className={at ? 'text-gray-700' : 'text-red-900 font-medium'}>
                 {/* Never is the stalest state there is, not a blank. */}
@@ -280,7 +281,7 @@ export function SyncHealth() {
       ) : (
         <ul className="grid gap-2">
           {data.recent.map((run, i) => (
-            <li key={`${run.job}-${run.started_at}-${i}`} className="bg-white border border-gray-300 rounded-lg p-3">
+            <li key={`${run.job}-${run.started_at}-${i}`} className={`${card} p-3`}>
               <div className="flex justify-between gap-3">
                 <span className="text-gray-900">{JOB_LABEL[run.job] ?? run.job}</span>
                 <span className={

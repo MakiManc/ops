@@ -141,3 +141,48 @@ describe('formatting helpers', () => {
     expect(timeAgo(null, now)).toBe('never')
   })
 })
+
+describe('finding things', () => {
+  it('offers a chip per category, and narrows to the tapped one', async () => {
+    serve([
+      product({ productId: 1, name: 'Ramen Bowl', category: 'Crockery' }),
+      product({ productId: 2, name: 'Chopsticks', category: 'Cutlery' }),
+    ])
+    render(<Catalogue siteId={1} />)
+    await waitFor(() => expect(screen.getByText('Chopsticks')).toBeDefined())
+    const { fireEvent } = await import('@testing-library/react')
+    fireEvent.click(screen.getByRole('button', { name: /^Cutlery/ }))
+    expect(screen.queryByText('Ramen Bowl')).toBeNull()
+    expect(screen.getByText('Chopsticks')).toBeDefined()
+    expect(screen.getByText('1 of 2 products')).toBeDefined()
+  })
+
+  it('says how much of a product is already in the request', async () => {
+    serve([product({ qtyInRequest: 6 })])
+    render(<Catalogue siteId={1} />)
+    // A second tap after an interruption is now a choice, not a silent double.
+    await waitFor(() => expect(screen.getByText('✓ 6 already in this request')).toBeDefined())
+    expect(screen.getByRole('button', { name: 'Add more' })).toBeDefined()
+  })
+
+  it('gives a no-results state a way out', async () => {
+    serve([product()])
+    render(<Catalogue siteId={1} />)
+    await waitFor(() => expect(screen.getByText('Ramen Bowl')).toBeDefined())
+    const { fireEvent } = await import('@testing-library/react')
+    fireEvent.change(screen.getByLabelText('Search products'), { target: { value: 'zzz' } })
+    expect(screen.getByText('Nothing matches that search.')).toBeDefined()
+    fireEvent.click(screen.getByText('Show everything'))
+    expect(screen.getByText('Ramen Bowl')).toBeDefined()
+  })
+
+  it('only offers the opening kit to someone who may order it', async () => {
+    serve([product()])
+    const first = render(<Catalogue siteId={1} />)
+    await waitFor(() => expect(screen.getByText('Ramen Bowl')).toBeDefined())
+    expect(screen.queryByText(/Include opening kit/)).toBeNull()
+    first.unmount()
+    render(<Catalogue siteId={1} canOrderExpansion />)
+    await waitFor(() => expect(screen.getByText(/Include opening kit/)).toBeDefined())
+  })
+})

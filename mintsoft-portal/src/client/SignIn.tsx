@@ -80,15 +80,16 @@ export function SignIn({ clientId, onSignedIn }: { clientId: string; onSignedIn:
   }, [clientId, onSignedIn])
 
   return (
-    <main className="min-h-dvh flex flex-col items-center justify-center gap-8 p-6 bg-gray-50">
+    <main className="min-h-dvh flex flex-col items-center justify-center gap-8 p-6 bg-everglade text-paper">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Maki &amp; Ramen Ordering</h1>
-        <p className="mt-2 text-gray-700">Sign in with the Google account for your site.</p>
+        <img src="/logo.png" alt="Maki & Ramen" width={160} height={134} className="mx-auto h-32 w-auto" />
+        <h1 className="mt-6 text-3xl font-semibold tracking-wide">Ordering</h1>
+        <p className="mt-2 text-gray-200">Sign in with the Google account for your site.</p>
       </div>
 
       <div ref={buttonRef} aria-busy={busy} />
 
-      {busy && <p className="text-gray-700">Signing you in…</p>}
+      {busy && <p className="text-gray-200" role="status">Signing you in…</p>}
 
       {error && (
         // role="alert" so a screen reader announces this rather than leaving it unread.
@@ -96,6 +97,8 @@ export function SignIn({ clientId, onSignedIn }: { clientId: string; onSignedIn:
           {error}
         </p>
       )}
+
+      <p className="mt-4 text-xs text-gray-300">© {new Date().getFullYear()} Maki &amp; Ramen. All rights reserved.</p>
     </main>
   )
 }

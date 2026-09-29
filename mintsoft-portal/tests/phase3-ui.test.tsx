@@ -24,7 +24,7 @@ const serve = (body: unknown) =>
     return new Response(JSON.stringify(body), { status: 200 })
   })
 
-beforeEach(() => vi.restoreAllMocks())
+beforeEach(() => { vi.restoreAllMocks(); window.sessionStorage.clear() })
 afterEach(() => cleanup())
 
 describe('the order timeline', () => {

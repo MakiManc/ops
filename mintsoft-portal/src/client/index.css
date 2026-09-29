@@ -46,6 +46,21 @@
     letter-spacing: 0.01em;
   }
 
+  /* Josefin Sans sits high on its line; a touch of top padding keeps headings from
+     looking clipped against the box above them. */
+  h1 { padding-top: 0.15em; }
+
+  /* Native form controls and selection pick up the brand rather than browser blue. */
+  :root { accent-color: var(--color-everglade); }
+  ::selection { background: var(--color-cherry); color: var(--color-woodsmoke); }
+
+  /* Scrolling to a heading after a screen change should not animate through 4,000px
+     of catalogue; and people who ask for less motion get none. */
+  html { scroll-behavior: auto; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+
   /* Every interactive target is at least 44px, which is the smallest a thumb reliably
      hits. GMs use this one-handed, often while doing something else. */
   button, [role="button"], a.tappable, input, select {

@@ -426,6 +426,13 @@ opened the files: none was refuted outright, nineteen came back imprecise and we
 corrected — four of those corrections are folded into §7.1–7.4 above, which is why some of
 it reads differently from the first version.
 
+**All of this was re-checked against the code as it stands after the 29 September work in
+§11.** Everything below is still live: none of it was fixed by that round, which mostly
+touched §7.1–7.4. Two worth calling out because they look as though they should have been
+caught: the basket got a proper `QtyStepper`, but **the catalogue's add-control still has
+the original snap-back bug** (#18); and `ui.ts` now holds the shared button styles, so most
+of #35 is done — what remains there is the tone map and the type scale.
+
 Where several lenses found the same thing independently, I have said so. That agreement is
 the most reliable signal in here.
 
@@ -565,36 +572,37 @@ the unpriced-line warning it shows cannot be acted on.
 
 ## 8. Where to start
 
-Six things, all small, all `S` effort. Between them they fix every way the app currently
-lies to somebody about what it just did. Do these before anything structural.
+§7.1–7.4 are done — see §11. What follows is what is left, re-verified against the current
+code.
 
-1. **§7.6 #18** — the quantity field. A GM asking for six gets sixteen. Most-used control
-   in the app, wrong answer, no sign of it.
-2. **§7.1 #1** — add `status` to the basket payload type. Stop showing a sent request as
-   editable with a live Send button.
-3. **§7.1 #3** — confirm the send. The banner already exists in `MyOrders`; wire it up.
-   With #2 this closes the "did that work → go back → the app says no → press again" loop
-   that runs through the whole GM journey.
-4. **§7.6 #21** — stop the par-level paste crashing the admin screen. One `res.ok` check,
-   and it is the only route to getting par levels off zero.
-5. **§7.6 #20** — merged-in lines arriving at zero. The card recommends the merge, so the
-   UI is leading approvers into signing off stock that will never arrive.
-6. **§7.1 #5** — filter expansion stock out of the ordering catalogue. One condition, and
-   the first twenty products a GM sees stop being furniture.
+Four blockers first. All are `S` effort, and each one either gives somebody the wrong
+number or takes a screen away from them:
 
-Then **§7.6 #35, the visual system**, before the rest. Extracting `Button`, `Card`, `Field`
-and one tone map is an afternoon, and it makes every remaining fix faster rather than
-slower. Doing it late means doing several of them twice.
+1. **§7.6 #18 — the catalogue quantity field.** Still exactly as first written: backspace
+   the `1`, it snaps back, you type your `6` beside it, you order sixteen. The basket's
+   new `QtyStepper` did not reach this control. Most-used input in the app.
+2. **§7.6 #20 — merged-in lines approve at zero.** `quantities[line.productId] ?? 0` at
+   `ApprovalQueue.tsx:134` and `:194`. The card recommends the merge, so the UI walks the
+   approver into signing off stock that will never arrive, and the GM is emailed that it
+   was approved.
+3. **§7.6 #21 — the par-level paste.** `AdminScreens.tsx:131` is still
+   `setResult(await res.json() as never)` with no `res.ok` guard, while lines 40 and 220
+   in the same file do guard. An overnight 401 blanks the screen and takes the grid.
+4. **§7.6 #22 — `not_signed_in` on screen.** Ten call sites still render `body.error`
+   straight through. One shared helper fixes all ten, and is the natural home for the
+   retry that §7.5 wanted.
 
-Then **§7.1 #2** (the URL and the back gesture) — §7.2 #10 and #11 partly fall out of it,
-and a back gesture that throws you out of the portal is the thing most likely to make a GM
-stop using it.
+Then **§7.6 #19** (the Send button re-arming under its own warning), **#30** (one line of
+CSS — exclude checkboxes from the 44px rule), **#25** (approve-at-zero), **#27** (the site
+form has no delivery notes or contact phone, and both go to the warehouse), and **#28**
+(both admin forms discard the field the server named).
 
-Then the doubling pair (§7.1 #4), the catalogue controls (§7.2 #6), the sticky header
-(§7.2 #7), and the shared fetch hook from §7.5 — which also fixes §7.6 #22 and #23, and is
-where the missing retry belongs.
+Then the accessibility pair, **#31** and **#32** — the disabled Send button leaves the tab
+order so its own explanation is never read, and blocking-versus-advisory is carried by
+colour alone.
 
-Leave §7.4 #17 until last. It is tidying, and it touches the file everything else touches.
+Finish **#35** last: `ui.ts` has the buttons, so what is left is the four disagreeing tone
+maps and the missing type scale.
 
 ## 9. How to know it worked
 
@@ -668,3 +676,43 @@ And one screen worth copying rather than fixing: **the approval queue** has the 
 information design in the app — real context per request, the early-order reason surfaced,
 stock per line. Its problems are all in what happens *after* you press something. Use its
 card layout as the reference and spend your effort on the GM screens.
+
+---
+
+## 11. What was done on 29 September 2026
+
+Every finding in §7.1–7.4 has landed, plus the retry and loading patterns from §7.5,
+and the brand applied from the Brand Guideline 2024 PDF (Everglade header, Maki Orange
+for the one action on a screen, Woodsmoke text, Josefin Sans headings, the bowl logo on
+sign-in and the mark in the header). 30 tests were added; `npm test` is 671 and
+`npm run typecheck` is clean.
+
+| Finding | Where |
+| --- | --- |
+| 1 zombie basket | `Basket.tsx` reads `request.status`; a sent request renders read-only with no Send |
+| 2 no URL | `App.tsx` keeps `#screen/siteId` in the hash, follows `popstate`, sets `document.title` |
+| 3 no confirmation | `Basket` hands the order number to `App`, which seeds `MyOrders`' status banner and highlights the row |
+| 4 silent doubling | `/catalogue` returns `qtyInRequest`; the card says "✓ 6 already in this request"; reorder confirms in its own card with a busy state |
+| 5 expansion stock | `/catalogue` hides `stock_type = 'expansion'` unless `?include=expansion`, and never for a GM; approvers get a checkbox |
+| 6 controls scroll away | search, category chips and the stock filter are `sticky` under the header |
+| 7 header | sticky; Back and the app name (home) live in it; Sign out is on the menu only |
+| 8 basket → catalogue | `onGoToCatalogue`, as "+ Add more" and in every empty state |
+| 9 menu counts | "N products waiting to be sent" and "N requests waiting", in Maki Orange |
+| 10 site context | site id in the hash; the "Acting for" strip on the menu; basket fields in `sessionStorage` |
+| 11 scroll carries | `scrollTo(0)` and focus to the `<h1>` on every screen change |
+| 12 dead ends | every empty state has a button |
+| 13 cancel | `MyOrders` offers it for draft, submitted and approved, behind an inline confirmation |
+| 14 blur-save | `QtyStepper` in the basket: debounced save, "Saving… / Saved / Not saved", an emptied box is never a removal |
+| 15 site on cards | site code and name on every order card; a site filter when there is more than one |
+| 16 reorder site | the confirmation names the site it filled |
+| 17 admin menu | grouped Approvals / Ordering / Catalogue / Setup; `phase` and `ready` are gone |
+| retry | catalogue, basket and my orders each offer "Try again" on a failed load |
+
+Shared styles now live in `src/client/ui.ts` (`btnPrimary`, `btnSecondary`, `btnQuiet`,
+`btnDanger`, `card`, `input`, `eyebrow`); the per-file `primary`/`secondary` consts point
+at them. A web manifest and icons were added so a GM can put the portal on their home
+screen.
+
+Still to watch when the first real order goes through: the Google consent screen (§1) is
+unchanged, and `RESEND_API_KEY` is still unset, so the on-screen confirmation is the only
+one a GM gets.
