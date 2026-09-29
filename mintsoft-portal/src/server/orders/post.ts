@@ -152,19 +152,25 @@ export interface OrderToPost {
   lines: OrderLine[]
 }
 
-/** The sentinel Mintsoft's order form sends to have a number generated. */
+/**
+ * The sentinel Mintsoft's order form sends to have a number generated. The API does not
+ * honour it (see buildOrderBody); it is kept so a reply carrying it is still recognised.
+ */
 export const AUTO_ORDER_NUMBER = 'AUTO'
 
 /** The body Mintsoft expects. Field names and casing are theirs. */
 export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
   const [firstName, ...rest] = (order.contactName ?? order.siteCode).trim().split(/\s+/)
   return {
-    // "AUTO" is what Mintsoft's own order form posts when "Auto Generate OrderNumber"
-    // is on, and Ross chose to try it over the API (29 Sep 2026). Leaving the field out
-    // was refused: "OrderNumber is Required". If the API takes AUTO literally rather
-    // than generating a number, the reply names the order "AUTO" and postOrder says so.
-    // Ours stays as the reference, which is what the lookup matches on either way.
-    OrderNumber: AUTO_ORDER_NUMBER,
+    // Our reference is the order number. Everything else was tried on 29 Sep 2026:
+    // leaving it out is refused ("OrderNumber is Required"); "AUTO", which Mintsoft's
+    // own form posts, is taken literally by the API (order 2337 is called AUTO); and
+    // renaming afterwards through POST /api/Order/{id} is refused for client users in
+    // NEW and in AWAITINGCONFIRMATION. Mercium's "generated" numbers are simply
+    // MRK-<id>, so only a change on their side (channel settings or user rights) could
+    // give the portal's orders that shape. Until then Mercium sees MR-<site>-<date>-<seq>
+    // -- unique by construction, and the number the GM already sees.
+    OrderNumber: order.reference,
     ExternalOrderReference: order.reference,
     Tags: `${PORTAL_TAG},${order.siteCode}`,
     CompanyName: order.companyName,

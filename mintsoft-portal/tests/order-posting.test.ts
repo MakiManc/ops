@@ -277,11 +277,13 @@ describe('posting an order', () => {
     expect(body.OrderItems).toEqual([{ SKU: 'BOWL-01', Quantity: 24 }])
   })
 
-  it('asks Mintsoft to generate the number with the form\'s own sentinel', async () => {
-    // Leaving OrderNumber out was tried: "Invalid Data! OrderNumber is Required". The
-    // reference still travels as ExternalOrderReference, which is what the lookup uses.
+  it('names the order with our reference, because nothing else works over the API', async () => {
+    // Leaving OrderNumber out: "Invalid Data! OrderNumber is Required". Sending "AUTO":
+    // taken literally. Renaming afterwards: refused for client users. So the reference
+    // is the number, and it still travels as ExternalOrderReference for the lookup.
     const body = buildOrderBody(order) as { OrderNumber: string; ExternalOrderReference: string }
-    expect(body.OrderNumber).toBe(AUTO_ORDER_NUMBER)
+    expect(body.OrderNumber).toBe(order.reference)
+    expect(body.OrderNumber).not.toBe(AUTO_ORDER_NUMBER)
     expect(body.ExternalOrderReference).toBe(order.reference)
   })
 
