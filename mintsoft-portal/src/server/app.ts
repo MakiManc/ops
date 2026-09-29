@@ -195,12 +195,35 @@ export const createApp = () => {
       showPrices: site.recharge === 1,
     })
 
+    /**
+     * Expansion stock — chairs, tables, signage for opening a new restaurant — is a
+     * fifth of the catalogue and none of a restaurant's business. It is hidden from
+     * the ordering catalogue unless asked for (`?include=expansion`), which the
+     * screen only offers to approvers and admins. A GM's request for it is refused,
+     * so the menu and the rule agree.
+     */
+    const wantsExpansion = c.req.query('include') === 'expansion' && c.get('user').role !== 'gm'
+    const ordering = wantsExpansion ? items : items.filter((item) => item.stockType !== 'expansion')
+
+    // What is already on the open request, per product, so a card can say "6 already
+    // in this request" and a second tap after an interruption is not a silent double.
+    const open = await openRequestForSite(c.env.DB, siteId)
+    const inRequest = new Map<number, number>()
+    if (open) {
+      for (const line of await linesForOrder(c.env.DB, open.id)) {
+        inRequest.set(line.productId, line.qtyRequested)
+      }
+    }
+
     return c.json({
       site: { id: site.id, code: site.code, name: site.name, recharge: site.recharge === 1 },
       // The banner the brief asks for: every figure is shown with its age, and stale
       // data is called stale rather than presented as current.
       freshness: await stockFreshness(c.env.DB),
-      products: items.map((item) => ({ ...item, status: stockStatus(item) })),
+      hiddenExpansion: items.length - ordering.length,
+      products: ordering.map((item) => ({
+        ...item, status: stockStatus(item), qtyInRequest: inRequest.get(item.productId) ?? 0,
+      })),
     })
   })
 

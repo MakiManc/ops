@@ -190,3 +190,44 @@ describe('admin reporting and bulk edit', () => {
     }
   })
 })
+
+describe('the ordering catalogue and expansion stock', () => {
+  beforeEach(() => {
+    db.exec(`INSERT INTO products (id, name, stock_type) VALUES (9, 'CHAIRS - MRK001', 'expansion');`)
+  })
+
+  it('hides opening-kit furniture from a GM, and says how much it hid', async () => {
+    // A fifth of the live catalogue is chairs, tables and signage for new openings.
+    // A restaurant orders bowls; furniture one mis-tap from a stock request is a
+    // pallet Mercium picks and bills for.
+    const body = await (await call('/api/sites/1/catalogue', await as(GM))).json() as
+      { products: { name: string }[]; hiddenExpansion: number }
+    expect(body.products.map((p) => p.name)).toEqual(['Ramen Bowl'])
+    expect(body.hiddenExpansion).toBe(1)
+  })
+
+  it('keeps it hidden even when a GM asks for it', async () => {
+    const body = await (await call('/api/sites/1/catalogue?include=expansion', await as(GM))).json() as
+      { products: { name: string }[] }
+    expect(body.products.map((p) => p.name)).toEqual(['Ramen Bowl'])
+  })
+
+  it('shows it to an approver who asks, because someone has to order it', async () => {
+    const body = await (await call('/api/sites/1/catalogue?include=expansion', await as(APPROVER))).json() as
+      { products: { name: string }[]; hiddenExpansion: number }
+    expect(body.products.map((p) => p.name)).toContain('CHAIRS - MRK001')
+    expect(body.hiddenExpansion).toBe(0)
+  })
+
+  it('tells each card how much is already on the open request', async () => {
+    await call('/api/sites/1/request/lines', await as(GM), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: 1, qty: 6 }),
+    })
+    const body = await (await call('/api/sites/1/catalogue', await as(GM))).json() as
+      { products: { name: string; qtyInRequest: number }[] }
+    // The card can now say "6 already in this request", so a second tap after an
+    // interruption is a choice rather than a silent double.
+    expect(body.products[0]).toMatchObject({ name: 'Ramen Bowl', qtyInRequest: 6 })
+  })
+})
