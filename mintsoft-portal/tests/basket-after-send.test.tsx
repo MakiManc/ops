@@ -92,10 +92,13 @@ describe('changing a quantity', () => {
     try {
       const posts = serve('draft')
       render(<Basket siteId={1} onSubmitted={() => {}} />)
-      await waitFor(() => expect(screen.getByText('Ramen Bowl')).toBeDefined())
+      await vi.waitFor(() => expect(screen.getByText('Ramen Bowl')).toBeDefined())
       fireEvent.click(screen.getByRole('button', { name: 'One more Ramen Bowl' }))
+      // Testing Library's waitFor polls on its own clock, which fights the fake one --
+      // it timed out at ~1000ms in roughly one run in five. vi.waitFor understands fake
+      // timers, so it advances them instead of racing them.
       await vi.advanceTimersByTimeAsync(600)
-      await waitFor(() => expect(posts.some((p) => p.url.endsWith('/lines/7'))).toBe(true))
+      await vi.waitFor(() => expect(posts.some((p) => p.url.endsWith('/lines/7'))).toBe(true))
       expect(posts.find((p) => p.url.endsWith('/lines/7'))?.body).toEqual({ qty: 7 })
     } finally { vi.useRealTimers() }
   })
@@ -105,7 +108,7 @@ describe('changing a quantity', () => {
     try {
       const posts = serve('draft')
       render(<Basket siteId={1} onSubmitted={() => {}} />)
-      await waitFor(() => expect(screen.getByText('Ramen Bowl')).toBeDefined())
+      await vi.waitFor(() => expect(screen.getByText('Ramen Bowl')).toBeDefined())
       fireEvent.change(screen.getByLabelText('Quantity of Ramen Bowl'), { target: { value: '' } })
       await vi.advanceTimersByTimeAsync(600)
       // Clearing the box used to save 0, which deleted the line the GM meant to edit.
