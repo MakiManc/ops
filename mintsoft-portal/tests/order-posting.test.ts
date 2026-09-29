@@ -267,10 +267,12 @@ describe('posting an order', () => {
     expect(body.OrderItems).toEqual([{ SKU: 'BOWL-01', Quantity: 24 }])
   })
 
-  it('names no order number, so Mintsoft assigns its own', async () => {
-    // Mercium's orders are MRK-<id>. Ours used to arrive as MR-<site>-<date>-<seq>, so
-    // the two sides had different names for the same order.
-    expect(buildOrderBody(order)).not.toHaveProperty('OrderNumber')
+  it('names the order with our reference, because Mintsoft will not name it for us', async () => {
+    // Leaving OrderNumber out was tried: the API answers "Invalid Data! OrderNumber is
+    // Required". The reference is unique by construction, so it serves as both.
+    const body = buildOrderBody(order) as { OrderNumber: string; ExternalOrderReference: string }
+    expect(body.OrderNumber).toBe(order.reference)
+    expect(body.ExternalOrderReference).toBe(order.reference)
   })
 
   it('tags the order so it can be found from the Mintsoft side too', async () => {

@@ -156,9 +156,12 @@ export interface OrderToPost {
 export function buildOrderBody(order: OrderToPost): Record<string, unknown> {
   const [firstName, ...rest] = (order.contactName ?? order.siteCode).trim().split(/\s+/)
   return {
-    // No OrderNumber. Mintsoft assigns one -- MRK-<id>, the same shape as every order
-    // Mercium raises itself -- so both sides have one name for the order instead of two.
-    // Ours stays as the reference, which is what the lookup matches on.
+    // Our reference is the order number too. The API will not assign one: leave it out
+    // and Mintsoft answers "OrderNumber is Required" (29 Sep 2026). The web form's
+    // "Auto Generate" toggle is the form's, not the API's. So Mercium sees
+    // MR-<site>-<date>-<seq> on the pick sheet -- the same number the GM sees here --
+    // and the lookup still matches on ExternalOrderReference, which carries it too.
+    OrderNumber: order.reference,
     ExternalOrderReference: order.reference,
     Tags: `${PORTAL_TAG},${order.siteCode}`,
     CompanyName: order.companyName,
