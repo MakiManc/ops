@@ -41,7 +41,9 @@ function serve(checks: Check[] = [], recharge = false) {
 const send = () => screen.getByRole('button', { name: 'Send for sign-off' }) as HTMLButtonElement
 const ready = () => waitFor(() => expect(screen.getByText('Sakura flower Pink')).toBeDefined())
 
-beforeEach(() => vi.restoreAllMocks())
+// The basket keeps the typed name in sessionStorage so a refresh does not lose it;
+// between tests that memory is a leak, not a feature.
+beforeEach(() => { vi.restoreAllMocks(); window.sessionStorage.clear() })
 afterEach(() => cleanup())
 
 describe('the button is never off in silence', () => {
