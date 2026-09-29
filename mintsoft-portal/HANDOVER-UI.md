@@ -474,3 +474,43 @@ that are not there:
 - **The catalogue already has search, an in-stock filter and category grouping**, with
   sensible ARIA on the groups. The problem is that the controls scroll away, not that they
   are missing. Do not rebuild them.
+
+---
+
+## 11. What was done on 29 September 2026
+
+Every finding in §7.1–7.4 has landed, plus the retry and loading patterns from §7.5,
+and the brand applied from the Brand Guideline 2024 PDF (Everglade header, Maki Orange
+for the one action on a screen, Woodsmoke text, Josefin Sans headings, the bowl logo on
+sign-in and the mark in the header). 30 tests were added; `npm test` is 671 and
+`npm run typecheck` is clean.
+
+| Finding | Where |
+| --- | --- |
+| 1 zombie basket | `Basket.tsx` reads `request.status`; a sent request renders read-only with no Send |
+| 2 no URL | `App.tsx` keeps `#screen/siteId` in the hash, follows `popstate`, sets `document.title` |
+| 3 no confirmation | `Basket` hands the order number to `App`, which seeds `MyOrders`' status banner and highlights the row |
+| 4 silent doubling | `/catalogue` returns `qtyInRequest`; the card says "✓ 6 already in this request"; reorder confirms in its own card with a busy state |
+| 5 expansion stock | `/catalogue` hides `stock_type = 'expansion'` unless `?include=expansion`, and never for a GM; approvers get a checkbox |
+| 6 controls scroll away | search, category chips and the stock filter are `sticky` under the header |
+| 7 header | sticky; Back and the app name (home) live in it; Sign out is on the menu only |
+| 8 basket → catalogue | `onGoToCatalogue`, as "+ Add more" and in every empty state |
+| 9 menu counts | "N products waiting to be sent" and "N requests waiting", in Maki Orange |
+| 10 site context | site id in the hash; the "Acting for" strip on the menu; basket fields in `sessionStorage` |
+| 11 scroll carries | `scrollTo(0)` and focus to the `<h1>` on every screen change |
+| 12 dead ends | every empty state has a button |
+| 13 cancel | `MyOrders` offers it for draft, submitted and approved, behind an inline confirmation |
+| 14 blur-save | `QtyStepper` in the basket: debounced save, "Saving… / Saved / Not saved", an emptied box is never a removal |
+| 15 site on cards | site code and name on every order card; a site filter when there is more than one |
+| 16 reorder site | the confirmation names the site it filled |
+| 17 admin menu | grouped Approvals / Ordering / Catalogue / Setup; `phase` and `ready` are gone |
+| retry | catalogue, basket and my orders each offer "Try again" on a failed load |
+
+Shared styles now live in `src/client/ui.ts` (`btnPrimary`, `btnSecondary`, `btnQuiet`,
+`btnDanger`, `card`, `input`, `eyebrow`); the per-file `primary`/`secondary` consts point
+at them. A web manifest and icons were added so a GM can put the portal on their home
+screen.
+
+Still to watch when the first real order goes through: the Google consent screen (§1) is
+unchanged, and `RESEND_API_KEY` is still unset, so the on-screen confirmation is the only
+one a GM gets.
