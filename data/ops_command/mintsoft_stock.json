@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated_at": "2026-09-23T08:29:59Z",
+ "generated_at": "2026-09-30T09:36:15Z",
  "source": {
   "system": "Mintsoft",
   "operator": "Mercium",
@@ -17,26 +17,26 @@
   "products": 101,
   "lines_with_inventory": 334,
   "products_unknown": 0,
-  "products_in_stock": 67,
+  "products_in_stock": 64,
   "products_partial": 3
  },
  "totals": {
-  "free_units": 33238,
-  "allocated_units": 0
+  "free_units": 33032,
+  "allocated_units": 206
  },
  "products": [
   {
    "item_code": "BCB",
    "name": "Black Chopsticks",
-   "free": 80,
-   "allocated": 0,
+   "free": 0,
+   "allocated": 80,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-BCB",
      "mintsoft_product_id": 1233,
-     "free": 10,
-     "allocated": 0
+     "free": 0,
+     "allocated": 10
     },
     {
      "sku": "MRK002-BCB",
@@ -47,14 +47,14 @@
     {
      "sku": "MRK004-BCB",
      "mintsoft_product_id": 1436,
-     "free": 5,
-     "allocated": 0
+     "free": 0,
+     "allocated": 5
     },
     {
      "sku": "MRK005-BCB",
      "mintsoft_product_id": 1510,
-     "free": 30,
-     "allocated": 0
+     "free": 0,
+     "allocated": 30
     },
     {
      "sku": "MRK008-BCB",
@@ -65,8 +65,8 @@
     {
      "sku": "MRK010-BCB",
      "mintsoft_product_id": 1601,
-     "free": 25,
-     "allocated": 0
+     "free": 0,
+     "allocated": 25
     },
     {
      "sku": "MRK011-BCB",
@@ -77,8 +77,8 @@
     {
      "sku": "MRK011113-BCB",
      "mintsoft_product_id": 1676,
-     "free": 10,
-     "allocated": 0
+     "free": 0,
+     "allocated": 10
     }
    ]
   },
@@ -427,8 +427,8 @@
   {
    "item_code": "CTC",
    "name": "Ceramic teacups",
-   "free": 436,
-   "allocated": 0,
+   "free": 416,
+   "allocated": 20,
    "lines_unknown": 0,
    "lines": [
     {
@@ -452,8 +452,8 @@
     {
      "sku": "MRK005-CTC",
      "mintsoft_product_id": 1502,
-     "free": 246,
-     "allocated": 0
+     "free": 226,
+     "allocated": 20
     },
     {
      "sku": "MRK008-CTC",
@@ -484,8 +484,8 @@
   {
    "item_code": "CTP",
    "name": "CAST IRON TEA POT (900ML) - MRK008",
-   "free": 129,
-   "allocated": 0,
+   "free": 126,
+   "allocated": 3,
    "lines_unknown": 0,
    "lines": [
     {
@@ -509,8 +509,8 @@
     {
      "sku": "MRK013-CTP",
      "mintsoft_product_id": 1665,
-     "free": 90,
-     "allocated": 0
+     "free": 87,
+     "allocated": 3
     }
    ]
   },
@@ -610,8 +610,8 @@
   {
    "item_code": "DPD",
    "name": "Donburi Plates",
-   "free": 556,
-   "allocated": 0,
+   "free": 546,
+   "allocated": 10,
    "lines_unknown": 0,
    "lines": [
     {
@@ -647,8 +647,8 @@
     {
      "sku": "MRK010-DPD",
      "mintsoft_product_id": 1598,
-     "free": 340,
-     "allocated": 0
+     "free": 330,
+     "allocated": 10
     },
     {
      "sku": "MRK011-DPD",
@@ -667,8 +667,8 @@
   {
    "item_code": "FKF-M",
    "name": "FOH Kimono (M)No apron",
-   "free": 30,
-   "allocated": 0,
+   "free": 27,
+   "allocated": 3,
    "lines_unknown": 0,
    "lines": [
     {
@@ -710,23 +710,23 @@
     {
      "sku": "MRK013-FKF-M",
      "mintsoft_product_id": 1661,
-     "free": 15,
-     "allocated": 0
+     "free": 12,
+     "allocated": 3
     }
    ]
   },
   {
    "item_code": "FKF-XL",
    "name": "FOH Kimono (XL)No apron",
-   "free": 74,
-   "allocated": 0,
+   "free": 71,
+   "allocated": 3,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-FKF-XL",
      "mintsoft_product_id": 1218,
-     "free": 1,
-     "allocated": 0
+     "free": 0,
+     "allocated": 1
     },
     {
      "sku": "MRK002-FKF-XL",
@@ -761,8 +761,8 @@
     {
      "sku": "MRK013-FKF-XL",
      "mintsoft_product_id": 1662,
-     "free": 60,
-     "allocated": 0
+     "free": 58,
+     "allocated": 2
     }
    ]
   },
@@ -1129,15 +1129,15 @@
   {
    "item_code": "MHM",
    "name": "MENU HOLDERS - MRK001",
-   "free": 3,
-   "allocated": 0,
+   "free": 0,
+   "allocated": 3,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-MHM",
      "mintsoft_product_id": 1254,
-     "free": 2,
-     "allocated": 0
+     "free": 0,
+     "allocated": 2
     },
     {
      "sku": "MRK002-MHM",
@@ -1148,8 +1148,8 @@
     {
      "sku": "MRK008-MHM",
      "mintsoft_product_id": 1574,
-     "free": 1,
-     "allocated": 0
+     "free": 0,
+     "allocated": 1
     },
     {
      "sku": "MRK013-MHM",
@@ -1219,15 +1219,15 @@
   {
    "item_code": "MTM",
    "name": "MILK TEA BOTTLE WITH LOGO - MRK002",
-   "free": 4,
-   "allocated": 0,
+   "free": 0,
+   "allocated": 4,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK002-MTM",
      "mintsoft_product_id": 1303,
-     "free": 4,
-     "allocated": 0
+     "free": 0,
+     "allocated": 4
     }
    ]
   },
@@ -1327,15 +1327,15 @@
   {
    "item_code": "R-R",
    "name": "Ramekin",
-   "free": 2669,
-   "allocated": 0,
+   "free": 2619,
+   "allocated": 50,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-R-R",
      "mintsoft_product_id": 1234,
-     "free": 39,
-     "allocated": 0
+     "free": 0,
+     "allocated": 39
     },
     {
      "sku": "MRK004-R-R",
@@ -1358,8 +1358,8 @@
     {
      "sku": "MRK010-R-R",
      "mintsoft_product_id": 1602,
-     "free": 1040,
-     "allocated": 0
+     "free": 1029,
+     "allocated": 11
     },
     {
      "sku": "MRK011-R-R",
@@ -2491,15 +2491,15 @@
   {
    "item_code": "TCT",
    "name": "Tea cups",
-   "free": 787,
-   "allocated": 0,
+   "free": 757,
+   "allocated": 30,
    "lines_unknown": 1,
    "lines": [
     {
      "sku": "MRK001-TCT",
      "mintsoft_product_id": 1212,
-     "free": 5,
-     "allocated": 0
+     "free": 0,
+     "allocated": 5
     },
     {
      "sku": "MRK002-TCT",
@@ -2540,8 +2540,8 @@
     {
      "sku": "MRK013-TCT",
      "mintsoft_product_id": 1657,
-     "free": 281,
-     "allocated": 0
+     "free": 256,
+     "allocated": 25
     }
    ]
   },
