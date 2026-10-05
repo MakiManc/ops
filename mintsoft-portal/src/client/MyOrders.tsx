@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { mintsoftStatusName, mintsoftStatusNeedsAttention } from '../lib/mintsoft/order-status.ts'
 import { shortDate, timeAgo } from './format.ts'
 import { btnDanger, btnPrimary, btnQuiet, btnSecondary, card, input } from './ui.ts'
 
@@ -25,6 +26,8 @@ interface Order {
   mintsoftOrderNumber: string | null
   /** Set when this request's lines were folded into another order for the same site. */
   mergedIntoOrderNumber: string | null
+  mintsoftStatusId: number | null
+  mintsoftStatusAt: string | null
   trackingNumber: string | null
   trackingUrl: string | null
   createdAt: string
@@ -306,6 +309,30 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
               * this account ships on, so a number with nothing to click is normal, not an
               * edge case.
               */}
+            {/*
+              * What Mercium says, when it is not what we are saying.
+              *
+              * The portal has one word for everything at the warehouse -- "Sent to
+              * warehouse, Mercium have it and are picking it" -- and on 5 October that
+              * was being shown for an order Mercium had CANCELLED and another they had
+              * put ON BACK ORDER. Only the statuses that mean the order has stopped are
+              * raised; saying "New" or "Picked" every time would train people to ignore
+              * the line that matters.
+              */}
+            {mintsoftStatusNeedsAttention(order.mintsoftStatusId) && (
+              <p role="status" className="mt-3 rounded-lg border border-amber-400 bg-amber-50 p-3 text-gray-900">
+                <strong>Mercium have this as “{mintsoftStatusName(order.mintsoftStatusId)}”.</strong>{' '}
+                That is not the same as what the portal says above, and theirs is the one
+                that decides whether anything ships. Worth a word with them before this is
+                counted on.
+                {order.mintsoftStatusAt && (
+                  <span className="block mt-1 text-sm text-gray-700">
+                    Read from Mercium {timeAgo(order.mintsoftStatusAt)}.
+                  </span>
+                )}
+              </p>
+            )}
+
             {order.trackingNumber && (
               <p className="mt-3 text-sm text-gray-800">
                 Tracking number{' '}

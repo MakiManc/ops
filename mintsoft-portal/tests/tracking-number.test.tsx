@@ -19,7 +19,8 @@ const order = (over: Record<string, unknown> = {}) => ({
   status: 'despatched', requesterName: 'GM', rejectedReason: null,
   submittedAt: '2026-10-02T10:00:00Z', approvedAt: '2026-10-02T11:00:00Z',
   despatchedAt: '2026-10-06T08:00:00Z', mintsoftOrderNumber: 'MRK-8811',
-  mergedIntoOrderNumber: null, trackingNumber: null, trackingUrl: null,
+  mergedIntoOrderNumber: null, mintsoftStatusId: null, mintsoftStatusAt: null,
+  trackingNumber: null, trackingUrl: null,
   createdAt: '2026-10-02T09:00:00Z', recharge: false, rechargeTotal: null, ...over,
 })
 
@@ -75,5 +76,55 @@ describe('a despatched order', () => {
     serve([order({ status: 'posted', despatchedAt: null, trackingNumber: 'DPD999' })])
     render(<MyOrders />)
     await waitFor(() => expect(screen.getByText('DPD999')).toBeDefined())
+  })
+})
+
+/**
+ * What Mercium says, when it is not what we are saying.
+ *
+ * The portal has one word for every order at the warehouse: "Sent to warehouse — Mercium
+ * have it and are picking it". On 5 October that sentence was on screen for an order
+ * Mercium had CANCELLED and another they had put ON BACK ORDER, and for seven more that
+ * had not been touched since the 2nd. Their status is theirs, so it is shown beside ours
+ * rather than replacing it — but only when it means the order has stopped.
+ */
+describe('a Mercium status that has stopped the order', () => {
+  it('is raised, in their words', async () => {
+    serve([order({ status: 'posted', despatchedAt: null, mintsoftStatusId: 3 })])
+    render(<MyOrders />)
+    await waitFor(() => expect(screen.getByText(/Mercium have this as/)).toBeDefined())
+    expect(screen.getByText(/Cancelled/)).toBeDefined()
+  })
+
+  it('says it disagrees with the portal, because theirs is the one that ships', async () => {
+    serve([order({ status: 'posted', despatchedAt: null, mintsoftStatusId: 9 })])
+    render(<MyOrders />)
+    await waitFor(() => expect(screen.getByText(/On back order/)).toBeDefined())
+    expect(screen.getByText(/not the same as what the portal says/)).toBeDefined()
+  })
+
+  it('stays quiet for a status that just means it is on its way', async () => {
+    // New, Picked, Packed and the rest. Raising every one trains people to ignore the
+    // line that matters.
+    for (const id of [1, 2, 4, 15, 16, 17, 20, 22]) {
+      cleanup()
+      serve([order({ status: 'posted', despatchedAt: null, mintsoftStatusId: id })])
+      render(<MyOrders />)
+      await waitFor(() => expect(screen.getByText('Sent to warehouse')).toBeDefined())
+      expect(screen.queryByText(/Mercium have this as/), `status ${id}`).toBeNull()
+    }
+  })
+
+  it('stays quiet when Mercium has not been read yet', async () => {
+    serve([order({ status: 'posted', despatchedAt: null, mintsoftStatusId: null })])
+    render(<MyOrders />)
+    await waitFor(() => expect(screen.getByText('Sent to warehouse')).toBeDefined())
+    expect(screen.queryByText(/Mercium have this as/)).toBeNull()
+  })
+
+  it('says when it was last read, so a stale answer is not mistaken for a fresh one', async () => {
+    serve([order({ status: 'posted', despatchedAt: null, mintsoftStatusId: 3, mintsoftStatusAt: '2026-10-05T10:00:00Z' })])
+    render(<MyOrders />)
+    await waitFor(() => expect(screen.getByText(/Read from Mercium/)).toBeDefined())
   })
 })

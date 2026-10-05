@@ -22,7 +22,8 @@
     "feed:stock": "node --experimental-strip-types --no-warnings scripts/build-stock-feed.ts",
     "deploy:first": "node --experimental-strip-types --no-warnings scripts/deploy-first.ts",
     "photos": "node --experimental-strip-types --no-warnings scripts/link-photos.ts",
-    "testers": "node --experimental-strip-types --no-warnings scripts/google-test-users.ts"
+    "testers": "node --experimental-strip-types --no-warnings scripts/google-test-users.ts",
+    "backfill:orders": "node --experimental-strip-types --no-warnings scripts/backfill-orders.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260921.1",

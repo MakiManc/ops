@@ -409,6 +409,21 @@ export async function syncOrderStatus(
       )
     }
 
+    /**
+     * What Mercium says, recorded on every read.
+     *
+     * Independent of our own status, which stays the portal's lifecycle: the write gate
+     * and the send path reason about that one and must not be moved by a warehouse
+     * status. This is their answer beside ours, so "we think it is being picked, they
+     * have it cancelled" is visible rather than hidden.
+     */
+    if (typeof match.OrderStatusId === 'number') {
+      statements.push(
+        db.prepare(`UPDATE orders SET mintsoft_status_id = ?, mintsoft_status_at = ? WHERE id = ?`)
+          .bind(match.OrderStatusId, syncedAt, order.id),
+      )
+    }
+
     // Only the 'posted' order makes the transition. An order already despatched falls
     // through to the tracking branch below: the UPDATE here is guarded on
     // `status = 'posted'`, so sending it down this path would write nothing at all --

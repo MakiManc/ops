@@ -52,6 +52,12 @@ export interface OrderSummary {
    * URL, but they do not always arrive together: a Van or Manual courier service has a
    * number and nothing to click, which is two of the three services this account uses.
    */
+  /**
+   * Mercium's own status for the order, and when we last read it. Separate from `status`,
+   * which is the portal's lifecycle: the two disagreeing is the thing worth seeing.
+   */
+  mintsoftStatusId: number | null
+  mintsoftStatusAt: string | null
   trackingNumber: string | null
   trackingUrl: string | null
   createdAt: string
@@ -74,6 +80,7 @@ const ORDER_SELECT = `
          o.recharge, o.recharge_total, o.order_fee, o.submitted_at, o.approved_at,
          o.rejected_reason, o.mintsoft_order_id, o.mintsoft_order_number, o.post_error, o.despatched_at,
          (SELECT m.order_number FROM orders m WHERE m.id = o.merged_into_order_id) AS merged_into_order_number,
+         o.mintsoft_status_id, o.mintsoft_status_at,
          o.tracking_number, o.tracking_url, o.created_at
     FROM orders o JOIN sites s ON s.id = o.site_id`
 
@@ -86,6 +93,7 @@ interface RawOrder {
   mintsoft_order_id: number | null; mintsoft_order_number: string | null
   merged_into_order_number: string | null
   post_error: string | null; despatched_at: string | null
+  mintsoft_status_id: number | null; mintsoft_status_at: string | null
   tracking_number: string | null; tracking_url: string | null; created_at: string
 }
 
@@ -98,6 +106,7 @@ const toSummary = (r: RawOrder): OrderSummary => ({
   mintsoftOrderId: r.mintsoft_order_id, mintsoftOrderNumber: r.mintsoft_order_number,
   mergedIntoOrderNumber: r.merged_into_order_number,
   postError: r.post_error, despatchedAt: r.despatched_at,
+  mintsoftStatusId: r.mintsoft_status_id, mintsoftStatusAt: r.mintsoft_status_at,
   trackingNumber: r.tracking_number, trackingUrl: r.tracking_url, createdAt: r.created_at,
 })
 
