@@ -335,6 +335,62 @@ describe('reading back what the warehouse did', () => {
     expect(rows(`SELECT status FROM orders WHERE id = 1`)[0]).toEqual({ status: 'despatched' })
   })
 
+  it('keeps looking at a despatched order that still has no tracking', async () => {
+    // DPD does not hand Mintsoft a consignment number at the moment of despatch; it
+    // arrives later. This job used to select only 'posted' orders, so two real orders sat
+    // despatched and untracked for three days while Mintsoft had the number all along.
+    postedOrder(1, 'MR-S1-001')
+    fake.exec(`UPDATE orders SET status = 'despatched', despatched_at = '2026-10-02T11:25:11Z' WHERE id = 1`)
+
+    await syncOrderStatus(db, stubOrderById({
+      OrderNumber: 'MRK-8801', ID: 8801, DespatchDate: '2026-10-02T11:25:11Z',
+      TrackingNumber: '15503737184755', TrackingURL: 'https://dpd.example/t/15503737184755',
+    }))
+
+    expect(rows(`SELECT tracking_number, tracking_url FROM orders WHERE id = 1`)[0]).toMatchObject({
+      tracking_number: '15503737184755',
+      tracking_url: 'https://dpd.example/t/15503737184755',
+    })
+  })
+
+  it('leaves a despatched order alone once it has both', async () => {
+    postedOrder(1, 'MR-S1-001')
+    fake.exec(`UPDATE orders SET status = 'despatched', tracking_number = 'A1', tracking_url = 'https://x/A1' WHERE id = 1`)
+    const out = await syncOrderStatus(db, stubOrderById(null, 500))
+    // Not selected at all, so an unreadable Mintsoft cannot even be blamed for it.
+    expect(out.detail).toMatch(/No orders are waiting/)
+  })
+
+  it('stores nothing rather than an empty string, which Mintsoft sends for "none"', async () => {
+    postedOrder(1, 'MR-S1-001')
+    await syncOrderStatus(db, stubOrderById({
+      OrderNumber: 'MRK-8801', ID: 8801, DespatchDate: '2026-10-02T11:25:11Z',
+      TrackingNumber: '', TrackingURL: '',
+    }))
+    // "" counted as a value everywhere, and made two untracked orders look tracked.
+    expect(rows(`SELECT tracking_number, tracking_url FROM orders WHERE id = 1`)[0]).toEqual({
+      tracking_number: null, tracking_url: null,
+    })
+  })
+
+  it('takes a number with no link, which is what a Van or Manual service gives', async () => {
+    postedOrder(1, 'MR-S1-001')
+    await syncOrderStatus(db, stubOrderById({
+      OrderNumber: 'MRK-8801', ID: 8801, TrackingNumber: 'VAN-42', TrackingURL: '',
+    }))
+    // Demanding both meant those two services shipped with nothing on screen.
+    expect(rows(`SELECT status, tracking_number, tracking_url FROM orders WHERE id = 1`)[0]).toEqual({
+      status: 'posted', tracking_number: 'VAN-42', tracking_url: null,
+    })
+  })
+
+  it('never blanks tracking it already has, if a later read comes back empty', async () => {
+    postedOrder(1, 'MR-S1-001')
+    fake.exec(`UPDATE orders SET tracking_number = 'A1', tracking_url = 'https://x/A1' WHERE id = 1`)
+    await syncOrderStatus(db, stubOrderById({ OrderNumber: 'MRK-8801', ID: 8801, TrackingNumber: 'A1' }))
+    expect(rows(`SELECT tracking_url FROM orders WHERE id = 1`)[0]).toEqual({ tracking_url: 'https://x/A1' })
+  })
+
   it('does nothing when no order is waiting on the warehouse', async () => {
     const out = await syncOrderStatus(db, stubOrderById(null))
     expect(out).toMatchObject({ rowsWritten: 0 })

@@ -339,6 +339,10 @@ export async function syncCatalogue(
   return { rowsWritten: statements.length, detail: notes.join('; ') || undefined }
 }
 
+/** Mintsoft sends "" where it means "none"; everything downstream wants null. */
+const blankToNull = (v: string | null | undefined): string | null =>
+  v === null || v === undefined || v.trim() === '' ? null : v
+
 /**
  * Reads back what the warehouse has done with orders we sent.
  *
@@ -348,6 +352,14 @@ export async function syncCatalogue(
  * It stops at despatched. Mintsoft's order record carries a DespatchDate but nothing at
  * all to confirm a delivery -- the only DeliveryDate in the API is on the create models,
  * a date you ask for rather than one that happened -- so the portal does not claim one.
+ *
+ * One exception to "and has not seen leave the building": a despatched order still
+ * missing its tracking is read again. DPD does not hand Mintsoft a consignment number at
+ * the moment of despatch -- it arrives minutes or hours later -- and this job used to
+ * select only 'posted' orders, so the number landed after the portal had stopped looking.
+ * Two real orders sat despatched with no tracking for three days because of it, while
+ * Mintsoft had both the number and a working DPD link all along. An order that has both
+ * is never read again.
  */
 export async function syncOrderStatus(
   db: Database,
@@ -356,11 +368,15 @@ export async function syncOrderStatus(
 ): Promise<SyncOutcome> {
   const { results: open } = await db
     .prepare(
-      `SELECT id, order_number, mintsoft_order_id, mintsoft_order_number FROM orders
-        WHERE status = 'posted' AND mintsoft_order_id IS NOT NULL`,
+      `SELECT id, order_number, mintsoft_order_id, mintsoft_order_number, status FROM orders
+        WHERE mintsoft_order_id IS NOT NULL
+          AND (status = 'posted'
+               OR (status = 'despatched'
+                   AND (tracking_number IS NULL OR tracking_number = ''
+                        OR tracking_url IS NULL OR tracking_url = '')))`,
     )
     .all<{ id: number; order_number: string; mintsoft_order_id: number
-           mintsoft_order_number: string | null }>()
+           mintsoft_order_number: string | null; status: string }>()
 
   if (!open?.length) return { rowsWritten: 0, detail: 'No orders are waiting on the warehouse.' }
 
@@ -393,7 +409,11 @@ export async function syncOrderStatus(
       )
     }
 
-    if (match.DespatchDate) {
+    // Only the 'posted' order makes the transition. An order already despatched falls
+    // through to the tracking branch below: the UPDATE here is guarded on
+    // `status = 'posted'`, so sending it down this path would write nothing at all --
+    // which is exactly how the first version of this fix failed its own test.
+    if (match.DespatchDate && order.status === 'posted') {
       despatched++
       statements.push(
         db.prepare(
@@ -402,21 +422,33 @@ export async function syncOrderStatus(
              WHERE id = ? AND status = 'posted'`,
         ).bind(
           match.DespatchDate,
-          match.TrackingNumber ?? null,
+          // Empty string is not a tracking number. Mintsoft sends "" rather than null for
+          // a courier that has none, and `?? null` keeps "" -- which then counts as a
+          // value everywhere, and made two untracked orders look tracked.
+          blankToNull(match.TrackingNumber),
           // Mintsoft computes the finished tracking link itself; there is no courier
           // template to assemble.
-          match.TrackingURL ?? null,
+          blankToNull(match.TrackingURL),
           syncedAt, order.id,
         ),
         db.prepare(
           `INSERT INTO order_events (order_id, actor, event, detail, at) VALUES (?, 'system', 'despatched', ?, ?)`,
-        ).bind(order.id, JSON.stringify({ despatchedAt: match.DespatchDate, tracking: match.TrackingNumber ?? null }), syncedAt),
+        ).bind(order.id, JSON.stringify({ despatchedAt: match.DespatchDate, tracking: blankToNull(match.TrackingNumber) }), syncedAt),
       )
-    } else if (match.TrackingNumber && match.TrackingURL) {
-      // Tracking can appear before the despatch date does.
+    } else if (blankToNull(match.TrackingNumber) || blankToNull(match.TrackingURL)) {
+      /**
+       * Tracking without a despatch, which happens twice over: before the despatch date
+       * lands, and after it for an order this job had already marked despatched.
+       *
+       * Either one is written, not both-or-nothing: a Van or Manual courier service has a
+       * number and no link, and demanding both meant those shipped untracked on screen.
+       * COALESCE so a later read with nothing in it cannot blank what is already there.
+       */
       statements.push(
-        db.prepare(`UPDATE orders SET tracking_number = ?, tracking_url = ?, updated_at = ? WHERE id = ?`)
-          .bind(match.TrackingNumber, match.TrackingURL, syncedAt, order.id),
+        db.prepare(
+          `UPDATE orders SET tracking_number = COALESCE(?, tracking_number),
+                  tracking_url = COALESCE(?, tracking_url), updated_at = ? WHERE id = ?`,
+        ).bind(blankToNull(match.TrackingNumber), blankToNull(match.TrackingURL), syncedAt, order.id),
       )
     }
   }

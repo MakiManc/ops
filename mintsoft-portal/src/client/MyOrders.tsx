@@ -25,6 +25,7 @@ interface Order {
   mintsoftOrderNumber: string | null
   /** Set when this request's lines were folded into another order for the same site. */
   mergedIntoOrderNumber: string | null
+  trackingNumber: string | null
   trackingUrl: string | null
   createdAt: string
   recharge: boolean
@@ -292,6 +293,25 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
             {cardNote[order.id] && (
               <p role="status" className="mt-3 rounded-lg border border-everglade bg-everglade/10 p-2 text-sm text-gray-900">
                 {cardNote[order.id]}
+              </p>
+            )}
+
+            {/*
+              * The consignment number, spelled out rather than hidden behind the link.
+              *
+              * A GM chasing a late delivery is on the phone to the courier, reading the
+              * number out — so it has to be on screen, selectable, and in a face where 0
+              * and O cannot be confused. The link is no use in that moment, and on a Van
+              * or Manual service there is no link at all: those two are a third of what
+              * this account ships on, so a number with nothing to click is normal, not an
+              * edge case.
+              */}
+            {order.trackingNumber && (
+              <p className="mt-3 text-sm text-gray-800">
+                Tracking number{' '}
+                <span className="font-mono font-semibold tracking-wide text-gray-900 select-all">
+                  {order.trackingNumber}
+                </span>
               </p>
             )}
 
