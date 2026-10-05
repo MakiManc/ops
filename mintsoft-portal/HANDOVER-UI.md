@@ -93,7 +93,7 @@ Deploy:
 
 ```sh
 npm run build
-npx wrangler pages deploy dist --project-name mintsoft-portal
+npx wrangler pages deploy dist --project-name mintsoft-portal --branch main
 ```
 
 Live at <https://mintsoft-portal.pages.dev>. (`README.md` still says it is not deployed.

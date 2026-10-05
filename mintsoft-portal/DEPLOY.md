@@ -35,7 +35,7 @@ npx wrangler d1 execute mintsoft-portal --remote --file seed/seed.sql
 
 # 4. Build and publish.
 npm run build
-npx wrangler pages deploy dist --project-name mintsoft-portal
+npx wrangler pages deploy dist --project-name mintsoft-portal --branch main
 
 # 5. Secrets. These never go in a file, and never in git.
 npx wrangler pages secret put SESSION_SECRET    --project-name mintsoft-portal
@@ -46,6 +46,25 @@ The browser gets the client id from the API, at `/api/config`, so `GOOGLE_CLIENT
 above is the only place it is set. It is not a secret — it is visible in the page source
 by design. It used to be baked in at build time as `VITE_GOOGLE_CLIENT_ID`, which meant a
 build that forgot it shipped a sign-in button that could not work; that is why it moved.
+
+### `--branch main` is not optional
+
+Without it, `wrangler pages deploy` names the deployment after the git branch you are
+standing on. On a feature branch that makes a **Preview** deployment with its own URL, and
+`mintsoft-portal.pages.dev` goes on serving whatever was last pushed to production — so
+the deploy reports success, the preview URL really does have your changes, and the address
+everybody uses is unchanged.
+
+It is a quiet failure and it has already happened: a day's work sat on
+`claude-mintsoft-ordering-por.mintsoft-portal.pages.dev` while the live portal served a
+build from five days earlier. Check it afterwards rather than trusting the success line:
+
+```sh
+npx wrangler pages deployment list --project-name mintsoft-portal | head -4
+```
+
+The top row should say `Production` and `main`. If it says `Preview`, the live site did not
+change.
 
 ## Secrets this project uses
 

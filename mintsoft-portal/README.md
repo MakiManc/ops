@@ -107,7 +107,7 @@ setup and for what to check when somebody cannot sign in.
 
 ```sh
 npm run build
-npx wrangler pages deploy dist --project-name mintsoft-portal
+npx wrangler pages deploy dist --project-name mintsoft-portal --branch main
 ```
 
 [HANDOVER-UI.md](HANDOVER-UI.md) is the brief for making the screens easier to use: who is
