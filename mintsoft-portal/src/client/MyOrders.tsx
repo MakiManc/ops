@@ -12,14 +12,6 @@ import { btnDanger, btnPrimary, btnQuiet, btnSecondary, card, input } from './ui
  * a box arrived, so the portal does not claim it.
  */
 
-/** One line of a sent order, as /api/orders/:id returns it. */
-interface ItemLine {
-  productId: number
-  productName: string
-  qtyRequested: number
-  qtyApproved: number | null
-}
-
 interface Order {
   id: number
   orderNumber: string
@@ -152,92 +144,17 @@ function CancelControl({ order, onCancelled }: { order: Order; onCancelled: () =
   )
 }
 
-/**
- * What is actually on an order that has gone to Mercium.
- *
- * The card above it says where the order has got to; this says what is in it. A GM
- * checking a delivery against a request has had no way to see that from the portal at
- * all -- the lines existed on the server and no screen asked for them.
- *
- * It shows the APPROVED quantity, because that is what was sent. Showing what was asked
- * for would be a different number, and on a sent order the one that matters is the one
- * Mercium are picking. Where the two differ the line says so, and a line approved at zero
- * is called out rather than listed quietly at 0: nothing is coming for it, and a GM
- * counting boxes against this needs to know that before they ring anyone.
- */
-function OrderItems({ orderId }: { orderId: number }) {
-  const [lines, setLines] = useState<ItemLine[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let live = true
-    void (async () => {
-      try {
-        const res = await fetch(`/api/orders/${orderId}`, { credentials: 'same-origin' })
-        if (!res.ok) throw new Error()
-        const body = await res.json() as { lines: ItemLine[] }
-        if (live) setLines(body.lines)
-      } catch {
-        if (live) setError('Could not load what is on this order.')
-      }
-    })()
-    return () => { live = false }
-  }, [orderId])
-
-  if (error) {
-    return (
-      <p role="alert" className="mt-2 text-sm text-red-900 bg-red-50 border border-red-300 rounded p-2">
-        {error}
-      </p>
-    )
-  }
-  if (!lines) return <p role="status" className="mt-2 text-sm text-gray-700">Loading the items…</p>
-  if (lines.length === 0) return <p className="mt-2 text-sm text-gray-700">This order has no items on it.</p>
-
-  const sent = lines.filter((l) => (l.qtyApproved ?? 0) > 0)
-  const none = lines.filter((l) => (l.qtyApproved ?? 0) === 0)
-
-  return (
-    <div className="mt-2 rounded-lg border border-gray-300 bg-gray-50 p-3">
-      <ul className="divide-y divide-gray-200">
-        {sent.map((l) => (
-          <li key={l.productId} className="flex items-baseline justify-between gap-3 py-2">
-            <span className="text-gray-900">{l.productName}</span>
-            <span className="whitespace-nowrap font-semibold text-gray-900">
-              {l.qtyApproved}
-              {l.qtyApproved !== l.qtyRequested && (
-                <span className="ml-1 font-normal text-sm text-gray-700">
-                  (asked for {l.qtyRequested})
-                </span>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      {none.length > 0 && (
-        <p className="mt-2 border-t border-gray-300 pt-2 text-sm text-gray-900">
-          <strong>Not coming:</strong>{' '}
-          {none.map((l) => `${l.productName} (asked for ${l.qtyRequested})`).join(', ')}.{' '}
-          {none.length === 1 ? 'It was' : 'They were'} signed off at nothing, so Mercium are
-          not picking {none.length === 1 ? 'it' : 'them'}.
-        </p>
-      )}
-
-      <p className="mt-2 text-sm text-gray-700">
-        {sent.length === 1 ? '1 product' : `${sent.length} products`} on their way
-        {sent.length > 0 && `, ${sent.reduce((n, l) => n + (l.qtyApproved ?? 0), 0)} items in total`}.
-      </p>
-    </div>
-  )
-}
-
-export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
+export function MyOrders({ justSent = null, onSeen, onGoToCatalogue, onOpenOrder }: {
   /** The order number just sent from the basket, so this screen can say so. */
   justSent?: string | null
   /** Called once the confirmation has been shown, so it is not shown again later. */
   onSeen?: () => void
   onGoToCatalogue?: () => void
+  /**
+   * Opens one order's own page. Optional: without it the link still works, because it is
+   * a real href the shell reads back out of the hash.
+   */
+  onOpenOrder?: (orderId: number) => void
 } = {}) {
   const [orders, setOrders] = useState<Order[] | null>(null)
   const [error, setError] = useState(false)
@@ -246,8 +163,6 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
   /** Per-order feedback, rendered in the card it belongs to rather than at the top. */
   const [cardNote, setCardNote] = useState<Record<number, string>>({})
   const [reordering, setReordering] = useState<number | null>(null)
-  /** Which order has its items open. One at a time: this is a phone screen. */
-  const [showingItems, setShowingItems] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setError(false)
@@ -440,21 +355,25 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
               </p>
             )}
 
-            {showingItems === order.id && <OrderItems orderId={order.id} />}
-
             <div className="mt-3 flex flex-wrap gap-2">
               {/* Only once Mercium have it. Before that the request is still being
                   changed -- the basket and the approval screen are where it is read --
-                  and a summary of a moving target is worse than none. */}
+                  and a summary of a moving target is worse than none.
+                  A real link, not a button that swaps state: the order has its own
+                  address, so this can be middle-clicked, long-pressed, or copied and
+                  sent to whoever you are talking to about it. */}
               {SENT_TO_MERCIUM.includes(order.status) && (
-                <button
-                  type="button"
-                  className={btnQuiet}
-                  aria-expanded={showingItems === order.id}
-                  onClick={() => setShowingItems(showingItems === order.id ? null : order.id)}
+                <a
+                  href={`#order/${order.id}`}
+                  className={`tappable ${btnQuiet}`}
+                  onClick={(e) => {
+                    // Let a modifier click do what the browser would do with any link.
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+                    if (onOpenOrder) { e.preventDefault(); onOpenOrder(order.id) }
+                  }}
                 >
-                  {showingItems === order.id ? 'Hide the items' : "What's on this order"}
-                </button>
+                  What&apos;s on this order
+                </a>
               )}
 
               {order.trackingUrl && (

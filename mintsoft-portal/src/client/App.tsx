@@ -8,6 +8,7 @@ import { Basket } from './Basket.tsx'
 import { Catalogue } from './Catalogue.tsx'
 import { Mapping } from './Mapping.tsx'
 import { MyOrders } from './MyOrders.tsx'
+import { OrderPage } from './OrderPage.tsx'
 import { SignIn } from './SignIn.tsx'
 import { StockOverview } from './StockOverview.tsx'
 import { btnSecondary, card, eyebrow } from './ui.ts'
@@ -75,18 +76,43 @@ const ROLE_LABEL: Record<Me['user']['role'], string> = {
  * could send Francheska that opened the queue. The fragment fixes all three without a
  * router: the browser keeps the history, and we read it back on `popstate`.
  */
-interface Route { screen: string | null; siteId: number | null }
+/**
+ * Where we are. The hash holds one number after the screen name, and which thing that
+ * number is depends on the screen: a site for the ordering screens, an order for the
+ * order page. They are separate fields here because reusing one would have let
+ * `#orders/3`, which `go('orders')` writes for an admin acting for site 3, be read as
+ * order 3.
+ */
+interface Route { screen: string | null; siteId: number | null; orderId: number | null }
+
+/** The screen whose number is an order rather than a site. */
+const ORDER_SCREEN = 'order'
+
+/**
+ * The order page, as a screen the shell understands.
+ *
+ * Deliberately not in SCREENS: it is not a menu item, nobody arrives at it from the
+ * home screen, and it belongs to no role in particular -- the server decides who may
+ * read an order. Resolving `current` to this means the sticky header, the Back control,
+ * the title, the scroll reset and the focus move all work on it without a special case.
+ */
+const ORDER_PAGE: Screen = {
+  key: ORDER_SCREEN, title: 'Order', blurb: '', group: 'Ordering',
+}
 
 function readHash(): Route {
   const raw = window.location.hash.replace(/^#\/?/, '')
-  if (!raw) return { screen: null, siteId: null }
-  const [screen, site] = raw.split('/')
-  const siteId = site && /^\d+$/.test(site) ? Number(site) : null
-  return { screen: screen || null, siteId }
+  if (!raw) return { screen: null, siteId: null, orderId: null }
+  const [screen, arg] = raw.split('/')
+  const n = arg && /^\d+$/.test(arg) ? Number(arg) : null
+  return screen === ORDER_SCREEN
+    ? { screen, siteId: null, orderId: n }
+    : { screen: screen || null, siteId: n, orderId: null }
 }
 
 function writeHash(route: Route, replace = false) {
-  const next = route.screen ? `#${route.screen}${route.siteId ? `/${route.siteId}` : ''}` : '#'
+  const arg = route.screen === ORDER_SCREEN ? route.orderId : route.siteId
+  const next = route.screen ? `#${route.screen}${arg ? `/${arg}` : ''}` : '#'
   if (window.location.hash === next || (next === '#' && !window.location.hash)) return
   const url = next === '#' ? window.location.pathname + window.location.search : next
   if (replace) window.history.replaceState(null, '', url)
@@ -138,7 +164,12 @@ export function App({ googleClientId }: { googleClientId: string }) {
   // The browser's back and forward buttons, and the phone's swipe, change the hash;
   // we follow rather than fight them.
   useEffect(() => {
-    const onPop = () => setRoute(readHash())
+    const onPop = () => setRoute((prev) => {
+      const next = readHash()
+      // The order page's hash carries an order id, so it has nowhere to keep the site an
+      // admin was acting for. Going back to the catalogue must not make them pick again.
+      return { ...next, siteId: next.siteId ?? prev.siteId }
+    })
     window.addEventListener('popstate', onPop)
     window.addEventListener('hashchange', onPop)
     return () => {
@@ -149,14 +180,29 @@ export function App({ googleClientId }: { googleClientId: string }) {
 
   const go = useCallback((screen: string | null, siteId?: number | null) => {
     setRoute((prev) => {
-      const next: Route = { screen, siteId: siteId === undefined ? prev.siteId : siteId }
+      const next: Route = {
+        screen,
+        siteId: siteId === undefined ? prev.siteId : siteId,
+        orderId: null,
+      }
+      writeHash(next)
+      return next
+    })
+  }, [])
+
+  /** Opens one order's own page, at its own address. */
+  const goToOrder = useCallback((orderId: number) => {
+    setRoute((prev) => {
+      const next: Route = { screen: ORDER_SCREEN, siteId: prev.siteId, orderId }
       writeHash(next)
       return next
     })
   }, [])
 
   const screens = me ? SCREENS[me.user.role] : []
-  const current = screens.find((s) => s.key === route.screen) ?? null
+  const current = route.screen === ORDER_SCREEN
+    ? ORDER_PAGE
+    : screens.find((s) => s.key === route.screen) ?? null
 
   /**
    * A new screen starts at the top, with focus on its heading. Without this the
@@ -285,8 +331,29 @@ export function App({ googleClientId }: { googleClientId: string }) {
         </div>
       )
     }
+    if (current?.key === ORDER_SCREEN) {
+      if (route.orderId === null) {
+        return (
+          <p className="text-gray-700">
+            That link does not name an order.{' '}
+            <button type="button" className="underline" onClick={() => go('orders')}>
+              Open the orders list
+            </button>{' '}
+            and pick one.
+          </p>
+        )
+      }
+      return <OrderPage orderId={route.orderId} onBack={() => go('orders')} />
+    }
     if (current?.key === 'orders') {
-      return <MyOrders justSent={justSent} onSeen={() => setJustSent(null)} onGoToCatalogue={() => go('catalogue')} />
+      return (
+        <MyOrders
+          justSent={justSent}
+          onSeen={() => setJustSent(null)}
+          onGoToCatalogue={() => go('catalogue')}
+          onOpenOrder={goToOrder}
+        />
+      )
     }
     if (current?.key === 'queue') return <ApprovalQueue />
     if (current?.key === 'stock') return <StockOverview />
@@ -342,7 +409,9 @@ export function App({ googleClientId }: { googleClientId: string }) {
         <div className="mx-auto max-w-3xl px-3 py-2 flex items-center gap-2">
           {current ? (
             <button
-              onClick={() => go(null)}
+              // From an order, back is the list it came from. Sending someone home from
+              // there would cost them two taps to see the next order.
+              onClick={() => (current.key === ORDER_SCREEN ? go('orders') : go(null))}
               className="min-h-[44px] min-w-[44px] px-2 rounded-lg hover:bg-white/15 font-medium whitespace-nowrap"
             >
               ← Back

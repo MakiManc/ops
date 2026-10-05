@@ -148,3 +148,79 @@ describe('the menu', () => {
     expect(screen.queryByText(/Not built yet/)).toBeNull()
   })
 })
+
+/**
+ * The order page's own address.
+ *
+ * `#order/9` is the reason this is a page rather than a panel inside the list: it
+ * survives a refresh, and Ross can send Francheska a link to the order they are talking
+ * about instead of "open the portal and scroll".
+ *
+ * It needed its own slot in the fragment rather than reusing the one the ordering
+ * screens keep a site id in. `go('orders')` carries the picked site forward, so an admin
+ * acting for site 3 writes `#orders/3` — and reading that number as an order id would
+ * have opened order 3.
+ */
+describe('one order at its own address', () => {
+  const ORDER = {
+    id: 9, orderNumber: 'MR-M19-20261002-001', mintsoftOrderNumber: 'MRK-2374',
+    siteCode: 'M19', siteName: 'Maki M19', status: 'posted', requesterName: 'GM',
+    requiredDate: null, notes: null, earlyOrderReason: null,
+    submittedAt: null, approvedAt: null, despatchedAt: null, mergedIntoOrderNumber: null,
+    mintsoftStatusId: 1, mintsoftStatusAt: null, trackingNumber: null, trackingUrl: null,
+  }
+  const LINES = [{ productId: 48, productName: 'Ramekin', qtyRequested: 60, qtyApproved: 60 }]
+
+  it('opens from the link alone, so a refresh and a shared link both work', async () => {
+    window.history.replaceState(null, '', '/#order/9')
+    signedInAs(gm, { '/api/orders/9': { order: ORDER, lines: LINES } })
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText('MRK-2374')).toBeDefined())
+    expect(screen.getByText('Ramekin')).toBeDefined()
+  })
+
+  it('titles the page, so a backgrounded tab says what it holds', async () => {
+    window.history.replaceState(null, '', '/#order/9')
+    signedInAs(gm, { '/api/orders/9': { order: ORDER, lines: LINES } })
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(document.title).toBe('Order · Maki & Ramen Ordering'))
+  })
+
+  it('goes back to the list rather than all the way home', async () => {
+    window.history.replaceState(null, '', '/#order/9')
+    signedInAs(gm, { '/api/orders/9': { order: ORDER, lines: LINES }, '/api/my-orders': { orders: [] } })
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText('MRK-2374')).toBeDefined())
+    fireEvent.click(screen.getByRole('button', { name: '← Back' }))
+    // Back to the orders list: sending someone home would cost two taps to see the next.
+    await waitFor(() => expect(window.location.hash).toBe('#orders'))
+  })
+
+  it('says so when the fragment names no order', async () => {
+    window.history.replaceState(null, '', '/#order')
+    signedInAs(gm)
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText(/does not name an order/)).toBeDefined())
+  })
+
+  it('keeps an admin\'s picked site through a visit to an order', async () => {
+    // The order fragment has no room for a site, so the site must survive in state --
+    // otherwise going back lands a multi-site admin on the picker again.
+    window.history.replaceState(null, '', '/#catalogue/3')
+    signedInAs(admin, {
+      '/api/orders/9': { order: ORDER, lines: LINES },
+      '/api/sites/3/catalogue': { site: { id: 3, code: 'M3', name: 'Fountainbridge', recharge: false }, freshness: { lastSuccessAt: null, minutesOld: null, stale: false }, products: [] },
+    })
+    render(<App googleClientId="test" />)
+    await waitFor(() => expect(screen.getByText(/Fountainbridge/)).toBeDefined())
+
+    window.history.pushState(null, '', '/#order/9')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    await waitFor(() => expect(screen.getByText('MRK-2374')).toBeDefined())
+
+    window.history.pushState(null, '', '/#catalogue')
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    // Still acting for M3, not back at "Which site are you ordering for?".
+    await waitFor(() => expect(screen.queryByText(/Which site are you/)).toBeNull())
+  })
+})
