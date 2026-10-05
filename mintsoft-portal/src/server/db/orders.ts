@@ -534,7 +534,7 @@ export interface MergedApproved {
  */
 export async function mergeApprovedOrders(
   db: Database,
-  { keepId, mergeId, actor, actorRole, recomputeTotals }: {
+  { keepId, mergeId, actor, actorRole, recomputeTotals, checkCombined }: {
     keepId: number; mergeId: number; actor: string; actorRole: Role
     /**
      * Given the combined approved lines, what the survivor's recharge_total and
@@ -542,6 +542,16 @@ export async function mergeApprovedOrders(
      * The pricing rules live in orders/approval.ts; this only asks.
      */
     recomputeTotals: (combined: ApprovedLine[]) => { total: number | null; orderFee: number | null }
+    /**
+     * A last look at the combined set, inside the claim, before anything is written.
+     * Return a reason to refuse, or null to go ahead.
+     *
+     * Stock is what this is for. Two orders are each approved against the same
+     * unreserved pool, so together they can want more than exists — and once they are
+     * one order there is no path in this codebase that can reduce an approved quantity.
+     * Better to refuse and leave two sendable orders than to make one that cannot go.
+     */
+    checkCombined?: (combined: ApprovedLine[]) => Promise<string | null>
   },
 ): Promise<MergedApproved> {
   if (!canApprove(actorRole)) {
@@ -659,6 +669,23 @@ export async function mergeApprovedOrders(
       )
     }
 
+    /**
+     * And no unpriced line on a recharged order.
+     *
+     * checkApproval refuses to sign off a recharge order with a NULL price, because the
+     * report would invoice the franchise nothing for those units. Combining is the other
+     * way the same line could arrive, so it is refused here too.
+     */
+    if (keep.recharge) {
+      const unpriced = [...keepLines, ...mergeLines].filter((l) => l.rechargeUnitPrice === null)
+      if (unpriced.length > 0) {
+        throw new OrderError(
+          `${unpriced.map((l) => l.productName).join(', ')} ${unpriced.length === 1 ? 'has' : 'have'} `
+            + 'no price set, and this site is recharged — combining would invoice nothing for them.',
+        )
+      }
+    }
+
     let linesMoved = 0
     let linesCombined = 0
     const statements = mergeLines.map((line) => {
@@ -708,6 +735,9 @@ export async function mergeApprovedOrders(
             availableAtApproval: m.availableAtApproval,
           })),
       )
+
+    const refusal = checkCombined ? await checkCombined(combined) : null
+    if (refusal) throw new OrderError(refusal)
 
     const totals = recomputeTotals(combined)
 
@@ -863,24 +893,29 @@ export async function cancelOrder(
    * 'approved' and is sent. The claim is the one thing both operations contend on, so
    * cancelling respects it too.
    */
-  const claimed = await db
+  const staleBefore = new Date(Date.now() - CLAIM_HOLDS_MS).toISOString().replace(/\.\d+Z$/, 'Z')
+  const cancelled = await db
     .prepare(
-      `SELECT send_claimed_at FROM orders
-        WHERE id = ? AND send_claimed_at IS NOT NULL AND send_claimed_at >= ?`,
+      `UPDATE orders SET status = 'cancelled', updated_at = ?
+        WHERE id = ?
+          AND status = ?
+          AND mintsoft_order_id IS NULL
+          AND (send_claimed_at IS NULL OR send_claimed_at < ?)`,
     )
-    .bind(orderId, new Date(Date.now() - CLAIM_HOLDS_MS).toISOString().replace(/\.\d+Z$/, 'Z'))
-    .first<{ send_claimed_at: string }>()
-  if (claimed) {
+    .bind(nowIso(), orderId, order.status, staleBefore)
+    .run()
+
+  if ((cancelled as { meta?: { changes?: number } }).meta?.changes !== 1) {
+    // The row moved between the read above and this write: another send or merge took it,
+    // or it reached Mercium. A SELECT first would have had the same gap, which is why
+    // this is the conditional UPDATE and not a check followed by a write.
     throw new OrderError(
-      `${order.orderNumber} is being sent or combined right now. Wait for that to finish, `
-        + 'then look again — cancelling it mid-way could leave it going to the warehouse anyway.',
+      `${order.orderNumber} changed while this was being cancelled — it is being sent or `
+        + 'combined, or it has already gone. Reload and look at where it is now.',
     )
   }
 
-  await db.batch([
-    db.prepare(`UPDATE orders SET status = 'cancelled', updated_at = ? WHERE id = ?`).bind(nowIso(), orderId),
-    auditStatement(db, orderId, actor, 'cancelled', reason ? { reason } : undefined),
-  ])
+  await auditStatement(db, orderId, actor, 'cancelled', reason ? { reason } : undefined).run()
 }
 
 export async function eventsForOrder(db: Database, orderId: number) {

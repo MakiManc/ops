@@ -57,6 +57,30 @@ async function claimForSending(db: Database, orderId: number): Promise<boolean> 
  * Never called once a PUT has gone out with an uncertain result: there the order may
  * exist at Mercium, and holding the claim is what stops a retry duplicating it.
  */
+/**
+ * Records a send that stopped before anything went out.
+ *
+ * Conditional, and that is the whole point. An order whose send went uncertain sits at
+ * status 'approved' with post_error set, and that pair is the only record that it may
+ * already be at Mercium. A second press that trips one of the guards below would
+ * otherwise overwrite the marker and demote the order to post_failed -- which reads as
+ * "Mintsoft refused it, nothing was created" and is exactly what the merge treats as safe
+ * to combine. One blocked retry would turn a maybe into a duplicate pallet.
+ */
+async function recordSendBlocked(
+  db: Database, orderId: number, actor: string, message: string,
+): Promise<void> {
+  await db.batch([
+    db
+      .prepare(
+        `UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ?
+          WHERE id = ? AND NOT (status = 'approved' AND post_error IS NOT NULL)`,
+      )
+      .bind(message, nowIso(), orderId),
+    auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
+  ])
+}
+
 async function releaseClaim(db: Database, orderId: number): Promise<void> {
   await db
     .prepare(`UPDATE orders SET send_claimed_at = NULL, updated_at = ? WHERE id = ?`)
@@ -128,7 +152,7 @@ export async function sendApprovedOrder(
       contact_phone: string | null; delivery_notes: string | null
     }>()
   if (!site) {
-    await releaseClaim(db, orderId)
+    // Again, nothing claimed yet.
     return { ok: false, status: 'refused', message: 'That order has no site.' }
   }
 
@@ -178,12 +202,10 @@ export async function sendApprovedOrder(
     const names = unapproved.map((l) => l.productName).join(', ')
     const message = `${order.orderNumber} has lines nobody has approved: ${names}. `
       + 'It was most likely changed after it was signed off. Send it back through approval.'
-    await db.batch([
-      db.prepare(`UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ? WHERE id = ?`)
-        .bind(message, nowIso(), orderId),
-      auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
-    ])
-    await releaseClaim(db, orderId)
+    // No releaseClaim: nothing has been claimed yet at this point -- the claim is taken
+    // inside postOrder, immediately before the create. Releasing here would clear a hold
+    // another send is relying on, which is how an uncertain order becomes mergeable.
+    await recordSendBlocked(db, orderId, actor, message)
     return { ok: false, status: 'refused', message }
   }
 
@@ -198,12 +220,10 @@ export async function sendApprovedOrder(
   const short = allocations.filter((a) => a.kind === 'short')
   if (short.length > 0) {
     const message = short.map((a) => (a.kind === 'short' ? a.message : '')).join(' ')
-    await db.batch([
-      db.prepare(`UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ? WHERE id = ?`)
-        .bind(message, nowIso(), orderId),
-      auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
-    ])
-    await releaseClaim(db, orderId)
+    // No releaseClaim: nothing has been claimed yet at this point -- the claim is taken
+    // inside postOrder, immediately before the create. Releasing here would clear a hold
+    // another send is relying on, which is how an uncertain order becomes mergeable.
+    await recordSendBlocked(db, orderId, actor, message)
     return { ok: false, status: 'refused', message }
   }
 
@@ -221,12 +241,10 @@ export async function sendApprovedOrder(
   if (itemCount === 0) {
     const message = `${order.orderNumber} has nothing to send — every line was approved at zero. `
       + 'Reject it instead, so the site knows, rather than sending Mercium an empty order.'
-    await db.batch([
-      db.prepare(`UPDATE orders SET status = 'post_failed', post_error = ?, updated_at = ? WHERE id = ?`)
-        .bind(message, nowIso(), orderId),
-      auditStatement(db, orderId, actor, 'send_blocked', { reason: message }),
-    ])
-    await releaseClaim(db, orderId)
+    // No releaseClaim: nothing has been claimed yet at this point -- the claim is taken
+    // inside postOrder, immediately before the create. Releasing here would clear a hold
+    // another send is relying on, which is how an uncertain order becomes mergeable.
+    await recordSendBlocked(db, orderId, actor, message)
     return { ok: false, status: 'refused', message }
   }
 
@@ -250,13 +268,52 @@ export async function sendApprovedOrder(
       .map((p) => ({ sku: p.sku, quantity: p.qty })),
   }
 
+  /**
+   * What the payload above was built from.
+   *
+   * Everything up to here is a read, and the claim is not taken until the moment before
+   * the create. A merge can complete inside that window -- it takes the claim, writes,
+   * and gives it back -- after which this send would claim successfully and post the
+   * quantities it assembled before the merge. The absorbed half would ship to nobody,
+   * and its lines are already gone.
+   *
+   * So the set is fingerprinted here and checked again once the claim is held.
+   */
+  const fingerprint = lines
+    .map((l) => `${l.id}:${l.qtyApproved}`)
+    .sort()
+    .join('|')
+
+  let changedUnderUs = false
+
   // The claim fires inside postOrder, once the lookup has said the order is absent and
   // immediately before the create. Not around the whole send: a retry has to be able to
   // run the lookup and attach an order a dead process already created.
-  const outcome = await postOrder(client, toPost, () => claimForSending(db, orderId))
+  const outcome = await postOrder(client, toPost, async () => {
+    if (!(await claimForSending(db, orderId))) return false
+
+    const now = (await linesForOrder(db, orderId))
+      .map((l) => `${l.id}:${l.qtyApproved}`)
+      .sort()
+      .join('|')
+    if (now !== fingerprint) {
+      // Something moved the lines while this send was assembling. Give the order back and
+      // let the next attempt build from what is there now.
+      changedUnderUs = true
+      await releaseClaim(db, orderId)
+      return false
+    }
+    return true
+  })
 
   switch (outcome.kind) {
     case 'in_flight':
+      if (changedUnderUs) {
+        const message = `${order.orderNumber} changed while it was being sent — it was probably `
+          + 'combined with another order for this site. Nothing was sent. Reload and send what is there now.'
+        await auditStatement(db, orderId, actor, 'send_refused', { reason: 'lines changed mid-send' }).run()
+        return { ok: false, status: 'in_flight', message }
+      }
       await auditStatement(db, orderId, actor, 'send_refused', { reason: 'already being sent' }).run()
       return {
         ok: false,

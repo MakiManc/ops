@@ -49,7 +49,10 @@ describe('the screen and the URL', () => {
     signedInAs(gm, { '/api/my-orders': { orders: [] } })
     render(<App googleClientId="test" />)
     await waitFor(() => expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('My orders'))
-    expect(document.title).toBe('My orders · Maki & Ramen Ordering')
+    // Inside the wait, not after it. The heading is render output; the title is set in an
+    // effect, which flushes after the render the heading first appears in — asserting it
+    // once, synchronously, failed about one run in six.
+    await waitFor(() => expect(document.title).toBe('My orders · Maki & Ramen Ordering'))
   })
 
   it('writes the hash when a screen opens', async () => {
@@ -71,7 +74,8 @@ describe('the screen and the URL', () => {
     window.history.replaceState(null, '', '/')
     window.dispatchEvent(new PopStateEvent('popstate'))
     await waitFor(() => expect(screen.getByText('What you can do')).toBeDefined())
-    expect(document.title).toBe('Maki & Ramen Ordering')
+    // Same reason as above: the title is effect-set, so it is polled rather than asserted.
+    await waitFor(() => expect(document.title).toBe('Maki & Ramen Ordering'))
   })
 
   it('ignores a hash that names no screen for this role', async () => {

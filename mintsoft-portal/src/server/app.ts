@@ -24,6 +24,8 @@ import { importParLevels, parLevels, parLevelsCsv, reorderInto } from './db/admi
 import { rechargeCsv, rechargeReport } from './reports/recharge.ts'
 import { readSettings, stockFreshness } from './db/settings.ts'
 import { checkApproval, rechargeTotals, type LineToApprove, type MappedSku } from './orders/approval.ts'
+import { combinedStockRefusal, mergeIntoWaitingOrder } from './orders/auto-merge.ts'
+import { skusByProduct as availableSkusByProduct } from './orders/stock.ts'
 import { checkBasket, type BasketLine } from './orders/basket-checks.ts'
 import {
   approverEmails, requestApproved, requestRejected, requestSubmitted, sendEmail, type EmailEnv,
@@ -375,6 +377,10 @@ export const createApp = () => {
   })
 
   /** Starts a new request from a past one, copying the quantities that were approved. */
+  /**
+   * Note the guard inside: hiding the button is not enough, because a GM on a screen
+   * loaded before the merge still has one.
+   */
   app.post('/orders/:orderId/reorder', async (c) => {
     try {
       const user = currentUser(c)
@@ -382,6 +388,21 @@ export const createApp = () => {
       if (!order) return c.json({ error: 'not_found' }, 404)
       if (user.role === 'gm' && !user.siteIds.includes(order.siteId)) {
         return c.json({ error: 'not_found' }, 404)
+      }
+
+      /**
+       * Never from an order that was folded into another.
+       *
+       * It reads 'cancelled', so without this it looks like any other cancelled order to
+       * re-order from — but its stock is already coming on the order named here, and
+       * re-requesting it is how a site ends up with twice what it asked for. The screen
+       * hides the button; this is for the screen that was loaded before the merge.
+       */
+      if (order.mergedIntoOrderNumber) {
+        return c.json({
+          error: `That request was combined into ${order.mergedIntoOrderNumber}, so its stock is `
+            + 'already on its way. Ordering it again would bring twice as much.',
+        }, 400)
       }
 
       const lines = await reorderInto(c.env.DB, { fromOrderId: order.id, siteId: order.siteId })
@@ -488,27 +509,7 @@ export const createApp = () => {
         showPrices: order.recharge,
       })
 
-      const { results: skuRows } = await c.env.DB
-        .prepare(
-          `SELECT pmm.product_id, pmm.mintsoft_product_id, pmm.sku, pmm.is_primary,
-                  SUM(sc.available) AS available, COUNT(sc.id) AS rows_seen,
-                  COUNT(sc.available) AS rows_with_value
-             FROM product_mintsoft_map pmm
-             LEFT JOIN stock_cache sc ON sc.mintsoft_product_id = pmm.mintsoft_product_id
-            GROUP BY pmm.mintsoft_product_id`,
-        ).all<{
-          product_id: number; mintsoft_product_id: number; sku: string; is_primary: number
-          available: number | null; rows_seen: number; rows_with_value: number
-        }>()
-
-      const skusByProduct = new Map<number, MappedSku[]>()
-      for (const r of skuRows ?? []) {
-        const available = r.rows_seen === 0 || r.rows_with_value < r.rows_seen ? null : r.available
-        skusByProduct.set(r.product_id, [
-          ...(skusByProduct.get(r.product_id) ?? []),
-          { mintsoftProductId: r.mintsoft_product_id, sku: r.sku, isPrimary: r.is_primary === 1, available },
-        ])
-      }
+      const skusByProduct = await availableSkusByProduct(c.env.DB)
 
       const toApprove: LineToApprove[] = body.lines.map((l) => ({
         productId: l.productId,
@@ -550,8 +551,24 @@ export const createApp = () => {
         const before = requested.find((r) => r.productId === l.productId)
         return before !== undefined && before.qtyRequested !== l.qtyApproved
       })
+
+      /**
+       * Signed off, so now join it to anything already waiting for this site.
+       *
+       * After the approval, never instead of it: a guard refusing to combine is a normal
+       * outcome and must leave a perfectly good signed-off order alone.
+       */
+      const autoMerge = await mergeIntoWaitingOrder(c.env.DB, {
+        orderId, actor: user.email, actorRole: user.role,
+        merciumOrderFee: settings.merciumOrderFee,
+        passOrderFeeToFranchise: settings.passOrderFeeToFranchise,
+      })
+
       const mail = requestApproved(c.env as EmailEnv, {
         orderNumber: order.orderNumber, siteName: order.siteName, changed,
+        // The number the stock is actually coming on, which is not this one if the two
+        // were just combined.
+        combinedInto: autoMerge.kind === 'merged' ? autoMerge.into : null,
       })
       const { results: siteUsers } = await c.env.DB
         .prepare(
@@ -562,7 +579,7 @@ export const createApp = () => {
         ...mail, to: (siteUsers ?? []).map((u) => u.email),
       })
 
-      return c.json({ ok: true, splits: check.splits, recharge: totals, emailed })
+      return c.json({ ok: true, splits: check.splits, recharge: totals, emailed, autoMerge })
     } catch (err) {
       if (err instanceof OrderError) return c.json({ error: err.message }, 400)
       if (err instanceof SyntaxError) return c.json({ error: 'bad_request' }, 400)
@@ -693,6 +710,10 @@ export const createApp = () => {
           })
           return { total: totals?.total ?? null, orderFee: totals?.orderFee ?? null }
         },
+        // The same check the automatic merge runs. Two orders each signed off against the
+        // same unreserved stock can want more than exists; refusing leaves two sendable
+        // orders rather than making one that cannot go.
+        checkCombined: (combined) => combinedStockRefusal(c.env.DB, combined),
       })
       return c.json({ ok: true, merged })
     } catch (err) {

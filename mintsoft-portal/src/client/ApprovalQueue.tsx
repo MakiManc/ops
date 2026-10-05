@@ -29,7 +29,9 @@ interface QueueItem {
   mergeCandidates: { id: number; orderNumber: string }[]
 }
 
-function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => void }) {
+function RequestCard({ item, onChanged }: {
+  item: QueueItem; onChanged: (autoMerge?: AutoMerge) => void
+}) {
   /**
    * Pre-fill with what can actually be approved, not what was asked for.
    *
@@ -66,7 +68,14 @@ function RequestCard({ item, onChanged }: { item: QueueItem; onChanged: () => vo
         setProblems(payload.problems ?? [payload.error ?? 'That could not be done.'])
         return
       }
-      onChanged()
+      /**
+       * Signing off can combine this order with one the site already had waiting, so say
+       * so. Automatic is not the same as invisible: the approver has just signed off an
+       * order whose number is no longer the one going to Mercium, and they need to know
+       * which number is.
+       */
+      const payload = await res.json().catch(() => ({})) as { autoMerge?: AutoMerge }
+      onChanged(payload.autoMerge)
     } finally {
       setBusy(false)
     }
@@ -247,7 +256,9 @@ interface Awaiting {
  * like a failure: a failure invites pressing it again, and pressing it again is how one
  * order becomes two pallets.
  */
-function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
+function SendCard({ order, alsoWaiting = 0, onSent }: {
+  order: Awaiting; alsoWaiting?: number; onSent: () => void
+}) {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<{ tone: 'ok' | 'wait' | 'bad'; message: string } | null>(null)
 
@@ -307,6 +318,14 @@ function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
         </button>
       </div>
 
+      {alsoWaiting > 0 && (
+        <p className="mt-2 text-sm text-gray-900 bg-amber-50 border border-amber-400 rounded p-2">
+          This site has {alsoWaiting === 1 ? 'another order' : `${alsoWaiting} more orders`} signed
+          off and waiting. Sending this one on its own means a separate fee and a separate
+          delivery — combining them first is the card above.
+        </p>
+      )}
+
       {order.postError && !result && (
         <p className="mt-2 text-sm border rounded p-2 bg-red-50 border-red-300 text-red-900">
           Last attempt stopped: {order.postError}
@@ -323,6 +342,11 @@ function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
     </li>
   )
 }
+
+export type AutoMerge =
+  | { kind: 'nothing_to_join' }
+  | { kind: 'merged'; into: string; merged: { linesMoved: number; linesCombined: number } }
+  | { kind: 'held_back'; otherOrderNumber: string; reason: string }
 
 interface DoubledUp {
   siteId: number; siteCode: string; siteName: string
@@ -388,6 +412,8 @@ export function ApprovalQueue() {
   const [items, setItems] = useState<QueueItem[] | null>(null)
   const [awaiting, setAwaiting] = useState<Awaiting[]>([])
   const [doubledUp, setDoubledUp] = useState<DoubledUp[]>([])
+  /** What the last sign-off did about the site's other waiting order, if anything. */
+  const [lastMerge, setLastMerge] = useState<AutoMerge | null>(null)
   const [error, setError] = useState(false)
 
   const load = useCallback(async () => {
@@ -415,6 +441,20 @@ export function ApprovalQueue() {
   if (!items) return <p role="status" className="text-gray-700">Loading the queue…</p>
   return (
     <div className="space-y-4">
+      {lastMerge?.kind === 'merged' && (
+        <p role="status" className="rounded-xl bg-cherry border border-maki-orange px-3 py-2 text-woodsmoke">
+          <strong>Combined with {lastMerge.into}.</strong> This site already had an order signed
+          off and waiting, so the two have been put together — one fee and one delivery.{' '}
+          <strong>{lastMerge.into}</strong> is the order going to Mercium.
+        </p>
+      )}
+      {lastMerge?.kind === 'held_back' && (
+        <p role="status" className="rounded-xl bg-amber-50 border border-amber-400 px-3 py-2 text-gray-900">
+          <strong>Signed off, but kept separate from {lastMerge.otherOrderNumber}.</strong>{' '}
+          {lastMerge.reason} Both are still waiting to be sent, and can be sent as they are.
+        </p>
+      )}
+
       {doubledUp.length > 0 && (
         <section aria-labelledby="doubled-up" className="space-y-2">
           <h2 id="doubled-up" className={eyebrow}>
@@ -435,7 +475,17 @@ export function ApprovalQueue() {
           </h2>
           <ul className="grid gap-3">
             {awaiting.map((order) => (
-              <SendCard key={order.id} order={order} onSent={() => void load()} />
+              <SendCard
+                key={order.id}
+                order={order}
+                // Sending this one on its own is still allowed -- a refused merge must
+                // not strand it -- but the consequence has to be on the card, not only
+                // in the group above it.
+                alsoWaiting={doubledUp.find((d) => d.orders.some((o) => o.id === order.id))
+                  ? doubledUp.find((d) => d.orders.some((o) => o.id === order.id))!.orders.length - 1
+                  : 0}
+                onSent={() => void load()}
+              />
             ))}
           </ul>
         </section>
@@ -450,7 +500,11 @@ export function ApprovalQueue() {
           </p>
           <ul className="grid gap-3">
             {items.map((item) => (
-              <RequestCard key={item.order.id} item={item} onChanged={() => void load()} />
+              <RequestCard
+                key={item.order.id}
+                item={item}
+                onChanged={(autoMerge) => { setLastMerge(autoMerge ?? null); void load() }}
+              />
             ))}
           </ul>
         </>

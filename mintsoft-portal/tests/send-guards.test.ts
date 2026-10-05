@@ -125,3 +125,50 @@ describe('an order approved at zero on every line', () => {
     expect(items).toHaveLength(1)
   })
 })
+
+/**
+ * The way an uncertain order could be laundered into a mergeable one.
+ *
+ * A send whose reply never arrives leaves the order 'approved' with post_error set and
+ * the claim held: it may already be at Mercium, and that pair is the only record saying
+ * so. Merging such an order moves its lines onto a different reference, the duplicate
+ * lookup finds nothing, and the same stock is picked twice.
+ *
+ * The hole was that a SECOND press which tripped one of the pre-send guards used to
+ * overwrite post_error and demote the order to 'post_failed' — which reads as "Mintsoft
+ * refused it, nothing was created", exactly the state merging treats as safe. One
+ * blocked retry turned a maybe into a duplicate.
+ */
+describe('a blocked retry on an order that may already be at Mercium', () => {
+  beforeEach(() => {
+    fake.exec(`
+      INSERT INTO order_lines (order_id, product_id, qty_requested, qty_approved) VALUES
+        (1, 1, 10, 10),
+        (1, 2, 40, NULL);   -- enough to trip the unapproved-line guard
+      UPDATE orders SET post_error = 'The portal lost contact before it heard back.' WHERE id = 1;
+    `)
+  })
+
+  it('refuses the send, as it should', async () => {
+    const result = await send()
+    expect(result.ok).toBe(false)
+    expect(stubbed.puts).toHaveLength(0)
+  })
+
+  it('leaves the order approved, not post_failed, so it is still treated as uncertain', async () => {
+    await send()
+    const row = fake.sqlite.prepare(`SELECT status, post_error FROM orders WHERE id = 1`)
+      .get() as { status: string; post_error: string }
+    expect(row.status).toBe('approved')
+    expect(row.post_error).toMatch(/lost contact/)
+  })
+
+  it('does not release a claim it never took', async () => {
+    fake.exec(`UPDATE orders SET send_claimed_at = '2099-01-01T00:00:00Z' WHERE id = 1`)
+    await send()
+    const row = fake.sqlite.prepare(`SELECT send_claimed_at FROM orders WHERE id = 1`)
+      .get() as { send_claimed_at: string | null }
+    // The hold is what stops a retry turning a maybe into a duplicate.
+    expect(row.send_claimed_at).toBe('2099-01-01T00:00:00Z')
+  })
+})

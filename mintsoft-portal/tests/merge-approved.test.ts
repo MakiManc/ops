@@ -292,7 +292,7 @@ describe('cancelling while something holds the order', () => {
       send_claimed_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     })
     await expect(cancelOrder(db, { orderId: 1, actor: ACTOR, reason: null }))
-      .rejects.toThrow(/being sent or combined right now/)
+      .rejects.toThrow(/is being sent or combined, or it has already gone/)
     expect((await orderById(db, 1))?.status).toBe('approved')
   })
 

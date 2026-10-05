@@ -78,11 +78,23 @@ export const requestSubmitted = (env: EmailEnv, o: {
 /** A request has been approved. Goes to the site. */
 export const requestApproved = (env: EmailEnv, o: {
   orderNumber: string; siteName: string; changed: boolean
+  /**
+   * The order this request was folded into, when the site already had one signed off and
+   * waiting. Naming it matters: approving can combine the two, and an email about an
+   * order number that no longer exists is worse than no email.
+   */
+  combinedInto?: string | null
 }): Email => ({
   to: [],
-  subject: `Your stock request has been approved (${o.orderNumber})`,
+  subject: o.combinedInto
+    ? `Your stock request has been approved (${o.combinedInto})`
+    : `Your stock request has been approved (${o.orderNumber})`,
   text: [
     `Your request for ${o.siteName} has been approved and is on its way to the warehouse.`,
+    o.combinedInto
+      ? `\nIt has been combined with ${o.siteName}'s other request that was waiting, so `
+        + `everything comes in one delivery as order ${o.combinedInto}. Nothing was dropped.`
+      : '',
     o.changed
       ? '\nSome quantities were changed. Open the portal to see what was approved.'
       : '',
