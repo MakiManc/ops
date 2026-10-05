@@ -155,7 +155,12 @@ export function checkApproval(lines: LineToApprove[], recharge: RechargeContext)
  * Prices are snapshotted onto the line at approval, so a later price change never
  * alters what was invoiced for an order already placed.
  */
-export function rechargeTotals(lines: LineToApprove[], context: RechargeContext): RechargeTotals | null {
+export function rechargeTotals(
+  // Only the two fields it actually prices, so the same maths can be applied to a set of
+  // already-approved lines -- which is what merging two signed-off orders needs.
+  lines: Pick<LineToApprove, 'qtyApproved' | 'rechargeUnitPrice'>[],
+  context: RechargeContext,
+): RechargeTotals | null {
   if (!context.recharge) return null   // corporate sites are never recharged
 
   const lineTotal = lines.reduce((sum, l) => sum + l.qtyApproved * (l.rechargeUnitPrice ?? 0), 0)

@@ -39,6 +39,12 @@ export interface OrderSummary {
   mintsoftOrderId: number | null
   /** What Mercium calls it: MRK-<id>, assigned by Mintsoft. Null until the order is sent. */
   mintsoftOrderNumber: string | null
+  /**
+   * Set only on an order that was folded into another. It is why a 'cancelled' order
+   * must not always be read as cancelled: this one closed because its lines moved, and
+   * the stock is still coming on the order named here.
+   */
+  mergedIntoOrderNumber: string | null
   postError: string | null
   despatchedAt: string | null
   trackingUrl: string | null
@@ -61,6 +67,7 @@ const ORDER_SELECT = `
          o.type, o.status, o.requester_name, o.required_date, o.notes, o.early_order_reason,
          o.recharge, o.recharge_total, o.order_fee, o.submitted_at, o.approved_at,
          o.rejected_reason, o.mintsoft_order_id, o.mintsoft_order_number, o.post_error, o.despatched_at,
+         (SELECT m.order_number FROM orders m WHERE m.id = o.merged_into_order_id) AS merged_into_order_number,
          o.tracking_url, o.created_at
     FROM orders o JOIN sites s ON s.id = o.site_id`
 
@@ -71,6 +78,7 @@ interface RawOrder {
   recharge: number; recharge_total: number | null; order_fee: number | null
   submitted_at: string | null; approved_at: string | null; rejected_reason: string | null
   mintsoft_order_id: number | null; mintsoft_order_number: string | null
+  merged_into_order_number: string | null
   post_error: string | null; despatched_at: string | null
   tracking_url: string | null; created_at: string
 }
@@ -82,6 +90,7 @@ const toSummary = (r: RawOrder): OrderSummary => ({
   recharge: r.recharge === 1, rechargeTotal: r.recharge_total, orderFee: r.order_fee,
   submittedAt: r.submitted_at, approvedAt: r.approved_at, rejectedReason: r.rejected_reason,
   mintsoftOrderId: r.mintsoft_order_id, mintsoftOrderNumber: r.mintsoft_order_number,
+  mergedIntoOrderNumber: r.merged_into_order_number,
   postError: r.post_error, despatchedAt: r.despatched_at,
   trackingUrl: r.tracking_url, createdAt: r.created_at,
 })
@@ -483,6 +492,359 @@ export async function mergeRequests(
   ])
 }
 
+/**
+ * How long a claim holds. Must match CLAIM_HOLDS_MS in src/server/orders/send.ts: both
+ * take the same claim on the same column, and a merge that used a shorter window could
+ * walk into an order a send still believes it holds.
+ */
+const CLAIM_HOLDS_MS = 10 * 60 * 1000
+
+/** What a merge did, so the screen can say it rather than guess. */
+export interface MergedApproved {
+  keptOrderNumber: string
+  absorbedOrderNumber: string
+  /** Products that were only on the absorbed order and moved across whole. */
+  linesMoved: number
+  /** Products on both, whose quantities were added together. */
+  linesCombined: number
+}
+
+/**
+ * Folds one approved-but-unsent order into another for the same site.
+ *
+ * Mercium charges per order and delivers per order, so two signed-off orders sitting
+ * unsent for one restaurant is a fee and a van we do not need. mergeRequests above does
+ * this before sign-off; this does it after, which is a different job because an approved
+ * order carries decisions a pending one does not.
+ *
+ * Three of those decisions matter:
+ *
+ *   1. qty_approved, not qty_requested, is what gets posted to Mintsoft — and send.ts
+ *      refuses the whole order if any line's is NULL. So both quantities are summed, and
+ *      a line that somehow has no approved quantity stops the merge here rather than
+ *      producing an order that cannot be sent.
+ *   2. The order fee is charged once per order, so the survivor carries one fee and the
+ *      absorbed one's is dropped. For a franchise site that saving is the point of this.
+ *   3. The claim. A send takes it with a conditional UPDATE, so this takes it the same
+ *      way before touching a line: without that, a merge could delete the lines out from
+ *      under a send that was already posting, or cancel the order it was posting.
+ *
+ * The absorbed order is cancelled, not deleted. Its trail says where its lines went and
+ * the survivor's says where they came from, so neither side has a gap.
+ */
+export async function mergeApprovedOrders(
+  db: Database,
+  { keepId, mergeId, actor, actorRole, recomputeTotals }: {
+    keepId: number; mergeId: number; actor: string; actorRole: Role
+    /**
+     * Given the combined approved lines, what the survivor's recharge_total and
+     * order_fee become. Called inside the claim, once the real combined set is known.
+     * The pricing rules live in orders/approval.ts; this only asks.
+     */
+    recomputeTotals: (combined: ApprovedLine[]) => { total: number | null; orderFee: number | null }
+  },
+): Promise<MergedApproved> {
+  if (!canApprove(actorRole)) {
+    throw new OrderError('Only an approver or an administrator can merge signed-off orders.')
+  }
+  if (keepId === mergeId) throw new OrderError('Those are the same order.')
+
+  const keep = await orderById(db, keepId)
+  const merge = await orderById(db, mergeId)
+  if (!keep || !merge) throw new OrderError('One of those orders no longer exists.')
+  if (keep.siteId !== merge.siteId) throw new OrderError('Orders can only be merged within the same site.')
+
+  /**
+   * Both halves have to be billed on the same basis.
+   *
+   * recharge is copied onto the order from the site at request time, so two orders for
+   * one site normally agree — but a site switched between corporate and franchise
+   * between the two sign-offs would not, and merging would silently bill one half on the
+   * other's basis.
+   */
+  if (keep.recharge !== merge.recharge) {
+    throw new OrderError(
+      `${keep.orderNumber} and ${merge.orderNumber} are not charged the same way — one is `
+        + 'recharged to the site and one is not. They cannot be combined without deciding '
+        + 'which is right.',
+    )
+  }
+
+  /**
+   * And in the same month, because that is what the recharge report buckets on.
+   *
+   * rechargeReport counts an order in the month of its approved_at. Folding a September
+   * order into an October one moves its goods into October — and if Finance has already
+   * invoiced September, the goods leave that invoice and nothing says so.
+   */
+  const monthOf = (at: string | null) => (at ?? '').slice(0, 7)
+  if (monthOf(keep.approvedAt) !== monthOf(merge.approvedAt)) {
+    throw new OrderError(
+      `${keep.orderNumber} and ${merge.orderNumber} were signed off in different months, so `
+        + 'combining them would move goods between two recharge periods. Send them separately.',
+    )
+  }
+
+  for (const o of [keep, merge]) {
+    // post_failed belongs here with approved: it means the send stopped before anything
+    // reached Mintsoft, so the order is still waiting to go. Anything carrying a Mintsoft
+    // id has gone, and merging it would be editing an order Mercium is already picking.
+    if (!['approved', 'post_failed'].includes(o.status)) {
+      throw new OrderError(`${o.orderNumber} is ${o.status}, so it is not waiting to be sent.`)
+    }
+    if (o.mintsoftOrderId !== null) {
+      throw new OrderError(`${o.orderNumber} is already with Mercium as order ${o.mintsoftOrderId}.`)
+    }
+    /**
+     * The uncertain send, and the reason this check exists.
+     *
+     * A send whose reply never arrived leaves the order 'approved' with post_error set
+     * and the claim deliberately held (send.ts:305-319): the order may be at Mercium
+     * already. The claim ages out after ten minutes so the next attempt can re-run the
+     * lookup, which matches on this order's own reference.
+     *
+     * Merge it and that recovery is gone. Its lines would move to another order with a
+     * different reference, the lookup would find nothing, and the goods would be picked
+     * twice. post_failed is a different thing -- Mintsoft said no, nothing was created --
+     * so that one is safe and allowed above.
+     */
+    if (o.status === 'approved' && o.postError !== null) {
+      throw new OrderError(
+        `${o.orderNumber} was sent and we did not hear back, so it may already be with `
+          + 'Mercium. It has to be looked up and settled before it can be merged — '
+          + 'merging it now is how the same stock gets picked twice.',
+      )
+    }
+  }
+
+  // Take both orders before reading a line. Same predicate as the send's claim, so of a
+  // merge and a send racing, exactly one proceeds.
+  const claimed: number[] = []
+  for (const id of [keepId, mergeId]) {
+    if (await claimForMerge(db, id)) { claimed.push(id); continue }
+    for (const held of claimed) await releaseMergeClaim(db, held)
+    const stuck = id === keepId ? keep : merge
+    throw new OrderError(
+      `${stuck.orderNumber} is being sent right now. Wait for that to finish, then look again.`,
+    )
+  }
+
+  try {
+    const keepLines = await linesForOrder(db, keepId)
+    const mergeLines = await linesForOrder(db, mergeId)
+
+    const noQty = [...keepLines, ...mergeLines].filter((l) => l.qtyApproved === null)
+    if (noQty.length > 0) {
+      throw new OrderError(
+        `${noQty.map((l) => l.productName).join(', ')} ${noQty.length === 1 ? 'has' : 'have'} no `
+          + 'approved quantity, so these orders cannot be combined. Sign them off again before merging.',
+      )
+    }
+
+    /**
+     * A product on both orders, approved at two different prices, has no right answer.
+     *
+     * The surviving line carries one recharge_unit_price, and the recharge report prices
+     * every unit on it at that figure — so whichever we keep, half the units are invoiced
+     * at a price nobody approved for them. Stopping is the only honest move.
+     */
+    const priceClash = mergeLines
+      .map((m) => ({ m, k: keepLines.find((k) => k.productId === m.productId) }))
+      .filter(({ m, k }) => k && (k.rechargeUnitPrice ?? null) !== (m.rechargeUnitPrice ?? null))
+    if (priceClash.length > 0) {
+      throw new OrderError(
+        `${priceClash.map(({ m }) => m.productName).join(', ')} ${priceClash.length === 1 ? 'was' : 'were'} `
+          + 'signed off at a different price on each order, so the two cannot be added together. '
+          + 'Send them separately, or sign one off again at the price that should apply.',
+      )
+    }
+
+    let linesMoved = 0
+    let linesCombined = 0
+    const statements = mergeLines.map((line) => {
+      const already = keepLines.find((k) => k.productId === line.productId)
+      if (already) {
+        linesCombined++
+        return db
+          .prepare(`UPDATE order_lines SET qty_requested = ?, qty_approved = ? WHERE id = ?`)
+          .bind(
+            already.qtyRequested + line.qtyRequested,
+            already.qtyApproved! + line.qtyApproved!,
+            already.id,
+          )
+      }
+      linesMoved++
+      return db
+        .prepare(
+          `INSERT INTO order_lines
+             (order_id, product_id, qty_requested, qty_approved,
+              available_at_request, available_at_approval, recharge_unit_price)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          keepId, line.productId, line.qtyRequested, line.qtyApproved,
+          line.availableAtRequest, line.availableAtApproval, line.rechargeUnitPrice,
+        )
+    })
+
+    // The combined set, as the survivor will look once the statements above have run.
+    const combined: ApprovedLine[] = [...keepLines]
+      .map((k) => {
+        const other = mergeLines.find((m) => m.productId === k.productId)
+        return {
+          productId: k.productId,
+          qtyApproved: k.qtyApproved! + (other?.qtyApproved ?? 0),
+          rechargeUnitPrice: k.rechargeUnitPrice,
+          availableAtApproval: k.availableAtApproval,
+        }
+      })
+      .concat(
+        mergeLines
+          .filter((m) => !keepLines.some((k) => k.productId === m.productId))
+          .map((m) => ({
+            productId: m.productId,
+            qtyApproved: m.qtyApproved!,
+            rechargeUnitPrice: m.rechargeUnitPrice,
+            availableAtApproval: m.availableAtApproval,
+          })),
+      )
+
+    const totals = recomputeTotals(combined)
+
+    await db.batch([
+      ...statements,
+      db.prepare(`DELETE FROM order_lines WHERE order_id = ?`).bind(mergeId),
+      // The survivor goes back to plain approved: a previous refusal was about the old
+      // line set, and leaving post_error set would show a stale reason on a new order.
+      db
+        .prepare(
+          `UPDATE orders SET status = 'approved', recharge_total = ?, order_fee = ?,
+                  required_date = ?, notes = ?, early_order_reason = ?,
+                  post_error = NULL, send_claimed_at = NULL, updated_at = ? WHERE id = ?`,
+        )
+        .bind(
+          totals.total, totals.orderFee,
+          // The earlier date wins: if either half was needed by Friday, the combined
+          // order is needed by Friday. Dropping it would quietly move a delivery.
+          earliest(keep.requiredDate, merge.requiredDate),
+          joinNotes(keep.notes, merge.notes, merge.orderNumber),
+          // An early-order reason is the thing an approver was asked to read. Losing it
+          // because the order it was typed on got absorbed would hide it from the trail.
+          keep.earlyOrderReason ?? merge.earlyOrderReason,
+          nowIso(), keepId,
+        ),
+      db
+        .prepare(
+          `UPDATE orders SET status = 'cancelled', recharge_total = NULL, order_fee = NULL,
+                  send_claimed_at = NULL, merged_into_order_id = ?, updated_at = ? WHERE id = ?`,
+        )
+        .bind(keepId, nowIso(), mergeId),
+      /**
+       * The detail, not just the count. The DELETE below destroys the absorbed order's
+       * lines, and its recharge_total with them. If Finance has already invoiced a month
+       * containing either order, this record is the only way to reconstruct what was
+       * approved at what price before the two became one.
+       */
+      auditStatement(db, keepId, actor, 'merged_in', {
+        from: merge.orderNumber, linesMoved, linesCombined,
+        rechargeTotalBefore: keep.rechargeTotal, rechargeTotalAfter: totals.total,
+        orderFeeBefore: keep.orderFee, orderFeeAfter: totals.orderFee,
+        absorbed: mergeLines.map((l) => ({
+          productId: l.productId, productName: l.productName,
+          qtyRequested: l.qtyRequested, qtyApproved: l.qtyApproved,
+          rechargeUnitPrice: l.rechargeUnitPrice,
+        })),
+      }),
+      auditStatement(db, mergeId, actor, 'merged_into', {
+        into: keep.orderNumber, linesMoved, linesCombined,
+        // Its own figures, recorded on its own trail before they are cleared.
+        rechargeTotal: merge.rechargeTotal, orderFee: merge.orderFee,
+        approvedAt: merge.approvedAt,
+        lines: mergeLines.map((l) => ({
+          productId: l.productId, productName: l.productName,
+          qtyRequested: l.qtyRequested, qtyApproved: l.qtyApproved,
+          rechargeUnitPrice: l.rechargeUnitPrice,
+        })),
+      }),
+    ])
+
+    return {
+      keptOrderNumber: keep.orderNumber,
+      absorbedOrderNumber: merge.orderNumber,
+      linesMoved,
+      linesCombined,
+    }
+  } catch (err) {
+    // Nothing was written, so give both orders back rather than stranding them for the
+    // ten minutes a claim holds.
+    for (const held of claimed) await releaseMergeClaim(db, held)
+    throw err
+  }
+}
+
+/** The earlier of two dates, either of which may be absent. */
+const earliest = (a: string | null, b: string | null): string | null =>
+  a && b ? (a < b ? a : b) : a ?? b
+
+/** Both orders' notes, with the absorbed one attributed so nobody wonders whose it was. */
+function joinNotes(keep: string | null, absorbed: string | null, absorbedNumber: string): string | null {
+  if (!absorbed?.trim()) return keep
+  const tail = `From ${absorbedNumber}: ${absorbed.trim()}`
+  return keep?.trim() ? `${keep.trim()}\n\n${tail}` : tail
+}
+
+/** The send's claim, taken for a merge. Deliberately the same predicate. */
+async function claimForMerge(db: Database, orderId: number): Promise<boolean> {
+  const staleBefore = new Date(Date.now() - CLAIM_HOLDS_MS).toISOString().replace(/\.\d+Z$/, 'Z')
+  const claimed = await db
+    .prepare(
+      `UPDATE orders SET send_claimed_at = ?, updated_at = ?
+        WHERE id = ?
+          AND status IN ('approved', 'post_failed')
+          AND mintsoft_order_id IS NULL
+          AND (send_claimed_at IS NULL OR send_claimed_at < ?)`,
+    )
+    .bind(nowIso(), nowIso(), orderId, staleBefore)
+    .run()
+  return (claimed as { meta?: { changes?: number } }).meta?.changes === 1
+}
+
+async function releaseMergeClaim(db: Database, orderId: number): Promise<void> {
+  await db
+    .prepare(`UPDATE orders SET send_claimed_at = NULL, updated_at = ? WHERE id = ?`)
+    .bind(nowIso(), orderId)
+    .run()
+}
+
+/**
+ * Sites with more than one order signed off and still waiting to go.
+ *
+ * Grouped rather than listed, because the question a person has in front of the
+ * awaiting-send list is "is this restaurant getting two deliveries?" and a flat list
+ * ordered by approval time does not answer it.
+ */
+export async function sitesWithSeveralAwaitingSend(
+  db: Database,
+): Promise<{ siteId: number; siteCode: string; siteName: string; orders: OrderSummary[] }[]> {
+  const waiting = await awaitingSend(db)
+  const bySite = new Map<number, OrderSummary[]>()
+  for (const o of waiting) {
+    const list = bySite.get(o.siteId) ?? []
+    list.push(o)
+    bySite.set(o.siteId, list)
+  }
+  return [...bySite.values()]
+    .filter((orders) => orders.length > 1)
+    .map((orders) => ({
+      siteId: orders[0]!.siteId,
+      siteCode: orders[0]!.siteCode,
+      siteName: orders[0]!.siteName,
+      // Oldest first: that is the one the others fold into, so its number survives.
+      orders,
+    }))
+    .sort((a, b) => a.siteCode.localeCompare(b.siteCode))
+}
+
 export async function cancelOrder(
   db: Database, { orderId, actor, reason }: { orderId: number; actor: string; reason: string | null },
 ): Promise<void> {
@@ -492,6 +854,28 @@ export async function cancelOrder(
     throw new OrderError(`${order.orderNumber} is already with the warehouse and cannot be cancelled here.`)
   }
   if (order.status === 'cancelled') return
+
+  /**
+   * Not while a send or a merge holds it.
+   *
+   * Without this, a cancel landing inside a merge's claim is overwritten by the merge's
+   * own batch moments later — so an order the GM was told would not be sent goes back to
+   * 'approved' and is sent. The claim is the one thing both operations contend on, so
+   * cancelling respects it too.
+   */
+  const claimed = await db
+    .prepare(
+      `SELECT send_claimed_at FROM orders
+        WHERE id = ? AND send_claimed_at IS NOT NULL AND send_claimed_at >= ?`,
+    )
+    .bind(orderId, new Date(Date.now() - CLAIM_HOLDS_MS).toISOString().replace(/\.\d+Z$/, 'Z'))
+    .first<{ send_claimed_at: string }>()
+  if (claimed) {
+    throw new OrderError(
+      `${order.orderNumber} is being sent or combined right now. Wait for that to finish, `
+        + 'then look again — cancelling it mid-way could leave it going to the warehouse anyway.',
+    )
+  }
 
   await db.batch([
     db.prepare(`UPDATE orders SET status = 'cancelled', updated_at = ? WHERE id = ?`).bind(nowIso(), orderId),

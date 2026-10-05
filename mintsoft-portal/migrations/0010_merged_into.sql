@@ -1,0 +1,16 @@
+-- An absorbed order is not a cancelled one, and calling it cancelled costs money.
+--
+-- When two signed-off orders for a site are combined, the one that gives up its lines is
+-- set to 'cancelled' -- there is no other status for "closed and not going". But to a GM
+-- reading My orders, "Cancelled" means the stock is not coming, and the card still offers
+-- "Order the same again". So the likeliest thing to happen next is a GM re-requesting
+-- stock that is already on its way, which is the second pallet this feature exists to
+-- avoid.
+--
+-- This records where the lines went. With it the screen can say "Combined with
+-- MR-M19-20261002-001" instead of "Cancelled", suppress the reorder button, and let the
+-- surviving order say what it absorbed.
+--
+-- Nullable and unconstrained by design: every order closed before today was closed for
+-- an ordinary reason, and NULL is the honest answer for all of them.
+ALTER TABLE orders ADD COLUMN merged_into_order_id INTEGER REFERENCES orders (id);

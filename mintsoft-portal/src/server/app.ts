@@ -17,7 +17,7 @@ import {
 } from './db/mapping.ts'
 import {
   addToBasket, approvalQueue, approveOrder, cancelOrder, eventsForOrder, linesForOrder,
-  mergeRequests, openRequestForSite, OrderError, orderById, ordersForSites,
+  mergeApprovedOrders, mergeRequests, openRequestForSite, OrderError, orderById, ordersForSites,
   recentOrdersForSite, rejectOrder, setLineQty, submitRequest,
 } from './db/orders.ts'
 import { importParLevels, parLevels, parLevelsCsv, reorderInto } from './db/admin.ts'
@@ -29,7 +29,7 @@ import {
   approverEmails, requestApproved, requestRejected, requestSubmitted, sendEmail, type EmailEnv,
 } from './email/send.ts'
 import { stockOverview, unmappedLineCount } from './db/stock-overview.ts'
-import { awaitingSend } from './db/orders.ts'
+import { awaitingSend, sitesWithSeveralAwaitingSend } from './db/orders.ts'
 import { MintsoftOrderClient } from './mintsoft/order-client.ts'
 import { sendApprovedOrder } from './orders/send.ts'
 import { writesEnabled } from './orders/write-gate.ts'
@@ -611,7 +611,12 @@ export const createApp = () => {
    */
   /** Approved orders with nowhere else to appear, so they can actually be sent. */
   app.get('/approvals/awaiting-send', async (c) =>
-    c.json({ orders: await awaitingSend(c.env.DB) }))
+    c.json({
+      orders: await awaitingSend(c.env.DB),
+      // Sites with more than one waiting. Mercium charges and delivers per order, so
+      // this is the set worth doing something about before anything is sent.
+      doubledUp: await sitesWithSeveralAwaitingSend(c.env.DB),
+    }))
 
   app.post('/approvals/:orderId/send', async (c) => {
     const user = currentUser(c)
@@ -647,6 +652,49 @@ export const createApp = () => {
         actor: user.email, actorRole: user.role,
       })
       return c.json({ ok: true })
+    } catch (err) {
+      if (err instanceof OrderError) return c.json({ error: err.message }, 400)
+      throw err
+    }
+  })
+
+  /**
+   * Folds one signed-off order into another for the same site, so one van comes.
+   *
+   * Separate from /merge above because that one works on requests waiting for sign-off
+   * and this one works on orders already signed off — different columns, and a claim to
+   * take so it cannot race a send.
+   */
+  app.post('/approvals/:orderId/merge-approved/:mergeId', async (c) => {
+    try {
+      const user = currentUser(c)
+      const settings = await readSettings(c.env.DB)
+      const keepId = Number(c.req.param('orderId'))
+      const keep = await orderById(c.env.DB, keepId)
+      if (!keep) return c.json({ error: 'That order no longer exists.' }, 400)
+
+      const merged = await mergeApprovedOrders(c.env.DB, {
+        keepId, mergeId: Number(c.req.param('mergeId')),
+        actor: user.email, actorRole: user.role,
+        /**
+         * One fee, not two -- which for a franchise site is the whole saving.
+         *
+         * The fee is the one already snapshotted on the surviving order, not today's
+         * setting. Prices on this system are fixed at sign-off and never re-read live, so
+         * a merge must not be the one place a franchise invoice moves because somebody
+         * changed a number in settings last week. Goods are priced from the lines' own
+         * stored recharge_unit_price for the same reason.
+         */
+        recomputeTotals: (combined) => {
+          const totals = rechargeTotals(combined, {
+            recharge: keep.recharge,
+            orderFee: keep.orderFee ?? settings.merciumOrderFee,
+            passOrderFeeToFranchise: keep.orderFee !== null || settings.passOrderFeeToFranchise,
+          })
+          return { total: totals?.total ?? null, orderFee: totals?.orderFee ?? null }
+        },
+      })
+      return c.json({ ok: true, merged })
     } catch (err) {
       if (err instanceof OrderError) return c.json({ error: err.message }, 400)
       throw err

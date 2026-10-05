@@ -23,6 +23,8 @@ interface Order {
   approvedAt: string | null
   despatchedAt: string | null
   mintsoftOrderNumber: string | null
+  /** Set when this request's lines were folded into another order for the same site. */
+  mergedIntoOrderNumber: string | null
   trackingUrl: string | null
   createdAt: string
   recharge: boolean
@@ -232,7 +234,21 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
 
     <ul className="grid gap-3">
       {shown.map((order) => {
-        const plain = PLAIN[order.status]
+        /**
+         * An absorbed request wears its own words.
+         *
+         * It is 'cancelled' in the database because there is no other status for closed
+         * and not going, but to the GM reading this "Cancelled" would mean the stock is
+         * not coming — when in fact it is, on the order named here.
+         */
+        const plain = order.mergedIntoOrderNumber
+          ? {
+              label: 'Combined',
+              detail: `Everything on this request moved onto ${order.mergedIntoOrderNumber}, `
+                + 'so it comes in one delivery instead of two. Nothing was dropped.',
+              tone: 'bg-cherry text-woodsmoke border-maki-orange',
+            }
+          : PLAIN[order.status]
         const highlight = justSent === order.orderNumber || message?.includes(order.orderNumber)
         return (
           <li key={order.id} className={`${card} ${highlight ? 'border-everglade ring-2 ring-everglade/30' : ''}`}>
@@ -286,7 +302,10 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue }: {
                 </a>
               )}
 
-              {['despatched', 'posted', 'rejected', 'cancelled'].includes(order.status) && (
+              {/* Never on an absorbed request: the stock is already coming on the order
+                  it was combined with, and offering this is how a GM orders it twice. */}
+              {['despatched', 'posted', 'rejected', 'cancelled'].includes(order.status)
+                && !order.mergedIntoOrderNumber && (
                 <button
                   onClick={() => void reorder(order)}
                   disabled={reordering === order.id}

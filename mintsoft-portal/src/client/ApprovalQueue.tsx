@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { money, qty, shortDate, timeAgo } from './format.ts'
-import { btnDanger, btnPrimary, btnQuiet, btnSecondary, card, input } from './ui.ts'
+import { btnDanger, btnPrimary, btnQuiet, btnSecondary, card, eyebrow, input } from './ui.ts'
 
 /**
  * The queue an approver works through, oldest first.
@@ -324,9 +324,70 @@ function SendCard({ order, onSent }: { order: Awaiting; onSent: () => void }) {
   )
 }
 
+interface DoubledUp {
+  siteId: number; siteCode: string; siteName: string
+  orders: { id: number; orderNumber: string }[]
+}
+
+/**
+ * A site with more than one order signed off and waiting.
+ *
+ * Mercium charges per order and delivers per order, so two of them for one restaurant
+ * is a fee and a van nobody needed. The oldest keeps its number and the rest fold into
+ * it. Offered rather than done quietly: an approver signed each of these off separately,
+ * and combining them changes what they signed, so somebody says yes to it.
+ */
+function CombineCard({ site, onMerged }: { site: DoubledUp; onMerged: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const keep = site.orders[0]
+  const rest = site.orders.slice(1)
+  if (!keep || rest.length === 0) return null
+
+  const combine = async () => {
+    setBusy(true); setError(null)
+    try {
+      // One at a time, into the oldest. Each is a separate claim, so a failure part way
+      // leaves the ones already folded in folded in, and says which stopped it.
+      for (const other of rest) {
+        const res = await fetch(`/api/approvals/${keep.id}/merge-approved/${other.id}`, {
+          method: 'POST', credentials: 'same-origin',
+        })
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({})) as { error?: string }
+          setError(body.error ?? `${other.orderNumber} could not be combined.`)
+          return
+        }
+      }
+      onMerged()
+    } catch {
+      setError('The portal could not reach the server. Nothing was combined.')
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <li className={`${card} border-maki-orange`}>
+      <h3 className="font-semibold text-gray-900">
+        {site.siteCode} · {site.siteName} has {site.orders.length} orders waiting
+      </h3>
+      <p className="mt-1 text-sm text-gray-800">
+        Mercium charges a fee per order and delivers per order, so sending these separately
+        costs twice. Combining them puts everything on <strong>{keep.orderNumber}</strong>
+        {' '}and closes {rest.map((o) => o.orderNumber).join(', ')}. Quantities are added
+        together; nothing is dropped.
+      </p>
+      {error && <p role="alert" className="mt-2 text-sm text-red-900 bg-red-50 border border-red-300 rounded p-2">{error}</p>}
+      <button type="button" className={`${btnPrimary} mt-3`} disabled={busy} onClick={() => void combine()}>
+        {busy ? 'Combining…' : 'Combine into one order'}
+      </button>
+    </li>
+  )
+}
+
 export function ApprovalQueue() {
   const [items, setItems] = useState<QueueItem[] | null>(null)
   const [awaiting, setAwaiting] = useState<Awaiting[]>([])
+  const [doubledUp, setDoubledUp] = useState<DoubledUp[]>([])
   const [error, setError] = useState(false)
 
   const load = useCallback(async () => {
@@ -338,7 +399,11 @@ export function ApprovalQueue() {
       if (!queue.ok) throw new Error()
       setItems((await queue.json() as { requests: QueueItem[] }).requests)
       // Not fatal: the sign-off half of this screen still works without it.
-      if (ready.ok) setAwaiting((await ready.json() as { orders: Awaiting[] }).orders)
+      if (ready.ok) {
+        const body = await ready.json() as { orders: Awaiting[]; doubledUp?: DoubledUp[] }
+        setAwaiting(body.orders)
+        setDoubledUp(body.doubledUp ?? [])
+      }
     } catch {
       setError(true)
     }
@@ -350,6 +415,19 @@ export function ApprovalQueue() {
   if (!items) return <p role="status" className="text-gray-700">Loading the queue…</p>
   return (
     <div className="space-y-4">
+      {doubledUp.length > 0 && (
+        <section aria-labelledby="doubled-up" className="space-y-2">
+          <h2 id="doubled-up" className={eyebrow}>
+            {doubledUp.length === 1 ? 'A site has' : `${doubledUp.length} sites have`} more than one order waiting
+          </h2>
+          <ul className="grid gap-3">
+            {doubledUp.map((site) => (
+              <CombineCard key={site.siteId} site={site} onMerged={() => void load()} />
+            ))}
+          </ul>
+        </section>
+      )}
+
       {awaiting.length > 0 && (
         <section aria-labelledby="to-send" className="space-y-2">
           <h2 id="to-send" className="text-sm font-semibold uppercase tracking-wide text-gray-600">
