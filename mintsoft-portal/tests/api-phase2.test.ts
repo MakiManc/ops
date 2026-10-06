@@ -173,20 +173,20 @@ describe('admin reporting and bulk edit', () => {
     expect((await res.json() as { problems: unknown[] }).problems).toHaveLength(1)
   })
 
-  it('downloads the recharge report for a month', async () => {
-    const res = await call('/api/admin/recharge/2026-10/csv', await as(ADMIN))
+  it('downloads the ordered-by-site report for a month', async () => {
+    const res = await call('/api/admin/ordered/2026-10/csv', await as(ADMIN))
     expect(res.status).toBe(200)
-    expect(res.headers.get('Content-Disposition')).toMatch(/recharge-2026-10\.csv/)
+    expect(res.headers.get('Content-Disposition')).toMatch(/ordered-2026-10\.csv/)
   })
 
   it('refuses a month it cannot parse', async () => {
-    expect((await call('/api/admin/recharge/October', await as(ADMIN))).status).toBe(400)
+    expect((await call('/api/admin/ordered/October', await as(ADMIN))).status).toBe(400)
   })
 
   it('keeps all of it away from approvers and GMs', async () => {
     for (const user of [APPROVER, GM]) {
       expect((await call('/api/admin/par-levels.csv', await as(user))).status).toBe(403)
-      expect((await call('/api/admin/recharge/2026-10', await as(user))).status).toBe(403)
+      expect((await call('/api/admin/ordered/2026-10', await as(user))).status).toBe(403)
     }
   })
 })

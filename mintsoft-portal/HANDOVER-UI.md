@@ -114,7 +114,7 @@ MyOrders.tsx       165  GM: what happened to my requests
 ApprovalQueue.tsx  381  approver: sign off, adjust, send to Mercium
 StockOverview.tsx  134  what is on hand, allocated, inbound
 Mapping.tsx        215  admin: combine duplicate warehouse lines
-AdminScreens.tsx   312  admin: par levels, recharge report, sync health
+AdminScreens.tsx   312  admin: par levels, ordered-by-site report, sync health
 Photos.tsx         226  admin: upload the picture a GM sees
 SitesAndPeople.tsx 368  admin: who can sign in, and for which sites
 Freshness.tsx       38  the "these numbers are old" banner
@@ -565,8 +565,10 @@ with no units; removing a product photo is one unconfirmed tap beside "Replace";
 the People/Sites tab silently empties a half-filled form; a non-numeric "minimum days
 between orders" saves as *no minimum*, quietly removing a site's ordering gap; the mapping
 screen can only act on lines its own detector clustered, and counts the rest before throwing
-them away; and the recharge report fetches every priced line and renders none of them, so
-the unpriced-line warning it shows cannot be acted on.
+them away. The recharge report's own finding — it fetched every priced line and rendered
+none of them — is gone rather than fixed: the report filtered to franchise sites, no site
+is one, and it had never produced a row. It is now a quantities-by-site report for every
+site, with no money in it.
 
 ---
 

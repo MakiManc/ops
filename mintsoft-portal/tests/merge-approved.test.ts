@@ -18,7 +18,7 @@ import {
 } from '../src/server/db/orders.ts'
 import type { Database } from '../src/server/db/repo.ts'
 import { rechargeTotals } from '../src/server/orders/approval.ts'
-import { rechargeReport } from '../src/server/reports/recharge.ts'
+import { orderedBySite } from '../src/server/reports/ordered.ts'
 import { FakeD1 } from './helpers/d1.ts'
 
 let fake: FakeD1
@@ -146,16 +146,19 @@ describe('the money', () => {
     expect(kept?.orderFee).toBe(FEE)
   })
 
-  it('takes the absorbed order out of the recharge report without losing its goods', async () => {
+  it('takes the absorbed order out of the reporting without losing its goods', async () => {
     approved(1, 'MR-M19-20261002-001', 1, [[1, 10, 10, 2]], { recharge: 1, recharge_total: 32.5, order_fee: FEE })
     approved(2, 'MR-M19-20261002-002', 1, [[2, 10, 10, 1]], { recharge: 1, recharge_total: 22.5, order_fee: FEE })
 
     await merge(1, 2, franchise())
 
-    const report = await rechargeReport(db, '2026-10')
-    // Both products still invoiced, on one order, once.
-    expect(report.lines.map((l) => l.orderNumber)).toEqual(['MR-M19-20261002-001', 'MR-M19-20261002-001'])
-    expect(report.grandTotal).toBe(42.5)
+    // The property that matters: one order, both products, each counted once. The absorbed
+    // order drops out because merging cancels it, and the report counts committed orders.
+    const report = await orderedBySite(db, '2026-10')
+    expect(report.sites).toHaveLength(1)
+    expect(report.sites[0]?.orderCount).toBe(1)
+    expect(report.sites[0]?.products.map((p) => p.qty)).toEqual([10, 10])
+    expect(report.sites[0]?.itemCount).toBe(20)
   })
 
   it('records what the absorbed order held, because the lines are about to be deleted', async () => {

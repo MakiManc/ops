@@ -126,7 +126,7 @@ needs both, that is a decision to make rather than something the portal assumes.
 | --- | --- |
 | `gm` | The catalogue and orders for their linked sites only. |
 | `approver` | The approval queue and stock overview, across all sites. |
-| `admin` | Sites, people, catalogue mapping, recharge reporting and sync health. |
+| `admin` | Sites, people, catalogue mapping, what each site has ordered, and sync health. |
 
 Every API route enforces this server-side. What the browser draws is a courtesy — a GM
 who edits the JavaScript, or calls the API directly, meets exactly the same checks. The

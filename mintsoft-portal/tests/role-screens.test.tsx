@@ -40,7 +40,7 @@ describe('a GM', () => {
     await waitFor(() => expect(screen.getByText('Order stock')).toBeDefined())
     expect(screen.getByText('My orders')).toBeDefined()
     expect(screen.queryByText('Approval queue')).toBeNull()
-    expect(screen.queryByText('Recharge report')).toBeNull()
+    expect(screen.queryByText('Ordered by site')).toBeNull()
     expect(screen.queryByText('Sync health')).toBeNull()
   })
 
@@ -94,7 +94,7 @@ describe('an approver', () => {
     await waitFor(() => expect(screen.getByText('Approval queue')).toBeDefined())
     expect(screen.queryByText('Catalogue mapping')).toBeNull()
     expect(screen.queryByText('Par levels and limits')).toBeNull()
-    expect(screen.queryByText('Recharge report')).toBeNull()
+    expect(screen.queryByText('Ordered by site')).toBeNull()
     expect(screen.queryByText('Product photos')).toBeNull()
     expect(screen.queryByText('Sites and people')).toBeNull()
   })
@@ -114,7 +114,7 @@ describe('an admin', () => {
     render(<App googleClientId="test" />)
 
     await waitFor(() => expect(screen.getByText('Sites and people')).toBeDefined())
-    for (const title of ['Catalogue mapping', 'Recharge report', 'Sync health', 'Product photos']) {
+    for (const title of ['Catalogue mapping', 'Ordered by site', 'Sync health', 'Product photos']) {
       expect(screen.getByText(title)).toBeDefined()
     }
   })

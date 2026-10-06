@@ -1,66 +1,102 @@
 import { useCallback, useEffect, useState } from 'react'
-import { money, timeAgo } from './format.ts'
+import { timeAgo } from './format.ts'
 import { btnSecondary, card } from './ui.ts'
 
 /**
- * The admin screens: recharge reporting, par levels, and sync health.
+ * The admin screens: what each site has ordered, par levels, and sync health.
  *
  * All three are "look at the numbers and act" screens rather than forms, so they favour
  * showing the whole picture over hiding detail behind clicks.
  */
 
 // ---------------------------------------------------------------------------
-// Recharge report
+// What each site has ordered
 // ---------------------------------------------------------------------------
 
-interface RechargeSite {
-  siteCode: string; siteName: string; orderCount: number; lineCount: number
-  itemCount: number; goodsTotal: number; orderFees: number; total: number; unpricedLines: number
+interface OrderedProduct { productId: number; productName: string; qty: number; orders: number }
+interface OrderedSite {
+  siteCode: string; siteName: string; siteType: string
+  orderCount: number; ordersWithMercium: number; productCount: number; itemCount: number
+  products: OrderedProduct[]
 }
 interface Report {
   month: string
-  siteTotals: RechargeSite[]
-  grandTotal: number
+  sites: OrderedSite[]
+  productTotals: OrderedProduct[]
+  siteCount: number
+  itemCount: number
   warnings: string[]
-  lines: { orderNumber: string; siteCode: string; productName: string; qty: number; unitPrice: number | null; lineTotal: number | null }[]
 }
 
 const thisMonth = () => new Date().toISOString().slice(0, 7)
 
-export function RechargeReport() {
+/**
+ * What every site has ordered in a month, by product, in quantities.
+ *
+ * This replaced a recharge report that had never shown a row: it filtered to franchise
+ * sites and none exist, and priced from a snapshot that is only taken for franchise
+ * sites. So the one question anybody asked of it -- how much has this restaurant had --
+ * had no answer for any site in the group.
+ *
+ * Two cuts of the same figures, because both questions get asked: by site, for "what has
+ * Leith Walk been getting through", and by product, for "how many ramekins went out this
+ * month".
+ */
+export function OrderedBySite() {
   const [month, setMonth] = useState(thisMonth())
   const [report, setReport] = useState<Report | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [by, setBy] = useState<'site' | 'product'>('site')
+  const [openSite, setOpenSite] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  const load = useCallback(() => {
     setReport(null); setError(null)
-    fetch(`/api/admin/recharge/${month}`, { credentials: 'same-origin' })
+    return fetch(`/api/admin/ordered/${month}`, { credentials: 'same-origin' })
       .then(async (res) => {
         if (!res.ok) throw new Error((await res.json() as { error?: string }).error ?? 'Could not load')
-        if (!cancelled) setReport(await res.json() as Report)
+        setReport(await res.json() as Report)
       })
-      .catch((e: Error) => { if (!cancelled) setError(e.message) })
-    return () => { cancelled = true }
+      .catch((e: Error) => { setError(e.message) })
   }, [month])
+
+  useEffect(() => { void load() }, [load])
 
   return (
     <div className="space-y-4">
       <p className="text-gray-700">
-        What each franchise site owes for the month, from the prices recorded when each
-        order was approved. The portal does not raise invoices — this is the figures for
-        Finance to work from.
+        What every site has ordered in the month, by product. Counted at the quantity that
+        was signed off, not what was asked for, and from the month the order was signed off
+        rather than when it shipped — so a month&apos;s figures do not move afterwards.
       </p>
 
-      <div>
-        <label htmlFor="month" className="block text-sm font-medium text-gray-800">Month</label>
-        <input
-          id="month" type="month" value={month} onChange={(e) => setMonth(e.target.value)}
-          className="mt-1 rounded-lg border border-gray-400 px-3 py-2"
-        />
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor="month" className="block text-sm font-medium text-gray-800">Month</label>
+          <input
+            id="month" type="month" value={month} onChange={(e) => setMonth(e.target.value)}
+            className="mt-1 rounded-lg border border-gray-400 px-3 py-2"
+          />
+        </div>
+        <div role="group" aria-label="Group by" className="flex gap-2">
+          {(['site', 'product'] as const).map((k) => (
+            <button
+              key={k} type="button" onClick={() => setBy(k)}
+              aria-pressed={by === k}
+              className={`min-h-[44px] px-4 rounded-xl font-semibold ${
+                by === k ? 'bg-everglade text-paper' : 'border border-gray-400 text-gray-900'}`}
+            >
+              By {k}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {error && <p role="alert" className="text-red-800 bg-red-50 border border-red-300 rounded p-3">{error}</p>}
+      {error && (
+        <div className="space-y-2">
+          <p role="alert" className="text-red-800 bg-red-50 border border-red-300 rounded p-3">{error}</p>
+          <button type="button" className={btnSecondary} onClick={() => void load()}>Try again</button>
+        </div>
+      )}
       {!report && !error && <p role="status" className="text-gray-700">Loading…</p>}
 
       {report && (
@@ -69,40 +105,77 @@ export function RechargeReport() {
             <p key={w} className="text-sm text-amber-900 bg-amber-50 border border-amber-400 rounded p-3">{w}</p>
           ))}
 
-          {report.siteTotals.length > 0 && (
+          {report.sites.length > 0 && (
             <>
-              <ul className="grid gap-3">
-                {report.siteTotals.map((site) => (
-                  <li key={site.siteCode} className={card}>
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-semibold text-gray-900">{site.siteCode} · {site.siteName}</h3>
-                      <p className="font-semibold text-gray-900">{money(site.total)}</p>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-700">
-                      {site.orderCount} order{site.orderCount === 1 ? '' : 's'} · {site.lineCount} lines ·{' '}
-                      {site.itemCount} items
-                    </p>
-                    <p className="mt-1 text-sm text-gray-700">
-                      Goods {money(site.goodsTotal)} + delivery fees {money(site.orderFees)}
-                    </p>
-                    {site.unpricedLines > 0 && (
-                      <p className="mt-2 text-sm text-amber-900">
-                        {site.unpricedLines} line{site.unpricedLines === 1 ? '' : 's'} had no price and {site.unpricedLines === 1 ? 'is' : 'are'} not in this total.
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-
-              <p className="text-lg font-semibold text-gray-900">
-                Grand total {money(report.grandTotal)}
+              <p className="text-sm text-gray-700">
+                {report.itemCount} items across {report.siteCount}{' '}
+                {report.siteCount === 1 ? 'site' : 'sites'}.
               </p>
 
-              <a
-                href={`/api/admin/recharge/${month}/csv`}
-                className={`tappable ${btnSecondary}`}
-              >
-                Download CSV for Finance
+              {by === 'site' ? (
+                <ul className="grid gap-3">
+                  {report.sites.map((site) => (
+                    <li key={site.siteCode} className={card}>
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-semibold text-gray-900">
+                          {site.siteCode} · {site.siteName}
+                        </h3>
+                        <p className="font-semibold text-gray-900 whitespace-nowrap">
+                          {site.itemCount} items
+                        </p>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-700">
+                        {site.orderCount} order{site.orderCount === 1 ? '' : 's'} ·{' '}
+                        {site.productCount} product{site.productCount === 1 ? '' : 's'}
+                        {/* Signed off is not the same as gone, and a usage figure read as
+                            delivered would be wrong by however much is still waiting. */}
+                        {site.ordersWithMercium < site.orderCount && (
+                          <span className="text-amber-900">
+                            {' '}· {site.orderCount - site.ordersWithMercium} not sent to Mercium yet
+                          </span>
+                        )}
+                      </p>
+                      <button
+                        type="button"
+                        className="mt-2 min-h-[44px] text-everglade underline"
+                        aria-expanded={openSite === site.siteCode}
+                        onClick={() => setOpenSite(openSite === site.siteCode ? null : site.siteCode)}
+                      >
+                        {openSite === site.siteCode ? 'Hide the products' : 'Show the products'}
+                      </button>
+                      {openSite === site.siteCode && (
+                        <ul className="mt-2 divide-y divide-gray-200">
+                          {site.products.map((p) => (
+                            <li key={p.productId} className="flex items-baseline justify-between gap-3 py-2">
+                              <span className="text-gray-900">{p.productName}</span>
+                              <span className="whitespace-nowrap font-semibold text-gray-900">
+                                {p.qty}
+                                {p.orders > 1 && (
+                                  <span className="ml-1 text-sm font-normal text-gray-700">
+                                    over {p.orders} orders
+                                  </span>
+                                )}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className={`${card} divide-y divide-gray-200`}>
+                  {report.productTotals.map((p) => (
+                    <li key={p.productId} className="flex items-baseline justify-between gap-3 py-2">
+                      <span className="text-gray-900">{p.productName}</span>
+                      <span className="whitespace-nowrap font-semibold text-gray-900">{p.qty}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <a href={`/api/admin/ordered/${month}/csv`} className={`tappable ${btnSecondary}`}>
+                Download CSV
               </a>
             </>
           )}

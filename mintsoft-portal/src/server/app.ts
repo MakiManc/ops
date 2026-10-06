@@ -21,7 +21,7 @@ import {
   recentOrdersForSite, rejectOrder, setLineQty, submitRequest,
 } from './db/orders.ts'
 import { importParLevels, parLevels, parLevelsCsv, reorderInto } from './db/admin.ts'
-import { rechargeCsv, rechargeReport } from './reports/recharge.ts'
+import { orderedBySite, orderedCsv } from './reports/ordered.ts'
 import { readSettings, stockFreshness } from './db/settings.ts'
 import { checkApproval, rechargeTotals, type LineToApprove, type MappedSku } from './orders/approval.ts'
 import { combinedStockRefusal, mergeIntoWaitingOrder } from './orders/auto-merge.ts'
@@ -815,11 +815,11 @@ export const createApp = () => {
     return c.json(result, result.problems.length ? 422 : 200)
   })
 
-  // ---- recharge report (admin) ---------------------------------------------
+  // ---- what each site has ordered (admin) ----------------------------------
 
-  app.get('/admin/recharge/:month', async (c) => {
+  app.get('/admin/ordered/:month', async (c) => {
     try {
-      return c.json(await rechargeReport(c.env.DB, c.req.param('month')))
+      return c.json(await orderedBySite(c.env.DB, c.req.param('month')))
     } catch (err) {
       return c.json({ error: err instanceof Error ? err.message : 'bad_request' }, 400)
     }
@@ -827,14 +827,14 @@ export const createApp = () => {
 
   // A path segment rather than a file extension: ':month.csv' would make Hono name the
   // parameter 'month.csv', and the handler would read undefined.
-  app.get('/admin/recharge/:month/csv', async (c) => {
+  app.get('/admin/ordered/:month/csv', async (c) => {
     const month = c.req.param('month')
     try {
-      const csv = rechargeCsv(await rechargeReport(c.env.DB, month))
+      const csv = orderedCsv(await orderedBySite(c.env.DB, month))
       return new Response(csv, {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="recharge-${month}.csv"`,
+          'Content-Disposition': `attachment; filename="ordered-${month}.csv"`,
         },
       })
     } catch (err) {

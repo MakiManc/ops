@@ -1,9 +1,9 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ParLevels, RechargeReport, SyncHealth } from '../src/client/AdminScreens.tsx'
+import { OrderedBySite, ParLevels, SyncHealth } from '../src/client/AdminScreens.tsx'
 
 const serve = (body: unknown, status = 200) =>
   vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(body), { status }))
@@ -11,48 +11,86 @@ const serve = (body: unknown, status = 200) =>
 beforeEach(() => vi.restoreAllMocks())
 afterEach(() => cleanup())
 
-describe('the recharge report', () => {
+describe('what each site has ordered', () => {
   const report = (over: Record<string, unknown> = {}) => ({
     month: '2026-10',
-    siteTotals: [{
-      siteCode: 'MAF1', siteName: 'Guildford', orderCount: 2, lineCount: 5,
-      itemCount: 310, goodsTotal: 240.5, orderFees: 24, total: 264.5, unpricedLines: 0,
+    sites: [{
+      siteCode: 'M19', siteName: 'Maki M19', siteType: 'restaurant',
+      orderCount: 2, ordersWithMercium: 2, productCount: 2, itemCount: 66,
+      products: [
+        { productId: 22, productName: 'FOH Kimono (M)No apron', qty: 6, orders: 1 },
+        { productId: 48, productName: 'Ramekin', qty: 60, orders: 2 },
+      ],
     }],
-    grandTotal: 264.5, warnings: [], lines: [], ...over,
+    productTotals: [
+      { productId: 48, productName: 'Ramekin', qty: 60, orders: 2 },
+      { productId: 22, productName: 'FOH Kimono (M)No apron', qty: 6, orders: 1 },
+    ],
+    siteCount: 1, itemCount: 66, warnings: [], ...over,
   })
 
-  it('shows each site\'s total, split into goods and fees', async () => {
+  it('shows every site and what it had, in items rather than money', async () => {
     serve(report())
-    render(<RechargeReport />)
-    await waitFor(() => expect(screen.getByText('MAF1 · Guildford')).toBeDefined())
-    expect(screen.getByText('£264.50')).toBeDefined()
-    expect(screen.getByText(/Goods £240\.50 \+ delivery fees £24\.00/)).toBeDefined()
+    render(<OrderedBySite />)
+    await waitFor(() => expect(screen.getByText('M19 · Maki M19')).toBeDefined())
+    expect(screen.getByText('66 items')).toBeDefined()
+    // The report this replaced showed money for franchise sites only, and no site is one.
+    expect(screen.queryByText(/£/)).toBeNull()
   })
 
-  it('says when lines had no price and are therefore missing from the total', async () => {
+  it('shows the products behind a site when asked', async () => {
+    serve(report())
+    render(<OrderedBySite />)
+    const toggle = await waitFor(() => screen.getByRole('button', { name: 'Show the products' }))
+    fireEvent.click(toggle)
+    await waitFor(() => expect(screen.getByText('Ramekin')).toBeDefined())
+    expect(screen.getByText(/over 2 orders/)).toBeDefined()
+  })
+
+  it('cuts the same figures by product, for "how many went out"', async () => {
+    serve(report())
+    render(<OrderedBySite />)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'By product' })).toBeDefined())
+    fireEvent.click(screen.getByRole('button', { name: 'By product' }))
+    await waitFor(() => expect(screen.getByText('Ramekin')).toBeDefined())
+    expect(screen.getByText('60')).toBeDefined()
+  })
+
+  it('warns when some of a site\'s orders have not reached Mercium', async () => {
     serve(report({
-      siteTotals: [{ ...report().siteTotals[0], unpricedLines: 2 }],
-      warnings: ['2 lines had no price set when the order was approved, so they are shown with no value and are not in the totals.'],
+      sites: [{ ...report().sites[0], orderCount: 3, ordersWithMercium: 1 }],
     }))
-    render(<RechargeReport />)
-    // Finance should not be left to notice the total looks light.
-    await waitFor(() => expect(screen.getByText(/2 lines had no price set/)).toBeDefined())
-    expect(screen.getByText(/are not in this total/)).toBeDefined()
+    render(<OrderedBySite />)
+    // Signed off is not delivered, and a usage figure read as delivered would be wrong by
+    // however much is still waiting.
+    await waitFor(() => expect(screen.getByText(/2 not sent to Mercium yet/)).toBeDefined())
   })
 
   it('says a quiet month is quiet rather than showing an empty page', async () => {
-    serve(report({ siteTotals: [], grandTotal: 0, warnings: ['No franchise orders were approved in 2026-10.'] }))
-    render(<RechargeReport />)
-    await waitFor(() => expect(screen.getByText(/No franchise orders were approved/)).toBeDefined())
+    serve(report({ sites: [], productTotals: [], siteCount: 0, itemCount: 0, warnings: ['No orders were signed off in 2026-10.'] }))
+    render(<OrderedBySite />)
+    await waitFor(() => expect(screen.getByText(/No orders were signed off/)).toBeDefined())
   })
 
-  it('offers the CSV for Finance', async () => {
+  it('reports lines signed off at nothing rather than listing them as zero', async () => {
+    serve(report({ warnings: ['2 lines were signed off at nothing, so nothing was ordered for them and they are not listed.'] }))
+    render(<OrderedBySite />)
+    await waitFor(() => expect(screen.getByText(/signed off at nothing/)).toBeDefined())
+  })
+
+  it('offers the CSV', async () => {
     serve(report())
-    render(<RechargeReport />)
+    render(<OrderedBySite />)
     await waitFor(() => {
-      const link = screen.getByText('Download CSV for Finance') as HTMLAnchorElement
-      expect(link.getAttribute('href')).toMatch(/\/csv$/)
+      const link = screen.getByText('Download CSV') as HTMLAnchorElement
+      expect(link.getAttribute('href')).toBe('/api/admin/ordered/2026-10/csv')
     })
+  })
+
+  it('offers a retry rather than a dead end when it will not load', async () => {
+    serve({ error: 'Could not load' }, 500)
+    render(<OrderedBySite />)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined())
   })
 })
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getMe, NotSignedIn, signOut, type Me } from './api.ts'
-import { ParLevels, RechargeReport, SyncHealth } from './AdminScreens.tsx'
+import { OrderedBySite, ParLevels, SyncHealth } from './AdminScreens.tsx'
 import { Photos } from './Photos.tsx'
 import { SitesAndPeople } from './SitesAndPeople.tsx'
 import { ApprovalQueue } from './ApprovalQueue.tsx'
@@ -32,7 +32,7 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'orders', title: 'My orders', blurb: 'Track what you have asked for and where it has got to.', group: 'Ordering' },
   ],
   // An approver signs orders off and can order for any site, but gets none of the admin
-  // tools: merging and splitting products, par levels and the recharge report are the
+  // tools: merging and splitting products, par levels and the ordered-by-site report are the
   // administrator's alone. Ordering needs no extra permission — approvers were never
   // site-scoped, so the API already allowed it and only the menu withheld it.
   approver: [
@@ -54,7 +54,7 @@ const SCREENS: Record<Me['user']['role'], Screen[]> = {
     { key: 'mapping', title: 'Catalogue mapping', blurb: 'Combine duplicate warehouse lines into one product.', group: 'Catalogue' },
     { key: 'photos', title: 'Product photos', blurb: 'Add the picture a GM sees when ordering. The warehouse cannot supply these.', group: 'Catalogue' },
     { key: 'par', title: 'Par levels and limits', blurb: 'Edit the grid of levels and caps as a spreadsheet.', group: 'Catalogue' },
-    { key: 'recharge', title: 'Recharge report', blurb: 'Monthly totals per franchise site, for Finance.', group: 'Setup' },
+    { key: 'ordered', title: 'Ordered by site', blurb: 'What every site has had this month, by product.', group: 'Setup' },
     { key: 'sites', title: 'Sites and people', blurb: 'Who can sign in, and which sites they order for.', group: 'Setup' },
     { key: 'sync', title: 'Sync health', blurb: 'Last successful warehouse check per job, and anything that failed.', group: 'Setup' },
   ],
@@ -359,7 +359,7 @@ export function App({ googleClientId }: { googleClientId: string }) {
     if (current?.key === 'stock') return <StockOverview />
     if (current?.key === 'mapping') return <Mapping />
     if (current?.key === 'par') return <ParLevels />
-    if (current?.key === 'recharge') return <RechargeReport />
+    if (current?.key === 'ordered') return <OrderedBySite />
     if (current?.key === 'photos') return <Photos />
     if (current?.key === 'sites') return <SitesAndPeople />
     if (current?.key === 'sync') return <SyncHealth />
