@@ -17,25 +17,81 @@ describe('what each site has ordered', () => {
     sites: [{
       siteCode: 'M19', siteName: 'Maki M19', siteType: 'restaurant',
       orderCount: 2, ordersWithMercium: 2, productCount: 2, itemCount: 66,
+      cost: 51.6, unpricedProducts: 1, unpricedItems: 6,
       products: [
-        { productId: 22, productName: 'FOH Kimono (M)No apron', qty: 6, orders: 1 },
-        { productId: 48, productName: 'Ramekin', qty: 60, orders: 2 },
+        {
+          productId: 22, productName: 'FOH Kimono (M)No apron', qty: 6, orders: 1,
+          unitPrice: null, cost: null, gapReason: 'Not in the price file.', priceNote: null,
+        },
+        {
+          productId: 48, productName: 'Ramekin', qty: 60, orders: 2,
+          unitPrice: 0.86, cost: 51.6, gapReason: null, priceNote: null,
+        },
       ],
     }],
     productTotals: [
-      { productId: 48, productName: 'Ramekin', qty: 60, orders: 2 },
-      { productId: 22, productName: 'FOH Kimono (M)No apron', qty: 6, orders: 1 },
+      {
+        productId: 48, productName: 'Ramekin', qty: 60, orders: 2,
+        unitPrice: 0.86, cost: 51.6, gapReason: null, priceNote: null,
+      },
+      {
+        productId: 22, productName: 'FOH Kimono (M)No apron', qty: 6, orders: 1,
+        unitPrice: null, cost: null, gapReason: 'Not in the price file.', priceNote: null,
+      },
     ],
-    siteCount: 1, itemCount: 66, warnings: [], ...over,
+    siteCount: 1, itemCount: 66,
+    cost: 51.6, unpricedProducts: 1, unpricedItems: 6,
+    priceBasisNote:
+      'Supplier cost of goods, from the China Stock Price File. Excludes freight '
+      + '(quoted per CBM, with no per-product volume on record) and excludes UK VAT and duty.',
+    warnings: [], ...over,
   })
 
-  it('shows every site and what it had, in items rather than money', async () => {
+  it('shows every site, what it had, and what it cost', async () => {
     serve(report())
     render(<OrderedBySite />)
     await waitFor(() => expect(screen.getByText('M19 · Maki M19')).toBeDefined())
     expect(screen.getByText('66 items')).toBeDefined()
-    // The report this replaced showed money for franchise sites only, and no site is one.
-    expect(screen.queryByText(/£/)).toBeNull()
+    // The report this replaced showed money for franchise sites only, and no site is one,
+    // so it showed none at all. Now every site is costed.
+    expect(screen.getAllByText(/£51\.60/).length).toBeGreaterThan(0)
+  })
+
+  it('says what kind of cost it is, next to the cost', async () => {
+    serve(report())
+    render(<OrderedBySite />)
+    // Supplier cost of goods reads as "what the site owes" unless it says otherwise.
+    await waitFor(() => expect(screen.getByText(/Supplier cost of goods/)).toBeDefined())
+    expect(screen.getByText(/Excludes freight/)).toBeDefined()
+    expect(screen.getByText(/VAT and duty/)).toBeDefined()
+  })
+
+  it('marks a total that is short, rather than presenting it as the whole', async () => {
+    serve(report())
+    render(<OrderedBySite />)
+    // One of the site's two products has no price, so £51.60 is not what the site had.
+    await waitFor(() => expect(screen.getAllByText(/\+ 1 unpriced/).length).toBeGreaterThan(0))
+    expect(screen.getByText(/6 items with no price/)).toBeDefined()
+  })
+
+  it('says why a product has no price, where the price would be', async () => {
+    serve(report())
+    render(<OrderedBySite />)
+    const toggle = await waitFor(() => screen.getByRole('button', { name: 'Show the products' }))
+    toggle.click()
+    // A blank looks broken. The reason is the difference between a figure somebody can
+    // act on and one they have to go and chase.
+    await waitFor(() => expect(screen.getAllByText('Not in the price file.').length).toBeGreaterThan(0))
+    expect(screen.getByText('£0.86 each')).toBeDefined()
+  })
+
+  it('does not go blank when a cost is missing from the payload', async () => {
+    serve(report({ cost: undefined }))
+    render(<OrderedBySite />)
+    // A whole admin screen white-screening is a bad way to find out the payload changed,
+    // and a dash says what an absent price says everywhere else on this page.
+    await waitFor(() => expect(screen.getByText('M19 · Maki M19')).toBeDefined())
+    expect(screen.getAllByText(/—/).length).toBeGreaterThan(0)
   })
 
   it('shows the products behind a site when asked', async () => {

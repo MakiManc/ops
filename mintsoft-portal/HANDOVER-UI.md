@@ -567,8 +567,24 @@ between orders" saves as *no minimum*, quietly removing a site's ordering gap; t
 screen can only act on lines its own detector clustered, and counts the rest before throwing
 them away. The recharge report's own finding — it fetched every priced line and rendered
 none of them — is gone rather than fixed: the report filtered to franchise sites, no site
-is one, and it had never produced a row. It is now a quantities-by-site report for every
-site, with no money in it.
+is one, and it had never produced a row. It is now an Ordered-by-site report covering
+every site.
+
+That report now carries money again, from the China Stock Price File rather than from the
+snapshot the old one used. Three things about it that are UI decisions as much as data
+ones, and worth keeping if you rework the screen:
+
+- The figure is **supplier cost of goods** — no freight, no VAT, no duty, no markup — and
+  the caveat sits in the card next to the total rather than in a footnote, because
+  "£4,812" reads as "what this site owes" to anyone who is not told otherwise.
+- **28 of 93 products have no price**, so almost every total is short. A site's cost shows
+  as "£51.60 + 1 unpriced" and an unpriced product's cost shows as an em dash, never
+  £0.00. A zero is a price; a dash is the absence of one, and a spreadsheet summing zeros
+  gets a smaller answer with no hint that it is wrong. The CSV leaves those cells blank
+  for the same reason.
+- Each gap says **why** — "table bases are not priced separately; the price sits on the
+  table top" — in amber under the product. A blank looks broken; a reason is something
+  somebody can act on.
 
 ---
 

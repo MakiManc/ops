@@ -51,6 +51,8 @@ records a success. Order 2322 is still open at Mercium and needs voiding.
 | `scripts/discover.ts` | Phase 0 discovery. Read-only. Dumps a slice of the live account to `./discovery/`. |
 | `scripts/gen-types.ts` | Regenerates the Mintsoft API models from the published Swagger spec. |
 | `scripts/seed.ts` | Turns the seed CSVs into SQL, validating hard first. |
+| `prices/` | The China Stock Price File, turned into the prices the Ordered-by-site report costs from. `build.py` holds the product-name map and the reasoning for every pairing. |
+| `scripts/load-prices.ts` | Loads `prices/china-stock-prices.json` into `product_prices`. Dry run by default. |
 
 ## Running discovery
 
@@ -95,10 +97,44 @@ Other scripts:
 
 ```sh
 npm run gen:types   # refresh the Mintsoft models from the published spec (no credentials needed)
+npm run prices      # load the China Stock prices; add -- --apply to write them
 npm run typecheck
 npm test
 npm run build
 ```
+
+### Prices
+
+The Ordered-by-site report costs what it can from the China Stock Price File. Two things
+to know before quoting a figure off it.
+
+**It is supplier cost of goods.** Not what a site should be charged. It excludes freight,
+which the supplier quotes per CBM (£200–210) with no per-product volume recorded anywhere
+in the file, and it excludes UK VAT and duty. The report says so next to every total, and
+`PRICE_BASIS_NOTE` in `src/server/reports/ordered.ts` is the wording.
+
+**65 of 93 products have a price; 28 do not, and each says why.** Table bases are never
+priced separately on the supplier documents (the price sits on the table top). Black
+chopsticks and the red sauce spoon are quoted per pack against products the portal orders
+by the unit, so there is no per-unit price to use. The rest are simply not in the file.
+A site's cost therefore arrives next to the count of its unpriced products, because a
+total that quietly left them out would understate every site that ordered one.
+
+The file's own "Recharge prices (to sites)" sheet is **not** the source, despite the name.
+Not one of its 156 rows carries a date, 100 of them just repeat the supplier cost, and 29
+of its 55 products disagree with themselves across the four documents it draws on. There
+is no way to read "the current price" off it. `prices/build.py` has the detail.
+
+To reload after the catalogue changes or a new price file arrives:
+
+```sh
+python3 -I prices/build.py <China_Stock_Price_File.xlsx> <products.json> > prices/china-stock-prices.json
+npm run prices                 # check what it would do
+npm run prices -- --apply      # write it
+```
+
+The dry run fails loudly if an active product is not in the file at all, which is the case
+worth catching: a product with no row cannot even say why it has no price.
 
 ## Deploying
 

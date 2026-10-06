@@ -13,10 +13,15 @@ import { btnSecondary, card } from './ui.ts'
 // What each site has ordered
 // ---------------------------------------------------------------------------
 
-interface OrderedProduct { productId: number; productName: string; qty: number; orders: number }
+interface OrderedProduct {
+  productId: number; productName: string; qty: number; orders: number
+  unitPrice: number | null; cost: number | null
+  gapReason: string | null; priceNote: string | null
+}
 interface OrderedSite {
   siteCode: string; siteName: string; siteType: string
   orderCount: number; ordersWithMercium: number; productCount: number; itemCount: number
+  cost: number; unpricedProducts: number; unpricedItems: number
   products: OrderedProduct[]
 }
 interface Report {
@@ -25,10 +30,46 @@ interface Report {
   productTotals: OrderedProduct[]
   siteCount: number
   itemCount: number
+  cost: number
+  unpricedProducts: number
+  unpricedItems: number
+  priceBasisNote: string
   warnings: string[]
 }
 
 const thisMonth = () => new Date().toISOString().slice(0, 7)
+
+/**
+ * Money, as money. Intl rather than toFixed, so a four-figure total gets its comma.
+ *
+ * A figure that is not a number comes back as a dash rather than throwing. The payload
+ * always carries one, but a whole admin screen going blank is a bad way to find out
+ * otherwise, and a dash says the same thing an absent price says everywhere else here.
+ */
+const money = (n: number | null | undefined): string =>
+  typeof n === 'number' && Number.isFinite(n)
+    ? n.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' })
+    : '\u2014'
+
+/**
+ * A cost, and whether it is the whole cost.
+ *
+ * A site with unpriced products has a cost that is short by however much they are worth,
+ * and the figure has to say so where it is read rather than in a footnote. "£99.00" and
+ * "£99.00 + 2 unpriced" are different claims.
+ */
+function Cost({ cost, unpriced }: { cost: number | null | undefined; unpriced: number }) {
+  return (
+    <>
+      {money(cost)}
+      {unpriced > 0 && (
+        <span className="ml-1 text-sm font-normal text-amber-900">
+          + {unpriced} unpriced
+        </span>
+      )}
+    </>
+  )
+}
 
 /**
  * What every site has ordered in a month, by product, in quantities.
@@ -64,9 +105,10 @@ export function OrderedBySite() {
   return (
     <div className="space-y-4">
       <p className="text-gray-700">
-        What every site has ordered in the month, by product. Counted at the quantity that
-        was signed off, not what was asked for, and from the month the order was signed off
-        rather than when it shipped — so a month&apos;s figures do not move afterwards.
+        What every site has ordered in the month, by product, and what it cost. Counted at
+        the quantity that was signed off, not what was asked for, and from the month the
+        order was signed off rather than when it shipped — so a month&apos;s figures do not
+        move afterwards.
       </p>
 
       <div className="flex flex-wrap items-end gap-3">
@@ -107,10 +149,21 @@ export function OrderedBySite() {
 
           {report.sites.length > 0 && (
             <>
-              <p className="text-sm text-gray-700">
-                {report.itemCount} items across {report.siteCount}{' '}
-                {report.siteCount === 1 ? 'site' : 'sites'}.
-              </p>
+              <div className={card}>
+                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                  <p className="text-gray-900">
+                    {report.itemCount} items across {report.siteCount}{' '}
+                    {report.siteCount === 1 ? 'site' : 'sites'}.
+                  </p>
+                  <p className="text-xl font-semibold text-gray-900">
+                    <Cost cost={report.cost} unpriced={report.unpricedProducts} />
+                  </p>
+                </div>
+                {/* Supplier cost reads as "what the site owes" to anyone not told
+                    otherwise, and it is neither: no freight, no VAT, no duty, no markup.
+                    So the caveat travels with the number, not in a footnote. */}
+                <p className="mt-2 text-sm text-gray-700">{report.priceBasisNote}</p>
+              </div>
 
               {by === 'site' ? (
                 <ul className="grid gap-3">
@@ -120,9 +173,12 @@ export function OrderedBySite() {
                         <h3 className="font-semibold text-gray-900">
                           {site.siteCode} · {site.siteName}
                         </h3>
-                        <p className="font-semibold text-gray-900 whitespace-nowrap">
-                          {site.itemCount} items
-                        </p>
+                        <div className="text-right whitespace-nowrap">
+                          <p className="font-semibold text-gray-900">
+                            <Cost cost={site.cost} unpriced={site.unpricedProducts} />
+                          </p>
+                          <p className="text-sm text-gray-700">{site.itemCount} items</p>
+                        </div>
                       </div>
                       <p className="mt-1 text-sm text-gray-700">
                         {site.orderCount} order{site.orderCount === 1 ? '' : 's'} ·{' '}
@@ -132,6 +188,11 @@ export function OrderedBySite() {
                         {site.ordersWithMercium < site.orderCount && (
                           <span className="text-amber-900">
                             {' '}· {site.orderCount - site.ordersWithMercium} not sent to Mercium yet
+                          </span>
+                        )}
+                        {site.unpricedProducts > 0 && (
+                          <span className="text-amber-900">
+                            {' '}· {site.unpricedItems} item{site.unpricedItems === 1 ? '' : 's'} with no price
                           </span>
                         )}
                       </p>
@@ -146,16 +207,38 @@ export function OrderedBySite() {
                       {openSite === site.siteCode && (
                         <ul className="mt-2 divide-y divide-gray-200">
                           {site.products.map((p) => (
-                            <li key={p.productId} className="flex items-baseline justify-between gap-3 py-2">
-                              <span className="text-gray-900">{p.productName}</span>
-                              <span className="whitespace-nowrap font-semibold text-gray-900">
-                                {p.qty}
-                                {p.orders > 1 && (
-                                  <span className="ml-1 text-sm font-normal text-gray-700">
-                                    over {p.orders} orders
+                            <li key={p.productId} className="py-2">
+                              <div className="flex items-baseline justify-between gap-3">
+                                <span className="text-gray-900">{p.productName}</span>
+                                <span className="whitespace-nowrap text-right">
+                                  <span className="font-semibold text-gray-900">
+                                    {p.qty}
+                                    {p.orders > 1 && (
+                                      <span className="ml-1 text-sm font-normal text-gray-700">
+                                        over {p.orders} orders
+                                      </span>
+                                    )}
                                   </span>
-                                )}
-                              </span>
+                                  <span className="ml-3 font-semibold text-gray-900">
+                                    {/* A dash, not £0.00. There is no price, and a zero
+                                        would be read as a free line. */}
+                                    {p.cost === null ? <span className="text-gray-500">—</span> : money(p.cost)}
+                                  </span>
+                                </span>
+                              </div>
+                              {/* Why there is no price, and what is odd about the one
+                                  there is. Either is the difference between a figure
+                                  somebody can act on and one they have to go and check. */}
+                              {(p.gapReason ?? p.priceNote) && (
+                                <p className="mt-0.5 text-sm text-amber-900">
+                                  {p.gapReason ?? p.priceNote}
+                                </p>
+                              )}
+                              {p.unitPrice !== null && (
+                                <p className="mt-0.5 text-sm text-gray-600">
+                                  {money(p.unitPrice)} each
+                                </p>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -166,9 +249,19 @@ export function OrderedBySite() {
               ) : (
                 <ul className={`${card} divide-y divide-gray-200`}>
                   {report.productTotals.map((p) => (
-                    <li key={p.productId} className="flex items-baseline justify-between gap-3 py-2">
-                      <span className="text-gray-900">{p.productName}</span>
-                      <span className="whitespace-nowrap font-semibold text-gray-900">{p.qty}</span>
+                    <li key={p.productId} className="py-2">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-gray-900">{p.productName}</span>
+                        <span className="whitespace-nowrap text-right">
+                          <span className="font-semibold text-gray-900">{p.qty}</span>
+                          <span className="ml-3 font-semibold text-gray-900">
+                            {p.cost === null ? <span className="text-gray-500">—</span> : money(p.cost)}
+                          </span>
+                        </span>
+                      </div>
+                      {(p.gapReason ?? p.priceNote) && (
+                        <p className="mt-0.5 text-sm text-amber-900">{p.gapReason ?? p.priceNote}</p>
+                      )}
                     </li>
                   ))}
                 </ul>
