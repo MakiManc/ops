@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated_at": "2026-10-06T10:08:33Z",
+ "generated_at": "2026-10-07T10:09:44Z",
  "source": {
   "system": "Mintsoft",
   "operator": "Mercium",
@@ -17,12 +17,12 @@
   "products": 102,
   "lines_with_inventory": 339,
   "products_unknown": 0,
-  "products_in_stock": 65,
+  "products_in_stock": 63,
   "products_partial": 3
  },
  "totals": {
-  "free_units": 31314,
-  "allocated_units": 1919
+  "free_units": 31240,
+  "allocated_units": 1993
  },
  "products": [
   {
@@ -349,8 +349,8 @@
   {
    "item_code": "CHR",
    "name": "Chairs",
-   "free": 50,
-   "allocated": 0,
+   "free": 20,
+   "allocated": 30,
    "lines_unknown": 0,
    "lines": [
     {
@@ -386,8 +386,8 @@
     {
      "sku": "MRK014-CHR",
      "mintsoft_product_id": 1756,
-     "free": 50,
-     "allocated": 0
+     "free": 20,
+     "allocated": 30
     }
    ]
   },
@@ -1135,8 +1135,8 @@
   {
    "item_code": "MHM",
    "name": "MENU HOLDERS - MRK001",
-   "free": 50,
-   "allocated": 0,
+   "free": 25,
+   "allocated": 25,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1166,8 +1166,8 @@
     {
      "sku": "MRK014-MHM",
      "mintsoft_product_id": 1760,
-     "free": 50,
-     "allocated": 0
+     "free": 25,
+     "allocated": 25
     }
    ]
   },
@@ -1726,15 +1726,15 @@
   {
    "item_code": "RTR - 900",
    "name": "ROUND TABLE - 900MM - MRK014",
-   "free": 10,
-   "allocated": 0,
+   "free": 2,
+   "allocated": 8,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK014-RTR - 900",
      "mintsoft_product_id": 1757,
-     "free": 10,
-     "allocated": 0
+     "free": 2,
+     "allocated": 8
     }
    ]
   },
@@ -1789,8 +1789,8 @@
   {
    "item_code": "RTR-B",
    "name": "Rectangle Table Base",
-   "free": 10,
-   "allocated": 0,
+   "free": 0,
+   "allocated": 10,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1832,8 +1832,8 @@
     {
      "sku": "MRK014-RTR-B",
      "mintsoft_product_id": 1758,
-     "free": 10,
-     "allocated": 0
+     "free": 0,
+     "allocated": 10
     }
    ]
   },
@@ -2581,8 +2581,8 @@
   {
    "item_code": "TDT",
    "name": "Taiko Drum with Maki Logo",
-   "free": 1,
-   "allocated": 0,
+   "free": 0,
+   "allocated": 1,
    "lines_unknown": 0,
    "lines": [
     {
@@ -2618,8 +2618,8 @@
     {
      "sku": "MRK014-TDT",
      "mintsoft_product_id": 1759,
-     "free": 1,
-     "allocated": 0
+     "free": 0,
+     "allocated": 1
     }
    ]
   },
