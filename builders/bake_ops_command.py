@@ -476,6 +476,15 @@ OKR_PENDING = {
 OKR_RAG = {100: "green", 80: "amber", 50: "amber", 0: "red"}
 
 
+# THE MONTH-TO-DATE RULE (Ross, 09/10/2026). A per-month KR is scored only
+# when its month is CLOSED, or the month already holds at least this many days
+# of the KR's own source data. Below it the value is still shown - suffixed
+# "MTD" - but score and RAG are null and the objective % leaves the row out.
+# On 01/10 OO3 KR4 read 100% / score 100 / green from one day of October; a
+# first-of-the-month score is a coin toss, not a measurement.
+OKR_MTD_MIN_DAYS = 7
+
+
 def okr_score(band, value):
     """The 100/80/50/0 score for `value` under `band`, or None.
 
@@ -771,6 +780,29 @@ L = "(SELECT max(pull_date) FROM etl_feed_rows WHERE feed=%s)"
 #    baseline month, whatever it holds. Move that constant only if the app's
 #    fault log is genuinely backfilled - never to make the row light up.
 FACILITIES_FILE = "facilities_ppm.json"
+# The copy PythonAnywhere pushes itself (builders/facilities_push_pythonanywhere.py,
+# 09/10/2026) and the bake's own record of its last pull attempt
+# (refresh_facilities.write_status). See load_facilities_best().
+FACILITIES_PUSHED_FILE = "facilities_ppm_pushed.json"
+FACILITIES_STATUS_FILE = "facilities_pull_status.json"
+# What each refresh_facilities.py failure cause means, in the words the grey
+# OO2 rows and the Maintenance tab print. One line each, the fix included.
+FACILITIES_CAUSE_TEXT = {
+    "no_key": "FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake "
+              "cannot ask the app for the feed",
+    "key_rejected": "the app REJECTED the API key (HTTP 401/403) - FACILITIES_API_KEY on "
+                    "maki-hospitality-etl no longer matches API_KEY in the app's "
+                    "config_secrets.py on PythonAnywhere",
+    "timeout": "the app did not answer in time - the free PythonAnywhere app is asleep "
+               "or overloaded",
+    "app_down": "the app returned a server error (HTTP 5xx) or could not be reached",
+    "app_disabled": "PythonAnywhere served its own placeholder page instead of the feed - "
+                    "the free web app has EXPIRED or been disabled; on PythonAnywhere's Web "
+                    "tab click 'Run until 1 month from today'",
+    "not_json": "the app answered with something that is not the feed",
+    "bad_shape": "the feed arrived in a shape the bake refuses to quote",
+    "write_failed": "the feed was fetched but could not be written to the repo checkout",
+}
 #: Older than this and the three KRs grey out. The refresh runs on every bake,
 #: so three days is three missed bakes, not a quiet weekend.
 FACILITIES_STALE_DAYS = 3
@@ -822,6 +854,35 @@ def _fac_ym(ym):
         return str(ym)
 
 
+def event_day_sql(col):
+    """SQL giving the ISO day ('YYYY-MM-DD') of a date/time text column, else NULL.
+
+    Portable between Postgres and DuckDB ON PURPOSE - substr/length/translate
+    only, no regex. DuckDB's `~` must match the WHOLE value where Postgres'
+    searches, which is how verify_ops_data.py's anchored '^DD/MM/YYYY' test
+    matched none of 1,875 'DD/MM/YYYY HH:MM' values once it ran on the
+    archive and warned "no parseable module_completed_date" for weeks
+    (09/10/2026). The verifier carries a copy of this function; keep the two
+    identical (tests/deep_flow_dates_test.py runs both on the same values).
+
+    Accepted, with or without a trailing time (' HH:MM', ' HH:MM:SS', 'T...'):
+      DD/MM/YYYY  DD-MM-YYYY  DD.MM.YYYY   (UK day-first, as Flow exports)
+      YYYY-MM-DD                           (ISO)
+    Day 01-31 and month 01-12 are checked; anything else is NULL - an
+    unrecognised shape is never guessed into a date.
+    """
+    c = col
+    digits = "translate({},'0123456789','')=''"
+    uk = ("length({c})>=10 AND substr({c},3,1) IN ('/','-','.') AND substr({c},6,1)=substr({c},3,1)"
+          " AND " + digits.format("substr({c},1,2)||substr({c},4,2)||substr({c},7,4)") +
+          " AND substr({c},4,2) BETWEEN '01' AND '12' AND substr({c},1,2) BETWEEN '01' AND '31'")
+    iso = ("length({c})>=10 AND substr({c},5,1)='-' AND substr({c},8,1)='-'"
+           " AND " + digits.format("substr({c},1,4)||substr({c},6,2)||substr({c},9,2)") +
+           " AND substr({c},6,2) BETWEEN '01' AND '12' AND substr({c},9,2) BETWEEN '01' AND '31'")
+    return ("(CASE WHEN " + uk + " THEN substr({c},7,4)||'-'||substr({c},4,2)||'-'||substr({c},1,2)"
+            " WHEN " + iso + " THEN substr({c},1,10) END)").format(c=c)
+
+
 def load_facilities(path):
     """(feed, None) when the file parses to an object, else (None, reason)."""
     try:
@@ -836,9 +897,57 @@ def load_facilities(path):
     return feed, None
 
 
+def load_facilities_best(out_dir):
+    """(feed, err, label): the more recently pulled of the two Facilities copies.
+
+    facilities_ppm.json is what the bake pulls itself (refresh_facilities.py);
+    facilities_ppm_pushed.json is what PythonAnywhere pushes on its own
+    schedule (builders/facilities_push_pythonanywhere.py). They are the same
+    feed, so the one with the later pulled_at wins - a day the bake cannot
+    reach the app (asleep, key, network) can still have fresh figures if the
+    push landed, and a stale push never overrides a fresher pull. With no
+    usable pushed copy this is exactly load_facilities() on the bake's file.
+    """
+    a = load_facilities(os.path.join(out_dir, FACILITIES_FILE))
+    b = load_facilities(os.path.join(out_dir, FACILITIES_PUSHED_FILE))
+    la = "data/ops_command/" + FACILITIES_FILE
+    lb = "data/ops_command/" + FACILITIES_PUSHED_FILE
+    if b[0] is None:
+        return a[0], a[1], la
+    if a[0] is None:
+        return b[0], None, lb
+    pa, pb = str(a[0].get("pulled_at") or ""), str(b[0].get("pulled_at") or "")
+    return (b[0], None, lb) if pb > pa else (a[0], None, la)
+
+
+def load_pull_status(out_dir):
+    """refresh_facilities.py's record of its last attempt, or None."""
+    try:
+        with open(os.path.join(out_dir, FACILITIES_STATUS_FILE), encoding="utf-8") as fh_:
+            st = json.load(fh_)
+        return st if isinstance(st, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def facilities_cause(pull_status):
+    """One sentence naming why the bake's last Facilities pull failed, or None."""
+    if not pull_status or pull_status.get("ok") is not False:
+        return None
+    c = str(pull_status.get("cause") or "")
+    txt = FACILITIES_CAUSE_TEXT.get(c, f"the pull failed ({c or 'cause not recorded'})")
+    det = _fac_str(pull_status.get("detail"))
+    hs = pull_status.get("http_status")
+    at = str(pull_status.get("attempted_at") or "")[:16].replace("T", " ")
+    return (f"The bake's last pull of the app{(' (' + at + ' UTC)') if at else ''} failed: {txt}"
+            + (f" [{det}" + (f"; HTTP {hs}" if hs else "") + "]" if det else "")
+            + ".")
+
+
 def facilities_block(feed, err, today,
                      label="data/ops_command/" + FACILITIES_FILE,
-                     fault_log_start=FACILITIES_FAULT_LOG_START):
+                     fault_log_start=FACILITIES_FAULT_LOG_START,
+                     pull_status=None):
     """Turn the Facilities feed into the OO2 KR rows and the Maintenance cards.
 
     feed, err  what load_facilities() returned.
@@ -858,7 +967,13 @@ def facilities_block(feed, err, today,
         app = fu[:-len(FACILITIES_API_PATH)]
     links = {"app": app, "compliance": app + "/compliance",
              "insights": app + "/insights"}
-    tab = {"status": "ok", "note": None, "links": links, "file": label}
+    tab = {"status": "ok", "note": None, "links": links, "file": label,
+           "origin": ("pushed by the app's own daily task on PythonAnywhere"
+                      if label.endswith(FACILITIES_PUSHED_FILE) else "pulled by the bake"),
+           "pull": ({k: pull_status.get(k) for k in
+                     ("attempted_at", "ok", "cause", "http_status", "last_ok_at")}
+                    if pull_status else None),
+           "pull_note": None}
     kr_names = ("KR1 PPM on time", "KR2 repeat issues vs baseline",
                 "KR4 statutory compliance")
 
@@ -1031,15 +1146,31 @@ def facilities_block(feed, err, today,
         why = (f"{label} carries no pulled_at stamp, so its age cannot be proved "
                "and none of its figures is quoted")
         return _grey("stale", why, why)
+    if age < 0:
+        # Only a back-bake (--date) gets here: the file on disk was pulled after
+        # the day being baked, and the feed is current-state only, so there is
+        # no copy as it stood then. Quoting it would publish the future.
+        why = (f"{label} was pulled {pulled_s[:10]}, after this snapshot's date "
+               f"({today.isoformat()}); the feed is stored as current state only, "
+               "so a back-baked snapshot cannot quote it")
+        return _grey("not_as_of", why, None)
+    _cause = facilities_cause(pull_status)
     if age > FACILITIES_STALE_DAYS:
         why = (f"the Facilities app feed is stale: {label} was last pulled "
                f"{pulled_s[:10]} ({age} days ago; the limit is "
-               f"{FACILITIES_STALE_DAYS}). builders/refresh_facilities.py leaves "
-               "the file untouched when the app is asleep or the key is wrong and "
-               "logs which in the bake. A free PythonAnywhere site also expires "
-               "every 3 months unless 'Run until 1 month from today' is clicked - "
-               "check that first")
+               f"{FACILITIES_STALE_DAYS}). "
+               + (_cause + " " if _cause else
+                  "builders/refresh_facilities.py leaves the file untouched when the "
+                  "app is asleep or the key is wrong and logs which in the bake. ")
+               + "A free PythonAnywhere site also expires every 3 months unless "
+               "'Run until 1 month from today' is clicked - check that first")
         return _grey("stale", why, why)
+    if _cause and str((pull_status or {}).get("attempted_at") or "") > pulled_s:
+        # Inside the grace period the figures are still quoted, but the tab
+        # says the newest attempt failed and why - before the file goes grey.
+        tab["pull_note"] = (_cause + f" The figures below are from the last good copy, "
+                            f"pulled {pulled_s[:10]}; they go grey after "
+                            f"{FACILITIES_STALE_DAYS} days.")
 
     rows = {}
     # ---- OO2 KR4: statutory compliance ------------------------------------
@@ -1250,8 +1381,25 @@ def update_snapshot_index(out_dir, pull, generated_at):
     return idx
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--date", default=None, help="pull date to stamp (default: max pull_date in warehouse)")
+    ap.add_argument("--date", default=None,
+                    help="bake AS OF this pull date (YYYY-MM-DD): the archive is cut to pulls on "
+                         "or before it and the wall clock is pinned to it (default: the newest "
+                         "pull in the warehouse, as of today)")
     a = ap.parse_args()
+    # AS-OF SEMANTICS (Ross, 09/10/2026). --date used to name the output file and
+    # nothing else: every "newest pull" query, four wall-clock reads and the two
+    # committed side files still came from TODAY, so back-baking 2 October on the
+    # 9th produced a file called snapshot_2026-10-02.json full of 9 October's
+    # data. Now a dated bake sees the archive exactly as it stood that day (see
+    # archive_source.resolve_files) and every "today" below is `asof`. An
+    # undated bake is unchanged: asof is the real today.
+    if a.date:
+        try:
+            datetime.date.fromisoformat(a.date)
+        except ValueError:
+            sys.exit(f"--date {a.date!r} is not a YYYY-MM-DD date")
+    asof = datetime.date.fromisoformat(a.date) if a.date else datetime.date.today()
+    dated = a.date   # `a` is reused as a local further down; keep the flag by name
     # Phase 2 of the Neon exit. OPS_WAREHOUSE_SOURCE=archive reads the committed
     # pull archive through DuckDB instead of Postgres; every query below is
     # unchanged either way. Default is still Postgres, so this is inert until
@@ -1268,7 +1416,8 @@ def main():
             "OPS_ARCHIVE_DIR not set (warehouse_direct and/or warehouse_archive, "
             f"joined by {os.pathsep!r}, highest precedence first)")
         conn = archive_source.connect(
-            adir, manifest=os.path.join(OUT_DIR, "feeds_manifest.json"))
+            adir, manifest=os.path.join(OUT_DIR, "feeds_manifest.json"),
+            max_pull_date=a.date)
         # The snapshot is published on a public Pages site and read by scheduled
         # reports that quote its provenance line. It named Neon regardless of
         # where the rows came from, which is a lie the moment this branch runs.
@@ -1285,6 +1434,12 @@ def main():
         except ImportError:
             sys.exit("psycopg2 is required: pip install psycopg2-binary")
         dsn = os.environ.get("WAREHOUSE_DSN") or sys.exit("WAREHOUSE_DSN not set")
+        if a.date:
+            # Postgres has no cheap as-of view and this script never deletes from
+            # the warehouse, so a dated Postgres bake would silently read later
+            # pulls. Refuse rather than publish a mislabelled snapshot.
+            sys.exit("--date needs OPS_WAREHOUSE_SOURCE=archive: the Postgres path cannot "
+                     "limit itself to pulls on or before the date")
         conn = psycopg2.connect(dsn)
         src_label = ("Neon Postgres warehouse via bake_ops_command.py (Pipe 9); "
                      "feed health measured against Postgres, not the Sheets write")
@@ -1296,7 +1451,8 @@ def main():
     cur.execute(
         "SELECT feed, max(pull_date)::text, "
         " count(*) FILTER (WHERE pull_date=(SELECT max(p2.pull_date) FROM etl_feed_rows p2 WHERE p2.feed=e.feed)), "
-        " (current_date - max(pull_date)) FROM etl_feed_rows e GROUP BY feed")
+        " (CAST(%s AS DATE) - max(pull_date)) FROM etl_feed_rows e GROUP BY feed",
+        (asof.isoformat(),))
     fh, seen = [], set()
     for feed, latest, n, age in cur.fetchall():
         seen.add(feed); age = int(age or 0)
@@ -1374,12 +1530,16 @@ def main():
         outstanding.sort(key=lambda r:(r["site"], r["due"] is None, r["due"] or "",
                                        r["person"] or "", r["module"] or ""))
     # Completion EVENTS by day+site, so ranges filter on when modules were
-    # actually completed, not on pull_date. module_completed_date is UK-format
-    # 'DD/MM/YYYY HH:MM' (13/08/2026); parsed defensively, bad values skipped.
-    completions=[]
+    # actually completed, not on pull_date. module_completed_date has been
+    # 'DD/MM/YYYY HH:MM' in every pull since 13/08/2026; event_day_sql() also
+    # takes seconds, '-' or '.' separators and ISO, so a Flow export change
+    # cannot blank the card. Nothing is dropped silently (09/10/2026): rows
+    # whose date does not parse, and completions whose trainee is missing from
+    # that day's Flow Trainees pull, are counted into completions_meta and
+    # named in the basis.
+    completions=[]; completions_meta=None
     if linked:
-        cur.execute(
-          "WITH m AS (SELECT data->>'trainee_id' tid, nullif(data->>'module_completed_date','') cd, "
+        _cte=("WITH m AS (SELECT data->>'trainee_id' tid, nullif(data->>'module_completed_date','') cd, "
           "  trim(coalesce(data->>'module_name','')) mn "
           "  FROM etl_feed_rows WHERE feed=%s AND pull_date="+L+
           "  AND data->>'module_status'='Complete' "
@@ -1388,13 +1548,26 @@ def main():
           "  WHERE feed='Flow Trainees' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Trainees')), "
           "b AS (SELECT data->>'id' id, nullif(data->>'name','') name FROM etl_feed_rows "
           "  WHERE feed='Flow Branches' AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows WHERE feed='Flow Branches')), "
-          "p AS (SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)') site, m.mn, "
-          "  CASE WHEN length(m.cd)>=10 AND substr(m.cd,3,1)='/' AND substr(m.cd,6,1)='/' "
-          "       THEN substr(m.cd,7,4)||'-'||substr(m.cd,4,2)||'-'||substr(m.cd,1,2) END d "
-          "  FROM m JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid) "
-          "SELECT d, site, count(*), count(*) FILTER (WHERE mn=ANY(%s)) FROM p WHERE d IS NOT NULL "
-          "GROUP BY 1,2 ORDER BY 1 DESC, 2 LIMIT 4000", (feed, feed, MANDATORY_MODULES))
-        completions=[{"d":r[0],"site":r[1],"n":r[2],"nm":r[3]} for r in cur.fetchall()]
+          "p AS (SELECT coalesce(b.name,'Branch '||t.bid,'(no branch)') site, m.mn, t.id IS NOT NULL linked, "
+          "  m.cd raw, "+event_day_sql("m.cd")+" d "
+          "  FROM m LEFT JOIN t ON t.id=m.tid LEFT JOIN b ON b.id=t.bid) ")
+        cur.execute(_cte+
+          "SELECT d, site, count(*), count(*) FILTER (WHERE mn=ANY(%s)) FROM p WHERE d IS NOT NULL AND linked "
+          "GROUP BY 1,2 ORDER BY 1 DESC, 2 LIMIT 4001", (feed, feed, MANDATORY_MODULES))
+        _crows=cur.fetchall()
+        completions=[{"d":r[0],"site":r[1],"n":r[2],"nm":r[3]} for r in _crows[:4000]]
+        cur.execute(_cte+
+          "SELECT count(*), count(*) FILTER (WHERE d IS NULL), "
+          " count(*) FILTER (WHERE d IS NOT NULL AND NOT linked), min(raw) FILTER (WHERE d IS NULL) FROM p",
+          (feed, feed))
+        _tot,_unp,_unl,_ex=cur.fetchone() or (0,0,0,None)
+        completions_meta={"complete_rows":_tot,"unparsed_dates":_unp,"unlinked_trainees":_unl,
+          "unparsed_example":_ex,"truncated":len(_crows)>4000,
+          "shown":sum(c["n"] for c in completions)}
+        if _unp:
+            gaps.append(f"{_unp} completed {feed} row(s) carry a module_completed_date in a shape "
+                        f"the bake does not recognise (e.g. {_ex!r}) - not shown on the "
+                        "completions-per-week card until the parser learns it")
     # ---- mandatory compliance heatmap (site x module) ----
     # Ross, 18 Aug 2026: analyst view of MANDATORY compliance training only
     # (see MANDATORY_MODULES above). Two grains from the same join:
@@ -1470,7 +1643,20 @@ def main():
     snap["training"]={"source_feed":feed,"sites":training,"completions":completions,
       "completions_basis":"count of modules with module_status='Complete' grouped by "
       "module_completed_date (the completion EVENT date) and site; capped at 4000 day-site rows; "
-      "nm = the mandatory-compliance subset of n (see training.mandatory.basis)",
+      "nm = the mandatory-compliance subset of n (see training.mandatory.basis)"
+      +(f". Of {completions_meta['complete_rows']} completed rows in the {feed} pull, "
+        f"{completions_meta['shown']} are shown"
+        +(f"; {completions_meta['unlinked_trainees']} belong to trainees missing from the "
+          "latest Flow Trainees pull (no site to put them under)"
+          if completions_meta['unlinked_trainees'] else "")
+        +(f"; {completions_meta['unparsed_dates']} have a completion date that did not parse"
+          if completions_meta['unparsed_dates'] else "")
+        +("; the 4000-row cap was HIT, so the oldest day-site rows are missing"
+          if completions_meta['truncated'] else "")
+        +". History is rebuilt from the current module table each bake, so completions of "
+         "people since removed from Flow drop out of past weeks"
+        if completions_meta else ""),
+      "completions_meta":completions_meta,
       "mandatory":mandatory,
       "outstanding":outstanding,
       "outstanding_basis":"every module row with module_status<>'Complete' (Not Yet Started / "
@@ -1565,6 +1751,11 @@ def main():
           "SELECT d, count(*), count(*) FILTER (WHERE dev IN ('true','1','yes')) "
           "FROM a WHERE d IS NOT NULL GROUP BY 1 ORDER BY 1")
         answers_by_day=[{"d":r[0],"answers":r[1],"deviations":r[2]} for r in cur.fetchall()]
+    # How far the answer feed reaches, over EVERY form - the coverage of OO3
+    # KR1/KR4's issue side. Not the newest supplier-issue date: a day with no
+    # issue raised is still a day the feed covered (09/10/2026, the MTD rule).
+    _ad=[a_["d"] for a_ in answers_by_day if a_.get("d")]
+    gc_answers_through=min(max(_ad),(pull or "9999-12-31")[:10]) if _ad else ""
     snap["compliance"]={"forms":forms,"areas":areas,"answers_by_day":answers_by_day,
       "answers_basis":"form task answers per AnsweredDateTime day, deduped by AnswerID "
       "across pulls; history accumulates from 13/08/2026 (first landing of the answers feed)"}
@@ -2103,10 +2294,10 @@ def main():
     supplier_totals=[]; supplier_totals_basis=None
     supplier_totals_all=[]; supplier_totals_all_basis=None; supplier_totals_all_meta=None
     supply_coverage=None
-    cur.execute("SELECT date_trunc('week',current_date)::date, "
-                "(date_trunc('week',current_date)+interval '6 day')::date")
-    week_start,week_end=cur.fetchone()
-    week_start,week_end=week_start.isoformat(),week_end.isoformat()
+    # The Mon-Sun week containing `asof` (today, or the --date of a back-bake).
+    # Was SQL current_date, which pinned every back-bake to the real week.
+    _wk=asof-datetime.timedelta(days=asof.weekday())
+    week_start,week_end=_wk.isoformat(),(_wk+datetime.timedelta(days=6)).isoformat()
 
     def _num(v, cast=float, default=0):
         try: return cast(v)
@@ -2310,7 +2501,7 @@ def main():
             "delivered/pending split on this source and none is shown; a cancellation made in "
             "Kobas without a re-sent email stays in the total")
         try:
-            stale_days=(datetime.date.today()-datetime.date.fromisoformat(oe_pull)).days
+            stale_days=(asof-datetime.date.fromisoformat(oe_pull)).days
             if stale_days>=2:
                 gaps.append(f"Kobas Orders was last pulled {oe_pull} ({stale_days}d ago) "
                     "- the daily IMAP fetch may be failing; check the maki-hospitality-etl "
@@ -2587,13 +2778,23 @@ def main():
 
     otif_months=[]; otif_basis=None
     if week_spend_source=="order_emails":
+        # Deliveries count only up to the day the ISSUE side reaches (09/10/2026).
+        # Kobas order emails carry delivery dates up to a week AHEAD, and nobody
+        # can have filed an issue against a delivery that has not happened: on
+        # 01/10 October was 74 deliveries (17 dated after the bake) over 0
+        # issues - the answer feed had not reached October - and scored 100%.
+        # Deliveries after `_otif_through` are held back and counted, not lost.
+        _otif_through=gc_answers_through or (pull or "")[:10]
         cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") "
-                    "SELECT substr(dd,1,7) m, sup, count(*) FROM o "
+                    "SELECT substr(dd,1,7) m, sup, count(*) FILTER (WHERE dd<=%s), "
+                    " count(*) FILTER (WHERE dd>%s) FROM o "
                     "WHERE dd IS NOT NULL AND dd>=%s GROUP BY 1,2",
-                    (ORDER_EMAIL_FEED,OTIF_FIRST_MONTH+"-01"))
-        deliveries={}
-        for m,sup,n in cur.fetchall():
+                    (ORDER_EMAIL_FEED,_otif_through,_otif_through,OTIF_FIRST_MONTH+"-01"))
+        deliveries={}; deliveries_later={}
+        for m,sup,n,n_later in cur.fetchall():
             if not m: continue
+            if n_later: deliveries_later[m]=deliveries_later.get(m,0)+n_later
+            if not n: continue
             name=(sup or "(no supplier)").strip()
             key=canon_supplier(name) or name
             d_=deliveries.setdefault(m,{})
@@ -2665,6 +2866,8 @@ def main():
               "measurable_suppliers":len(meas),"measurable_of":len(rows_),
               "measurable_deliveries":dl_m,"measurable_issues":iss_m,
               "unattributed_issues":unattributed.get(m,0),
+              "counted_through":_otif_through,
+              "deliveries_held_back":deliveries_later.get(m,0),
               "otif_pct":round(100.0*max(0,dl_m-iss_m)/dl_m,1) if dl_m else None})
         otif_basis=("ISSUE-FREE DELIVERY RATE (INDICATIVE) - this is NOT OTIF and must not be "
             "labelled as one: nothing here observes whether a delivery was on time, and one "
@@ -2673,6 +2876,9 @@ def main():
             "feed (deduped by Kobas Reference); issues = supplier issues from GC Form Task "
             "Answers whose own answer date falls in the month, deduped by FormId - the identical "
             "rows the Supplier Issues tab and the KR1 gauge read, so all three reconcile; "
+            "deliveries are counted only up to the newest day the issue feed covers "
+            f"({_otif_through}) - one dated later cannot have had an issue filed yet, so it is "
+            "held back (deliveries_held_back) rather than counted as issue-free; "
             "rate = max(0, deliveries - issues) / deliveries, and is published ONLY for a "
             "supplier-month whose order emails cover the whole month for that supplier. Every "
             "other supplier-month carries not_measured saying why, and is excluded from the "
@@ -3555,7 +3761,23 @@ def main():
     # there, never guessed - an unrecognised label stays verbatim and is named
     # in unresolved_site_labels.
     MAINT_SRC=os.path.join(OUT_DIR,"maintenance_source.json")
-    if os.path.exists(MAINT_SRC):
+    _msrc_later=None
+    if dated and os.path.exists(MAINT_SRC):
+        # A back-bake must not show a sheet read after the day it represents. The
+        # committed file is current-state only (no history beside it), so when it
+        # was pulled after --date the tab says so instead of time-travelling.
+        try:
+            _mp=str(json.load(open(MAINT_SRC)).get("pulled_at") or "")[:10]
+            if _mp and _mp>dated: _msrc_later=_mp
+        except (OSError,ValueError):
+            pass
+    if _msrc_later:
+        snap["maintenance"]={"tasks":[],"by_site":[],"gaps":[
+          f"back-baked snapshot: the maintenance sheet copy on file was pulled on {_msrc_later}, "
+          f"after this snapshot's date ({dated}), so it is not shown here"],
+          "basis":"not available in a back-baked snapshot - the sheet is stored as current "
+                  "state only, so there is no copy as it stood on "+dated}
+    elif os.path.exists(MAINT_SRC):
         msrc=json.load(open(MAINT_SRC))
         mtasks=msrc.get("tasks",[])
         mcell={}
@@ -3606,10 +3828,15 @@ def main():
     # type-checks every field it reads, but a feed shape nobody anticipated must
     # still land on the 'unreadable' path - three grey KRs naming the file - and
     # never fail the bake.
-    _fac_today = datetime.datetime.utcnow().date()
+    _fac_today = asof if dated else datetime.datetime.utcnow().date()
+    _fac_status = load_pull_status(OUT_DIR)
     try:
-        fac = facilities_block(*load_facilities(os.path.join(OUT_DIR, FACILITIES_FILE)),
-                               _fac_today)
+        _ff, _fe, _fl = load_facilities_best(OUT_DIR)
+        fac = facilities_block(_ff, _fe, _fac_today, label=_fl, pull_status=_fac_status)
+        print(f"[bake] facilities: using {_fl}"
+              + (f" (pulled {_ff.get('pulled_at')})" if _ff else f" ({_fe})")
+              + (f"; last bake pull {_fac_status.get('cause')} at {_fac_status.get('attempted_at')}"
+                 if _fac_status else ""))
     except Exception as e:  # noqa: BLE001 - a broken feed must never fail the bake
         print(f"[bake] facilities_ppm.json could not be read: {type(e).__name__}: {e}")
         fac = facilities_block(None, f"unreadable ({type(e).__name__}: {e})", _fac_today)
@@ -3764,7 +3991,12 @@ def main():
     try:
         with open(os.path.join(OUT_DIR,"ops_daily_aggregates.jsonl")) as fh_:
             for line in fh_:
-                if line.strip(): agg.append(json.loads(line))
+                if not line.strip(): continue
+                _r=json.loads(line)
+                # as of the snapshot's own date: a back-bake must not draw trend
+                # points the verifier only recorded later
+                if str(_r.get("metric_date") or "")>pull: continue
+                agg.append(_r)
     except FileNotFoundError:
         gaps.append("Trend history unavailable: data/ops_command/ops_daily_aggregates.jsonl "
                     "is missing, so the scorecard can only show this pull's own window")
@@ -3892,8 +4124,12 @@ def main():
           "delivery arrived on time - only whether an issue was filed against that "
           "supplier in the same month - so it remains a LOWER BOUND. "
           f"{m_.get('measurable_suppliers')} of {m_.get('measurable_of')} suppliers had "
-          "order-email coverage spanning the month. Real OTIF needs Mapal Supplier Orders "
-          "or a Lynas delivery file.")
+          "order-email coverage spanning the month"
+          + (f"; deliveries counted up to {m_.get('counted_through')}, the newest day the "
+             f"issue feed covers - {m_['deliveries_held_back']} dated later are held back "
+             "until an issue could have been filed against them"
+             if m_.get("deliveries_held_back") else "")
+          + ". Real OTIF needs Mapal Supplier Orders or a Lynas delivery file.")
     if _last and _last.get("otif_pct") is not None:
         # A month whose coverage never spanned it has no defensible rate, so it
         # gets a blocker rather than a number - the picker must not turn a
@@ -4331,6 +4567,16 @@ def main():
         _sp_blocks = [b for b in _sp_blocks
                       if b.get("month") != _sp2["current"].get("month")]
         _sp_blocks.append(_sp2["current"])
+    # A month with a price report in it and no qualifying rise is a MEASURED
+    # zero, not a missing month (09/10/2026). spike_months only lists months
+    # with events, so such a month used to vanish - and the row then showed the
+    # previous month's count under this month's name.
+    _rep_dates = sorted(r_["date"] for r_ in
+                        ((snap.get("supply") or {}).get("price_reports") or [])
+                        if r_.get("date") and r_["date"] <= (pull or "9999")[:10])
+    _have_m = {b.get("month") for b in _sp_blocks}
+    for _m0 in sorted({d_[:7] for d_ in _rep_dates} - _have_m):
+        _sp_blocks.append({"month": _m0, "suppliers": []})
 
     def _spike_basis(blk):
         _n = sum(x.get("spikes") or 0 for x in (blk.get("suppliers") or []))
@@ -4407,7 +4653,7 @@ def main():
             _vars.append(_mvar(
                 _m, value=_mean,
                 display=f"{_mean:g} avg - {_pct}% of {len(_rows)} readings in band",
-                score=_s, rag=_rag_of(_s),
+                score=_s, rag=_rag_of(_s), coverage_days=_days,
                 basis=(f"Mean after-ice refractometer reading for {_prod} in "
                        f"{_mlabel(_m)}: {_mean:g} against a band of "
                        f"{_band[0]:g}-{_band[1]:g}"
@@ -4429,6 +4675,79 @@ def main():
                                          "tab": "p-qual"}
     _okr_extra.update(_okr_broth)
 
+    # --- the month-to-date rule (Ross, 09/10/2026) -------------------------
+    # See OKR_MTD_MIN_DAYS. "Days of source data" is measured per KR from what
+    # its numbers are actually built on, and never guessed: a row whose source
+    # this table does not cover is treated as short (MTD, unscored) rather
+    # than scored on trust.
+    _pm = (pull or "")[:7]
+
+    def _last_day(m_):
+        y_, mo_ = int(m_[:4]), int(m_[5:7])
+        return (datetime.date(y_ + (mo_ == 12), 1 if mo_ == 12 else mo_ + 1, 1)
+                - datetime.timedelta(days=1)).isoformat()
+
+    def _cov_days(m_, through):
+        """Days of month m_ (from the 1st) that a feed reaching `through` covers."""
+        if not through:
+            return 0
+        _end = min(through[:10], _last_day(m_))
+        if _end < m_ + "-01":
+            return 0
+        return (datetime.date.fromisoformat(_end)
+                - datetime.date.fromisoformat(m_ + "-01")).days + 1
+
+    # How far each monthly KR's source reaches, as of this bake. The broth
+    # rows carry their own count instead (distinct production days with a
+    # graded reading), set on each variant above.
+    _cov_through = {
+        # the issue side: every day the GC answer feed covers, issue or not
+        ("OO3", "KR1"): gc_answers_through,
+        # the same issue side - deliveries are capped to it (see otif_months)
+        ("OO3", "KR4"): gc_answers_through,
+        # the weekly price report: up to the newest report first seen
+        ("OO3", "KR2"): (_rep_dates[-1] if _rep_dates else ""),
+        # Facilities repeat issues: the app counts its fault log up to its
+        # own as_of date (only quoted at all when the feed is fresh)
+        ("OO2", "KR2"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
+    }
+
+    def _mtd_gate(rid, variants):
+        """Apply the rule to one row's month variants. Closed months pass
+        untouched; an open month with >= OKR_MTD_MIN_DAYS days of data keeps
+        its score; anything shorter keeps its value, gains "MTD", loses the
+        score and RAG, and says so in the basis."""
+        out = []
+        for v_ in variants or []:
+            if v_.get("m", "") < _pm or v_.get("value") is None:
+                out.append(v_)
+                continue
+            n_ = v_.get("coverage_days")
+            if n_ is None and rid in _cov_through:
+                n_ = _cov_days(v_["m"], _cov_through[rid])
+            if n_ is not None and n_ >= OKR_MTD_MIN_DAYS:
+                out.append({**v_, "coverage_days": n_, "mtd": False})
+                continue
+            _txt = (f"{n_} day{'' if n_ == 1 else 's'} of data" if n_ is not None
+                    else "days of data not measured for this KR")
+            out.append({**v_, "score": None, "rag": None, "mtd": True,
+                        "coverage_days": n_,
+                        "display": (f"{v_['display']} MTD" if v_.get("display") else "MTD"),
+                        "basis": (f"month-to-date, not yet scored ({_txt})"
+                                  + (f" - {v_['basis']}" if v_.get("basis") else ""))})
+        return out
+
+    def _default_variant(months_):
+        """The pull month's variant. When the month has none yet, a stated
+        empty one - never the previous month's figure under this month's name,
+        which is what the old fallback (months_[-1]) published on 01/10."""
+        _d = next((v_ for v_ in months_ if v_["m"] == _pm), None)
+        if _d is not None or not _pm:
+            return _d, False
+        return (_mvar(_pm, mtd=True, coverage_days=0, score=None,
+                      basis=(f"month-to-date, not yet scored (0 days of data) - this KR's "
+                             f"source has no figure for {_mlabel(_pm)} yet")), True)
+
     # --- assemble the thirty rows ------------------------------------------
     okr = []
     for _obj, _kr, _text, _owner, _target, _band in OKR_SPEC:
@@ -4443,17 +4762,23 @@ def main():
             "basis": None, "source_kind": "not_measured", "not_measured": None,
             "tab": "—", "trend": None, "trend_unit": None,
             "trend_note": None, "months": None,
+            # the month-to-date rule: set from the default month's variant on
+            # monthly rows; None on a current-state row, where it does not apply
+            "mtd": None, "coverage_days": None,
         }
         if _ext:
             # A KR this stage computed itself (OO3 KR2, OO5 KR1/KR2). Its
             # variants already carry finished scores.
             _r.update({k: v for k, v in _ext.items() if k != "months"})
-            _r["months"] = _ext["months"]
-            _dm = next((v for v in _ext["months"] if v["m"] == (pull or "")[:7]),
-                       _ext["months"][-1])
-            _r.update({k: _dm.get(k) for k in
-                       ("value", "display", "score", "rag", "basis",
-                        "trend", "trend_unit", "trend_note")})
+            _r["months"] = _mtd_gate(_id, _ext["months"])
+            _dm, _new = _default_variant(_r["months"])
+            if _new:
+                _r["months"].append(_dm)
+            if _dm is not None:
+                _r.update({k: _dm.get(k) for k in
+                           ("value", "display", "score", "rag", "basis",
+                            "trend", "trend_unit", "trend_note",
+                            "mtd", "coverage_days")})
         elif _src is not None:
             _r["tab"] = _src.get("tab") or "—"
             _r["not_measured"] = _src.get("not_measured")
@@ -4461,12 +4786,15 @@ def main():
             for _k in ("value", "display", "trend", "trend_unit", "trend_note"):
                 _r[_k] = _src.get(_k)
             if _src.get("months"):
-                _r["months"] = _okr_months(_src, _band)
-                _dm = next((v for v in _r["months"] if v["m"] == (pull or "")[:7]),
-                           _r["months"][-1])
-                _r.update({k: _dm.get(k) for k in
-                           ("value", "display", "score", "rag", "basis",
-                            "trend", "trend_unit", "trend_note")})
+                _r["months"] = _mtd_gate(_id, _okr_months(_src, _band))
+                _dm, _new = _default_variant(_r["months"])
+                if _new:
+                    _r["months"].append(_dm)
+                if _dm is not None:
+                    _r.update({k: _dm.get(k) for k in
+                               ("value", "display", "score", "rag", "basis",
+                                "trend", "trend_unit", "trend_note",
+                                "mtd", "coverage_days")})
             else:
                 _r["score"] = okr_score(_band, _r["value"])
                 _r["rag"] = _rag_of(_r["score"])
@@ -4545,7 +4873,12 @@ def main():
       "monthly":sum(1 for r_ in okr if r_.get("months")),
       "bands":{k:{"direction":v[0],"table":[list(t) for t in v[1]],
                   "status":OKR_BAND_STATUS.get(k)} for k,v in OKR_BANDS.items()},
+      "mtd_min_days":OKR_MTD_MIN_DAYS,
       "month_basis":("the month picker moves the rows whose KR is a per-month measure. "
+        f"A month still in progress is SCORED only once it holds {OKR_MTD_MIN_DAYS} or more days of "
+        "the KR's own source data (Ross, 09/10/2026); before that its value is shown with 'MTD', "
+        "score and RAG are left empty, and the objective percentage leaves the row out. "
+        "A closed month is always scored. "
         "Every month it offers was scored HERE, in the builder, against the same band and "
         "the same rule as the default month - the picker chooses between finished answers "
         "and computes nothing. A KR with no monthly form does not follow it, and counts "

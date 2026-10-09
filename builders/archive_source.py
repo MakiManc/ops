@@ -110,6 +110,8 @@ _JSON_EXTRACT = re.compile(
 # Functions Postgres has and DuckDB does not, all verified missing rather than
 # assumed. The argument matches non-greedily up to the quoted format string, so
 # nested calls with their own commas survive: to_date(substring(x,1,10),'...').
+DUCKDB_MEMORY_LIMIT = "2GB"   # see connect()
+_ISO_DAY = re.compile(r"\d{4}-\d{2}-\d{2}")
 _JSONB_KEYS = re.compile(r"\bjsonb_object_keys\s*\(([^()]*)\)")
 _TO_CHAR = re.compile(r"\bto_char\s*\((.+?),\s*'([^']+)'\s*\)", re.IGNORECASE)
 _TO_DATE = re.compile(r"\bto_date\s*\((.+?),\s*'([^']+)'\s*\)", re.IGNORECASE)
@@ -173,18 +175,28 @@ def archive_dirs(spec: str | Sequence[str]) -> list[str]:
     return [p.strip() for p in parts if p and p.strip()]
 
 
-def resolve_files(spec: str | Sequence[str]) -> tuple[list[str], list[tuple[str, str]]]:
+def resolve_files(spec: str | Sequence[str],
+                  max_pull_date: str | None = None) -> tuple[list[str], list[tuple[str, str]]]:
     """Which .jsonl.gz files make up the warehouse, one per (pull_date, feed).
 
     Returns (files, shadowed), where shadowed lists (skipped, kept) pairs so the
     caller can say out loud which route supplied an overlapping pull rather than
     leaving it to be inferred. Precedence is the directory order, first wins.
+
+    max_pull_date ('YYYY-MM-DD') drops every pull directory dated after it, so a
+    back-bake of an older day sees the archive exactly as it stood that day
+    (Ross, 09/10/2026). Without it, baking --date 2026-10-02 on the 9th read the
+    9th's pulls everywhere a query takes a feed's newest pull - a snapshot
+    labelled 2 October built from 9 October's data. ISO dates compare correctly
+    as strings; a directory whose name is not a date is never dropped.
     """
     chosen: dict[tuple[str, str], str] = {}
     shadowed: list[tuple[str, str]] = []
     for d in archive_dirs(spec):
         for p in sorted(glob.glob(os.path.join(d, "*", "*.jsonl.gz"))):
             key = (os.path.basename(os.path.dirname(p)), os.path.basename(p))
+            if max_pull_date and _ISO_DAY.fullmatch(key[0]) and key[0] > max_pull_date:
+                continue
             if key in chosen:
                 shadowed.append((p, chosen[key]))
             else:
@@ -271,7 +283,8 @@ class _Connection:
 
 
 def connect(archive_dir: str, manifest: str | None = None,
-            run_log: str | None = None) -> _Connection:
+            run_log: str | None = None,
+            max_pull_date: str | None = None) -> _Connection:
     """Open the archive as if it were the warehouse.
 
     Builds one view named etl_feed_rows with the same columns the real table has
@@ -279,6 +292,9 @@ def connect(archive_dir: str, manifest: str | None = None,
 
     archive_dir is one directory or several joined by os.pathsep, highest
     precedence first - see the module docstring.
+
+    max_pull_date limits the warehouse to pulls on or before that day (the
+    as-of view a back-bake needs) - see resolve_files.
     """
     try:
         import duckdb
@@ -286,9 +302,11 @@ def connect(archive_dir: str, manifest: str | None = None,
         raise SystemExit("duckdb is required for OPS_WAREHOUSE_SOURCE=archive: "
                          "pip install duckdb")
 
-    files, shadowed = resolve_files(archive_dir)
+    files, shadowed = resolve_files(archive_dir, max_pull_date)
     if not files:
-        raise SystemExit(f"no archive files under {archive_dir!r} - nothing to read")
+        raise SystemExit(f"no archive files under {archive_dir!r}"
+                         + (f" on or before {max_pull_date}" if max_pull_date else "")
+                         + " - nothing to read")
     if shadowed:
         print(f"[archive] {len(files)} pull files; {len(shadowed)} shadowed by a "
               f"higher-precedence copy, e.g. {shadowed[0][0]} <- {shadowed[0][1]}")
@@ -302,6 +320,18 @@ def connect(archive_dir: str, manifest: str | None = None,
         feed_expr = _SLUG_FROM_FILENAME
 
     con = duckdb.connect()
+    # A memory cap, because DuckDB's default is 80% of the machine. Measured
+    # 09/10/2026 on the 10-09 archive: the bake peaked at 6.0 GB RSS uncapped
+    # and 2.7 GB capped at 2GB, in the same 17 seconds - the extra was cache,
+    # not need. Uncapped, it mattered: the verifier holds its own copy of the
+    # archive while its 4b check runs the bake as a subprocess, two greedy
+    # copies on a private-repo runner (~7 GB) swapped, and the recompute timed
+    # out after 600 s - a critical on the verdict and no aggregates archived
+    # (no trend history) for the day. Over the cap DuckDB spills to disk rather
+    # than failing. OPS_DUCKDB_MEMORY_LIMIT overrides it ('' = DuckDB default).
+    _mem = os.environ.get("OPS_DUCKDB_MEMORY_LIMIT", DUCKDB_MEMORY_LIMIT).strip()
+    if _mem:
+        con.execute(f"SET memory_limit={_lit(_mem)}")
     # A TABLE, not a VIEW. As a view every one of the bake's 27 queries re-parses
     # the whole gzipped archive: measured at 278s per bake against 21s for the
     # Postgres one, a 13x regression that would have made the daily bake slower

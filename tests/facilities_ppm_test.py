@@ -318,12 +318,15 @@ def oo2(snap, kr):
                  if (r.get("objective"), r.get("kr")) == ("OO2", kr)), None)
 
 
-# The bake judges age against the wall clock, so stamp the copy relative to now.
+# A bake dated --date 2026-09-25 judges age as of 2026-09-25 (the as-of
+# semantics a back-bake needs, 09/10/2026 - before that a dated bake still
+# used the wall clock), so stamp the copy relative to the bake date: 'fresh'
+# was pulled that morning, 'stale' ten days earlier.
 # The real fixture's fault queue is all zeros and its pairs / by_site are
 # empty, which cannot catch two fields swapped in the wiring - so the fresh
 # copy carries distinct test values there (the fixture file stays as the app
 # sent it).
-utc = datetime.datetime.now(datetime.timezone.utc)
+utc = datetime.datetime(2026, 9, 25, 7, 0, tzinfo=datetime.timezone.utc)
 fresh = copy.deepcopy(FEED)
 fresh["pulled_at"] = utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 fresh["faults"] = {"open": 3, "open_over_14d": 1, "assets_down": 2}

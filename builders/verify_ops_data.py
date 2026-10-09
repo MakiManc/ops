@@ -197,6 +197,10 @@ MAINT_AGE_WARN_DAYS = 3
 # someone flips it to expected. The tier lives in the manifest, not here.
 FACILITIES_PATH = os.path.join(OUT_DIR, "facilities_ppm.json")
 FACILITIES_FILE = "facilities_ppm.json"
+# 09/10/2026: the copy PythonAnywhere pushes itself, and the bake's record of
+# its own last pull attempt - see bake_ops_command.load_facilities_best.
+FACILITIES_PUSHED_FILE = "facilities_ppm_pushed.json"
+FACILITIES_STATUS_FILE = "facilities_pull_status.json"
 FACILITIES_AGE_WARN_DAYS = 2
 FACILITIES_AGE_CRIT_DAYS = 7
 
@@ -470,6 +474,27 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
 
 
 # --------------------------------------------------------------- check 3
+def event_day_sql(col):
+    """SQL giving the ISO day ('YYYY-MM-DD') of a date/time text column, else NULL.
+
+    A COPY of bake_ops_command.event_day_sql - keep them identical
+    (tests/deep_flow_dates_test.py runs both over the same values). Portable
+    between Postgres and DuckDB: substr/length/translate only, no regex.
+    Accepts DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY and YYYY-MM-DD, each with or
+    without a trailing time; anything else is NULL, never guessed.
+    """
+    c = col
+    digits = "translate({},'0123456789','')=''"
+    uk = ("length({c})>=10 AND substr({c},3,1) IN ('/','-','.') AND substr({c},6,1)=substr({c},3,1)"
+          " AND " + digits.format("substr({c},1,2)||substr({c},4,2)||substr({c},7,4)") +
+          " AND substr({c},4,2) BETWEEN '01' AND '12' AND substr({c},1,2) BETWEEN '01' AND '31'")
+    iso = ("length({c})>=10 AND substr({c},5,1)='-' AND substr({c},8,1)='-'"
+           " AND " + digits.format("substr({c},1,4)||substr({c},6,2)||substr({c},9,2)") +
+           " AND substr({c},6,2) BETWEEN '01' AND '12' AND substr({c},9,2) BETWEEN '01' AND '31'")
+    return ("(CASE WHEN " + uk + " THEN substr({c},7,4)||'-'||substr({c},4,2)||'-'||substr({c},1,2)"
+            " WHEN " + iso + " THEN substr({c},1,10) END)").format(c=c)
+
+
 def check_event_dates(cur, manifest: dict, today: str):
     # Latest pull per feed, so a stale-content message can say whether pulls
     # are still arriving or stopped days ago. The old wording asserted "pulls
@@ -499,15 +524,18 @@ def check_event_dates(cur, manifest: dict, today: str):
             sev = "warning"
         try:
             if f.get("event_date_format") == "uk":
+                # event_day_sql, not `~ '^DD/MM/YYYY'` + to_date: DuckDB's `~`
+                # is a FULL match, so against the archive the anchored pattern
+                # matched none of the 'DD/MM/YYYY HH:MM' values and this
+                # warned "no parseable module_completed_date" every day while
+                # the data was fine (09/10/2026).
                 cur.execute(
-                    "SELECT max(to_date(substring(data->>%s,1,10),"
-                    "'DD/MM/YYYY'))::text FROM etl_feed_rows "
+                    "SELECT max(d) FROM (SELECT " + event_day_sql("v") + " d "
+                    "FROM (SELECT data->>%s v FROM etl_feed_rows "
                     "WHERE feed=%s "
                     "AND pull_date=(SELECT max(pull_date) FROM etl_feed_rows"
-                    " WHERE feed=%s) "
-                    "AND data->>%s ~ %s",
-                    (field, name, name, field,
-                     r"^\d{2}/\d{2}/\d{4}"))
+                    " WHERE feed=%s)) x) y",
+                    (field, name, name))
             else:
                 cur.execute(
                     "SELECT left(max(nullif(data->>%s,'')),10) "
@@ -535,9 +563,14 @@ def check_event_dates(cur, manifest: dict, today: str):
                      "itself has stopped being produced"
                      if lp == today else
                      f" and the last pull was {lp}")
+            # event_stale_hint (manifest, optional): what to check, in the
+            # words of whoever wired the feed - e.g. Kobas Orders names the
+            # IMAP fetch and what is built on it (09/10/2026).
+            hint = f.get("event_stale_hint")
             add("3-events", sev,
                 f"newest {field} is {mx} ({age}d old, window {window}d) -"
-                f"{still}", name, klass="3-events-stale")
+                f"{still}" + (f". {hint}" if hint else ""),
+                name, klass="3-events-stale")
         else:
             add("3-events", "ok", f"newest {field} {mx} ({age}d old)", name)
 
@@ -647,6 +680,13 @@ def check_consistency(pg_latest: str, snap_latest: str):
         if os.path.exists(FACILITIES_PATH):
             shutil.copy(FACILITIES_PATH, os.path.join(
                 tmp, "data", "ops_command", FACILITIES_FILE))
+        # ...and its pushed twin and the pull record, or the recompute picks a
+        # different copy from the live bake and the scorecard check compares
+        # two different snapshots (09/10/2026).
+        for _side in (FACILITIES_PUSHED_FILE, FACILITIES_STATUS_FILE):
+            _sp = os.path.join(os.path.dirname(FACILITIES_PATH), _side)
+            if os.path.exists(_sp):
+                shutil.copy(_sp, os.path.join(tmp, "data", "ops_command", _side))
         r = subprocess.run(
             [sys.executable, os.path.join(tmp, "builders",
                                           "bake_ops_command.py")],
@@ -968,22 +1008,52 @@ def check_facilities(today: str, manifest: dict | None = None,
         with open(path, encoding="utf-8") as fh:
             m = json.load(fh)
     except FileNotFoundError:
-        sev("critical", f"{FACILITIES_FILE} missing from the repo - OO2 "
-            f"KR1/KR2/KR4 are grey and the Facilities cards are dark. {fix}")
-        return {}
+        # The bake's own copy has never been written - but PythonAnywhere's
+        # pushed one may have been, and then the dashboard is quoting it.
+        m = {}
+        if not os.path.exists(os.path.join(os.path.dirname(path), FACILITIES_PUSHED_FILE)):
+            sev("critical", f"{FACILITIES_FILE} missing from the repo - OO2 "
+                f"KR1/KR2/KR4 are grey and the Facilities cards are dark. {fix}")
+            return {}
     except Exception as e:  # noqa: BLE001
         sev("critical", f"{FACILITIES_FILE} unreadable: {e}")
         return {}
     if not isinstance(m, dict):
         sev("critical", f"{FACILITIES_FILE} is not a JSON object")
         return {}
+    # The copy PythonAnywhere pushes counts when it is the fresher of the two,
+    # exactly as the bake decides (load_facilities_best) - otherwise this would
+    # call a feed stale that the dashboard is quoting from a fresh push.
+    _dir = os.path.dirname(path)
+    _which = FACILITIES_FILE
+    try:
+        with open(os.path.join(_dir, FACILITIES_PUSHED_FILE), encoding="utf-8") as fh:
+            _pm = json.load(fh)
+        if (isinstance(_pm, dict) and str(_pm.get("pulled_at") or "")
+                > str(m.get("pulled_at") or "")):
+            m, _which = _pm, FACILITIES_PUSHED_FILE
+    except (OSError, ValueError):
+        pass
+    # Why the bake's own last pull failed, if it did - named in the detail so
+    # "stale" never arrives without a reason.
+    _cause = ""
+    try:
+        with open(os.path.join(_dir, FACILITIES_STATUS_FILE), encoding="utf-8") as fh:
+            _st = json.load(fh)
+        if isinstance(_st, dict) and _st.get("ok") is False:
+            _cause = (f" Last bake pull {str(_st.get('attempted_at') or '')[:16]}: "
+                      f"{_st.get('cause')} - {_st.get('detail')}.")
+    except (OSError, ValueError):
+        pass
+    fix = _cause.strip() + (" " if _cause else "") + fix
     pulled = str(m.get("pulled_at") or "")[:10]
     try:
         age = (date.fromisoformat(today) - date.fromisoformat(pulled)).days
     except ValueError:
         age = None
     out = {"facilities_pulled_at": m.get("pulled_at"),
-           "facilities_as_of": m.get("as_of")}
+           "facilities_as_of": m.get("as_of"),
+           "facilities_copy": _which}
     if age is None:
         add("6-side", "warning",
             f"{FACILITIES_FILE} has no usable pulled_at date", name)

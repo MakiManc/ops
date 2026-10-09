@@ -94,7 +94,7 @@ body.tv .wrap{padding:22px 28px}
   <div id="cols" class="cols"></div>
   <footer>
     <span id="prov"></span>
-    <span>RAG follows the score: 100 green · 80/50 amber · 0 red · grey = not measured (blocker shown). Same data file as the main dashboard.</span>
+    <span>RAG follows the score: 100 green · 80/50 amber · 0 red · grey = not measured (blocker shown) · MTD = month in progress with under 7 days of data, shown but not scored. Same data file as the main dashboard.</span>
   </footer>
 </div>
 <script>
@@ -123,10 +123,12 @@ async function fetchIndex(){
 let SNAP=null, IDX=null;
 function monthRow(row,m){
   // the builder scores every month in the picker; a KR with no monthly form only has its default value
-  if(!m || m===SNAP.scorecard.month || !row.months || !row.months.length) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:false};
+  // mtd: the builder's month-to-date flag (09/10/2026) - a month in progress
+  // with too few days of data shows its value but carries no score
+  if(!m || m===SNAP.scorecard.month || !row.months || !row.months.length) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd};
   const x=row.months.find(z=>z.m===m);
   if(!x) return {value:null,display:null,rag:null,score:null,basis:'no value for '+mLabel(m),mtd:false};
-  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:false};
+  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:!!x.mtd};
 }
 function render(){
   const sc=SNAP.scorecard;
@@ -173,9 +175,9 @@ function render(){
       const x=monthRow(r,m);
       const grey=r.source_kind==='not_measured'||x.value==null;
       const cls=grey?'n':ragCls(x.rag);
-      const chip=grey?'NOT MEASURED':(x.score!=null?x.score:'—');
+      const chip=x.mtd?'MTD':grey?'NOT MEASURED':(x.score!=null?x.score:'—');
       const text=r.text.replace(/^KR\s?\d\s*:?\s*/i,'');
-      const why=grey?(r.not_measured||x.basis||''):(x.basis||'');
+      const why=(grey&&!x.mtd)?(r.not_measured||x.basis||''):(x.basis||'');
       const val=grey?'':`<div class="v"><b>${esc(x.display??x.value)}</b> <span class="tg">· target ${esc(r.target||'not set')}</span></div>`;
       return `<div class="kr ${grey?'grey':''}" title="${esc(why)}">
         <div class="chip c-${cls}">${chip}</div>

@@ -65,7 +65,9 @@ function bakeWith(daysAgo) {
   writeFileSync(path.join(arch, 'Dummy.jsonl.gz'),
     gzipSync(JSON.stringify({ row_num: 0, data: { x: 1 } }) + '\n'));
   copyFileSync(path.join(snapDir, 'feeds_manifest.json'), path.join(out, 'feeds_manifest.json'));
-  const pulled = new Date(Date.now() - daysAgo * 86400e3).toISOString().slice(0, 19) + 'Z';
+  // Relative to the bake date, not the wall clock: a --date bake judges age as of
+  // that date (as-of semantics for back-bakes, 09/10/2026).
+  const pulled = new Date(Date.parse('2026-09-25T07:00:00Z') - daysAgo * 86400e3).toISOString().slice(0, 19) + 'Z';
   writeFileSync(path.join(out, 'facilities_ppm.json'), JSON.stringify({ ...fixture, ...overlay, pulled_at: pulled }));
   const p = spawnSync('python3', [path.join(repoRoot, 'builders', 'bake_ops_command.py'), '--date', '2026-09-25'], {
     env: { ...process.env, OPS_WAREHOUSE_SOURCE: 'archive', OPS_ARCHIVE_DIR: path.join(out, 'arch'), OPS_OUT_DIR: out },

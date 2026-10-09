@@ -47,6 +47,42 @@ SHAPE OF THE FEED (all keys stable; the bake should read defensively anyway):
            avg_days_late, last_cert
 Franchise sites (MAF*) are already excluded from the compliance figures by the
 app; KR2 counts every site with assets.
+
+SAY WHAT HAPPENED (Ross, 09/10/2026). The file sat at pulled_at 2026-09-25 for
+a fortnight and nobody could say why: the log line was "HTTP 401" or "timed
+out" at best, and nothing reached the dashboard but "stale". Every attempt now
+logs the HTTP status, content type and the first 300 characters of what came
+back, and writes data/ops_command/facilities_pull_status.json:
+
+    {"attempted_at", "ok", "cause", "http_status", "content_type",
+     "detail", "feed_url", "last_ok_at"}
+
+with `cause` one of:
+    ok           pulled and written
+    no_key       FACILITIES_API_KEY is not set on maki-hospitality-etl
+    key_rejected HTTP 401/403 - the key is wrong or was rotated in the app
+    timeout      no answer within TIMEOUT_S - the free-tier app is asleep or
+                 overloaded
+    app_down     HTTP 5xx, or the host cannot be reached at all
+    app_disabled the reply is PythonAnywhere's own HTML page, not the feed -
+                 the free web app has EXPIRED (click "Run until 1 month from
+                 today" on the Web tab) or been disabled
+    not_json     a 200 that is not JSON, and not the page above
+    bad_shape    JSON that fails sanity() - the feed changed shape
+    write_failed the file could not be written
+The bake reads it and names the cause on the grey OO2 rows and the
+Maintenance tab, so "stale" always comes with a reason. The BODY HEAD goes to
+the bake log only (maki-hospitality-etl is private) and never into this file,
+which is committed to the PUBLIC ops repo: an app error page can carry a
+traceback. The key is never logged, and is scrubbed from the body head should
+the app ever echo it.
+
+THE PUSH PATH. builders/facilities_push_pythonanywhere.py runs ON
+PythonAnywhere as a daily scheduled task and PUTs the same summary to
+data/ops_command/facilities_ppm_pushed.json through GitHub's Contents API -
+so a day this pull cannot reach the app (asleep, network, key) can still have
+fresh figures. The bake uses whichever of the two copies was pulled more
+recently (see bake_ops_command.load_facilities_best).
 """
 
 from __future__ import annotations
@@ -55,6 +91,7 @@ import datetime
 import json
 import logging
 import os
+import socket
 import sys
 import urllib.error
 import urllib.request
@@ -66,15 +103,113 @@ FEED_URL = os.environ.get("FACILITIES_FEED_URL", "").strip() or \
 OUT_DIR = os.environ.get("OPS_COMMAND_OUT_DIR", "").strip() or \
     os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "ops_command")
 OUT_PATH = os.path.join(OUT_DIR, "facilities_ppm.json")
+STATUS_FILE = "facilities_pull_status.json"
 TIMEOUT_S = 40   # PythonAnywhere free tier can take a few seconds to wake
+BODY_HEAD = 300  # characters of the reply kept for the log and the status file
+
+# Markers of PythonAnywhere's own placeholder pages, served with a 200 or a
+# 404 in place of the app when a free web app has expired or been disabled.
+_PA_PAGE_MARKERS = ("has been disabled", "disabled by its owner", "expired",
+                    "coming soon", "pythonanywhere")
+
+
+class PullError(Exception):
+    """A failed pull, classified. `cause` is one of the codes in the docstring."""
+
+    def __init__(self, cause, detail, http_status=None, content_type=None, body_head=None):
+        super().__init__(detail)
+        self.cause, self.detail = cause, detail
+        self.http_status, self.content_type, self.body_head = http_status, content_type, body_head
+
+
+def _head(raw: bytes, key: str = "") -> str:
+    """The first BODY_HEAD characters of a reply, one line, key scrubbed."""
+    txt = (raw or b"")[:BODY_HEAD * 4].decode("utf-8", "replace")
+    txt = " ".join(txt.split())[:BODY_HEAD]
+    return txt.replace(key, "[key]") if key else txt
+
+
+def _looks_like_pa_page(content_type: str, head: str) -> bool:
+    h = head.lower()
+    return ("html" in (content_type or "").lower() or h.startswith("<")) and \
+        any(m in h for m in _PA_PAGE_MARKERS)
 
 
 def fetch(key: str) -> dict:
+    """GET the feed and return it parsed, or raise PullError saying why not.
+
+    Every attempt logs status, content type and the head of the reply - the
+    log line Ross needs to tell "asleep" from "key rotated" from "expired".
+    """
     req = urllib.request.Request(FEED_URL, headers={"X-API-Key": key, "User-Agent": "ops-command-bake/1.0"})
-    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:
-        if r.status != 200:
-            raise RuntimeError(f"HTTP {r.status}")
-        return json.load(r)
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:
+            status, ctype, raw = r.status, r.headers.get("Content-Type", ""), r.read()
+    except urllib.error.HTTPError as e:
+        raw = e.read() if e.fp else b""
+        ctype, head = (e.headers or {}).get("Content-Type", ""), _head(raw, key)
+        log.error("Facilities feed: HTTP %s %s, content-type %r, body head: %s",
+                  e.code, e.reason, ctype, head or "(empty)")
+        if e.code in (401, 403):
+            raise PullError("key_rejected", f"HTTP {e.code} {e.reason} - the app refused "
+                            "FACILITIES_API_KEY (wrong, or rotated in the app's config_secrets.py)",
+                            e.code, ctype, head)
+        if _looks_like_pa_page(ctype, head):
+            raise PullError("app_disabled", f"HTTP {e.code}: PythonAnywhere's placeholder page "
+                            "instead of the feed - the free web app has expired or been disabled",
+                            e.code, ctype, head)
+        if e.code >= 500:
+            raise PullError("app_down", f"HTTP {e.code} {e.reason} - the app is erroring",
+                            e.code, ctype, head)
+        raise PullError("app_down", f"HTTP {e.code} {e.reason}", e.code, ctype, head)
+    except (socket.timeout, TimeoutError) as e:
+        log.error("Facilities feed: no answer within %ss (%s)", TIMEOUT_S, e)
+        raise PullError("timeout", f"no answer within {TIMEOUT_S}s - the free-tier app is asleep "
+                        "or overloaded")
+    except urllib.error.URLError as e:
+        if isinstance(e.reason, (socket.timeout, TimeoutError)) or "timed out" in str(e.reason):
+            log.error("Facilities feed: no answer within %ss (%s)", TIMEOUT_S, e.reason)
+            raise PullError("timeout", f"no answer within {TIMEOUT_S}s - the free-tier app is "
+                            "asleep or overloaded")
+        log.error("Facilities feed: could not connect (%s)", e.reason)
+        raise PullError("app_down", f"could not reach the app ({e.reason})")
+    head = _head(raw, key)
+    log.info("Facilities feed: HTTP %s, content-type %r, %d bytes, body head: %s",
+             status, ctype, len(raw or b""), head or "(empty)")
+    if status != 200:
+        raise PullError("app_down", f"HTTP {status}", status, ctype, head)
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        if _looks_like_pa_page(ctype, head):
+            raise PullError("app_disabled", "a 200 carrying PythonAnywhere's placeholder page, not "
+                            "the feed - the free web app has expired (Web tab: 'Run until 1 month "
+                            "from today') or been disabled", status, ctype, head)
+        raise PullError("not_json", f"HTTP 200 but the body is not JSON (content-type {ctype!r})",
+                        status, ctype, head)
+
+
+def write_status(ok: bool, cause: str, detail: str, err: PullError | None = None) -> None:
+    """Record this attempt beside the feed. Never raises: the status file is
+    diagnostics, and failing to write it must not fail the bake step."""
+    path = os.path.join(OUT_DIR, STATUS_FILE)
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        prev = {}
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as fh:
+                prev = json.load(fh) or {}
+        rec = {"attempted_at": now, "ok": ok, "cause": cause, "detail": detail,
+               "http_status": err.http_status if err else (200 if ok else None),
+               "content_type": err.content_type if err else None,
+               "feed_url": FEED_URL,
+               "last_ok_at": now if ok else prev.get("last_ok_at")}
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(rec, fh, indent=1, ensure_ascii=False, sort_keys=True)
+        os.replace(tmp, path)
+    except Exception as e:  # noqa: BLE001 - diagnostics must never fail the step
+        log.warning("could not write %s (%s)", path, e)
 
 
 def sanity(feed: dict) -> None:
@@ -107,21 +242,26 @@ def main() -> int:
     key = os.environ.get("FACILITIES_API_KEY", "").strip()
     if not key:
         log.error("FACILITIES_API_KEY not set — leaving %s untouched", OUT_PATH)
+        write_status(False, "no_key", "FACILITIES_API_KEY is not set on maki-hospitality-etl, "
+                     "so the bake cannot ask the app for the feed")
         return 0
     try:
         feed = fetch(key)
         sanity(feed)
         feed["pulled_at"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         feed["feed_url"] = FEED_URL
+        feed["pulled_by"] = "bake"
         # allow_nan=False: NaN/Infinity are not JSON. One in the committed file
         # would reach the public snapshot, where the browser's JSON.parse
         # throws and the whole dashboard goes blank. Refused here, file untouched.
         body = json.dumps(feed, indent=1, ensure_ascii=False, sort_keys=True, allow_nan=False)
-    except urllib.error.HTTPError as e:
-        log.error("Facilities feed HTTP %s (%s) — key wrong or app down; file untouched", e.code, e.reason)
+    except PullError as e:
+        log.error("Facilities feed: %s (%s) — file untouched", e.cause, e.detail)
+        write_status(False, e.cause, e.detail, e)
         return 0
     except Exception as e:  # noqa: BLE001 — fail soft by design
         log.error("Facilities feed unusable (%s: %s) — file untouched", type(e).__name__, e)
+        write_status(False, "bad_shape", f"the feed arrived but cannot be used: {type(e).__name__}: {e}")
         return 0
     try:
         os.makedirs(OUT_DIR, exist_ok=True)
@@ -131,7 +271,9 @@ def main() -> int:
         os.replace(tmp, OUT_PATH)
     except OSError as e:
         log.error("could not write %s (%s) — previous file left in place", OUT_PATH, e)
+        write_status(False, "write_failed", f"could not write {os.path.basename(OUT_PATH)} ({e})")
         return 0
+    write_status(True, "ok", f"pulled and written, as_of {feed.get('as_of')}")
     # Nothing after the write may change the exit code: a raise here would exit
     # 1 and fail the workflow step, the one thing this script must never do.
     try:
