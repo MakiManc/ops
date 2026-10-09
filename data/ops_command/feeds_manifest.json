@@ -413,9 +413,10 @@
    "pulls_weekends": true,
    "min_rows": 398,
    "median_rows_at_calibration": 995,
-   "status": "expected",
+   "status": "best_effort",
    "event_date_field": "Order Placed",
-   "event_fresh_days": 10
+   "event_fresh_days": 10,
+   "note": "Downgraded from expected to best_effort 09/10/2026: the Kobas scheduled report stopped arriving after 2026-09-01 (newest Order Placed 2026-08-17), so it had been a permanent critical for five weeks. Its only remaining consumer is supply.coverage (projected spend and OTIF moved to the Kobas Orders email feed on 24/08). Re-enable the scheduled report in Kobas and restore status: expected once it lands again."
   },
   {
    "name": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
