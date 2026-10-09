@@ -66,6 +66,40 @@ ROWS = (
 
 check(bake.OKR_MTD_MIN_DAYS == 7, "the threshold is 7 days")
 
+print("\n-- the rule itself, one variant at a time (okr_mtd_variant) --")
+def var(m, value, band):
+    sc = bake.okr_score(band, value)
+    return {"m": m, "value": value, "display": str(value), "score": sc,
+            "rag": bake.OKR_RAG.get(sc) if sc is not None else None, "basis": "b"}
+V = bake.okr_mtd_variant
+check(bake.OKR_COUNT_BANDS == {"zero", "zero_strict", "issues", "spikes", "damaged"},
+      "the counting bands are zero, zero_strict, issues, spikes, damaged")
+r = V(var("2026-09", 74, "issues"), "issues", "2026-10", None)
+check(r["score"] == 0 and not r.get("mtd"), "a closed month passes untouched (KR1 September, 74 issues: 0)")
+r = V(var("2026-10", 9, "issues"), "issues", "2026-10", 8)
+check(r["score"] is None and r["mtd"] and r["display"] == "9 MTD" and "can only rise" in r["basis"],
+      "a count under its limit on day 8 is NOT green early - MTD until the month closes")
+r = V(var("2026-10", 25, "issues"), "issues", "2026-10", 20)
+check(r["score"] is None and r["mtd"], "a count in a tolerance band (25 issues, 80) is not final either - MTD")
+r = V(var("2026-10", 43, "spikes"), "spikes", "2026-10", 5)
+check(r["score"] == 0 and r["rag"] == "red" and not r["mtd"] and r["display"] == "43",
+      "a count already past its last tolerance scores 0 at once, even on 5 days (KR2, 43 spikes)")
+check(r["basis"].startswith("month to date, ALREADY BREACHED - 43 is past the last tolerance (5)"),
+      "and says why it is final")
+r = V(var("2026-10", 2, "zero_strict"), "zero_strict", "2026-10", 1)
+check(r["score"] == 0 and not r["mtd"], "zero_strict: 2 failures on day 1 is already 0")
+r = V(var("2026-10", 0, "zero"), "zero", "2026-10", 30)
+check(r["score"] is None and r["mtd"], "a zero count on day 30 is still open - MTD, scored when the month closes")
+r = V(var("2026-10", 98.4, "pct95"), "pct95", "2026-10", 8)
+check(r["score"] == 100 and r["mtd"] is False, "a RATE keeps the 7-day rule: 98.4% on 8 days is scored")
+r = V(var("2026-10", 98.4, "pct95"), "pct95", "2026-10", 6)
+check(r["score"] is None and r["mtd"] and "(6 days of data)" in r["basis"], "a rate on 6 days is MTD")
+r = V(var("2026-10", 98.4, "pct95"), "pct95", "2026-10", None)
+check(r["score"] is None and "not measured for this KR" in r["basis"],
+      "a rate whose coverage is not measured is never scored on trust")
+r = V({"m": "2026-10", "value": None, "score": None}, "issues", "2026-10", 3)
+check(r["value"] is None and "mtd" not in r, "a variant with no value passes untouched")
+
 tmp = tempfile.mkdtemp(prefix="okrmtd-")
 arch = os.path.join(tmp, "warehouse_direct", "2026-10-09")
 os.makedirs(arch)

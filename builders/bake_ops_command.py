@@ -484,6 +484,55 @@ OKR_RAG = {100: "green", 80: "amber", 50: "amber", 0: "red"}
 # first-of-the-month score is a coin toss, not a measurement.
 OKR_MTD_MIN_DAYS = 7
 
+# COUNTS THAT CAN ONLY RISE (Ross, 09/10/2026). For these bands the value is a
+# running count within the month, so a partial month is a LOWER BOUND: a green
+# on day 8 can turn red by the 31st, but a count already in the 0 band can never
+# come back. So for these the rule differs: an open month scores 0 the moment
+# the count reaches the 0 band (whatever the days of data), and otherwise stays
+# MTD until the month closes - never green early. Rates and means keep the
+# 7-day rule. On 9 Oct the old rule scored OO3 KR1 green at 9 issues (limit 10)
+# on day 8 while holding KR2's certain breach (43 spikes, limit 3) as MTD,
+# which lifted OO3 to 100%.
+OKR_COUNT_BANDS = frozenset({"zero", "zero_strict", "issues", "spikes", "damaged"})
+
+
+def okr_mtd_variant(v, band, pull_month, n_days):
+    """Apply the month-to-date rule to ONE month variant; returns a new dict.
+
+    v           the variant ({"m", "value", "display", "score", "rag", "basis", ...})
+                already scored on its band as if the month were complete
+    band        its OKR_BANDS key
+    pull_month  'YYYY-MM' of the bake; a month before it is closed
+    n_days      days of the KR's own source data in the month, or None when
+                this KR's coverage is not measured
+
+    Closed months, and months with no value, pass untouched. See
+    OKR_MTD_MIN_DAYS and OKR_COUNT_BANDS for the two rules.
+    """
+    if v.get("m", "") < pull_month or v.get("value") is None:
+        return v
+    if band in OKR_COUNT_BANDS:
+        if v.get("score") == 0:
+            _lim = OKR_BANDS[band][1][-1][0]
+            return {**v, "mtd": False, "coverage_days": n_days,
+                    "basis": (f"month to date, ALREADY BREACHED - {v['value']:g} is past the last "
+                              f"tolerance ({_lim:g}); a count can only rise, so the month cannot "
+                              f"finish above 0" + (f" ({n_days} day{'' if n_days == 1 else 's'} "
+                                                   "of data)" if n_days is not None else "")
+                              + (f" - {v['basis']}" if v.get("basis") else ""))}
+        _why = "a count can only rise, so it is scored when the month closes unless it breaches first"
+    else:
+        if n_days is not None and n_days >= OKR_MTD_MIN_DAYS:
+            return {**v, "coverage_days": n_days, "mtd": False}
+        _why = None
+    _txt = (f"{n_days} day{'' if n_days == 1 else 's'} of data" if n_days is not None
+            else "days of data not measured for this KR")
+    return {**v, "score": None, "rag": None, "mtd": True, "coverage_days": n_days,
+            "display": (f"{v['display']} MTD" if v.get("display") else "MTD"),
+            "basis": (f"month-to-date, not yet scored ({_txt})"
+                      + (f" - {_why}" if _why else "")
+                      + (f" - {v['basis']}" if v.get("basis") else ""))}
+
 
 def okr_score(band, value):
     """The 100/80/50/0 score for `value` under `band`, or None.
@@ -4752,29 +4801,15 @@ def main():
         ("OO2", "KR2"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
     }
 
-    def _mtd_gate(rid, variants):
-        """Apply the rule to one row's month variants. Closed months pass
-        untouched; an open month with >= OKR_MTD_MIN_DAYS days of data keeps
-        its score; anything shorter keeps its value, gains "MTD", loses the
-        score and RAG, and says so in the basis."""
+    def _mtd_gate(rid, band, variants):
+        """Apply okr_mtd_variant() to one row's month variants, with the
+        KR's own days of data."""
         out = []
         for v_ in variants or []:
-            if v_.get("m", "") < _pm or v_.get("value") is None:
-                out.append(v_)
-                continue
             n_ = v_.get("coverage_days")
-            if n_ is None and rid in _cov_through:
+            if n_ is None and rid in _cov_through and v_.get("m", "") >= _pm:
                 n_ = _cov_days(v_["m"], _cov_through[rid])
-            if n_ is not None and n_ >= OKR_MTD_MIN_DAYS:
-                out.append({**v_, "coverage_days": n_, "mtd": False})
-                continue
-            _txt = (f"{n_} day{'' if n_ == 1 else 's'} of data" if n_ is not None
-                    else "days of data not measured for this KR")
-            out.append({**v_, "score": None, "rag": None, "mtd": True,
-                        "coverage_days": n_,
-                        "display": (f"{v_['display']} MTD" if v_.get("display") else "MTD"),
-                        "basis": (f"month-to-date, not yet scored ({_txt})"
-                                  + (f" - {v_['basis']}" if v_.get("basis") else ""))})
+            out.append(okr_mtd_variant(v_, band, _pm, n_))
         return out
 
     def _default_variant(rid, band, months_):
@@ -4799,7 +4834,7 @@ def main():
                        basis=(f"no delivery/supplier issue form answered in {_mlabel(_pm)} so far - "
                               f"the GC answer feed covers {_n} day(s) of the month and none of "
                               "them holds one"))
-            return _mtd_gate(rid, [_v])[0], True
+            return _mtd_gate(rid, band, [_v])[0], True
         return (_mvar(_pm, mtd=True, coverage_days=_n, score=None,
                       basis=(f"month-to-date, not yet scored ({_n} day{'' if _n == 1 else 's'} "
                              f"of data) - this KR's source has no figure for {_mlabel(_pm)} yet")),
@@ -4827,7 +4862,7 @@ def main():
             # A KR this stage computed itself (OO3 KR2, OO5 KR1/KR2). Its
             # variants already carry finished scores.
             _r.update({k: v for k, v in _ext.items() if k != "months"})
-            _r["months"] = _mtd_gate(_id, _ext["months"])
+            _r["months"] = _mtd_gate(_id, _band, _ext["months"])
             _dm, _new = _default_variant(_id, _band, _r["months"])
             if _new:
                 _r["months"].append(_dm)
@@ -4845,7 +4880,7 @@ def main():
             for _k in ("value", "display", "trend", "trend_unit", "trend_note"):
                 _r[_k] = _src.get(_k)
             if _src.get("months"):
-                _r["months"] = _mtd_gate(_id, _okr_months(_src, _band))
+                _r["months"] = _mtd_gate(_id, _band, _okr_months(_src, _band))
                 _dm, _new = _default_variant(_id, _band, _r["months"])
                 if _new:
                     _r["months"].append(_dm)
@@ -4940,6 +4975,9 @@ def main():
         f"A month still in progress is SCORED only once it holds {OKR_MTD_MIN_DAYS} or more days of "
         "the KR's own source data (Ross, 09/10/2026); before that its value is shown with 'MTD', "
         "score and RAG are left empty, and the objective percentage leaves the row out. "
+        "A KR that COUNTS (issues, spikes, closures, disruptions, damaged items) is different, "
+        "because a count can only rise: it scores 0 as soon as it is already past its last "
+        "tolerance, and otherwise stays MTD until the month closes - it is never green early. "
         "A closed month is always scored. "
         "Every month it offers was scored HERE, in the builder, against the same band and "
         "the same rule as the default month - the picker chooses between finished answers "

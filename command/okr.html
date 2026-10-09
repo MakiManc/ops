@@ -121,6 +121,12 @@ async function fetchIndex(){
 }
 
 let SNAP=null, IDX=null;
+function ukNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',
+    month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+    .formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`, mins:(+p.hour)*60+(+p.minute)};
+}
 function monthRow(row,m){
   // the builder scores every month in the picker; a KR with no monthly form only has its default value
   // mtd: the builder's month-to-date flag (09/10/2026) - a month in progress
@@ -134,11 +140,13 @@ function render(){
   const sc=SNAP.scorecard;
   const defM=sc.month;
   const m=$('msel').value||defM;
-  const today=new Date().toISOString().slice(0,10);
-  const age=Math.round((Date.parse(today)-Date.parse(SNAP.pull_date||IDX.latest))/864e5);
   $('sub').textContent=`${mLabel(m)}${m===defM?' · month to date':''} · snapshot ${SNAP.pull_date} · ${sc.scored} of ${sc.total} KRs scored`;
-  const st=$('stale');
-  if(age>=1){ st.className='on'; st.textContent=`DATA IS ${age} DAY${age===1?'':'S'} OLD — last bake ${SNAP.pull_date}. The daily bake has not landed; check the 'Ops Command bake' run in maki-hospitality-etl.`; }
+  // Ready by 10:00 UK (Ross, 09/10/2026) - the same rule and wording as the
+  // main dashboard's banner (command/index.html staleHtml): before 10:00
+  // Europe/London yesterday's snapshot is expected; from 10:00, older is red.
+  const st=$('stale'), latest=IDX.latest||SNAP.pull_date, uk=ukNow();
+  const age=Math.round((Date.parse(uk.date)-Date.parse(latest))/864e5);
+  if(age>=1&&!(age===1&&uk.mins<600)){ st.className='on'; st.textContent=`DATA IS ${age} DAY${age===1?'':'S'} OLD — last bake ${latest}. Today's should have landed by 10:00; check the 'Ops Command bake' run in maki-hospitality-etl.`; }
   else { st.className=''; st.textContent=''; }
 
   // Operations %

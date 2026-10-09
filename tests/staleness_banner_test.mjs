@@ -7,7 +7,9 @@
 // last snapshot to land reads age 0 for ever). It showed 01/10 for eight days.
 //
 // The rule now, same as the OKR wall (command/okr.html render()):
-//   1. latest in snapshot_index.json vs today's (UTC) date - red at >= 1 day;
+//   1. latest in snapshot_index.json vs today's Europe/London date - red at
+//      >= 1 day, except that before 10:00 UK yesterday's is expected (Ross:
+//      the dashboard is due by 10am);
 //   2. the verifier's verdict overlaid UNDER it, never instead of it.
 //
 // Both pages are booted for real against served fixtures (window.OPS_BASE +
@@ -104,6 +106,40 @@ const bannerParts = async page => page.locator('#banner > div').evaluateAll(ds =
   await page.close();
 }
 
+// ---- 2b. READY BY 10:00 UK: before 10:00 yesterday's snapshot is expected --
+{
+  const page = await boot(indexUrl, { now: '2026-10-09T08:30:00Z', dates: ['2026-10-08'],   // 09:30 BST
+    h: health('green', '2026-10-08T09:10:00Z') });
+  const b = await bannerParts(page);
+  assert(!b.some(x => /DAYS? OLD/.test(x.text)),
+    `09:30 UK with yesterday's snapshot: no freshness alarm - today's bake is not due until 10:00 (got ${JSON.stringify(b.map(x => x.text.slice(0, 40)))})`);
+  await page.close();
+}
+{
+  const page = await boot(indexUrl, { now: '2026-10-09T09:01:00Z', dates: ['2026-10-08'],   // 10:01 BST
+    h: health('green', '2026-10-08T09:10:00Z') });
+  const b = await bannerParts(page);
+  assert(b[0] && /^DATA IS 1 DAY OLD/.test(b[0].text) && /landed by 10:00/.test(b[0].text),
+    `10:01 UK with yesterday's snapshot: red, saying it was due by 10:00 (got ${JSON.stringify(b[0] && b[0].text.slice(0, 80))})`);
+  await page.close();
+}
+{
+  // GMT: 10:00 UK is 10:00 UTC
+  const before = await boot(indexUrl, { now: '2026-11-10T09:45:00Z', dates: ['2026-11-09'], h: null });
+  const after = await boot(indexUrl, { now: '2026-11-10T10:05:00Z', dates: ['2026-11-09'], h: null });
+  const bb = await bannerParts(before), ba = await bannerParts(after);
+  assert(!bb.some(x => /DAYS? OLD/.test(x.text)) && ba[0] && /^DATA IS 1 DAY OLD/.test(ba[0].text),
+    'in GMT the cut-off is still 10:00 UK (09:45 quiet, 10:05 red) - Europe/London, not UTC');
+  await before.close(); await after.close();
+}
+{
+  const page = await boot(indexUrl, { now: '2026-10-09T08:30:00Z', dates: ['2026-10-07'], h: null });   // 09:30 BST, 2 days
+  const b = await bannerParts(page);
+  assert(b[0] && /^DATA IS 2 DAYS OLD/.test(b[0].text),
+    'before 10:00 a snapshot TWO days old is still red - only yesterday is excused');
+  await page.close();
+}
+
 // ---- 3. fresh today, verifier red -> only the verdict --------------------
 {
   const page = await boot(indexUrl, { now: '2026-10-09T18:00:00Z', dates: ['2026-10-09', '2026-10-08'],
@@ -147,14 +183,16 @@ const bannerParts = async page => page.locator('#banner > div').evaluateAll(ds =
 }
 
 // ---- 7. parity with the OKR wall -----------------------------------------
-{
-  const now = '2026-10-09T09:00:00Z', dates = ['2026-10-01'];
+for (const [now, dates, label] of [
+  ['2026-10-09T09:00:00Z', ['2026-10-01'], '8 days old'],
+  ['2026-10-09T09:30:00Z', ['2026-10-08'], '1 day old after 10:00'],
+  ['2026-10-09T08:30:00Z', ['2026-10-08'], '1 day old before 10:00 (both quiet)'],
+]) {
   const a = await boot(indexUrl, { now, dates, h: null });
   const o = await boot(okrUrl, { now, dates, h: null });
-  const ai = (await bannerParts(a))[0]?.text || '';
+  const ai = ((await bannerParts(a)).find(x => /DAYS? OLD/.test(x.text)) || {}).text || '';
   const oi = (await o.locator('#stale').innerText()).trim();
-  assert(ai.length > 0 && ai === oi,
-    `index.html and okr.html say the same thing for the same index and clock (index ${JSON.stringify(ai.slice(0, 60))} vs okr ${JSON.stringify(oi.slice(0, 60))})`);
+  assert(ai === oi, `${label}: index.html and okr.html agree (index ${JSON.stringify(ai.slice(0, 50))} vs okr ${JSON.stringify(oi.slice(0, 50))})`);
   await a.close(); await o.close();
 }
 

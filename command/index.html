@@ -1040,21 +1040,28 @@ function pipelineAgeDays(snap){
    hasn't reported" line at most.
    snapshot_index.json's `latest` against today's date cannot be frozen that
    way: it is the newest day that actually reached this site. So it is
-   computed FIRST and on its own - red at 1 day old - and the verifier's
-   verdict is overlaid underneath it rather than replacing it. Same rule, same
-   wording, same UTC "today" as the OKR wall (command/okr.html, render()).
-   1 day, not 2, by Ross's decision: until the export lands (it fires 12:30-17:00
-   UTC on GitHub's late schedule) the morning view is "1 day old", and he would
-   rather see that than a page that cannot tell a late bake from a dead one. */
+   computed FIRST and on its own, and the verifier's verdict is overlaid
+   underneath it rather than replacing it. Same rule, same wording, same
+   clock as the OKR wall (command/okr.html, staleHtml()).
+   READY BY 10:00 UK (Ross, 09/10/2026): the dashboard is due by 10am, so
+   before 10:00 Europe/London yesterday's snapshot is the expected state and
+   says nothing; from 10:00 anything older than today is red. */
+function ukNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',
+    month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+    .formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`, mins:(+p.hour)*60+(+p.minute)};
+}
+const READY_BY_MINS=10*60;   // 10:00 Europe/London
 function indexAgeDays(latest){
   if(!latest) return null;
-  const today=new Date().toISOString().slice(0,10);
-  return Math.round((Date.parse(today)-Date.parse(latest))/864e5);
+  return Math.round((Date.parse(ukNow().date)-Date.parse(latest))/864e5);
 }
 function staleHtml(latest){
   const age=indexAgeDays(latest);
   if(age==null||!(age>=1)) return '';
-  return `<div class="err" id="banner-stale"><b>DATA IS ${age} DAY${age===1?'':'S'} OLD</b> — last bake ${esc(latest)}. The daily bake has not landed; check the 'Ops Command bake' run in maki-hospitality-etl.</div>`;
+  if(age===1&&ukNow().mins<READY_BY_MINS) return '';   // today's bake is not due yet
+  return `<div class="err" id="banner-stale"><b>DATA IS ${age} DAY${age===1?'':'S'} OLD</b> — last bake ${esc(latest)}. Today's should have landed by 10:00; check the 'Ops Command bake' run in maki-hospitality-etl.</div>`;
 }
 function bannerHtml(snap){
   const latest=(IDX&&IDX.latest)||snap.pull_date;
