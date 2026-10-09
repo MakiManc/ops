@@ -1,25 +1,25 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-10-01T08:14:30Z",
- "verified_date": "2026-10-01",
- "mode": "morning",
+ "generated_at": "2026-10-09T17:59:30Z",
+ "verified_date": "2026-10-09",
+ "mode": "recheck",
  "overall": "red",
- "postgres_latest": "2026-10-01",
- "snapshot_latest": "2026-09-21",
+ "postgres_latest": "2026-10-09",
+ "snapshot_latest": "2026-10-09",
  "sizes": {
-  "maintenance_pulled_at": "2026-09-20T13:34:23Z",
-  "maintenance_source_as_of": "2026-09-18",
+  "maintenance_pulled_at": "2026-10-09T17:47:11Z",
+  "maintenance_source_as_of": "2026-10-09",
   "facilities_pulled_at": "2026-09-25T09:47:06Z",
   "facilities_as_of": "2026-09-25",
-  "archive_mb": 184
+  "archive_mb": 261
  },
  "counts": {
-  "expected_feeds": 32,
+  "expected_feeds": 31,
   "known_broken": 10,
-  "best_effort": 20,
-  "criticals": 3,
+  "best_effort": 21,
+  "criticals": 2,
   "warnings": 9,
-  "deferred": 1
+  "deferred": 0
  },
  "criticals": [
   {
@@ -29,32 +29,26 @@
    "detail": "08:17 daily export receipt says exit 1 with 1 failed feed(s) - see its run log"
   },
   {
-   "check": "1-landed",
+   "check": "4b-consistency",
    "level": "critical",
-   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed",
-   "detail": "last pull 2026-09-01 (30d old) - expected today"
-  },
-  {
-   "check": "3-events",
-   "level": "critical",
-   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "3-events-stale",
-   "detail": "newest Order Placed is 2026-08-17 (45d old, window 10d) - and the last pull was 2026-09-01"
+   "class": "4b-consistency",
+   "detail": "recompute could not run: Command '['/opt/hostedtoolcache/Python/3.12.15/x64/bin/python', '/tmp/verify_recompute_jm_nlhja/builders/bake_ops_command.py']' timed out after 600 seconds"
   }
  ],
  "warnings": [
   {
-   "check": "2-rows",
+   "check": "1-landed",
    "level": "warning",
-   "feed": "GC Deviations (prev day)",
-   "detail": "30 rows today vs trailing 14-day median 5 - outside the 0.5x-3x band"
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "class": "1-landed",
+   "detail": "last pull 2026-09-01 (38d old) - expected today"
   },
   {
-   "check": "2-rows",
+   "check": "1-landed",
    "level": "warning",
-   "feed": "GC Form Task Answers (prev day)",
-   "detail": "670 rows today vs trailing 14-day median 222 - outside the 0.5x-3x band"
+   "feed": "Kobas Pack Prices",
+   "class": "1-landed",
+   "detail": "last pull 2026-09-07 (32d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -84,15 +78,17 @@
    "detail": "no parseable module_completed_date values in the latest pull"
   },
   {
-   "check": "6-side",
+   "check": "3-events",
    "level": "warning",
-   "detail": "maintenance_source.json last pulled 2026-09-20 (11d ago) - builders/refresh_maintenance.py rewrites this on every bake, so this is not a quiet sheet, it is a refresh that stopped running or stopped being able to read the sheet. Check the 'Refresh the maintenance sheet' step in the most recent Ops Command bake: it logs the reason, and a 403/404 there means the service account needs Viewer on the sheet"
+   "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
+   "class": "3-events-stale",
+   "detail": "newest Order Placed is 2026-08-17 (53d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
    "check": "6-side",
    "level": "warning",
    "feed": "Facilities PPM summary",
-   "detail": "facilities_ppm.json last pulled 2026-09-25 (6d ago, warning past 2) - the bake greys OO2 KR1/KR2/KR4 past 3 days. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked"
+   "detail": "facilities_ppm.json last pulled 2026-09-25 (14d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
   },
   {
    "check": "aggregates",
@@ -100,14 +96,7 @@
    "detail": "no recomputed snapshot available - aggregates archive not updated this run"
   }
  ],
- "deferred": [
-  {
-   "check": "4a-snapshot",
-   "level": "deferred",
-   "class": "4a-snapshot",
-   "detail": "dashboard says latest data is 2026-09-21 but the pull archive says 2026-10-01 - the bake failed, baked stale, or the commit never landed  [deferred - rechecked at 12:00 UTC]"
-  }
- ],
+ "deferred": [],
  "known_broken": [
   {
    "name": "Mapal Equipment",
@@ -166,6 +155,7 @@
   "GC Scheduled Task Answers (prev day)",
   "GC Users",
   "GC Waste Module Settings",
+  "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
   "Kobas Pack Prices",
   "GC Locations Changelog",
   "GC DAP Logged Data",
@@ -183,73 +173,73 @@
    "check": "0-receipts",
    "level": "ok",
    "feed": "deep-pull",
-   "detail": "01:07 deep pull: exit 0, 24365 rows written, finished 2026-10-01 07:33:28"
+   "detail": "01:07 deep pull: exit 0, 22851 rows written, finished 2026-10-09 07:39:14"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Deep Flow Branch Resources",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Branch Resources",
-   "detail": "17214 rows (median 23967)"
+   "detail": "16073 rows (median 16013)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "2059 rows (median 2773)"
+   "detail": "1873 rows (median 1865)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Deep Flow Courses",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Courses",
-   "detail": "1054 rows (median 1468)"
+   "detail": "1043 rows (median 994)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "3727 rows (median 4920)"
+   "detail": "3563 rows (median 3542)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Deep Flow Profile XT",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Profile XT",
-   "detail": "310 rows (median 404)"
+   "detail": "298 rows (median 298)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Deep Run Log",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -261,31 +251,31 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Appraisals",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Appraisals",
-   "detail": "517 rows (median 681)"
+   "detail": "478 rows (median 479)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Branch Resources",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Branch Resources",
-   "detail": "1219 rows (median 2107)"
+   "detail": "2007 rows (median 2004)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Branches",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -297,31 +287,31 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Certificates",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Certificates",
-   "detail": "151 rows (median 246)"
+   "detail": "260 rows (median 205)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Courses",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Courses",
-   "detail": "77 rows (median 125)"
+   "detail": "145 rows (median 126)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Departments",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -333,91 +323,91 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Modules",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Modules",
-   "detail": "240 rows (median 447)"
+   "detail": "494 rows (median 424)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Profile XT",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Profile XT",
-   "detail": "29 rows (median 31)"
+   "detail": "48 rows (median 35)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Trainees",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees",
-   "detail": "516 rows (median 679)"
+   "detail": "477 rows (median 478)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Trainees Ext",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees Ext",
-   "detail": "516 rows (median 679)"
+   "detail": "477 rows (median 478)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Trainees ReadOnly",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees ReadOnly",
-   "detail": "940 rows (median 919)"
+   "detail": "957 rows (median 949)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Training",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Training",
-   "detail": "980 rows (median 1059)"
+   "detail": "1100 rows (median 1024)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Workbooks",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Workbooks",
-   "detail": "517 rows (median 681)"
+   "detail": "478 rows (median 479)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Central Areas",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -429,67 +419,67 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Central Form Tasks",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Central Form Tasks",
-   "detail": "12658 rows (median 12578)"
+   "detail": "12658 rows (median 12658)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Central Module Tasks",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Central Module Tasks",
-   "detail": "297 rows (median 295)"
+   "detail": "298 rows (median 297)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Deviations (prev day)",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Deviations (prev day)",
-   "detail": "30 rows today vs trailing 14-day median 5 - outside the 0.5x-3x band"
+   "detail": "4 rows (median 7)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "3128 rows (median 2157)"
+   "detail": "1507 rows (median 2387)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Form Task Answers (prev day)",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Form Task Answers (prev day)",
-   "detail": "670 rows today vs trailing 14-day median 222 - outside the 0.5x-3x band"
+   "detail": "164 rows (median 182)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Forms",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -501,19 +491,19 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Forms Overview",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Forms Overview",
-   "detail": "424 rows (median 423)"
+   "detail": "424 rows (median 424)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Local Procedures",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -525,7 +515,7 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Location Groups",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -537,7 +527,7 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Locations",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -549,7 +539,7 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Modules",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -561,19 +551,19 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Procedure Details",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Procedure Details",
-   "detail": "53 rows (median 31)"
+   "detail": "18 rows (median 20)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Procedures",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -585,7 +575,7 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Procedures Refactor",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -597,7 +587,7 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Processes",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -609,43 +599,43 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "38799 rows (median 38739)"
+   "detail": "39004 rows (median 38975)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "detail": "4821 rows (median 4731)"
+   "detail": "4739 rows (median 4819)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Users",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Users",
-   "detail": "1290 rows (median 1275)"
+   "detail": "1303 rows (median 1296)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Waste Module Settings",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
@@ -657,92 +647,87 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "861 rows (median 797)"
+   "detail": "913 rows (median 910)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "detail": "2573 rows (median 2398)"
+   "detail": "2593 rows (median 2590)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "detail": "700 rows (median 711)"
+   "detail": "700 rows (median 700)"
   },
   {
    "check": "1-landed",
-   "level": "critical",
+   "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "1-landed",
-   "detail": "last pull 2026-09-01 (30d old) - expected today"
+   "detail": "last pull 2026-09-01 (38d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "1861 rows (median 2086)"
+   "detail": "1553 rows (median 1707)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
-   "detail": "129 rows (median 169)"
+   "detail": "171 rows (median 150)"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Kobas Pack Prices",
-   "detail": "landed 2026-09-07"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Kobas Pack Prices",
-   "detail": "no pull today - last landed 2026-09-07, inside its 30-day cadence, so there are no rows to weigh"
+   "class": "1-landed",
+   "detail": "last pull 2026-09-07 (32d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "4 rows (median 2)"
+   "detail": "5 rows (median 5)"
   },
   {
    "check": "1-landed",
@@ -808,13 +793,13 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Factory Broth Readings",
-   "detail": "landed 2026-10-01"
+   "detail": "landed 2026-10-09"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Factory Broth Readings",
-   "detail": "1734 rows (median 1659)"
+   "detail": "1788 rows (median 1759)"
   },
   {
    "check": "1-landed",
@@ -847,64 +832,64 @@
    "check": "3-events",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "newest AnsweredDateTime 2026-09-30 (1d old)"
+   "detail": "newest AnsweredDateTime 2026-10-08 (1d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "newest AnsweredDateTime 2026-09-30 (1d old)"
+   "detail": "newest AnsweredDateTime 2026-10-08 (1d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "newest Delivery Date ISO 2026-10-07 (-6d old)"
+   "detail": "newest Delivery Date ISO 2026-10-14 (-5d old)"
   },
   {
    "check": "3-events",
-   "level": "critical",
+   "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "3-events-stale",
-   "detail": "newest Order Placed is 2026-08-17 (45d old, window 10d) - and the last pull was 2026-09-01"
+   "detail": "newest Order Placed is 2026-08-17 (53d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "newest Edit Date/Time 2026-09-28 (3d old)"
+   "detail": "newest Edit Date/Time 2026-10-05 (4d old)"
   },
   {
    "check": "4a-snapshot",
-   "level": "deferred",
-   "class": "4a-snapshot",
-   "detail": "dashboard says latest data is 2026-09-21 but the pull archive says 2026-10-01 - the bake failed, baked stale, or the commit never landed  [deferred - rechecked at 12:00 UTC]"
+   "level": "ok",
+   "detail": "dashboard snapshot 2026-10-09 matches the pull archive 2026-10-09"
   },
   {
    "check": "4a-snapshot",
    "level": "info",
-   "detail": "Pages fetch failed (informative): <urlopen error Tunnel connection failed: 403 Forbidden>"
+   "detail": "Pages CDN still serving 2026-10-01 (propagation lag - normal for up to ~an hour)"
   },
   {
    "check": "6-side",
-   "level": "warning",
-   "detail": "maintenance_source.json last pulled 2026-09-20 (11d ago) - builders/refresh_maintenance.py rewrites this on every bake, so this is not a quiet sheet, it is a refresh that stopped running or stopped being able to read the sheet. Check the 'Refresh the maintenance sheet' step in the most recent Ops Command bake: it logs the reason, and a 403/404 there means the service account needs Viewer on the sheet"
+   "level": "ok",
+   "detail": "maintenance source pulled 2026-10-09 (0d ago), sheet content as of 2026-10-09"
   },
   {
    "check": "6-side",
    "level": "warning",
    "feed": "Facilities PPM summary",
-   "detail": "facilities_ppm.json last pulled 2026-09-25 (6d ago, warning past 2) - the bake greys OO2 KR1/KR2/KR4 past 3 days. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked"
+   "detail": "facilities_ppm.json last pulled 2026-09-25 (14d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
   },
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 184 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 261 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
-   "level": "info",
-   "detail": "skipped - check 4a already failing, nothing meaningful to compare until the snapshot is fresh"
+   "level": "critical",
+   "class": "4b-consistency",
+   "detail": "recompute could not run: Command '['/opt/hostedtoolcache/Python/3.12.15/x64/bin/python', '/tmp/verify_recompute_jm_nlhja/builders/bake_ops_command.py']' timed out after 600 seconds"
   },
   {
    "check": "aggregates",
@@ -912,5 +897,5 @@
    "detail": "no recomputed snapshot available - aggregates archive not updated this run"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
