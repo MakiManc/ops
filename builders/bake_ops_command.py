@@ -802,6 +802,10 @@ FACILITIES_CAUSE_TEXT = {
     "not_json": "the app answered with something that is not the feed",
     "bad_shape": "the feed arrived in a shape the bake refuses to quote",
     "write_failed": "the feed was fetched but could not be written to the repo checkout",
+    "key_malformed": "FACILITIES_API_KEY on maki-hospitality-etl holds a line break or a "
+                     "character an HTTP header cannot carry - re-paste the secret on one line",
+    "unexpected": "the pull failed in a way the script does not classify - the bake log's "
+                  "'Refresh Facilities app feed' step names the error",
 }
 #: Older than this and the three KRs grey out. The refresh runs on every bake,
 #: so three days is three missed bakes, not a quiet weekend.

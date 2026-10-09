@@ -1004,36 +1004,49 @@ def check_facilities(today: str, manifest: dict | None = None,
            "the file untouched when it cannot reach the app - its log line in "
            "the most recent bake says why. A free PythonAnywhere site expires "
            "every 3 months unless 'Run until 1 month from today' is clicked")
-    try:
-        with open(path, encoding="utf-8") as fh:
-            m = json.load(fh)
-    except FileNotFoundError:
-        # The bake's own copy has never been written - but PythonAnywhere's
-        # pushed one may have been, and then the dashboard is quoting it.
-        m = {}
-        if not os.path.exists(os.path.join(os.path.dirname(path), FACILITIES_PUSHED_FILE)):
+    # Pick the copy EXACTLY as the bake does (bake_ops_command.
+    # load_facilities_best): each copy must parse to an object with no NaN /
+    # Infinity, and the one with the later pulled_at wins; a missing or
+    # unreadable one is passed over. Only when neither is usable is the
+    # feed reported missing or unreadable - otherwise this would call a feed
+    # broken that the dashboard is quoting from the other copy.
+    def _reject_constant(c):
+        raise ValueError(f"{c} is not JSON")
+
+    def _load(p_):
+        try:
+            with open(p_, encoding="utf-8") as fh:
+                v_ = json.load(fh, parse_constant=_reject_constant)
+        except FileNotFoundError:
+            return None, "missing"
+        except Exception as e:  # noqa: BLE001
+            return None, f"unreadable: {e}"
+        if not isinstance(v_, dict):
+            return None, "is not a JSON object"
+        return v_, None
+
+    _dir = os.path.dirname(path)
+    own, own_err = _load(path)
+    psh, psh_err = _load(os.path.join(_dir, FACILITIES_PUSHED_FILE))
+    if own is None and psh is None:
+        if own_err == "missing":
             sev("critical", f"{FACILITIES_FILE} missing from the repo - OO2 "
                 f"KR1/KR2/KR4 are grey and the Facilities cards are dark. {fix}")
-            return {}
-    except Exception as e:  # noqa: BLE001
-        sev("critical", f"{FACILITIES_FILE} unreadable: {e}")
+        else:
+            sev("critical", f"{FACILITIES_FILE} {own_err}")
         return {}
-    if not isinstance(m, dict):
-        sev("critical", f"{FACILITIES_FILE} is not a JSON object")
-        return {}
-    # The copy PythonAnywhere pushes counts when it is the fresher of the two,
-    # exactly as the bake decides (load_facilities_best) - otherwise this would
-    # call a feed stale that the dashboard is quoting from a fresh push.
-    _dir = os.path.dirname(path)
-    _which = FACILITIES_FILE
-    try:
-        with open(os.path.join(_dir, FACILITIES_PUSHED_FILE), encoding="utf-8") as fh:
-            _pm = json.load(fh)
-        if (isinstance(_pm, dict) and str(_pm.get("pulled_at") or "")
-                > str(m.get("pulled_at") or "")):
-            m, _which = _pm, FACILITIES_PUSHED_FILE
-    except (OSError, ValueError):
-        pass
+    if psh is not None and (own is None or str(psh.get("pulled_at") or "")
+                            > str(own.get("pulled_at") or "")):
+        m, _which = psh, FACILITIES_PUSHED_FILE
+    else:
+        m, _which = own, FACILITIES_FILE
+    _other = ""
+    if own is not None and psh is not None:
+        _o = own if _which == FACILITIES_PUSHED_FILE else psh
+        _ow = FACILITIES_FILE if _which == FACILITIES_PUSHED_FILE else FACILITIES_PUSHED_FILE
+        _other = f" (the other copy, {_ow}, was pulled {str(_o.get('pulled_at') or '?')[:10]})"
+    elif own_err and own_err != "missing":
+        _other = f" ({FACILITIES_FILE} {own_err})"
     # Why the bake's own last pull failed, if it did - named in the detail so
     # "stale" never arrives without a reason.
     _cause = ""
@@ -1056,19 +1069,19 @@ def check_facilities(today: str, manifest: dict | None = None,
            "facilities_copy": _which}
     if age is None:
         add("6-side", "warning",
-            f"{FACILITIES_FILE} has no usable pulled_at date", name)
+            f"{_which} has no usable pulled_at date{_other}", name)
     elif age > FACILITIES_AGE_CRIT_DAYS:
-        sev("critical", f"{FACILITIES_FILE} last pulled {pulled} ({age}d ago, "
+        sev("critical", f"{_which} last pulled {pulled}{_other} ({age}d ago, "
             f"critical past {FACILITIES_AGE_CRIT_DAYS}) - OO2 KR1/KR2/KR4 have "
             f"been grey on the Overview since it turned 4 days old. {fix}")
     elif age > FACILITIES_AGE_WARN_DAYS:
         add("6-side", "warning",
-            f"{FACILITIES_FILE} last pulled {pulled} ({age}d ago, warning past "
+            f"{_which} last pulled {pulled}{_other} ({age}d ago, warning past "
             f"{FACILITIES_AGE_WARN_DAYS}) - the bake greys OO2 KR1/KR2/KR4 past "
             f"3 days. {fix}", name)
     else:
         add("6-side", "ok",
-            f"facilities feed pulled {pulled} ({age}d ago), app data as of "
+            f"facilities feed pulled {pulled} ({age}d ago, {_which}), app data as of "
             f"{m.get('as_of')}", name)
     return out
 

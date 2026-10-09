@@ -182,6 +182,9 @@ def _gh(method: str, url: str, token: str, body: dict | None = None, opener=urll
             return e.code, json.loads(raw or b"{}")
         except ValueError:
             return e.code, {"message": _head(raw, token)}
+    except (urllib.error.URLError, socket.timeout, TimeoutError) as e:
+        raise RuntimeError(f"could not reach api.github.com ({getattr(e, 'reason', e)}) - "
+                           "check PythonAnywhere's whitelist includes it")
 
 
 def push(feed: dict, token: str, opener=urllib.request.urlopen) -> str:
@@ -224,6 +227,14 @@ def main(argv=None, opener=urllib.request.urlopen, now=None) -> int:
     a = ap.parse_args(argv)
     sec = load_secrets()
     key, token = sec.get("FACILITIES_API_KEY", ""), sec.get("OPS_PUSH_TOKEN", "")
+    bad = [n for n, v in (("FACILITIES_API_KEY", key), ("OPS_PUSH_TOKEN", token))
+           if v and any(not (32 < ord(c) < 127) for c in v)]
+    if bad:
+        # A line break in a header value makes http.client raise an error that
+        # QUOTES the value into the task log. Refuse first; never echo it.
+        log(f"ERROR {', '.join(bad)} contains a line break, space or non-ASCII character - "
+            f"re-enter it on one line in {ENV_FILE} (value not shown)")
+        return 2
     if not key or (not token and not a.dry_run):
         missing = [n for n, v in (("FACILITIES_API_KEY", key), ("OPS_PUSH_TOKEN", token))
                    if not v and not (n == "OPS_PUSH_TOKEN" and a.dry_run)]
@@ -234,7 +245,10 @@ def main(argv=None, opener=urllib.request.urlopen, now=None) -> int:
         feed = fetch_feed(key, opener=opener)
         sanity(feed)
     except (RuntimeError, ValueError) as e:
-        log(f"ERROR {e}")
+        log(f"ERROR {_head(str(e).encode(), key, token)}")
+        return 1
+    except Exception as e:  # noqa: BLE001 - name the type, never the message
+        log(f"ERROR unexpected {type(e).__name__} while fetching the app feed")
         return 1
     now = now or datetime.datetime.now(datetime.timezone.utc)
     feed["pulled_at"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -248,7 +262,10 @@ def main(argv=None, opener=urllib.request.urlopen, now=None) -> int:
     try:
         log(f"pushed: {push(feed, token, opener=opener)}")
     except (RuntimeError, ValueError) as e:
-        log(f"ERROR {e}")
+        log(f"ERROR {_head(str(e).encode(), key, token)}")
+        return 3
+    except Exception as e:  # noqa: BLE001 - name the type, never the message
+        log(f"ERROR unexpected {type(e).__name__} while writing to GitHub")
         return 3
     return 0
 

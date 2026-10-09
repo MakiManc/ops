@@ -95,6 +95,10 @@ CASES = [
     ("app_down", http_error(503, b"<html>Service Unavailable</html>")),
     ("app_disabled", Resp(200, b"<html><body>This web app has been disabled by its owner. pythonanywhere</body></html>", "text/html")),
     ("not_json", Resp(200, b"<html><body>Hello</body></html>", "text/html")),
+    ("app_down", http_error(502, b"<html><h1>Something went wrong :-(</h1> There was an error loading "
+                                b"your PythonAnywhere-hosted site. 502-backend</html>")),
+    ("app_down", __import__("http.client").client.RemoteDisconnected("Remote end closed connection")),
+    ("app_down", ConnectionResetError(104, "Connection reset by peer")),
     ("timeout", socket.timeout("timed out")),
     ("timeout", urllib.error.URLError(socket.timeout("timed out"))),
     ("app_down", urllib.error.URLError("Name or service not known")),
@@ -123,6 +127,41 @@ for want, outcome in CASES:
     check("body_head" not in st, f"  {want}: no body head in the committed status file")
     if isinstance(outcome, (urllib.error.HTTPError, Resp)):
         check("body head:" in logged, f"  {want}: the log carries the HTTP status and body head")
+# a truncated body (IncompleteRead raised from read()) is a dropped connection too
+class _Trunc(Resp):
+    def read(self):
+        import http.client as _hc
+        raise _hc.IncompleteRead(b"{\"as_of", 7000)
+refresh.urllib.request.urlopen = lambda req, timeout=None: _Trunc(200, b"")
+os.environ["FACILITIES_API_KEY"] = KEY
+refresh.main()
+st = json.load(open(os.path.join(tmp, refresh.STATUS_FILE)))
+check(st["cause"] == "app_down" and "IncompleteRead" in st["detail"],
+      f"a truncated reply is a dropped connection (app_down), not bad_shape (got {st['cause']})")
+
+print("\n-- a malformed key never reaches the public file --")
+TWO_LINE = "fixture-key-first-half\nfixture-key-second-half"
+os.environ["FACILITIES_API_KEY"] = TWO_LINE
+called = []
+refresh.urllib.request.urlopen = lambda req, timeout=None: called.append(1) or Resp(200, json.dumps(FEED))
+buf = io.StringIO(); h = logging.StreamHandler(buf); refresh.log.addHandler(h)
+try:
+    rc = refresh.main()
+finally:
+    refresh.log.removeHandler(h)
+raw_status = open(os.path.join(tmp, refresh.STATUS_FILE)).read()
+st = json.loads(raw_status)
+check(rc == 0 and st["cause"] == "key_malformed" and not called,
+      f"a key with a line break: cause key_malformed, and no request is even made (got {st['cause']})")
+check("first-half" not in raw_status and "second-half" not in raw_status
+      and "first-half" not in buf.getvalue() and "second-half" not in buf.getvalue(),
+      "neither half of the key appears in the status file or the log")
+check(refresh.scrub("Invalid header value b'fixture-key-first-half\\nfixture-key-second-half'", TWO_LINE)
+      .count("[key]") >= 1 and "first-half" not in refresh.scrub(
+          "Invalid header value b'fixture-key-first-half\\nfixture-key-second-half'", TWO_LINE),
+      "scrub() removes a key quoted in its escaped form, as http.client would quote it")
+os.environ["FACILITIES_API_KEY"] = KEY
+
 refresh.urllib.request.urlopen = lambda req, timeout=None: Resp(200, json.dumps(FEED))
 rc = refresh.main()
 st = json.load(open(os.path.join(tmp, refresh.STATUS_FILE)))
@@ -284,6 +323,37 @@ check(b4["tab"]["pull_note"] is None, "a failed attempt OLDER than the copy in u
 b5 = bake.facilities_block(dict(FEED, pulled_at="2026-10-09T06:30:00Z"), None, today,
                            label="data/ops_command/" + bake.FACILITIES_PUSHED_FILE)
 check("PythonAnywhere" in b5["tab"]["origin"], "the tab says which route delivered the copy")
+
+print("\n-- the verifier picks the same copy as the bake --")
+import verify_ops_data as verify  # noqa: E402
+vd = os.path.join(tmp, "verify")
+os.makedirs(vd)
+man = {"feeds": [{"name": "Facilities PPM summary", "store": "side_channel",
+                  "file": "facilities_ppm.json", "status": "best_effort"}]}
+def vrun(own=None, pushed=None, today="2026-10-09"):
+    for fn, v in (("facilities_ppm.json", own), ("facilities_ppm_pushed.json", pushed)):
+        p_ = os.path.join(vd, fn)
+        if os.path.exists(p_):
+            os.remove(p_)
+        if v is not None:
+            open(p_, "w").write(v if isinstance(v, str) else json.dumps(v))
+    verify.RESULTS.clear()
+    out = verify.check_facilities(today, man, os.path.join(vd, "facilities_ppm.json"))
+    return verify.RESULTS[-1], out
+r, out = vrun(own="{not json", pushed=dict(FEED, pulled_at="2026-10-09T06:30:00Z"))
+check(r["level"] == "ok" and out.get("facilities_copy") == "facilities_ppm_pushed.json",
+      f"bake copy unreadable, fresh push: ok on the push, as the bake decides (got {r['level']})")
+nan_push = json.dumps(dict(FEED, pulled_at="2026-10-09T06:30:00Z")).replace('"kr4_pct": 37', '"kr4_pct": NaN', 1)
+r, out = vrun(own=dict(FEED, pulled_at="2026-09-25T09:00:00Z"), pushed=nan_push)
+check(out.get("facilities_copy") == "facilities_ppm.json" and r["level"] == "warning",
+      "a pushed copy holding NaN is passed over, exactly as the bake rejects it")
+r, out = vrun(own=dict(FEED, pulled_at="2026-09-25T09:00:00Z"), pushed=dict(FEED, pulled_at="2026-10-05T06:30:00Z"))
+check(r["detail"].startswith("facilities_ppm_pushed.json last pulled 2026-10-05")
+      and "facilities_ppm.json, was pulled 2026-09-25" in r["detail"],
+      f"a stale message names the copy it measured and gives the other's date (got {r['detail'][:110]!r})")
+r, out = vrun(own="{not json", pushed=None)
+check(r["level"] in ("warning", "critical") and "unreadable" in r["detail"],
+      "neither copy usable: still reported unreadable")
 
 shutil.rmtree(tmp, ignore_errors=True)
 print()

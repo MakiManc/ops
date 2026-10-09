@@ -62,7 +62,11 @@ async function boot(url, { now, dates, h }) {
     const m = name.match(/^snapshot_(\d{4}-\d{2}-\d{2})\.json$/);
     if (m && dates.includes(m[1]))
       return route.fulfill({ status: 200, contentType: 'application/json',
+        // feed_health pinned to age 0: the base snapshot is whatever was baked
+        // last, and on a day the pull is dead its ages would make the banner's
+        // OTHER check (pipelineAgeDays) fire and fail every verdict case here
         body: JSON.stringify({ ...baseSnap, pull_date: m[1], generated_at: m[1] + 'T15:00:00Z',
+          feed_health: (baseSnap.feed_health || []).map(r => ({ ...r, age_days: 0 })),
           scorecard: { ...baseSnap.scorecard, month: m[1].slice(0, 7) } }) });
     return route.fulfill({ status: 404, body: 'not found' });
   });
