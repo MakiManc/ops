@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ops Command · OKR wall</title>
+<!--
+  OKR wall — the big-screen view of the Ops Command scorecard.
+  Reads the SAME snapshot as command/index.html (snapshot_index.json → snapshot_<date>.json)
+  so it can never disagree with the main dashboard. No nav, no filters: six objectives,
+  thirty KRs, RAG chips, and a red bar if the data is not today's.
+  ?tv=1   larger type, hides basis text (for a TV at 3 m)
+  ?m=YYYY-MM   pin a month (default: the snapshot's default month = current, month-to-date)
+  Auto-reloads every 10 minutes.
+-->
+<style>
+:root{
+  --maki-orange:#E94E1B;
+  --bg:#0b1220; --card:#121a2b; --ink:#e6edf7; --muted:#9fb0c7; --faint:#5b6b84; --line:#1f2a3d;
+  --g:#22c55e; --g-bg:rgba(34,197,94,.14); --a:#f59e0b; --a-bg:rgba(245,158,11,.14);
+  --r:#ef4444; --r-bg:rgba(239,68,68,.16); --n:#64748b; --n-bg:rgba(100,116,139,.16);
+  --fs:15px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:var(--fs)/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{padding:18px 22px 30px;max-width:1900px;margin:0 auto}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{margin:0;font-size:1.5em;font-weight:700;letter-spacing:.01em}
+h1 b{color:var(--maki-orange)}
+.sub{color:var(--muted);font-size:.85em;margin-top:4px}
+.ops{text-align:right}
+.ops .lb{color:var(--muted);font-size:.8em;text-transform:uppercase;letter-spacing:.06em}
+.ops .v{font-size:2.4em;font-weight:800;line-height:1}
+.ops .sb{color:var(--muted);font-size:.8em}
+#stale{display:none;background:var(--r);color:#fff;font-weight:700;padding:10px 14px;border-radius:10px;margin-bottom:14px}
+#stale.on{display:block}
+#msel{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:.9em}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+.tile{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--n);border-radius:12px;padding:12px 14px;min-height:112px}
+.tile.t-g{border-top-color:var(--g)}.tile.t-a{border-top-color:var(--a)}.tile.t-r{border-top-color:var(--r)}
+.tile .o{color:var(--muted);font-size:.8em;text-transform:uppercase;letter-spacing:.06em}
+.tile .l{font-weight:700;font-size:1.05em;margin:2px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .p{font-size:2.2em;font-weight:800;line-height:1}
+.tile .p small{font-size:.45em;color:var(--muted);font-weight:600;margin-left:6px}
+.tile .hist{display:flex;gap:4px;margin-top:8px;align-items:flex-end;height:26px}
+.tile .hist i{display:block;width:14px;background:var(--n);border-radius:3px 3px 0 0;opacity:.9}
+.tile .hist i.g{background:var(--g)}.tile .hist i.a{background:var(--a)}.tile .hist i.r{background:var(--r)}
+.tile .hist i.e{background:transparent;border:1px dashed var(--faint);height:6px!important}
+.cols{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.col{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+.kr{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:9px 8px;border-bottom:1px solid var(--line);align-items:start}
+.kr:last-child{border-bottom:0}
+.chip{width:64px;flex:0 0 64px;text-align:center;font-weight:800;font-size:.8em;padding:5px 4px;border-radius:12px;border:1px solid;letter-spacing:.02em;margin-top:2px;white-space:normal;line-height:1.1}
+.chip.c-n{font-size:.6em;font-weight:700}
+.c-g{color:var(--g);background:var(--g-bg);border-color:var(--g)}
+.c-a{color:var(--a);background:var(--a-bg);border-color:var(--a)}
+.c-r{color:var(--r);background:var(--r-bg);border-color:var(--r)}
+.c-n{color:var(--muted);background:var(--n-bg);border-color:var(--faint)}
+.kr .t{font-weight:600;font-size:.92em;line-height:1.3}
+.kr .t .id{color:var(--muted);font-weight:700;margin-right:5px}
+.kr .v{margin-top:3px;font-size:.9em}
+.kr .v b{font-size:1.15em}
+.kr .v .tg{color:var(--muted)}
+.kr .why{margin-top:3px;color:var(--faint);font-size:.78em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kr.grey .t{color:var(--muted)}
+footer{margin-top:16px;color:var(--faint);font-size:.78em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+body.tv{--fs:21px}
+body.tv .why{display:none}
+body.tv .chip.c-n{font-size:.5em}
+body.tv .wrap{padding:22px 28px}
+@media (max-width:1300px){.tiles,.cols{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:760px){.tiles,.cols{grid-template-columns:1fr}.ops{text-align:left}}
+.err{background:var(--r-bg);border:1px solid var(--r);color:var(--ink);padding:12px;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Ops Command · <b>OKR wall</b></h1>
+      <div class="sub" id="sub">loading…</div>
+    </div>
+    <div style="display:flex;gap:18px;align-items:flex-end">
+      <select id="msel" title="Month"></select>
+      <div class="ops">
+        <div class="lb">Operations</div>
+        <div class="v" id="opsv">—</div>
+        <div class="sb" id="opss">mean of OO2–OO6 · OO1 is Finance's</div>
+      </div>
+    </div>
+  </header>
+  <div id="stale"></div>
+  <div id="tiles" class="tiles"></div>
+  <div id="cols" class="cols"></div>
+  <footer>
+    <span id="prov"></span>
+    <span>RAG follows the score: 100 green · 80/50 amber · 0 red · grey = not measured (blocker shown). Same data file as the main dashboard.</span>
+  </footer>
+</div>
+<script>
+const Q=new URLSearchParams(location.search);
+if(Q.get('tv')==='1') document.body.classList.add('tv');
+const BASES = window.OPS_BASE ? [window.OPS_BASE]
+  : location.hostname.endsWith('github.io') ? ['../data/ops_command/']
+  : ['https://makimanc.github.io/ops/data/ops_command/'];
+let BASE=BASES[0];
+const cb=()=>'?cb='+Date.now();
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ragCls=r=>r==='green'?'g':r==='amber'?'a':r==='red'?'r':'n';
+const pctRag=p=>p==null?null:p>=90?'green':p>=60?'amber':'red';
+const mLabel=m=>{ if(!m) return ''; const [y,mo]=m.split('-'); return new Date(+y,+mo-1,1).toLocaleString('en-GB',{month:'short',year:'numeric'}); };
+
+async function fetchIndex(){
+  let last;
+  for(const b of BASES){
+    try{ const r=await fetch(b+'snapshot_index.json'+cb(),{cache:'no-store'}); if(r.ok){BASE=b;return r.json();} last=new Error('HTTP '+r.status); }
+    catch(e){ last=e; }
+  }
+  throw last||new Error('no data source reachable');
+}
+
+let SNAP=null, IDX=null;
+function monthRow(row,m){
+  // the builder scores every month in the picker; a KR with no monthly form only has its default value
+  if(!m || m===SNAP.scorecard.month || !row.months || !row.months.length) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:false};
+  const x=row.months.find(z=>z.m===m);
+  if(!x) return {value:null,display:null,rag:null,score:null,basis:'no value for '+mLabel(m),mtd:false};
+  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:false};
+}
+function render(){
+  const sc=SNAP.scorecard;
+  const defM=sc.month;
+  const m=$('msel').value||defM;
+  const today=new Date().toISOString().slice(0,10);
+  const age=Math.round((Date.parse(today)-Date.parse(SNAP.pull_date||IDX.latest))/864e5);
+  $('sub').textContent=`${mLabel(m)}${m===defM?' · month to date':''} · snapshot ${SNAP.pull_date} · ${sc.scored} of ${sc.total} KRs scored`;
+  const st=$('stale');
+  if(age>=1){ st.className='on'; st.textContent=`DATA IS ${age} DAY${age===1?'':'S'} OLD — last bake ${SNAP.pull_date}. The daily bake has not landed; check the 'Ops Command bake' run in maki-hospitality-etl.`; }
+  else { st.className=''; st.textContent=''; }
+
+  // Operations %
+  const opm=(sc.operations?.months||[]).find(z=>z.m===m)||sc.operations||{};
+  $('opsv').textContent=opm.pct==null?'—':Math.round(opm.pct)+'%';
+  $('opsv').style.color=opm.pct==null?'var(--muted)':`var(--${ragCls(pctRag(opm.pct))})`;
+  $('opss').textContent=`${opm.scored??0} of ${opm.total??5} objectives scored · OO1 is Finance's`;
+
+  // Objective tiles
+  const objs=sc.objectives||[];
+  const months=sc.months||[];
+  const mi=months.indexOf(m);
+  $('tiles').innerHTML=objs.map(o=>{
+    const om=(o.months||[]).find(z=>z.m===m)||{pct:o.pct,scored:o.scored,total:o.total};
+    const rag=pctRag(om.pct);
+    const hist=months.slice(Math.max(0,mi),mi+4).reverse().map(mm=>{
+      const h=(o.months||[]).find(z=>z.m===mm);
+      if(!h||h.pct==null) return `<i class="e" title="${mLabel(mm)}: not scored"></i>`;
+      return `<i class="${ragCls(pctRag(h.pct))}" style="height:${Math.max(4,Math.round(h.pct*0.26))}px" title="${mLabel(mm)}: ${Math.round(h.pct)}% (${h.scored} of ${h.total})"></i>`;
+    }).join('');
+    return `<div class="tile t-${rag?ragCls(rag):'n'}">
+      <div class="o">${esc(o.objective)}</div>
+      <div class="l" title="${esc(o.label)}">${esc(o.label)}</div>
+      <div class="p" style="color:${rag?`var(--${ragCls(rag)})`:'var(--muted)'}">${om.pct==null?'—':Math.round(om.pct)+'%'}<small>${om.scored??0} of ${om.total??5} scored</small></div>
+      <div class="hist">${hist}</div>
+    </div>`;
+  }).join('');
+
+  // KR columns
+  const rows=sc.rows||[];
+  $('cols').innerHTML=objs.map(o=>{
+    const krs=rows.filter(r=>r.objective===o.objective);
+    return `<div class="col">`+krs.map(r=>{
+      const x=monthRow(r,m);
+      const grey=r.source_kind==='not_measured'||x.value==null;
+      const cls=grey?'n':ragCls(x.rag);
+      const chip=grey?'NOT MEASURED':(x.score!=null?x.score:'—');
+      const text=r.text.replace(/^KR\s?\d\s*:?\s*/i,'');
+      const why=grey?(r.not_measured||x.basis||''):(x.basis||'');
+      const val=grey?'':`<div class="v"><b>${esc(x.display??x.value)}</b> <span class="tg">· target ${esc(r.target||'not set')}</span></div>`;
+      return `<div class="kr ${grey?'grey':''}" title="${esc(why)}">
+        <div class="chip c-${cls}">${chip}</div>
+        <div><div class="t"><span class="id">${esc(r.kr)}</span>${esc(text)}</div>${val}<div class="why">${esc(why)}</div></div>
+      </div>`;
+    }).join('')+`</div>`;
+  }).join('');
+  $('prov').textContent=`source: ${BASE}snapshot_${SNAP.pull_date}.json · generated ${SNAP.generated_at} · ${sc.basis?.slice(0,140)||''}…`;
+}
+async function boot(){
+  try{
+    IDX=await fetchIndex();
+    const r=await fetch(BASE+'snapshot_'+IDX.latest+'.json'+cb(),{cache:'no-store'});
+    if(!r.ok) throw new Error('snapshot HTTP '+r.status);
+    SNAP=await r.json();
+    const sc=SNAP.scorecard;
+    const months=sc.months||[sc.month];
+    const sel=$('msel');
+    sel.innerHTML=months.map(mm=>`<option value="${mm}">${mLabel(mm)}${mm===sc.month?' (MTD)':''}</option>`).join('');
+    sel.value=(Q.get('m')&&months.includes(Q.get('m')))?Q.get('m'):sc.month;
+    sel.onchange=render;
+    render();
+  }catch(e){
+    $('sub').textContent='could not load the baked data';
+    $('tiles').innerHTML=`<div class="err" style="grid-column:1/-1">Could not load the scorecard: ${esc(e.message)}. Expected ${esc(BASE)}snapshot_index.json.</div>`;
+  }
+}
+boot();
+setInterval(()=>location.reload(),10*60*1000);
+</script>
+</body>
+</html>
