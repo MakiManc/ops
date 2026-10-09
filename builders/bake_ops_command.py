@@ -897,7 +897,7 @@ def load_facilities(path):
     return feed, None
 
 
-def load_facilities_best(out_dir):
+def load_facilities_best(out_dir, asof=None):
     """(feed, err, label): the more recently pulled of the two Facilities copies.
 
     facilities_ppm.json is what the bake pulls itself (refresh_facilities.py);
@@ -912,6 +912,14 @@ def load_facilities_best(out_dir):
     b = load_facilities(os.path.join(out_dir, FACILITIES_PUSHED_FILE))
     la = "data/ops_command/" + FACILITIES_FILE
     lb = "data/ops_command/" + FACILITIES_PUSHED_FILE
+    if asof and a[0] is not None and b[0] is not None:
+        # A back-bake prefers the copy that existed on its date: a push made
+        # after it must not beat a pull from before it (and then grey the
+        # rows as "not as of" when a usable copy was there).
+        _ok = [(f, l_) for f, l_ in ((a[0], la), (b[0], lb))
+               if str(f.get("pulled_at") or "")[:10] <= asof]
+        if len(_ok) == 1:
+            return _ok[0][0], None, _ok[0][1]
     if b[0] is None:
         return a[0], a[1], la
     if a[0] is None:
@@ -1394,8 +1402,14 @@ def main():
     # archive_source.resolve_files) and every "today" below is `asof`. An
     # undated bake is unchanged: asof is the real today.
     if a.date:
+        # Strictly YYYY-MM-DD. Python 3.11+ fromisoformat also takes '20261002'
+        # and '2026-W40-5'; either would pass, then compare wrongly against the
+        # archive's directory names (no cut at all) and sort ABOVE every real
+        # date in snapshot_index.json - becoming the dashboard's `latest`.
         try:
-            datetime.date.fromisoformat(a.date)
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", a.date):
+                raise ValueError
+            a.date = datetime.date.fromisoformat(a.date).isoformat()
         except ValueError:
             sys.exit(f"--date {a.date!r} is not a YYYY-MM-DD date")
     asof = datetime.date.fromisoformat(a.date) if a.date else datetime.date.today()
@@ -3830,8 +3844,12 @@ def main():
     # never fail the bake.
     _fac_today = asof if dated else datetime.datetime.utcnow().date()
     _fac_status = load_pull_status(OUT_DIR)
+    if dated and _fac_status and str(_fac_status.get("attempted_at") or "")[:10] > dated:
+        # the record is of a pull made after this snapshot's date - it cannot
+        # be the reason the figures on that date were what they were
+        _fac_status = None
     try:
-        _ff, _fe, _fl = load_facilities_best(OUT_DIR)
+        _ff, _fe, _fl = load_facilities_best(OUT_DIR, asof=dated)
         fac = facilities_block(_ff, _fe, _fac_today, label=_fl, pull_status=_fac_status)
         print(f"[bake] facilities: using {_fl}"
               + (f" (pulled {_ff.get('pulled_at')})" if _ff else f" ({_fe})")
@@ -3993,9 +4011,15 @@ def main():
             for line in fh_:
                 if not line.strip(): continue
                 _r=json.loads(line)
-                # as of the snapshot's own date: a back-bake must not draw trend
-                # points the verifier only recorded later
-                if str(_r.get("metric_date") or "")>pull: continue
+                # A back-bake must not draw what the verifier only RECORDED
+                # after its date. Keyed on updated_at, not metric_date: a task
+                # row's metric_date is its due date (often ahead), and the
+                # verifier re-upserts every cell of each recompute, so a row's
+                # value as of the date is only known to be the stored one if it
+                # was written by then. An undated bake reads everything, as
+                # it always has.
+                if dated and str(_r.get("updated_at") or _r.get("metric_date") or "")[:10]>dated:
+                    continue
                 agg.append(_r)
     except FileNotFoundError:
         gaps.append("Trend history unavailable: data/ops_command/ops_daily_aggregates.jsonl "
@@ -4117,7 +4141,21 @@ def main():
     # the number cannot see - it just no longer withholds the judgement.
     _o=(snap.get("supply") or {}).get("otif") or {}
     _om=(_o.get("months") or [])
-    _last=_om[-1] if _om else None
+    # The row's head is the NEWEST month that HAS a rate, not simply the
+    # newest month (09/10/2026). Since deliveries are capped at the issue
+    # feed's reach, a month's first day can hold an issue and no countable
+    # delivery yet; gating the whole row on that month dropped every scored
+    # month with it, and said "no coverage" - which was not the reason.
+    _last=next((m_ for m_ in reversed(_om) if m_.get("otif_pct") is not None),None)
+    def _otwhy(m_):
+        if (not m_.get("measurable_deliveries") and m_.get("deliveries_held_back")
+                and m_.get("measurable_suppliers") is not None):
+            return (f"no delivery in {_mlabel(m_['month'])} is dated on or before "
+                    f"{m_.get('counted_through')}, the newest day the issue feed covers - "
+                    f"{m_['deliveries_held_back']} later one(s) are held back until an issue "
+                    "could have been filed against them, so there is no rate yet")
+        return ("no supplier had Kobas order-email coverage spanning "
+                +_mlabel(m_["month"])+", so no defensible rate exists for it")
     def _otbasis(m_):
         return ("ISSUE-FREE DELIVERY RATE, and Ross agreed on 21/09/2026 that this IS the "
           "definition of this KR, so it is scored. It still cannot observe whether a "
@@ -4141,9 +4179,7 @@ def main():
             months=[(_mvar(m_["month"],value=m_["otif_pct"],
                            display=f"{m_['otif_pct']}%",rag=None,basis=_otbasis(m_))
                      if m_.get("otif_pct") is not None else
-                     _mvar(m_["month"],not_measured=(
-                       "no supplier had Kobas order-email coverage spanning "
-                       +_mlabel(m_["month"])+", so no defensible rate exists for it")))
+                     _mvar(m_["month"],not_measured=_otwhy(m_)))
                     for m_ in _om])
     else:
         row("Supply","KR4 OTIF",">=95%","p-supp",
@@ -4737,16 +4773,33 @@ def main():
                                   + (f" - {v_['basis']}" if v_.get("basis") else ""))})
         return out
 
-    def _default_variant(months_):
+    def _default_variant(rid, band, months_):
         """The pull month's variant. When the month has none yet, a stated
-        empty one - never the previous month's figure under this month's name,
-        which is what the old fallback (months_[-1]) published on 01/10."""
+        one - never the previous month's figure under this month's name,
+        which is what the old fallback (months_[-1]) published on 01/10.
+
+        Its day count comes from the KR's own source, not a hard-coded 0. For
+        OO3 KR1 a month the answer feed has reached with no supplier-issue
+        form in it is a MEASURED zero (the same count, under KR1's unchanged
+        rule, that simply found nothing), so it gets value 0 and goes through
+        the MTD rule like any other month; every other KR gets an empty
+        variant saying how many days its source has covered."""
         _d = next((v_ for v_ in months_ if v_["m"] == _pm), None)
         if _d is not None or not _pm:
             return _d, False
-        return (_mvar(_pm, mtd=True, coverage_days=0, score=None,
-                      basis=(f"month-to-date, not yet scored (0 days of data) - this KR's "
-                             f"source has no figure for {_mlabel(_pm)} yet")), True)
+        _n = _cov_days(_pm, _cov_through[rid]) if rid in _cov_through else 0
+        if rid == ("OO3", "KR1") and _n >= 1:
+            _s = okr_score(band, 0)
+            _v = _mvar(_pm, value=0, display="0", score=_s, rag=_rag_of(_s),
+                       coverage_days=_n,
+                       basis=(f"no delivery/supplier issue form answered in {_mlabel(_pm)} so far - "
+                              f"the GC answer feed covers {_n} day(s) of the month and none of "
+                              "them holds one"))
+            return _mtd_gate(rid, [_v])[0], True
+        return (_mvar(_pm, mtd=True, coverage_days=_n, score=None,
+                      basis=(f"month-to-date, not yet scored ({_n} day{'' if _n == 1 else 's'} "
+                             f"of data) - this KR's source has no figure for {_mlabel(_pm)} yet")),
+                True)
 
     # --- assemble the thirty rows ------------------------------------------
     okr = []
@@ -4771,7 +4824,7 @@ def main():
             # variants already carry finished scores.
             _r.update({k: v for k, v in _ext.items() if k != "months"})
             _r["months"] = _mtd_gate(_id, _ext["months"])
-            _dm, _new = _default_variant(_r["months"])
+            _dm, _new = _default_variant(_id, _band, _r["months"])
             if _new:
                 _r["months"].append(_dm)
             if _dm is not None:
@@ -4779,6 +4832,8 @@ def main():
                            ("value", "display", "score", "rag", "basis",
                             "trend", "trend_unit", "trend_note",
                             "mtd", "coverage_days")})
+                if _dm.get("value") is None and _dm.get("not_measured"):
+                    _r["not_measured"] = _dm["not_measured"]
         elif _src is not None:
             _r["tab"] = _src.get("tab") or "—"
             _r["not_measured"] = _src.get("not_measured")
@@ -4787,7 +4842,7 @@ def main():
                 _r[_k] = _src.get(_k)
             if _src.get("months"):
                 _r["months"] = _mtd_gate(_id, _okr_months(_src, _band))
-                _dm, _new = _default_variant(_r["months"])
+                _dm, _new = _default_variant(_id, _band, _r["months"])
                 if _new:
                     _r["months"].append(_dm)
                 if _dm is not None:
@@ -4795,6 +4850,9 @@ def main():
                                ("value", "display", "score", "rag", "basis",
                                 "trend", "trend_unit", "trend_note",
                                 "mtd", "coverage_days")})
+                    # an empty pull month says WHY it is empty, on the row
+                    if _dm.get("value") is None and _dm.get("not_measured"):
+                        _r["not_measured"] = _dm["not_measured"]
             else:
                 _r["score"] = okr_score(_band, _r["value"])
                 _r["rag"] = _rag_of(_r["score"])

@@ -99,11 +99,22 @@ def main() -> int:
     # an index that already has a NEWER date - the back-bake must not become latest
     json.dump({"latest": "2026-01-12", "dates": ["2026-01-12"]},
               open(os.path.join(out, "snapshot_index.json"), "w"))
-    # trend history: one row the verifier recorded before the bake date, one after
+    # trend history: one row the verifier recorded before the bake date, one
+    # after - keyed on when it was RECORDED (updated_at), not its metric_date
     with open(os.path.join(out, "ops_daily_aggregates.jsonl"), "w") as fh:
-        for d in ("2026-01-06", "2026-01-11"):
+        for d, upd in (("2026-01-06", "2026-01-07T09:00:00Z"), ("2026-01-07", "2026-01-11T09:00:00Z")):
             fh.write(json.dumps({"metric_date": d, "site": "Maki Test", "metric": "tasks",
-                                 "v1": 1, "v2": 0, "v3": None}) + "\n")
+                                 "v1": 1, "v2": 0, "v3": None, "updated_at": upd}) + "\n")
+    # the Facilities pull record from a pull made AFTER the bake date, and a
+    # bake-pulled copy from before it beside a push made after it
+    json.dump({"attempted_at": "2026-01-12T08:00:00Z", "ok": False, "cause": "timeout",
+               "detail": "fixture", "http_status": None},
+              open(os.path.join(out, "facilities_pull_status.json"), "w"))
+    _fac = json.load(open(os.path.join(REPO, "tests", "fixtures", "facilities_ppm.json")))
+    json.dump(dict(_fac, pulled_at="2026-01-07T08:00:00Z"),
+              open(os.path.join(out, "facilities_ppm.json"), "w"))
+    json.dump(dict(_fac, pulled_at="2026-01-12T06:30:00Z", pulled_by="pythonanywhere"),
+              open(os.path.join(out, "facilities_ppm_pushed.json"), "w"))
     # side files pulled AFTER the bake date (they are current-state only)
     json.dump({"pulled_at": "2026-01-12T08:00:00Z", "source_as_of": "2026-01-12",
                "source": "fixture sheet", "tasks": [{"site": "Maki Test",
@@ -149,8 +160,11 @@ def main() -> int:
     check(not m["tasks"] and any("after this snapshot's date" in g for g in m["gaps"]),
           "a maintenance sheet pulled after the date is not shown, and the tab says why")
     fac = m.get("facilities") or {}
-    check(fac.get("status") == "missing",
-          f"no facilities file: still the ordinary 'missing' path (got {fac.get('status')})")
+    check(fac.get("file", "").endswith("facilities_ppm.json") and fac.get("status") == "ok",
+          f"Facilities: the copy pulled BEFORE the date is used, not the push made after it "
+          f"(got {fac.get('file')}, {fac.get('status')})")
+    check(fac.get("pull") is None and not fac.get("pull_note"),
+          "Facilities: a pull attempt recorded after the date is not quoted as today's reason")
     idx = json.load(open(os.path.join(out, "snapshot_index.json")))
     check(idx["latest"] == "2026-01-12" and idx["dates"] == ["2026-01-12", "2026-01-08"],
           f"the back-bake is recorded but does not become latest (got {idx['latest']}, {idx['dates']})")
@@ -165,9 +179,12 @@ def main() -> int:
           "undated: the newest pull is read as before")
 
     print("\n-- --date is validated --")
-    p = bake(archive, out, "08/01/2026")
-    check(p.returncode != 0 and "YYYY-MM-DD" in (p.stderr + p.stdout),
-          "a non-ISO --date is refused, not silently used as a filename")
+    for bad in ("08/01/2026", "20260108", "2026-W02-4", "2026-1-8"):
+        p = bake(archive, out, bad)
+        check(p.returncode != 0 and "YYYY-MM-DD" in (p.stderr + p.stdout),
+              f"--date {bad!r} is refused - it would skip the archive cut and sort above every real date")
+    idx = json.load(open(os.path.join(out, "snapshot_index.json")))
+    check(all(len(d) == 10 and d[4] == "-" for d in idx["dates"]), "and nothing odd reached the index")
 
     shutil.rmtree(tmp, ignore_errors=True)
     print()
