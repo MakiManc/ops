@@ -1066,7 +1066,21 @@ function staleHtml(latest){
 function bannerHtml(snap){
   const latest=(IDX&&IDX.latest)||snap.pull_date;
   const stale=staleHtml(latest);
-  return stale+verdictHtml(snap,!!stale);
+  return stale+olderHtml(snap,latest)+verdictHtml(snap,!!stale);
+}
+/* Viewing a day other than the latest (10/10/2026). Freshness and the
+   verifier's verdict above and below follow the LATEST snapshot - a rolled-back
+   view is not "stale" - so the reader is told plainly which day this is, and
+   whether it was back-baked later from the pull archive (generated after its
+   own date) rather than baked that morning. */
+function olderHtml(snap,latest){
+  if(!snap||!snap.pull_date||!latest||snap.pull_date===latest) return '';
+  const gen=(snap.generated_at||'').slice(0,10);
+  const back=gen&&gen>snap.pull_date;
+  return '<div class="note">Viewing <b>'+esc(snap.pull_date)+'</b>, not the latest snapshot ('+
+    esc(latest)+')'+(back?' — back-baked on '+esc(gen)+' from the pull archive, as of '+
+    esc(snap.pull_date):'')+'. Date ranges below end on '+esc(snap.pull_date)+
+    '; data freshness and the verification line describe the latest snapshot.</div>';
 }
 /* The verifier's verdict, and the feed-age check that predates it. `stale`
    says the freshness line above already fired, so the two lines that would
@@ -1307,6 +1321,15 @@ function renderScorecard(snap){
       `<b style="font-size:20px;font-variant-numeric:tabular-nums">${esc(opsNow.pct)}%</b>`+
       ` <span style="opacity:.75">Operations · mean of ${esc(opsNow.scored)} of ${esc(opsNow.total)} objectives with a score`+
       `${sel?' in '+esc(monthLabel(sel)):''}. OO1 is Finance's and is excluded.</span></div>`
+    /* No objective scored this month (e.g. early in the month, when every
+       measured KR is still month-to-date): a grey dash and why - never a
+       missing line a reader could take for "nothing to report", and never 0. */
+    : opsNow
+    ? `<div style="margin-bottom:10px;font-size:15px">`+
+      `<b style="font-size:20px;color:var(--muted)">—</b>`+
+      ` <span style="opacity:.75">Operations · no objective has a scored KR`+
+      `${sel?' in '+esc(monthLabel(sel)):''} yet - every measured KR is month-to-date or not measured. `+
+      `OO1 is Finance's and is excluded.</span></div>`
     : '';
   const picker=months.length>1
     ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">`+
@@ -1358,7 +1381,11 @@ function renderKr1(){
   const MN=['January','February','March','April','May','June','July','August',
             'September','October','November','December'];
   const lbl=MN[+m.month.slice(5,7)-1]+' '+m.month.slice(0,4);
-  const over=m.rag==='red';
+  const over=m.rag==='red', none=m.issues==null;
+  /* rag null = not judged (month still running, or the feed missed days) -
+     grey, never "On target" (10/10/2026). Older snapshots always set a rag. */
+  const judged=m.rag==='red'||m.rag==='green';
+  const isOpen=(m.mtd!=null)?m.mtd:m.month===(SNAP.pull_date||'').slice(0,7);
   const rows=(m.suppliers||[]).map(r=>
     `<tr><td>${esc(r.supplier)}</td><td class="n" style="font-weight:650">${fmtN(r.issues)}</td>`+
     `<td class="n" style="opacity:.75">${fmtN(r.open)}</td>`+
@@ -1371,10 +1398,11 @@ function renderKr1(){
     : '';
   el.innerHTML=
     `<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">`+
-    `<div style="font-size:30px;font-weight:700">${fmtN(m.issues)}</div>`+
-    `<div>${chip(over?'r':'g',over?'Off target':'On target')}</div>`+
+    `<div style="font-size:30px;font-weight:700">${none?'—':fmtN(m.issues)}</div>`+
+    `<div>${judged?chip(over?'r':'g',over?'Off target':'On target')
+                  :chip('n',none?'Not reached yet':isOpen?'MTD · not judged yet':'Incomplete · not judged')}</div>`+
     `<div style="opacity:.8">raised in ${esc(lbl)} &middot; target &le;${esc(m.target)} a month`+
-    `${m.undercount?' &middot; <b>month to date, and undercounted</b>':(m.month===(SNAP.pull_date||'').slice(0,7)?' &middot; month to date':'')}</div></div>`+
+    `${isOpen?' &middot; month to date'+(m.undercount?', <b>and undercounted</b>':''):(m.undercount?' &middot; <b>undercounted</b>':'')}</div></div>`+
     (m.coverage_note?`<div class="prov" style="margin:-4px 0 10px">${esc(m.coverage_note)}</div>`:'')+
     '<table><thead><tr><th>Supplier</th><th class="n">Raised</th><th class="n">Still open</th>'+
     '<th class="n">Sites</th><th>Attribution</th></tr></thead><tbody>'+rows+unatt+'</tbody></table>'+
@@ -1694,42 +1722,61 @@ function render(snap){
   const maint=snap.maintenance||{};
   $('maint-note').innerHTML=(maint.gaps&&maint.gaps.length)
     ?'<div class="warn"><b>Read this first.</b> '+maint.gaps.map(esc).join(' · ')+'</div>':'';
+  /* No sheet to read (a back-baked day, or the file missing): the builder
+     sends tasks:null plus `unavailable`. Unknown is grey dashes with the
+     reason - never a green "Outstanding/ongoing 0" (10/10/2026). Older
+     snapshots sent [] for this case; their basis says why. */
+  const maintNone=maint.tasks==null||!!maint.unavailable||
+    (Array.isArray(maint.tasks)&&!maint.tasks.length&&
+     /not available in a back-baked|no data available/.test(maint.basis||''));
+  const maintWhy=maint.unavailable||maint.basis||'no maintenance data in this snapshot';
+  if(maintNone){
+    $('maint-bars').innerHTML='<div class="empty">'+esc(maintWhy)+'</div>';
+    $('maint-tbl').innerHTML='<div class="empty">'+esc(maintWhy)+'</div>';
+    $('maint-kpis').innerHTML=
+      kpi('n','Outstanding/ongoing','—',maintWhy)+
+      kpi('n','Sites affected','—','not available in this snapshot')+
+      kpi('n','Resolved','—','not available in this snapshot')+
+      kpi('n','Oldest open','—','not available in this snapshot');
+  }
   const maintTasksAll=maint.tasks||[];
   const maintTasks=maintTasksAll.filter(t=>inEV(t.d));
-  const maintAgg={};
-  maintTasks.forEach(t=>{
-    const a=maintAgg[t.site]=maintAgg[t.site]||{ongoing:0,done:0};
-    if(t.status==='ongoing') a.ongoing++;
-    else if(t.status==='done') a.done++;
-  });
-  const maintSites=Object.entries(maintAgg).map(([site,a])=>({site,ongoing:a.ongoing,done:a.done}))
-    .sort((a,b)=>(b.ongoing-a.ongoing)||(b.done-a.done));
-  bars('maint-bars',maintSites.map(r=>({k:r.site,v:r.ongoing,
-    tip:`${r.site} — ${fmtN(r.ongoing)} outstanding/ongoing, ${fmtN(r.done)} resolved in range · click for detail`})),
-    i=>fmtN(i.v));
-  [...document.querySelectorAll('#maint-bars .brow')].forEach((el,i)=>{
-    const r=maintSites[i]; if(!r) return;
-    el.classList.add('clk'); el.addEventListener('click',()=>openMaintModal(r.site));
-  });
-  if(maint.basis) $('maint-bars').insertAdjacentHTML('beforeend','<div class="prov">'+esc(maint.basis)+' · '+esc(evLabel())+
-    (maint.source_as_of?' · sheet as of '+esc(maint.source_as_of):'')+'</div>');
-  table('maint-tbl',[{h:'Site'},{h:'Outstanding/Ongoing',n:1},{h:'Resolved',n:1},{h:'Status',raw:1}],
-    maintSites.map(r=>[r.site,fmtN(r.ongoing),fmtN(r.done),
-      r.ongoing===0?chip('g','Clear'):r.ongoing>=3?chip('r','Needs attention'):chip('a','In progress')]),
-    'No maintenance tasks dated in this range');
-  [...document.querySelectorAll('#maint-tbl tbody tr')].forEach((tr,i)=>{
-    const r=maintSites[i]; if(!r) return;
-    tr.classList.add('clk'); tr.addEventListener('click',()=>openMaintModal(r.site));
-  });
-  const maintOngoingTot=maintSites.reduce((s,r)=>s+r.ongoing,0);
-  const maintDoneTot=maintSites.reduce((s,r)=>s+r.done,0);
-  const maintOngoingList=maintTasks.filter(t=>t.status==='ongoing').slice().sort((a,b)=>(a.d||'').localeCompare(b.d||''));
-  const maintOldest=maintOngoingList[0];
-  $('maint-kpis').innerHTML=
-    kpi(maintOngoingTot===0?'g':maintOngoingTot>=8?'r':'a','Outstanding/ongoing',fmtN(maintOngoingTot),'maintenance tasks not yet resolved, in range')+
-    kpi('o','Sites affected',fmtN(maintSites.filter(r=>r.ongoing>0).length),'with an outstanding/ongoing task in range')+
-    kpi('o','Resolved',fmtN(maintDoneTot),'marked done, in range')+
-    kpi(maintOldest?'a':'n','Oldest open',maintOldest?maintOldest.d:'—',maintOldest?maintOldest.site:'no open tasks in range');
+  if(!maintNone){
+    const maintAgg={};
+    maintTasks.forEach(t=>{
+      const a=maintAgg[t.site]=maintAgg[t.site]||{ongoing:0,done:0};
+      if(t.status==='ongoing') a.ongoing++;
+      else if(t.status==='done') a.done++;
+    });
+    const maintSites=Object.entries(maintAgg).map(([site,a])=>({site,ongoing:a.ongoing,done:a.done}))
+      .sort((a,b)=>(b.ongoing-a.ongoing)||(b.done-a.done));
+    bars('maint-bars',maintSites.map(r=>({k:r.site,v:r.ongoing,
+      tip:`${r.site} — ${fmtN(r.ongoing)} outstanding/ongoing, ${fmtN(r.done)} resolved in range · click for detail`})),
+      i=>fmtN(i.v));
+    [...document.querySelectorAll('#maint-bars .brow')].forEach((el,i)=>{
+      const r=maintSites[i]; if(!r) return;
+      el.classList.add('clk'); el.addEventListener('click',()=>openMaintModal(r.site));
+    });
+    if(maint.basis) $('maint-bars').insertAdjacentHTML('beforeend','<div class="prov">'+esc(maint.basis)+' · '+esc(evLabel())+
+      (maint.source_as_of?' · sheet as of '+esc(maint.source_as_of):'')+'</div>');
+    table('maint-tbl',[{h:'Site'},{h:'Outstanding/Ongoing',n:1},{h:'Resolved',n:1},{h:'Status',raw:1}],
+      maintSites.map(r=>[r.site,fmtN(r.ongoing),fmtN(r.done),
+        r.ongoing===0?chip('g','Clear'):r.ongoing>=3?chip('r','Needs attention'):chip('a','In progress')]),
+      'No maintenance tasks dated in this range');
+    [...document.querySelectorAll('#maint-tbl tbody tr')].forEach((tr,i)=>{
+      const r=maintSites[i]; if(!r) return;
+      tr.classList.add('clk'); tr.addEventListener('click',()=>openMaintModal(r.site));
+    });
+    const maintOngoingTot=maintSites.reduce((s,r)=>s+r.ongoing,0);
+    const maintDoneTot=maintSites.reduce((s,r)=>s+r.done,0);
+    const maintOngoingList=maintTasks.filter(t=>t.status==='ongoing').slice().sort((a,b)=>(a.d||'').localeCompare(b.d||''));
+    const maintOldest=maintOngoingList[0];
+    $('maint-kpis').innerHTML=
+      kpi(maintOngoingTot===0?'g':maintOngoingTot>=8?'r':'a','Outstanding/ongoing',fmtN(maintOngoingTot),'maintenance tasks not yet resolved, in range')+
+      kpi('o','Sites affected',fmtN(maintSites.filter(r=>r.ongoing>0).length),'with an outstanding/ongoing task in range')+
+      kpi('o','Resolved',fmtN(maintDoneTot),'marked done, in range')+
+      kpi(maintOldest?'a':'n','Oldest open',maintOldest?maintOldest.d:'—',maintOldest?maintOldest.site:'no open tasks in range');
+  }
 
   /* ---- M&R Facilities app (25/09/2026) ----
      The drill-down for OO2 KR1/KR2/KR4 on the Overview, plus the fault queue
@@ -2169,11 +2216,20 @@ function render(snap){
         'No spike attributed to a supplier this month');
       /* Counts never travel without their denominator: a supplier with 3 lines
          priced and one with 30 cannot be compared on a raw spike count. */
+      /* Unattributed rises for THIS month when the builder buckets them
+         (10/10/2026); older snapshots only carry the all-reports total, and
+         then say so rather than pass it off as the month's. */
+      const unM=sk.unattributed_by_month?((sk.unattributed_by_month[cur&&cur.month])||0):null;
       $('sp-tbl').insertAdjacentHTML('beforeend','<div class="prov">'+
         esc('"Lines priced" is how many of that supplier’s pack lines the month’s '+
         'reports priced at all — the denominator the spike count has to be read against. '+
-        (sk.unattributed?sk.unattributed+' qualifying rise'+(sk.unattributed===1?'':'s')+
-          ' could not be tied to a supplier and are counted nowhere on this table. ':'')+
+        (unM!=null
+          ? (unM?unM+' qualifying rise'+(unM===1?'':'s')+' in '+monthLabel(cur.month)+
+              ' could not be tied to a supplier and '+(unM===1?'is':'are')+
+              ' counted nowhere on this table. ':'')
+          : (sk.unattributed?sk.unattributed+' qualifying rise'+(sk.unattributed===1?'':'s')+
+              ' across every report held could not be tied to a supplier and are counted '+
+              'nowhere on this table. ':''))+
         (sk.duplicate_skipped?sk.duplicate_skipped+(sk.duplicate_skipped===1?' was':' were')+
           ' excluded as a duplicate export line. ':''))+'</div>'+
         '<div class="prov">'+esc(sk.basis||'')+'</div>');
@@ -2595,10 +2651,18 @@ function render(snap){
        suppliers.kr1 block, so the tile and the scorecard cannot drift.
        "Open" survives only on the Supplier Issues tab, where suppliers.kr1
        .open_note explains what that number actually counts. */
+    /* Colour is the builder's judgement, not a test here (10/10/2026): red is
+       over the target and final (a count can only rise); green only for a
+       closed, fully-covered month; rag null - a month still running, or one
+       the feed did not fully cover - is grey, as on the scorecard row below,
+       never a green "On target" that more data could still overturn. */
     (()=>{const k=((sup.kr1||{}).months||[]).slice(-1)[0];
-      return kpi(!k?'n':k.rag==='red'?'r':'g','Delivery issues this month',
-        k?fmtN(k.issues):'—',
-        k?`${monthLabel(k.month)} · target ≤${k.target} · by answered supplier`
+      const none=!k||k.issues==null;
+      return kpi(none?'n':k.rag==='red'?'r':k.rag==='green'?'g':'n','Delivery issues this month',
+        none?'—':fmtN(k.issues),
+        k?`${monthLabel(k.month)} · target ≤${k.target} · by answered supplier`+
+          (none?' · '+(k.coverage_note||'not reached by the answer feed yet')
+           :k.rag==null?(k.mtd?' · month to date, not judged yet':' · incomplete month, not judged'):'')
          :'no data in this pull');})()+
     kpi(devOpen==null?'n':devOpen?'a':'g','Open deviations',devOpen==null?'—':fmtN(devOpen),
         devOpen==null?'no data in this pull':'live form versions only — archived and deleted excluded')+
@@ -2619,7 +2683,7 @@ function render(snap){
 async function loadSnap(date){
   const r=await fetch(BASE+'snapshot_'+date+'.json'+cb(),{cache:'no-store'});
   if(!r.ok) throw new Error('snapshot_'+date+'.json → HTTP '+r.status);
-  SNAP=await r.json(); render(SNAP);
+  SNAP=await r.json(); calcEV(); render(SNAP);
 }
 async function fetchIndex(){
   let lastErr;
@@ -2640,6 +2704,14 @@ function calcEV(){
   if(f||t){ EV={f:f||null,t:t||null}; return; }
   const mode=[...$('range-btns').children].find(b=>b.getAttribute('aria-pressed')==='true')?.dataset.r||'all';
   if(mode==='all'){ EV={f:null,t:null}; return; }
+  /* On an older snapshot the window ends on THAT day, not today (10/10/2026):
+     "7 days" on 2 Oct used to mean 3-10 Oct and showed 0 issues and a 100%
+     on-time rate from a handful of future-dated tasks. */
+  const a=(SNAP&&IDX&&IDX.latest&&SNAP.pull_date&&SNAP.pull_date!==IDX.latest)?SNAP.pull_date:null;
+  if(a){
+    EV={f:new Date(Date.parse(a+'T00:00:00Z')-(+mode)*864e5).toISOString().slice(0,10), t:a};
+    return;
+  }
   EV={f:new Date(Date.now()-(+mode)*864e5).toISOString().slice(0,10), t:null};
 }
 const inEV=d=>!!d&&(!EV.f||d>=EV.f)&&(!EV.t||d<=EV.t);

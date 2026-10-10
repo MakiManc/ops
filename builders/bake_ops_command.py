@@ -534,6 +534,30 @@ def okr_mtd_variant(v, band, pull_month, n_days):
                       + (f" - {v['basis']}" if v.get("basis") else ""))}
 
 
+def okr_incomplete_variant(v, band, why):
+    """A CLOSED month whose source has a hole in it; returns a new dict.
+
+    "Do not score a short month" (Ross). For a count band the missing data can
+    only ADD to the count, so a month already past its last tolerance keeps
+    its 0 - the hole cannot rescue it - and says so. Any other count is a
+    lower bound, not a result, and is left unscored. Rate and mean bands are
+    not handled here: they are computed over the days the source did cover
+    (see otif_months) and pass through.
+    """
+    if v.get("value") is None or band not in OKR_COUNT_BANDS:
+        return v
+    if v.get("score") == 0:
+        _lim = OKR_BANDS[band][1][-1][0]
+        return {**v, "incomplete": True,
+                "basis": (f"UNDERCOUNT, but already past the last tolerance ({_lim:g}): "
+                          f"{why}, and a missing day can only add to a count, so the score "
+                          f"stands" + (f" - {v['basis']}" if v.get("basis") else ""))}
+    return {**v, "score": None, "rag": None, "incomplete": True,
+            "display": (f"{v['display']}+" if v.get("display") else v.get("display")),
+            "basis": (f"not scored - an INCOMPLETE month: {why}, so {v['value']:g} is only a "
+                      f"lower bound" + (f" - {v['basis']}" if v.get("basis") else ""))}
+
+
 def okr_score(band, value):
     """The 100/80/50/0 score for `value` under `band`, or None.
 
@@ -757,6 +781,96 @@ def _mon(d):
     """
     dt=datetime.date.fromisoformat(d[:10])
     return (dt-datetime.timedelta(days=dt.weekday())).isoformat()
+
+
+def run_log_path(archive_dir=None):
+    """Where the export's run receipts live, or None.
+
+    OPS_RUN_LOG names it outright (the verifier's workflow already sets it).
+    Otherwise it is found beside the archive: the ETL repo commits
+    run_log/etl_run_log.jsonl next to warehouse_direct/ and warehouse_archive/,
+    so the parent of any archive directory is the repo root.
+    """
+    p = (os.environ.get("OPS_RUN_LOG") or "").strip()
+    if p:
+        return p if os.path.exists(p) else None
+    for d in (archive_dir or "").split(os.pathsep):
+        d = d.strip().rstrip("/")
+        if not d:
+            continue
+        c = os.path.join(os.path.dirname(d), "run_log", "etl_run_log.jsonl")
+        if os.path.exists(c):
+            return c
+    return None
+
+
+def load_report_receipts(path, feed, through):
+    """{pull_date: [(sent_date, rows_fetched), ...]} for one emailed report.
+
+    The export records, per run, the Date header of the email it parsed for
+    each emailed report (feeds[feed].report_sent_at, since 04/09/2026) and how
+    many rows it read. That is the REPORT'S OWN date - the event date - where
+    the pull date is only when we happened to fetch it. Only receipts for
+    pulls on or before `through` are read, so a back-bake sees exactly what
+    was recorded by its date. sent_date is the UK calendar date of the send.
+    """
+    out = {}
+    if not path:
+        return out
+    try:
+        from zoneinfo import ZoneInfo
+        uk = ZoneInfo("Europe/London")
+    except Exception:  # pragma: no cover - no tz database: UTC date instead
+        uk = datetime.timezone.utc
+    try:
+        fh = open(path)
+    except OSError:
+        return out
+    with fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            pd_ = str(r.get("pull_date") or "")[:10]
+            if not pd_ or (through and pd_ > through):
+                continue
+            f = (r.get("feeds") or {}).get(feed) if isinstance(r.get("feeds"), dict) else None
+            if not isinstance(f, dict) or not f.get("report_sent_at"):
+                continue
+            try:
+                ts = datetime.datetime.fromisoformat(str(f["report_sent_at"]).replace("Z", "+00:00"))
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=datetime.timezone.utc)
+                sd = ts.astimezone(uk).date().isoformat()
+            except ValueError:
+                continue
+            out.setdefault(pd_, []).append((sd, f.get("rows_fetched")))
+    return out
+
+
+def report_event_date(pulls, nrows, receipts):
+    """The email date of one distinct report, or None.
+
+    `pulls` are the pull dates that carried this exact report (oldest first)
+    and `nrows` its row count. A receipt counts only when its row count matches
+    (a re-run that day may have parsed a different email), and the answer must
+    be unambiguous and no later than the first pull that carried the report -
+    an email cannot be sent after we fetched it. Anything else returns None
+    and the caller falls back to the first-seen pull date, saying so.
+    """
+    cands = set()
+    for p in pulls:
+        for sd, n in receipts.get(p, ()):
+            if n is None or n == nrows:
+                cands.add(sd)
+    if len(cands) != 1:
+        return None
+    sd = cands.pop()
+    return sd if pulls and sd <= pulls[0] else None
 
 
 def has_feed(cur, feed):
@@ -1510,6 +1624,10 @@ def main():
         conn = psycopg2.connect(dsn)
         src_label = ("Neon Postgres warehouse via bake_ops_command.py (Pipe 9); "
                      "feed health measured against Postgres, not the Sheets write")
+        adir = None
+    # The export's run receipts: the only place an emailed report's own date
+    # (the email's Date header) is recorded. See load_report_receipts().
+    run_log_file = run_log_path(adir)
     cur = conn.cursor()
     gaps, snap = [], {}
     cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows")
@@ -1823,6 +1941,75 @@ def main():
     # issue raised is still a day the feed covered (09/10/2026, the MTD rule).
     _ad=[a_["d"] for a_ in answers_by_day if a_.get("d")]
     gc_answers_through=min(max(_ad),(pull or "9999-12-31")[:10]) if _ad else ""
+    # WHICH days it covers, not only how far (10/10/2026). Each pull reaches
+    # back about eight days, so a run of missed pulls longer than that leaves
+    # days NO pull ever saw: the 21-30/09 outage lost 20-22/09 (the 20/09 pull
+    # reaches 19/09, the 01/10 pull starts at 23/09). An issue raised on such
+    # a day is in no count, so a month holding one is an undercount, and a
+    # delivery on it has no issue side to be judged against. gc_feed_holes is
+    # every such day between the feed's first covered day and its newest.
+    gc_feed_first=""; gc_feed_holes=[]
+    if has_feed(cur,"GC Form Task Answers"):
+        cur.execute(
+          "SELECT pull_date::text, min(left(data->>'AnsweredDateTime',10)), "
+          " max(left(data->>'AnsweredDateTime',10)) FROM etl_feed_rows "
+          "WHERE feed='GC Form Task Answers' AND data->>'AnsweredDateTime' IS NOT NULL "
+          "GROUP BY 1")
+        _covd=set()
+        for _p,_lo,_hi in cur.fetchall():
+            if not (_p and _lo and _hi): continue
+            try:
+                _x=datetime.date.fromisoformat(_lo[:10])
+                _y=datetime.date.fromisoformat(min(_hi[:10],_p[:10]))
+            except ValueError:
+                continue
+            while _x<=_y:
+                _covd.add(_x.isoformat()); _x+=datetime.timedelta(days=1)
+        if _covd and gc_answers_through:
+            gc_feed_first=min(_covd)
+            _x=datetime.date.fromisoformat(gc_feed_first)
+            _y=datetime.date.fromisoformat(gc_answers_through)
+            while _x<=_y:
+                if _x.isoformat() not in _covd: gc_feed_holes.append(_x.isoformat())
+                _x+=datetime.timedelta(days=1)
+
+    def gc_month_cover(m_):
+        """(days the answer feed covers in month m_, its holes in m_, month end)."""
+        _ms=m_+"-01"
+        _me=(datetime.date(int(m_[:4]),int(m_[5:7]),28)+datetime.timedelta(days=4))
+        _me=(_me-datetime.timedelta(days=_me.day)).isoformat()
+        _hs=[d_ for d_ in gc_feed_holes if _ms<=d_<=_me]
+        _lo=max(_ms,gc_feed_first or _ms); _hi=min(_me,gc_answers_through or "")
+        _n=0
+        if _hi and _lo<=_hi:
+            _n=((datetime.date.fromisoformat(_hi)-datetime.date.fromisoformat(_lo)).days+1
+                -sum(1 for d_ in _hs if _lo<=d_<=_hi))
+        return _n,_hs,_me
+
+    def fmt_days(ds):
+        """'20-22 Sep 2026' for a run, comma-joined otherwise - for prose."""
+        if not ds: return ""
+        out=[]; run=[ds[0]]
+        for d_ in ds[1:]:
+            if (datetime.date.fromisoformat(d_)-datetime.date.fromisoformat(run[-1])).days==1:
+                run.append(d_)
+            else:
+                out.append(run); run=[d_]
+        out.append(run)
+        def _one(r_):
+            a_=datetime.date.fromisoformat(r_[0]); b_=datetime.date.fromisoformat(r_[-1])
+            if len(r_)==1: return f"{a_.day} {a_.strftime('%b %Y')}"
+            if (a_.year,a_.month)==(b_.year,b_.month):
+                return f"{a_.day}-{b_.day} {b_.strftime('%b %Y')}"
+            return f"{a_.day} {a_.strftime('%b')} - {b_.day} {b_.strftime('%b %Y')}"
+        return ", ".join(_one(r_) for r_ in out)
+    if gc_feed_holes:
+        gaps.append("No pull of the GC answer feed covers "+fmt_days(gc_feed_holes)
+            +": each pull reaches back about eight days, and no export ran for longer "
+            "than that. Delivery/supplier issues raised on those days are in no count, "
+            "so each month holding one is an UNDERCOUNT (OO3 KR1), and deliveries on "
+            "those days are left out of the issue-free delivery rate (OO3 KR4) rather "
+            "than counted as issue-free")
     snap["compliance"]={"forms":forms,"areas":areas,"answers_by_day":answers_by_day,
       "answers_basis":"form task answers per AnsweredDateTime day, deduped by AnswerID "
       "across pulls; history accumulates from 13/08/2026 (first landing of the answers feed)"}
@@ -2768,14 +2955,25 @@ def main():
             elif i_.get("attribution")=="text": e_["text"]+=1
         else:
             unattributed[m]=unattributed.get(m,0)+1
-    # The answer feed reaches back only ~9 days from each pull, so the earliest
-    # month in range starts wherever the first archived pull could see, not on
-    # the 1st. August begins on the 5th. Saying "August: 78" without saying
-    # "5-31 Aug" invents a month-on-month trend out of a coverage edge.
-    answers_newest=max((i_.get("d") or "" for i_ in issues), default="")
+    # COVERAGE COMES FROM THE FEED, NOT FROM THE ISSUES (10/10/2026). The
+    # notes used to be built from the newest supplier-ISSUE date, so a day the
+    # feed covered with no issue on it read as "missing": on 02/10 a complete
+    # September was called an UNDERCOUNT, and from 03/10 October said "nothing
+    # before 2026-10-02 is in range" though 1 Oct was covered and simply quiet.
+    # gc_month_cover() measures the feed itself - the same reach the scorecard
+    # uses for coverage_days - including any day no pull ever saw.
+    #
+    # THE MONTH-TO-DATE RULE APPLIES HERE TOO. The Overview tile and the
+    # Supplier Issues card read this block, and showed a green "On target" for
+    # an October count the scorecard on the same page called not yet scored.
+    # A count can only rise: over the target it is red and final; at or under
+    # it, an open month is MTD (rag None) and a closed month with a hole in
+    # its feed is incomplete (rag None) - never a green that more data could
+    # still overturn.
+    _pull_m=(pull or datetime.date.today().isoformat())[:7]
     kr1_months=[]
-    for m in sorted(set(issues_by_month)|set(unattributed)|set(month_span)):
-        if m>(pull or datetime.date.today().isoformat())[:7]: continue
+    for m in sorted(set(issues_by_month)|set(unattributed)|set(month_span)|{_pull_m}):
+        if m>_pull_m: continue
         # "open" travels as a SECONDARY column, never as the headline. It is
         # counted from the per-issue rows (IsOpenDeviation on the answer), so it
         # reconciles with the raised count on its own row - the GC Forms Overview
@@ -2790,33 +2988,56 @@ def main():
                      key=lambda r:(-r["issues"],r["supplier"]))
         att=sum(r["issues"] for r in rows_); un=unattributed.get(m,0)
         first_,last_=month_span.get(m,(None,None))
+        _ncov,_holes,month_end=gc_month_cover(m)
+        _open=(m==_pull_m)
+        if _open and not _ncov and not (att+un):
+            # The pull month with no day of the feed in it yet: unknown, not 0.
+            kr1_months.append({"month":m,"suppliers":[],"issues":None,"attributed":None,
+              "unattributed":None,"open":None,"undercount":False,"mtd":True,
+              "incomplete":False,"holes":[],"coverage_days":0,"target":KR1_TARGET,
+              "rag":None,"first_answer":None,"last_answer":None,
+              "coverage_note":("the GC answer feed does not reach "+m+" yet (it reaches "
+                               +(gc_answers_through or "no day at all")+"), so nothing "
+                               "can be counted for it")})
+            continue
         cov=[]
-        if first_ and not first_.endswith("-01"):
-            cov.append(f"first answer {first_} - nothing before it is in range")
-        month_end=(datetime.date(int(m[:4]),int(m[5:7]),28)+datetime.timedelta(days=4))
-        month_end=(month_end-datetime.timedelta(days=month_end.day)).isoformat()
-        if last_ and last_<month_end:
-            cov.append(f"last answer {last_}"+(" - the month is not over" if month_end>=(pull or "")[:10] else ""))
-        # Only the month the feed actually stops inside (and any later one) can
-        # be undercounted by that lag. Hanging this warning on a closed month
-        # like August would tell the reader a settled figure is provisional.
-        if answers_newest and pull and answers_newest<pull and m>=answers_newest[:7]:
-            cov.append(f"the answer feed's newest row is {answers_newest} but this bake is stamped "
-                       f"{pull}, so the last {(datetime.date.fromisoformat(pull)-datetime.date.fromisoformat(answers_newest)).days} "
-                       f"day(s) are missing and this month is an UNDERCOUNT")
+        _lead=bool(gc_feed_first and m+"-01"<gc_feed_first<=month_end)
+        if _lead:
+            cov.append(f"the answer feed's history starts {gc_feed_first} - nothing before "
+                       "it is in range, so this month is an UNDERCOUNT")
+        if _holes:
+            cov.append(f"no pull of the answer feed covers {fmt_days(_holes)}, so issues "
+                       "raised then are missing and this month is an UNDERCOUNT")
+        _tail=bool(gc_answers_through and gc_answers_through<month_end)
+        if _open:
+            cov.append(f"month to date - the answer feed reaches {gc_answers_through}")
+        elif _tail:
+            cov.append(f"the answer feed reaches only {gc_answers_through}, so the last "
+                       f"{(datetime.date.fromisoformat(month_end)-datetime.date.fromisoformat(gc_answers_through)).days} "
+                       "day(s) are missing and this month is an UNDERCOUNT")
+        _under=bool(_holes) or _lead or (_tail and not _open)
+        _n=att+un
+        if _n>KR1_TARGET:
+            _rag="red"               # over the target already, and can only rise
+        elif _open or _under:
+            _rag=None                # not yet judged: more data can still push it over
+        else:
+            _rag="green"
         kr1_months.append({"month":m,"suppliers":rows_,
-          "issues":att+un,"attributed":att,"unattributed":un,
+          "issues":_n,"attributed":att,"unattributed":un,
           "open":sum(r["open"] for r in rows_),
-          # An explicit flag rather than leaving the shell to read prose: a
-          # month the feed stops inside is an undercount, and a card must be
-          # able to say so without regexing coverage_note.
-          "undercount":bool(answers_newest and pull and answers_newest<pull
-                            and m>=answers_newest[:7]),
+          # Explicit flags rather than leaving the shell to read prose. undercount:
+          # the feed missed days of this month (a hole, or a closed month it does
+          # not reach the end of). mtd: the month is still running. incomplete:
+          # a CLOSED month the feed did not fully cover.
+          "undercount":_under,"mtd":_open,"incomplete":bool(_under and not _open),
+          "holes":_holes,"coverage_days":_ncov,
           "target":KR1_TARGET,
-          # Green when the target is met, red when it is not. The Master
+          # Red when over the target, which no later data can undo; green only
+          # for a closed, fully-covered month at or under it. The Master
           # Operating Manual gives a target and no tolerance, so there is no
           # amber band here to invent.
-          "rag":("green" if att+un<=KR1_TARGET else "red"),
+          "rag":_rag,
           "first_answer":first_,"last_answer":last_,
           "coverage_note":"; ".join(cov) or None})
     snap["suppliers"]["kr1"]={"target":KR1_TARGET,"months":kr1_months,
@@ -2851,16 +3072,31 @@ def main():
         # 01/10 October was 74 deliveries (17 dated after the bake) over 0
         # issues - the answer feed had not reached October - and scored 100%.
         # Deliveries after `_otif_through` are held back and counted, not lost.
+        #
+        # The same holds INSIDE the range (10/10/2026): a delivery on a day no
+        # pull of the issue feed ever saw (gc_feed_holes - 20-22/09, lost to
+        # the outage) cannot have had its issue counted either, so it is left
+        # OUT of the month - counted in deliveries_in_feed_holes and named in
+        # the basis - rather than scored as issue-free. September's rate is
+        # then a rate over the 27 days both sides cover.
         _otif_through=gc_answers_through or (pull or "")[:10]
+        _holes=set(gc_feed_holes)
         cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") "
-                    "SELECT substr(dd,1,7) m, sup, count(*) FILTER (WHERE dd<=%s), "
-                    " count(*) FILTER (WHERE dd>%s) FROM o "
+                    "SELECT dd, sup, count(*) FROM o "
                     "WHERE dd IS NOT NULL AND dd>=%s GROUP BY 1,2",
-                    (ORDER_EMAIL_FEED,_otif_through,_otif_through,OTIF_FIRST_MONTH+"-01"))
-        deliveries={}; deliveries_later={}
-        for m,sup,n,n_later in cur.fetchall():
-            if not m: continue
-            if n_later: deliveries_later[m]=deliveries_later.get(m,0)+n_later
+                    (ORDER_EMAIL_FEED,OTIF_FIRST_MONTH+"-01"))
+        _per=collections.Counter(); deliveries_later={}; deliveries_hole={}
+        for dd_,sup,n_ in cur.fetchall():
+            if not dd_ or not n_: continue
+            dd_=str(dd_)[:10]; m=dd_[:7]
+            if dd_>_otif_through:
+                deliveries_later[m]=deliveries_later.get(m,0)+n_
+            elif dd_ in _holes:
+                deliveries_hole[m]=deliveries_hole.get(m,0)+n_
+            else:
+                _per[(m,sup)]+=n_
+        deliveries={}
+        for (m,sup),n in sorted(_per.items(),key=lambda kv:(kv[0][0],kv[0][1] or "")):
             if not n: continue
             name=(sup or "(no supplier)").strip()
             key=canon_supplier(name) or name
@@ -2935,6 +3171,8 @@ def main():
               "unattributed_issues":unattributed.get(m,0),
               "counted_through":_otif_through,
               "deliveries_held_back":deliveries_later.get(m,0),
+              "deliveries_in_feed_holes":deliveries_hole.get(m,0),
+              "feed_holes":[d_ for d_ in gc_feed_holes if d_[:7]==m],
               "otif_pct":round(100.0*max(0,dl_m-iss_m)/dl_m,1) if dl_m else None})
         otif_basis=("ISSUE-FREE DELIVERY RATE (INDICATIVE) - this is NOT OTIF and must not be "
             "labelled as one: nothing here observes whether a delivery was on time, and one "
@@ -2945,7 +3183,9 @@ def main():
             "rows the Supplier Issues tab and the KR1 gauge read, so all three reconcile; "
             "deliveries are counted only up to the newest day the issue feed covers "
             f"({_otif_through}) - one dated later cannot have had an issue filed yet, so it is "
-            "held back (deliveries_held_back) rather than counted as issue-free; "
+            "held back (deliveries_held_back) rather than counted as issue-free, and one "
+            "dated on a day no pull of the issue feed covers is left out "
+            "(deliveries_in_feed_holes) for the same reason; "
             "rate = max(0, deliveries - issues) / deliveries, and is published ONLY for a "
             "supplier-month whose order emails cover the whole month for that supplier. Every "
             "other supplier-month carries not_measured saying why, and is excluded from the "
@@ -2964,14 +3204,22 @@ def main():
     # WHAT A "REPORT" IS. Kobas emails this weekly; the export pulls it every
     # day, so the same report is archived several days running. Four distinct
     # reports arrived in the ten pulls to 31/08. So the unit of time here is a
-    # DISTINCT REPORT, identified by its content, dated by the first pull that
-    # carried it - not pull_date, which would count one report four times and
-    # make every price look like it changed daily.
+    # DISTINCT REPORT, identified by its content - not one per pull_date, which
+    # would count one report four times and make every price look like it
+    # changed daily.
     #
-    # Dating by first-seen is deliberately conservative. A pull gap (an export
-    # that failed, or the 3-day email window that lost the 24-31/08 report on
-    # three days) can only make a report look NEWER than it is, so the
-    # "held for N days" test under-states age and never over-fires.
+    # DATED BY ITS EMAIL, NOT BY OUR PULL (10/10/2026). Event dates, not pull
+    # dates: the export records each report's email Date header in its run
+    # receipt (report_sent_at, since 04/09/2026), and that is the date a
+    # report belongs to. First-seen pull dating put the report Kobas emailed on
+    # Monday 28/09 into OCTOBER, because the 21-30/09 outage meant the first
+    # pull to carry it was 01/10 - and with the count already over its limit
+    # that one report made October's OO3 KR2 "ALREADY BREACHED" on 2-4 Oct and
+    # put Operations at 0%. Reports from before the receipts carried the date
+    # fall back to the first pull that carried them, and say so
+    # (price_reports[].dated_by). The email date is still no later than the
+    # changes it lists, so the "held for N days" test still under-states age
+    # and never over-fires.
     #
     # WHAT A ROW IS. Each row is one change EVENT, not one item: an item can
     # appear several times in a single report, and the report carries no
@@ -3012,6 +3260,7 @@ def main():
     att_total=0
     spike_events=[]; spike_months=[]; spike_weeks={}
     spike_unattributed=0; spike_dupe_skipped=0; ordered_recent=None
+    spike_unattributed_m=collections.Counter(); price_missing=[]
 
     # ---- WHOSE price moved -----------------------------------------------
     # THE JOIN EVERYONE REACHES FOR FIRST DOES NOT EXIST, so do not re-add it.
@@ -3216,14 +3465,42 @@ def main():
         by_pull={}
         for d,rn,i,op,np,pid,ps,uv,ms,sup in cur.fetchall():
             by_pull.setdefault(d,[]).append((rn,i,op,np,pid,ps,uv,ms,sup))
-        seen_hash={}; reports=[]
+        seen_hash={}; carried={}
         for d in sorted(by_pull):
             rows=by_pull[d]
             h=hashlib.sha1(repr(rows).encode()).hexdigest()
+            carried.setdefault(h,[]).append(d)
             if h in seen_hash: continue      # same report, pulled again
-            seen_hash[h]=d
-            reports.append((d,rows))
-            price_reports.append({"date":d,"rows":len(rows)})
+            seen_hash[h]=(d,rows)
+        # Each distinct report is dated by its EMAIL (see the comment above),
+        # read from the receipts of the pulls that carried it, as of this bake.
+        _rcpt=load_report_receipts(run_log_file,PRICE_FEED,pull)
+        reports=[]
+        for h,(d0,rows) in seen_hash.items():
+            sd=report_event_date(carried[h],len(rows),_rcpt)
+            reports.append((sd or d0,rows,d0,"email" if sd else "first_pull"))
+        reports.sort(key=lambda r:(r[0],r[2]))
+        for d,rows,d0,how in reports:
+            price_reports.append({"date":d,"rows":len(rows),"first_seen":d0,"dated_by":how})
+        reports=[(d,rows) for d,rows,_d0,_how in reports]
+        # A weekly report that never reached us. Kobas sends it every Monday
+        # at about 07:02 UTC (receipts: 31/08, 07/09, 14/09, 28/09, 05/10).
+        # Between two email-dated reports more than ten days apart, each week
+        # in between is a report we never pulled - the one sent around 21/09
+        # was lost to the 21-30/09 outage, when no export ran to fetch it. The
+        # month it falls in is an UNDERCOUNT, and the KR2 row says so.
+        _em=[r_["date"] for r_ in price_reports if r_["dated_by"]=="email"]
+        for _a,_b in zip(_em,_em[1:]):
+            _x=datetime.date.fromisoformat(_a)+datetime.timedelta(days=7)
+            while _x<datetime.date.fromisoformat(_b)-datetime.timedelta(days=3):
+                price_missing.append(_x.isoformat())
+                _x+=datetime.timedelta(days=7)
+        if price_missing:
+            gaps.append(str(len(price_missing))+" weekly ingredient price report(s) "
+                "were never pulled (expected around "+", ".join(price_missing)+"): no "
+                "export ran to fetch the email that week, and the export keeps only the "
+                "newest one. Their price rises are missing from the spike counts, so the "
+                "month each falls in is an undercount")
         # One item is a specific pack of a specific ingredient. Parent ID alone
         # is not unique - EDAMAME carries several packs under one parent - and
         # keying on it would read two packs' prices as one item bouncing.
@@ -3439,7 +3716,8 @@ def main():
                 if pct<PRICE_SPIKE_PCT: continue
                 if pct>=PRICE_SUSPECT_UP or pct<=PRICE_SUSPECT_DOWN: continue
                 if a["duplicate_line"]: spike_dupe_skipped+=1; continue
-                if not a["supplier"]: spike_unattributed+=1; continue
+                if not a["supplier"]:
+                    spike_unattributed+=1; spike_unattributed_m[d[:7]]+=1; continue
                 if ordered_recent is not None and _pk_name(i) not in ordered_recent:
                     continue
                 if (d,a["supplier"]) in seen_line: continue   # once per report
@@ -3578,8 +3856,9 @@ def main():
     if att_rate is not None and not price_attribution["meets_bar"]:
         gaps.append("Supplier attribution of price changes is at "+str(att_rate)+"% of "
           "report rows, under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% this system "
-          "requires before it will put supplier names on a scorecard row, so Supply KR2 "
-          "stays unmeasured. This is a COVERAGE limit, not an accuracy one: where a "
+          "requires before it will name a supplier on a scorecard row, so the per-supplier "
+          "spike counts stay a drill-down on the Supply tab, not a scored row (OO3 KR2 "
+          "itself counts lines estate-wide and needs no attribution). This is a COVERAGE limit, not an accuracy one: where a "
           "route fires it agrees with the export-diff ground truth every time. Taking "
           "the pack-price export weekly, on the price report's own schedule, is what "
           "lifts it")
@@ -3602,8 +3881,9 @@ def main():
       "A spike is one supplier pack line rising by "+str(int(PRICE_SPIKE_PCT))+"% or "
       "more in a single weekly report, counted once per line per report and attributed "
       "to the supplier whose pack line moved. "
-      +("Month shown is "+spike_months[-1]["month"]+", by the report's first-seen date, "
-        "the same calendar-month rule as KR1. " if spike_months else "")
+      +("Month shown is "+spike_months[-1]["month"]+", by the date Kobas emailed the "
+        "report (the first pull that carried it, for reports before 04/09/2026), the "
+        "same calendar-month rule as KR1. " if spike_months else "")
       +"Excluded: a first-ever price ('New'), a move of "+str(int(PRICE_SUSPECT_UP))+"% "
       "or more (a pack re-spec or a keying slip, not a price), either side priced 0.00, "
       "and any line the pack-price export holds twice for one supplier+category+"
@@ -3614,8 +3894,8 @@ def main():
       +(" (under the "+str(int(PRICE_ATTRIBUTION_MIN_PCT))+"% bar this system requires "
         "before naming suppliers on a scorecard row)" if att_rate is not None
         and att_rate<PRICE_ATTRIBUTION_MIN_PCT else "")
-      +"; "+str(spike_unattributed)+" qualifying rise(s) name no supplier and are "
-      "disclosed rather than assigned. "
+      +"; "+str(spike_unattributed)+" qualifying rise(s) across all "+str(len(price_reports))
+      +" report(s) held name no supplier and are disclosed rather than assigned. "
       +("Restricted to the "+str(len(ordered_recent))+" ingredient(s) ordered in the "
         "trailing "+str(PRICE_SPIKE_ORDERED_WEEKS)+" weeks."
         if ordered_recent is not None else
@@ -3681,6 +3961,10 @@ def main():
       "price_spikes":{"months":spike_months,
         "current":(spike_months[-1] if spike_months else None),
         "unattributed":spike_unattributed,"duplicate_skipped":spike_dupe_skipped,
+        # per month of the report's email date - the October row must not
+        # quote a count that covers every report since August as its own
+        "unattributed_by_month":dict(sorted(spike_unattributed_m.items())),
+        "missing_reports":price_missing,
         "ordered_filter":(len(ordered_recent) if ordered_recent is not None else None),
         "thresholds":{"pct":PRICE_SPIKE_PCT,
           "max_per_supplier":PRICE_SPIKE_MAX_PER_SUPPLIER,
@@ -3838,10 +4122,14 @@ def main():
             if _mp and _mp>dated: _msrc_later=_mp
         except (OSError,ValueError):
             pass
+    # NULL, NOT EMPTY, when there is no sheet to read (10/10/2026). An empty
+    # list is "no tasks", and the tab summed it into a green "Outstanding/
+    # ongoing 0" on every back-baked day. `unavailable` names why, and the
+    # tab shows grey dashes with that reason instead of zeros.
     if _msrc_later:
-        snap["maintenance"]={"tasks":[],"by_site":[],"gaps":[
-          f"back-baked snapshot: the maintenance sheet copy on file was pulled on {_msrc_later}, "
-          f"after this snapshot's date ({dated}), so it is not shown here"],
+        _why=(f"back-baked snapshot: the maintenance sheet copy on file was pulled on {_msrc_later}, "
+              f"after this snapshot's date ({dated}), so it is not shown here")
+        snap["maintenance"]={"tasks":None,"by_site":None,"unavailable":_why,"gaps":[_why],
           "basis":"not available in a back-baked snapshot - the sheet is stored as current "
                   "state only, so there is no copy as it stood on "+dated}
     elif os.path.exists(MAINT_SRC):
@@ -3877,8 +4165,8 @@ def main():
           "on every bake; if those two dates stop moving, that script is failing "
           "and saying so in the bake log"}
     else:
-        snap["maintenance"]={"tasks":[],"by_site":[],"gaps":[
-          "maintenance_source.json missing - Maintenance tab has no data this bake"],
+        _why="maintenance_source.json missing - Maintenance tab has no data this bake"
+        snap["maintenance"]={"tasks":None,"by_site":None,"unavailable":_why,"gaps":[_why],
           "basis":"no data available this bake"}
         gaps.append("data/ops_command/maintenance_source.json absent - Maintenance tab "
           "empty. It is written by builders/refresh_maintenance.py from Lincoln's "
@@ -4106,17 +4394,29 @@ def main():
         # here - this only carries each month's finished answer onto the row.
         def _k1var(m_):
             _w=_weeks_to(_mend(m_["month"]))
+            if m_.get("issues") is None:
+                # a month the answer feed has not reached: unknown, never 0
+                return _mvar(m_["month"],coverage_days=m_.get("coverage_days"),
+                             not_measured=m_.get("coverage_note"))
             return _mvar(m_["month"],
                 value=m_["issues"],display=str(m_["issues"]),rag=m_["rag"],
                 basis=(snap["suppliers"]["kr1"]["basis"]
                        +(" — "+m_["coverage_note"] if m_.get("coverage_note") else "")),
+                coverage_days=m_.get("coverage_days"),
+                # a CLOSED month the feed did not fully cover: judged by
+                # okr_incomplete_variant() once it has its OKR score
+                incomplete_why=(f"no pull of the GC answer feed covers {fmt_days(m_['holes'])}"
+                                if m_.get("incomplete") and m_.get("holes") else
+                                (m_.get("coverage_note") or "the GC answer feed does not "
+                                 "cover the whole month")
+                                if m_.get("incomplete") else None),
                 trend=_trend(_b,fmt=lambda num,den: num,weeks=_w),
                 trend_unit="issues raised / week",
                 trend_note=_note(_b,"issue","2026-08-05",weeks=_w))
+        _cv=_k1var(_cur)
         row("Supply","KR1 delivery issues / month","≤10","p-supi",
-            value=_cur["issues"],display=str(_cur["issues"]),rag=_cur["rag"],
-            basis=(snap["suppliers"]["kr1"]["basis"]
-                   +(" — "+_cur["coverage_note"] if _cur.get("coverage_note") else "")),
+            value=_cv["value"],display=_cv["display"],rag=_cv["rag"],
+            basis=_cv["basis"],not_measured=_cv["not_measured"],
             trend=_trend(_b,fmt=lambda num,den: num),trend_unit="issues raised / week",
             trend_note=_note(_b,"issue","2026-08-05"),
             months=[_k1var(m_) for m_ in _k])
@@ -4220,6 +4520,10 @@ def main():
              f"issue feed covers - {m_['deliveries_held_back']} dated later are held back "
              "until an issue could have been filed against them"
              if m_.get("deliveries_held_back") else "")
+          + (f"; {m_['deliveries_in_feed_holes']} deliveries on {fmt_days(m_['feed_holes'])} "
+             "are LEFT OUT - no pull of the issue feed covers those days, so an issue raised "
+             "then is in no count - and the rate covers the remaining days of the month"
+             if m_.get("deliveries_in_feed_holes") else "")
           + ". Real OTIF needs Mapal Supplier Orders or a Lynas delivery file.")
     if _last and _last.get("otif_pct") is not None:
         # A month whose coverage never spanned it has no defensible rate, so it
@@ -4667,19 +4971,38 @@ def main():
     for _m0 in sorted({d_[:7] for d_ in _rep_dates} - _have_m):
         _sp_blocks.append({"month": _m0, "suppliers": []})
 
+    _preps = (snap.get("supply") or {}).get("price_reports") or []
+
+    def _fp_n(m_):
+        return sum(1 for r_ in _preps
+                   if r_.get("dated_by") == "first_pull" and str(r_.get("date"))[:7] == m_)
+
+    def _miss_of(m_):
+        return [x for x in (_sp2.get("missing_reports") or []) if x[:7] == m_]
+
+    def _un_of(m_):
+        return (_sp2.get("unattributed_by_month") or {}).get(m_) or 0
+
     def _spike_basis(blk):
         _n = sum(x.get("spikes") or 0 for x in (blk.get("suppliers") or []))
         _thr = (_sp2.get("thresholds") or {}).get("pct")
         return (f"{_n} distinct supplier pack line(s) rose by {_thr or 10}% or more in a "
                 f"single weekly report during {_mlabel(blk['month'])}, counted ESTATE-WIDE "
                 f"across {len(blk.get('suppliers') or [])} named supplier(s) - one count per "
-                f"line per report, by the report's own first-seen date. "
-                f"Same rule and the same five exclusions as the per-supplier table on the "
+                f"line per report, each report in the month Kobas emailed it"
+                + (f" ({_fp_n(blk['month'])} report(s) this month predate the email date "
+                   f"being recorded on 04/09/2026 and are dated by the first pull that "
+                   f"carried them)" if _fp_n(blk["month"]) else "")
+                + ". "
+                + (f"UNDERCOUNT: the weekly report expected around "
+                   f"{', '.join(_miss_of(blk['month']))} was never pulled, so its rises are "
+                   f"missing from this month. " if _miss_of(blk["month"]) else "")
+                + f"Same rule and the same five exclusions as the per-supplier table on the "
                 f"Supply tab, which remains this row's drill-down: a first-ever price "
                 f"('New'), a move of 100% or more, either side priced 0.00, a line the "
                 f"export holds twice, and a line whose supplier cannot be named"
-                + (f" ({_sp2['unattributed']} qualifying rise(s) this pull)"
-                   if _sp2.get("unattributed") else "")
+                + (f" ({_un_of(blk['month'])} qualifying rise(s) in {_mlabel(blk['month'])})"
+                   if _un_of(blk["month"]) else "")
                 + ". Counting items rather than naming suppliers, so the 90% attribution bar "
                 "that greyed this row until 21/09/2026 no longer applies to it"
                 + (". NOT restricted to recently-ordered ingredients: 'Kobas Orders' keeps "
@@ -4696,8 +5019,15 @@ def main():
         for _b in sorted(_sp_blocks, key=lambda b: b["month"]):
             _n = sum(x.get("spikes") or 0 for x in (_b.get("suppliers") or []))
             _s = okr_score("spikes", _n)
-            _sv.append(_mvar(_b["month"], value=_n, display=str(_n), score=_s,
-                             rag=_rag_of(_s), basis=_spike_basis(_b)))
+            _v = _mvar(_b["month"], value=_n, display=str(_n), score=_s,
+                       rag=_rag_of(_s), basis=_spike_basis(_b))
+            # A CLOSED month that lost a weekly report is an undercount; it
+            # keeps a score only when the missing rises could not change it.
+            if _miss_of(_b["month"]) and _b["month"] < (pull or "")[:7]:
+                _v = okr_incomplete_variant(
+                    _v, "spikes", f"the weekly report expected around "
+                    f"{', '.join(_miss_of(_b['month']))} was never pulled")
+            _sv.append(_v)
         _okr_extra[("OO3", "KR2")] = {"months": _sv,
                                       "source_kind": "computed",
                                       "tab": "p-supp"}
@@ -4739,6 +5069,10 @@ def main():
             _s = okr_score("density", _out)
             _days = len({x["d"] for x in _rows})
             _mtd = (_m == (pull or "")[:7])
+            # The same disclosure the Quality row makes (10/10/2026): a month
+            # read before the band existed is scored against a spec the factory
+            # had not been given - see FB_BAND_SET.
+            _pre = sum(1 for x in _rows if x["d"] < FB_BAND_SET)
             _vars.append(_mvar(
                 _m, value=_mean,
                 display=f"{_mean:g} avg - {_pct}% of {len(_rows)} readings in band",
@@ -4753,6 +5087,10 @@ def main():
                        + (f" as at its own pull {fb_pull}" if fb_pull else "")
                        + (". MONTH TO DATE - the month is not finished, so this figure is "
                           "still moving" if _mtd else "")
+                       + (f". {'ALL' if _pre == len(_rows) else _pre} of this month's "
+                          f"{len(_rows)} reading(s) were taken before {FB_BAND_SET}, the day "
+                          f"the after-ice band was agreed, so they are graded against a spec "
+                          f"that did not exist when they were taken" if _pre else "")
                        + ". THE SCORE IS ON THE MEAN, which is what the band was agreed "
                          "against; the in-band percentage is shown beside it because a mean "
                          "can sit inside band while individual batches miss it in both "
@@ -4776,15 +5114,17 @@ def main():
         return (datetime.date(y_ + (mo_ == 12), 1 if mo_ == 12 else mo_ + 1, 1)
                 - datetime.timedelta(days=1)).isoformat()
 
-    def _cov_days(m_, through):
-        """Days of month m_ (from the 1st) that a feed reaching `through` covers."""
+    def _cov_days(m_, through, holes=()):
+        """Days of month m_ (from the 1st) that a feed reaching `through` covers,
+        less any day no pull of it ever saw (`holes`)."""
         if not through:
             return 0
         _end = min(through[:10], _last_day(m_))
         if _end < m_ + "-01":
             return 0
-        return (datetime.date.fromisoformat(_end)
-                - datetime.date.fromisoformat(m_ + "-01")).days + 1
+        return ((datetime.date.fromisoformat(_end)
+                 - datetime.date.fromisoformat(m_ + "-01")).days + 1
+                - sum(1 for d_ in holes if m_ + "-01" <= d_ <= _end))
 
     # How far each monthly KR's source reaches, as of this bake. The broth
     # rows carry their own count instead (distinct production days with a
@@ -4794,12 +5134,16 @@ def main():
         ("OO3", "KR1"): gc_answers_through,
         # the same issue side - deliveries are capped to it (see otif_months)
         ("OO3", "KR4"): gc_answers_through,
-        # the weekly price report: up to the newest report first seen
+        # the weekly price report: up to the date Kobas emailed the newest one
         ("OO3", "KR2"): (_rep_dates[-1] if _rep_dates else ""),
         # Facilities repeat issues: the app counts its fault log up to its
         # own as_of date (only quoted at all when the feed is fresh)
         ("OO2", "KR2"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
     }
+
+    # Days no pull of the source ever saw, per KR: only the GC answer feed
+    # has them today (gc_feed_holes - the 21-30/09 outage lost 20-22/09).
+    _cov_holes = {("OO3", "KR1"): gc_feed_holes, ("OO3", "KR4"): gc_feed_holes}
 
     def _mtd_gate(rid, band, variants):
         """Apply okr_mtd_variant() to one row's month variants, with the
@@ -4808,7 +5152,7 @@ def main():
         for v_ in variants or []:
             n_ = v_.get("coverage_days")
             if n_ is None and rid in _cov_through and v_.get("m", "") >= _pm:
-                n_ = _cov_days(v_["m"], _cov_through[rid])
+                n_ = _cov_days(v_["m"], _cov_through[rid], _cov_holes.get(rid, ()))
             out.append(okr_mtd_variant(v_, band, _pm, n_))
         return out
 
@@ -4826,7 +5170,8 @@ def main():
         _d = next((v_ for v_ in months_ if v_["m"] == _pm), None)
         if _d is not None or not _pm:
             return _d, False
-        _n = _cov_days(_pm, _cov_through[rid]) if rid in _cov_through else 0
+        _n = (_cov_days(_pm, _cov_through[rid], _cov_holes.get(rid, ()))
+              if rid in _cov_through else 0)
         if rid == ("OO3", "KR1") and _n >= 1:
             _s = okr_score(band, 0)
             _v = _mvar(_pm, value=0, display="0", score=_s, rag=_rag_of(_s),
@@ -4835,9 +5180,17 @@ def main():
                               f"the GC answer feed covers {_n} day(s) of the month and none of "
                               "them holds one"))
             return _mtd_gate(rid, band, [_v])[0], True
+        _why = f"this KR's source has no figure for {_mlabel(_pm)} yet"
+        if rid == ("OO3", "KR2") and _rep_dates:
+            # Unknown, not zero: no report has been EMAILED this month, so
+            # there is nothing to count yet (10/10/2026 - the 28/09 report
+            # used to land here and make October "ALREADY BREACHED").
+            _why = (f"no weekly ingredient price report emailed in {_mlabel(_pm)} yet - the "
+                    f"newest, emailed {_rep_dates[-1]}, is counted in "
+                    f"{_mlabel(_rep_dates[-1][:7])}. Kobas sends it on Mondays")
         return (_mvar(_pm, mtd=True, coverage_days=_n, score=None,
                       basis=(f"month-to-date, not yet scored ({_n} day{'' if _n == 1 else 's'} "
-                             f"of data) - this KR's source has no figure for {_mlabel(_pm)} yet")),
+                             f"of data) - {_why}")),
                 True)
 
     # --- assemble the thirty rows ------------------------------------------
@@ -4880,7 +5233,13 @@ def main():
             for _k in ("value", "display", "trend", "trend_unit", "trend_note"):
                 _r[_k] = _src.get(_k)
             if _src.get("months"):
-                _r["months"] = _mtd_gate(_id, _band, _okr_months(_src, _band))
+                # incomplete_why is the source row's note to this step, not
+                # something to publish: it becomes the variant's basis here
+                _r["months"] = _mtd_gate(_id, _band, [
+                    (okr_incomplete_variant(_vv, _band, v_["incomplete_why"])
+                     if v_.get("incomplete_why") else _vv)
+                    for v_ in _okr_months(_src, _band)
+                    for _vv in [{k_: x_ for k_, x_ in v_.items() if k_ != "incomplete_why"}]])
                 _dm, _new = _default_variant(_id, _band, _r["months"])
                 if _new:
                     _r["months"].append(_dm)

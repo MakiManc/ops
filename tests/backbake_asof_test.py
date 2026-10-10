@@ -144,7 +144,7 @@ def main() -> int:
         elif isinstance(x, str) and ("2026-01-12" in x or "2026-01-11" in x):
             late.append(path)
     _walk(snap, "")
-    allowed = {"/supply/week_end", "/maintenance/gaps[]"}
+    allowed = {"/supply/week_end", "/maintenance/gaps[]", "/maintenance/unavailable"}
     stray = sorted(set(late) - allowed)
     check(not stray, f"no data dated after 01-08 appears in it (stray: {stray[:6]})")
     fh_ = {f["feed"]: f for f in snap["feed_health"]}
@@ -159,6 +159,9 @@ def main() -> int:
     m = snap["maintenance"]
     check(not m["tasks"] and any("after this snapshot's date" in g for g in m["gaps"]),
           "a maintenance sheet pulled after the date is not shown, and the tab says why")
+    check(m["tasks"] is None and m["by_site"] is None
+          and "after this snapshot's date" in (m.get("unavailable") or ""),
+          "withheld is NULL with a reason, not an empty list the tab would sum to a green 0")
     fac = m.get("facilities") or {}
     check(fac.get("file", "").endswith("facilities_ppm.json") and fac.get("status") == "ok",
           f"Facilities: the copy pulled BEFORE the date is used, not the push made after it "

@@ -752,7 +752,9 @@ def check_price_attribution(snap: dict | None) -> None:
     the pack-price export is taken by hand, roughly monthly, so reports
     arriving after the newest export have nothing to be proved against. A
     critical here would cry wolf every day until someone drops a file in Drive.
-    Supply KR2 stays unmeasured while this warns, which is the point.
+    While this warns no supplier is named on a scorecard row - the
+    per-supplier spike counts stay a drill-down. OO3 KR2 counts lines
+    estate-wide and needs no attribution, so it is scored regardless.
     """
     if not snap:
         return
@@ -774,7 +776,9 @@ def check_price_attribution(snap: dict | None) -> None:
     elif rate < floor:
         add("4c-attribution", "warning",
             f"only {rate}% of price-report rows could be tied to a named "
-            f"supplier (floor {floor}%), so Supply KR2 stays unmeasured. "
+            f"supplier (floor {floor}%), so the per-supplier spike counts stay "
+            f"a drill-down rather than a scored row (OO3 KR2 counts estate-wide "
+            f"and is unaffected). "
             f"{att.get('by_id', 0)} were proved from the pack-price export of "
             f"{att.get('as_of') or 'none held'} and {att.get('by_name', 0)} "
             "matched by ingredient and pack. A fresher export in Drive is what "
