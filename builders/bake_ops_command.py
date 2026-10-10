@@ -452,15 +452,15 @@ OKR_BAND_STATUS = {
 #: schedule, so the grey rows read as the build's remaining work rather than as
 #: something nobody noticed.
 OKR_PENDING = {
-    ("OO1", "KR1"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
-    ("OO1", "KR2"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
-    ("OO1", "KR3"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
-    ("OO1", "KR4"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
-    ("OO1", "KR5"): "Finance-entered on the Operations Input sheet; read in Phase 5 as a score only",
-    ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet; read in Phase 2",
+    ("OO1", "KR1"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
+    ("OO1", "KR2"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
+    ("OO1", "KR3"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
+    ("OO1", "KR4"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
+    ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
+    ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
     ("OO4", "KR2"): "factory-attributed damage on broth and sauce lines in the GetCompliant issue forms; Phase 2. Step 0 found ZERO such forms in the covered window - the factory has never been named as a supplier on one - so expect this to stay grey until the Supplier? picker in GetCompliant offers the factory",
     ("OO4", "KR3"): "internal orders marked received in Kobas; Phase 2. Step 0 found internal orders CAN be isolated (factory as sending venue) but carry no received status at all, so this may stay grey",
-    ("OO4", "KR4"): "Finance-entered on the Operations Input sheet; read in Phase 2",
+    ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates; Phase 2, from the same data as OO3 KR4",
     ("OO5", "KR4"): "factory scheduled-task on-time from GetCompliant; Phase 3",
     ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the site-orders table; Phase 3",
@@ -677,6 +677,609 @@ OKR_SPEC = [
     ("OO6", "KR5", "KR5: Seperation of Invoices associated with Frozen Ramen at "
      "Factory Level", "Operations", "not set", None),
 ]
+
+# ---------------------------------------------------------------------------
+# THE OPERATIONS INPUT SHEET (Phase 1, 10/10/2026)
+# ---------------------------------------------------------------------------
+# Nine KRs are typed into Matthew's 2026 Operations Input sheet and exist
+# nowhere else. builders/refresh_okr_sources.py reads them into
+# data/ops_command/okr_sheet.json before every bake and records each attempt in
+# okr_sheet_status.json; okr_sheet_extra() below turns that file into month
+# variants. The rules, each of which is a house rule and not a preference:
+#   * A MONTH NOT ENTERED IS NOT SCORED - never a 0, which would score 100.
+#   * The month in progress is never scored on a typed figure unless a count
+#     is already past its last tolerance (the MTD rule, okr_mtd_variant).
+#   * OO1 is Finance's SCORES ONLY: no value and no display, ever, on any OO1
+#     row or month - MakiManc/ops is public and OO1 is Net Profit.
+#   * A copy read after a back-bake's date is not shown in it (no time
+#     travel): the file is current state only.
+#   * A failed pull keeps the last good copy, and every row it feeds says so.
+OKR_SHEET_FILE = "okr_sheet.json"
+OKR_SHEET_STATUS_FILE = "okr_sheet_status.json"
+#: The sheet is the 2026 sheet: no month before this is one of its months.
+OKR_SHEET_FIRST_MONTH = "2026-01"
+#: The only values an OO1 cell may carry. Anything else is not a score.
+OO1_SCORE_SET = frozenset({0, 50, 80, 100})
+#: Column headings that exist ONLY on the "2026 OKRs" tab's Finance blocks.
+#: KEEP IDENTICAL to verify_ops_data.OO1_FORBIDDEN (tests/okr_sheet_test.py
+#: asserts it). The bake refuses to write a snapshot carrying one of these,
+#: because the verifier only runs after the push.
+OO1_FORBIDDEN = ("Predicted W/R", "Predicted F/R", "Predicted VAR",
+                 "Predicted NP", "KR 1 - Predicted", "KR 2 - Predicted",
+                 "KR 3- Predicted", "KR4 - Predicted",
+                 "KR1 Variance", "KR2 Variance", "KR3 Variance",
+                 "KR4 Variance", "KR1 Efficiency", "KR2 Efficiency",
+                 "KR3 Efficiency", "KR4 Efficiency")
+#: (objective, kr) -> (series key in okr_sheet.json, kind, what one unit is)
+#: kind: 'log' - a monthly count typed on its own log tab, banded in OKR_SPEC;
+#:       'pct' - OO4 KR4's Finance-entered % actioned, banded 'full' (Ross,
+#:               10/10/2026: "Raw % + band full");
+#:       'score' - an OO1 KR: Finance's own 0/50/80/100 score, carried as is.
+OKR_SHEET_KRS = {
+    ("OO1", "KR1"): ("oo1", "score", None),
+    ("OO1", "KR2"): ("oo1", "score", None),
+    ("OO1", "KR3"): ("oo1", "score", None),
+    ("OO1", "KR4"): ("oo1", "score", None),
+    ("OO1", "KR5"): ("oo1", "score", None),
+    ("OO2", "KR3"): ("oo2_kr3", "log", "unplanned restaurant closure(s) due to maintenance failures"),
+    ("OO3", "KR3"): ("oo3_kr3", "log", "menu item(s) unavailable due to supply failure"),
+    ("OO4", "KR1"): ("oo4_kr1", "log", "service disruption(s) caused by logistics delays"),
+    ("OO4", "KR4"): ("oo4_kr4", "pct", "of delivery credit notes and refunds actioned"),
+}
+#: Where each series is read from, in the words a reader can find on the sheet.
+OKR_SHEET_WHERE = {
+    "oo1": "the '2026 Summary' tab",
+    "oo2_kr3": "the 'Unplanned Restarant Closures' log tab",
+    "oo3_kr3": "the 'KR3: Zero menu items unavailable...' log tab",
+    "oo4_kr1": "the 'KR1: Zero service disruptions...' log tab",
+    "oo4_kr4": "the Actual column of the credit-notes block on the '2026 OKRs' tab",
+}
+#: An objective whose percentage is never published, and why. OO1's KRs carry
+#: Finance's scores as chips; a mean of them printed as "n%" beside the label
+#: "7% Net Profit" reads as a profit figure, so OO1 shows "n of 5 scored" only.
+OKR_PCT_WITHHELD = {
+    "OO1": ("no objective percentage is published for OO1: its KRs show Finance's "
+            "own 0-100 scores as chips only, so nothing beside '7% Net Profit' can be "
+            "read as a Finance figure. OO1 is excluded from the Operations % either way"),
+}
+_OKR_MONTHS = ("January", "February", "March", "April", "May", "June", "July",
+               "August", "September", "October", "November", "December")
+
+
+def _okr_mlabel(ym):
+    """'2026-09' -> 'September 2026'."""
+    return _OKR_MONTHS[int(ym[5:7]) - 1] + " " + ym[:4]
+
+
+def _okr_month_range(first, last):
+    """'YYYY-MM' months from first to last inclusive."""
+    out, y, m = [], int(first[:4]), int(first[5:7])
+    while f"{y:04d}-{m:02d}" <= last:
+        out.append(f"{y:04d}-{m:02d}")
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return out
+
+
+def _okr_is_month(k):
+    return isinstance(k, str) and re.fullmatch(r"20\d\d-(0[1-9]|1[0-2])", k) is not None
+
+
+def load_okr_sheet(out_dir):
+    """(doc, err, problems, raw): okr_sheet.json, type-checked.
+
+    Never raises. doc is None when the file is absent (err 'absent') or
+    unusable. Every entry that fails its type check is DROPPED, never coerced,
+    and named in `problems` by series and month only - never by value, because
+    an OO1 value that is not a score may be a misread Finance percentage.
+    `raw` is the file's text, for okr_sheet_leaks().
+    """
+    path = os.path.join(out_dir, OKR_SHEET_FILE)
+    try:
+        with open(path, encoding="utf-8") as fh_:
+            raw = fh_.read()
+    except FileNotFoundError:
+        return None, "absent", [], ""
+    except OSError as e:
+        return None, f"unreadable ({type(e).__name__})", [], ""
+    try:
+        doc = json.loads(raw, parse_constant=_fac_reject_constant)
+    except ValueError as e:
+        return None, f"unreadable ({type(e).__name__})", [], raw
+    if not isinstance(doc, dict) or not isinstance(doc.get("series"), dict):
+        return None, "unreadable (no 'series' object - not the Phase 1 shape)", [], raw
+    problems, series = [], {}
+    for key, s in doc["series"].items():
+        if not isinstance(s, dict) or not _fac_str(s.get("pulled_at")):
+            problems.append(f"{key}: no pulled_at - series ignored")
+            continue
+        clean = {k: s.get(k) for k in ("tab", "pulled_at", "as_of", "carried_forward")}
+        if key == "oo1":
+            krs = {}
+            for kr, ms in (s.get("krs") or {}).items():
+                if kr not in ("KR1", "KR2", "KR3", "KR4", "KR5") or not isinstance(ms, dict):
+                    problems.append(f"oo1 {kr}: not one of KR1-KR5 - ignored")
+                    continue
+                krs[kr] = {}
+                for m, v in ms.items():
+                    if (_okr_is_month(m) and _fac_num(v) is not None
+                            and float(v).is_integer() and int(v) in OO1_SCORE_SET):
+                        krs[kr][m] = int(v)
+                    else:
+                        problems.append(f"OO1 {kr} {m if _okr_is_month(m) else '(bad month)'}: "
+                                        "not a 0/50/80/100 score - left unscored")
+            clean["krs"] = krs
+        elif key in ("oo2_kr3", "oo3_kr3", "oo4_kr1", "oo4_kr4"):
+            ms_ = {}
+            for m, v in (s.get("months") or {}).items():
+                n = _fac_num(v)
+                ok = _okr_is_month(m) and n is not None and (
+                    0 <= n <= 100 if key == "oo4_kr4" else (n >= 0 and float(n).is_integer()))
+                if ok:
+                    ms_[m] = int(n) if float(n).is_integer() else n
+                else:
+                    problems.append(f"{key} {m if _okr_is_month(m) else '(bad month)'}: "
+                                    "not a usable figure - left unscored")
+            clean["months"] = ms_
+        else:
+            continue
+        series[key] = clean
+    return {"pulled_at": doc.get("pulled_at"), "series": series}, None, problems, raw
+
+
+def okr_sheet_leaks(raw):
+    """Reasons the okr_sheet.json TEXT must not be published, or [].
+
+    The file is committed to the PUBLIC repo on the same push as the snapshot,
+    and the verifier runs only after that push - so the bake refuses to run
+    (and the push never happens) when the file carries a Finance column name
+    or an OO1 entry that is not a score. Names only, never values.
+    """
+    if not raw:
+        return []
+    out = [f"Finance column name {n!r}" for n in OO1_FORBIDDEN if n in raw]
+    try:
+        doc = json.loads(raw, parse_constant=_fac_reject_constant)
+    except ValueError:
+        return out
+    oo1 = ((doc.get("series") or {}).get("oo1") or {}) if isinstance(doc, dict) else {}
+    for kr, ms in ((oo1.get("krs") or {}) if isinstance(oo1, dict) else {}).items():
+        for m, v in (ms.items() if isinstance(ms, dict) else []):
+            if not (_fac_num(v) is not None and float(v).is_integer()
+                    and int(v) in OO1_SCORE_SET):
+                out.append(f"OO1 {kr} {m} is not a 0/50/80/100 score")
+    return out
+
+
+def load_okr_sheet_status(out_dir):
+    """refresh_okr_sources.py's record of its last attempt, or None."""
+    try:
+        with open(os.path.join(out_dir, OKR_SHEET_STATUS_FILE), encoding="utf-8") as fh_:
+            st = json.load(fh_)
+        return st if isinstance(st, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def okr_sheet_cause(status):
+    """One clause naming why the last pull of the sheet failed, or None.
+
+    `detail` is the refresher's FIXED text for its cause code (never an
+    exception message); anything else in that field is not quoted.
+    """
+    if not status or status.get("ok") is not False:
+        return None
+    c = _fac_str(status.get("cause"), "cause not recorded")
+    det = _fac_str(status.get("detail"))
+    if det and (len(det) > 400 or "@" in det):
+        det = None
+    at = str(status.get("attempted_at") or "")[:16].replace("T", " ")
+    since = str(status.get("failing_since") or "")[:10]
+    return (f"the latest pull of the Operations Input sheet{(' (' + at + ' UTC)') if at else ''} "
+            f"failed: {det or c}"
+            + (f" (failing since {since})" if since and since != at[:10] else ""))
+
+
+def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=()):
+    """The nine sheet-fed KRs as scorecard `_okr_extra` entries.
+
+    -> ({(objective, kr): entry}, [gap]). An entry is either
+         {"months": [variant, ...], "source_kind": ..., "tab": "—"}
+       with every month from OKR_SHEET_FIRST_MONTH to pull_month present -
+       a closed month that was not entered as an explicit not_measured
+       variant, never a zero - or, when the series cannot be shown at all,
+         {"months": None, "source_kind": "not_measured", "not_measured": why}.
+    Variants are pre-scored; the caller still runs them through the MTD gate.
+    `status` must already be dropped by the caller when it post-dates a
+    back-bake's date.
+    """
+    gaps, extra = [], {}
+    fail = okr_sheet_cause(status)
+    missing_causes = (status or {}).get("series_missing") or {}
+    if not isinstance(missing_causes, dict):
+        missing_causes = {}
+    all_ids = "OO1 KR1-KR5, OO2 KR3, OO3 KR3, OO4 KR1 and OO4 KR4"
+    if doc is None:
+        if err and err != "absent":
+            why = (f"data/ops_command/{OKR_SHEET_FILE} is {err}, so the KRs typed into "
+                   "the 2026 Operations Input sheet cannot be shown")
+        else:
+            why = ("the 2026 Operations Input sheet has not been read into this repository "
+                   "yet - " + (fail if fail else "no pull of it is recorded "
+                               "(builders/refresh_okr_sources.py has not run)"))
+        for rid in OKR_SHEET_KRS:
+            extra[rid] = {"months": None, "source_kind": "not_measured",
+                          "not_measured": why, "tab": "—"}
+        gaps.append(f"{all_ids} are grey: {why}")
+        return extra, gaps
+
+    series = doc.get("series") or {}
+    if fail:
+        gaps.append(f"Operations Input sheet: {fail}. The KRs it feeds show the last good "
+                    f"copy of each series (read {str(doc.get('pulled_at') or '')[:10]}) and say "
+                    "so on every month it could not refresh")
+    not_entered, withheld = {}, set()
+    for rid, (key, kind, noun) in OKR_SHEET_KRS.items():
+        s = series.get(key)
+        where = OKR_SHEET_WHERE[key]
+        if not s or (kind == "score" and rid[1] not in (s.get("krs") or {})):
+            c = missing_causes.get(key)
+            why = (f"{where} of the 2026 Operations Input sheet has not been read"
+                   + (f" ({c})" if c else "") + (f" - {fail}" if fail else ""))
+            extra[rid] = {"months": None, "source_kind": "not_measured",
+                          "not_measured": why, "tab": "—"}
+            continue
+        sp = str(s.get("pulled_at") or "")[:10]
+        if dated and sp > dated:
+            withheld.add(sp)
+            extra[rid] = {"months": None, "source_kind": "not_measured", "tab": "—",
+                          "not_measured": (f"back-baked snapshot: the copy of the Operations "
+                                           f"Input sheet on file was read on {sp}, after this "
+                                           f"snapshot's date ({dated}), so it is not shown "
+                                           "here - the sheet is stored as current state only")}
+            continue
+        # A copy that could not be refreshed: the refresher carried it forward,
+        # or the latest pull failed without reading it. Decided from what the
+        # status says it READ, not by comparing timestamps - a partial pull
+        # stamps its status a second after the file, and that second must not
+        # make freshly read series look stale (review, 10/10/2026).
+        att = str((status or {}).get("attempted_at") or "")
+        _read = (status or {}).get("series_read")
+        stale = bool(s.get("carried_forward")) or bool(
+            fail and key not in (_read if isinstance(_read, list) else [])
+            and att and att > str(s.get("pulled_at") or ""))
+        stale_note = (f" NOTE: this is the copy read on {sp} - " + (fail or
+                      "this series could not be read on the latest pull")
+                      + ".") if stale else ""
+        vals = (s.get("krs") or {}).get(rid[1], {}) if kind == "score" else (s.get("months") or {})
+        band = next(b for o, k, _t, _w, _tg, b in OKR_SPEC if (o, k) == rid)
+        # WHEN THE COPY WAS READ decides what it can say about a month (review,
+        # 10/10/2026). A month that began after the read is simply not in it.
+        # A month that was still IN PROGRESS when the copy was read, and has
+        # closed since, holds a part-month figure: a short month, never scored -
+        # except a count already past its last tolerance, which only rises.
+        # Normally the copy is read minutes before the bake and neither case
+        # arises; they are a failing refresh, or a back-bake of an old copy.
+        read_m = sp[:7]
+        part_why = (f"the copy of {where} on file was read on {sp}, while %s was still in "
+                    "progress, and the sheet " + (f"could not be read since ({fail})" if fail
+                                                  else "has not been read since"))
+        months = []
+        for m in _okr_month_range(OKR_SHEET_FIRST_MONTH, pull_month):
+            lbl = _okr_mlabel(m)
+            v = vals.get(m)
+            base = {"m": m, "label": lbl, "value": None, "display": None, "score": None,
+                    "rag": None, "basis": None, "trend": None, "trend_unit": None,
+                    "trend_note": None, "not_measured": None}
+            part = (m == read_m and m < pull_month)
+            if m > read_m:
+                months.append({**base, "not_measured": (
+                    f"{lbl} began after the copy of {where} on file was read ({sp}), and the "
+                    "sheet " + (f"could not be read since ({fail})" if fail
+                                else "has not been read since")
+                    + " - so whether anything is entered for it is unknown")})
+                continue
+            if v is None:
+                if part:
+                    why = (f"nothing was entered for {lbl} yet when " + part_why % lbl
+                           + " - so whether it has been entered since is unknown")
+                elif m == pull_month:
+                    months.append({**base, "mtd": True, "coverage_days": None, "basis": (
+                        f"month-to-date, not yet scored - nothing is entered for {lbl} in {where} "
+                        "of the 2026 Operations Input sheet yet"
+                        + (". Finance scores a month after it closes" if kind == "score"
+                           else ". It is typed in by hand, usually after the month closes")
+                        + "." + stale_note)})
+                    continue
+                else:
+                    why = (f"not entered for {lbl} in {where} of the 2026 Operations Input "
+                           f"sheet (read {sp}). A month left blank is not scored - it is never "
+                           "read as a zero")
+                    not_entered.setdefault(rid, []).append(m)
+                months.append({**base, "not_measured": why})
+                continue
+            if kind == "score" and part:
+                months.append({**base, "not_measured": (
+                    f"Finance's score for {lbl} is not counted: " + part_why % lbl
+                    + " - a short month is not scored")})
+                continue
+            if kind == "score":
+                if m >= pull_month:
+                    months.append({**base, "mtd": True, "coverage_days": None, "basis": (
+                        f"month in progress - Finance's score for {lbl} is counted once the "
+                        "month closes; a short month is not scored. Score only: the figure "
+                        "behind it is Finance's and is not published here (public "
+                        "repository)." + stale_note)})
+                    continue
+                months.append({**base, "score": v, "rag": OKR_RAG.get(v), "basis": (
+                    f"Finance's score for {lbl}: {v} of 100, from {where} of the 2026 "
+                    f"Operations Input sheet (read {sp}). Score only - the figure Finance "
+                    "scores is not published here, because this repository is public."
+                    + stale_note)})
+                continue
+            sc_ = okr_score(band, v)
+            if kind == "pct":
+                disp = f"{v:g}%"
+                basis = (f"{v:g}% {noun} in {lbl}, as entered by Finance in {where} of the "
+                         f"2026 Operations Input sheet (read {sp}). Banded here on the agreed "
+                         "'full' band (100% scores 100, 99% 80, 98% 50, lower 0). The sheet's "
+                         "own score for this KR is not used: its formula scores any figure of "
+                         "100% or less as 100, so it could never go red.")
+            else:
+                disp = f"{v:g}"
+                basis = (f"{v:g} {noun} in {lbl}, as typed in {where} of the 2026 Operations "
+                         f"Input sheet (read {sp}). Hand-entered: no feed exists to check it "
+                         "against.")
+            var = {**base, "value": v, "display": disp, "score": sc_,
+                   "rag": OKR_RAG.get(sc_) if sc_ is not None else None,
+                   "basis": basis + stale_note}
+            if part and kind == "log":
+                var = okr_incomplete_variant(var, band, part_why % lbl)
+            elif part:
+                var = {**var, "score": None, "rag": None, "incomplete": True,
+                       "basis": (f"not scored - {part_why % lbl}, so {v:g}% is a part-month "
+                                 f"figure - {var['basis']}")}
+            months.append(var)
+        extra[rid] = {"months": months, "tab": "—",
+                      "source_kind": "sheet_log" if kind == "log" else "sheet_finance"}
+    if withheld:
+        gaps.append(f"back-baked snapshot: the copy of the Operations Input sheet on file was "
+                    f"read on {max(withheld)}, after this snapshot's date ({dated}), so {all_ids} "
+                    "are grey here - the sheet is stored as current state only")
+    if not_entered:
+        gaps.append("Not entered on the 2026 Operations Input sheet, so not scored (a blank "
+                    "month is never read as 0): " + "; ".join(
+                        f"{o} {k} {', '.join(_okr_mlabel(m)[:3] + ' ' + m[:4] for m in ms)}"
+                        for (o, k), ms in sorted(not_entered.items())))
+    for p in problems:
+        gaps.append(f"okr_sheet.json: {p}")
+    return extra, gaps
+
+
+def okr_oo1_guard(snap):
+    """The bake's own OO1 check, run on the finished snapshot before it is written.
+
+    -> (nulled, leaked). `nulled` names every OO1 row or month that carried a
+    value, a display, or a score outside OO1_SCORE_SET - those fields are set
+    to None in place. `leaked` names any OO1_FORBIDDEN column name found
+    anywhere in the snapshot; the caller refuses to write it. Names only.
+    """
+    nulled = []
+    for r in ((snap.get("scorecard") or {}).get("rows") or []):
+        if r.get("objective") != "OO1":
+            continue
+        for x, tag in [(r, r.get("kr"))] + [(v, f"{r.get('kr')} {v.get('m')}")
+                                             for v in (r.get("months") or [])]:
+            bad = x.get("value") is not None or x.get("display") is not None
+            if x.get("score") is not None and x.get("score") not in OO1_SCORE_SET:
+                bad = True
+                x["score"] = None
+                x["rag"] = None
+            if bad:
+                x["value"] = None
+                x["display"] = None
+                nulled.append(f"OO1 {tag}")
+    blob = json.dumps(snap)
+    return nulled, [n for n in OO1_FORBIDDEN if n in blob]
+
+
+# ---------------------------------------------------------------------------
+# THE MAINTENANCE CONTACT LIST (OO2 KR5, Phase 1, 10/10/2026)
+# ---------------------------------------------------------------------------
+# "KR5: 100% Completion of Maintenance Contact Sheets - Proof Required".
+# builders/refresh_maintenance_contacts.py reads the Maintenance Contact List
+# 2026 into data/ops_command/maintenance_contacts.json as STRUCTURE ONLY - per
+# city tab, its header and one x/. fill pattern per row - because this repo is
+# public and the cells are names, phone numbers, emails and rates.
+MAINT_CONTACTS_FILE = "maintenance_contacts.json"
+MAINT_CONTACTS_STATUS_FILE = "maintenance_contacts_status.json"
+#: The denominator (Ross, 10/10/2026: "20 corporate restaurants"): the 19
+#: M-coded corporate restaurants plus Maki Nori. NOT the franchises (Maki O2
+#: Arena, Maki Braehead), the factory or head office - the OO2 KR4 precedent.
+#: Deliberately a committed list, not derived: SITE_TYPES marks M1TOO Ltd and
+#: South Ikigai Ltd as non-trading entities, which would silently drop two.
+KR5_SITES = (
+    "M1TOO Ltd", "Fountain Good Food Ltd", "South Ikigai Ltd", "Maki Bath St",
+    "Maki SJQ Ltd", "Renfield Good Food Ltd", "Maki Manchester LTD",
+    "Maki Leeds Ltd", "Maki Leicester Ltd", "Maki Newcastle Ltd",
+    "Maki Aberdeen Ltd", "Maki Meadowhall", "Maki METRO", "Maki Nottingham Ltd",
+    "Maki Lakeside", "Maki Soho", "Maki Shoreditch", "Maki Southampton",
+    "Maki Birmingham Ltd", "Maki Nori",
+)
+#: City tab -> the KR5 sites its contractors serve. The list is a regional
+#: contractor directory, not one sheet per site, so a tab covers every site in
+#: its city. Judgement calls, recorded here rather than guessed at run time:
+#: Lakeside (Thurrock) and Nori under London; Meadowhall under Sheffield;
+#: METRO (Metrocentre, Gateshead) under Newcastle; all six Edinburgh and
+#: Glasgow restaurants under the one 'Glasgow and Edinburgh' tab. No tab
+#: exists for Southampton or Birmingham - they are named, never mapped.
+CONTACT_TAB_SITES = {
+    "London": ("Maki Lakeside", "Maki Soho", "Maki Shoreditch", "Maki Nori"),
+    "Leeds": ("Maki Leeds Ltd",),
+    "Sheffield": ("Maki Meadowhall",),
+    "Leicester": ("Maki Leicester Ltd",),
+    "Manchester": ("Maki Manchester LTD",),
+    "Nottingham": ("Maki Nottingham Ltd",),
+    "Newcastle": ("Maki Newcastle Ltd", "Maki METRO"),
+    "Aberdeen": ("Maki Aberdeen Ltd",),
+    "Glasgow and Edinburgh": ("M1TOO Ltd", "Fountain Good Food Ltd", "South Ikigai Ltd",
+                              "Maki SJQ Ltd", "Maki Bath St", "Renfield Good Food Ltd"),
+}
+#: WHAT COUNTS (Ross, 10/10/2026: "KR5 means any contact on the tab"). A site
+#: is covered when its city tab holds at least one contractor you can reach -
+#: a row with a Contact Number or an Email filled in. A row with neither (the
+#: stray entry at the foot of the Sheffield tab) is not a contact.
+CONTACT_REACH_COLUMNS = ("Contact Number", "Email")
+
+
+def load_maint_contacts(out_dir):
+    """(doc, err) for maintenance_contacts.json, type-checked. Never raises."""
+    path = os.path.join(out_dir, MAINT_CONTACTS_FILE)
+    try:
+        with open(path, encoding="utf-8") as fh_:
+            doc = json.load(fh_, parse_constant=_fac_reject_constant)
+    except FileNotFoundError:
+        return None, "absent"
+    except (OSError, ValueError) as e:
+        return None, f"unreadable ({type(e).__name__})"
+    if (not isinstance(doc, dict) or not isinstance(doc.get("tabs"), list)
+            or not _fac_str(doc.get("pulled_at"))):
+        return None, "unreadable (no tabs list or no pulled_at)"
+    tabs = []
+    for t in doc["tabs"]:
+        if not (isinstance(t, dict) and _fac_str(t.get("title"))
+                and isinstance(t.get("header"), list) and isinstance(t.get("rows"), list)):
+            return None, "unreadable (a tab without a title, header or rows)"
+        hdr = [str(h).strip() for h in t["header"]]
+        rows = [r for r in t["rows"] if isinstance(r, str) and re.fullmatch(r"[x.]+", r)]
+        if len(rows) != len(t["rows"]):
+            return None, f"unreadable (tab {t['title']!r} has a row that is not a fill pattern)"
+        tabs.append({"title": t["title"].strip(), "header": hdr, "rows": rows})
+    return {"pulled_at": doc["pulled_at"], "tabs": tabs}, None
+
+
+_CONTACT_SUSPECT = re.compile(r"@|£|\+\s*\d|\d{6,}")
+
+
+def maint_contacts_leaks(raw):
+    """Places in maintenance_contacts.json that look like contact data, or [].
+
+    The refresher writes structure only and checks itself; this is the bake's
+    own check, for the same reason as okr_sheet_leaks - the file rides out on
+    the same push and nothing reads it before then. Titles and header cells
+    may not carry six digits in total, however spaced; no string anywhere an
+    '@', a '£', a '+' before a digit or six digits in a row. Locations only.
+    """
+    if not raw:
+        return []
+    try:
+        doc = json.loads(raw, parse_constant=_fac_reject_constant)
+    except ValueError:
+        return []
+    bad = []
+
+    def walk(x, path):
+        if isinstance(x, str):
+            free = path.endswith(".title") or ".header[" in path
+            if _CONTACT_SUSPECT.search(x) or (free and sum(c.isdigit() for c in x) >= 6):
+                bad.append(path)
+        elif isinstance(x, dict):
+            for k, v in x.items():
+                walk(v, f"{path}.{k}")
+        elif isinstance(x, list):
+            for i, v in enumerate(x):
+                walk(v, f"{path}[{i}]")
+    walk(doc, "$")
+    return bad
+
+
+def maint_contacts_kr5(doc, err, status, dated=None):
+    """OO2 KR5 as row() keyword arguments, plus gaps. -> (kwargs, [gap]).
+
+    Value = covered sites / len(KR5_SITES) x 100, the EXACT fraction - never
+    rounded into a better band (19 of 20 is 95.0 and scores 80; 18 of 19 would
+    be 94.7 and score 50). A site is covered when its city tab holds at least
+    one contact (CONTACT_REACH_COLUMNS). Current state, no months: there are
+    no row dates. `status` must already be dropped by the caller when it
+    post-dates a back-bake's date.
+    """
+    gaps = []
+    fail = None
+    if status and status.get("ok") is False:
+        det = _fac_str(status.get("detail"))
+        if det and (len(det) > 400 or "@" in det):
+            det = None
+        at = str(status.get("attempted_at") or "")[:16].replace("T", " ")
+        fail = (f"the latest pull of the Maintenance Contact List 2026"
+                f"{(' (' + at + ' UTC)') if at else ''} failed: "
+                f"{det or _fac_str(status.get('cause'), 'cause not recorded')}")
+    if doc is None:
+        why = (f"data/ops_command/{MAINT_CONTACTS_FILE} is {err}" if err and err != "absent"
+               else "the Maintenance Contact List 2026 has not been read into this repository "
+                    "yet - " + (fail or "no pull of it is recorded "
+                                "(builders/refresh_maintenance_contacts.py has not run)"))
+        gaps.append(f"OO2 KR5 (maintenance contact sheets) is grey: {why}")
+        return {"not_measured": why}, gaps
+    sp = str(doc["pulled_at"])[:10]
+    if dated and sp > dated:
+        return {"not_measured": (f"back-baked snapshot: the copy of the Maintenance Contact "
+                                 f"List on file was read on {sp}, after this snapshot's date "
+                                 f"({dated}), so it is not shown here - the list is stored as "
+                                 "current state only")}, gaps
+    by_title = {t["title"].casefold(): t for t in doc["tabs"]}
+    mapped = {k.casefold() for k in CONTACT_TAB_SITES}
+    unmapped = [t["title"] for t in doc["tabs"] if t["title"].casefold() not in mapped]
+    tab_note, covered, site_tab = [], [], {}
+    for tab, sites in CONTACT_TAB_SITES.items():
+        for s_ in sites:
+            site_tab[s_] = tab
+        t = by_title.get(tab.casefold())
+        if t is None:
+            tab_note.append(f"{tab}: tab not found")
+            gaps.append(f"Maintenance Contact List: the '{tab}' tab is missing, so "
+                        f"{', '.join(sites)} cannot count towards OO2 KR5")
+            continue
+        hdr = [h.casefold() for h in t["header"]]
+        idx = [hdr.index(c.casefold()) for c in CONTACT_REACH_COLUMNS if c.casefold() in hdr]
+        n_contacts = sum(1 for r in t["rows"] if any(j < len(r) and r[j] == "x" for j in idx))
+        if n_contacts:
+            covered.extend(sites)
+            tab_note.append(f"{tab}: {n_contacts} contact{'' if n_contacts == 1 else 's'}")
+            continue
+        if not idx:
+            tab_note.append(f"{tab}: no Contact Number or Email column")
+        else:
+            tab_note.append(f"{tab}: no contacts")
+        gaps.append(f"Maintenance Contact List: the '{tab}' tab holds no contact (no row "
+                    f"with a number or an email), so {', '.join(sites)} are not covered "
+                    "for OO2 KR5")
+    no_tab = [s_ for s_ in KR5_SITES if s_ not in site_tab]
+    if no_tab:
+        gaps.append(f"Maintenance Contact List: no city tab covers {', '.join(no_tab)}, so "
+                    "they count as not covered for OO2 KR5")
+    if unmapped:
+        gaps.append(f"Maintenance Contact List: tab(s) {', '.join(repr(u) for u in unmapped)} "
+                    "are not mapped to any site in CONTACT_TAB_SITES (bake_ops_command.py), so "
+                    "they count for nothing until somebody maps them")
+    if fail:
+        gaps.append(f"Maintenance Contact List: {fail}. OO2 KR5 shows the copy read {sp}")
+    n_all, n_ok = len(KR5_SITES), len(covered)
+    value = 100.0 * n_ok / n_all
+    pct = math.floor(value * 10) / 10
+    uncovered = [s_ for s_ in KR5_SITES if s_ not in covered]
+    basis = (f"{n_ok} of the {n_all} corporate restaurants have at least one maintenance "
+             "contact on their city tab of the Maintenance Contact List 2026 - a contractor "
+             "row with a Contact Number or an Email (Ross, 10/10/2026: 'any contact on the "
+             "tab'). By tab: " + "; ".join(tab_note)
+             + (f". Not covered: {', '.join(uncovered)}" if uncovered else "")
+             + (f" ({', '.join(no_tab)} have no tab at all)" if no_tab else "")
+             + f". The {n_all} are the 19 M-coded corporate restaurants and Maki Nori - "
+             "franchises, the factory and head office are not counted. The list is a per-city "
+             "contractor directory: one tab covers every site in its city, and it has no "
+             "per-site rows and no proof column, so 'Proof Required' is not something this "
+             f"figure can check. Read {sp}."
+             + (f" NOTE: {fail}." if fail else ""))
+    return {"value": value, "display": f"{n_ok} of {n_all} sites ({pct:g}%)",
+            "basis": basis, "source_kind": "sheet_contacts"}, gaps
 
 #: A Brix reading this instrument can physically produce. Used ONLY to decide
 #: how to read an ambiguous cell format - never to reject a reading.
@@ -4202,6 +4805,54 @@ def main():
     snap["maintenance"]["facilities"] = fac["tab"]
     if fac["gap"]:
         gaps.append(fac["gap"])
+    # ---- the Operations Input sheet and the Maintenance Contact List (Phase 1) ----
+    # Both are current-state copies written by refreshers that run just before
+    # this bake, and both are committed to the PUBLIC repo on the same push.
+    # A status record written after a back-bake's date is not this date's
+    # reason for anything, so it is dropped (as the Facilities one is).
+    _okr_doc, _okr_err, _okr_probs, _okr_raw = load_okr_sheet(OUT_DIR)
+    _okr_leaks = okr_sheet_leaks(_okr_raw)
+    if _okr_leaks:
+        # Refuse to bake: the push that follows would publish the file. Names
+        # only - the bake log of maki-hospitality-etl is private, but the
+        # values are not needed to act on this.
+        print("[bake] REFUSING TO BAKE: data/ops_command/" + OKR_SHEET_FILE + " carries "
+              + "; ".join(_okr_leaks) + ". MakiManc/ops is public and OO1 is Finance's. "
+              "Delete the file (the next refresh rewrites it) and fix "
+              "builders/refresh_okr_sources.py before re-running.", file=sys.stderr)
+        raise SystemExit(1)
+    _okr_status = load_okr_sheet_status(OUT_DIR)
+    if dated and _okr_status and str(_okr_status.get("attempted_at") or "")[:10] > dated:
+        _okr_status = None
+    try:
+        with open(os.path.join(OUT_DIR, MAINT_CONTACTS_FILE), encoding="utf-8") as fh_:
+            _mc_leaks = maint_contacts_leaks(fh_.read())
+    except OSError:
+        _mc_leaks = []
+    if _mc_leaks:
+        print("[bake] REFUSING TO BAKE: data/ops_command/" + MAINT_CONTACTS_FILE + " holds "
+              "something that looks like contact data at " + ", ".join(_mc_leaks[:10])
+              + ". MakiManc/ops is public. Delete the file (the next refresh rewrites it) "
+              "and fix builders/refresh_maintenance_contacts.py before re-running.",
+              file=sys.stderr)
+        raise SystemExit(1)
+    _mc_doc, _mc_err = load_maint_contacts(OUT_DIR)
+    _mc_status = None
+    try:
+        with open(os.path.join(OUT_DIR, MAINT_CONTACTS_STATUS_FILE), encoding="utf-8") as fh_:
+            _mc_status = json.load(fh_)
+        if not isinstance(_mc_status, dict):
+            _mc_status = None
+    except (OSError, ValueError):
+        _mc_status = None
+    if dated and _mc_status and str(_mc_status.get("attempted_at") or "")[:10] > dated:
+        _mc_status = None
+    _kr5_row, _kr5_gaps = maint_contacts_kr5(_mc_doc, _mc_err, _mc_status, dated=dated)
+    gaps.extend(_kr5_gaps)
+    print(f"[bake] okr sheet: " + (f"read {_okr_doc.get('pulled_at')}" if _okr_doc else _okr_err)
+          + (f"; last pull {_okr_status.get('cause')} at {_okr_status.get('attempted_at')}"
+             if _okr_status else "")
+          + f" | contact list: " + (f"read {_mc_doc.get('pulled_at')}" if _mc_doc else _mc_err))
     # ---- sites ----
     hc=[]
     cur.execute(
@@ -4481,8 +5132,10 @@ def main():
               "needs the Kobas Weekly Ingredient Price Changes report and the Kobas "
               "pack-price export, neither of which is in this bake"))
     # --- Supply KR3 / KR5: no source at all ---
+    # Phase 1 (10/10/2026): OO3 KR3 is read from the Operations Input sheet's
+    # log tab (okr_sheet_extra), which replaces this row on the scorecard.
     row("Supply","KR3 menu items unavailable","0","—",
-        not_measured="no stock-out is recorded anywhere machine-readable. Needs a GC stock-out form, or Kobas 86'd items")
+        not_measured="typed on the Operations Input sheet's menu-items log tab - see OO3 KR3 on the scorecard")
     row("Supply","KR5 monthly supplier audit","100%","—",
         not_measured="no audit is recorded. Needs a supplier audit checklist in GetCompliant or Asana")
 
@@ -4556,9 +5209,14 @@ def main():
     for _kr,_tg,_need in [
         ("KR1 PPM on time",">=95%",None),
         ("KR2 repeat issues vs baseline","-20%",None),
-        ("KR3 unplanned closures","0","a record of where closures are logged (Kobas trading hours? Slack?)"),
+        ("KR3 unplanned closures","0","the Operations Input sheet's closures log tab - see OO2 KR3 on the scorecard"),
         ("KR4 statutory compliance","100%",None),
-        ("KR5 Contact Sheets complete","100%","the Operations Setup sheet tab, or Drive")]:
+        ("KR5 Contact Sheets complete","100%",None)]:
+        if _kr.startswith("KR5"):
+            # Phase 1 (10/10/2026): the Maintenance Contact List 2026, as
+            # structure only - see maint_contacts_kr5 at module level.
+            row("Maintenance",_kr,_tg,"p-maint",**_kr5_row)
+            continue
         if _need is not None:
             row("Maintenance",_kr,_tg,"p-maint",not_measured=_mt % _need)
             continue
@@ -5109,6 +5767,15 @@ def main():
     # than scored on trust.
     _pm = (pull or "")[:7]
 
+    # --- the nine KRs typed into the Operations Input sheet (Phase 1) ------
+    # OO1 KR1-5, OO2 KR3, OO3 KR3, OO4 KR1, OO4 KR4. See okr_sheet_extra at
+    # module level: a month not entered is an explicit not-measured variant,
+    # never 0, and OO1 carries Finance's scores and nothing else.
+    _sheet_extra, _sheet_gaps = okr_sheet_extra(_okr_doc, _okr_err, _okr_status, _pm,
+                                                dated=dated, problems=_okr_probs)
+    _okr_extra.update(_sheet_extra)
+    gaps.extend(_sheet_gaps)
+
     def _last_day(m_):
         y_, mo_ = int(m_[:4]), int(m_[5:7])
         return (datetime.date(y_ + (mo_ == 12), 1 if mo_ == 12 else mo_ + 1, 1)
@@ -5211,9 +5878,15 @@ def main():
             # monthly rows; None on a current-state row, where it does not apply
             "mtd": None, "coverage_days": None,
         }
-        if _ext:
-            # A KR this stage computed itself (OO3 KR2, OO5 KR1/KR2). Its
-            # variants already carry finished scores.
+        if _ext and _ext.get("months") is None:
+            # A KR whose only source cannot be shown this bake (the sheet is
+            # unreadable, not shared yet, or read after a back-bake's date):
+            # grey, with that reason as its blocker - never a pending phase.
+            _r.update({k: v for k, v in _ext.items() if k != "months"})
+        elif _ext:
+            # A KR this stage computed itself (OO3 KR2, OO5 KR1/KR2) or read
+            # from the Operations Input sheet. Its variants already carry
+            # finished scores.
             _r.update({k: v for k, v in _ext.items() if k != "months"})
             _r["months"] = _mtd_gate(_id, _band, _ext["months"])
             _dm, _new = _default_variant(_id, _band, _r["months"])
@@ -5295,11 +5968,18 @@ def main():
     objectives = []
     for _obj, _label in OKR_OBJECTIVES:
         _rows = [r_ for r_ in okr if r_["objective"] == _obj]
-        objectives.append({
+        _o = {
             "objective": _obj, "label": _label,
             **_rollup(_rows, _dflt),
             "months": [{"m": m_, **_rollup(_rows, m_)} for m_ in _okr_months_all],
-        })
+        }
+        if _obj in OKR_PCT_WITHHELD:
+            # the scored count still shows; the percentage is never published
+            _o["pct"] = None
+            for _x in _o["months"]:
+                _x["pct"] = None
+            _o["pct_note"] = OKR_PCT_WITHHELD[_obj]
+        objectives.append(_o)
 
     def _ops_pct(m_):
         _p = [o for o in objectives
@@ -5322,7 +6002,8 @@ def main():
       "operating_kpis":operating_kpis,
       "objectives":objectives,
       "operations":operations,
-      "measured":sum(1 for r_ in okr if r_["value"] is not None),
+      # a score-only row (OO1: Finance's score, no figure) is measured too
+      "measured":sum(1 for r_ in okr if r_["value"] is not None or r_["score"] is not None),
       "scored":sum(1 for r_ in okr if r_["score"] is not None),
       "total":len(okr),
       "months":_okr_months_all,"month":(pull or "")[:7],
@@ -5354,6 +6035,11 @@ def main():
         "HAVE a score that month; an unscored KR is left out of the mean and never counted "
         "as a zero, which is why each objective also says how many of its five scored. The "
         "Operations percentage is the mean of OO2-OO6; OO1 is Finance's and is excluded. "
+        "Nine KRs are typed into the sheet itself and read from it: OO2 KR3, OO3 KR3 and OO4 "
+        "KR1 from their log tabs, OO4 KR4 from Finance's % actioned, and OO1 KR1-KR5 as "
+        "Finance's own 0-100 scores ONLY - no figure behind an OO1 score is published, and "
+        "OO1 shows no objective percentage. A month left blank on the sheet is not scored. "
+        "OO2 KR5 is read from the Maintenance Contact List 2026. "
         "The Operating KPIs below the scorecard are measurements that are not on Matthew's "
         "sheet - they are real and Ross uses them, they are simply not what he is scored "
         "on.")}
@@ -5403,6 +6089,18 @@ def main():
     snap["generated_at"]=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     snap["source"]=src_label
     snap["pull_date"]=pull
+    # THE BAKE'S OWN OO1 CHECK (Phase 1). The verifier asserts the same thing,
+    # but only after this snapshot has been pushed to a public repo.
+    _oo1_nulled, _oo1_leaked = okr_oo1_guard(snap)
+    if _oo1_leaked:
+        print("[bake] REFUSING TO WRITE: the snapshot carries Finance column name(s) "
+              + ", ".join(repr(n) for n in _oo1_leaked) + " - MakiManc/ops is public.",
+              file=sys.stderr)
+        raise SystemExit(1)
+    if _oo1_nulled:
+        gaps.append("OO1 carried a figure where only a score belongs, and it was removed "
+                    "before publishing: " + ", ".join(_oo1_nulled))
+        print("[bake] OO1 guard nulled: " + ", ".join(_oo1_nulled))
     os.makedirs(OUT_DIR,exist_ok=True)
     out=os.path.join(OUT_DIR,f"snapshot_{pull}.json")
     json.dump(snap,open(out,"w"),separators=(",",":"))

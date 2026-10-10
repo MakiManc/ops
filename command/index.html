@@ -1225,6 +1225,7 @@ function renderScorecard(snap){
   };
   const KIND={computed:'computed',sheet_log:'from sheet log',
               sheet_finance:'Finance, from sheet',
+              sheet_contacts:'from the Maintenance Contact List',
               facilities_app:'from the Facilities app'};
   let obj_='',shown=0,monthly=0;
   const objOf=id=>(s.objectives||[]).find(o=>o.objective===id);
@@ -1253,9 +1254,15 @@ function renderScorecard(snap){
         `<span style="opacity:.75"> · ${esc(o?o.label:'')}</span>`+
         `<span style="float:right;font-variant-numeric:tabular-nums">`+
         `<b>${esc(pct)}</b> <span style="opacity:.65;font-weight:400">${esc(cnt)}</span></span>`+
+        /* An objective whose percentage the builder deliberately withholds
+           (OO1: Finance's scores only) says why, rather than a bare dash. */
+        (o&&o.pct_note?`<div class="dt" style="opacity:.7">${esc(o.pct_note)}</div>`:'')+
         `</td></tr>`;
     }
-    const measured=r.value!=null;
+    /* A SCORE-ONLY row (OO1: Finance's own 0-100 score, its figure never
+       published) is measured - it is not missing a source - so it is not
+       dimmed and shows its basis, not "Needs: no source". */
+    const measured=r.value!=null||r.score!=null;
     if(measured) shown++;
     const trend=r.trend?sparkline(r.trend):'';
     const trendNote=r.trend_note?`<div class="dt" style="opacity:.7">${esc(r.trend_note)}</div>`:'';
@@ -1283,7 +1290,10 @@ function renderScorecard(snap){
     return head+`<tr${measured?'':' style="opacity:.72"'}>`+
       `<td><div>${esc(r0.kr)} <span style="opacity:.85">${esc(r0.text||'')}</span>${owner}${prop}</div>${kind}${detail}${offMonth}</td>`+
       `<td class="n" style="white-space:nowrap">${esc(r0.target)}</td>`+
-      `<td class="n" style="font-weight:650;white-space:nowrap">${esc(r.display||'—')}</td>`+
+      `<td class="n" style="font-weight:650;white-space:nowrap">${
+        r.display!=null&&r.display!=='' ? esc(r.display)
+        : (r.value==null&&r.score!=null) ? '<span style="opacity:.6;font-weight:400">score only</span>'
+        : '—'}</td>`+
       `<td class="n">${scoreCell(r)}</td>`+
       `<td>${ragChip(r)}${link}</td>`+
       `<td>${trend}${unit}${trendNote}</td></tr>`;

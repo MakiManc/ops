@@ -126,6 +126,14 @@ HEALTH_PATH = os.path.join(OUT_DIR, "health_latest.json")
 HISTORY_PATH = os.path.join(OUT_DIR, "verify_history.json")
 MAINT_PATH = os.path.join(OUT_DIR, "maintenance_source.json")
 OKR_SHEET_PATH = os.path.join(OUT_DIR, "okr_sheet.json")
+#: refresh_okr_sources.py's record of its last attempt, and the Maintenance
+#: Contact List's structure-only copy and record (Phase 1, 10/10/2026). All
+#: four are copied into the recompute so it bakes what the live bake baked.
+OKR_SHEET_STATUS_PATH = os.path.join(OUT_DIR, "okr_sheet_status.json")
+CONTACTS_PATH = os.path.join(OUT_DIR, "maintenance_contacts.json")
+CONTACTS_STATUS_PATH = os.path.join(OUT_DIR, "maintenance_contacts_status.json")
+#: The only values an OO1 score may take (Finance scores in these four steps).
+OO1_SCORE_SET = (0, 50, 80, 100)
 #: How stale the hand-entered sheet may get before the page is lying by
 #: omission. 35 days rather than a week: these are MONTHLY figures typed by
 #: Matthew after a month closes, so a gap of four weeks is a normal cadence and
@@ -687,6 +695,14 @@ def check_consistency(pg_latest: str, snap_latest: str):
             _sp = os.path.join(os.path.dirname(FACILITIES_PATH), _side)
             if os.path.exists(_sp):
                 shutil.copy(_sp, os.path.join(tmp, "data", "ops_command", _side))
+        # ...and the Operations Input sheet and contact list copies (Phase 1),
+        # or the recompute greys ten KRs the live bake scored - and the OO1
+        # check below would pass on rows that never carried a score at all.
+        for _sp in (OKR_SHEET_PATH, OKR_SHEET_STATUS_PATH, CONTACTS_PATH,
+                    CONTACTS_STATUS_PATH):
+            if os.path.exists(_sp):
+                shutil.copy(_sp, os.path.join(tmp, "data", "ops_command",
+                                              os.path.basename(_sp)))
         r = subprocess.run(
             [sys.executable, os.path.join(tmp, "builders",
                                           "bake_ops_command.py")],
@@ -850,8 +866,14 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
             add("4d-okr", "ok", "scorecard carries 30 KRs in 6 objectives, five each")
 
     # 2. a score implies a band
+    # OO1 is the one exemption, and a narrow one: its rows carry FINANCE'S own
+    # 0/50/80/100 score, read from the sheet (source_kind sheet_finance), not
+    # a score this system computed on a band - and its values are checked
+    # against that set below instead.
     bandless = [f"{r.get('objective')} {r.get('kr')}" for r in rows
-                if r.get("score") is not None and not r.get("band")]
+                if r.get("score") is not None and not r.get("band")
+                and not (r.get("objective") == "OO1"
+                         and r.get("source_kind") == "sheet_finance")]
     if bandless:
         add("4d-okr", "critical",
             f"{len(bandless)} row(s) carry a score with no band: "
@@ -884,6 +906,10 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
                 if v is not None:
                     got.append(v)
             want = round(sum(got) / len(got), 1) if got else None
+            if o.get("pct_note"):
+                # an objective whose percentage is deliberately not published
+                # (OO1 - see OKR_PCT_WITHHELD in the bake): it must stay None
+                want = None
             if blk.get("pct") != want or blk.get("scored") != len(got):
                 drift.append(f"{o.get('objective')} {m}: says "
                              f"{blk.get('pct')} over {blk.get('scored')}, "
@@ -915,14 +941,33 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
     # SCORE and nothing else. A value or a display on one of those rows is a
     # published Finance percentage whatever it happens to be called, so this
     # catches a leak under a key nobody thought to add to the list above.
+    #
+    # NAMES ONLY in the message (10/10/2026). It used to quote the leaked
+    # display/value - which would have re-published the very figure it caught
+    # in health_latest.json (committed to this public repo) and the ntfy push.
     oo1_rows = [r for r in rows if r.get("objective") == "OO1"]
-    with_value = [f"{r.get('kr')} ({r.get('display') or r.get('value')})"
-                  for r in oo1_rows
+    with_value = [str(r.get("kr")) for r in oo1_rows
                   if r.get("value") is not None or r.get("display") is not None]
+    not_score, bad_kind = [], []
     for r in oo1_rows:
+        if r.get("score") is not None and r.get("score") not in OO1_SCORE_SET:
+            not_score.append(str(r.get("kr")))
+        if r.get("source_kind") not in ("not_measured", "sheet_finance"):
+            bad_kind.append(str(r.get("kr")))
         for mv in (r.get("months") or []):
             if mv.get("value") is not None or mv.get("display") is not None:
                 with_value.append(f"{r.get('kr')} {mv.get('m')}")
+            if mv.get("score") is not None and mv.get("score") not in OO1_SCORE_SET:
+                not_score.append(f"{r.get('kr')} {mv.get('m')}")
+    if not_score or bad_kind:
+        add("4d-okr", "critical",
+            "OO1 row(s) carrying something other than Finance's score"
+            + (f" - a score outside 0/50/80/100: {', '.join(not_score[:6])}"
+               if not_score else "")
+            + (f" - a source other than the sheet: {', '.join(bad_kind[:6])}"
+               if bad_kind else "")
+            + ". An OO1 score is read from the sheet as one of 0, 50, 80 or 100; "
+              "anything else may be a misread Finance percentage")
     if leaked or with_value:
         add("4d-okr", "critical",
             "OO1 FINANCE FIGURES IN A PUBLIC SNAPSHOT"
@@ -944,11 +989,19 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
         with open(OKR_SHEET_PATH, encoding="utf-8") as fh:
             ks = json.load(fh)
     except FileNotFoundError:
+        try:
+            with open(OKR_SHEET_STATUS_PATH, encoding="utf-8") as fh:
+                st = json.load(fh)
+        except (OSError, ValueError):
+            st = None
         add("4d-okr", "warning",
             "okr_sheet.json is absent, so the KRs that are only typed into the "
-            "2026 Operations Input sheet stay grey. Expected until Matthew "
-            "shares the sheet with the service account - it is shared to the "
-            "makiramen.com domain, which does not cover one")
+            "2026 Operations Input sheet stay grey"
+            + (f". The latest pull ({str(st.get('attempted_at'))[:16]}) failed: "
+               f"{st.get('cause')}" if isinstance(st, dict) and st.get("ok") is False
+               else ". No pull of it is recorded")
+            + ". Expected until Matthew shares the sheet with the service account "
+              "- it is shared to the makiramen.com domain, which does not cover one")
         return
     except (OSError, ValueError) as exc:
         add("4d-okr", "warning", f"okr_sheet.json unreadable: {exc}")
@@ -956,17 +1009,96 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
     pulled = (ks.get("pulled_at") or "")[:10]
     age = ((date.fromisoformat(today) - date.fromisoformat(pulled)).days
            if pulled else None)
+    st = None
+    try:
+        with open(OKR_SHEET_STATUS_PATH, encoding="utf-8") as fh:
+            st = json.load(fh)
+    except (OSError, ValueError):
+        st = None
+    cause = (f" The latest pull failed: {st.get('cause')} ({st.get('detail')})"
+             if isinstance(st, dict) and st.get("ok") is False else "")
+    newest = ", ".join(f"{k} {v.get('as_of') or 'none'}"
+                       for k, v in sorted((ks.get("series") or {}).items())
+                       if isinstance(v, dict))
     if age is None:
-        add("4d-okr", "warning", "okr_sheet.json has no pulled_at date")
+        add("4d-okr", "warning", "okr_sheet.json has no pulled_at date" + cause)
     elif age > OKR_SHEET_AGE_WARN_DAYS:
         add("4d-okr", "warning",
             f"okr_sheet.json was pulled {age} days ago ({pulled}), over the "
             f"{OKR_SHEET_AGE_WARN_DAYS}-day bar. The refresh may have been "
-            "failing silently - check the bake log for a 403 on the sheet")
+            "failing silently - check the bake log for a 403 on the sheet" + cause)
+    elif cause:
+        add("4d-okr", "warning",
+            f"okr_sheet.json was read {pulled} ({age}d) and the rows it feeds show "
+            f"that copy.{cause}")
     else:
         add("4d-okr", "ok",
-            f"okr_sheet.json pulled {pulled} ({age}d), newest entered month "
-            f"{ks.get('source_as_of') or 'none'}")
+            f"okr_sheet.json pulled {pulled} ({age}d); newest entered month per "
+            f"series: {newest or 'none'}")
+
+
+def check_oo1_public(snapshot_path: str | None = None) -> None:
+    """4e: nothing OO1-shaped in the files this repo PUBLISHES (Phase 1).
+
+    check_okr_scorecard sweeps the RECOMPUTED snapshot, and is skipped
+    entirely on a day 4a fails. This sweeps what is actually committed: the
+    newest snapshot and okr_sheet.json itself (which rides out on the same
+    push and nothing else read). Critical on any Finance column name, any OO1
+    value or display, or any OO1 entry that is not a 0/50/80/100 score. Names
+    and months only in the message - never the figure.
+    """
+    found = []
+    try:
+        with open(OKR_SHEET_PATH, encoding="utf-8") as fh:
+            raw = fh.read()
+    except OSError:
+        raw = ""
+    if raw:
+        found += [f"okr_sheet.json carries {n!r}" for n in OO1_FORBIDDEN if n in raw]
+        try:
+            ks = json.loads(raw)
+        except ValueError:
+            ks = {}
+        oo1 = ((ks.get("series") or {}).get("oo1") or {}) if isinstance(ks, dict) else {}
+        for kr, ms in ((oo1.get("krs") or {}) if isinstance(oo1, dict) else {}).items():
+            for m, v in (ms.items() if isinstance(ms, dict) else []):
+                if not (isinstance(v, (int, float)) and not isinstance(v, bool)
+                        and v in OO1_SCORE_SET):
+                    found.append(f"okr_sheet.json OO1 {kr} {m} is not a score")
+    if snapshot_path is None:
+        try:
+            with open(os.path.join(OUT_DIR, "snapshot_index.json"), encoding="utf-8") as fh:
+                latest = (json.load(fh) or {}).get("latest")
+            snapshot_path = os.path.join(OUT_DIR, f"snapshot_{latest}.json") if latest else None
+        except (OSError, ValueError):
+            snapshot_path = None
+    if snapshot_path and os.path.exists(snapshot_path):
+        with open(snapshot_path, encoding="utf-8") as fh:
+            sraw = fh.read()
+        found += [f"{os.path.basename(snapshot_path)} carries {n!r}"
+                  for n in OO1_FORBIDDEN if n in sraw]
+        try:
+            snap = json.loads(sraw)
+        except ValueError:
+            snap = {}
+        for r in ((snap.get("scorecard") or {}).get("rows") or []):
+            if r.get("objective") != "OO1":
+                continue
+            for x, tag in [(r, str(r.get("kr")))] + [
+                    (v, f"{r.get('kr')} {v.get('m')}") for v in (r.get("months") or [])]:
+                if x.get("value") is not None or x.get("display") is not None:
+                    found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} has a figure")
+                if x.get("score") is not None and x.get("score") not in OO1_SCORE_SET:
+                    found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} score is not 0/50/80/100")
+    if found:
+        add("4e-oo1-public", "critical",
+            "OO1 FINANCE DATA IN A PUBLISHED FILE: " + "; ".join(found[:8])
+            + ". MakiManc/ops is public and OO1 is Net Profit - remove it from the "
+              "repo (and its history) and fix the refresher or the bake")
+    else:
+        add("4e-oo1-public", "ok",
+            "no OO1 figure, non-score or Finance column name in okr_sheet.json "
+            "or the newest committed snapshot")
 
 
 # --------------------------------------------------------------- check 6
@@ -1368,6 +1500,8 @@ def main() -> None:
             archive_aggregates(conn, recomputed)
         finally:
             conn.close()
+    # what is actually published - runs even when the recompute is skipped
+    check_oo1_public()
 
     # ---- deferral: morning run parks timing-class criticals ----------
     deferred = []

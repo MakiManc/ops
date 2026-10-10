@@ -351,10 +351,18 @@ if snap:
     check(k1s and k1s["value"] is None and k1s["not_measured"] == KR1_WHY, "scorecard OO2 KR1 grey, reason verbatim")
     check(k2s and k2s["value"] is None and k2s["not_measured"].startswith(KR2_WHY)
           and k2s["band_status"] == "proposed", "scorecard OO2 KR2 grey, reason verbatim, band still PROPOSED")
-    for kr in ("KR3", "KR5"):
-        r = oo2(snap, kr)
-        check(r and r["value"] is None and "Lincoln's maintenance sheet" in (r["not_measured"] or ""),
-              f"scorecard OO2 {kr} unchanged")
+    # Phase 1 (10/10/2026): KR3 is read from the Operations Input sheet and
+    # KR5 from the Maintenance Contact List. This fixture carries neither
+    # file, so both stay grey naming that - and the Facilities feed does not
+    # touch them either way.
+    r = oo2(snap, "KR3")
+    check(r and r["value"] is None and r["score"] is None
+          and "Operations Input sheet" in (r["not_measured"] or ""),
+          "scorecard OO2 KR3 grey, naming the Operations Input sheet")
+    r = oo2(snap, "KR5")
+    check(r and r["value"] is None and r["score"] is None
+          and "Maintenance Contact List" in (r["not_measured"] or ""),
+          "scorecard OO2 KR5 grey, naming the Maintenance Contact List")
     o = next(o for o in snap["scorecard"]["objectives"] if o["objective"] == "OO2")
     check(o["scored"] == 1 and o["pct"] == 0.0, "OO2 objective: 1 of 5 scored, 0%")
     fac = snap["maintenance"]["facilities"]
