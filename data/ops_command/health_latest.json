@@ -1,102 +1,412 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-10-09T17:59:30Z",
- "verified_date": "2026-10-09",
- "mode": "recheck",
- "overall": "red",
+ "generated_at": "2026-10-10T03:33:05Z",
+ "verified_date": "2026-10-10",
+ "mode": "morning",
+ "overall": "amber",
  "postgres_latest": "2026-10-09",
  "snapshot_latest": "2026-10-09",
  "sizes": {
-  "maintenance_pulled_at": "2026-10-09T17:47:11Z",
+  "maintenance_pulled_at": "2026-10-10T03:31:23Z",
   "maintenance_source_as_of": "2026-10-09",
   "facilities_pulled_at": "2026-09-25T09:47:06Z",
   "facilities_as_of": "2026-09-25",
+  "facilities_copy": "facilities_ppm.json",
   "archive_mb": 261
  },
  "counts": {
   "expected_feeds": 31,
   "known_broken": 10,
   "best_effort": 21,
-  "criticals": 2,
-  "warnings": 9,
-  "deferred": 0
+  "criticals": 0,
+  "warnings": 44,
+  "deferred": 11
  },
- "criticals": [
-  {
-   "check": "0-receipts",
-   "level": "critical",
-   "feed": "daily-export",
-   "detail": "08:17 daily export receipt says exit 1 with 1 failed feed(s) - see its run log"
-  },
-  {
-   "check": "4b-consistency",
-   "level": "critical",
-   "class": "4b-consistency",
-   "detail": "recompute could not run: Command '['/opt/hostedtoolcache/Python/3.12.15/x64/bin/python', '/tmp/verify_recompute_jm_nlhja/builders/bake_ops_command.py']' timed out after 600 seconds"
-  }
- ],
+ "criticals": [],
  "warnings": [
   {
    "check": "1-landed",
    "level": "warning",
+   "feed": "Deep Flow Branch Resources",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Deep Flow Certificates",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Deep Flow Courses",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Deep Flow Modules",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Deep Flow Profile XT",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Deep Run Log",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Appraisals",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Branch Resources",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Branches",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Certificates",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Courses",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Departments",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Modules",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Profile XT",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Trainees",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Trainees Ext",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Trainees ReadOnly",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Training",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Flow Workbooks",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Central Areas",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Central Form Tasks",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Deviations (prev day)",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Form Task Answers (prev day)",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Forms",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Local Procedures",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Location Groups",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Modules",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Procedure Details",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Procedures",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Procedures Refactor",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Processes",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Scheduled Task Answers (prev day)",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Users",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "GC Waste Module Settings",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed",
-   "detail": "last pull 2026-09-01 (38d old) - expected today"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-01 (39d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Pack Prices",
-   "class": "1-landed",
-   "detail": "last pull 2026-09-07 (32d old) - expected today"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-07 (33d old) - expected today"
+  },
+  {
+   "check": "1-landed",
+   "level": "warning",
+   "feed": "Factory Broth Readings",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Locations Changelog",
-   "class": "1-landed",
+   "class": "1-landed-inflight",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data",
-   "class": "1-landed",
+   "class": "1-landed-inflight",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data (prev day)",
-   "class": "1-landed",
+   "class": "1-landed-inflight",
    "detail": "feed has NEVER landed in the pull archive"
-  },
-  {
-   "check": "3-events",
-   "level": "warning",
-   "feed": "Deep Flow Modules",
-   "detail": "no parseable module_completed_date values in the latest pull"
   },
   {
    "check": "3-events",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "3-events-stale",
-   "detail": "newest Order Placed is 2026-08-17 (53d old, window 10d) - and the last pull was 2026-09-01"
+   "detail": "newest Order Placed is 2026-08-17 (54d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
    "check": "6-side",
    "level": "warning",
    "feed": "Facilities PPM summary",
-   "detail": "facilities_ppm.json last pulled 2026-09-25 (14d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
+   "detail": "facilities_ppm.json last pulled 2026-09-25 (15d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. Last bake pull 2026-10-10T03:31: no_key - FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
   },
   {
-   "check": "aggregates",
+   "check": "4c-attribution",
    "level": "warning",
-   "detail": "no recomputed snapshot available - aggregates archive not updated this run"
+   "detail": "only 74.7% of price-report rows could be tied to a named supplier (floor 90.0%), so Supply KR2 stays unmeasured. 440 were proved from the pack-price export of 2026-09-07 and 708 matched by ingredient and pack. A fresher export in Drive is what lifts it - the export is manual and the price report is weekly"
+  },
+  {
+   "check": "4d-okr",
+   "level": "warning",
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   }
  ],
- "deferred": [],
+ "deferred": [
+  {
+   "check": "0-receipts",
+   "level": "deferred",
+   "feed": "daily-export",
+   "class": "0-receipts-missing",
+   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "0-receipts",
+   "level": "deferred",
+   "feed": "deep-pull",
+   "class": "0-receipts-missing",
+   "detail": "no receipt from the 01:07 deep pull today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "GC Central Module Tasks",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "GC Form Task Answers",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "GC Forms Overview",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "GC Locations",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "GC Scheduled Task Answers",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "Kobas Orders",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  },
+  {
+   "check": "1-landed",
+   "level": "deferred",
+   "feed": "Supplier Issues",
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
+  }
+ ],
  "known_broken": [
   {
    "name": "Mapal Equipment",
@@ -165,526 +475,318 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "critical",
+   "level": "deferred",
    "feed": "daily-export",
-   "detail": "08:17 daily export receipt says exit 1 with 1 failed feed(s) - see its run log"
+   "class": "0-receipts-missing",
+   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "0-receipts",
-   "level": "ok",
+   "level": "deferred",
    "feed": "deep-pull",
-   "detail": "01:07 deep pull: exit 0, 22851 rows written, finished 2026-10-09 07:39:14"
+   "class": "0-receipts-missing",
+   "detail": "no receipt from the 01:07 deep pull today - the run either never started or died before writing anything  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Deep Flow Branch Resources",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Deep Flow Branch Resources",
-   "detail": "16073 rows (median 16013)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Deep Flow Certificates",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Deep Flow Certificates",
-   "detail": "1873 rows (median 1865)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Deep Flow Courses",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Deep Flow Courses",
-   "detail": "1043 rows (median 994)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Deep Flow Modules",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Deep Flow Modules",
-   "detail": "3563 rows (median 3542)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Deep Flow Profile XT",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Deep Flow Profile XT",
-   "detail": "298 rows (median 298)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Deep Run Log",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Deep Run Log",
-   "detail": "1 rows (median 1)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Appraisals",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Appraisals",
-   "detail": "478 rows (median 479)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Branch Resources",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Branch Resources",
-   "detail": "2007 rows (median 2004)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Branches",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Branches",
-   "detail": "26 rows (median 26)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Certificates",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Certificates",
-   "detail": "260 rows (median 205)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Courses",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Courses",
-   "detail": "145 rows (median 126)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Departments",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Departments",
-   "detail": "11 rows (median 11)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Modules",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Modules",
-   "detail": "494 rows (median 424)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Profile XT",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Profile XT",
-   "detail": "48 rows (median 35)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Trainees",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Trainees",
-   "detail": "477 rows (median 478)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Trainees Ext",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Trainees Ext",
-   "detail": "477 rows (median 478)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Trainees ReadOnly",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Trainees ReadOnly",
-   "detail": "957 rows (median 949)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Training",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Training",
-   "detail": "1100 rows (median 1024)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Flow Workbooks",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Flow Workbooks",
-   "detail": "478 rows (median 479)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Central Areas",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Central Areas",
-   "detail": "33 rows (median 33)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Central Form Tasks",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Central Form Tasks",
-   "detail": "12658 rows (median 12658)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "GC Central Module Tasks",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Central Module Tasks",
-   "detail": "298 rows (median 297)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Deviations (prev day)",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Deviations (prev day)",
-   "detail": "4 rows (median 7)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "GC Form Task Answers",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Form Task Answers",
-   "detail": "1507 rows (median 2387)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Form Task Answers (prev day)",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Form Task Answers (prev day)",
-   "detail": "164 rows (median 182)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Forms",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Forms",
-   "detail": "74 rows (median 74)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "GC Forms Overview",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Forms Overview",
-   "detail": "424 rows (median 424)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Local Procedures",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Local Procedures",
-   "detail": "600 rows (median 600)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Location Groups",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Location Groups",
-   "detail": "13 rows (median 13)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "GC Locations",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Locations",
-   "detail": "26 rows (median 26)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Modules",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Modules",
-   "detail": "6 rows (median 6)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Procedure Details",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Procedure Details",
-   "detail": "18 rows (median 20)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Procedures",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Procedures",
-   "detail": "25 rows (median 25)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Procedures Refactor",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Procedures Refactor",
-   "detail": "25 rows (median 25)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Processes",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Processes",
-   "detail": "37 rows (median 37)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "GC Scheduled Task Answers",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Scheduled Task Answers",
-   "detail": "39004 rows (median 38975)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Scheduled Task Answers (prev day)",
-   "detail": "4739 rows (median 4819)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Users",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Users",
-   "detail": "1303 rows (median 1296)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "GC Waste Module Settings",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "GC Waste Module Settings",
-   "detail": "5 rows (median 5)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "Kobas Orders",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Kobas Orders",
-   "detail": "913 rows (median 910)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "detail": "2593 rows (median 2590)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "detail": "700 rows (median 700)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed",
-   "detail": "last pull 2026-09-01 (38d old) - expected today"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-01 (39d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -696,7 +798,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "1553 rows (median 1707)"
+   "detail": "no pull today - last landed 2026-10-09, inside its 8-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -708,26 +810,21 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
-   "detail": "171 rows (median 150)"
+   "detail": "no pull today - last landed 2026-10-09, inside its 8-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Pack Prices",
-   "class": "1-landed",
-   "detail": "last pull 2026-09-07 (32d old) - expected today"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-09-07 (33d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "deferred",
    "feed": "Supplier Issues",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Supplier Issues",
-   "detail": "5 rows (median 5)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today  [deferred - rechecked at 12:00 UTC]"
   },
   {
    "check": "1-landed",
@@ -791,73 +888,68 @@
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "Factory Broth Readings",
-   "detail": "landed 2026-10-09"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "Factory Broth Readings",
-   "detail": "1788 rows (median 1759)"
+   "class": "1-landed-inflight",
+   "detail": "last pull 2026-10-09 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Locations Changelog",
-   "class": "1-landed",
+   "class": "1-landed-inflight",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data",
-   "class": "1-landed",
+   "class": "1-landed-inflight",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data (prev day)",
-   "class": "1-landed",
+   "class": "1-landed-inflight",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "3-events",
-   "level": "warning",
+   "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "no parseable module_completed_date values in the latest pull"
+   "detail": "newest module_completed_date 2026-10-09 (1d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "newest AnsweredDateTime 2026-10-08 (1d old)"
+   "detail": "newest AnsweredDateTime 2026-10-08 (2d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "newest AnsweredDateTime 2026-10-08 (1d old)"
+   "detail": "newest AnsweredDateTime 2026-10-08 (2d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "newest Delivery Date ISO 2026-10-14 (-5d old)"
+   "detail": "newest Order Email Date 2026-10-09 (1d old)"
   },
   {
    "check": "3-events",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "3-events-stale",
-   "detail": "newest Order Placed is 2026-08-17 (53d old, window 10d) - and the last pull was 2026-09-01"
+   "detail": "newest Order Placed is 2026-08-17 (54d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "newest Edit Date/Time 2026-10-05 (4d old)"
+   "detail": "newest Edit Date/Time 2026-10-05 (5d old)"
   },
   {
    "check": "4a-snapshot",
@@ -865,20 +957,15 @@
    "detail": "dashboard snapshot 2026-10-09 matches the pull archive 2026-10-09"
   },
   {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-10-01 (propagation lag - normal for up to ~an hour)"
-  },
-  {
    "check": "6-side",
    "level": "ok",
-   "detail": "maintenance source pulled 2026-10-09 (0d ago), sheet content as of 2026-10-09"
+   "detail": "maintenance source pulled 2026-10-10 (0d ago), sheet content as of 2026-10-09"
   },
   {
    "check": "6-side",
    "level": "warning",
    "feed": "Facilities PPM summary",
-   "detail": "facilities_ppm.json last pulled 2026-09-25 (14d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
+   "detail": "facilities_ppm.json last pulled 2026-09-25 (15d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. Last bake pull 2026-10-10T03:31: no_key - FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
   },
   {
    "check": "6-side",
@@ -887,15 +974,39 @@
   },
   {
    "check": "4b-consistency",
-   "level": "critical",
-   "class": "4b-consistency",
-   "detail": "recompute could not run: Command '['/opt/hostedtoolcache/Python/3.12.15/x64/bin/python', '/tmp/verify_recompute_jm_nlhja/builders/bake_ops_command.py']' timed out after 600 seconds"
+   "level": "ok",
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=38471, tasks_missed=533, week_spend_gbp=209361.88, broth_cells=2439, factory_broth_readings=1730, supplier_issues=161, training_outstanding=1673"
+  },
+  {
+   "check": "4c-attribution",
+   "level": "warning",
+   "detail": "only 74.7% of price-report rows could be tied to a named supplier (floor 90.0%), so Supply KR2 stays unmeasured. 440 were proved from the pack-price export of 2026-09-07 and 708 matched by ingredient and pack. A fresher export in Drive is what lifts it - the export is manual and the price report is weekly"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "scorecard carries 30 KRs in 6 objectives, five each"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "every objective percentage equals the mean of its scored rows, in every month offered"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "OO1 is scores only (5 row(s), none carrying a value or a display) and no Finance percentage column name appears anywhere in the snapshot"
+  },
+  {
+   "check": "4d-okr",
+   "level": "warning",
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "aggregates",
-   "level": "warning",
-   "detail": "no recomputed snapshot available - aggregates archive not updated this run"
+   "level": "ok",
+   "detail": "2789 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (3592 total)"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
