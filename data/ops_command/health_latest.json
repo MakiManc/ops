@@ -1,13 +1,13 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-10-10T03:33:05Z",
+ "generated_at": "2026-10-10T03:35:03Z",
  "verified_date": "2026-10-10",
  "mode": "morning",
  "overall": "amber",
  "postgres_latest": "2026-10-09",
  "snapshot_latest": "2026-10-09",
  "sizes": {
-  "maintenance_pulled_at": "2026-10-10T03:31:23Z",
+  "maintenance_pulled_at": "2026-10-10T03:32:59Z",
   "maintenance_source_as_of": "2026-10-09",
   "facilities_pulled_at": "2026-09-25T09:47:06Z",
   "facilities_as_of": "2026-09-25",
@@ -315,7 +315,7 @@
    "check": "6-side",
    "level": "warning",
    "feed": "Facilities PPM summary",
-   "detail": "facilities_ppm.json last pulled 2026-09-25 (15d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. Last bake pull 2026-10-10T03:31: no_key - FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
+   "detail": "facilities_ppm.json last pulled 2026-09-25 (15d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. Last bake pull 2026-10-10T03:32: no_key - FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
   },
   {
    "check": "4c-attribution",
@@ -965,7 +965,7 @@
    "check": "6-side",
    "level": "warning",
    "feed": "Facilities PPM summary",
-   "detail": "facilities_ppm.json last pulled 2026-09-25 (15d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. Last bake pull 2026-10-10T03:31: no_key - FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
+   "detail": "facilities_ppm.json last pulled 2026-09-25 (15d ago, critical past 7) - OO2 KR1/KR2/KR4 have been grey on the Overview since it turned 4 days old. Last bake pull 2026-10-10T03:32: no_key - FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed. builders/refresh_facilities.py runs in the Ops Command bake (maki-hospitality-etl) with the FACILITIES_API_KEY secret and leaves the file untouched when it cannot reach the app - its log line in the most recent bake says why. A free PythonAnywhere site expires every 3 months unless 'Run until 1 month from today' is clicked [would be critical; capped at warning because feeds_manifest.json files it best_effort - flip it to expected once something pages on the Maintenance tab]"
   },
   {
    "check": "6-side",
