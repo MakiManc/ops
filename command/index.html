@@ -1334,12 +1334,22 @@ function renderScorecard(snap){
     /* No objective scored this month (e.g. early in the month, when every
        measured KR is still month-to-date): a grey dash and why - never a
        missing line a reader could take for "nothing to report", and never 0. */
+    /* Phase 1: OO1 can now be the only objective with a score (Finance's
+       scores, excluded from Operations) - say that rather than "no objective
+       has a scored KR", which the OO1 heading below would contradict. And a
+       CLOSED month is not "month-to-date". */
     : opsNow
     ? `<div style="margin-bottom:10px;font-size:15px">`+
       `<b style="font-size:20px;color:var(--muted)">—</b>`+
-      ` <span style="opacity:.75">Operations · no objective has a scored KR`+
-      `${sel?' in '+esc(monthLabel(sel)):''} yet - every measured KR is month-to-date or not measured. `+
-      `OO1 is Finance's and is excluded.</span></div>`
+      ` <span style="opacity:.75">Operations · `+
+      ((objPct(objOf('OO1'))||{}).scored
+        ? `none of OO2–OO6 has a scored KR${sel?' in '+esc(monthLabel(sel)):''} - only OO1 does, `+
+          `and OO1 is Finance's and is excluded.`
+        : `no objective has a scored KR${sel?' in '+esc(monthLabel(sel)):''}`+
+          (isDefault ? ` yet - every measured KR is month-to-date or not measured. `
+                     : ` - every KR is not measured for that month. `)+
+          `OO1 is Finance's and is excluded.`)+
+      `</span></div>`
     : '';
   const picker=months.length>1
     ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">`+

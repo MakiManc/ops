@@ -137,10 +137,23 @@ const rowsOf = page => page.locator('#scorecard tbody tr').evaluateAll(trs => tr
   const k1o = rows.find(r => /Actual W\/R%/.test(r.text));
   assert(k1o && k1o.cells[3] === '—' && /counted once the month closes/.test(k1o.text),
     'October: OO1 KR1 in progress has no score and says when it will');
-  const prov = await page.locator('#scorecard .prov').last().innerText();
-  assert(/measured/.test(prov), 'the footer still renders');
-  assert(page._errors.length === 0, 'no page errors on index.html' + (page._errors.length ? ': ' + page._errors.join(' | ') : ''));
+  // a month where only OO1 (excluded) scored: the Operations line says so
   await page.close();
+  const onlyOO1 = fixture();
+  onlyOO1.scorecard.operations.months = onlyOO1.scorecard.operations.months.map(
+    x => x.m === '2026-09' ? { ...x, pct: null, scored: 0 } : x);
+  const p2 = await boot(indexUrl, onlyOO1);
+  await p2.selectOption('#sc-month', '2026-09');
+  await p2.waitForTimeout(300);
+  const opsTxt = await p2.locator('#scorecard').innerText();
+  assert(/none of OO2–OO6 has a scored KR in September 2026 - only OO1 does/.test(opsTxt)
+    && !/no objective has a scored KR in September/.test(opsTxt),
+    'when only OO1 scored, the Operations line says "only OO1 does", not "no objective has a scored KR"');
+  const prov = await p2.locator('#scorecard .prov').last().innerText();
+  assert(/measured/.test(prov), 'the footer still renders');
+  assert(page._errors.length === 0 && p2._errors.length === 0, 'no page errors on index.html'
+    + (page._errors.length ? ': ' + page._errors.join(' | ') : ''));
+  await p2.close();
 }
 
 // ---- okr.html ----------------------------------------------------------------
@@ -162,6 +175,13 @@ const rowsOf = page => page.locator('#scorecard tbody tr').evaluateAll(trs => tr
   const t1 = tiles.find(t => t.o === 'OO1');
   assert(t1 && /^—/.test(t1.p) && /1 of 5 scored/.test(t1.p) && t1.title.includes('no objective percentage'),
     'the OO1 tile shows a dash and "1 of 5 scored", with the reason on hover');
+  const bars = await page.locator('.tile').filter({ hasText: 'OO1' }).first().locator('.hist i')
+    .evaluateAll(is => is.map(i => i.getAttribute('title')));
+  assert(bars.some(b => /Sept? 2026: 1 of 5 scored - no % is published for OO1/.test(b)),
+    `the OO1 history bar for September says "1 of 5 scored - no % is published", not "not scored" (got ${JSON.stringify(bars)})`);
+  const k5 = cards.find(c => /Maintenance Contact Sheets/.test(c.t || ''));
+  assert(k5 && /grey/.test(k5.cls) && /current state only/.test(k5.why) && !/0 of 20/.test(k5.v),
+    'OO2 KR5 (current state) is not shown as September\'s result on the wall');
   assert(page._errors.length === 0, 'no page errors on okr.html' + (page._errors.length ? ': ' + page._errors.join(' | ') : ''));
   await page.close();
 }

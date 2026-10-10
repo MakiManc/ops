@@ -457,6 +457,39 @@ finally:
     shutil.rmtree(tmp)
 check(bake.OO1_FORBIDDEN == vod.OO1_FORBIDDEN, "the bake's OO1_FORBIDDEN is identical to the verifier's")
 
+# REVIEW (10/10/2026): a malformed but valid-JSON file greys rows, never crashes the bake
+tmp = tempfile.mkdtemp(prefix="okr_sheet_test_")
+try:
+    for bad_doc, lab in (({"pulled_at": "x", "series": ["x"]}, "series a list"),
+                         ({"series": {"oo2_kr3": {"pulled_at": "2026-10-01T00:00:00Z", "months": [3]}}}, "months a list"),
+                         ({"series": {"oo1": {"pulled_at": "2026-10-01T00:00:00Z", "krs": [12.5]}}}, "krs a list"),
+                         ({"series": {"oo1": {"pulled_at": "2026-10-01T00:00:00Z", "krs": {"KR1": [1]}}}}, "a KR a list")):
+        with open(os.path.join(tmp, "okr_sheet.json"), "w") as fh:
+            json.dump(bad_doc, fh)
+        try:
+            d_, err_, probs_, raw_ = bake.load_okr_sheet(tmp)
+            lk = bake.okr_sheet_leaks(raw_)
+            ex_, _ = bake.okr_sheet_extra(d_, err_, None, "2026-10")
+            ok_ = True
+        except Exception as e:  # noqa: BLE001
+            ok_, lk = False, [repr(e)]
+        check(ok_, f"malformed okr_sheet.json ({lab}) does not crash the loader, the leak check or the rows")
+        if "krs" in lab or "KR a list" in lab:
+            check(any("score-only shape" in x for x in lk),
+                  f"...and an OO1 not in the score-only shape ({lab}) is refused, not ignored")
+finally:
+    shutil.rmtree(tmp)
+check(bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"pulled_at": "x", "krs": {}, "pct": 12.5}}}))
+      == ["OO1 carries a field the score-only shape does not have"],
+      "an OO1 field outside the score-only shape (e.g. a 'pct') is refused, by name only")
+check(bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"krs": {"KR1": {"12.5%": 100}}}}}))
+      == ["OO1 KR1 (a key that is not a month) is not a 0/50/80/100 score"]
+      or bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"krs": {"KR1": {"12.5%": 100}}}}})) == [],
+      "a stray key is never echoed into the refusal message")
+ex, gp = bake.okr_sheet_extra(sheet_doc(pulled="2026-10-06T09:00:00Z"), None, None, "2026-10", today="2026-10-10")
+check(any("read on 2026-10-06, 4 days before this bake, and no failed pull is recorded" in g_ for g_ in gp),
+      "an old sheet copy with no recorded failure is named by its age (the refresh step stopped)")
+
 snap = {"scorecard": {"rows": [{"objective": "OO1", "kr": "KR1", "value": 21.5, "display": "21.5%",
                                 "score": 80, "months": [{"m": "2026-09", "value": None, "display": None,
                                                          "score": 75, "rag": "amber"}]}]}}
@@ -532,15 +565,19 @@ check(not re.search(r"[A-Za-z0-9_-]{40,}", _src) and rmc.SHEET_ID == os.environ.
       "the contact list's sheet id is NOT in the public refresher - it comes from the private workflow")
 
 
-def cdoc(full_tabs, partial=(), extra_tabs=(), pulled="2026-10-10T10:00:00Z"):
+def cdoc(full_tabs, partial=(), extra_tabs=(), pulled="2026-10-10T10:00:00Z",
+         empty=("Glasgow and Edinburgh",)):
     """full_tabs: tabs with reachable contacts; partial: tabs whose rows have
-    neither a Contact Number nor an Email."""
+    neither a Contact Number nor an Email; empty: tabs present with a header
+    and no rows (the real 'Glasgow and Edinburgh' tab). Others are absent."""
     tabs = []
     for tab in bake.CONTACT_TAB_SITES:
         if tab in full_tabs:
             tabs.append({"title": tab, "header": HDR, "rows": ["xxxxx.x", "xxx.x.."]})
         elif tab in partial:
             tabs.append({"title": tab, "header": HDR, "rows": ["xx..x..", "x......"]})
+        elif tab in empty:
+            tabs.append({"title": tab, "header": HDR[:5], "rows": []})
     for tab in extra_tabs:
         tabs.append({"title": tab, "header": HDR, "rows": ["xxxxxxx"]})
     return {"pulled_at": pulled, "tabs": tabs}
@@ -558,7 +595,7 @@ allt = [t_ for t_ in bake.CONTACT_TAB_SITES if t_ != "Glasgow and Edinburgh"]
 kw, gp = bake.maint_contacts_kr5(cdoc(allt, extra_tabs=("Bristol",)), None, None)
 check(kw["value"] == 60.0 and bake.okr_score("contact", kw["value"]) == 0 and kw["display"] == "12 of 20 sites (60%)",
       "any contact on the tab: 12 of 20 covered is 60% and scores 0 on 'contact' (the real list today)")
-check("Not covered: M1TOO Ltd" in kw["basis"] and "Glasgow and Edinburgh: tab not found" in kw["basis"]
+check("Not covered: M1TOO Ltd" in kw["basis"] and "Glasgow and Edinburgh: no contacts" in kw["basis"]
       and "any contact on the tab" in kw["basis"], "the basis names the rule, the tabs and every site not covered")
 check(any("Maki Southampton, Maki Birmingham Ltd" in g_ for g_ in gp) and any("'Bristol'" in g_ for g_ in gp),
       "sites with no tab and a tab mapped to no site are named gaps")
@@ -594,6 +631,28 @@ check("after this snapshot's date (2026-10-03)" in
       "a back-bake never shows a contact list read after its date")
 kw, gp = bake.maint_contacts_kr5(None, "absent", {"ok": False, "cause": "not_shared", "detail": "HTTP 403 - x"})
 check("HTTP 403" in kw["not_measured"] and "value" not in kw, "no file: KR5 grey with the cause, never 0")
+
+# REVIEW (10/10/2026): a tab that could not be read is UNKNOWN, not "no contacts"
+unr = cdoc(list(bake.CONTACT_TAB_SITES))
+unr["tabs"][0]["header"], unr["tabs"][0]["rows"] = [], []
+kw, gp = bake.maint_contacts_kr5(unr, None, None)
+check("value" not in kw and "'London' tab has no header row" in kw["not_measured"]
+      and "Maki Soho" in kw["not_measured"],
+      "a mapped tab whose header could not be found makes KR5 unscored, naming the tab and its sites")
+ren = cdoc([t_ for t_ in bake.CONTACT_TAB_SITES if t_ != "Leeds"], extra_tabs=("Leeds (new)",))
+kw, _ = bake.maint_contacts_kr5(ren, None, None)
+check("value" not in kw and "'Leeds' tab is missing while 'Leeds (new)' is not mapped" in kw["not_measured"],
+      "a mapped tab missing while an unmapped one exists (a rename?) is unknown too")
+gone = cdoc([t_ for t_ in bake.CONTACT_TAB_SITES if t_ != "Leeds"], empty=())
+kw, gp = bake.maint_contacts_kr5(gone, None, None)
+check(kw.get("value") == 85.0 and any("'Leeds' tab is missing" in g_ for g_ in gp),
+      "a mapped tab simply gone (nothing unmapped) is not covered, and named")
+# REVIEW: an old copy with no recorded failure is named by its age
+kw, gp = bake.maint_contacts_kr5(cdoc(allt, pulled="2026-10-07T10:00:00Z"), None, None, today="2026-10-10")
+check(any("read on 2026-10-07, 3 days before this bake" in g_ for g_ in gp) and "3 days before" in kw["basis"],
+      "a contact-list copy older than the bake is named in a gap and the basis, by its age")
+kw, gp = bake.maint_contacts_kr5(cdoc(allt, pulled="2026-10-10T06:00:00Z"), None, None, today="2026-10-10")
+check(not any("before this bake" in g_ for g_ in gp), "...and today's copy is not")
 
 # ---------------------------------------------------------------------------
 # 6. A real bake on a tiny archive, with and without the sheet

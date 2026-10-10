@@ -760,6 +760,15 @@ def _okr_month_range(first, last):
     return out
 
 
+def _okr_days_before(read_day, today):
+    """Whole days the copy read on `read_day` precedes `today`, or 0."""
+    try:
+        return max(0, (datetime.date.fromisoformat(str(today)[:10])
+                       - datetime.date.fromisoformat(str(read_day)[:10])).days)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _okr_is_month(k):
     return isinstance(k, str) and re.fullmatch(r"20\d\d-(0[1-9]|1[0-2])", k) is not None
 
@@ -787,6 +796,14 @@ def load_okr_sheet(out_dir):
         return None, f"unreadable ({type(e).__name__})", [], raw
     if not isinstance(doc, dict) or not isinstance(doc.get("series"), dict):
         return None, "unreadable (no 'series' object - not the Phase 1 shape)", [], raw
+    try:
+        return _okr_sheet_clean(doc) + (raw,)
+    except Exception as e:  # noqa: BLE001 - a malformed file greys nine rows, never fails the bake
+        return None, f"unreadable (unexpected shape: {type(e).__name__})", [], raw
+
+
+def _okr_sheet_clean(doc):
+    """load_okr_sheet's type checks. -> (doc, None, problems)."""
     problems, series = [], {}
     for key, s in doc["series"].items():
         if not isinstance(s, dict) or not _fac_str(s.get("pulled_at")):
@@ -795,9 +812,10 @@ def load_okr_sheet(out_dir):
         clean = {k: s.get(k) for k in ("tab", "pulled_at", "as_of", "carried_forward")}
         if key == "oo1":
             krs = {}
-            for kr, ms in (s.get("krs") or {}).items():
+            _krs = s.get("krs")
+            for kr, ms in (_krs.items() if isinstance(_krs, dict) else []):
                 if kr not in ("KR1", "KR2", "KR3", "KR4", "KR5") or not isinstance(ms, dict):
-                    problems.append(f"oo1 {kr}: not one of KR1-KR5 - ignored")
+                    problems.append("oo1: an entry that is not KR1-KR5 with months - ignored")
                     continue
                 krs[kr] = {}
                 for m, v in ms.items():
@@ -810,7 +828,8 @@ def load_okr_sheet(out_dir):
             clean["krs"] = krs
         elif key in ("oo2_kr3", "oo3_kr3", "oo4_kr1", "oo4_kr4"):
             ms_ = {}
-            for m, v in (s.get("months") or {}).items():
+            _ms = s.get("months")
+            for m, v in (_ms.items() if isinstance(_ms, dict) else []):
                 n = _fac_num(v)
                 ok = _okr_is_month(m) and n is not None and (
                     0 <= n <= 100 if key == "oo4_kr4" else (n >= 0 and float(n).is_integer()))
@@ -823,7 +842,7 @@ def load_okr_sheet(out_dir):
         else:
             continue
         series[key] = clean
-    return {"pulled_at": doc.get("pulled_at"), "series": series}, None, problems, raw
+    return {"pulled_at": doc.get("pulled_at"), "series": series}, None, problems
 
 
 def okr_sheet_leaks(raw):
@@ -841,12 +860,44 @@ def okr_sheet_leaks(raw):
         doc = json.loads(raw, parse_constant=_fac_reject_constant)
     except ValueError:
         return out
-    oo1 = ((doc.get("series") or {}).get("oo1") or {}) if isinstance(doc, dict) else {}
-    for kr, ms in ((oo1.get("krs") or {}) if isinstance(oo1, dict) else {}).items():
-        for m, v in (ms.items() if isinstance(ms, dict) else []):
-            if not (_fac_num(v) is not None and float(v).is_integer()
-                    and int(v) in OO1_SCORE_SET):
-                out.append(f"OO1 {kr} {m} is not a 0/50/80/100 score")
+    series = doc.get("series") if isinstance(doc, dict) else None
+    oo1 = series.get("oo1") if isinstance(series, dict) else None
+    if oo1 is None:
+        return out
+    # OO1 must be in the score-only shape and nothing else: any other field,
+    # or a number anywhere but a KR's month score, could be a Finance figure.
+    if not isinstance(oo1, dict):
+        return out + ["OO1 is not in the score-only shape"]
+    for k, v in oo1.items():
+        if k == "krs":
+            if not isinstance(v, dict):
+                out.append("OO1 krs is not in the score-only shape")
+                continue
+            for kr, ms in v.items():
+                krn = kr if kr in ("KR1", "KR2", "KR3", "KR4", "KR5") else "(a key that is not KR1-KR5)"
+                if not isinstance(ms, dict):
+                    out.append(f"OO1 {krn} is not in the score-only shape")
+                    continue
+                for m, x in ms.items():
+                    if not (_fac_num(x) is not None and float(x).is_integer()
+                            and int(x) in OO1_SCORE_SET):
+                        out.append(f"OO1 {krn} {m if _okr_is_month(m) else '(a key that is not a month)'}"
+                                   " is not a 0/50/80/100 score")
+        elif k in ("tab", "pulled_at", "as_of"):
+            if v is not None and (not isinstance(v, str) or "%" in v):
+                out.append(f"OO1 {k} is not plain text")
+        elif k == "carried_forward":
+            if not isinstance(v, bool):
+                out.append("OO1 carried_forward is not true/false")
+        elif k == "gid":
+            if not (isinstance(v, int) and not isinstance(v, bool)):
+                out.append("OO1 gid is not a whole number")
+        elif k == "rows":
+            if not (isinstance(v, list) and all(isinstance(r, int) and not isinstance(r, bool)
+                                                for r in v)):
+                out.append("OO1 rows is not a list of row numbers")
+        else:
+            out.append("OO1 carries a field the score-only shape does not have")
     return out
 
 
@@ -879,7 +930,7 @@ def okr_sheet_cause(status):
             + (f" (failing since {since})" if since and since != at[:10] else ""))
 
 
-def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=()):
+def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today=None):
     """The nine sheet-fed KRs as scorecard `_okr_extra` entries.
 
     -> ({(objective, kr): entry}, [gap]). An entry is either
@@ -913,6 +964,14 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=()):
         return extra, gaps
 
     series = doc.get("series") or {}
+    _age = _okr_days_before(doc.get("pulled_at"), today)
+    if _age and not fail:
+        # no failure recorded, yet the copy is old: the refresh step has not
+        # run (or died before writing its status) - say so, by age
+        gaps.append(f"Operations Input sheet: the copy on file was read on "
+                    f"{str(doc.get('pulled_at'))[:10]}, {_age} day{'' if _age == 1 else 's'} "
+                    "before this bake, and no failed pull is recorded - the refresh step "
+                    "in ops_command_bake.yml has not run since")
     if fail:
         gaps.append(f"Operations Input sheet: {fail}. The KRs it feeds show the last good "
                     f"copy of each series (read {str(doc.get('pulled_at') or '')[:10]}) and say "
@@ -1192,7 +1251,7 @@ def maint_contacts_leaks(raw):
     return bad
 
 
-def maint_contacts_kr5(doc, err, status, dated=None):
+def maint_contacts_kr5(doc, err, status, dated=None, today=None):
     """OO2 KR5 as row() keyword arguments, plus gaps. -> (kwargs, [gap]).
 
     Value = covered sites / len(KR5_SITES) x 100, the EXACT fraction - never
@@ -1228,6 +1287,25 @@ def maint_contacts_kr5(doc, err, status, dated=None):
     by_title = {t["title"].casefold(): t for t in doc["tabs"]}
     mapped = {k.casefold() for k in CONTACT_TAB_SITES}
     unmapped = [t["title"] for t in doc["tabs"] if t["title"].casefold() not in mapped]
+    # UNREAD IS UNKNOWN, NEVER "NO CONTACTS" (review, 10/10/2026). A mapped tab
+    # whose header the refresher could not find, or one that is missing while
+    # an unmapped tab exists (a rename, as likely as a deletion), holds an
+    # unknown number of contacts - so KR5 is not scored, and says which tab.
+    unread = [tab for tab in CONTACT_TAB_SITES
+              if (by_title.get(tab.casefold()) is not None
+                  and not by_title[tab.casefold()]["header"])
+              or (by_title.get(tab.casefold()) is None and unmapped)]
+    if unread:
+        why = ("not scored - the Maintenance Contact List was read on " + sp + " but "
+               + "; ".join(
+                   (f"the '{tab}' tab has no header row with Scope and Contact Number"
+                    if by_title.get(tab.casefold()) is not None
+                    else f"the '{tab}' tab is missing while "
+                         f"{', '.join(repr(u) for u in unmapped)} is not mapped (a rename?)")
+                   + f" ({', '.join(CONTACT_TAB_SITES[tab])})" for tab in unread)
+               + ", so whether those sites have a contact is unknown")
+        gaps.append(f"OO2 KR5 (maintenance contact sheets) is grey: {why}")
+        return {"not_measured": why}, gaps
     tab_note, covered, site_tab = [], [], {}
     for tab, sites in CONTACT_TAB_SITES.items():
         for s_ in sites:
@@ -1262,6 +1340,12 @@ def maint_contacts_kr5(doc, err, status, dated=None):
                     "they count for nothing until somebody maps them")
     if fail:
         gaps.append(f"Maintenance Contact List: {fail}. OO2 KR5 shows the copy read {sp}")
+    _age = _okr_days_before(sp, today)
+    if _age:
+        gaps.append(f"OO2 KR5 uses the copy of the Maintenance Contact List read on {sp}, "
+                    f"{_age} day{'' if _age == 1 else 's'} before this bake - it is refreshed "
+                    "before every bake, so the refresh step has stopped reading it"
+                    + (f" ({fail})" if fail else ""))
     n_all, n_ok = len(KR5_SITES), len(covered)
     value = 100.0 * n_ok / n_all
     pct = math.floor(value * 10) / 10
@@ -1277,7 +1361,9 @@ def maint_contacts_kr5(doc, err, status, dated=None):
              "contractor directory: one tab covers every site in its city, and it has no "
              "per-site rows and no proof column, so 'Proof Required' is not something this "
              f"figure can check. Read {sp}."
-             + (f" NOTE: {fail}." if fail else ""))
+             + (f" NOTE: {fail}." if fail else "")
+             + (f" NOTE: read {_age} day{'' if _age == 1 else 's'} before this snapshot."
+                if _age else ""))
     return {"value": value, "display": f"{n_ok} of {n_all} sites ({pct:g}%)",
             "basis": basis, "source_kind": "sheet_contacts"}, gaps
 
@@ -4847,7 +4933,14 @@ def main():
         _mc_status = None
     if dated and _mc_status and str(_mc_status.get("attempted_at") or "")[:10] > dated:
         _mc_status = None
-    _kr5_row, _kr5_gaps = maint_contacts_kr5(_mc_doc, _mc_err, _mc_status, dated=dated)
+    _sheet_today = dated or datetime.datetime.utcnow().date().isoformat()
+    try:
+        _kr5_row, _kr5_gaps = maint_contacts_kr5(_mc_doc, _mc_err, _mc_status, dated=dated,
+                                                 today=_sheet_today)
+    except Exception as e:  # noqa: BLE001 - a malformed copy greys KR5, never fails the bake
+        _kr5_row = {"not_measured": f"data/ops_command/{MAINT_CONTACTS_FILE} could not be "
+                                    f"read ({type(e).__name__})"}
+        _kr5_gaps = [f"OO2 KR5 is grey: {_kr5_row['not_measured']}"]
     gaps.extend(_kr5_gaps)
     print(f"[bake] okr sheet: " + (f"read {_okr_doc.get('pulled_at')}" if _okr_doc else _okr_err)
           + (f"; last pull {_okr_status.get('cause')} at {_okr_status.get('attempted_at')}"
@@ -5771,8 +5864,13 @@ def main():
     # OO1 KR1-5, OO2 KR3, OO3 KR3, OO4 KR1, OO4 KR4. See okr_sheet_extra at
     # module level: a month not entered is an explicit not-measured variant,
     # never 0, and OO1 carries Finance's scores and nothing else.
-    _sheet_extra, _sheet_gaps = okr_sheet_extra(_okr_doc, _okr_err, _okr_status, _pm,
-                                                dated=dated, problems=_okr_probs)
+    try:
+        _sheet_extra, _sheet_gaps = okr_sheet_extra(_okr_doc, _okr_err, _okr_status, _pm,
+                                                    dated=dated, problems=_okr_probs,
+                                                    today=_sheet_today)
+    except Exception as e:  # noqa: BLE001 - a malformed copy greys nine rows, never fails the bake
+        _sheet_extra, _sheet_gaps = okr_sheet_extra(
+            None, f"unreadable (unexpected shape: {type(e).__name__})", None, _pm)
     _okr_extra.update(_sheet_extra)
     gaps.extend(_sheet_gaps)
 

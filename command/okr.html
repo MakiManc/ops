@@ -131,7 +131,12 @@ function monthRow(row,m){
   // the builder scores every month in the picker; a KR with no monthly form only has its default value
   // mtd: the builder's month-to-date flag (09/10/2026) - a month in progress
   // with too few days of data shows its value but carries no score
-  if(!m || m===SNAP.scorecard.month || !row.months || !row.months.length) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd,not_measured:row.not_measured};
+  if(!m || m===SNAP.scorecard.month) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd,not_measured:row.not_measured};
+  // A CURRENT-STATE row (no monthly form - e.g. OO2 KR5 from the contact
+  // list) is today's reading, not an earlier month's event: grey under any
+  // other month, as its objective tile already leaves it out.
+  if(!row.months || !row.months.length) return {value:null,display:null,rag:null,score:null,mtd:false,
+    basis:null,not_measured:'current state only - this KR has no monthly form, so it is not shown for '+mLabel(m)};
   const x=row.months.find(z=>z.m===m);
   if(!x) return {value:null,display:null,rag:null,score:null,basis:'no value for '+mLabel(m),mtd:false,not_measured:null};
   return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:!!x.mtd,not_measured:x.not_measured};
@@ -164,6 +169,8 @@ function render(){
     const rag=pctRag(om.pct);
     const hist=months.slice(Math.max(0,mi),mi+4).reverse().map(mm=>{
       const h=(o.months||[]).find(z=>z.m===mm);
+      // OO1 publishes no % (pct_note): its bar says how many KRs Finance scored
+      if(h&&h.pct==null&&o.pct_note&&h.scored) return `<i class="e" title="${mLabel(mm)}: ${h.scored} of ${h.total} scored - no % is published for ${esc(o.objective)}"></i>`;
       if(!h||h.pct==null) return `<i class="e" title="${mLabel(mm)}: not scored"></i>`;
       return `<i class="${ragCls(pctRag(h.pct))}" style="height:${Math.max(4,Math.round(h.pct*0.26))}px" title="${mLabel(mm)}: ${Math.round(h.pct)}% (${h.scored} of ${h.total})"></i>`;
     }).join('');
