@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-10-09",
+ "source_as_of": "2026-10-10",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-10-10T03:47:19Z",
+ "pulled_at": "2026-10-10T12:41:02Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,18 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-10-10",
+   "issue": "Under the sink in the ramen section is a lot of water and we don’t know where is coming from.",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Marian-Georgian Munteanu"
+  },
   {
    "site": "Maki Meadowhall",
    "raw_site": "Maki 14 - Meadowhall, Sheffield",
