@@ -131,10 +131,15 @@ function monthRow(row,m){
   // the builder scores every month in the picker; a KR with no monthly form only has its default value
   // mtd: the builder's month-to-date flag (09/10/2026) - a month in progress
   // with too few days of data shows its value but carries no score
-  if(!m || m===SNAP.scorecard.month || !row.months || !row.months.length) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd};
+  if(!m || m===SNAP.scorecard.month) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd,not_measured:row.not_measured};
+  // A CURRENT-STATE row (no monthly form - e.g. OO2 KR5 from the contact
+  // list) is today's reading, not an earlier month's event: grey under any
+  // other month, as its objective tile already leaves it out.
+  if(!row.months || !row.months.length) return {value:null,display:null,rag:null,score:null,mtd:false,
+    basis:null,not_measured:'current state only - this KR has no monthly form, so it is not shown for '+mLabel(m)};
   const x=row.months.find(z=>z.m===m);
-  if(!x) return {value:null,display:null,rag:null,score:null,basis:'no value for '+mLabel(m),mtd:false};
-  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:!!x.mtd};
+  if(!x) return {value:null,display:null,rag:null,score:null,basis:'no value for '+mLabel(m),mtd:false,not_measured:null};
+  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:!!x.mtd,not_measured:x.not_measured};
 }
 function render(){
   const sc=SNAP.scorecard;
@@ -164,13 +169,15 @@ function render(){
     const rag=pctRag(om.pct);
     const hist=months.slice(Math.max(0,mi),mi+4).reverse().map(mm=>{
       const h=(o.months||[]).find(z=>z.m===mm);
+      // OO1 publishes no % (pct_note): its bar says how many KRs Finance scored
+      if(h&&h.pct==null&&o.pct_note&&h.scored) return `<i class="e" title="${mLabel(mm)}: ${h.scored} of ${h.total} scored - no % is published for ${esc(o.objective)}"></i>`;
       if(!h||h.pct==null) return `<i class="e" title="${mLabel(mm)}: not scored"></i>`;
       return `<i class="${ragCls(pctRag(h.pct))}" style="height:${Math.max(4,Math.round(h.pct*0.26))}px" title="${mLabel(mm)}: ${Math.round(h.pct)}% (${h.scored} of ${h.total})"></i>`;
     }).join('');
     return `<div class="tile t-${rag?ragCls(rag):'n'}">
       <div class="o">${esc(o.objective)}</div>
       <div class="l" title="${esc(o.label)}">${esc(o.label)}</div>
-      <div class="p" style="color:${rag?`var(--${ragCls(rag)})`:'var(--muted)'}">${om.pct==null?'—':Math.round(om.pct)+'%'}<small>${om.scored??0} of ${om.total??5} scored</small></div>
+      <div class="p" style="color:${rag?`var(--${ragCls(rag)})`:'var(--muted)'}"${o.pct_note?` title="${esc(o.pct_note)}"`:''}>${om.pct==null?'—':Math.round(om.pct)+'%'}<small>${om.scored??0} of ${om.total??5} scored</small></div>
       <div class="hist">${hist}</div>
     </div>`;
   }).join('');
@@ -181,12 +188,16 @@ function render(){
     const krs=rows.filter(r=>r.objective===o.objective);
     return `<div class="col">`+krs.map(r=>{
       const x=monthRow(r,m);
-      const grey=r.source_kind==='not_measured'||x.value==null;
+      // a score-only row (OO1: Finance's own score, its figure never
+      // published) is not grey - it has a score and shows it
+      const grey=r.source_kind==='not_measured'||(x.value==null&&x.score==null);
       const cls=grey?'n':ragCls(x.rag);
       const chip=x.mtd?'MTD':grey?'NOT MEASURED':(x.score!=null?x.score:'—');
       const text=r.text.replace(/^KR\s?\d\s*:?\s*/i,'');
-      const why=(grey&&!x.mtd)?(r.not_measured||x.basis||''):(x.basis||'');
-      const val=grey?'':`<div class="v"><b>${esc(x.display??x.value)}</b> <span class="tg">· target ${esc(r.target||'not set')}</span></div>`;
+      const why=(grey&&!x.mtd)?(x.not_measured||r.not_measured||x.basis||''):(x.basis||'');
+      const val=grey?'':x.value==null
+        ? `<div class="v"><b>score only</b> <span class="tg">· Finance's own score</span></div>`
+        : `<div class="v"><b>${esc(x.display??x.value)}</b> <span class="tg">· target ${esc(r.target||'not set')}</span></div>`;
       return `<div class="kr ${grey?'grey':''}" title="${esc(why)}">
         <div class="chip c-${cls}">${chip}</div>
         <div><div class="t"><span class="id">${esc(r.kr)}</span>${esc(text)}</div>${val}<div class="why">${esc(why)}</div></div>
