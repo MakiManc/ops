@@ -1,0 +1,52 @@
+name: Morning kick (dashboard ready by 10:00 UK)
+
+# Ross, 09/10/2026: "change it so that the dashboard is ready by 10am".
+#
+# The pipeline that feeds Ops Command lives in the PRIVATE repo
+# maki-hospitality-etl, where GitHub creates scheduled runs 3-12 hours late,
+# so the 08:17 export cron fires 12:30-17:00 UTC and the dashboard lands in
+# the afternoon. Dispatched runs start within seconds. This job is the
+# external clock that daily-export.yml asks for: it runs HERE (public repo,
+# cron 1-53 min late, free minutes), waits until 08:12 UK - just after the
+# Kobas report emails - and dispatches the export; the bake and the verifier
+# chain off it as always. It retries if today's snapshot has not landed and
+# fails loudly at 09:55 UK if it still has not. builders/morning_kick.py has
+# the full account.
+#
+# REQUIRED SECRET (Ross adds it - nothing here can create or read it):
+#   ETL_DISPATCH_TOKEN - fine-grained PAT, Resource owner MakiManc, Only
+#   select repositories: MakiManc/maki-hospitality-etl, Repository
+#   permissions: Actions = Read and write. Nothing else. It EXPIRES: put the
+#   date in a calendar. Without it this job fails at once, naming the secret.
+# OPTIONAL: NTFY_TOPIC on this repo, for the 09:55 "not ready" push.
+#
+# 06:05 UTC = 07:05 UK in summer, 06:05 UK in winter; with this repo's worst
+# measured lateness (53 min) it still starts before 08:12 UK in both. One slot
+# a day, off the :00 rush: GitHub drops scheduled runs in proportion to how
+# many slots a workflow asks for (daily-export.yml header), and one slot a
+# day has fired 100% of the time in every measurement so far.
+
+on:
+  schedule:
+    - cron: "5 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: morning-kick
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  kick:
+    runs-on: ubuntu-latest
+    # Winter worst case: starts ~06:05 UK, waits to 08:12, watches to 09:55.
+    timeout-minutes: 240
+    env:
+      ETL_DISPATCH_TOKEN: ${{ secrets.ETL_DISPATCH_TOKEN }}
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start the private pipeline on time and watch it land
+        run: python3 builders/morning_kick.py

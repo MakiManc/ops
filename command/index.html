@@ -1030,7 +1030,49 @@ function pipelineAgeDays(snap){
                  .map(r=>r.age_days);
   return ages.length?Math.min(...ages):null;   // min: the freshest daily feed is how recently ANY pull landed
 }
+/* Ross, 09/10/2026: FRESHNESS COMES FIRST, AND IT COMES FROM THE INDEX.
+   From 01/10 to 09/10 the bake ran every day and died on the push (its token
+   had expired), so nothing new reached this page - and the banner could not
+   say so. Every check below reads something the dead push also froze: the
+   verdict file stopped with the bake, and feed_health.age_days is measured
+   from the snapshot's own pull date, so the last snapshot to land reads age 0
+   for ever. The page showed 01/10 for eight days under an amber "verifier
+   hasn't reported" line at most.
+   snapshot_index.json's `latest` against today's date cannot be frozen that
+   way: it is the newest day that actually reached this site. So it is
+   computed FIRST and on its own, and the verifier's verdict is overlaid
+   underneath it rather than replacing it. Same rule, same wording, same
+   clock as the OKR wall (command/okr.html, staleHtml()).
+   READY BY 10:00 UK (Ross, 09/10/2026): the dashboard is due by 10am, so
+   before 10:00 Europe/London yesterday's snapshot is the expected state and
+   says nothing; from 10:00 anything older than today is red. */
+function ukNow(){
+  const p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',
+    month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})
+    .formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`, mins:(+p.hour)*60+(+p.minute)};
+}
+const READY_BY_MINS=10*60;   // 10:00 Europe/London
+function indexAgeDays(latest){
+  if(!latest) return null;
+  return Math.round((Date.parse(ukNow().date)-Date.parse(latest))/864e5);
+}
+function staleHtml(latest){
+  const age=indexAgeDays(latest);
+  if(age==null||!(age>=1)) return '';
+  if(age===1&&ukNow().mins<READY_BY_MINS) return '';   // today's bake is not due yet
+  return `<div class="err" id="banner-stale"><b>DATA IS ${age} DAY${age===1?'':'S'} OLD</b> — last bake ${esc(latest)}. Today's should have landed by 10:00; check the 'Ops Command bake' run in maki-hospitality-etl.</div>`;
+}
 function bannerHtml(snap){
+  const latest=(IDX&&IDX.latest)||snap.pull_date;
+  const stale=staleHtml(latest);
+  return stale+verdictHtml(snap,!!stale);
+}
+/* The verifier's verdict, and the feed-age check that predates it. `stale`
+   says the freshness line above already fired, so the two lines that would
+   contradict or repeat it stand down: "no new data - expected" and "this
+   snapshot is N days old". */
+function verdictHtml(snap,stale){
   const ageDays=(Date.now()-new Date(snap.generated_at))/864e5;
   const isLatest=!IDX||!IDX.latest||IDX.latest===snap.pull_date;
   const pAge=pipelineAgeDays(snap);
@@ -1039,17 +1081,17 @@ function bannerHtml(snap){
   }
   if(HEALTH&&HEALTH.generated_at){
     const hAge=(Date.now()-new Date(HEALTH.generated_at))/864e5;
-    if(hAge>1.25) return `<div class="warn"><b>The data verifier hasn't reported since ${esc(HEALTH.generated_at)}.</b> Its run may have stopped — check the ETL repo's Actions tab.</div>`;
+    if(hAge>1.25) return `<div class="warn"><b>The data verifier hasn't reported since ${esc(HEALTH.generated_at)}.</b> Its run may have stopped — check the maki-hospitality-etl Actions tab.</div>`;
     if(HEALTH.overall==='red'){
       const f=(HEALTH.criticals&&HEALTH.criticals[0])||{};
       const n=(HEALTH.counts&&HEALTH.counts.criticals)||'?';
-      return `<div class="err"><b>Data verification FAILED (${esc(HEALTH.verified_date||'')}):</b> ${esc((f.feed?f.feed+' — ':'')+(f.detail||''))}${n>1?` (+${n-1} more critical)`:''} — check the ops repo's Actions tab.</div>`;
+      return `<div class="err"><b>Data verification FAILED (${esc(HEALTH.verified_date||'')}):</b> ${esc((f.feed?f.feed+' — ':'')+(f.detail||''))}${n>1?` (+${n-1} more critical)`:''} — check the maki-hospitality-etl Actions tab.</div>`;
     }
     if(HEALTH.overall==='amber'){
       const n=(HEALTH.counts&&HEALTH.counts.warnings)||'?';
       return `<div class="warn"><b>Data verified with ${n} warning(s)</b> (${esc(HEALTH.verified_date||'')}) — nothing critical; details in the verifier's health_latest.json.</div>`;
     }
-    if(isLatest&&HEALTH.verified_date&&snap.pull_date&&snap.pull_date<HEALTH.verified_date){
+    if(!stale&&isLatest&&HEALTH.verified_date&&snap.pull_date&&snap.pull_date<HEALTH.verified_date){
       return `<div class="note">No new data since ${esc(snap.pull_date)} — expected, and verified healthy at ${esc(HEALTH.generated_at)}.</div>`;
     }
     return '';
@@ -1057,7 +1099,7 @@ function bannerHtml(snap){
   /* No verifier verdict available (pre-deploy, or fetch failed): stay
      quiet unless the snapshot is properly old - and say the verdict is
      missing rather than guessing the bake failed. */
-  if(isLatest&&ageDays>2.5) return `<div class="warn"><b>This snapshot is ${Math.floor(ageDays)} days old</b> (generated ${esc(snap.generated_at)}) and no verifier verdict is available — check the ops repo's Actions tab.</div>`;
+  if(!stale&&isLatest&&ageDays>2.5) return `<div class="warn"><b>This snapshot is ${Math.floor(ageDays)} days old</b> (generated ${esc(snap.generated_at)}) and no verifier verdict is available — check the maki-hospitality-etl Actions tab.</div>`;
   return '';
 }
 
@@ -1139,7 +1181,7 @@ function renderScorecard(snap){
     /* score too: the base row's score belongs to the default month, and
        leaving it would put a scored chip beside "Not measured". */
     return {...r,value:null,display:null,rag:null,score:null,basis:null,trend:null,
-      trend_unit:null,trend_note:null,
+      trend_unit:null,trend_note:null,mtd:null,coverage_days:null,
       not_measured:'this KR has no figure for '+monthLabel(sel)+
         ' - its source is scored '+monthLabel(first.m)+
         (last.m!==first.m?' to '+monthLabel(last.m):'')+' only'};
@@ -1149,9 +1191,15 @@ function renderScorecard(snap){
      that the builder called it amber. Amber exists on this page as of
      21/09/2026 because Ross agreed banded tolerances; before that there was
      deliberately no amber, because an un-agreed tolerance is a made-up number. */
+  /* MTD (Ross, 09/10/2026): a month in progress with fewer than
+     scorecard.mtd_min_days days of source data shows its value but is NOT
+     scored - grey, keyed on the builder's explicit flag, never inferred from a
+     null RAG (an Operating KPI with no target is also rag:null, and that one
+     is "Reported"). */
   const ragChip=r=>r.rag==='green'?chip('g','On target')
                   :r.rag==='amber'?chip('a','Within tolerance')
                   :r.rag==='red'?chip('r','Off target')
+                  :(r.mtd&&r.value!=null)?chip('n','MTD · not yet scored')
                   :r.value!=null?chip('b','Reported')
                   :chip('n','Not measured');
   /* The score as the builder computed it. An em dash is NOT a zero: a KR with
@@ -1198,7 +1246,10 @@ function renderScorecard(snap){
     const trend=r.trend?sparkline(r.trend):'';
     const trendNote=r.trend_note?`<div class="dt" style="opacity:.7">${esc(r.trend_note)}</div>`:'';
     const unit=r.trend&&r.trend_unit?`<div class="dt" style="opacity:.6">${esc(r.trend_unit)}</div>`:'';
-    const detail=measured
+    /* An MTD row with no figure yet (the month has started, its source has
+       not reached it) is not "missing a source" - it says how many days of
+       data it has, from its basis, instead of "Needs: no source". */
+    const detail=(measured||(r.mtd&&r.basis))
       ? `<div class="dt">${esc(r.basis||'')}</div>`
       : `<div class="dt"><b>Needs:</b> ${esc(r.not_measured||'no source')}</div>`;
     const offMonth=(!isDefault&&!follows)
@@ -1704,9 +1755,13 @@ function render(snap){
     const L=fac.links||{};
     const links=[facLink(L.compliance,'Compliance register'),facLink(L.insights,'Insights')].filter(Boolean).join(' · ');
     const when=facData?' · as of <b>'+esc(fac.as_of||'—')+'</b> · pulled '+esc(String(fac.pulled_at||'—').slice(0,10))+
-      (fac.age_days!=null?' ('+esc(fac.age_days)+'d ago)':''):'';
+      (fac.age_days!=null?' ('+esc(fac.age_days)+'d ago)':'')+(fac.origin?', '+esc(fac.origin):''):'';
+    /* pull_note (09/10/2026): the bake's newest pull failed but the last good
+       copy is still inside its grace period - say so, and why, before the
+       rows go grey rather than after. */
     $('fac-head').innerHTML=
       (fac.status!=='ok'?'<div class="warn"><b>Read this first.</b> '+esc(fac.note||'the Facilities feed is not usable this bake')+'</div>':'')+
+      (fac.status==='ok'&&fac.pull_note?'<div class="warn" id="fac-pull-note">'+esc(fac.pull_note)+'</div>':'')+
       '<div class="note" style="color:inherit"><b>Statutory compliance &amp; PPM</b> — from the '+esc(fac.source||'M&R Facilities app')+when+
       (links?' · '+links:'')+(fac.basis?'<div class="prov">'+esc(fac.basis)+'</div>':'')+'</div>';
   }
