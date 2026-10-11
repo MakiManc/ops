@@ -1,0 +1,122 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W40",
+ "from": "2026-09-28",
+ "to": "2026-10-04",
+ "generated_on": "2026-10-11",
+ "updated_on": "2026-10-11",
+ "final": true,
+ "issue_feed_through": "2026-10-10",
+ "forms": 7,
+ "deliveries": 69,
+ "deliveries_counted": 69,
+ "rate": 89.9,
+ "not_measured": null,
+ "credit_flagged": 2,
+ "by_site": [
+  {
+   "site": "Maki Aberdeen Ltd",
+   "forms": 2
+  },
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 2
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "forms": 2
+  },
+  {
+   "site": "Maki Newcastle Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 5
+  },
+  {
+   "category": "other",
+   "forms": 1
+  },
+  {
+   "category": "wrong_item",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-09-28",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing creme brule",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-09-29",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing one case of fresh egg and cannot find this item in the invoice. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-09-30",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing eggs #009363213",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-09-30",
+   "site": "South Ikigai Ltd",
+   "category": "wrong_item",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "wrong item",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-02",
+   "site": "Maki Newcastle Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing 2 blue roll",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-02",
+   "site": "Maki SJQ Ltd",
+   "category": "other",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "we have order 6mm chicken fillet, but delivery is 4mm chicken fillet,and had order Rapeseed oil, the delivery is vegetable oil\n",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-03",
+   "site": "South Ikigai Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "sesame oil missing from one invoice and everything missing from another invoice",
+   "credit_flag": true
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-10-11"
+}

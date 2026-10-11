@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-10-10",
+ "source_as_of": "2026-10-11",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-10-10T19:34:20Z",
+ "pulled_at": "2026-10-11T15:28:46Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,30 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Meadowhall",
+   "raw_site": "Maki 14 - Meadowhall, Sheffield",
+   "d": "2026-10-11",
+   "issue": "K from Maki external sign dethatched from wire and cracked",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Eve"
+  },
+  {
+   "site": "M1TOO Ltd",
+   "raw_site": "Maki 1 - Nicolson St, Edinburgh",
+   "d": "2026-10-11",
+   "issue": "Drink stock room light bulbs not working",
+   "comment": "KRIS",
+   "status": "ongoing",
+   "urgency": "Low Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Jessie"
+  },
   {
    "site": "Maki Soho",
    "raw_site": "Maki 18 - Soho, London",

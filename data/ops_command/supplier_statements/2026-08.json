@@ -1,0 +1,1247 @@
+{
+ "kind": "supplier_statement",
+ "month": "2026-08",
+ "label": "August 2026",
+ "generated_on": "2026-10-11",
+ "updated_on": "2026-10-11",
+ "final": true,
+ "retrospective": true,
+ "issue_feed_through": "2026-10-10",
+ "feed_holes": [],
+ "coverage_notes": [
+  "the issue-answer feed starts 2026-08-04, so nothing raised before it is here"
+ ],
+ "forms": 78,
+ "suppliers": 17,
+ "suppliers_named": 7,
+ "credit_flagged": 20,
+ "supplier_blocks": [
+  {
+   "supplier": "Lynas",
+   "forms": 53,
+   "by_site": [
+    {
+     "site": "Maki SJQ Ltd",
+     "forms": 19
+    },
+    {
+     "site": "Maki Aberdeen Ltd",
+     "forms": 10
+    },
+    {
+     "site": "AA Factory1 Limited",
+     "forms": 7
+    },
+    {
+     "site": "M1TOO Ltd",
+     "forms": 4
+    },
+    {
+     "site": "Maki METRO",
+     "forms": 4
+    },
+    {
+     "site": "Maki Newcastle Ltd",
+     "forms": 4
+    },
+    {
+     "site": "Fountain Good Food Ltd",
+     "forms": 2
+    },
+    {
+     "site": "South Ikigai Ltd",
+     "forms": 2
+    },
+    {
+     "site": "Maki O2 Arena",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "shortage",
+     "forms": 32
+    },
+    {
+     "category": "other",
+     "forms": 11
+    },
+    {
+     "category": "(none recorded)",
+     "forms": 5
+    },
+    {
+     "category": "invoice_credit",
+     "forms": 2
+    },
+    {
+     "category": "damage_quality",
+     "forms": 1
+    },
+    {
+     "category": "temperature",
+     "forms": 1
+    },
+    {
+     "category": "wrong_item",
+     "forms": 1
+    }
+   ],
+   "credit_flagged": 17,
+   "issue_free": {
+    "deliveries": 34,
+    "issues": 53,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-28, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": [
+    {
+     "d": "2026-08-05",
+     "site": "M1TOO Ltd",
+     "category": "wrong_item",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "wrong order input, we ordered diced pork belly but they order sliced pork ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-05",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "1 unit egg white missing delivery, didn't charge in invoice",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-06",
+     "site": "M1TOO Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing chicken sliced",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-06",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "Missing 10.31kg beef of today delivery, however the invoice charge us, please credit.\nMissing 1pc Egg white of today delivery, we ordered yesterday but we cannot  find this item in the invoice. Thanks",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-07",
+     "site": "Maki Newcastle Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "lack of one box of Tom yum t",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-07",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "the beef is missing from Lynas on 7/8 but it's been charged on invoice, we need to credit ",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-07",
+     "site": "Maki SJQ Ltd",
+     "category": "damage_quality",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "3 cases bad quality ramen with black dots which batch code are LW24M260526, we need to return and credit ",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-08",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing 2 boxes ramen noodles \ninvoice # 009278377\nreceived 06/08",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-08",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing thermal till roll, thermal printer roll, 1 box Katsu chicken. \n\ninvoice # 009282228",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-08",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "8/8. 1 case chicken fillet is missing from Lynas, it's been charged on invoice, we need y credit it",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-09",
+     "site": "Maki SJQ Ltd",
+     "category": "invoice_credit",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "lynas delivered us 1 case wronly katsu chicken on 8/8, we need to return it and credit.",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-10",
+     "site": "Fountain Good Food Ltd",
+     "category": "shortage",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing steak (T141H) x 8.64kg (£183.25)",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-11",
+     "site": "Maki O2 Arena",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "mistake form",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-12",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "12/8 \none pack blue roll & 3 packs chai siu are missing and also Lynas delivered 1 case wrong item for chicken fillet, we need to return it and credit all.",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-13",
+     "site": "AA Factory1 Limited",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "TWF Delivery/Supplier Issue Form ",
+     "text": "pork belly (3.73kg @£7.02/kg) missing",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-13",
+     "site": "AA Factory1 Limited",
+     "category": "shortage",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "pork belly 3.73kg missing from delivery ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-13",
+     "site": "Maki Aberdeen Ltd",
+     "category": "other",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "ice cream and brownies defrosted / broken ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-14",
+     "site": "Maki METRO",
+     "category": "shortage",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing item ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-15",
+     "site": "AA Factory1 Limited",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "order placed for 20 cases femur bones, been delivered hind feet in lieu",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-15",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing 5 boxes karaage \n1 box vegan chicken \ntotal ~430£\n\n#009293088",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-15",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "2 units reload 10 are missing from Lynas on 15/8 , it hasn't been charged on invoice. ",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-17",
+     "site": "M1TOO Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing Beef, ramen bowl and lids, coke",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-17",
+     "site": "Maki METRO",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "creme brulee came in broken in bits",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-17",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "below items are missing from Lynas on 17/8\n\n9kg beef\n1 unit garlic granules \n1 pack yellow microfiber cloth ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-17",
+     "site": "Maki SJQ Ltd",
+     "category": null,
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": null,
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-18",
+     "site": "AA Factory1 Limited",
+     "category": "shortage",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing from delivery today 10 cases femur bones charged",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-18",
+     "site": "Maki SJQ Ltd",
+     "category": null,
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": null,
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-19",
+     "site": "Maki SJQ Ltd",
+     "category": null,
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": null,
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-20",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing takeaway white foil lined bags *1 \n#009300145\n",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-20",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "20/8 3 units reload 10 are missing from Lynas. And also we cannot find this item in the invoice. Thanks.",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-21",
+     "site": "Maki METRO",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "s1571 brown handle bag large\ns1494 Kraft soup cup& lids",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-21",
+     "site": "Maki Newcastle Ltd",
+     "category": "other",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "lack one blue roll £6\nlack one case soba sauce £51.58\nlack one case spicy teriyaki sauce £31.82",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-21",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "21/8\n3 units reload 10 are missing from Lynas and also we cannot find this item in the invoice. Thanks.",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-22",
+     "site": "AA Factory1 Limited",
+     "category": "temperature",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "shorted by 1 case and 4kg of frozen chicken feet",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-22",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing tom yum, spicy teriyaki, exploded Soba sauce ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-24",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "tom yum missing \n",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-24",
+     "site": "Maki METRO",
+     "category": "shortage",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "plant it chicken fillet missing",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-24",
+     "site": "Maki Newcastle Ltd",
+     "category": "other",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "lack 3 coconut\nlack 6pk duty bags\n",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-24",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "1 case vegan katsu is missing by Lynas on 24/8 , it's been charged on invoice, we need to credit it.",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-25",
+     "site": "AA Factory1 Limited",
+     "category": "other",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "delivery to Edinburgh factory today shorted by 2 cases of hind feet",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-25",
+     "site": "Maki SJQ Ltd",
+     "category": "other",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "Lynas delivered 1 case new brand of vegan katsu for us today, its ingredients is different with the old brand, after cut it into pieces, there is some yellow sauce inside the vegan katsu. We don't nee",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-25",
+     "site": "South Ikigai Ltd",
+     "category": null,
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": null,
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-26",
+     "site": "AA Factory1 Limited",
+     "category": "invoice_credit",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "fat shorted by 1 case\nfemur bones shorted by 9 cases\ncredit note required for the above",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-26",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing tom yum + 1 box tonkotsu Broth ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-26",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "1 case chai siu is missing and 1 case coconut milk is oos by Lynas on 26/8 , they haven't been charged on invoice ",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-26",
+     "site": "South Ikigai Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing item",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-27",
+     "site": "Fountain Good Food Ltd",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "They delivered double what we ordered",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-27",
+     "site": "M1TOO Ltd",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "Delivered double everything of what we ordered.",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-27",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "For today delivery, missing below items. Please credit.\n- 1case egg\n- 1pc egg white\n- 5packs yellow microfibre\nMoreover, we ordered 1case coconut milk, but no coming today and also we cannot find this",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-28",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing 1 box Soba sauce , 8kg beef ordered via kobas but also not delivered. missing coconut milk ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-31",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing 300mm cling film *1  , tom yum tare *1 box. ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-31",
+     "site": "Maki Newcastle Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "For today’s delivery we missing 1box chicken broth\n1box tonkostu broth\n1box beef tataki sauce \n1box teriyaki sauce \n1box spicy teriyaki sauce \n1box soba sauce\n5pk binbags \n1box ice cream \n2 vegan mayo",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-31",
+     "site": "Maki SJQ Ltd",
+     "category": null,
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": null,
+     "credit_flag": false
+    }
+   ]
+  },
+  {
+   "supplier": "JFC",
+   "forms": 8,
+   "by_site": [
+    {
+     "site": "Maki Lakeside",
+     "forms": 2
+    },
+    {
+     "site": "Maki Nottingham Ltd",
+     "forms": 2
+    },
+    {
+     "site": "Maki Manchester LTD",
+     "forms": 1
+    },
+    {
+     "site": "Maki Meadowhall",
+     "forms": 1
+    },
+    {
+     "site": "Maki SJQ Ltd",
+     "forms": 1
+    },
+    {
+     "site": "Maki Shoreditch",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "shortage",
+     "forms": 4
+    },
+    {
+     "category": "other",
+     "forms": 3
+    },
+    {
+     "category": "damage_quality",
+     "forms": 1
+    }
+   ],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 8,
+    "issues": 8,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-27, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": [
+    {
+     "d": "2026-08-05",
+     "site": "Maki Manchester LTD",
+     "category": "damage_quality",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "delivery damage \nspicy teriyaki batch code B7395",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-11",
+     "site": "Maki SJQ Ltd",
+     "category": "other",
+     "open": true,
+     "attribution": "text",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "We requested the delivery address was M7 but JFC arranged this delivery to factory on 5/8 ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-13",
+     "site": "Maki Lakeside",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing items \nM&R brownie",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-14",
+     "site": "Maki Shoreditch",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "no brownies ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-17",
+     "site": "Maki Lakeside",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing brownie \ncocounut milk",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-18",
+     "site": "Maki Meadowhall",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "spicy teriyaki sauce broken ",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-27",
+     "site": "Maki Nottingham Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "text",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "JFC \nMISSING \n2 x beef tataki \n1 x spicy teriyaki \n",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-27",
+     "site": "Maki Nottingham Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "text",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "JFC \nMISSING 2 x beef tataki 1 x spicy teriyaki ",
+     "credit_flag": false
+    }
+   ]
+  },
+  {
+   "supplier": "Brakes",
+   "forms": 5,
+   "by_site": [
+    {
+     "site": "Maki Shoreditch",
+     "forms": 2
+    },
+    {
+     "site": "Maki Lakeside",
+     "forms": 1
+    },
+    {
+     "site": "Maki Soho",
+     "forms": 1
+    },
+    {
+     "site": "Maki Southampton",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "other",
+     "forms": 2
+    },
+    {
+     "category": "shortage",
+     "forms": 2
+    },
+    {
+     "category": "wrong_item",
+     "forms": 1
+    }
+   ],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 62,
+    "issues": 5,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-03, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": [
+    {
+     "d": "2026-08-10",
+     "site": "Maki Southampton",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing: Sysco Essentials Washing Up Liquid 2x5L",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-17",
+     "site": "Maki Shoreditch",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "rump beef no stock",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-18",
+     "site": "Maki Lakeside",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "missing steak",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-19",
+     "site": "Maki Shoreditch",
+     "category": "other",
+     "open": false,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "no Vegan Mayo.",
+     "credit_flag": false
+    },
+    {
+     "d": "2026-08-24",
+     "site": "Maki Soho",
+     "category": "wrong_item",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "The supplier did not send the takeaway cup and lids for the ramen. instead they send a wrong item and i send it back. ",
+     "credit_flag": false
+    }
+   ]
+  },
+  {
+   "supplier": "Harro",
+   "forms": 2,
+   "by_site": [
+    {
+     "site": "Maki Aberdeen Ltd",
+     "forms": 1
+    },
+    {
+     "site": "Maki SJQ Ltd",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "shortage",
+     "forms": 2
+    }
+   ],
+   "credit_flagged": 1,
+   "issue_free": {
+    "deliveries": 8,
+    "issues": 2,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-28, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": [
+    {
+     "d": "2026-08-13",
+     "site": "Maki SJQ Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "Missing two case of Pumpkin croquettes. Please credit",
+     "credit_flag": true
+    },
+    {
+     "d": "2026-08-17",
+     "site": "Maki Aberdeen Ltd",
+     "category": "shortage",
+     "open": true,
+     "attribution": "answered",
+     "form": "Lynas Delivery/Supplier Issue Form",
+     "text": "missing bamboo shoots on last order \narrived late on Thurs 13/08 \n3031/36580",
+     "credit_flag": false
+    }
+   ]
+  },
+  {
+   "supplier": "Blue Ocean",
+   "forms": 1,
+   "by_site": [
+    {
+     "site": "Maki Soho",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "invoice_credit",
+     "forms": 1
+    }
+   ],
+   "credit_flagged": 1,
+   "issue_free": {
+    "deliveries": 2,
+    "issues": 1,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-27, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": [
+    {
+     "d": "2026-08-09",
+     "site": "Maki Soho",
+     "category": "invoice_credit",
+     "open": true,
+     "attribution": "answered",
+     "form": "Delivery/Supplier Issue Form",
+     "text": "We order 10 packets of Wakame seaweed on 03/08/2026 but we received only 3 packets on 07/08/2026. There is no invoice, we received only the confirmation paper of receiving items. ",
+     "credit_flag": true
+    }
+   ]
+  },
+  {
+   "supplier": "Solstice",
+   "forms": 1,
+   "by_site": [
+    {
+     "site": "Maki SJQ Ltd",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "damage_quality",
+     "forms": 1
+    }
+   ],
+   "credit_flagged": 1,
+   "issue_free": {
+    "deliveries": 0,
+    "issues": 1,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "no Kobas order-confirmation email for this supplier - enable order-by-email for it in Kobas to measure this"
+   },
+   "issues": [
+    {
+     "d": "2026-08-30",
+     "site": "Maki SJQ Ltd",
+     "category": "damage_quality",
+     "open": true,
+     "attribution": "answered",
+     "form": "Sosltice Delivery/Supplier Issue Form",
+     "text": "We have found one case of Avocado in bad quality. Please credit. Thanks.",
+     "credit_flag": true
+    }
+   ]
+  },
+  {
+   "supplier": "TWF",
+   "forms": 1,
+   "by_site": [
+    {
+     "site": "Maki Shoreditch",
+     "forms": 1
+    }
+   ],
+   "by_category": [
+    {
+     "category": "shortage",
+     "forms": 1
+    }
+   ],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 0,
+    "issues": 1,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "no Kobas order-confirmation email for this supplier - enable order-by-email for it in Kobas to measure this"
+   },
+   "issues": [
+    {
+     "d": "2026-08-22",
+     "site": "Maki Shoreditch",
+     "category": "shortage",
+     "open": false,
+     "attribution": "answered",
+     "form": "TWF Delivery/Supplier Issue Form ",
+     "text": "missing 1 pack ebi nobashi",
+     "credit_flag": false
+    }
+   ]
+  },
+  {
+   "supplier": "LWC",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 133,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-03, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "Global Fruits",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 21,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-27, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "Dunster Farm",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 17,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-27, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "Perfect Ted",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 14,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-11, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "JFE",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 13,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-27, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "FreshFV",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 9,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-27, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "John Vallance",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 3,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-31, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "Boba Box",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 2,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-28, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "F&J Food",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 1,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-29, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  },
+  {
+   "supplier": "J&S",
+   "forms": 0,
+   "by_site": [],
+   "by_category": [],
+   "credit_flagged": 0,
+   "issue_free": {
+    "deliveries": 1,
+    "issues": 0,
+    "rate": null,
+    "measurable": false,
+    "not_measured": "order emails for this supplier only start 2026-08-29, partway through 2026-08 - the delivery count is a fragment of the month the issue count covers"
+   },
+   "issues": []
+  }
+ ],
+ "unattributed": {
+  "forms": 7,
+  "issues": [
+   {
+    "d": "2026-08-22",
+    "site": "Maki Nottingham Ltd",
+    "category": "other",
+    "open": true,
+    "attribution": null,
+    "form": "Lynas Delivery/Supplier Issue Form",
+    "text": "orderd 4 x boxes of tonkotsu broth \nbut delivered 1 ",
+    "credit_flag": false
+   },
+   {
+    "d": "2026-08-15",
+    "site": "AA Factory1 Limited",
+    "category": null,
+    "open": true,
+    "attribution": null,
+    "form": "Delivery/Supplier Issue Form",
+    "text": null,
+    "credit_flag": false
+   },
+   {
+    "d": "2026-08-11",
+    "site": "Maki O2 Arena",
+    "category": "no_issue_recorded",
+    "open": false,
+    "attribution": null,
+    "form": "Lynas Delivery/Supplier Issue Form",
+    "text": "N/A",
+    "credit_flag": false
+   },
+   {
+    "d": "2026-08-11",
+    "site": "Maki O2 Arena",
+    "category": "no_issue_recorded",
+    "open": false,
+    "attribution": null,
+    "form": "Lynas Delivery/Supplier Issue Form",
+    "text": "N/A",
+    "credit_flag": false
+   },
+   {
+    "d": "2026-08-11",
+    "site": "Maki O2 Arena",
+    "category": "no_issue_recorded",
+    "open": false,
+    "attribution": null,
+    "form": "Sosltice Delivery/Supplier Issue Form",
+    "text": "N/A",
+    "credit_flag": false
+   },
+   {
+    "d": "2026-08-11",
+    "site": "Maki O2 Arena",
+    "category": null,
+    "open": false,
+    "attribution": null,
+    "form": "Delivery/Supplier Issue Form",
+    "text": null,
+    "credit_flag": false
+   },
+   {
+    "d": "2026-08-11",
+    "site": "Maki O2 Arena",
+    "category": "no_issue_recorded",
+    "open": false,
+    "attribution": null,
+    "form": "Sosltice Delivery/Supplier Issue Form",
+    "text": "N/A",
+    "credit_flag": false
+   }
+  ]
+ },
+ "basis": "Every delivery/supplier issue form in GetCompliant whose own answer date falls in August 2026 (2026-08-01 to 2026-08-31), deduped by FormId - the same rows the Supplier Issues tab and OO3 KR1 count - grouped by the supplier answered on the form (or found in its text when the question was left blank). Issue text is VERBATIM. Category is a keyword heuristic over that text, not a taxonomy. A row is credit/invoice-flagged when its text mentions a credit, invoice, refund, rebate or charge, or its category is invoice_credit. The issue-free rate is supply.otif's for the month and is NOT on-time-in-full: ISSUE-FREE DELIVERY RATE (INDICATIVE) - this is NOT OTIF and must not be labelled as one: nothing here observes whether a delivery was on time, and one delivery can carry several issue forms, so the rate can only ever be a lower bound. deliveries = orders with a delivery date in the month from the Kobas Order Emails feed (deduped by Kobas Reference); issues = supplier issues from GC Form Task Answers whose own answer date falls in the month, deduped by FormId - the identical rows the Supplier Issues tab and the KR1 gauge read, so all three reconcile; deliveries are counted only up to the newest day the issue feed covers (2026-10-10) - one dated later cannot have had an issue filed yet, so it is held back (deliveries_held_back) rather than counted as issue-free, and one dated on a day no pull of the issue feed covers is left out (deliveries_in_feed_holes) for the same reason; rate = max(0, deliveries - issues) / deliveries, and is published ONLY for a supplier-month whose order emails cover the whole month for that supplier. Every other supplier-month carries not_measured saying why, and is excluded from the all-supplier total. Real OTIF needs a source that records what was DELIVERED against what was ORDERED - Mapal Supplier Orders, or a delivery file from Lynas.",
+ "final_on": "2026-10-11"
+}

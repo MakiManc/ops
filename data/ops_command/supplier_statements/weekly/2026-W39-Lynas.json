@@ -1,0 +1,84 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W39",
+ "from": "2026-09-21",
+ "to": "2026-09-27",
+ "generated_on": "2026-10-11",
+ "updated_on": "2026-10-11",
+ "final": true,
+ "issue_feed_through": "2026-10-10",
+ "forms": 4,
+ "deliveries": 78,
+ "deliveries_counted": 52,
+ "rate": null,
+ "not_measured": "no pull of the issue feed covers 2026-09-21, 2026-09-22",
+ "credit_flagged": 2,
+ "by_site": [
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 2
+  },
+  {
+   "site": "M1TOO Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki Newcastle Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 3
+  },
+  {
+   "category": "other",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-09-25",
+   "site": "Maki Newcastle Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing 1 box tonkotsu broth ",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-09-25",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "13.69 kg beef is missing by Lynas, it's been charged on invoice, we need to credit. 1 case vegan katsu is no coming, it hasn't been charged on invoice.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-09-26",
+   "site": "M1TOO Ltd",
+   "category": "other",
+   "open": false,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "sent our order to factory by accident causes us sold out beef all day, and have to borrow ramen as well",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-09-26",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing one case of chicken fillet, but cannot find this item in the invoice. Thanks.",
+   "credit_flag": true
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-10-11"
+}

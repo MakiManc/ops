@@ -1,10 +1,10 @@
 {
- "attempted_at": "2026-10-10T19:34:24Z",
- "cause": "no_key",
+ "attempted_at": "2026-10-11T15:28:52Z",
+ "cause": "ok",
  "content_type": null,
- "detail": "FACILITIES_API_KEY is not set on maki-hospitality-etl, so the bake cannot ask the app for the feed",
+ "detail": "pulled and written, as_of 2026-10-11",
  "feed_url": "https://rossmward.eu.pythonanywhere.com/api/ppm_summary",
- "http_status": null,
- "last_ok_at": null,
- "ok": false
+ "http_status": 200,
+ "last_ok_at": "2026-10-11T15:28:52Z",
+ "ok": true
 }
