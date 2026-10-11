@@ -1664,6 +1664,10 @@ FACILITIES_CAUSE_TEXT = {
 FACILITIES_STALE_DAYS = 3
 FACILITIES_APP_URL = "https://rossmward.eu.pythonanywhere.com"
 FACILITIES_API_PATH = "/api/ppm_summary"
+#: OCTOBER 2026 ACTIONS-MINUTES BUDGET (Ross, 11/10/2026): the Flow deep pull
+#: runs on Mondays only until this date, then daily again by itself. Keep it
+#: identical to verify_ops_data.DEEP_PULL_WEEKLY_UNTIL and deep-pull.yml.
+DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
 #: The first month the app's own fault log holds real data.
 FACILITIES_FAULT_LOG_START = "2026-09"
 #: The KR2 baseline Ross set on 17/09/2026: the mean of these three months.
@@ -2338,6 +2342,17 @@ def main():
     order={"MISSING":0,"STALE":1,"EMPTY":2,"WATCH":3,"OK":4}
     fh.sort(key=lambda r:(order.get(r["verdict"],9),r["feed"]))
     snap["feed_health"]=fh
+    # The October 2026 minutes budget (see DEEP_PULL_WEEKLY_UNTIL): the deep
+    # pull runs on Mondays only, so the per-module training figures are from
+    # its last pull, not this one - say so rather than let them pass as today's.
+    _dfm = next((r_ for r_ in fh if r_["feed"] == "Deep Flow Modules"), None)
+    if (pull or "") < DEEP_PULL_WEEKLY_UNTIL and _dfm and _dfm.get("latest_pull") \
+            and _dfm["latest_pull"] < (pull or ""):
+        gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
+                    f"pull of {_dfm['latest_pull']}, not this pull: until "
+                    f"{DEEP_PULL_WEEKLY_UNTIL} that pull runs on Mondays only, to keep October "
+                    "inside the private repo's Actions minutes (Ross, 11/10/2026). It goes "
+                    "back to daily by itself on that date")
     # ---- training by site (Deep feed preferred; branch id -> name join) ----
     deep, base = "Deep Flow Modules", "Flow Modules"
     feed = deep if has_feed(cur, deep) else base

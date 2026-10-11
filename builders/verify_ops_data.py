@@ -191,6 +191,38 @@ DB_SIZE_CRIT_MB = 450
 # for the refresh dying while the export carries on working.
 MAINT_AGE_WARN_DAYS = 3
 
+#: OCTOBER 2026 ACTIONS-MINUTES BUDGET (Ross, 11/10/2026). The private repo's
+#: 2,000 included minutes run out around 26/10 at the daily rate, so until this
+#: date the Flow deep pull (21 of the ~73 minutes a day) runs on MONDAYS ONLY,
+#: and goes back to daily by itself on the date - deep-pull.yml in
+#: maki-hospitality-etl carries the same date, and so does the bake. A Monday
+#: that fails is retried by every later run until a clean pull lands, so a
+#: deep-pull receipt is DUE when it is Monday or when the newest clean one is
+#: DEEP_PULL_WEEKLY_DAYS or more days old - and only then is a missing one an
+#: alarm. The Deep Flow feeds get a DEEP_PULL_WEEKLY_DAYS cadence meanwhile.
+DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
+DEEP_PULL_WEEKLY_DAYS = 7
+#: ...and the same budget turns the 12:03 UTC scheduled recheck off until the
+#: same date (ops_verify.yml), so a morning deferral is not rechecked that day.
+RECHECK_OFF_UNTIL = DEEP_PULL_WEEKLY_UNTIL
+
+
+def deep_pull_weekly(today: str) -> bool:
+    """True while the October minutes budget has the deep pull on Mondays."""
+    return today < DEEP_PULL_WEEKLY_UNTIL
+
+
+def deep_pull_due(today: str, last_clean: str | None) -> bool:
+    """Is a deep-pull receipt expected today? Always, outside the budget."""
+    if not deep_pull_weekly(today):
+        return True
+    if date.fromisoformat(today).weekday() == 0:
+        return True
+    if not last_clean:
+        return True
+    return (date.fromisoformat(today) - date.fromisoformat(last_clean[:10])).days \
+        >= DEEP_PULL_WEEKLY_DAYS
+
 # Ross, 25/09/2026. facilities_ppm.json is the M&R Facilities app's feed (OO2
 # KR1/KR2/KR4 and two Maintenance cards), pulled by refresh_facilities.py
 # before every bake. Like maintenance_source.json its pulled_at is stamped only
@@ -329,6 +361,21 @@ def check_receipts(cur, today: str) -> dict:
             "AND started_at::date = %s::date "
             "ORDER BY finished_at DESC LIMIT 1", (kind, today))
         row = cur.fetchone()
+        if row is None and kind == "deep-pull" and deep_pull_weekly(today):
+            # The October budget: no receipt is due on a day off, so its
+            # absence is not "the run never started" - unless the last clean
+            # one is a week old, when the catch-up run is overdue.
+            cur.execute(
+                "SELECT max(started_at)::text FROM etl_run_log WHERE run_kind=%s "
+                "AND exit_code=0 AND rows_written>0 AND feeds_failed=0", (kind,))
+            last_clean = (cur.fetchone() or [None])[0]
+            if not deep_pull_due(today, last_clean):
+                states[kind] = 0
+                add("0-receipts", "ok",
+                    f"no {label} due today - it runs on Mondays only until "
+                    f"{DEEP_PULL_WEEKLY_UNTIL} (October Actions minutes); newest clean "
+                    f"receipt {str(last_clean)[:10]}", kind)
+                continue
         if row is None:
             states[kind] = None
             cur.execute("SELECT count(*) FROM etl_run_log WHERE run_kind=%s",
@@ -422,7 +469,11 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
                 klass="1-landed-inflight" if inflight else "1-landed")
             continue
         age = (date.fromisoformat(today) - date.fromisoformat(lp)).days
-        if age > f.get("cadence_days", 1) - 1:
+        cadence = f.get("cadence_days", 1)
+        if wf == "deep-pull" and deep_pull_weekly(today):
+            # the October budget (see DEEP_PULL_WEEKLY_UNTIL)
+            cadence = max(cadence, DEEP_PULL_WEEKLY_DAYS)
+        if age > cadence - 1:
             add("1-landed", sev,
                 f"last pull {lp} ({age}d old) - expected today", name,
                 klass="1-landed-inflight" if inflight else "1-landed")
@@ -435,7 +486,6 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
         # and check 2 immediately fires "0 rows today, below the manifest
         # floor" at the same severity, from the same loop, two lines later.
         # That is the trap that makes "just set cadence_days: 7" wrong.
-        cadence = f.get("cadence_days", 1)
         if cadence > 1 and name not in today_rows:
             add("2-rows", "ok",
                 f"no pull today - last landed {lp}, inside its {cadence}-day "
@@ -1509,7 +1559,11 @@ def main() -> None:
         for r in RESULTS:
             if r["level"] == "critical" and r.get("class") in DEFERRABLE:
                 r["level"] = "deferred"
-                r["detail"] += "  [deferred - rechecked at 12:00 UTC]"
+                r["detail"] += (
+                    "  [deferred - rechecked at 12:00 UTC]" if today >= RECHECK_OFF_UNTIL else
+                    f"  [deferred - the 12:00 UTC recheck is off until {RECHECK_OFF_UNTIL} "
+                    "(October Actions minutes), so this is NOT rechecked today; the next "
+                    "verify follows the next bake]")
                 deferred.append(r)
 
     criticals = [r for r in RESULTS if r["level"] == "critical"]
