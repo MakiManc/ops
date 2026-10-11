@@ -66,6 +66,9 @@ USAGE
 """
 from __future__ import annotations
 import argparse, collections, datetime, hashlib, json, math, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import supplier_statements  # noqa: E402 - Phase 2, OO3 KR5
+import okr_pack  # noqa: E402 - Phase 2, the monthly OKR pack
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
 # OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
@@ -458,10 +461,10 @@ OKR_PENDING = {
     ("OO1", "KR4"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
-    ("OO4", "KR2"): "factory-attributed damage on broth and sauce lines in the GetCompliant issue forms; Phase 2. Step 0 found ZERO such forms in the covered window - the factory has never been named as a supplier on one - so expect this to stay grey until the Supplier? picker in GetCompliant offers the factory",
+    ("OO4", "KR2"): "factory-attributed damage on broth and sauce lines in the GetCompliant issue forms - needs the 'GC Form Task Answers' feed, which is absent from this bake",
     ("OO4", "KR3"): "internal orders marked received in Kobas; Phase 2. Step 0 found internal orders CAN be isolated (factory as sending venue) but carry no received status at all, so this may stay grey",
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
-    ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates; Phase 2, from the same data as OO3 KR4",
+    ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
     ("OO5", "KR4"): "factory scheduled-task on-time from GetCompliant; Phase 3",
     ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the site-orders table; Phase 3",
     ("OO6", "KR1"): "no agreed measure. Ross signs one off after Step 0 before anything is built",
@@ -470,6 +473,16 @@ OKR_PENDING = {
     ("OO6", "KR4"): "no agreed measure, and no par-level field for frozen ramen exists in any feed",
     ("OO6", "KR5"): "no agreed measure, and no feed carries a product dimension on an invoice",
 }
+
+#: OO4 KR2 (Phase 2): the factory as it appears as a SUPPLIER on an issue form
+#: (canon_supplier's name for it), and what "damage on a broth/sauce line"
+#: means in a free-text answer. A form counts when its 'Issue?' text matches
+#: BOTH patterns. Words, not a taxonomy: the form has no damaged-in-transit
+#: field, which is why a 0 here says so in its basis.
+FACTORY_SUPPLIER = "AA Factory"
+DAMAGE_RE = re.compile(r"damag|broken|burst|leak|split|crush|smash|spill|crack|dented|torn",
+                       re.I)
+BROTH_SAUCE_RE = re.compile(r"broth|sauce|\btare\b|soup|dashi", re.I)
 
 #: RAG follows the SCORE, never the other way round, and never in the shell.
 #: This is the only place the mapping exists.
@@ -3800,6 +3813,10 @@ def main():
           [f_ for f_ in sups_all_versions if not f_["live"] and f_["open"]])}
 
     otif_months=[]; otif_basis=None
+    # Kept for the supplier statements (Phase 2): deliveries per (day, canonical
+    # supplier), every day the order emails carry - the Lynas weekly cut takes a
+    # week of them - and the first delivery date each supplier's emails show.
+    deliveries_by_day={}; first_dd={}
     if week_spend_source=="order_emails":
         # Deliveries count only up to the day the ISSUE side reaches (09/10/2026).
         # Kobas order emails carry delivery dates up to a week AHEAD, and nobody
@@ -3824,6 +3841,8 @@ def main():
         for dd_,sup,n_ in cur.fetchall():
             if not dd_ or not n_: continue
             dd_=str(dd_)[:10]; m=dd_[:7]
+            _k=canon_supplier((sup or "").strip()) or (sup or "(no supplier)").strip()
+            deliveries_by_day[(dd_,_k)]=deliveries_by_day.get((dd_,_k),0)+n_
             if dd_>_otif_through:
                 deliveries_later[m]=deliveries_later.get(m,0)+n_
             elif dd_ in _holes:
@@ -3852,7 +3871,6 @@ def main():
         cur.execute("WITH o AS ("+ORDER_EMAIL_DEDUP+") "
                     "SELECT sup, min(dd) FROM o WHERE dd IS NOT NULL GROUP BY 1",
                     (ORDER_EMAIL_FEED,))
-        first_dd={}
         for sup,mn in cur.fetchall():
             key=canon_supplier((sup or "").strip()) or (sup or "").strip()
             if mn and (key not in first_dd or mn<first_dd[key]): first_dd[key]=mn
@@ -3899,7 +3917,15 @@ def main():
             # total, which is the number the KPI tile shows.
             meas=[r for r in rows_ if r["measurable"]]
             dl_m=sum(r["deliveries"] for r in meas); iss_m=sum(r["issues"] for r in meas)
+            # OO4 KR5 (Phase 2): the UNWEIGHTED mean of the measurable
+            # suppliers' rates - every supplier counts once, so J&S's four
+            # deliveries weigh what Lynas's 287 do. That is the KR as written
+            # ("aggregated supplier performance"); the delivery-weighted rate
+            # above is OO3 KR4. Same rows, same measurability test.
+            _rates=[r["otif_pct"] for r in meas if r["otif_pct"] is not None]
             otif_months.append({"month":m,"suppliers":rows_,
+              "supplier_mean":(round(sum(_rates)/len(_rates),1) if _rates else None),
+              "supplier_mean_of":len(_rates),
               "deliveries":dl_tot,"issues":iss_tot,
               "measurable_suppliers":len(meas),"measurable_of":len(rows_),
               "measurable_deliveries":dl_m,"measurable_issues":iss_m,
@@ -4736,6 +4762,35 @@ def main():
       "size is a pack or unit re-spec rather than a price, held out of the settled list "
       "and never repaired. Neither flag can see a price that never appears in the report, "
       "because the report only lists changes"}
+    # ---- supplier statements: OO3 KR5 and the weekly Lynas cut (Phase 2) ----
+    # builders/supplier_statements.py has the whole account. A live bake writes
+    # the month just closed (and refreshes it while PROVISIONAL) and the Lynas
+    # week just ended; a back-bake only reads, and sees nothing generated after
+    # its own date. The index rides in the snapshot so the Supplier Issues tab
+    # and OO3 KR5 link the same files.
+    try:
+        stmt_idx=supplier_statements.sync(
+            OUT_DIR, asof.isoformat(), dated, issues, otif_months,
+            gc_answers_through, gc_feed_holes, gc_feed_first,
+            deliveries_by_day, first_dd, otif_basis=otif_basis, forbidden=OO1_FORBIDDEN)
+    except SystemExit:
+        raise
+    except Exception as e:  # noqa: BLE001 - a statement must never stop the dashboard
+        stmt_idx={**supplier_statements.index(OUT_DIR, dated),"written":[]}
+        gaps.append("Supplier statements: this bake could not write the statement due "
+                    f"({type(e).__name__}); OO3 KR5 reads only the statements already on disk")
+        print(f"[bake] supplier statements failed: {type(e).__name__}: {e}", file=sys.stderr)
+    for _p in stmt_idx.pop("written",[]):
+        print(f"[bake] wrote {os.path.relpath(_p, OUT_DIR)}")
+    snap["suppliers"]["statements"]={**stmt_idx,
+      "lynas_weekly":supplier_statements.LYNAS_WEEKLY_CUT,
+      "scored_from":supplier_statements.STATEMENTS_SCORED_FROM,
+      "basis":("one statement per closed month, generated by the first bake on or after the "
+        "1st: per supplier, the issue forms raised by site and category, every issue's "
+        "verbatim text, the credit/invoice-flagged rows and the month's issue-free delivery "
+        "rate (supply.otif). PROVISIONAL until the issue feed reaches the month end, then "
+        "FINAL. OO3 KR5 scores the day it was generated: by the 3rd 100, by the 10th 50, "
+        "else 0. A weekly Lynas cut is written each Monday while the Lynas exit is live")}
     # ---- cross-reference: broth quality x supplier issues, by site+date ----
     # Ross, 09/09/2026: NORMALISE THE NON-BREAKING SPACE. GetCompliant writes
     # 'Maki\u00a0O2\u00a0Arena' - U+00A0, not a space - in every feed, and this
@@ -5275,8 +5330,10 @@ def main():
     # log tab (okr_sheet_extra), which replaces this row on the scorecard.
     row("Supply","KR3 menu items unavailable","0","—",
         not_measured="typed on the Operations Input sheet's menu-items log tab - see OO3 KR3 on the scorecard")
+    # Phase 2 (11/10/2026): OO3 KR5 is the monthly supplier statement
+    # (supplier_statements.kr5_variants), which replaces this row on the scorecard.
     row("Supply","KR5 monthly supplier audit","100%","—",
-        not_measured="no audit is recorded. Needs a supplier audit checklist in GetCompliant or Asana")
+        not_measured="the monthly supplier statement - see OO3 KR5 on the scorecard and the Supplier Issues tab")
 
     # --- Supply KR4 -> OO3 KR4: issue-free deliveries, now the DEFINITION ---
     # Ross, 21/09/2026: this row carried "PROXY, NOT OTIF" from the day it was
@@ -5899,6 +5956,120 @@ def main():
                                          "tab": "p-qual"}
     _okr_extra.update(_okr_broth)
 
+    # --- Phase 2 (11/10/2026): OO3 KR5, OO4 KR5, OO4 KR2 --------------------
+    _pm2 = (pull or "")[:7]
+
+    def _scored(m_, **kw):
+        """_mvar with the RAG the score implies - the one mapping."""
+        return _mvar(m_, **{**kw, "rag": _rag_of(kw.get("score"))})
+
+    # OO3 KR5: the monthly supplier statement, scored on how soon it was
+    # generated. See builders/supplier_statements.py (kr5_variants).
+    _okr_extra[("OO3", "KR5")] = {
+        "months": supplier_statements.kr5_variants(
+            snap["suppliers"].get("statements"), asof.isoformat(), _pm2,
+            lambda v: okr_score("audit", v), _scored),
+        "source_kind": "computed", "tab": "p-supi"}
+
+    # OO4 KR5: the UNWEIGHTED mean of the per-supplier issue-free rates, over
+    # the suppliers OO3 KR4's measurability test admits (order emails spanning
+    # the whole month). supply.otif computes it beside the delivery-weighted
+    # rate, so the Supply tab's table and this row read the same rows.
+    _oo4k5 = []
+    for m_ in ((snap.get("supply") or {}).get("otif") or {}).get("months") or []:
+        _inc = [r_ for r_ in (m_.get("suppliers") or [])
+                if r_.get("measurable") and r_.get("otif_pct") is not None]
+        _exc = [r_ for r_ in (m_.get("suppliers") or []) if not r_.get("measurable")]
+        _mean = m_.get("supplier_mean")
+        if _mean is None:
+            _oo4k5.append(_mvar(m_["month"], not_measured=_otwhy(m_)))
+            continue
+        _s = okr_score("pct95", _mean)
+        _oo4k5.append(_scored(
+            m_["month"], value=_mean, display=f"{_mean}% (mean of {len(_inc)})", score=_s,
+            basis=(f"UNWEIGHTED mean of the issue-free delivery rates of the {len(_inc)} "
+                   f"supplier(s) whose Kobas order emails span {_mlabel(m_['month'])} - "
+                   "OO3 KR4's measurability test - each counted once whatever its volume: "
+                   + ", ".join(f"{r_['supplier']} {r_['otif_pct']:g}%" for r_ in
+                               sorted(_inc, key=lambda r_: (r_["otif_pct"], r_["supplier"])))
+                   + ". "
+                   + (f"Left out as not measurable: "
+                      + ", ".join(f"{r_['supplier']} ("
+                                  + (f"order emails start {r_['coverage_from']}"
+                                     if r_.get("deliveries") and r_.get("coverage_from")
+                                     else "no Kobas order emails")
+                                  + ")" for r_ in _exc) + ". " if _exc else "")
+                   + (f"OO3 KR4's delivery-weighted rate for the same month is "
+                      f"{m_['otif_pct']:g}%, because Lynas's volume dominates it. "
+                      if m_.get("otif_pct") is not None else "")
+                   + (f"{m_['deliveries_in_feed_holes']} deliveries on "
+                      f"{fmt_days(m_['feed_holes'])} are left out of every rate - no pull of "
+                      "the issue feed covers those days. "
+                      if m_.get("deliveries_in_feed_holes") else "")
+                   + "Each rate is max(0, deliveries - issue forms) / deliveries: an "
+                   "issue-free rate, NOT on-time-in-full, and a lower bound. The per-supplier "
+                   "table is the Supply tab's issue-free table")))
+    if _oo4k5:
+        _okr_extra[("OO4", "KR5")] = {"months": _oo4k5, "source_kind": "computed",
+                                      "tab": "p-supp"}
+
+    # OO4 KR2: forms naming the FACTORY as the supplier that mention damage to a
+    # broth or sauce line. A measured value even at 0 - but the basis says what
+    # a 0 can and cannot mean, because the form has no damaged-in-transit field.
+    _iss2 = (snap.get("suppliers") or {}).get("issues") or []
+    _fac_m, _dmg_m = {}, {}
+    for i_ in _iss2:
+        if i_.get("supplier") != FACTORY_SUPPLIER:
+            continue
+        _m0 = (i_.get("d") or "")[:7]
+        _fac_m[_m0] = _fac_m.get(_m0, 0) + 1
+        _t0 = i_.get("issue_text") or ""
+        if DAMAGE_RE.search(_t0) and BROTH_SAUCE_RE.search(_t0):
+            _dmg_m.setdefault(_m0, []).append(i_)
+    _oo4k2 = []
+    _m0 = OTIF_FIRST_MONTH
+    while _pm2 and _m0 <= _pm2:
+        _ncov, _hs, _me = gc_month_cover(_m0)
+        _open = (_m0 == _pm2)
+        _all = sum(1 for i_ in _iss2 if (i_.get("d") or "")[:7] == _m0)
+        if _open and not _ncov:
+            _oo4k2.append(_mvar(_m0, mtd=True, score=None, coverage_days=0,
+                                basis=(f"month-to-date, not yet scored (0 days of data) - the GC "
+                                       f"answer feed does not reach {_mlabel(_m0)} yet")))
+        else:
+            _hits = _dmg_m.get(_m0, [])
+            _n = len(_hits)
+            _s = okr_score("damaged", _n)
+            _v = _scored(
+                _m0, value=_n, display=str(_n), score=_s, coverage_days=_ncov,
+                basis=((f"0 forms matched - the issue form has no damaged-in-transit field; a "
+                        f"true zero and a form-design gap look identical. "
+                        if not _n else
+                        f"{_n} form(s) naming {FACTORY_SUPPLIER} mention damage to a broth or "
+                        f"sauce line: " + "; ".join(f"{x.get('d')} {x.get('site') or '-'}"
+                                                   for x in _hits) + ". ")
+                       + f"Counted over the {_all} delivery/supplier issue form(s) answered in "
+                         f"{_mlabel(_m0)}: {_fac_m.get(_m0, 0)} named {FACTORY_SUPPLIER} as the "
+                         "supplier, and a form counts when its free-text issue mentions damage "
+                         "(damaged, broken, burst, leaking, split, crushed...) AND a broth or "
+                         "sauce line (broth, sauce, tare, soup, dashi). Each form counts once, "
+                         "however many items it lists - the KR's 'SKUs' cannot be read off a "
+                         "free-text form"))
+            _why = []
+            if gc_feed_first and _m0 + "-01" < gc_feed_first <= _me:
+                _why.append(f"the answer feed's history starts {gc_feed_first}")
+            if _hs:
+                _why.append(f"no pull of the answer feed covers {fmt_days(_hs)}")
+            if not _open and gc_answers_through and gc_answers_through < _me:
+                _why.append(f"the answer feed reaches only {gc_answers_through}")
+            if _why and not _open:
+                _v = okr_incomplete_variant(_v, "damaged", " and ".join(_why))
+            _oo4k2.append(_v)
+        _m0 = supplier_statements.next_month(_m0)
+    if _oo4k2:
+        _okr_extra[("OO4", "KR2")] = {"months": _oo4k2, "source_kind": "computed",
+                                      "tab": "p-supi"}
+
     # --- the month-to-date rule (Ross, 09/10/2026) -------------------------
     # See OKR_MTD_MIN_DAYS. "Days of source data" is measured per KR from what
     # its numbers are actually built on, and never guessed: a row whose source
@@ -5945,6 +6116,10 @@ def main():
         ("OO3", "KR1"): gc_answers_through,
         # the same issue side - deliveries are capped to it (see otif_months)
         ("OO3", "KR4"): gc_answers_through,
+        # Phase 2: OO4 KR5 is built from the same rows as OO3 KR4, and OO4 KR2
+        # counts the same issue forms as OO3 KR1
+        ("OO4", "KR5"): gc_answers_through,
+        ("OO4", "KR2"): gc_answers_through,
         # the weekly price report: up to the date Kobas emailed the newest one
         ("OO3", "KR2"): (_rep_dates[-1] if _rep_dates else ""),
         # Facilities repeat issues: the app counts its fault log up to its
@@ -5954,7 +6129,8 @@ def main():
 
     # Days no pull of the source ever saw, per KR: only the GC answer feed
     # has them today (gc_feed_holes - the 21-30/09 outage lost 20-22/09).
-    _cov_holes = {("OO3", "KR1"): gc_feed_holes, ("OO3", "KR4"): gc_feed_holes}
+    _cov_holes = {("OO3", "KR1"): gc_feed_holes, ("OO3", "KR4"): gc_feed_holes,
+                  ("OO4", "KR5"): gc_feed_holes, ("OO4", "KR2"): gc_feed_holes}
 
     def _mtd_gate(rid, band, variants):
         """Apply okr_mtd_variant() to one row's month variants, with the
@@ -6021,6 +6197,8 @@ def main():
             # the month-to-date rule: set from the default month's variant on
             # monthly rows; None on a current-state row, where it does not apply
             "mtd": None, "coverage_days": None,
+            # a document the row's figure is about (OO3 KR5: the statement)
+            "link": None,
         }
         if _ext and _ext.get("months") is None:
             # A KR whose only source cannot be shown this bake (the sheet is
@@ -6040,7 +6218,7 @@ def main():
                 _r.update({k: _dm.get(k) for k in
                            ("value", "display", "score", "rag", "basis",
                             "trend", "trend_unit", "trend_note",
-                            "mtd", "coverage_days")})
+                            "mtd", "coverage_days", "link")})
                 if _dm.get("value") is None and _dm.get("not_measured"):
                     _r["not_measured"] = _dm["not_measured"]
         elif _src is not None:
@@ -6064,7 +6242,7 @@ def main():
                     _r.update({k: _dm.get(k) for k in
                                ("value", "display", "score", "rag", "basis",
                                 "trend", "trend_unit", "trend_note",
-                                "mtd", "coverage_days")})
+                                "mtd", "coverage_days", "link")})
                     # an empty pull month says WHY it is empty, on the row
                     if _dm.get("value") is None and _dm.get("not_measured"):
                         _r["not_measured"] = _dm["not_measured"]
@@ -6246,6 +6424,22 @@ def main():
                     "before publishing: " + ", ".join(_oo1_nulled))
         print("[bake] OO1 guard nulled: " + ", ".join(_oo1_nulled))
     os.makedirs(OUT_DIR,exist_ok=True)
+    # THE MONTHLY OKR PACK (Phase 2): rendered from this snapshot, after the
+    # OO1 guard, by a live bake on the 1st and the 8th - see okr_pack.py. A
+    # failure here is a gap, never a lost bake.
+    try:
+        _pk_w, _pk_g = okr_pack.maybe_render(snap, OUT_DIR, asof.isoformat(), dated,
+                                             forbidden=OO1_FORBIDDEN)
+    except SystemExit:
+        raise
+    except Exception as e:  # noqa: BLE001
+        _pk_w, _pk_g = [], [f"OKR pack: this bake could not render the pack due "
+                            f"({type(e).__name__}); the next bake retries"]
+        print(f"[bake] okr pack failed: {type(e).__name__}: {e}", file=sys.stderr)
+    for _p in _pk_w:
+        print(f"[bake] wrote {os.path.relpath(_p, OUT_DIR)}")
+    gaps.extend(_pk_g)
+    snap["okr_packs"]=okr_pack.index(OUT_DIR, dated)
     out=os.path.join(OUT_DIR,f"snapshot_{pull}.json")
     json.dump(snap,open(out,"w"),separators=(",",":"))
     update_snapshot_index(OUT_DIR,pull,snap["generated_at"])
