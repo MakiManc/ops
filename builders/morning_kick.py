@@ -61,6 +61,9 @@ UK = ZoneInfo("Europe/London")
 ETL = "MakiManc/maki-hospitality-etl"
 EXPORT_WF = "daily-export.yml"
 DEEP_WF = "deep-pull.yml"
+#: October 2026 Actions-minutes budget (Ross, 11/10/2026): the deep pull runs
+#: on Mondays only until this date. Same date as verify_ops_data and the bake.
+DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
 BAKE_WF = "ops_command_bake.yml"
 INDEX_URL = ("https://raw.githubusercontent.com/MakiManc/ops/main/"
              "data/ops_command/snapshot_index.json")
@@ -162,11 +165,17 @@ def main(api=None, now=lambda: dt.datetime.now(UK), sleep=time.sleep) -> int:
             log(f"snapshot_index.latest is already {today} - nothing to do")
             return 0
         deep = api.runs(DEEP_WF)
-        if not ran_today(deep, today):
+        if ran_today(deep, today):
+            log("Flow deep pull already ran today")
+        elif today < DEEP_PULL_WEEKLY_UNTIL and now().weekday() != 0:
+            # The October 2026 minutes budget: the deep pull is Mondays only
+            # until DEEP_PULL_WEEKLY_UNTIL, and its own cron catches up a failed
+            # Monday - a dispatch here would only bill a minute to be skipped.
+            log(f"no Flow deep pull dispatched - Mondays only until {DEEP_PULL_WEEKLY_UNTIL} "
+                "(October Actions minutes)")
+        else:
             st = api.dispatch(DEEP_WF)
             log(f"no Flow deep pull today yet - dispatched {DEEP_WF} (HTTP {st})")
-        else:
-            log("Flow deep pull already ran today")
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
             print(f"::error title=ETL_DISPATCH_TOKEN rejected::GitHub answered {e.code}: the token "

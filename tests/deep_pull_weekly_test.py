@@ -8,7 +8,7 @@ verifier neither cries wolf on the days off nor goes quiet when a pull is
 genuinely due, and that the bake says the training figures are older:
 
   * no receipt on a day off is ok; on a Monday it is the usual critical
-  * a failed Monday is due again every day until a clean pull lands
+  * a failed Monday is due again from the next day until a clean pull lands
   * the Deep Flow feeds carry a 7-day cadence until the date, 1 day after
   * from 1 Nov everything is daily again, with nothing to revert
   * the bake names the deep pull's date in a gap while it lags the pull
@@ -104,6 +104,15 @@ check(vod.deep_pull_due("2026-10-12", "2026-10-05") is True, "Monday 12/10: due"
 check(vod.deep_pull_due("2026-10-14", "2026-10-12") is False, "Wednesday after a clean Monday: not due")
 check(vod.deep_pull_due("2026-10-20", "2026-10-12") is True,
       "Tuesday after a FAILED Monday (newest clean 8 days old): due again")
+check(vod.deep_pull_due("2026-10-13", "2026-10-10") is True,
+      "REVIEW: week 1 - Tuesday after a failed Monday 12/10 (newest clean Sat 10/10): due the next day, not a week later")
+check(vod.deep_pull_due("2026-10-11", "2026-10-10") is False,
+      "Sunday 11/10 (the budget's first day), newest clean Saturday: not due")
+check(vod.deep_pull_due("2026-10-18", "2026-10-12") is False, "Sunday after a clean Monday: not due")
+_days = [f"2026-10-{d:02d}" for d in range(11, 32)]
+check(all(bake.deep_pull_due(t, l) == vod.deep_pull_due(t, l)
+          for t in _days for l in [None] + [f"2026-10-{d:02d}" for d in range(1, 32)] if not l or l <= t),
+      "the bake's deep_pull_due agrees with the verifier's on every October day and last-pull date")
 check(vod.deep_pull_due("2026-10-14", None) is True, "no clean receipt at all: due")
 check(vod.deep_pull_due("2026-11-03", "2026-11-02") is True, "from 1 Nov: daily again, nothing to revert")
 check(bake.DEEP_PULL_WEEKLY_UNTIL == vod.DEEP_PULL_WEEKLY_UNTIL == "2026-11-01",
@@ -147,8 +156,9 @@ try:
     out = os.path.join(tmp, "out")
     os.makedirs(out)
     env = dict(os.environ, OPS_WAREHOUSE_SOURCE="archive", OPS_ARCHIVE_DIR=arc, OPS_OUT_DIR=out)
-    p = subprocess.run([sys.executable, os.path.join(REPO, "builders", "bake_ops_command.py")],
-                       env=env, capture_output=True, text=True)
+    # dated, so ages are measured from 14/10 and not from the wall clock
+    p = subprocess.run([sys.executable, os.path.join(REPO, "builders", "bake_ops_command.py"),
+                        "--date", "2026-10-14"], env=env, capture_output=True, text=True)
     check(p.returncode == 0, "the real bake runs on the synthetic archive"
           + ("" if p.returncode == 0 else ": " + p.stderr[-600:]))
     if p.returncode == 0:
@@ -156,6 +166,29 @@ try:
         g = [x for x in sn["gaps"] if "Deep Flow feeds" in x]
         check(len(g) == 1 and "deep pull of 2026-10-12" in g[0] and "Mondays only" in g[0],
               "BAKED 14/10: a gap says the per-module training figures are from the 12/10 deep pull")
+        fhd = next((r for r in sn["feed_health"] if r["feed"] == DEEP), {})
+        check(fhd.get("verdict") == "OK" and fhd.get("age_days") == 2,
+              f"BAKED 14/10: the Data Health tab shows the 2-day-old weekly deep feed as OK, not WATCH (got {fhd.get('verdict')})")
+finally:
+    shutil.rmtree(tmp)
+
+# ---- REVIEW: a lag that is NOT the budget's doing is not blamed on it --------
+tmp = tempfile.mkdtemp(prefix="deepweekly_bake2_")
+try:
+    # Tuesday 13/10, the Monday pull failed: the newest deep pull is Saturday's
+    arc, rl, mp = build(tmp, ["2026-10-10"], ["2026-10-10", "2026-10-13"], [])
+    out = os.path.join(tmp, "out")
+    os.makedirs(out)
+    env = dict(os.environ, OPS_WAREHOUSE_SOURCE="archive", OPS_ARCHIVE_DIR=arc, OPS_OUT_DIR=out)
+    p = subprocess.run([sys.executable, os.path.join(REPO, "builders", "bake_ops_command.py"),
+                        "--date", "2026-10-13"], env=env, capture_output=True, text=True)
+    if p.returncode == 0:
+        sn = json.load(open(os.path.join(out, "snapshot_2026-10-13.json")))
+        g = [x for x in sn["gaps"] if "Deep Flow feeds" in x]
+        check(len(g) == 1 and "is DUE" in g[0] and "not the October Mondays-only budget" in g[0],
+              "BAKED 13/10 after a failed Monday: the gap says the pull is due, not 'Mondays only'")
+    else:
+        check(False, "the real bake runs (failed Monday case): " + p.stderr[-400:])
 finally:
     shutil.rmtree(tmp)
 

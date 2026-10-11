@@ -197,9 +197,10 @@ MAINT_AGE_WARN_DAYS = 3
 #: and goes back to daily by itself on the date - deep-pull.yml in
 #: maki-hospitality-etl carries the same date, and so does the bake. A Monday
 #: that fails is retried by every later run until a clean pull lands, so a
-#: deep-pull receipt is DUE when it is Monday or when the newest clean one is
-#: DEEP_PULL_WEEKLY_DAYS or more days old - and only then is a missing one an
-#: alarm. The Deep Flow feeds get a DEEP_PULL_WEEKLY_DAYS cadence meanwhile.
+#: deep-pull receipt is DUE on a Monday, or on any day when this week's Monday
+#: pull has not landed cleanly (the newest clean receipt predates the most
+#: recent Monday) - and only then is a missing one an alarm. The Deep Flow
+#: feeds get a DEEP_PULL_WEEKLY_DAYS cadence meanwhile.
 DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
 DEEP_PULL_WEEKLY_DAYS = 7
 #: ...and the same budget turns the 12:03 UTC scheduled recheck off until the
@@ -213,15 +214,18 @@ def deep_pull_weekly(today: str) -> bool:
 
 
 def deep_pull_due(today: str, last_clean: str | None) -> bool:
-    """Is a deep-pull receipt expected today? Always, outside the budget."""
+    """Is a deep-pull receipt expected today? Always, outside the budget.
+
+    Inside it: on a Monday, or when the newest clean pull predates the most
+    recent Monday - a failed Monday is due again the very next day, not a
+    week later (deep-pull.yml applies the same rule to decide whether to run).
+    """
     if not deep_pull_weekly(today):
         return True
-    if date.fromisoformat(today).weekday() == 0:
+    t = date.fromisoformat(today)
+    if t.weekday() == 0 or not last_clean:
         return True
-    if not last_clean:
-        return True
-    return (date.fromisoformat(today) - date.fromisoformat(last_clean[:10])).days \
-        >= DEEP_PULL_WEEKLY_DAYS
+    return date.fromisoformat(last_clean[:10]) < t - timedelta(days=t.weekday())
 
 # Ross, 25/09/2026. facilities_ppm.json is the M&R Facilities app's feed (OO2
 # KR1/KR2/KR4 and two Maintenance cards), pulled by refresh_facilities.py
