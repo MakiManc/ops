@@ -69,6 +69,7 @@ import argparse, collections, datetime, hashlib, json, math, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import supplier_statements  # noqa: E402 - Phase 2, OO3 KR5
 import okr_pack  # noqa: E402 - Phase 2, the monthly OKR pack
+import factory_kpis  # noqa: E402 - Phase 3, OO5 KR3 and KR5
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
 # OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
@@ -466,7 +467,7 @@ OKR_PENDING = {
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
     ("OO5", "KR4"): "factory scheduled-task on-time from GetCompliant; Phase 3",
-    ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the site-orders table; Phase 3",
+    ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the factory's site-orders table (builders/factory_kpis.py)",
     ("OO6", "KR1"): "no agreed measure. Ross signs one off after Step 0 before anything is built",
     ("OO6", "KR2"): "no agreed measure, and no dated demand event exists in any feed to build one from",
     ("OO6", "KR3"): "no agreed measure. Step 0 found no site has ever stock-counted a frozen-ramen SKU",
@@ -2986,6 +2987,20 @@ def main():
     # date - dedup across pulls would need a key the form does not have, since
     # two submissions can share a Timestamp to the second (30/07/2025 21:17:35
     # covers batches 3007A, 3007B and 3007C).
+    # OO5 KR5 (a), Phase 3: JFC's POs on the factory and their reply threads,
+    # landed from the mailbox by the ETL's pull_jfc_factory_pos.py. Like the
+    # broth form, each pull is the whole history, so the newest pull is read.
+    jfc_rows=None; jfc_pull=None
+    if has_feed(cur,factory_kpis.JFC_PO_FEED):
+        cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows WHERE feed=%s",
+                    (factory_kpis.JFC_PO_FEED,))
+        jfc_pull=(cur.fetchone() or [None])[0]
+        cur.execute("SELECT data->>'PO', data->>'Kind', data->>'Message Date', "
+                    " data->>'Sender Role', data->>'Text' "
+                    "FROM etl_feed_rows WHERE feed=%s AND pull_date="+L,
+                    (factory_kpis.JFC_PO_FEED,factory_kpis.JFC_PO_FEED))
+        jfc_rows=[{"PO":a_,"Kind":b_,"Message Date":c_,"Sender Role":d_,"Text":e_}
+                  for a_,b_,c_,d_,e_ in cur.fetchall()]
     FB_FEED = "Factory Broth Readings"
     # 2,000, not 500 (27/08/2026). The first real pull landed 1,461 scored
     # readings - thirteen months of production - and a 500 cap truncated the
@@ -5052,6 +5067,29 @@ def main():
         _mc_status = None
     if dated and _mc_status and str(_mc_status.get("attempted_at") or "")[:10] > dated:
         _mc_status = None
+    # ---- the factory's Weekly Report workbook (Phase 3: OO5 KR3, KR5's site orders) ----
+    # Same contract as the two above: a current-state copy, public on the same
+    # push, so the bake refuses outright if it holds anything personal or money-
+    # shaped, and a status written after a back-bake's date is not this date's.
+    try:
+        with open(os.path.join(OUT_DIR, factory_kpis.WORKBOOK_FILE), encoding="utf-8") as fh_:
+            _fw_leaks = factory_kpis.workbook_leaks(fh_.read())
+    except OSError:
+        _fw_leaks = []
+    if _fw_leaks:
+        print("[bake] REFUSING TO BAKE: data/ops_command/" + factory_kpis.WORKBOOK_FILE
+              + " holds something that looks like personal or money data at "
+              + ", ".join(_fw_leaks[:10]) + ". MakiManc/ops is public. Delete the file (the "
+              "next refresh rewrites it) and fix builders/refresh_factory_workbook.py before "
+              "re-running.", file=sys.stderr)
+        raise SystemExit(1)
+    _fw_doc, _fw_err = factory_kpis.load_workbook(OUT_DIR)
+    _fw_status = factory_kpis.load_status(OUT_DIR)
+    if dated and _fw_status and str(_fw_status.get("attempted_at") or "")[:10] > dated:
+        _fw_status = None
+    print("[bake] factory workbook: " + (f"read {_fw_doc.get('pulled_at')}" if _fw_doc else _fw_err)
+          + (f"; last read {_fw_status.get('cause')} at {_fw_status.get('attempted_at')}"
+             if _fw_status else ""))
     _sheet_today = dated or datetime.datetime.utcnow().date().isoformat()
     try:
         _kr5_row, _kr5_gaps = maint_contacts_kr5(_mc_doc, _mc_err, _mc_status, dated=dated,
@@ -5131,9 +5169,9 @@ def main():
     #     confirms it, so a reader can tell an agreed tolerance from a
     #     suggested one without leaving the page.
     #  3. A KR with no target gets NO RAG - grey, and the words "no target
-    #     set". Scheduled-task on-time is 96.1%, which looks like a pass, but
-    #     nobody has set the target, so colouring it green would be inventing
-    #     the target as well as the verdict.
+    #     set". Scheduled-task on-time read 96.1% for weeks with no target, and
+    #     colouring it green would have invented the target as well as the
+    #     verdict; Ross set it at 95% on 09/10/2026 (Phase 3), so it now has one.
     #  4. A KR with no source renders grey with the BLOCKER named. That list is
     #     the data roadmap, on the dashboard instead of in a document.
     #  5. Trends are never 0-padded. A week with no data is null and draws no
@@ -5682,7 +5720,12 @@ def main():
         row("Quality","Broth as served, by site (reported)","not set","p-qual",
             not_measured="no graded site broth readings in this bake")
 
-    # --- Compliance: scheduled-task on-time (MEASURED, but NO TARGET SET) ---
+    # --- Compliance: scheduled-task on-time (MEASURED; target >=95%, Ross 09/10/2026) ---
+    # Phase 3, 3.4: Ross set the target on 9 Oct, so the row now carries the
+    # Operating KPI RAG - the same two-colour rule as mandatory training below:
+    # green at or above the target, red below. No amber: there is no band for
+    # this row in OKR_BANDS, and a threshold that is not written down does not
+    # exist.
     _tb={}
     for r_ in agg:
         if r_.get("metric")!="tasks": continue
@@ -5693,16 +5736,16 @@ def main():
     _ot=sum(c.get("on_time") or 0 for c in _tc); _ms=sum(c.get("missed") or 0 for c in _tc)
     if _ot+_ms:
         _pct=round(100.0*_ot/(_ot+_ms),1)
-        row("Compliance","Scheduled task on-time","not set","p-tasks",
-            value=_pct,display=f"{_pct}%",rag=None,
+        row("Compliance","Scheduled task on-time",">=95%","p-tasks",
+            value=_pct,display=f"{_pct}%",rag=("green" if _pct>=95 else "red"),
             basis=(f"{_ot} on time of {_ot+_ms} scheduled task instances in this pull's window. "
-                   "NO TARGET HAS BEEN SET for this KR, so it carries no RAG - the figure is "
-                   "reported, not judged."),
+                   "Target >=95% (Ross, 09/10/2026): green at or above it, red below - the "
+                   "Operating KPI rule, with no amber band."),
             trend=_trend(_tb),trend_unit="% on time / week",
             trend_note=_note(_tb,"task",min((r_["metric_date"] for r_ in agg
                                              if r_.get("metric")=="tasks"),default=None)))
     else:
-        row("Compliance","Scheduled task on-time","not set","p-tasks",
+        row("Compliance","Scheduled task on-time",">=95%","p-tasks",
             not_measured="no scheduled-task answers in this bake")
 
     # --- People: mandatory training (MEASURED, no trend source yet) ---
@@ -5721,8 +5764,10 @@ def main():
             not_measured="no mandatory module rows in this bake")
 
     # --- Production and Warehouse: nothing lands in this system at all ---
+    # "Stock variance" left this list in Phase 3: it is OO5 KR3, computed from
+    # the factory's Weekly Report workbook by builders/factory_kpis.py.
     for _kr,_tg in [("Factory food cost","45%"),("Factory labour","22%"),
-                    ("Stock variance","<5%"),("Forecast accuracy","+/-15%"),
+                    ("Forecast accuracy","+/-15%"),
                     ("Availability","100%")]:
         row("Production",_kr,_tg,"—",
             not_measured=("no factory feed reaches this system. Needs Kobas API or scheduled "
@@ -5769,10 +5814,9 @@ def main():
         ("Maintenance", "KR3 unplanned closures"):       ("OO2", "KR3"),
         ("Maintenance", "KR4 statutory compliance"):     ("OO2", "KR4"),
         ("Maintenance", "KR5 Contact Sheets complete"):  ("OO2", "KR5"),
-        # The Manual's "Stock variance" and the sheet's OO5 KR3 are the same
-        # measurement under two names, and both are unmeasured today. Phase 3
-        # gives it the Weekly Report workbook.
-        ("Production", "Stock variance"):                ("OO5", "KR3"),
+        # The Manual's "Stock variance" was the sheet's OO5 KR3 under another
+        # name. Phase 3 computes OO5 KR3 itself (builders/factory_kpis.py), so
+        # the placeholder row and this mapping are gone.
     }
     _okr_by_id = {}
     for _key, _id in _OKR_FROM_ROW.items():
@@ -6119,6 +6163,54 @@ def main():
     if _oo4k2:
         _okr_extra[("OO4", "KR2")] = {"months": _oo4k2, "source_kind": "computed",
                                       "tab": "p-supi"}
+
+    # --- Phase 3 (11/10/2026): OO5 KR3 and OO5 KR5 -------------------------
+    # Both rules live in builders/factory_kpis.py. KR3: the mean ABSOLUTE weekly
+    # stocktake variance of the weeks commencing in the month, from the
+    # factory's Weekly Report workbook; a closed month with a week missing is
+    # shown, not scored. KR5: production orders completed in full - JFC's POs
+    # (a short or damaged line in JFC's replies fails one; extra cartons do
+    # not) and the sites' orders on the factory's CLOSING INVENTORY sheet (an
+    # issue form naming the factory fails one). Lynas's POs cannot be seen.
+    try:
+        _k3, _k3g = factory_kpis.kr3_months(
+            _fw_doc, _fw_err, _fw_status, _pm2, factory_kpis.KR3_FIRST_MONTH, _mvar,
+            lambda v: okr_score("stock", v), _rag_of, dated=dated)
+    except Exception as e:  # noqa: BLE001 - a malformed copy greys the KR, never the bake
+        _k3 = {"months": None, "source_kind": "not_measured",
+               "not_measured": f"the factory stocktake copy could not be read ({type(e).__name__})"}
+        _k3g = [f"OO5 KR3 is grey: {_k3['not_measured']}"]
+    _okr_extra[("OO5", "KR3")] = _k3
+    gaps.extend(_k3g)
+    _fw_sites = {}
+    for _d in (((_fw_doc or {}).get("site_orders") or {}).get("days") or []):
+        for _sn in ((_d or {}).get("sites") or {}):
+            _kob = re.sub(r"^\s*Maki\s*&\s*Ramen\s*-\s*", "", str(_sn)).strip()
+            _gc = next((v_[0] for v_ in SITE_ALIASES.values() if v_[1] == _kob), None)
+            if _gc:
+                _fw_sites[_sn] = _gc
+    try:
+        _k5, _k5g = factory_kpis.kr5_months(
+            pos=(factory_kpis.jfc_pos(jfc_rows) if jfc_rows is not None else None),
+            jfc_pull=jfc_pull, doc=_fw_doc, err=_fw_err, status=_fw_status,
+            issues=_iss2, site_alias=_fw_sites, gc_cover=gc_month_cover,
+            gc_answers_through=gc_answers_through, gc_feed_first=gc_feed_first,
+            pull_month=_pm2, first_month=OTIF_FIRST_MONTH, mvar=_mvar,
+            score_fn=lambda v: okr_score("prod", v), rag_fn=_rag_of,
+            asof=asof.isoformat(), dated=dated)
+        _k5_leaks = factory_kpis.published_leaks(_k5.get("months"))
+        if _k5_leaks:
+            # a name or a number from a reply must never reach the public page
+            _k5 = {"months": None, "source_kind": "not_measured",
+                   "not_measured": "withheld - the computed text failed the publication check "
+                                   "(" + ", ".join(_k5_leaks[:5]) + ")"}
+            _k5g.append(f"OO5 KR5 is grey: {_k5['not_measured']}")
+    except Exception as e:  # noqa: BLE001
+        _k5 = {"months": None, "source_kind": "not_measured",
+               "not_measured": f"production orders could not be computed ({type(e).__name__})"}
+        _k5g = [f"OO5 KR5 is grey: {_k5['not_measured']}"]
+    _okr_extra[("OO5", "KR5")] = _k5
+    gaps.extend(_k5g)
 
     # --- the month-to-date rule (Ross, 09/10/2026) -------------------------
     # See OKR_MTD_MIN_DAYS. "Days of source data" is measured per KR from what
