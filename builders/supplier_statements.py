@@ -100,10 +100,16 @@ def credit_flag(issue: dict) -> bool:
 
 
 def md_cell(s) -> str:
-    """One table cell, safe for GitHub markdown AND for Jekyll's Liquid."""
+    """One table cell, safe for GitHub markdown AND for Jekyll's Liquid.
+
+    Brackets too (review, 11/10/2026): Pages renders each .md to HTML with
+    kramdown, which does no URL filtering, so an issue typed as
+    '[x](javascript:...)' or '![x](https://...)' became a live link or a remote
+    image on the dashboard's own origin."""
     t = "" if s is None else str(s)
     t = (t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-          .replace("{", "&#123;").replace("}", "&#125;").replace("|", "\\|"))
+          .replace("{", "&#123;").replace("}", "&#125;").replace("|", "\\|")
+          .replace("[", "&#91;").replace("]", "&#93;"))
     return " ".join(t.split())
 
 

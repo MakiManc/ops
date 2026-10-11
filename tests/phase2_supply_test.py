@@ -130,6 +130,10 @@ check(lyn["issues"][1]["text"] == "lid {{ site.secret }} | leaked <b>x</b>",
 md = ss.statement_md(doc)
 check("{{" not in md and "{%" not in md and "<b>" not in md and "lid &#123;&#123; site.secret &#125;&#125; \\| leaked &lt;b&gt;x&lt;/b&gt;" in md,
       "the markdown escapes Liquid braces, pipes and HTML (a '{{' would fail the Pages build)")
+hostile = ss.statement_md(ss.month_statement("2026-10", [dict(ISS[0], issue_text="[click](javascript:alert(1)) ![px](https://evil.example/p.png)")],
+                                             OTIF_OCT, "2026-10-31", [], "", "2026-11-01", "2026-11-01"))
+check("](javascript:" not in hostile and "![px](" not in hostile and "&#91;click&#93;" in hostile,
+      "markdown link and image syntax in issue text is neutralised (Pages renders .md with no URL filter)")
 check("TWF - not measured - order emails for this supplier only start 2026-10-09" in md,
       "a supplier with deliveries and no forms is listed with its rate or why it has none")
 
