@@ -1664,6 +1664,23 @@ FACILITIES_CAUSE_TEXT = {
 FACILITIES_STALE_DAYS = 3
 FACILITIES_APP_URL = "https://rossmward.eu.pythonanywhere.com"
 FACILITIES_API_PATH = "/api/ppm_summary"
+#: OCTOBER 2026 ACTIONS-MINUTES BUDGET (Ross, 11/10/2026): the Flow deep pull
+#: runs on Mondays only from FROM until UNTIL, then daily again by itself. Keep
+#: UNTIL identical to verify_ops_data.DEEP_PULL_WEEKLY_UNTIL and deep-pull.yml,
+#: and deep_pull_due() identical to the verifier's.
+DEEP_PULL_WEEKLY_FROM = "2026-10-11"
+DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
+
+
+def deep_pull_due(today, last_clean):
+    """A copy of verify_ops_data.deep_pull_due: is a deep pull due on `today`
+    ('YYYY-MM-DD') given the newest clean one? Always, outside the budget."""
+    if not (DEEP_PULL_WEEKLY_FROM <= today < DEEP_PULL_WEEKLY_UNTIL):
+        return True
+    t = datetime.date.fromisoformat(today)
+    if t.weekday() == 0 or not last_clean:
+        return True
+    return str(last_clean)[:10] < (t - datetime.timedelta(days=t.weekday())).isoformat()
 #: The first month the app's own fault log holds real data.
 FACILITIES_FAULT_LOG_START = "2026-09"
 #: The KR2 baseline Ross set on 17/09/2026: the mean of these three months.
@@ -2328,9 +2345,21 @@ def main():
         " (CAST(%s AS DATE) - max(pull_date)) FROM etl_feed_rows e GROUP BY feed",
         (asof.isoformat(),))
     fh, seen = [], set()
+    # The October 2026 budget: the deep-pull feeds are weekly until
+    # DEEP_PULL_WEEKLY_UNTIL, so they are OK for a week and WATCH on the day
+    # the next pull is due - the verifier applies the same 7-day cadence.
+    _weekly = DEEP_PULL_WEEKLY_FROM <= asof.isoformat() < DEEP_PULL_WEEKLY_UNTIL
+    try:
+        with open(os.path.join(OUT_DIR, "feeds_manifest.json")) as fh_:
+            _deep_wf = {f_["name"] for f_ in json.load(fh_)["feeds"]
+                        if f_.get("workflow") == "deep-pull"}
+    except Exception:  # noqa: BLE001 - no manifest: fall back on the names
+        _deep_wf = set()
     for feed, latest, n, age in cur.fetchall():
         seen.add(feed); age = int(age or 0)
-        verdict = "OK" if (n and age<=1) else "WATCH" if (n and age<=3) else "STALE" if n else "EMPTY"
+        _ok, _watch = ((6, 7) if _weekly and (feed in _deep_wf or feed.startswith("Deep "))
+                       else (1, 3))
+        verdict = "OK" if (n and age<=_ok) else "WATCH" if (n and age<=_watch) else "STALE" if n else "EMPTY"
         fh.append({"feed":feed,"latest_pull":latest,"rows":n,"age_days":age,"verdict":verdict})
     for feed in expected_feeds():
         if feed not in seen:
@@ -2338,6 +2367,23 @@ def main():
     order={"MISSING":0,"STALE":1,"EMPTY":2,"WATCH":3,"OK":4}
     fh.sort(key=lambda r:(order.get(r["verdict"],9),r["feed"]))
     snap["feed_health"]=fh
+    # The October 2026 minutes budget (see DEEP_PULL_WEEKLY_UNTIL): the deep
+    # pull runs on Mondays only, so the per-module training figures are from
+    # its last pull, not this one - say so rather than let them pass as today's.
+    _dfm = next((r_ for r_ in fh if r_["feed"] == "Deep Flow Modules"), None)
+    _dlp = (_dfm or {}).get("latest_pull")
+    if pull and _dlp and _dlp < pull and DEEP_PULL_WEEKLY_FROM <= pull < DEEP_PULL_WEEKLY_UNTIL:
+        if not deep_pull_due(pull, _dlp):
+            gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
+                        f"pull of {_dlp}, not this pull: until {DEEP_PULL_WEEKLY_UNTIL} that "
+                        "pull runs on Mondays only, to keep October inside the private repo's "
+                        "Actions minutes (Ross, 11/10/2026). It goes back to daily by itself "
+                        "on that date")
+        else:
+            gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
+                        f"pull of {_dlp}: a deep pull is DUE (Monday, or this week's Monday "
+                        "pull has not landed) and has not landed yet - this is not the "
+                        "October Mondays-only budget, check the Flow Deep Pull runs")
     # ---- training by site (Deep feed preferred; branch id -> name join) ----
     deep, base = "Deep Flow Modules", "Flow Modules"
     feed = deep if has_feed(cur, deep) else base

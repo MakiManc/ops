@@ -112,6 +112,18 @@ check((K.DEEP_WF, "07:31") in gh.dispatches, "the deep pull had not run, so it i
 check(ex == ["08:12"], f"the export is dispatched once, at 08:12 UK (got {ex})")
 check(c.now().time() < dt.time(10, 0), f"and the dashboard is ready before 10:00 (at {c.now():%H:%M})")
 
+print("\n-- October minutes budget: no deep-pull dispatch on a day off --")
+c = Clock(dt.datetime(2026, 10, 14, 7, 31, tzinfo=UK))      # a Wednesday
+gh = FakeGH(c, "2026-10-14", "2026-10-13")
+rc, out = run(gh, c)
+check(rc == 0 and K.DEEP_WF not in [w for w, _ in gh.dispatches] and "Mondays only" in out,
+      "Wednesday 14/10: the deep pull is NOT dispatched (Mondays only until 1 Nov), and it says so")
+check([t for w, t in gh.dispatches if w == K.EXPORT_WF] == ["08:12"], "...and the export still goes at 08:12")
+c = Clock(dt.datetime(2026, 11, 4, 7, 31, tzinfo=UK))       # a Wednesday after the budget
+gh = FakeGH(c, "2026-11-04", "2026-11-03")
+rc, out = run(gh, c)
+check((K.DEEP_WF, "07:31") in gh.dispatches, "Wednesday 04/11: daily again - the deep pull is dispatched")
+
 print("\n-- winter: the same UK times --")
 c = Clock(dt.datetime(2026, 11, 10, 6, 40, tzinfo=UK))
 gh = FakeGH(c, "2026-11-10", "2026-11-09", deep_today=True)
