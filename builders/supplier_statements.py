@@ -212,8 +212,11 @@ def _md_rate(r):
             "form(s))")
 
 
-def _md_issue_table(rows):
-    out = ["| Date | Site | Category | Open | Credit/invoice | Issue (verbatim) |",
+def _md_issue_table(rows, as_at=None):
+    # "Open" is GetCompliant's state on the day the file was written, and a
+    # FINAL statement is never rewritten - so the header says which day.
+    out = [f"| Date | Site | Category | Open{' at ' + as_at if as_at else ''} | Credit/invoice "
+           "| Issue (verbatim) |",
            "|---|---|---|---|---|---|"]
     for r in rows:
         out.append(f"| {md_cell(r['d'])} | {md_cell(r['site'] or '-')} | "
@@ -253,7 +256,7 @@ def statement_md(doc: dict) -> str:
                                             for x in b["by_site"]), "",
               "By category (keyword heuristic): " + "; ".join(
                   f"{md_cell(x['category'])} {x['forms']}" for x in b["by_category"]), ""]
-        L += _md_issue_table(b["issues"]) + [""]
+        L += _md_issue_table(b["issues"], doc.get("updated_on")) + [""]
     quiet = [b["supplier"] for b in doc["supplier_blocks"] if not b["forms"]]
     if quiet:
         L += ["## No issue forms this month", "",
@@ -261,7 +264,7 @@ def statement_md(doc: dict) -> str:
                         for b in doc["supplier_blocks"] if not b["forms"]), ""]
     if doc["unattributed"]["forms"]:
         L += ["## Forms that named no supplier", ""] + _md_issue_table(
-            doc["unattributed"]["issues"]) + [""]
+            doc["unattributed"]["issues"], doc.get("updated_on")) + [""]
     L += ["---", "", f"Basis: {md_cell(doc['basis'])}", ""]
     return "\n".join(L)
 
@@ -328,7 +331,7 @@ def week_md(doc: dict) -> str:
                                              for x in doc["by_site"]), "",
               "By category (keyword heuristic): " + "; ".join(
                   f"{md_cell(x['category'])} {x['forms']}" for x in doc["by_category"]), ""]
-        L += _md_issue_table(doc["issues"]) + [""]
+        L += _md_issue_table(doc["issues"], doc.get("updated_on")) + [""]
     else:
         L += ["No Lynas issue form was answered in this week.", ""]
     L += ["---", "", f"Basis: {md_cell(doc['basis'])}", ""]
@@ -336,12 +339,22 @@ def week_md(doc: dict) -> str:
 
 
 def _read_json(path):
+    st, d = _load(path)
+    return d if st == "ok" else None
+
+
+def _load(path):
+    """('missing', None), ('bad', None) or ('ok', dict). A file that exists but
+    does not parse is NOT missing: overwriting it would reset generated_on, the
+    KR's measurement, so the caller leaves it alone and says so."""
+    if not os.path.exists(path):
+        return "missing", None
     try:
         with open(path, encoding="utf-8") as fh:
             d = json.load(fh)
-        return d if isinstance(d, dict) else None
     except (OSError, ValueError):
-        return None
+        return "bad", None
+    return ("ok", d) if isinstance(d, dict) and d.get("generated_on") else ("bad", None)
 
 
 def _write(path, text):
@@ -352,18 +365,31 @@ def _write(path, text):
     os.replace(tmp, path)
 
 
+#: How far back a live bake looks for a statement or cut that is missing or
+#: still PROVISIONAL (review, 11/10/2026): a bake that did not push for a few
+#: days, or a feed that reached the period's end late, must not leave a gap or
+#: a provisional file for good. Beyond this it is history, left as it is.
+MONTH_LOOKBACK = 2
+WEEK_LOOKBACK = 4
+
+
 def sync(out_dir, today, dated, issues, otif_months, through, holes, feed_first,
-         deliveries_by_day, first_dd, otif_basis=None, forbidden=()):
+         deliveries_by_day, first_dd, otif_basis=None, forbidden=(), pull=None):
     """Write what is due (live bakes only) and return the index the snapshot
-    carries: {"monthly": [...], "weekly": [...], "written": [...]}.
+    carries: {"monthly": [...], "weekly": [...], "written": [...], "gaps": [...]}.
 
     today      the bake's real date (YYYY-MM-DD); for a dated bake, its date
     dated      the --date of a back-bake, or None for a live bake
+    pull       the bake's pull date: nothing is written for a period the data
+               has not left yet (a bake on the 1st whose newest pull is still
+               the 31st waits for the next one)
     forbidden  strings that must never be written (OO1's Finance column names)
     """
     sdir = os.path.join(out_dir, STATEMENTS_DIR)
-    written = []
-    live = not dated
+    written, gaps = [], []
+    if dated:
+        return {**index(out_dir, dated), "written": written, "gaps": gaps}
+    pull = (pull or today)[:10]
 
     def _guard(text, what):
         bad = [n for n in forbidden if n in text]
@@ -371,34 +397,57 @@ def sync(out_dir, today, dated, issues, otif_months, through, holes, feed_first,
             raise SystemExit(f"[bake] REFUSING TO WRITE {what}: it carries "
                              + ", ".join(repr(n) for n in bad))
 
-    # ---- the month just closed ----------------------------------------------
-    ym = prev_month(today[:7])
-    if live and ym >= STATEMENTS_FIRST_MONTH:
-        jp = os.path.join(sdir, f"{ym}.json")
-        old = _read_json(jp)
-        if old is None or not old.get("final"):
-            om = next((m for m in otif_months or [] if m.get("month") == ym), None)
-            doc = month_statement(ym, issues, om, through, holes, feed_first,
-                                  generated_on=(old or {}).get("generated_on") or today,
-                                  updated_on=today, otif_basis=otif_basis)
-            js = json.dumps(doc, indent=1, ensure_ascii=False)
-            md = statement_md(doc)
-            _guard(js + md, f"the {ym} supplier statement")
-            _write(jp, js + "\n")
-            _write(os.path.join(sdir, f"{ym}.md"), md)
-            written += [jp, os.path.join(sdir, f"{ym}.md")]
+    def _due(jp, what):
+        st, old = _load(jp)
+        if st == "bad":
+            gaps.append(f"{what}: {os.path.relpath(jp, out_dir)} exists but cannot be read, so "
+                        "it is left as it is rather than rewritten with a new generated_on - "
+                        "restore it from git history")
+            return False, None
+        return (old is None or not old.get("final")), old
 
-    # ---- the Lynas week just ended ------------------------------------------
-    if live and LYNAS_WEEKLY_CUT:
+    # ---- closed months: the one just closed, and the one before it ----------
+    ym = today[:7]
+    for _ in range(MONTH_LOOKBACK):
+        ym = prev_month(ym)
+        if ym < STATEMENTS_FIRST_MONTH or ym >= pull[:7]:
+            continue
+        if not through or through[:10] < f"{ym}-01":
+            # the issue feed has not reached the month at all: a statement now
+            # would be empty, and would still score on the day it was written
+            continue
+        jp = os.path.join(sdir, f"{ym}.json")
+        go, old = _due(jp, f"The {mlabel(ym)} supplier statement")
+        if not go:
+            continue
+        om = next((m for m in otif_months or [] if m.get("month") == ym), None)
+        doc = month_statement(ym, issues, om, through, holes, feed_first,
+                              generated_on=(old or {}).get("generated_on") or today,
+                              updated_on=today, otif_basis=otif_basis)
+        doc["final_on"] = (old or {}).get("final_on") or (today if doc["final"] else None)
+        js = json.dumps(doc, indent=1, ensure_ascii=False)
+        md = statement_md(doc)
+        _guard(js + md, f"the {ym} supplier statement")
+        _write(jp, js + "\n")
+        _write(os.path.join(sdir, f"{ym}.md"), md)
+        written += [jp, os.path.join(sdir, f"{ym}.md")]
+
+    # ---- the Lynas weeks just ended -----------------------------------------
+    if LYNAS_WEEKLY_CUT:
         t = datetime.date.fromisoformat(today[:10])
-        week, mon, sun = iso_week(t - datetime.timedelta(days=7))
         wdir = os.path.join(sdir, WEEKLY_DIR)
-        jp = os.path.join(wdir, f"{week}-{LYNAS}.json")
-        old = _read_json(jp)
-        if old is None or not old.get("final"):
+        for k in range(1, WEEK_LOOKBACK + 1):
+            week, mon, sun = iso_week(t - datetime.timedelta(days=7 * k))
+            if sun >= pull:
+                continue
+            jp = os.path.join(wdir, f"{week}-{LYNAS}.json")
+            go, old = _due(jp, f"The {week} Lynas cut")
+            if not go:
+                continue
             doc = week_cut(week, mon, sun, issues, deliveries_by_day, first_dd.get(LYNAS),
                            through, holes, generated_on=(old or {}).get("generated_on") or today,
                            updated_on=today)
+            doc["final_on"] = (old or {}).get("final_on") or (today if doc["final"] else None)
             js = json.dumps(doc, indent=1, ensure_ascii=False)
             md = week_md(doc)
             _guard(js + md, f"the {week} Lynas cut")
@@ -406,7 +455,7 @@ def sync(out_dir, today, dated, issues, otif_months, through, holes, feed_first,
             _write(os.path.join(wdir, f"{week}-{LYNAS}.md"), md)
             written += [jp, os.path.join(wdir, f"{week}-{LYNAS}.md")]
 
-    return {**index(out_dir, dated), "written": written}
+    return {**index(out_dir, dated), "written": written, "gaps": gaps}
 
 
 def index(out_dir, dated=None):
@@ -421,7 +470,12 @@ def index(out_dir, dated=None):
             continue
         ym = name[:7]
         monthly.append({"month": ym, "generated_on": d["generated_on"],
+                        # a back-bake reads TODAY's copy: when it was updated after
+                        # the bake's date, its contents and status are later news
+                        "updated_after": (d.get("updated_on") if dated and
+                                          (d.get("updated_on") or "") > dated else None),
                         "updated_on": d.get("updated_on"), "final": bool(d.get("final")),
+                        "final_on": d.get("final_on"),
                         "retrospective": bool(d.get("retrospective")),
                         "forms": d.get("forms"), "suppliers": d.get("suppliers"),
                         "suppliers_named": d.get("suppliers_named"),
@@ -437,6 +491,8 @@ def index(out_dir, dated=None):
             continue
         stem = name[:-5]
         weekly.append({"week": d.get("week"), "from": d.get("from"), "to": d.get("to"),
+                       "updated_after": (d.get("updated_on") if dated and
+                                         (d.get("updated_on") or "") > dated else None),
                        "supplier": LYNAS, "generated_on": d["generated_on"],
                        "final": bool(d.get("final")), "forms": d.get("forms"),
                        "rate": d.get("rate"),
@@ -463,17 +519,15 @@ def kr5_variants(idx, today, pull_month, score, mvar, first_month=STATEMENTS_FIR
         due = f"{next_month(m)}-01"
         nxt = mlabel(next_month(m))
         link = ({"href": st["url"], "label": f"{mlabel(m)} statement"} if st else None)
-        if m == pull_month:
-            out.append(mvar(m, mtd=True, score=None, coverage_days=None, link=link,
-                            basis=(f"not due yet - {mlabel(m)}'s supplier statement is generated "
-                                   f"by the first bake on or after 1 {nxt}, and scores 100 if "
-                                   f"that is by the 3rd, 50 by the 10th, 0 after")))
-        elif m < STATEMENTS_SCORED_FROM:
+        if m < STATEMENTS_SCORED_FROM:
             out.append(mvar(m, link=link, not_measured=(
                 "not scored - supplier statements began with Phase 2 in October 2026, so no "
                 f"statement for {mlabel(m)} existed by its due date"
                 + (f"; one was generated retrospectively on {st['generated_on']}" if st else ""))))
         elif st:
+            # BEFORE the pull-month branch: a bake on the 1st whose newest pull
+            # is still the 31st has the pull month = the statement's month, and
+            # must score the statement that exists, not call it "not due yet".
             day = (datetime.date.fromisoformat(st["generated_on"])
                    - datetime.date.fromisoformat(due)).days + 1
             s = score(day)
@@ -482,23 +536,42 @@ def kr5_variants(idx, today, pull_month, score, mvar, first_month=STATEMENTS_FIR
                             basis=(f"{mlabel(m)}'s supplier statement was generated on "
                                    f"{st['generated_on']}, day {day} of {nxt} - 100 by the 3rd, "
                                    f"50 by the 10th, 0 after. It is "
-                                   + ("FINAL" if st["final"] else
+                                   + (("FINAL" if (st.get("final_on") or st["generated_on"])
+                                       <= st["generated_on"] else
+                                       f"PROVISIONAL when generated and FINAL since "
+                                       f"{st['final_on']}") if st["final"] else
                                       "PROVISIONAL (the issue feed had not reached the month "
                                       "end; later bakes refresh it)")
                                    + f": {st.get('forms')} issue form(s) naming "
-                                     f"{st.get('suppliers_named')} supplier(s)")))
+                                     f"{st.get('suppliers_named')} supplier(s)"
+                                   + (f". The copy on disk was last updated on "
+                                      f"{st['updated_after']}, after this snapshot's date, so "
+                                      "its status and counts are as of then"
+                                      if st.get("updated_after") else ""))))
+        elif m == pull_month:
+            _last = next((v for v in reversed(out) if v.get("score") is not None), None)
+            out.append(mvar(m, mtd=True, score=None, coverage_days=None,
+                            basis=(f"not due yet - {mlabel(m)}'s supplier statement is generated "
+                                   f"by the first bake on or after 1 {nxt}, and scores 100 if "
+                                   f"that is by the 3rd, 50 by the 10th, 0 after"
+                                   + (f". Last scored: {mlabel(_last['m'])}, {_last['display']}, "
+                                      f"{_last['score']}" if _last else ""))))
         else:
             day = (datetime.date.fromisoformat(today[:10])
                    - datetime.date.fromisoformat(due)).days + 1
-            if day > 10:
+            # the band decides, not this function: a missing statement is a
+            # final 0 once even a statement generated today would score 0
+            if score(day) == 0:
                 out.append(mvar(m, value=day, display=f"none by day {day}", score=score(day),
                                 basis=(f"no supplier statement for {mlabel(m)} had been generated "
-                                       f"by {today[:10]}, day {day} of {nxt} - past the 10th, "
-                                       "so it scores 0 whenever it appears")))
+                                       f"by {today[:10]}, day {day} of {nxt}, so it scores 0 "
+                                       "whenever it appears. A late statement is still written by a live "
+                                       f"bake within {MONTH_LOOKBACK} months of the month's end")))
             else:
                 out.append(mvar(m, not_measured=(
                     f"pending - {mlabel(m)}'s statement is due on 1-3 {nxt} and none has been "
                     f"generated yet (day {max(day, 0)})"
-                    + (" - it can now score at most 50" if day > 3 else ""))))
+                    + (f" - it can now score at most {score(day)}"
+                       if 0 < score(day) < score(1) else ""))))
         m = next_month(m)
     return out

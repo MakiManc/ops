@@ -166,7 +166,7 @@ check(sorted(os.listdir(os.path.join(tmp, "supplier_statements"))) == before,
       "a back-bake (dated) writes nothing")
 check([x["month"] for x in ss.index(tmp, "2026-10-31")["monthly"]] == [],
       "a back-bake of 31 Oct does not see a statement generated on 1 Nov")
-check([x["month"] for x in ss.index(tmp, "2026-11-01")["monthly"]] == ["2026-10"],
+check("2026-10" in [x["month"] for x in ss.index(tmp, "2026-11-01")["monthly"]],
       "...and a back-bake of 1 Nov does")
 try:
     ss.sync(tempfile.mkdtemp(), "2026-11-01", None,
@@ -254,6 +254,80 @@ try:
 except SystemExit:
     check(True, "a pack carrying an OO1 Finance column name is refused")
 
+print("\n-- review fixes (11/10/2026) --")
+early = json.loads(json.dumps(SNAP)); early["pull_date"] = "2026-10-31"
+check(pk.maybe_render(early, tempfile.mkdtemp(), "2026-11-01", None) == ([], []),
+      "a bake on the 1st whose newest pull is still the 31st renders no pack (it would freeze an MTD month)")
+nopdf = {"editions": [{"edition": "first", "pdf": False, "pdf_missing_because": pk.NO_REPORTLAB}]}
+check(pk.due("2026-11-02", nopdf) == ("first" if pk.have_reportlab() else None),
+      "an edition whose PDF was lost to a missing reportlab is due again once it imports")
+check(pk.due("2026-11-02", {"editions": [{"edition": "first", "pdf": False,
+                                          "pdf_missing_because": "the PDF could not be laid out"}]}) is None,
+      "...but a layout failure is not retried every day")
+if pk.have_reportlab():
+    import reportlab.platypus as _rp
+    _orig = _rp.SimpleDocTemplate.build
+    _rp.SimpleDocTemplate.build = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("layout"))
+    _pd = tempfile.mkdtemp()
+    why = pk.to_pdf(pd, os.path.join(_pd, "x.pdf"))
+    _rp.SimpleDocTemplate.build = _orig
+    check(why and "could not be laid out (RuntimeError)" in why and os.listdir(_pd) == [],
+          "a PDF that cannot be laid out is a reason, not an exception, and leaves no .tmp")
+    longd = json.loads(json.dumps(pd))
+    longd["objectives"][1]["krs"][0]["note"] = "x " * 10000
+    check(pk.to_pdf(longd, os.path.join(_pd, "long.pdf")) is None and os.path.exists(os.path.join(_pd, "long.pdf")),
+          "a 20,000-character basis is cut (and says so) rather than breaking the layout")
+late = tempfile.mkdtemp()
+pk.maybe_render(SNAP, late, "2026-11-12", None)
+check("no first edition was made for this month" in open(os.path.join(late, "okr_pack", "2026-10.md")).read(),
+      "an 8th edition with no first says so - it does not claim to replace one")
+ix = pk.index(ptmp, "2026-11-05")
+check(ix and ix[0]["edition"] == "first" and ix[0]["file_is_later_edition"],
+      "a back-bake of 5 Nov names the first edition, and that the file on disk is a later one")
+
+ss_tmp = tempfile.mkdtemp()
+ss.sync(ss_tmp, "2026-11-01", None, ISS, [OTIF_OCT], "2026-10-30", [], "2026-09-01", DEL,
+        {"Lynas": "2026-09-01"}, pull="2026-10-31")
+check(not os.path.exists(os.path.join(ss_tmp, "supplier_statements", "2026-10.json")),
+      "1 Nov with the newest pull still 31 Oct: October's statement waits for the data to leave the month")
+r = ss.sync(ss_tmp, "2026-11-02", None, ISS, [OTIF_OCT], "2026-10-31", [], "2026-09-01", DEL,
+            {"Lynas": "2026-09-01"})
+sdir = os.path.join(ss_tmp, "supplier_statements")
+check(os.path.exists(os.path.join(sdir, "2026-10.json")) and os.path.exists(os.path.join(sdir, "2026-09.json")),
+      "the month before last is caught up too (a bake that did not push for days loses nothing)")
+check(sorted(f[:8] for f in os.listdir(os.path.join(sdir, "weekly")) if f.endswith(".json"))
+      == ["2026-W40", "2026-W41", "2026-W42", "2026-W43", "2026-W44"],
+      "...and the Lynas weeks: four back from 1 Nov, then W44 on 2 Nov")
+open(os.path.join(sdir, "2026-10.json"), "w").write("{ not json")
+r = ss.sync(ss_tmp, "2026-11-03", None, ISS, [OTIF_OCT], "2026-10-31", [], "2026-09-01", DEL, {})
+check(open(os.path.join(sdir, "2026-10.json")).read() == "{ not json" and any("cannot be read" in g for g in r["gaps"]),
+      "an unreadable statement is NOT rewritten (that would reset generated_on) - a gap says so")
+f_tmp = tempfile.mkdtemp()
+ss.sync(f_tmp, "2026-11-01", None, ISS, [OTIF_OCT], "2026-10-30", [], "2026-09-01", DEL, {})
+ss.sync(f_tmp, "2026-11-02", None, ISS, [OTIF_OCT], "2026-10-31", [], "2026-09-01", DEL, {})
+d_ = json.load(open(os.path.join(f_tmp, "supplier_statements", "2026-10.json")))
+check(d_["generated_on"] == "2026-11-01" and d_["final_on"] == "2026-11-02", "the day it went FINAL is recorded")
+v5 = {x["m"]: x for x in ss.kr5_variants(ss.index(f_tmp), "2026-11-05", "2026-11", audit_score, mvar)}
+check("PROVISIONAL when generated and FINAL since 2026-11-02" in v5["2026-10"]["basis"],
+      "...and OO3 KR5 says it was provisional on the day it scored")
+check("Last scored: October 2026, day 1 (1 Nov), 100" in v5["2026-11"]["basis"],
+      "the month in progress shows the last scored result, not just 'not due yet'")
+vb = {x["m"]: x for x in ss.kr5_variants(ss.index(f_tmp, "2026-11-01"), "2026-11-01", "2026-11", audit_score, mvar)}
+check("last updated on 2026-11-02, after this snapshot's date" in vb["2026-10"]["basis"],
+      "a back-bake of 1 Nov says the copy on disk was updated after its date")
+check(not os.path.exists(os.path.join(tempfile.mkdtemp(), "x"))
+      and ss.sync(tempfile.mkdtemp(), "2026-11-02", None, ISS, [OTIF_OCT], "", [], "", DEL, {})["monthly"] == [],
+      "no issue feed at all: no statement is written (it would be empty and still score)")
+
+
+def band7(v):
+    return 100 if v <= 3 else 50 if v <= 7 else 0
+
+
+v7 = {x["m"]: x for x in ss.kr5_variants({"monthly": []}, "2026-11-09", "2026-11", band7, mvar)}
+check(v7["2026-10"]["score"] == 0 and v7["2026-10"]["value"] == 9,
+      "the band decides when a missing statement is a final 0 - no day threshold of its own")
+
 # ===========================================================================
 print("\n== Part 2: the real builder, as of 04/11/2026 ==")
 
@@ -279,7 +353,9 @@ FORMS = {"L1": ("2026-10-06", "Lynas", "missing panko"),
          "L2": ("2026-10-15", "Lynas", "short delivery, please credit"),
          "F1": ("2026-10-14", "AA Factory", "tonkotsu broth tub split and leaking in the van"),
          "F2": ("2026-10-20", "AA Factory", "late delivery"),
-         "F3": ("2026-10-22", "AA Factory", "chilli oil damaged")}
+         "F3": ("2026-10-22", "AA Factory", "chilli oil damaged"),
+         "L3": ("2026-10-23", "Lynas", "missing tom yum, exploded Soba sauce"),
+         "L4": ("2026-10-24", "Lynas", "prawn crackers short, crushed chilli for the broth")}
 ORDERS = [{"Order Ref": f"O{s}{d}", "Supplier": s, "Site": "Maki Test", "Delivery Date ISO": d,
            "Order Email Date": d, "Order Value GBP": "100", "Line Items": "3", "Items Ordered": "10",
            "Order Placed At": d + "T06:00:00"}
@@ -339,7 +415,8 @@ if p.returncode == 0:
     check(om["supplier_mean"] == round((lyn["otif_pct"] + 100.0) / 2, 1) and om["supplier_mean_of"] == 2,
           f"supply.otif October carries the unweighted mean of Lynas and Harro (got {om.get('supplier_mean')})")
     k5b = var(("OO4", "KR5"), "2026-10")
-    check(k5b.get("value") == om["supplier_mean"] and k5b.get("score") == 100,
+    _want = next((sc_ for t_, sc_ in ((95, 100), (90, 80), (85, 50)) if om["supplier_mean"] >= t_), 0)
+    check(k5b.get("value") == om["supplier_mean"] and k5b.get("score") == _want,
           f"OO4 KR5 October: that mean, banded pct95 (got {k5b.get('display')}, {k5b.get('score')})")
     check("AA Factory (no Kobas order emails)" in (k5b.get("basis") or ""),
           "...and the factory (forms, no order emails) is named as left out, with the right reason")
@@ -349,6 +426,9 @@ if p.returncode == 0:
     check(k2.get("value") == 1 and k2.get("score") == 100 and not k2.get("incomplete")
           and "2026-10-14" in (k2.get("basis") or ""),
           f"OO4 KR2 October: 1 factory form names damage to a broth line (the chilli-oil and late ones do not) -> 100 (got {k2.get('value')}, {k2.get('score')})")
+    check("NOT COUNTED: 1 form(s) naming another supplier" in (k2.get("basis") or "")
+          and "2026-10-23 Lynas" in (k2.get("basis") or ""),
+          "...and the broth-sauce damage filed against Lynas is named, not counted (crackers and crushed chilli are not damage)")
     k2n = var(("OO4", "KR2"), "2026-11")
     check(k2n.get("mtd") and k2n.get("score") is None, "OO4 KR2 November: month to date, unscored")
     st = snap["suppliers"]["statements"]
@@ -374,6 +454,27 @@ if p.returncode == 0:
         o5 = next((v for v in r5["months"] if v["m"] == "2026-10"), {})
         check(o5.get("value") == 2 and o5.get("score") == 100,
               f"...and reads October's statement from disk - day 2, not regenerated today (got {o5.get('value')})")
+    print("\n-- a closed month the issue feed stopped short of --")
+    wd2 = os.path.join(btmp, "wd2")
+    shutil.copytree(wd, wd2)
+    for pd_ in os.listdir(wd2):
+        if pd_ > "2026-10-21" and os.path.exists(os.path.join(wd2, pd_, "GC_Form_Task_Answers.jsonl.gz")):
+            shutil.rmtree(os.path.join(wd2, pd_)) if pd_ != "2026-11-03" else os.remove(
+                os.path.join(wd2, pd_, "GC_Form_Task_Answers.jsonl.gz"))
+    out2 = os.path.join(btmp, "out2")
+    os.makedirs(out2)
+    shutil.copy(os.path.join(REPO, "data", "ops_command", "feeds_manifest.json"), out2)
+    p2 = subprocess.run([sys.executable, os.path.join(REPO, "builders", "bake_ops_command.py"),
+                         "--date", "2026-11-04"],
+                        env=dict(env, OPS_ARCHIVE_DIR=wd2, OPS_OUT_DIR=out2), capture_output=True, text=True)
+    check(p2.returncode == 0, "the builder bakes it" + ("" if p2.returncode == 0 else ": " + p2.stderr[-800:]))
+    if p2.returncode == 0:
+        s2 = json.load(open(os.path.join(out2, "snapshot_2026-11-04.json")))
+        r2 = next(r for r in s2["scorecard"]["rows"] if (r["objective"], r["kr"]) == ("OO4", "KR5"))
+        o2 = next(v for v in r2["months"] if v["m"] == "2026-10")
+        check(o2.get("score") is None and o2.get("incomplete") and "INCOMPLETE month" in (o2.get("basis") or "")
+              and "- to 2026-10-" in (o2.get("display") or ""),
+              f"OO4 KR5 October counted only to 20 Oct: shown, NOT scored, and says why (got {o2.get('display')}, {o2.get('score')})")
 shutil.rmtree(btmp)
 shutil.rmtree(tmp)
 shutil.rmtree(ptmp)

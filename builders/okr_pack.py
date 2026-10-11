@@ -38,17 +38,41 @@ import re
 from supplier_statements import md_cell, mlabel, prev_month
 
 PACK_DIR = "okr_pack"
+#: The longest text one PDF table cell carries before it is cut (and says so).
+PDF_CELL_MAX = 2500
 #: Finance's rows on the Operations Input sheet land by the 7th.
 SECOND_EDITION_DAY = 8
 
 
+#: The reason to_pdf gives when the library is absent - the one failure a later
+#: bake can cure by itself, so the one that makes an edition due again.
+NO_REPORTLAB = "reportlab is not installed on the runner (pip install reportlab)"
+
+
+def have_reportlab() -> bool:
+    try:
+        import reportlab  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 def due(today: str, meta: dict | None) -> str | None:
-    """'first', '8th' or None for the month just closed, given its pack's meta."""
+    """'first', '8th' or None for the month just closed, given its pack's meta.
+
+    An edition whose PDF was not written because reportlab was missing is due
+    again once reportlab imports (review, 11/10/2026: it was never retried, so a
+    bake that ran before the install step merged lost that month's PDF)."""
     d = datetime.date.fromisoformat(today[:10])
-    eds = {e.get("edition") for e in ((meta or {}).get("editions") or [])}
-    if d.day >= SECOND_EDITION_DAY:
-        return None if "8th" in eds else "8th"
-    return None if "first" in eds else "first"
+    eds_all = (meta or {}).get("editions") or []
+    eds = {e.get("edition") for e in eds_all}
+    want = "8th" if d.day >= SECOND_EDITION_DAY else "first"
+    if want not in eds:
+        return want
+    last = next((e for e in reversed(eds_all) if e.get("edition") == want), {})
+    if not last.get("pdf") and last.get("pdf_missing_because") == NO_REPORTLAB and have_reportlab():
+        return want
+    return None
 
 
 def _variant(row, m):
@@ -127,8 +151,9 @@ def _pct(p):
 
 def to_md(doc: dict) -> str:
     ed = ("first edition, made as the month closed" if doc["edition"] == "first" else
-          "8th-of-the-month edition, after Finance's rows land on the 7th - it replaces the "
-          "first")
+          "8th-of-the-month edition, after Finance's rows land on the 7th"
+          + (" - it replaces the first" if doc.get("replaces_first") else
+             " - no first edition was made for this month"))
     L = [f"# Ops OKR pack - {md_cell(doc['label'])}", "",
          f"{md_cell(ed)} · generated {doc['generated_on']} · from {md_cell(doc['snapshot'])}", "",
          f"**Operations: {_pct(doc['operations']['pct'])}** "
@@ -178,7 +203,7 @@ def to_pdf(doc: dict, path: str) -> str | None:
         from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer, Table,
                                         TableStyle)
     except ImportError:
-        return "reportlab is not installed on the runner (pip install reportlab)"
+        return NO_REPORTLAB
     from xml.sax.saxutils import escape
 
     ss = getSampleStyleSheet()
@@ -186,6 +211,15 @@ def to_pdf(doc: dict, path: str) -> str | None:
 
     def P(t, st=small):
         return Paragraph(escape("" if t is None else str(t)), st)
+
+    def N(t):
+        # One table cell cannot run past a page (reportlab raises LayoutError
+        # around 5,500 characters); the longest real basis is ~1,400. A cut is
+        # SAID, and the .md beside the PDF carries the full text.
+        t = "" if t is None else str(t)
+        return P(t if len(t) <= PDF_CELL_MAX else
+                 t[:PDF_CELL_MAX] + " ... [cut here for the PDF - the full text is in the "
+                 ".md beside it]")
 
     story = [Paragraph(escape(f"Ops OKR pack - {doc['label']}"), ss["Title"]),
              P(f"{doc['edition']} edition · generated {doc['generated_on']} · from "
@@ -213,7 +247,7 @@ def to_pdf(doc: dict, path: str) -> str | None:
             if k.get("link"):
                 note += f" ({k['link'].get('href')})"
             data.append([P(f"{k['kr']} {k['text']}"), P(k["target"]), P(val),
-                         P(_score_txt(k["score"])), P(hist), P(note)])
+                         P(_score_txt(k["score"])), P(hist), N(note)])
             if k.get("rag") in rag_bg:
                 style.append(("BACKGROUND", (3, i), (3, i), rag_bg[k["rag"]]))
         t = Table(data, colWidths=[62 * mm, 20 * mm, 30 * mm, 12 * mm, 22 * mm, 124 * mm],
@@ -226,12 +260,19 @@ def to_pdf(doc: dict, path: str) -> str | None:
                  f"{s['generated_on']} - {s['url']}") if s else
                 f"No supplier statement exists for {doc['label']}.", body),
               Spacer(1, 3 * mm), Paragraph("Gaps (as at this bake)", ss["Heading4"])]
-    story += [P("• " + g) for g in doc["gaps"]]
+    story += [N("• " + g) for g in doc["gaps"]]
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     tmp = path + ".tmp"
-    SimpleDocTemplate(tmp, pagesize=landscape(A4), leftMargin=10 * mm, rightMargin=10 * mm,
-                      topMargin=10 * mm, bottomMargin=10 * mm,
-                      title=f"Ops OKR pack - {doc['label']}").build(story)
+    try:
+        SimpleDocTemplate(tmp, pagesize=landscape(A4), leftMargin=10 * mm, rightMargin=10 * mm,
+                          topMargin=10 * mm, bottomMargin=10 * mm,
+                          title=f"Ops OKR pack - {doc['label']}").build(story)
+    except Exception as e:  # noqa: BLE001 - a layout failure is a missing PDF, not a lost bake
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        return f"the PDF could not be laid out ({type(e).__name__})"
     os.replace(tmp, path)
     return None
 
@@ -249,6 +290,11 @@ def maybe_render(snap, out_dir, today, dated, forbidden=()):
     if dated:
         return [], []
     month = prev_month(today[:7])
+    # Not until the DATA has left the month (review, 11/10/2026): a bake on the
+    # 1st whose newest pull is still the 31st - or a day with no pull at all -
+    # would freeze a month-to-date scorecard as "the month as it closed".
+    if str(snap.get("pull_date") or "")[:7] <= month:
+        return [], []
     pdir = os.path.join(out_dir, PACK_DIR)
     mp = os.path.join(pdir, f"{month}.json")
     try:
@@ -260,6 +306,8 @@ def maybe_render(snap, out_dir, today, dated, forbidden=()):
     if not ed:
         return [], []
     doc = build(snap, month, ed, today)
+    doc["replaces_first"] = any(e.get("edition") == "first"
+                                for e in ((meta or {}).get("editions") or []))
     md = to_md(doc)
     bad = [n for n in forbidden if n in md or n in json.dumps(doc)]
     if bad:
@@ -274,7 +322,8 @@ def maybe_render(snap, out_dir, today, dated, forbidden=()):
                     f"{why}")
     else:
         written.append(os.path.join(pdir, f"{month}.pdf"))
-    eds = list((meta or {}).get("editions") or [])
+    # a retried edition (its PDF was missing) replaces its own entry
+    eds = [e for e in ((meta or {}).get("editions") or []) if e.get("edition") != ed]
     eds.append({"edition": ed, "generated_on": today[:10], "pdf": why is None,
                 "pdf_missing_because": why, "snapshot": doc["snapshot"]})
     _write(mp, json.dumps({"month": month, "label": doc["label"], "editions": eds,
@@ -299,10 +348,17 @@ def index(out_dir, dated=None):
         except (OSError, ValueError):
             continue
         if isinstance(d, dict) and d.get("month"):
-            eds = d.get("editions") or []
-            if dated and not any((e or {}).get("generated_on", "9999") <= dated for e in eds):
-                continue
-            out.append({"month": d["month"], "md": d.get("md"), "pdf": d.get("pdf"),
-                        "edition": (eds[-1] or {}).get("edition") if eds else None,
-                        "generated_on": (eds[-1] or {}).get("generated_on") if eds else None})
+            eds = [e for e in (d.get("editions") or []) if isinstance(e, dict)]
+            if dated:
+                eds = [e for e in eds if (e.get("generated_on") or "9999") <= dated]
+                if not eds:
+                    continue
+            last = eds[-1] if eds else {}
+            out.append({"month": d["month"], "md": d.get("md"),
+                        "pdf": d.get("pdf") if last.get("pdf") else None,
+                        "edition": last.get("edition"), "generated_on": last.get("generated_on"),
+                        # the file on disk is the newest edition, which a back-bake
+                        # of an earlier date names rather than pretends is its own
+                        "file_is_later_edition": bool(dated and eds and
+                                                      len(eds) < len(d.get("editions") or []))})
     return sorted(out, key=lambda x: x["month"], reverse=True)

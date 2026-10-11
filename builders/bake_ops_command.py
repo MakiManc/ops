@@ -480,9 +480,19 @@ OKR_PENDING = {
 #: BOTH patterns. Words, not a taxonomy: the form has no damaged-in-transit
 #: field, which is why a 0 here says so in its basis.
 FACTORY_SUPPLIER = "AA Factory"
-DAMAGE_RE = re.compile(r"damag|broken|burst|leak|split|crush|smash|spill|crack|dented|torn",
-                       re.I)
-BROTH_SAUCE_RE = re.compile(r"broth|sauce|\btare\b|soup|dashi", re.I)
+# Review, 11/10/2026: words, not stems - "crack" matched prawn CRACKERS,
+# "crush" CRUSHED chilli, "smash" SMASHED cucumber (all menu items), "soup"
+# the Kraft SOUP CUP (packaging) and "split" an ORDER split; and "exploded",
+# "spilt" and "punctured" were missing (a real 22/08 form: "exploded Soba sauce").
+DAMAGE_RE = re.compile(
+    r"\bdamag|\bbroken\b|\bburst|\bleak|\bspilt\b|\bspill|\bexplod|\bpunctur|\bsquash"
+    r"|\bdented\b|\btorn\b|\bcracked\b(?! (?:pepper|black pepper))"
+    r"|\bcrush(?:ed)?\b(?! (?:chill?i|garlic|peanut|ice|tomato))"
+    r"|\bsmash(?:ed)?\b(?! cucumber)"
+    r"|(?<!order )(?<!delivery )\bsplit\b(?! (?:order|delivery|deliveries|between))",
+    re.I)
+BROTH_SAUCE_RE = re.compile(r"\bbroths?\b|\bsauces?\b|\btares?\b|\bsoups?\b(?! cups?)|\bdashi\b",
+                            re.I)
 
 #: RAG follows the SCORE, never the other way round, and never in the shell.
 #: This is the only place the mapping exists.
@@ -4772,16 +4782,18 @@ def main():
         stmt_idx=supplier_statements.sync(
             OUT_DIR, asof.isoformat(), dated, issues, otif_months,
             gc_answers_through, gc_feed_holes, gc_feed_first,
-            deliveries_by_day, first_dd, otif_basis=otif_basis, forbidden=OO1_FORBIDDEN)
+            deliveries_by_day, first_dd, otif_basis=otif_basis, forbidden=OO1_FORBIDDEN,
+            pull=pull)
     except SystemExit:
         raise
     except Exception as e:  # noqa: BLE001 - a statement must never stop the dashboard
-        stmt_idx={**supplier_statements.index(OUT_DIR, dated),"written":[]}
+        stmt_idx={**supplier_statements.index(OUT_DIR, dated),"written":[],"gaps":[]}
         gaps.append("Supplier statements: this bake could not write the statement due "
                     f"({type(e).__name__}); OO3 KR5 reads only the statements already on disk")
         print(f"[bake] supplier statements failed: {type(e).__name__}: {e}", file=sys.stderr)
     for _p in stmt_idx.pop("written",[]):
         print(f"[bake] wrote {os.path.relpath(_p, OUT_DIR)}")
+    gaps.extend(stmt_idx.pop("gaps",[]))
     snap["suppliers"]["statements"]={**stmt_idx,
       "lynas_weekly":supplier_statements.LYNAS_WEEKLY_CUT,
       "scored_from":supplier_statements.STATEMENTS_SCORED_FROM,
@@ -5976,7 +5988,8 @@ def main():
     # the whole month). supply.otif computes it beside the delivery-weighted
     # rate, so the Supply tab's table and this row read the same rows.
     _oo4k5 = []
-    for m_ in ((snap.get("supply") or {}).get("otif") or {}).get("months") or []:
+    for m_ in (((snap.get("supply") or {}).get("otif") or {}).get("months") or []
+               if gc_answers_through else []):
         _inc = [r_ for r_ in (m_.get("suppliers") or [])
                 if r_.get("measurable") and r_.get("otif_pct") is not None]
         _exc = [r_ for r_ in (m_.get("suppliers") or []) if not r_.get("measurable")]
@@ -5995,9 +6008,10 @@ def main():
                    + ". "
                    + (f"Left out as not measurable: "
                       + ", ".join(f"{r_['supplier']} ("
-                                  + (f"order emails start {r_['coverage_from']}"
-                                     if r_.get("deliveries") and r_.get("coverage_from")
-                                     else "no Kobas order emails")
+                                  + ("no Kobas order emails" if not r_.get("coverage_from")
+                                     else f"order emails start {r_['coverage_from']}"
+                                     if r_["coverage_from"] > m_["month"] + "-01"
+                                     else "no delivery counted this month")
                                   + ")" for r_ in _exc) + ". " if _exc else "")
                    + (f"OO3 KR4's delivery-weighted rate for the same month is "
                       f"{m_['otif_pct']:g}%, because Lynas's volume dominates it. "
@@ -6009,6 +6023,21 @@ def main():
                    + "Each rate is max(0, deliveries - issue forms) / deliveries: an "
                    "issue-free rate, NOT on-time-in-full, and a lower bound. The per-supplier "
                    "table is the Supply tab's issue-free table")))
+    # A CLOSED month whose deliveries are counted only part-way (the issue feed
+    # stopped short of its end) is a short month, and is not scored - review,
+    # 11/10/2026: September read 93.3% from 1-3 September with nothing said.
+    for _i, _v in enumerate(_oo4k5):
+        _om = next((m_ for m_ in ((snap.get("supply") or {}).get("otif") or {}).get("months") or []
+                    if m_["month"] == _v["m"]), {})
+        _ct = str(_om.get("counted_through") or "")[:10]
+        if (_v.get("value") is not None and _v["m"] < _pm2 and _ct
+                and _ct < supplier_statements.month_bounds(_v["m"])[1]):
+            _oo4k5[_i] = {**_v, "score": None, "rag": None, "incomplete": True,
+                          "display": f"{_v['display']} - to {_ct}",
+                          "basis": (f"not scored - an INCOMPLETE month: deliveries are counted "
+                                    f"only up to {_ct}, the newest day the issue feed covers, and "
+                                    f"{_om.get('deliveries_held_back') or 0} later one(s) are held "
+                                    "back, so the rates cover part of the month - " + _v["basis"])}
     if _oo4k5:
         _okr_extra[("OO4", "KR5")] = {"months": _oo4k5, "source_kind": "computed",
                                       "tab": "p-supp"}
@@ -6017,18 +6046,24 @@ def main():
     # broth or sauce line. A measured value even at 0 - but the basis says what
     # a 0 can and cannot mean, because the form has no damaged-in-transit field.
     _iss2 = (snap.get("suppliers") or {}).get("issues") or []
-    _fac_m, _dmg_m = {}, {}
+    _fac_m, _dmg_m, _oth_m = {}, {}, {}
     for i_ in _iss2:
-        if i_.get("supplier") != FACTORY_SUPPLIER:
-            continue
         _m0 = (i_.get("d") or "")[:7]
-        _fac_m[_m0] = _fac_m.get(_m0, 0) + 1
         _t0 = i_.get("issue_text") or ""
-        if DAMAGE_RE.search(_t0) and BROTH_SAUCE_RE.search(_t0):
-            _dmg_m.setdefault(_m0, []).append(i_)
+        _hit = bool(DAMAGE_RE.search(_t0) and BROTH_SAUCE_RE.search(_t0))
+        if i_.get("supplier") == FACTORY_SUPPLIER:
+            _fac_m[_m0] = _fac_m.get(_m0, 0) + 1
+            if _hit:
+                _dmg_m.setdefault(_m0, []).append(i_)
+        elif _hit:
+            # The factory's broths and sauces reach sites through Lynas, so damage
+            # to them is usually filed against LYNAS. Not counted - the brief
+            # defines this KR as factory-attributed - but said, every month.
+            _oth_m.setdefault(_m0, []).append(i_)
     _oo4k2 = []
     _m0 = OTIF_FIRST_MONTH
-    while _pm2 and _m0 <= _pm2:
+    # Without the issue feed there is nothing to count, and a 0 would score 100.
+    while _pm2 and gc_answers_through and _m0 <= _pm2:
         _ncov, _hs, _me = gc_month_cover(_m0)
         _open = (_m0 == _pm2)
         _all = sum(1 for i_ in _iss2 if (i_.get("d") or "")[:7] == _m0)
@@ -6054,7 +6089,13 @@ def main():
                          "(damaged, broken, burst, leaking, split, crushed...) AND a broth or "
                          "sauce line (broth, sauce, tare, soup, dashi). Each form counts once, "
                          "however many items it lists - the KR's 'SKUs' cannot be read off a "
-                         "free-text form"))
+                         "free-text form"
+                       + (f". NOT COUNTED: {len(_oth_m.get(_m0, []))} form(s) naming another "
+                          "supplier describe broth or sauce damage - the factory's lines reach "
+                          "sites through Lynas, so damage to them is filed against Lynas: "
+                          + "; ".join(f"{x.get('d')} {x.get('supplier') or 'no supplier'}"
+                                      for x in _oth_m.get(_m0, []))
+                          if _oth_m.get(_m0) else "")))
             _why = []
             if gc_feed_first and _m0 + "-01" < gc_feed_first <= _me:
                 _why.append(f"the answer feed's history starts {gc_feed_first}")
