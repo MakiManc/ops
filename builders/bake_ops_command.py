@@ -461,7 +461,7 @@ OKR_PENDING = {
     ("OO1", "KR4"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
-    ("OO4", "KR2"): "factory-attributed damage on broth and sauce lines in the GetCompliant issue forms - needs the 'GC Form Task Answers' feed, which is absent from this bake",
+    ("OO4", "KR2"): "damage to the factory's broth and sauce lines in the GetCompliant issue forms (filed against the factory or Lynas, which carries them) - needs the 'GC Form Task Answers' feed, which is absent from this bake",
     ("OO4", "KR3"): "internal orders marked received in Kobas; Phase 2. Step 0 found internal orders CAN be isolated (factory as sending venue) but carry no received status at all, so this may stay grey",
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
@@ -480,6 +480,12 @@ OKR_PENDING = {
 #: BOTH patterns. Words, not a taxonomy: the form has no damaged-in-transit
 #: field, which is why a 0 here says so in its basis.
 FACTORY_SUPPLIER = "AA Factory"
+#: Who carries the factory's broths and sauces to the sites. Ross, 11/10/2026:
+#: "Yes count Lynas broth damage" - damage to a broth or sauce line filed
+#: against Lynas counts towards OO4 KR2 as well as damage filed against the
+#: factory itself. Any OTHER supplier's sauce (a bought-in product, not a
+#: factory line) is named in the basis but not counted.
+FACTORY_LINE_CARRIERS = (FACTORY_SUPPLIER, "Lynas")
 # Review, 11/10/2026: words, not stems - "crack" matched prawn CRACKERS,
 # "crush" CRUSHED chilli, "smash" SMASHED cucumber (all menu items), "soup"
 # the Kraft SOUP CUP (packaging) and "split" an ORDER split; and "exploded",
@@ -6042,8 +6048,9 @@ def main():
         _okr_extra[("OO4", "KR5")] = {"months": _oo4k5, "source_kind": "computed",
                                       "tab": "p-supp"}
 
-    # OO4 KR2: forms naming the FACTORY as the supplier that mention damage to a
-    # broth or sauce line. A measured value even at 0 - but the basis says what
+    # OO4 KR2: forms naming the FACTORY - or LYNAS, which carries the factory's
+    # broths and sauces to the sites (Ross, 11/10/2026) - that mention damage to
+    # a broth or sauce line. A measured value even at 0 - but the basis says what
     # a 0 can and cannot mean, because the form has no damaged-in-transit field.
     _iss2 = (snap.get("suppliers") or {}).get("issues") or []
     _fac_m, _dmg_m, _oth_m = {}, {}, {}
@@ -6051,14 +6058,13 @@ def main():
         _m0 = (i_.get("d") or "")[:7]
         _t0 = i_.get("issue_text") or ""
         _hit = bool(DAMAGE_RE.search(_t0) and BROTH_SAUCE_RE.search(_t0))
-        if i_.get("supplier") == FACTORY_SUPPLIER:
+        if i_.get("supplier") in FACTORY_LINE_CARRIERS:
             _fac_m[_m0] = _fac_m.get(_m0, 0) + 1
             if _hit:
                 _dmg_m.setdefault(_m0, []).append(i_)
         elif _hit:
-            # The factory's broths and sauces reach sites through Lynas, so damage
-            # to them is usually filed against LYNAS. Not counted - the brief
-            # defines this KR as factory-attributed - but said, every month.
+            # another supplier's sauce is a bought-in product, not a factory
+            # line: named every month, never counted
             _oth_m.setdefault(_m0, []).append(i_)
     _oo4k2 = []
     _m0 = OTIF_FIRST_MONTH
@@ -6080,19 +6086,22 @@ def main():
                 basis=((f"0 forms matched - the issue form has no damaged-in-transit field; a "
                         f"true zero and a form-design gap look identical. "
                         if not _n else
-                        f"{_n} form(s) naming {FACTORY_SUPPLIER} mention damage to a broth or "
-                        f"sauce line: " + "; ".join(f"{x.get('d')} {x.get('site') or '-'}"
-                                                   for x in _hits) + ". ")
+                        f"{_n} form(s) naming the factory or Lynas mention damage to a broth "
+                        f"or sauce line: " + "; ".join(
+                            f"{x.get('d')} {x.get('site') or '-'} ({x.get('supplier')})"
+                            for x in _hits) + ". ")
                        + f"Counted over the {_all} delivery/supplier issue form(s) answered in "
-                         f"{_mlabel(_m0)}: {_fac_m.get(_m0, 0)} named {FACTORY_SUPPLIER} as the "
-                         "supplier, and a form counts when its free-text issue mentions damage "
+                         f"{_mlabel(_m0)}: {_fac_m.get(_m0, 0)} named {FACTORY_SUPPLIER} or Lynas "
+                         "as the supplier - Lynas carries the factory's broths and sauces to the "
+                         "sites, so damage to them is filed against Lynas (Ross, 11/10/2026: count "
+                         "it) - and a form counts when its free-text issue mentions damage "
                          "(damaged, broken, burst, leaking, split, crushed...) AND a broth or "
                          "sauce line (broth, sauce, tare, soup, dashi). Each form counts once, "
                          "however many items it lists - the KR's 'SKUs' cannot be read off a "
                          "free-text form"
                        + (f". NOT COUNTED: {len(_oth_m.get(_m0, []))} form(s) naming another "
-                          "supplier describe broth or sauce damage - the factory's lines reach "
-                          "sites through Lynas, so damage to them is filed against Lynas: "
+                          "supplier (or none) describe broth or sauce damage - a bought-in "
+                          "product, not a factory line: "
                           + "; ".join(f"{x.get('d')} {x.get('supplier') or 'no supplier'}"
                                       for x in _oth_m.get(_m0, []))
                           if _oth_m.get(_m0) else "")))
