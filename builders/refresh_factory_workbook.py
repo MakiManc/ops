@@ -91,7 +91,19 @@ CAUSE_TEXT = {
     "unexpected": "an unexpected error - the bake log names its type",
 }
 
-_SUSPECT = re.compile(r"@|£|\+\s*\d|\d{6,}")
+#: '@', '£', '+<digit>', six digits in a row, or nine digits however spaced
+#: (a phone number written '0131 496 0000'). Dates and quantities never reach
+#: nine digits with only spaces, dots, dashes or brackets between them.
+_SUSPECT = re.compile(r"@|£|\+\s*\d|\d{6,}|(?:\d[\s().-]?){9,}")
+#: A site column's header as Kobas writes a venue: "Maki & Ramen - <venue>".
+#: Anything else in the site-name row is published as "(unrecognised column
+#: N)", never as itself - the row is hand-typed, in a workbook that also holds
+#: staff pay (review, 11/10/2026).
+SITE_NAME_RE = re.compile(r"^Maki\s*&\s*Ramen\s*-\s*[A-Za-z][A-Za-z0-9 &'()./-]{0,48}$")
+
+
+def _site_ok(name: str) -> bool:
+    return bool(SITE_NAME_RE.match(name)) and not re.search(r"\d{3,}", name)
 _DATE_CELL = re.compile(r"^\s*(\d{1,2})/(\d{1,2})/(\d{4})\s*$")
 _PCT_CELL = re.compile(r"^\s*[-+]?(\d+(\.\d*)?|\.\d+)?\s*%?\s*$")
 _NUM_CELL = re.compile(r"^\s*[-+]?(\d+(\.\d*)?|\.\d+)\s*$")
@@ -115,7 +127,7 @@ def _num(cell):
 
 # ---- STOCK TAKE VARIANCE - WEEKLY ----------------------------------------------
 def build_stocktake(rows) -> dict:
-    """A1:B values -> {"header": [...], "rows": [{"row", "week", "variance"}], "blank_rows"}.
+    """A1:B values -> {"rows": [{"row", "week", "variance"}], "blank_rows"}.
 
     Raw cells, bounded: the bake decides what a row means (a Monday, in order,
     a number). A cell that is neither a date nor a percentage is published as
@@ -123,7 +135,6 @@ def build_stocktake(rows) -> dict:
     not listed (the tab carries 120-odd pre-dated blank rows).
     """
     rows = [list(r) + ["", ""] for r in (rows or [])]
-    header = [str(c).strip()[:40] for c in rows[0][:2]] if rows else []
     out, blank = [], 0
     for i, r in enumerate(rows[1:], start=2):
         a, b = str(r[0] or "").strip(), str(r[1] or "").strip()
@@ -134,7 +145,7 @@ def build_stocktake(rows) -> dict:
                     "week": a if (not a or _DATE_CELL.match(a)) else "(text)",
                     "variance": b if (len(b) <= 12 and (_PCT_CELL.match(b) or b == "-%"))
                     else "(text)"})
-    return {"header": header, "rows": out, "blank_rows": blank}
+    return {"rows": out, "blank_rows": blank}
 
 
 # ---- CLOSING INVENTORY -----------------------------------------------------------
@@ -175,13 +186,18 @@ def build_site_orders(grid) -> dict:
             problems.append(f"{d}: the 'Items' row has no 'Total' column - day not read")
             continue
         t_idx = hdr.index("total")
+        # the site-name row: the first row below 'Items' holding at least two
+        # venue names - a note typed between them is not mistaken for it
         si = next((j for j in range(hi + 1, len(block))
-                   if any(str(c or "").strip() for c in block[j])), None)
+                   if sum(_site_ok(str(c or "").strip()) for c in list(block[j])[:t_idx]) >= 2),
+                  None)
         if si is None:
-            problems.append(f"{d}: no site-name row - day not read")
+            problems.append(f"{d}: no row of site names under 'Items' - day not read")
             continue
         site_row = list(block[si]) + [""] * (t_idx + 1)
-        names = {j: str(site_row[j]).strip() for j in range(t_idx) if str(site_row[j]).strip()}
+        names = {j: (str(site_row[j]).strip() if _site_ok(str(site_row[j]).strip())
+                     else f"(unrecognised column {j + 1})")
+                 for j in range(t_idx) if str(site_row[j]).strip()}
         if 0 in names and (t_idx - 1) not in names:
             # the names start in column A: they label the columns one to the right
             names = {j + 1: n for j, n in names.items()}
@@ -193,7 +209,14 @@ def build_site_orders(grid) -> dict:
         for r in block[si + 1:]:
             r = r + [""] * (t_idx + 1)
             label = str(r[0] or "").strip()
-            if not label or label.casefold() in ("items", "total"):
+            if label.casefold() == "items":
+                # a second header with no readable date above it: the next
+                # day's block under a date this script cannot read. Its rows
+                # are NOT this day's - stop, and name it (review, 11/10/2026).
+                problems.append(f"{d}: an 'Items' header follows with no readable date above it "
+                                "- the rows under it were not read")
+                break
+            if not label or label.casefold() == "total":
                 continue
             qty = {j: _num(r[j]) for j in range(1, t_idx)}
             if not any(q is not None for q in qty.values()) and _num(r[t_idx]) is None:
@@ -275,7 +298,10 @@ def write_status(path: str, ok: bool, cause: str, http_status=None, parts=None) 
         prev = _prev(path)
         rec = {"attempted_at": now, "ok": ok, "cause": cause,
                "detail": CAUSE_TEXT.get(cause, CAUSE_TEXT["unexpected"]),
-               "http_status": http_status, "parts": parts or {},
+               "http_status": http_status,
+               # per tab: the bake judges each KR by its own tab's outcome
+               "parts": {p: {"cause": c, "detail": CAUSE_TEXT.get(c, CAUSE_TEXT["unexpected"])}
+                         for p, c in (parts or {}).items()},
                "last_ok_at": now if ok else prev.get("last_ok_at"),
                "failing_since": None if ok else (
                    (prev.get("failing_since") if prev.get("ok") is False else None) or now)}

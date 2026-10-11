@@ -140,17 +140,39 @@ def workbook_leaks(raw: str) -> list[str]:
     return bad
 
 
-def status_failure(status) -> str | None:
-    """'the latest read of ... failed: <fixed text>' or None."""
-    if not status or status.get("ok") is not False:
+_PART_LABEL = {"stocktake": "its STOCK TAKE VARIANCE - WEEKLY tab",
+               "site_orders": "its CLOSING INVENTORY tab"}
+
+
+def status_failure(status, part=None) -> str | None:
+    """'the latest read of ... failed: <fixed text>' or None.
+
+    With `part`, only THAT tab's outcome counts (review, 11/10/2026): a
+    refresh that read the stocktake tab but not CLOSING INVENTORY is a failure
+    for KR5's site orders and none for KR3, and the reason given is that tab's
+    own (e.g. "not found under its title"), not the run's "partial".
+    """
+    if not status:
         return None
-    det = status.get("detail") if isinstance(status.get("detail"), str) else None
-    if det and (len(det) > 400 or "@" in det):
-        det = None
     at = str(status.get("attempted_at") or "")[:16].replace("T", " ")
+    parts = status.get("parts") if isinstance(status.get("parts"), dict) else {}
+    if part and part in parts:
+        p = parts[part]
+        cause = p.get("cause") if isinstance(p, dict) else p
+        if cause == "ok":
+            return None
+        det = p.get("detail") if isinstance(p, dict) else None
+        where = _PART_LABEL.get(part, part)
+    else:
+        if status.get("ok") is not False:
+            return None
+        cause, det, where = status.get("cause"), status.get("detail"), None
+    if not isinstance(det, str) or len(det) > 400 or "@" in det:
+        det = None
     return (f"the latest read of the factory's Weekly Report workbook"
-            f"{(' (' + at + ' UTC)') if at else ''} failed: "
-            f"{det or str(status.get('cause') or 'cause not recorded')}")
+            f"{(' (' + where + ')') if where else ''}"
+            f"{(' at ' + at + ' UTC') if at else ''} failed: "
+            f"{det or str(cause or 'cause not recorded')}")
 
 
 # ---------------------------------------------------------------------------
@@ -235,7 +257,7 @@ def _pct_txt(v: Decimal) -> str:
 
 
 def kr3_months(doc, err, status, pull_month, first_month, mvar, score_fn, rag_fn,
-               dated=None):
+               dated=None, asof=None):
     """OO5 KR3 as an `_okr_extra` entry: {"months": [...]} or {"months": None, ...}.
 
     Value = the MEAN of the ABSOLUTE weekly variances of the weeks commencing in
@@ -245,7 +267,7 @@ def kr3_months(doc, err, status, pull_month, first_month, mvar, score_fn, rag_fn
     otherwise shown, unscored, saying which weeks are missing. The open month
     carries 7 days of data per week entered, for the month-to-date rule.
     """
-    fail = status_failure(status)
+    fail = status_failure(status, "stocktake")
     part = (doc or {}).get("stocktake") if doc else None
     if part is None:
         why = (f"data/ops_command/{WORKBOOK_FILE} is {err}" if err and err != "absent"
@@ -261,6 +283,11 @@ def kr3_months(doc, err, status, pull_month, first_month, mvar, score_fn, rag_fn
                                  f"sheet on file was read on {read}, after this snapshot's "
                                  f"date ({dated}), so it is not shown here")}, []
     gaps = [f"OO5 KR3: {fail} - figures are from the copy read {read}"] if fail else []
+    if asof and read < asof and not fail:
+        # the refresher runs before every live bake; an older copy means it did
+        # not run or did not reach this tab (review, 11/10/2026)
+        gaps.append(f"OO5 KR3: the factory's stocktake sheet was last read {read}, before this "
+                    f"bake ({asof}) - weeks entered since are not shown")
     weeks, skipped = stocktake_weeks(part)
     note = (f"From the factory's Weekly Report workbook, tab '{part.get('tab') or 'STOCK TAKE VARIANCE - WEEKLY'}' "
             f"(read {read}{'; ' + fail if fail else ''}): one factory-wide figure per week, "
@@ -276,13 +303,18 @@ def kr3_months(doc, err, status, pull_month, first_month, mvar, score_fn, rag_fn
         ent = [w for w in weeks if w["wc"][:7] == m]
         skp = [s for s in skipped if s.get("month") == m]
         skp_txt = ("; NOT USED: " + "; ".join(s["text"] for s in skp)) if skp else ""
+        after_read = [d for d in mons if d > read]
         if not ent:
             if m == pull_month:
                 out.append(mvar(m, mtd=True, score=None, coverage_days=0, basis=(
                     f"month-to-date, not yet scored (0 weeks entered) - no week commencing "
-                    f"in {mlabel(m)} is entered on the sheet yet"
+                    f"in {mlabel(m)} is entered on the sheet as read on {read}"
                     + (f"; the newest entry is w/c {dmy(newest)}" if newest else "")
                     + skp_txt + ". " + note)))
+            elif mons and len(after_read) == len(mons):
+                out.append(mvar(m, not_measured=(
+                    f"the copy of the factory's stocktake sheet on file was read on {read}, "
+                    f"before any week commencing in {mlabel(m)}")))
             else:
                 out.append(mvar(m, not_measured=(
                     f"no week commencing in {mlabel(m)} is entered on the factory's stocktake "
@@ -310,8 +342,11 @@ def kr3_months(doc, err, status, pull_month, first_month, mvar, score_fn, rag_fn
                             score=None, rag=None, incomplete=True,
                             basis=(f"not scored - an INCOMPLETE month: "
                                    + ", ".join(f"w/c {dmy(d)}" for d in missing)
-                                   + f" {'is' if len(missing) == 1 else 'are'} not entered, so "
-                                   f"{len(ent)} of {len(mons)} weeks are known - " + basis)))
+                                   + f" {'is' if len(missing) == 1 else 'are'} not entered"
+                                   + (f" (or not yet - the copy on file was read on {read})"
+                                      if any(d in after_read for d in missing) else "")
+                                   + f", so {len(ent)} of {len(mons)} weeks are known - "
+                                   + basis)))
         else:
             out.append(mvar(m, value=val, display=disp, score=s, rag=rag_fn(s), basis=basis))
         m = next_month(m)
@@ -321,11 +356,18 @@ def kr3_months(doc, err, status, pull_month, first_month, mvar, score_fn, rag_fn
 # ---------------------------------------------------------------------------
 # OO5 KR5 (a) - JFC's POs on the factory
 # ---------------------------------------------------------------------------
-#: A line of JFC's own reply that reports a quantity missing.
+#: A clause of JFC's own reply that reports a quantity missing. Review,
+#: 11/10/2026: the real replies say "didn't receive", "missing", "N cartons
+#: short"; the rest are the ways the same thing is commonly written.
 SHORT_RE = re.compile(
-    r"\bshort\b(?![- ]?dated)(?! of time)|\bshortage|\bmissing\b|\bnot (?:been )?(?:received|"
-    r"delivered|arrived|included)\b|\bdid(?:n't| not) (?:receive|arrive|come|get)\b"
-    r"|\bunder[- ]?(?:delivered|supplied)\b", re.I)
+    r"\bshort\b(?![- ]?(?:dated|notice|staffed|handed))(?! of time)|\bshortage"
+    r"|\bmissing\b"
+    r"|(?:\bnot|\bnever|n't)\s+(?:been\s+)?(?:received|delivered|arrived|included|sent|come"
+    r"|on the (?:pallet|delivery|lorry|van))\b"
+    r"|\bdid(?:n't| not)\s+(?:receive|arrive|come|get)\b"
+    r"|\bonly\s+(?:received|got|had|came|arrived)\b|\binstead of\b|\bless than (?:ordered|we ordered)"
+    r"|\b(?:cartons?|cases?|boxes?|units?)\s+down\b|\bunder[- ]?(?:delivered|supplied)\b"
+    r"|\bno\b[^,;.]{0,40}\bon the (?:pallet|delivery|lorry|van)\b", re.I)
 #: ...or one damaged. Words, not stems - see bake_ops_command.DAMAGE_RE.
 DAMAGE_RE = re.compile(
     r"\bdamag|\bbroken\b|\bburst|\bleak|\bspilt\b|\bspill|\bexplod|\bpunctur|\bsquash"
@@ -333,31 +375,75 @@ DAMAGE_RE = re.compile(
 #: Extra cartons are NOT a failure (Ross, Phase 3 brief).
 EXTRA_RE = re.compile(r"\bextra\b|\bover[- ]?(?:delivered|supplied|shipped)\b|\btoo many\b",
                       re.I)
-#: "nothing missing", "no damage", "not short" - a report that all was well.
-_NEG_RE = re.compile(r"\b(?:no|nothing|not|none|without)\b\W+(?:\w+\W+){0,2}?"
-                     r"(?:missing|short|shortage|damag|broken)", re.I)
+#: A negator DIRECTLY before the word - "no damage", "nothing missing", "not
+#: short". Applied per clause, so "2 cartons missing, no damage to the rest"
+#: keeps its shortage.
+_NEG_RE = re.compile(r"\b(?:no|nothing|not|none|without)\s+(?:\w+\s+)?"
+                     r"(?:missing|short|shortage|damag\w*|broken)\b", re.I)
+#: Paperwork, not goods: "missing the credit note", "the invoice is missing".
+_PAPER_RE = re.compile(r"\binvoice|\bcredit note|\bdelivery note|\bpaperwork|\bPO number"
+                       r"|\bstatement\b|\bprice list|\bpaper", re.I)
+#: A follow-up about an EARLIER delivery, not this PO's ("the cases that were
+#: missing last week have now arrived").
+_EARLIER_RE = re.compile(r"\blast week\b|\bprevious (?:delivery|collection|order|week)\b"
+                         r"|\b(?:now|also|finally) (?:arrived|received)\b|\bha(?:s|ve) (?:now )?arrived\b",
+                         re.I)
+_PO_IN_TEXT = re.compile(r"\bUK\s?(\d{5})\b", re.I)
 _CODE_RE = re.compile(r"\bMR\s?0*(\d{1,3})\b", re.I)
+_ITEM_CODE = re.compile(r"\b[A-Z]\d{4}\b")
 _QTY_RE = re.compile(r"\b(\d{1,4})\s*(cartons?|cases?|ctns?|boxes|box|units?|pallets?|"
                      r"packs?|bottles?|tubs?|bags?)\b", re.I)
 
 
-def classify_reply(text: str) -> dict:
-    """JFC's own reply text -> {"short": [...], "damaged": [...], "extra": [...]}.
+def _norm(text: str) -> str:
+    """Curly quotes, HTML entities and non-breaking spaces as plain text."""
+    import html
+    t = html.unescape(text or "")
+    return (t.replace("\u2019", "'").replace("\u2018", "'").replace("\u00a0", " ")
+            .replace("\u201c", '"').replace("\u201d", '"'))
 
-    One entry per LINE that reports it. A line naming both a shortfall and an
-    extra ("short/extra cartons as below") is a shortfall; a line that says all
-    was well ("nothing missing") is neither.
+
+def _clauses(line: str) -> list[str]:
+    return [c.strip() for c in re.split(r"[,;]|\s+but\s+|\s+however\s+", line) if c.strip()]
+
+
+def classify_reply(text: str, po: str | None = None) -> dict:
+    """JFC's own reply text -> {"short", "damaged", "extra": [lines], "unclear": n}.
+
+    One entry per LINE. A line FAILS a PO only when, after dropping any
+    negated clause ("no damage to the rest"), a clause reports a shortfall or
+    damage AND the line names a product (an MR code or an item code) or a
+    quantity - "missing the invoice", "sorry for the short notice" and "the
+    delivery note was not included" are not goods. A shortage or damage line
+    that names neither is counted as UNCLEAR: it fails nothing on its own, and
+    the month that holds it is not scored. A line naming another PO, or about
+    an earlier delivery ("missing last week, now arrived"), is skipped. Extra
+    cartons are never a failure; a line with both is a shortfall.
     """
-    out = {"short": [], "damaged": [], "extra": []}
-    for ln in logical_lines(text):
+    out = {"short": [], "damaged": [], "extra": [], "unclear": 0}
+    mine = re.sub(r"\D", "", po or "")
+    for ln in logical_lines(_norm(text)):
         s = ln.strip().strip("*").strip()
-        if not s or _NEG_RE.search(s):
+        if not s:
             continue
-        if SHORT_RE.search(s):
-            out["short"].append(s)
-        elif DAMAGE_RE.search(s):
-            out["damaged"].append(s)
-        elif EXTRA_RE.search(s):
+        others = [n for n in _PO_IN_TEXT.findall(s) if n != mine]
+        if (others and mine) or _EARLIER_RE.search(s):
+            continue
+        live = [c for c in _clauses(s) if not _NEG_RE.search(c)]
+        goods = [c for c in live if not _PAPER_RE.search(c) or _CODE_RE.search(c)
+                 or _ITEM_CODE.search(c)]
+        named = bool(_CODE_RE.search(s) or _ITEM_CODE.search(s) or _QTY_RE.search(s))
+        if any(SHORT_RE.search(c) for c in goods):
+            if named:
+                out["short"].append(s)
+            else:
+                out["unclear"] += 1
+        elif any(DAMAGE_RE.search(c) for c in goods):
+            if named:
+                out["damaged"].append(s)
+            else:
+                out["unclear"] += 1
+        elif any(EXTRA_RE.search(c) for c in live):
             out["extra"].append(s)
     return out
 
@@ -369,7 +455,7 @@ def logical_lines(text: str) -> list[str]:
     """Physical lines re-joined where the mail client hard-wrapped one.
 
     JFC's replies wrap at ~76 characters, which can split an item from its
-    product code ("...didn't receive B5296 *M&R TOM YUM TARE" / "(MR028) 4/2KG
+    product code ("...didn't receive X1234 *M&R SOME TARE" / "(MR028) 4/2KG
     at all."). A line of 60+ characters that does not end a sentence is joined
     to the next, unless the next starts a new item line (an item code) or is
     blank.
@@ -386,7 +472,7 @@ def logical_lines(text: str) -> list[str]:
 
 
 def line_summary(line: str) -> str | None:
-    """'B7393 *M&R BEEF TATAKI SAUCE (MR005) 4/2KG 1 carton short' -> 'MR005 1 carton'.
+    """'X1234 *M&R SOME SAUCE (MR005) 4/2KG 1 carton short' -> 'MR005 1 carton'.
 
     What is PUBLISHED about a failing line: its MR product code(s) and its
     quantity, never the text (which can carry a name). None when the line
@@ -417,7 +503,8 @@ _MONTH_NUM = {k: i for i, k in enumerate(
     ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
 _EXPL_1 = re.compile(r"\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?" + _MONTH_RE + r"\b", re.I)
 _EXPL_2 = re.compile(r"\b" + _MONTH_RE + r"\s+(\d{1,2})(?:st|nd|rd|th)?\b(?![:/.]\d)", re.I)
-_EXPL_3 = re.compile(r"\((\d{1,2})/(\d{1,2})\)")
+#: d/m or d/m/yyyy, not a pack size ("4/2KG", "8/2L")
+_EXPL_3 = re.compile(r"(?<![\d/])(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?(?![\d/A-Za-z])")
 _WEEKDAY = re.compile(r"\b(mon|tues|wednes|thurs|fri|satur|sun)day\b", re.I)
 
 
@@ -425,7 +512,7 @@ def collection_date(text: str, sent_iso_utc: str):
     """-> (YYYY-MM-DD or None, how). How JFC's PO says when it will collect.
 
     In the sentences that mention collecting: an explicit date first ("the
-    August 13th collection", "Thursday(8/10)"); otherwise the named weekday,
+    August 13th collection", "Thursday(8/10)", "Thursday 13/8/2026"); otherwise the named weekday,
     taken as the FIRST such day AFTER the day the PO was emailed - JFC emails on
     Monday "collect on Thursday" (that week) and on Friday "next Thursday" (the
     following week), and both are the first Thursday after. Neither: None.
@@ -454,7 +541,8 @@ def collection_date(text: str, sent_iso_utc: str):
         mm = _EXPL_3.search(x)
         if mm:
             day, mon = int(mm.group(1)), int(mm.group(2))
-            y = s0.year + (1 if mon < s0.month - 6 else 0)
+            y = (int(mm.group(3)) + (2000 if len(mm.group(3)) == 2 else 0) if mm.group(3)
+                 else s0.year + (1 if mon < s0.month - 6 else 0))
             try:
                 return datetime.date(y, mon, day).isoformat(), "the date the PO states"
             except ValueError:
@@ -473,7 +561,7 @@ def jfc_pos(rows) -> list[dict]:
     """The feed's rows -> one record per PO, oldest first.
 
     {"po", "emailed", "collection", "how", "failed", "lines": [published summaries],
-     "extra": n, "replies": n}
+     "extra": n, "replies": n, "unclear": n}
     A PO FAILS when a message from JFC in its thread, dated on or after the
     collection (or after the PO when the collection day is unknown), has a line
     reporting a shortfall or damage. Extra cartons never fail it. Messages from
@@ -501,26 +589,27 @@ def jfc_pos(rows) -> list[dict]:
                 how = h_
         emailed = _uk_date((o or msgs[0]).get("Message Date"))
         after = coll or emailed
-        lines, extra, failed, replies = [], 0, False, 0
+        lines, extra, failed, replies, unclear, last_jfc = [], 0, False, 0, 0, None
         for r in msgs:
             if r.get("Sender Role") != "jfc" or r.get("Kind") == "po":
                 continue
             replies += 1
             if _uk_date(r.get("Message Date")) < after:
                 continue
-            c = classify_reply(r.get("Text") or "")
+            c = classify_reply(r.get("Text") or "", po)
             extra += len(c["extra"])
+            unclear += c["unclear"]
             for kind in ("short", "damaged"):
                 for ln in c[kind]:
                     failed = True
-                    sm = line_summary(ln)
-                    tag = f"{kind} {sm}" if sm else f"{kind} (a line naming no product)"
+                    tag = f"{kind} {line_summary(ln) or 'a product line'}"
                     if tag not in lines:
                         lines.append(tag)
-        if any("naming no product" not in x for x in lines):
-            lines = [x for x in lines if "naming no product" not in x]
         out.append({"po": po, "emailed": emailed, "collection": coll, "how": how,
-                    "failed": failed, "lines": lines, "extra": extra, "replies": replies})
+                    "failed": failed, "lines": lines, "extra": extra, "replies": replies,
+                    # a shortage or damage line naming no product or quantity:
+                    # it fails nothing, but the PO cannot be called in full
+                    "unclear": (unclear if not failed else 0)})
     return sorted(out, key=lambda p: (p["collection"] or p["emailed"], p["po"]))
 
 
@@ -531,33 +620,43 @@ def _floor1(x: Decimal) -> Decimal:
     return x.quantize(Decimal("0.1"), rounding=ROUND_FLOOR)
 
 
+#: Days JFC has to report a short or damaged collection before a PO counts
+#: as in full. JFC's real reports came 3 and 4 days after collection (PO
+#: 16057, 16238) and the over-delivery note on PO 16135 after 3; a week
+#: covers them with margin. A PO younger than this - in JFC's newest pulled
+#: replies - is listed as awaiting JFC, not counted, and a CLOSED month holding
+#: one is not scored (review, 11/10/2026). Not a scoring band: it decides when
+#: a PO's outcome is known, not how good it is.
+JFC_REPORT_DAYS = 7
+
+
+def _plus(iso: str, n: int) -> str:
+    return (datetime.date.fromisoformat(iso) + datetime.timedelta(days=n)).isoformat()
+
+
 def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
                gc_answers_through, gc_feed_first, pull_month, first_month, mvar,
                score_fn, rag_fn, asof, dated=None):
     """OO5 KR5 as an `_okr_extra` entry, plus gaps.
 
     pos          jfc_pos() of the newest 'JFC Factory POs' pull, or None when
-                 the feed is absent from this bake; POs collected after `asof`
-                 (the bake's date) are not counted yet
+                 the feed is absent from this bake
     jfc_pull     that pull's date
     doc/err/status   factory_workbook.json and its status (site_orders part)
     issues       the snapshot's supplier issue forms (suppliers.issues)
     site_alias   {Kobas venue name (as the sheet writes it): GC location name}
     gc_cover     bake.gc_month_cover: month -> (days covered, holes, month end)
+    asof         the bake's date
 
     An order is IN FULL when (a) for a JFC PO, no short or damaged line in
     JFC's replies; (c) for a site's order on the factory's sheet, no issue form
     naming the factory at that site charged to it. (b) Lynas's POs cannot be
-    seen and are named, not counted. A closed month is scored only when every
-    source covers all of it.
+    seen and are named, not counted. A PO counts once JFC has had
+    JFC_REPORT_DAYS to report on it, in the replies this bake can see. A
+    closed month is scored only when every source covers all of it.
     """
     gaps = []
-    # A PO is an order completed only once it has been collected: one whose
-    # collection day is after this bake (JFC emails a week ahead) is not
-    # counted yet - it would read as "in full" before it happened.
-    if pos is not None:
-        pos = [p for p in pos if (p["collection"] or p["emailed"]) <= asof]
-    fail = status_failure(status)
+    fail = status_failure(status, "site_orders")
     part = (doc or {}).get("site_orders") if doc else None
     so_why = None
     if part is None:
@@ -572,6 +671,10 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
                    if isinstance(d, dict) and parse_iso(d.get("date"))),
                   key=lambda d: d["date"])
     so_through = min(days[-1]["date"], (dated or "9999-12-31")) if days else ""
+    # day blocks the refresher could not read (it names them by date): a month
+    # holding one is short, whatever the last day says (review, 11/10/2026)
+    dropped = sorted({x[:10] for x in (part or {}).get("problems") or []
+                      if isinstance(x, str) and parse_iso(x[:10])})
     if so_why:
         gaps.append(f"OO5 KR5 (production orders in full): the site-orders table is not "
                     f"counted - {so_why}")
@@ -581,6 +684,21 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
     if pos is None:
         gaps.append(f"OO5 KR5 (production orders in full): JFC's POs are not counted - the "
                     f"'{JFC_PO_FEED}' feed is absent from this bake")
+    elif jfc_pull and jfc_pull < asof:
+        gaps.append(f"OO5 KR5: JFC's PO threads were last read {jfc_pull}, before this bake "
+                    f"({asof}) - a short reported since is not counted yet")
+
+    # (a) which POs are known: collected, and JFC has had its week to report
+    seen_to = min(jfc_pull or "", asof) if pos is not None else ""
+    known, awaiting = [], []
+    for p in (pos or []):
+        d0 = p["collection"] or p["emailed"]
+        if d0 > asof:
+            continue                     # not collected yet: not an order completed
+        if p["failed"] or (seen_to and _plus(d0, JFC_REPORT_DAYS) <= seen_to):
+            known.append(p)              # a reported failure is known at once
+        else:
+            awaiting.append(p)
 
     # (c) failures: an issue form naming the factory, charged to that site's
     # latest order on or before the form's date.
@@ -591,6 +709,8 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
     for d in days:
         for site in (d.get("sites") or {}):
             orders_by_site.setdefault(site, []).append(d["date"])
+    never = sorted(s_ for s_ in orders_by_site
+                   if s_ not in (site_alias or {}) and not s_.startswith("(unrecognised"))
     charged, unmatched = {}, []
     for f in issues or []:
         if f.get("supplier") != FACTORY_ON_FORMS:
@@ -610,23 +730,43 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
     out = []
     m = first_month
     while m <= pull_month:
-        a_pos = ([p for p in pos if (p["collection"] or p["emailed"])[:7] == m]
-                 if pos is not None else [])
-        c_orders = [(d["date"], s) for d in days if d["date"][:7] == m
-                    for s in sorted(d.get("sites") or {})]
+        def _in(p):
+            return (p["collection"] or p["emailed"])[:7] == m
+        a_pos = [p for p in known if _in(p)]
+        a_wait = [p for p in awaiting if _in(p)]
+        a_unclear = [p for p in a_pos if p.get("unclear")]
+        c_orders = [(d["date"], s_) for d in days if d["date"][:7] == m
+                    for s_ in sorted(d.get("sites") or {})]
         a_bad = [p for p in a_pos if p["failed"]]
-        c_bad = [(od, s) for od, s in c_orders if (od, s) in charged]
+        c_bad = [(od, s_) for od, s_ in c_orders if (od, s_) in charged]
+        drop_m = [x for x in dropped if x[:7] == m]
         n = len(a_pos) + len(c_orders)
         open_ = m == pull_month
         me = month_end(m)
-        why = []
+        why, gc_only = [], True
         if pos is None:
             why.append(f"JFC's POs are not read in this bake (the '{JFC_PO_FEED}' feed is absent)")
+            gc_only = False
+        elif a_wait and not open_:
+            why.append(f"{len(a_wait)} JFC PO(s) collected in {mlabel(m)} have not had "
+                       f"{JFC_REPORT_DAYS} days for JFC to report in the replies read "
+                       f"({seen_to or 'none'})")
+            gc_only = False
+        if a_unclear:
+            why.append(f"JFC's replies on {', '.join('PO ' + p['po'] for p in a_unclear)} mention a "
+                       "shortage or damage without naming a product or quantity")
+            gc_only = False
         if so_why:
             why.append(f"the site-orders table is not counted ({so_why})")
+            gc_only = False
         elif not open_ and so_through < me:
             why.append(f"the factory's CLOSING INVENTORY sheet reaches only "
                        f"{so_through or 'no day'}")
+            gc_only = False
+        if drop_m and not so_why:
+            why.append(f"the CLOSING INVENTORY day block(s) for {', '.join(dmy(x)[:5] for x in drop_m)} "
+                       "could not be read (the refresher names why)")
+            gc_only = False
         ncov, holes, _ = gc_cover(m)
         if gc_feed_first and m + "-01" < gc_feed_first <= me:
             why.append(f"the issue-form feed starts {gc_feed_first}")
@@ -634,54 +774,62 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
             why.append(f"no pull of the issue-form feed covers {', '.join(dmy(h)[:5] for h in holes)}")
         if not open_ and (not gc_answers_through or gc_answers_through < me):
             why.append(f"the issue-form feed reaches only {gc_answers_through or 'no day'}")
-        a_txt = (f"(a) {len(a_pos)} JFC PO(s) collected in {mlabel(m)}"
-                 + (": " + "; ".join(
-                     f"PO {p['po']} ({'collected ' + dmy(p['collection'])[:5] if p['collection'] else 'emailed ' + dmy(p['emailed'])[:5] + ', collection day not stated'})"
-                     + (" NOT IN FULL - " + ", ".join(p["lines"]) if p["failed"] else "")
-                     + (f", {p['extra']} extra line(s) not counted" if p["extra"] else "")
-                     for p in a_pos) if a_pos else "")
-                 + (f" - JFC's replies as read on {jfc_pull}" if pos is not None and jfc_pull else "")
+        a_good = len(a_pos) - len(a_bad)
+        a_txt = ((f"(a) {len(a_pos)} JFC PO(s) collected in {mlabel(m)}, {a_good} in full"
+                  + (": " + "; ".join(
+                      f"PO {p['po']} ({'collected ' + dmy(p['collection'])[:5] if p['collection'] else 'emailed ' + dmy(p['emailed'])[:5] + ', collection day not stated'})"
+                      + (" NOT IN FULL - " + ", ".join(p["lines"]) if p["failed"] else "")
+                      + (f", {p['extra']} extra line(s) not counted" if p["extra"] else "")
+                      for p in a_pos) if a_pos else "")
+                  + ("; AWAITING JFC'S REPORT, not counted: " + "; ".join(
+                      f"PO {p['po']} ({'collected ' + dmy(p['collection'])[:5] if p['collection'] else 'emailed ' + dmy(p['emailed'])[:5]})"
+                      for p in a_wait) if a_wait else "")
+                  + (f" - JFC's replies as read on {jfc_pull}" if jfc_pull else ""))
                  if pos is not None else "(a) JFC's POs: not read")
         c_txt = (f"(c) {len(c_orders)} site order(s) on the factory across "
                  f"{len({od for od, _ in c_orders})} day(s) of its CLOSING INVENTORY sheet"
                  + (f" (read {str(part.get('read_at'))[:10]})" if part else "")
                  + (": NOT IN FULL - " + "; ".join(
-                     f"{s} {dmy(od)[:5]} (issue form naming the factory on "
-                     + ", ".join(dmy(x)[:5] for x in charged[(od, s)]) + ")"
-                     for od, s in c_bad) if c_bad else "")
+                     f"{s_} {dmy(od)[:5]} (issue form naming the factory on "
+                     + ", ".join(dmy(x)[:5] for x in charged[(od, s_)]) + ")"
+                     for od, s_ in c_bad) if c_bad else "")
                  if not so_why else "(c) site orders: not counted")
         rule = ("An order is in full unless JFC's replies in its PO thread report a short or "
-                "damaged line (extra cartons are not a failure), or - for a site's order - an "
-                "issue form names the factory at that site; such a form is charged to the "
-                "site's latest order on or before the form's date, since the sheet records the "
-                "day an order is logged, not a delivery date. No issue form has ever named the "
-                "factory (GetCompliant's Supplier? list does not offer it), so (c) fails only if "
-                "that changes. (b) Lynas's POs on the factory are NOT counted: they go to the "
-                "factory's own mailbox, not the one this system reads")
+                "damaged line naming a product or quantity (extra cartons are not a failure), "
+                f"counted once JFC has had {JFC_REPORT_DAYS} days to report; or - for a site's "
+                "order - an issue form names the factory at that site, charged to the site's "
+                "latest order on or before the form's date, since the sheet records the day an "
+                "order is logged, not a delivery date. No issue form has ever named the factory "
+                "(GetCompliant's Supplier? list does not offer it), so (c) fails only if that "
+                "changes"
+                + (f"; orders from {', '.join(never)} can never fail - no GetCompliant location "
+                   "files issue forms for them" if never else "")
+                + ". (b) Lynas's POs on the factory are NOT counted: they go to the factory's "
+                "own mailbox, not the one this system reads")
         if unmatched and any(u[:7] == m for u in unmatched):
             rule += ("; issue forms naming the factory with no order to charge: "
                      + ", ".join(u for u in unmatched if u[:7] == m))
+        cov = _cov(m, [so_through if not so_why else "", gc_answers_through,
+                       seen_to if pos is not None else ""], holes + [x for x in drop_m])
         if n == 0:
             if open_:
-                cov = _cov(m, [so_through if not so_why else "", gc_answers_through,
-                               (jfc_pull or "") if pos is not None else ""], holes)
                 out.append(mvar(m, mtd=True, score=None, coverage_days=cov, basis=(
                     f"month-to-date, not yet scored ({cov} day(s) of data) - no JFC PO "
-                    f"collected and no site order logged in {mlabel(m)} yet. {rule}")))
+                    f"known and no site order logged in {mlabel(m)} yet. {a_txt}. {rule}")))
             else:
                 out.append(mvar(m, not_measured=(
-                    f"no JFC PO collected and no site order logged in {mlabel(m)}"
+                    f"no JFC PO known and no site order logged in {mlabel(m)}"
                     + (" - " + "; ".join(why) if why else ""))))
             m = next_month(m)
             continue
         good = n - len(a_bad) - len(c_bad)
         val = _floor1(Decimal(100 * good) / Decimal(n))
-        disp = f"{val}% ({good} of {n})"
-        basis = f"{good} of {n} production order(s) in {mlabel(m)} completed in full. {a_txt}. {c_txt}. {rule}"
-        s = score_fn(float(val))
+        disp = (f"{val}% ({good} of {n})"
+                + (f" - JFC {a_good} of {len(a_pos)}" if pos is not None and a_pos else ""))
+        basis = (f"{good} of {n} production order(s) in {mlabel(m)} completed in full. "
+                 f"{a_txt}. {c_txt}. {rule}")
+        s_ = score_fn(float(val))
         if open_:
-            cov = _cov(m, [so_through if not so_why else "", gc_answers_through,
-                           (jfc_pull or "") if pos is not None else ""], holes)
             if why:
                 # a source is missing: shown as counts, with no value the
                 # month-to-date rule could score
@@ -689,15 +837,20 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
                                 basis=(f"month-to-date, not yet scored - {'; '.join(why)}. So "
                                        f"far: {disp} - " + basis)))
             else:
-                out.append(mvar(m, value=float(val), display=disp, score=s, rag=rag_fn(s),
+                out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
                                 coverage_days=cov, basis=basis))
         elif why:
+            # "upper bound" only when every reason is unseen issue forms, which
+            # can only ADD failures; a missing source of orders moves it either way
             out.append(mvar(m, value=float(val), display=disp, score=None, rag=None,
                             incomplete=True,
                             basis=(f"not scored - an INCOMPLETE month: {'; '.join(why)}, so "
-                                   f"{val}% is an upper bound - " + basis)))
+                                   + (f"{val}% is an upper bound" if gc_only else
+                                      f"{val}% is partial - the missing part could move it "
+                                      "either way")
+                                   + " - " + basis)))
         else:
-            out.append(mvar(m, value=float(val), display=disp, score=s, rag=rag_fn(s),
+            out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
                             basis=basis))
         m = next_month(m)
     return {"months": out, "source_kind": "computed", "tab": "—"}, gaps

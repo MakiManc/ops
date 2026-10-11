@@ -5736,8 +5736,10 @@ def main():
     _ot=sum(c.get("on_time") or 0 for c in _tc); _ms=sum(c.get("missed") or 0 for c in _tc)
     if _ot+_ms:
         _pct=round(100.0*_ot/(_ot+_ms),1)
+        # judged on the exact fraction, not the 0.1 display (review, 11/10/2026):
+        # 1,899 of 2,000 is 94.95% and displays 95.0%, but it is below target
         row("Compliance","Scheduled task on-time",">=95%","p-tasks",
-            value=_pct,display=f"{_pct}%",rag=("green" if _pct>=95 else "red"),
+            value=_pct,display=f"{_pct}%",rag=("green" if _ot*100>=95*(_ot+_ms) else "red"),
             basis=(f"{_ot} on time of {_ot+_ms} scheduled task instances in this pull's window. "
                    "Target >=95% (Ross, 09/10/2026): green at or above it, red below - the "
                    "Operating KPI rule, with no amber band."),
@@ -6175,7 +6177,7 @@ def main():
     try:
         _k3, _k3g = factory_kpis.kr3_months(
             _fw_doc, _fw_err, _fw_status, _pm2, factory_kpis.KR3_FIRST_MONTH, _mvar,
-            lambda v: okr_score("stock", v), _rag_of, dated=dated)
+            lambda v: okr_score("stock", v), _rag_of, dated=dated, asof=asof.isoformat())
     except Exception as e:  # noqa: BLE001 - a malformed copy greys the KR, never the bake
         _k3 = {"months": None, "source_kind": "not_measured",
                "not_measured": f"the factory stocktake copy could not be read ({type(e).__name__})"}

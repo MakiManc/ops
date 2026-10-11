@@ -97,13 +97,20 @@ check("2026-10-08" not in [d["date"] for d in so["days"]]
       "a day whose Total disagrees on EVERY row is not published, and is named")
 check(any(p.startswith("2026-10-07: no 'Items'") for p in so["problems"]),
       "a day with no header is named, not guessed")
+merged = (block("30/9/2026", [("A", [1, "", "", ""])]) + block("31/9/2026", [("B", ["", 5, "", ""])])
+          + block("2/10/2026", [("C", ["", "", "", 2])]))
+mo = rfw.build_site_orders(merged)
+d30 = next(d for d in mo["days"] if d["date"] == "2026-09-30")
+check(list(d30["sites"]) == ["Maki & Ramen - Maki SJQ"]
+      and any("an 'Items' header follows with no readable date" in p for p in mo["problems"]),
+      "a block under a date that does not parse (31/9) is NOT merged into the day before - it is named")
 
 ST = [["Week Commencing ", "Stocktake Variance Report"], ["30/12/2024", "0.70%"],
       ["29/09/2025", "-%"], ["3/8/2026", "-5.80%"], ["6/2/2026", "-3.20%"], ["7/2/2026", ""],
-      ["note", "see Dean"]]
+      ["note", "see the manager"]]
 st = rfw.build_stocktake(ST)
-check(st["header"] == ["Week Commencing", "Stocktake Variance Report"] and st["blank_rows"] == 1,
-      "stocktake: header read, blank rows counted not listed")
+check("header" not in st and st["blank_rows"] == 1,
+      "stocktake: the header row is not published (nothing reads it), blank rows counted not listed")
 check([r["variance"] for r in st["rows"]] == ["0.70%", "-%", "-5.80%", "-3.20%", "(text)"]
       and st["rows"][-1]["week"] == "(text)",
       "cells kept as written when they are dates or percentages, '(text)' otherwise")
@@ -159,16 +166,27 @@ doc2 = json.load(open(outp))
 stat2 = json.load(open(os.path.join(tmp, "factory_workbook_status.json")))
 check(doc2["stocktake"]["read_at"] == "2026-10-12T19:00:00Z"
       and doc2["site_orders"]["read_at"] == "2026-10-11T19:00:00Z"
-      and stat2["cause"] == "partial" and stat2["parts"]["site_orders"] == "tab_missing"
+      and stat2["cause"] == "partial" and stat2["parts"]["site_orders"]["cause"] == "tab_missing"
+      and stat2["parts"]["stocktake"]["cause"] == "ok"
       and stat2["ok"] is False, "one tab missing: the other refreshed, this one carried forward with its own read_at")
 
 json.dump({rfw.STOCK_TAB: ST, rfw.ORDERS_TAB: block("1/10/2026", [("X", [1, "", "", ""])])[:2]
            + [["", "pay@factory.co.uk", "", "", ""]] + block("1/10/2026", [("X", [1, "", "", ""])])[3:]},
           open(dump, "w"))
-before = open(outp).read()
 rfw.main(["--from-json", dump, "--out", outp])
-check(open(outp).read() == before and json.load(open(os.path.join(tmp, "factory_workbook_status.json")))
-      ["cause"] == "self_check_failed", "anything personal-looking: nothing written")
+doc3 = json.load(open(outp))
+check("pay@factory.co.uk" not in json.dumps(doc3),
+      "a row whose only 'site name' is not 'Maki & Ramen - <venue>' is not a site row - nothing of it is published")
+odd = block("2/10/2026", [("X", [1, 2, "", ""])])
+odd[2] = ["", "Driver Jane Example 0131 496 0000", "Maki & Ramen - Maki Fountainbridge", "Maki & Ramen - Maki Leith",
+          "Maki & Ramen - Maki Manchester", "", "", "", ""]
+got_odd = rfw.build_site_orders(odd)["days"][0]["sites"]
+check(list(got_odd) == ["(unrecognised column 2)", "Maki & Ramen - Maki Fountainbridge"],
+      "...including a name with a spaced phone number")
+check(rfw.self_check({"a": "call 0131 496 0000"}) and rfw.self_check({"b": "x@y"}) and not rfw.self_check(
+      {"read_at": "2026-10-11T19:00:00Z", "p": ["2026-10-08: Total disagrees"], "v": "-163.50%"}),
+      "the self-check also catches a SPACED phone number, and passes dates and percentages")
+before = open(outp).read()
 os.environ.pop("FACTORY_SHEET_ID", None)
 rfw.SHEET_ID = ""
 rfw.main(["--out", outp])
@@ -236,29 +254,57 @@ check(fb["months"] and "failed: HTTP 429" in fb["months"][0]["basis"] and fg,
 
 # ===========================================================================
 print("\n== Part 3: OO5 KR5 (a) - JFC's POs ==")
-REPLY = ("Hi,\nI have been reported that there are short/extra cartons on UK16238 as below;\n"
-         "B7393 *M&R BEEF TATAKI SAUCE (MR005) 4/2KG 1 carton short\n"
-         "S4063 *M&R CHICKEN BROTH (MR014) 8/2L 10 cartons short\n"
-         "S4064 *M&R TONKOTSU BROTH (MR015) 8/2L 10 cartons extra\nKind regards")
+# Synthetic text in the SHAPE of JFC's replies - never their words (public repo).
+REPLY = ("Hello,\nPlease note short and extra cartons on UK16238, listed below;\n"
+         "X1001 *M&R TEST SAUCE (MR005) 4/2KG 1 carton short\n"
+         "X1002 *M&R TEST BROTH (MR014) 8/2L 10 cartons short\n"
+         "X1003 *M&R TEST BROTH TWO (MR015) 8/2L 10 cartons extra\nThanks")
 c = fk.classify_reply(REPLY)
-check(len(c["short"]) == 3 and len(c["extra"]) == 1, "short lines and the extra line told apart")
-check(fk.line_summary(c["short"][1]) == "MR005 1 carton" and fk.line_summary(c["short"][0]) is None,
-      "published: the product code and quantity, never the text")
-check(fk.classify_reply("We received the goods but we received extra 6 cartons of S4064 TONKOTSU BROTH (MR015)")
-      == {"short": [], "damaged": [], "extra": ["We received the goods but we received extra 6 cartons of S4064 TONKOTSU BROTH (MR015)"]},
+check(len(c["short"]) == 2 and len(c["extra"]) == 1 and c["unclear"] == 1,
+      "item lines short or extra; the 'short and extra, listed below' header names no product -> unclear")
+check(fk.line_summary(c["short"][0]) == "MR005 1 carton", "published: the product code and quantity, never the text")
+X6 = "Goods arrived, with 6 extra cartons of X1003 TEST BROTH TWO (MR015)"
+check(fk.classify_reply(X6) == {"short": [], "damaged": [], "extra": [X6], "unclear": 0},
       "extra cartons alone are not a failure (Ross)")
 check(fk.classify_reply("2 tubs of MR011 arrived damaged")["damaged"], "damage is a failure")
-check(fk.classify_reply("All received, nothing missing and no damage.") == {"short": [], "damaged": [], "extra": []},
+check(fk.classify_reply("All received, nothing missing and no damage.") == {"short": [], "damaged": [], "extra": [], "unclear": 0},
       "'nothing missing', 'no damage' are not failures")
+# review, 11/10/2026: negation per clause; more wordings; paperwork; typography
+for t, want in [("X1002 (MR014) 8/2L 2 cartons missing, no damage to the rest.", "short"),
+                ("(MR005) 4/2KG 1 carton short, not damaged", "short"),
+                ("All fine, nothing damaged, but MR028 was not included.", "short"),
+                ("We haven't received X1004 (MR028)", "short"),
+                ("we only received 44 of the 45 cartons of MR014", "short"),
+                ("2 cartons of MR014 were not on the pallet", "short"),
+                ("We didn\u2019t receive MR028 at all.", "short"),
+                ("We didn&#39;t receive MR028 at all.", "short"),
+                ("MR028 not\u00a0received", "short"),
+                ("No, 2 cartons short on X1002 (MR014)", "short"),
+                ("3 tubs of MR011 arrived damaged", "damaged"),
+                ("We are still missing the credit note for MR014.", "short"),
+                ("We are still missing the additional invoice.", None),
+                ("Sorry for the short notice, can we collect at 12 instead?", None),
+                ("The delivery note was not included.", None),
+                ("The MR028 cases that were missing last week have now arrived.", None),
+                ("The 2 cartons short on UK16057 were credited.", None)]:
+    got = fk.classify_reply(t, "UK 16238")
+    kind = "short" if got["short"] else "damaged" if got["damaged"] else None
+    check(kind == want, f"classify {t!r} -> {want}")
+check(fk.classify_reply("The delivery was short, please check")["unclear"] == 1,
+      "a shortage naming no product or quantity is UNCLEAR - it fails nothing and is not ignored")
 check(fk.classify_reply("These are short-dated, please check")["short"] == [], "'short-dated' is not short")
 check(fk.collection_date("Kindly arrange for our driver to collect the shipment next Thursday morning (10AM).",
                          "2026-09-11T08:02:03+00:00") == ("2026-09-17", "the first Thursday after the PO was emailed"),
       "Friday's 'next Thursday' -> the following Thursday")
 check(fk.collection_date("collect the shipment on Thursday morning (10AM).", "2026-10-05T08:20:58+00:00")[0]
       == "2026-10-08", "Monday's 'on Thursday' -> that week's Thursday")
-check(fk.collection_date("I am sending the order for the August 13th collection in advance.",
+check(fk.collection_date("This is the order for the 13th August collection, sent early.",
                          "2026-07-31T10:41:33+00:00")[0] == "2026-08-13", "a stated date wins")
-check(fk.collection_date("Dear Dean, please see attached.", "2026-07-31T10:41:33+00:00")[0] is None,
+check(fk.collection_date("Please collect on Thursday (13/8/2026 10:00AM).",
+                         "2026-07-31T10:41:33+00:00")[0] == "2026-08-13", "...including d/m/yyyy")
+check(fk.collection_date("Please collect the 4/2KG and 8/2L pallets on Thursday.",
+                         "2026-10-05T08:20:58+00:00")[0] == "2026-10-08", "...but a pack size is not a date")
+check(fk.collection_date("Hello, please see attached.", "2026-07-31T10:41:33+00:00")[0] is None,
       "no collection day: None, never guessed")
 
 
@@ -269,22 +315,23 @@ def msg(po, kind, when, role, text):
 ROWS = [msg("UK 16238", "po", "2026-09-11T08:02:03+00:00", "jfc", "collect the shipment next Thursday morning."),
         msg("UK 16238", "reply", "2026-09-21T10:58:48+00:00", "jfc", REPLY),
         msg("UK 16238", "reply", "2026-09-21T11:43:45+00:00", "other",
-            "We can issue a credit note for the missing 1 carton of Beef Tataki"),
+            "A credit will follow for the missing 1 carton of MR005"),
         msg("UK 16135", "po", "2026-08-28T08:45:08+00:00", "jfc", "collect the shipment next Friday morning."),
         msg("UK 16135", "reply", "2026-09-07T10:28:27+00:00", "jfc", "we received extra 6 cartons of TONKOTSU (MR015)"),
         msg("UK 16420", "po", "2026-10-09T08:23:12+00:00", "jfc", "collect the shipment on Thursday (12:00)."),
-        msg("UK 16420", "reply", "2026-10-09T08:31:19+00:00", "jfc", "Is 11:00 okay? Nothing missing from the list."),
+        msg("UK 16420", "reply", "2026-10-09T08:31:19+00:00", "jfc", "Would noon suit? Nothing missing from the list."),
         msg("UK 16001", "po", "2026-08-03T08:00:00+00:00", "jfc", "collect on Thursday."),
         msg("UK 16001", "reply", "2026-08-04T09:00:00+00:00", "jfc", "Sorry, MR020 is missing from the PO - please add 4 cartons")]
 P = {p["po"]: p for p in fk.jfc_pos(ROWS)}
 check(P["UK 16238"]["failed"] and P["UK 16238"]["collection"] == "2026-09-17"
-      and P["UK 16238"]["lines"] == ["short MR005 1 carton", "short MR014 10 cartons"] and P["UK 16238"]["extra"] == 1,
+      and P["UK 16238"]["lines"] == ["short MR005 1 carton", "short MR014 10 cartons"] and P["UK 16238"]["extra"] == 1
+      and P["UK 16238"]["unclear"] == 0,
       "PO 16238: collected 17/09, two short lines -> NOT in full; the extra line is counted, not failed")
 check(not P["UK 16135"]["failed"] and P["UK 16135"]["extra"] == 1, "PO 16135: extra cartons only -> in full")
 check(not P["UK 16420"]["failed"], "the factory's and Maki's messages are answers, not reports")
 check(not P["UK 16001"]["failed"], "a JFC message BEFORE the collection is about the order, not the delivery")
-W = fk.classify_reply("We received the delivery but we didn't receive B5296 *M&R TOM YUM TARE\n(MR028) 4/2KG at all.\n"
-                      "Can you please issue a credit note ASAP?")
+W = fk.classify_reply("We received the goods but we did not receive X1004 *M&R TEST TARE PASTE\n(MR028) 4/2KG at all.\n"
+                      "Please arrange a credit.")
 check(len(W["short"]) == 1 and fk.line_summary(W["short"][0]) == "MR028",
       "a hard-wrapped line is re-joined, so the product code on the next line is kept (PO 16057, 24/08)")
 fut = fk.kr5_months(pos=fk.jfc_pos([msg("UK 16420", "po", "2026-10-09T08:23:12+00:00", "jfc",
@@ -293,7 +340,7 @@ fut = fk.kr5_months(pos=fk.jfc_pos([msg("UK 16420", "po", "2026-10-09T08:23:12+0
                     gc_cover=lambda m: (11, [], fk.month_end(m)), gc_answers_through="2026-10-10",
                     gc_feed_first="2026-08-01", pull_month="2026-10", first_month="2026-10", mvar=mvar,
                     score_fn=prod_score, rag_fn=rag, asof="2026-10-11")[0]["months"][0]
-check("PO UK 16420" not in (fut.get("basis") or "") and "no JFC PO collected" in (fut.get("basis") or ""),
+check("PO UK 16420" not in (fut.get("basis") or "") and "no JFC PO known" in (fut.get("basis") or ""),
       "a PO to be collected after the bake's date (16420, 15/10) is not counted yet")
 
 # ===========================================================================
@@ -323,7 +370,7 @@ e5, g5 = fk.kr5_months(pos=pos, doc=days_doc(spec), issues=FORMS, **args)
 S = {v["m"]: v for v in e5["months"]}
 # September: (a) 16178? no - POs collected in Sep: 16135 (04/09), 16238 (17/09) -> 2; (c) 60
 check(S["2026-09"]["value"] == 96.7 and S["2026-09"]["score"] == 50
-      and S["2026-09"]["display"] == "96.7% (60 of 62)",
+      and S["2026-09"]["display"] == "96.7% (60 of 62) - JFC 1 of 2",
       f"September: 62 orders, 16238 short + SJQ's 14/09 order charged with a factory form -> 60/62 = 96.77 cut DOWN to 96.7 -> 50 (got {S['2026-09'].get('display')})")
 b9 = S["2026-09"]["basis"]
 check("PO UK 16238 (collected 17/09) NOT IN FULL - short MR005 1 carton, short MR014 10 cartons" in b9
@@ -333,6 +380,8 @@ check(f"{SJQ} 14/09 (issue form naming the factory on 14/09)" in b9, "...and the
 check("(b) Lynas's POs on the factory are NOT counted" in b9, "...and says Lynas's POs cannot be seen")
 check("issue forms naming the factory with no order to charge: 2026-09-16 Maki Leeds Ltd" in b9,
       "a factory form at a site with no order on the sheet is named, not charged to another site")
+check(f"orders from {LEITH} can never fail - no GetCompliant location" in b9,
+      "a sheet site with no GetCompliant location is named as one that can never fail")
 check(fk.published_leaks(e5["months"]) == [], "nothing published looks like an address or a number from a reply")
 e6, g6 = fk.kr5_months(pos=None, doc=days_doc(spec), issues=[], **args)
 S6 = {v["m"]: v for v in e6["months"]}
@@ -342,8 +391,12 @@ check(S6["2026-09"]["score"] is None and S6["2026-09"]["incomplete"]
 e7, _ = fk.kr5_months(pos=pos, doc=days_doc(spec), issues=[],
                       **{**args, "gc_cover": lambda m: (28, ["2026-09-20", "2026-09-21"], fk.month_end(m))})
 S7 = {v["m"]: v for v in e7["months"]}
-check(S7["2026-09"]["score"] is None and "no pull of the issue-form feed covers 20/09, 21/09" in S7["2026-09"]["basis"],
-      "a hole in the issue-form feed: a form could be missing -> upper bound, not scored")
+check(S7["2026-09"]["score"] is None and "no pull of the issue-form feed covers 20/09, 21/09" in S7["2026-09"]["basis"]
+      and "is an upper bound" in S7["2026-09"]["basis"],
+      "a hole in the issue-form feed: a form could be missing -> an upper bound, not scored")
+check("is partial - the missing part could move it either way" in S6["2026-09"]["basis"]
+      and "upper bound" not in S6["2026-09"]["basis"],
+      "...but a missing SOURCE of orders is 'partial', never 'an upper bound'")
 e8, _ = fk.kr5_months(pos=pos, doc=days_doc(spec[:25]), issues=[], **args)
 S8 = {v["m"]: v for v in e8["months"]}
 check(S8["2026-09"]["score"] is None and "reaches only 2026-09-25" in S8["2026-09"]["basis"],
@@ -352,6 +405,33 @@ o = S["2026-10"]
 check(o["m"] == "2026-10" and o["value"] == 100.0 and o.get("coverage_days") == 0,
       "the open month carries its days of data for the month-to-date rule: the site sheet "
       "reaches only 30/09, so October has 0 (the bake's MTD rule then leaves it unscored)")
+# review, 11/10/2026: a PO counts only once JFC has had its week to report
+pos20 = fk.jfc_pos([r for r in ROWS if r["Message Date"][:10] <= "2026-09-20"])   # what a 20/09 pull holds
+stale, gst = fk.kr5_months(pos=pos20, doc=days_doc(spec), issues=[], **{**args, "jfc_pull": "2026-09-20"})
+Ss = {v["m"]: v for v in stale["months"]}
+check(Ss["2026-09"]["score"] is None and "AWAITING JFC'S REPORT, not counted: PO UK 16238 (collected 17/09)" in Ss["2026-09"]["basis"]
+      and "1 JFC PO(s) collected in September 2026 have not had 7 days" in Ss["2026-09"]["basis"],
+      "JFC's replies read 20/09: PO 16238 (17/09) is awaiting JFC, not 'in full', and September is not scored")
+check(any("JFC's PO threads were last read 2026-09-20" in g for g in gst), "...and the stale pull is a gap")
+dd = days_doc(spec)
+dd["site_orders"]["problems"] = ["2026-09-15: Total disagrees with the site columns on every one of 3 product row(s) - ..."]
+e10, _ = fk.kr5_months(pos=pos, doc=dd, issues=[], **args)
+S10 = {v["m"]: v for v in e10["months"]}
+check(S10["2026-09"]["score"] is None and "day block(s) for 15/09 could not be read" in S10["2026-09"]["basis"],
+      "a day block the refresher could not read: named, and the month is not scored")
+unc = fk.jfc_pos([msg("UK 16600", "po", "2026-09-04T08:00:00+00:00", "jfc", "collect on Thursday."),
+                  msg("UK 16600", "reply", "2026-09-12T08:00:00+00:00", "jfc", "The delivery was short, please check")])
+check(unc[0]["unclear"] == 1 and not unc[0]["failed"], "a PO whose only report names no product: unclear, not failed")
+e11, _ = fk.kr5_months(pos=unc, doc=days_doc(spec), issues=[], **args)
+check({v["m"]: v for v in e11["months"]}["2026-09"]["score"] is None,
+      "...and its month is not scored - unknown, never 'in full'")
+part_st = {"ok": False, "cause": "partial", "attempted_at": "2026-10-31T19:00:00Z",
+           "parts": {"stocktake": {"cause": "ok", "detail": "read both tabs"},
+                     "site_orders": {"cause": "tab_missing", "detail": "a tab this script reads was not found under its title"}}}
+check(fk.status_failure(part_st, "stocktake") is None
+      and "CLOSING INVENTORY tab" in fk.status_failure(part_st, "site_orders")
+      and "not found under its title" in fk.status_failure(part_st, "site_orders"),
+      "a partial refresh: no blocker for KR3, the tab's own reason for KR5")
 e9, _ = fk.kr5_months(pos=pos, doc=days_doc(spec), issues=[], **{**args, "dated": "2026-10-20"})
 check({v["m"]: v for v in e9["months"]}["2026-09"]["score"] is None,
       "a back-bake does not use a site-orders copy read after its date")
@@ -443,7 +523,7 @@ if p.returncode == 0:
           f"OO5 KR5 November: 3 days of data -> month to date, unscored (got {k5n.get('display')})")
     k5 = var(("OO5", "KR5"), "2026-10")
     # Oct: (a) 16500 (15/10, damaged), 16510 (22/10) -> 2; (c) 31 days x 2 sites = 62, SJQ 14/10 charged
-    check(k5.get("display") == "96.8% (62 of 64)" and k5.get("score") == 50,
+    check(k5.get("display") == "96.8% (62 of 64) - JFC 1 of 2" and k5.get("score") == 50,
           f"OO5 KR5 October: 64 orders, one damaged PO and one factory form -> 96.8% -> 50 (got {k5.get('display')}, {k5.get('score')})")
     check("PO UK 16500 (collected 15/10) NOT IN FULL - damaged MR014 2 cartons" in (k5.get("basis") or ""),
           "...naming the PO and its damaged line")
