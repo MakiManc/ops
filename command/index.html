@@ -330,6 +330,9 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
   <div class="card"><div class="card-h"><div class="t">KR1 &mdash; delivery issues raised, by month</div>
     <div class="s">The OKR figure: forms <b>raised</b> in the calendar month, by the supplier answered on the form. Always calendar-month and <b>not</b> sliced by the date range above &mdash; a KR measured per month cannot honour a 7-day picker without reading green off three days of data. &ldquo;Still open&rdquo; is shown alongside as secondary, counted from the issues themselves so it reconciles with the raised figure on its own row.</div></div>
     <div class="card-b" id="sq-kr1"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Supplier statements &mdash; OO3 KR5</div>
+    <div class="s" id="sq-stmt-sub">One statement per closed month, per supplier: forms by site and category, the verbatim issue text, credit/invoice rows and the month&rsquo;s issue-free rate &middot; OO3 KR5 scores the day it was generated (by the 3rd 100, by the 10th 50)</div></div>
+    <div class="card-b" id="sq-stmt"></div></div>
   <div class="filters" id="sq-toggle"></div>
   <div class="cols">
     <div class="card"><div class="card-h"><div class="t">By supplier</div>
@@ -532,6 +535,13 @@ function renderOtif(){
       `<td class="n">${fmtN(cur.measurable_suppliers!=null?cur.measurable_deliveries:cur.deliveries)}</td>`+
       `<td class="n">${fmtN(cur.measurable_suppliers!=null?cur.measurable_issues:cur.issues)}</td>`+
       rateCell(cur)+`<td></td></tr>`+
+      /* OO4 KR5 (Phase 2): the builder's UNWEIGHTED mean of the measurable
+         suppliers' rates - each supplier once, whatever its volume - so the
+         KR and the table it is drawn from sit side by side. */
+      (cur.supplier_mean!=null
+        ? `<tr class="tot"><td>Unweighted mean <span style="font-weight:400;opacity:.75">(OO4 KR5 · each of ${fmtN(cur.supplier_mean_of)} measurable supplier${cur.supplier_mean_of===1?'':'s'} counts once)</span></td><td></td><td></td>`+
+          `<td class="n">${esc(pctTxt(cur.supplier_mean))}</td><td></td></tr>`
+        : '')+
       '</tbody></table>'
     : '<div class="empty">No deliveries or issues recorded in '+esc(monthLabel(cur.month))+'.</div>';
   /* The old note here said August was "flattered" because issue history began
@@ -556,6 +566,38 @@ function renderOtif(){
     ' · deliveries from Kobas order confirmations vs issues filed in the same month · not a measured on-time-in-full';
   const ms=$('otif-month');
   if(ms) ms.onchange=()=>{OTIF_MONTH=ms.value;renderOtif();};
+}
+/* ---- supplier statements (Phase 2, 11/10/2026) --------------------------
+   The builder writes the files and the index; this lists them. Not sliced by
+   the date range: a statement IS a calendar month (or an ISO week), and which
+   ones exist is current state. The readable copy is GitHub's rendering of the
+   .md; the .json beside it is the same statement for anything that reads it. */
+function renderStatements(st){
+  const el=$('sq-stmt'); if(!el) return;
+  if(!st){ el.innerHTML='<div class="empty">This snapshot predates the supplier statements (Phase 2, October 2026).</div>'; return; }
+  const ext=(u,t)=>(u&&/^https:\/\//.test(u))?`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)} ↗</a>`:'—';
+  const mon=st.monthly||[], wk=st.weekly||[];
+  const mrows=mon.map(x=>[monthLabel(x.month),
+    (x.final?chip('g','Final'):chip('a','Provisional'))+(x.retrospective?' '+chip('n','Retrospective · not scored'):''),
+    x.generated_on||'—', fmtN(x.forms), fmtN(x.suppliers_named!=null?x.suppliers_named:x.suppliers),
+    ext(x.url,'Statement')+' · <a href="'+esc(BASE+(x.json||''))+'" target="_blank" rel="noopener">data</a>']);
+  const wrows=wk.map(x=>[esc(x.week||'—'), esc((x.from||'')+' – '+(x.to||'')),
+    x.final?chip('g','Final'):chip('a','Provisional'), fmtN(x.forms),
+    esc(x.rate!=null?Number(x.rate).toFixed(1)+'%':'not measured'), esc(x.generated_on||'—'),
+    ext(x.url,'Lynas cut')]);
+  el.innerHTML=
+    (mon.length
+      ? '<table><thead><tr><th>Month</th><th>Status</th><th>Generated</th><th class="n">Issue forms</th><th class="n">Suppliers named</th><th>Open</th></tr></thead><tbody>'+
+        mrows.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+r[1]+'</td><td>'+esc(r[2])+'</td><td class="n">'+esc(r[3])+'</td><td class="n">'+esc(r[4])+'</td><td>'+r[5]+'</td></tr>').join('')+
+        '</tbody></table>'
+      : '<div class="empty">No monthly statement yet — the first is written by the first bake on or after the 1st.</div>')+
+    (wk.length
+      ? '<div class="dt" style="margin:12px 0 6px;font-weight:650">Lynas, week by week'+(st.lynas_weekly?'':' (stopped)')+'</div>'+
+        '<table><thead><tr><th>Week</th><th>Dates</th><th>Status</th><th class="n">Issue forms</th><th class="n">Issue-free</th><th>Generated</th><th>Open</th></tr></thead><tbody>'+
+        wrows.map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td class="n">'+esc(r[3])+'</td><td class="n">'+r[4]+'</td><td>'+r[5]+'</td><td>'+r[6]+'</td></tr>').join('')+
+        '</tbody></table>'
+      : '')+
+    (st.basis?'<div class="prov">'+esc(st.basis)+'</div>':'');
 }
 function chip(kind,word){
   const ic={g:'✓',a:'▲',r:'●',n:'–',b:'ℹ'}[kind]||'';
@@ -1276,9 +1318,14 @@ function renderScorecard(snap){
     const offMonth=(!isDefault&&!follows)
       ? `<div class="dt" style="opacity:.75"><b>Not ${esc(monthLabel(sel))}</b> — this KR has no monthly form, so it is current state and does not follow the month picker.</div>`
       : '';
-    const link=(r0.tab&&r0.tab!=='—')
+    const link=((r0.tab&&r0.tab!=='—')
       ? ` <button class="lnk" data-go="${esc(r0.tab)}" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0;font-size:12.5px">open →</button>`
-      : '';
+      : '')+
+      /* A document the builder says this figure is about (OO3 KR5: the
+         month's supplier statement). The builder names it; this only links it. */
+      ((r.link&&/^https:\/\//.test(r.link.href||''))
+        ? `<div class="dt"><a href="${esc(r.link.href)}" target="_blank" rel="noopener">${esc(r.link.label||'document')} ↗</a></div>`
+        : '');
     /* A PROPOSED band scores exactly like an agreed one. The chip is the only
        thing that separates them, and it stays until Matthew confirms the band. */
     const prop=r0.band_status==='proposed'
@@ -1901,6 +1948,7 @@ function render(snap){
   $('sq-note').innerHTML=(sup.note?`<div class="warn"><b>Read this first.</b> ${esc(sup.note)}</div>`:'')+
     (!issuesAll.length&&!sup.answered_source
       ?'<div class="empty"><b>This snapshot predates the answers feed.</b> <code>GC Form Task Answers</code> first landed 13 Aug 2026; later snapshots carry per-issue supplier attribution.</div>':'');
+  renderStatements(sup.statements||null);
   const sqOpen=issues.filter(i=>i.open);
   const sqEsc=sqOpen.filter(i=>(dOpen(i)??-1)>ESC_DAYS);
   $('sq-kpis').innerHTML=

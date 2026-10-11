@@ -702,6 +702,13 @@ def _snapshot_aggregates(snap: dict) -> dict:
     }
 
 
+#: What the recompute needs beside bake_ops_command.py and archive_source.py
+#: (Phase 2): the modules the bake imports from its own directory, and the
+#: folders of files it reads back.
+RECOMPUTE_MODULES = ("supplier_statements.py", "okr_pack.py")
+RECOMPUTE_DIRS = ("supplier_statements", "okr_pack")
+
+
 def check_consistency(pg_latest: str, snap_latest: str):
     """Run the REAL builder into a temp dir; compare aggregates with live.
 
@@ -727,6 +734,10 @@ def check_consistency(pg_latest: str, snap_latest: str):
         # mode, required in archive mode.
         shutil.copy(os.path.join(HERE, "archive_source.py"),
                     os.path.join(tmp, "builders", "archive_source.py"))
+        # Phase 2: the bake imports these two from its own directory as well -
+        # the same ModuleNotFoundError, one release later.
+        for _mod in RECOMPUTE_MODULES:
+            shutil.copy(os.path.join(HERE, _mod), os.path.join(tmp, "builders", _mod))
         # The builder reads maintenance_source.json from its OUT_DIR, and the
         # archive-mode feed map falls back to the manifest for names.
         os.makedirs(os.path.join(tmp, "data", "ops_command"), exist_ok=True)
@@ -757,6 +768,14 @@ def check_consistency(pg_latest: str, snap_latest: str):
             if os.path.exists(_sp):
                 shutil.copy(_sp, os.path.join(tmp, "data", "ops_command",
                                               os.path.basename(_sp)))
+        # ...and the supplier statements and OKR packs (Phase 2). The recompute
+        # is an undated, LIVE bake: without the statements already on disk it
+        # would write one dated TODAY and score OO3 KR5 on that day, not on the
+        # day the real one was generated.
+        for _d in RECOMPUTE_DIRS:
+            if os.path.isdir(os.path.join(OUT_DIR, _d)):
+                shutil.copytree(os.path.join(OUT_DIR, _d),
+                                os.path.join(tmp, "data", "ops_command", _d))
         r = subprocess.run(
             [sys.executable, os.path.join(tmp, "builders",
                                           "bake_ops_command.py")],
@@ -1144,6 +1163,22 @@ def check_oo1_public(snapshot_path: str | None = None) -> None:
                     found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} has a figure")
                 if x.get("score") is not None and x.get("score") not in OO1_SCORE_SET:
                     found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} score is not 0/50/80/100")
+    # Phase 2: the supplier statements and the monthly OKR pack are published
+    # beside the snapshot, and the pack carries every OKR row in prose - sweep
+    # them for the same Finance column names (the bake refuses to write one,
+    # this is the check that it did not).
+    for sub in ("supplier_statements", "okr_pack"):
+        for root, _dirs, files in os.walk(os.path.join(OUT_DIR, sub)):
+            for name in sorted(files):
+                if not name.endswith((".md", ".json")):
+                    continue
+                try:
+                    with open(os.path.join(root, name), encoding="utf-8") as fh:
+                        txt = fh.read()
+                except OSError:
+                    continue
+                rel = os.path.relpath(os.path.join(root, name), OUT_DIR)
+                found += [f"{rel} carries {n!r}" for n in OO1_FORBIDDEN if n in txt]
     if found:
         add("4e-oo1-public", "critical",
             "OO1 FINANCE DATA IN A PUBLISHED FILE: " + "; ".join(found[:8])
@@ -1151,8 +1186,8 @@ def check_oo1_public(snapshot_path: str | None = None) -> None:
               "repo (and its history) and fix the refresher or the bake")
     else:
         add("4e-oo1-public", "ok",
-            "no OO1 figure, non-score or Finance column name in okr_sheet.json "
-            "or the newest committed snapshot")
+            "no OO1 figure, non-score or Finance column name in okr_sheet.json, "
+            "the newest committed snapshot, the supplier statements or the OKR packs")
 
 
 # --------------------------------------------------------------- check 6
