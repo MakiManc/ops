@@ -85,9 +85,9 @@ KR1, KR2, KR4 = ("KR1 PPM on time", "KR2 repeat issues vs baseline",
 KR1_WHY = ("no PPM completion has been logged with a due date yet — backfilled "
            "certificates carry no on-time flag; the figure starts counting from "
            "the first completion logged in the app (25 Sep 2026 onwards)")
-KR2_WHY = ("baseline needs Jun–Aug; the app's fault log starts Sep 2026 — the "
-           "sheet-based KR2 build (plan of 17 Sep) remains the baseline source "
-           "until the January re-baseline")
+KR2_WHY = ("baseline needs Jun–Aug; the app's fault log starts Sep 2026, and "
+           "nothing else supplies one: the sheet-based KR2 baseline planned on 17 "
+           "Sep was never built, so KR2 stays grey until a baseline is agreed")
 
 
 def block(feed=None, today=TODAY, **kw):
@@ -135,6 +135,15 @@ _ct = sum(c["tasks"] for c in FEED["contractors"])          # 161 in the trimmed
 check(f"{_ct} of the 227 tracked items" in tab["notes"]["contractors"]
       and f"{227 - _ct} have no contractor assigned" in tab["notes"]["contractors"],
       f"the contractor card says how many items have no contractor ({227 - _ct} in the fixture)")
+# review, 12/10/2026: contractor rows adding to MORE than the register (220 vs
+# 208 on 11/10) are disclosed too, never left silent
+_over = copy.deepcopy(FEED)
+_over["group"]["tasks"] = _ct - 12
+_tab_over = block(_over)["tab"]
+_note_over = (_tab_over.get("notes") or {}).get("contractors", "")
+check(f"These rows add to {_ct} items, 12 more than the {_ct - 12} the register tracks" in _note_over
+      and f"KR4 uses the register's {_ct - 12}" in _note_over,
+      f"contractor rows adding to more than the register say so (got ...{_note_over[-160:]!r})")
 check(len(tab["contractors"]) == 8 and tab["contractors"][0]["name"] == "IDES",
       "contractor scorecard in the app's order")
 check(tab["links"]["compliance"] == "https://rossmward.eu.pythonanywhere.com/compliance"
