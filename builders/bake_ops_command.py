@@ -365,10 +365,76 @@ def supplier_of(form):
 # gap instead. Inventing a band for it would be exactly the fabrication the
 # rest of this block refuses: 'Ikigai Chicken Broth' appears in the form and
 # Ross did not give it a range, so it stays ungraded until he does.
-FACTORY_BROTH_BANDS = {
-    "Tonkotsu Broth": (8.0, 9.0),
-    "Chicken Broth":  (5.0, 6.0),
+#
+# Ross, 12/10/2026, verbatim: "The new factory score for tonkotsu is between 6
+# and 7 as of today onwards". So a band has a START DATE, and each product
+# carries its bands in order as (first day, (lo, hi)). A reading is graded
+# against the band IN FORCE ON ITS OWN DATE: a batch read on 11/10 met or
+# missed 8-9, the spec the factory was working to that day, and is never
+# re-graded against 6-7 - nor a batch from 12/10 against 8-9. None as the first
+# day means "from the start of the feed": the 27/08/2026 band was applied to
+# the whole history, which FB_BAND_SET discloses. Chicken is unchanged. Add a
+# band by appending (its first day, (lo, hi), who set it and when); never edit
+# one already in force.
+FACTORY_BROTH_BAND_HISTORY = {
+    "Tonkotsu Broth": [(None, (8.0, 9.0), "Ross, 27/08/2026"),
+                       ("2026-10-12", (6.0, 7.0), "Ross, 12/10/2026")],
+    "Chicken Broth":  [(None, (5.0, 6.0), "Ross, 27/08/2026")],
 }
+
+
+def fb_band(product, day):
+    """The (lo, hi) after-ice band in force for `product` on `day` ('YYYY-MM-DD'),
+    or None when the product has no band."""
+    band = None
+    for start, b, _ in FACTORY_BROTH_BAND_HISTORY.get(product or "", ()):
+        if start is None or (day or "") >= start:
+            band = b
+    return band
+
+
+def fb_band_periods(product, first=None, last=None):
+    """The bands `product` was graded against between `first` and `last`
+    (inclusive, 'YYYY-MM-DD'; None = open-ended): [{"from", "to", "band", "set"}], with
+    "from"/"to" None where the band runs from the start of the feed / is still
+    in force. A band starting after `last` is left out - a back-bake never
+    names a spec that did not exist yet."""
+    hist = FACTORY_BROTH_BAND_HISTORY.get(product or "", [])
+    out = []
+    for i, (start, b, who) in enumerate(hist):
+        nxt = hist[i + 1][0] if i + 1 < len(hist) else None
+        end = ((datetime.date.fromisoformat(nxt) - datetime.timedelta(days=1)).isoformat()
+               if nxt else None)
+        if last is not None and start is not None and start > last:
+            continue
+        if first is not None and end is not None and end < first:
+            continue
+        out.append({"from": start, "to": end if (last is None or (end and end < last)) else None,
+                    "band": list(b), "set": who})
+    return out
+
+
+def fb_bands_text(first=None, last=None, sources=False):
+    """'tonkotsu 8-9 to 11/10/2026, 6-7 from 12/10/2026, chicken 5-6' - every
+    product's bands in force between `first` and `last`, for the bases; with
+    `sources`, each band also names who set it ('(Ross, 12/10/2026)')."""
+    def _d(iso):
+        return f"{iso[8:10]}/{iso[5:7]}/{iso[:4]}"
+    parts = []
+    for prod in FACTORY_BROTH_BAND_HISTORY:
+        ps = fb_band_periods(prod, first, last)
+        name = (prod[:-6] if prod.endswith(" Broth") else prod).lower()
+        bits = []
+        for p in ps:
+            txt = f"{p['band'][0]:g}-{p['band'][1]:g}"
+            if len(ps) > 1:
+                txt += (f" to {_d(p['to'])}" if p["to"] else f" from {_d(p['from'])}")
+            if sources and p.get("set"):
+                txt += f" ({p['set']})"
+            bits.append(txt)
+        if bits:
+            parts.append(f"{name} " + ", ".join(bits))
+    return ", ".join(parts)
 #: The day the band above was agreed. The factory broth score is a data card and
 #: grades the whole feed against it, which is right for a card. The Quality KR is
 #: a JUDGEMENT on the same readings, and a reading taken before the spec existed
@@ -382,9 +448,10 @@ FB_BAND_SET = "2026-08-27"
 #: years is more than anyone compares a KR across, and the readings themselves
 #: stay whole on the Quality tab regardless.
 FB_MONTHS_MAX = 24
-def fb_grade(product, score):
-    """'in' | 'low' | 'high' for a graded product, None when it has no band."""
-    band = FACTORY_BROTH_BANDS.get(product or "")
+def fb_grade(product, score, day):
+    """'in' | 'low' | 'high' against the band in force on `day`, None when the
+    product has no band."""
+    band = fb_band(product, day)
     if band is None or score is None:
         return None
     lo, hi = band
@@ -610,7 +677,7 @@ def okr_score(band, value):
 def okr_density_outside(mean, band):
     """How far a monthly mean falls outside its band; 0 when inside.
 
-    Feeds the `density` band. Bounds are INCLUSIVE, matching FACTORY_BROTH_BANDS.
+    Feeds the `density` band. Bounds are INCLUSIVE, matching FACTORY_BROTH_BAND_HISTORY.
     """
     if mean is None or not band:
         return None
@@ -2897,8 +2964,11 @@ def main():
     # bounds it is. Inclusive, like the factory's.
     #
     # These do NOT transfer either way. The factory reads the batch after ice
-    # (tonkotsu 8-9); these read broth as served (tonkotsu 6-7). Same
-    # instrument, different point in the broth's life, and the numbers say so.
+    # (tonkotsu 8-9 until 11/10/2026; Ross moved it to 6-7 from 12/10/2026 - see
+    # FACTORY_BROTH_BAND_HISTORY); these read broth as served (tonkotsu 6-7).
+    # Same instrument, different point in the broth's life: tonkotsu's two bands
+    # now carry the same numbers, but they are still two specs, set separately,
+    # and neither is read from the other.
     SITE_BROTH_BANDS={"chicken":(5.0,7.0),"tonkotsu":(6.0,7.0)}
     broth_cells=[]; broth_deviations=[]
     site_grades={"in":0,"low":0,"high":0}
@@ -2951,8 +3021,9 @@ def main():
         if sg_tot:
             gaps.append("Site broth readings are graded against Ross's SITE band (chicken "
                 "6+/-1 i.e. 5-7, tonkotsu 6-7), which is NOT the factory's after-ice band "
-                "(tonkotsu 8-9, chicken 5-6): same instrument, different point in the broth's "
-                "life. "+str(sg["in"])+" of "+str(sg_tot)+" site readings are in band, "
+                "("+fb_bands_text(None,asof.isoformat())+"): same instrument, different point "
+                "in the broth's life, set separately even where the numbers match. "
+                +str(sg["in"])+" of "+str(sg_tot)+" site readings are in band, "
                 +str(sg["low"])+" below and "+str(sg["high"])+" above")
         ungraded_kinds=sorted({c["kind"] for c in broth_cells
                                if c["value"] is not None and not c.get("grade")})
@@ -3046,8 +3117,9 @@ def main():
               "batch":(batch or "").strip() or None,
               "product":prod,
               "score":score,"before":fb_num(before),
-              "band":list(FACTORY_BROTH_BANDS[prod]) if prod in FACTORY_BROTH_BANDS else None,
-              "grade":fb_grade(prod,score),
+              # the band IN FORCE ON THE READING'S OWN DATE (Ross, 12/10/2026)
+              "band":list(fb_band(prod,d)) if fb_band(prod,d) else None,
+              "grade":fb_grade(prod,score,d),
               "date_source":"timestamp" if from_ts else "form"})
         # The same batch and product read twice in one day is real - it happens
         # (210825B, 21/08/2025, 7 then 9). Both rows stay and both are marked,
@@ -3079,7 +3151,7 @@ def main():
         # inventing data, and the row is the only thing that will make anyone
         # fix the sheet. This band is derived from the data (a third of the
         # median to three times it) and is NOT the spec band. Those are two
-        # different things and must stay that way: FACTORY_BROTH_BANDS says
+        # different things and must stay that way: FACTORY_BROTH_BAND_HISTORY says
         # whether a batch met spec, this says whether the number was typed
         # correctly - collapsing them would put typos into the out-of-spec
         # count and send someone to the factory over them.
@@ -3149,7 +3221,14 @@ def main():
     snap["quality"]["factory"]={
       "readings":fb_readings[:FB_CAP],"scored":len(fb_readings),
       "median":fb_median,"suspect":fb_suspect,
-      "bands":{k:list(v) for k,v in FACTORY_BROTH_BANDS.items()},"grades":fb_grades,
+      # the band in force on the bake's own date, per product (what the cards
+      # caption by default), and every band the readings were graded against,
+      # dated - a back-bake never names a band that did not exist yet
+      "bands":{k:list(fb_band(k,asof.isoformat())) for k in FACTORY_BROTH_BAND_HISTORY
+               if fb_band(k,asof.isoformat())},
+      "band_history":{k:fb_band_periods(k,None,asof.isoformat())
+                      for k in FACTORY_BROTH_BAND_HISTORY},
+      "grades":fb_grades,
       "responses":fb_total,"truncated":len(fb_readings)>FB_CAP,
       "excluded":fb_excl,"source_feed":FB_FEED,"pull_date":fb_pull,
       "formats":{"percent":fb_pct,"decimal_comma":fb_comma},
@@ -3162,9 +3241,11 @@ def main():
       +str(FB_MAX_LAG_DAYS)+" days before it, is a typo), never on pull_date; responses with no after-ice reading are excluded and "
       "counted in 'excluded', never scored as zero; 'repeat' marks a batch and product "
       "read more than once on the same day - both readings are kept, neither averaged; "
-      "'grade' is the reading against its product's after-ice SPEC BAND (Ross, 27/08/2026: "
-      "tonkotsu 8-9, chicken 5-6, bounds inclusive) - 'in', 'low', 'high', or null for a "
-      "product with no band, which is never graded or coloured; 'suspect' is a SEPARATE, "
+      "'grade' is the reading against its product's after-ice SPEC BAND IN FORCE ON THE "
+      "READING'S OWN DATE, carried on the row as 'band' ("
+      +fb_bands_text(None,asof.isoformat(),sources=True)+"; bounds inclusive) - 'in', 'low', 'high', "
+      "or null for a product with no band, which is never graded or coloured; a reading "
+      "is never re-graded against a band set after it was taken; 'suspect' is a SEPARATE, "
       "much cruder test for keying slips (outside a third to three times the median, e.g. "
       "87 for 8.7), kept apart from the band so a typo is not read as a batch that missed "
       "spec - 'grades.out_suspect' counts the overlap"}
@@ -5515,7 +5596,8 @@ def main():
     # Ross, 16/09/2026: "Broth conformance OKR is based on factory broth
     # readings not site". Ross, 17/09/2026: "OKR is based of monthly". So the
     # Quality KR is the FACTORY's own refractometer reading of the batch it made
-    # - AFTER ice, graded against FACTORY_BROTH_BANDS - scored over ONE CALENDAR
+    # - AFTER ice, graded against FACTORY_BROTH_BAND_HISTORY (the band in force on
+    # each reading's own date) - scored over ONE CALENDAR
     # MONTH, and no longer the per-site GetCompliant checks of broth AS SERVED
     # over the whole feed. The two measurements are untouched and stay what they
     # were: separate blocks, separate snapshot keys, separate rows, never
@@ -5587,9 +5669,11 @@ def main():
     def _fmlabel(ym):
         """'2026-09' -> 'September 2026'."""
         return _FMONTHS[int(ym[5:7])-1]+" "+ym[:4]
-    _fbands=", ".join(
-        f"{(_p[:-6] if _p.endswith(' Broth') else _p).lower()} {_lo:g}-{_hi:g}"
-        for _p,(_lo,_hi) in FACTORY_BROTH_BANDS.items())
+    def _fbands(ym):
+        """The bands this month's readings were graded against, dated where a
+        band changed inside it (Ross, 12/10/2026: tonkotsu 6-7 from that day) -
+        'tonkotsu 8-9 to 11/10/2026, 6-7 from 12/10/2026, chicken 5-6'."""
+        return fb_bands_text(ym+"-01",min(_mend(ym),asof.isoformat()))
     # Graded readings only. The ungraded count disclosed in the basis is this
     # denominator's own complement rather than fb_grades["ungraded"]: the latter
     # is feed-wide where this is one month, so they are different numbers and
@@ -5654,7 +5738,7 @@ def main():
         return {
           "value":_pct,"display":f"{_pct}%","rag":("green" if _pct>=95 else "red"),
           "basis":(f"{_in} of {len(_mg)} graded after-ice refractometer readings inside "
-                   f"their product's factory band ({_fbands}) in {_fmlabel(ym)}"
+                   f"their product's factory band ({_fbands(ym)}) in {_fmlabel(ym)}"
                    +(f", across {_days} production day(s)" if _days else "")
                    +f", from '{FB_FEED}'"
                    +(f" as at its own pull {fb_pull}" if fb_pull else "")
@@ -6002,11 +6086,27 @@ def main():
     # who sees "5.10 avg - 77.3% of 22 readings in band" can see that; a reader
     # who sees "5.10" cannot. Flagged for Ross on 21/09/2026 - if he wants the
     # SCORE moved onto the in-band percentage, change the band, not the display.
+    #
+    # A BAND THAT CHANGES INSIDE A MONTH (Ross, 12/10/2026: the factory's
+    # tonkotsu band is 6-7 from that day, 8-9 before). A mean across the change
+    # means nothing - October's 8.4s and 6.5s would average to ~7.4, outside
+    # both bands, with every batch on spec. So the month is SPLIT AT THE CHANGE:
+    # each part is averaged on its own and measured against its own band, and
+    # the month is scored on the distance outside band weighted by each part's
+    # readings. In a month with one band that is exactly the old rule (its mean
+    # against its band), so no other month moves. The value is the newest part's
+    # mean - the spec the factory now works to - and the display names both.
+    # The KR text stays Matthew's verbatim ("within 8-9"); the target says
+    # which band is in force, and the basis says when it changed.
     _okr_broth = {}
+    _asof_iso = asof.isoformat()
+
+    def _dmy5(iso):
+        return f"{iso[8:10]}/{iso[5:7]}"
     for _oid, _prod in (("KR1", "Tonkotsu Broth"), ("KR2", "Chicken Broth")):
-        _band = FACTORY_BROTH_BANDS.get(_prod)
         _rs = [r_ for r_ in _fg if (r_.get("product") or "") == _prod]
-        if not _band or not _rs:
+        _hist = fb_band_periods(_prod, None, _asof_iso)
+        if not _hist or not _rs:
             continue
         _bym = {}
         for r_ in _rs:
@@ -6014,44 +6114,107 @@ def main():
         _vars = []
         for _m in sorted(_bym)[-FB_MONTHS_MAX:]:
             _rows = _bym[_m]
-            _mean = round(sum(x["score"] for x in _rows) / len(_rows), 2)
+            _per = fb_band_periods(_prod, _m + "-01", min(_mend(_m), _asof_iso))
+            _parts = []
+            for _p in _per:
+                _xs = [x for x in _rows if (_p["from"] is None or x["d"] >= _p["from"])
+                       and (_p["to"] is None or x["d"] <= _p["to"])]
+                if _xs:
+                    _pmean = round(sum(x["score"] for x in _xs) / len(_xs), 2)
+                    _parts.append({"p": _p, "rows": _xs, "mean": _pmean,
+                                   "out": okr_density_outside(_pmean, _p["band"])})
             _in = sum(1 for x in _rows if x.get("grade") == "in")
             _pct = round(100.0 * _in / len(_rows), 1)
-            _out = okr_density_outside(_mean, _band)
-            _s = okr_score("density", _out)
             _days = len({x["d"] for x in _rows})
             _mtd = (_m == (pull or "")[:7])
             # The same disclosure the Quality row makes (10/10/2026): a month
             # read before the band existed is scored against a spec the factory
             # had not been given - see FB_BAND_SET.
             _pre = sum(1 for x in _rows if x["d"] < FB_BAND_SET)
+            _tail = ((". MONTH TO DATE - the month is not finished, so this figure is "
+                      "still moving" if _mtd else "")
+                     + (f". {'ALL' if _pre == len(_rows) else _pre} of this month's "
+                        f"{len(_rows)} reading(s) were taken before {FB_BAND_SET}, the day "
+                        f"the after-ice band was agreed, so they are graded against a spec "
+                        f"that did not exist when they were taken" if _pre else "")
+                     + ". THE SCORE IS ON THE MEAN, which is what the band was agreed "
+                       "against; the in-band percentage is shown beside it because a mean "
+                       "can sit inside band while individual batches miss it in both "
+                       "directions. Readings with no after-ice value, no usable date or a "
+                       "non-numeric value are excluded and never scored as zero, exactly "
+                       "as on the Quality tab")
+            _src_txt = (f". {_in} of {len(_rows)} reading(s) were individually in band"
+                        + (", each against the band in force on its own date"
+                           if len(_parts) > 1 else "")
+                        + f" ({_pct}%), across {_days} production day(s), from '{FB_FEED}'"
+                        + (f" as at its own pull {fb_pull}" if fb_pull else ""))
+            if len(_parts) == 1:
+                _P = _parts[0]
+                _mean, _out, _band = _P["mean"], _P["out"], _P["p"]["band"]
+                _s = okr_score("density", _out)
+                _disp = f"{_mean:g} avg - {_pct}% of {len(_rows)} readings in band"
+                _basis = (f"Mean after-ice refractometer reading for {_prod} in "
+                          f"{_mlabel(_m)}: {_mean:g} against a band of "
+                          f"{_band[0]:g}-{_band[1]:g}"
+                          + (f" (set by {_P['p']['set']}, in force from "
+                             f"{_dmy5(_P['p']['from'])}/{_P['p']['from'][:4]})"
+                             if _P["p"]["from"] else "")
+                          + (", inside band" if not _out else f", {_out:g} outside band")
+                          + _src_txt + _tail)
+            else:
+                _mean = _parts[-1]["mean"]
+                _out = round(sum(P_["out"] * len(P_["rows"]) for P_ in _parts) / len(_rows), 4)
+                _s = okr_score("density", _out)
+
+                def _span(P_):
+                    p_ = P_["p"]
+                    return (f"to {_dmy5(p_['to'])}" if p_["to"] else
+                            f"from {_dmy5(p_['from'])}" if p_["from"] else "")
+                _disp = (" · ".join(f"{P_['mean']:g} avg {_span(P_)} (band "
+                                    f"{P_['p']['band'][0]:g}-{P_['p']['band'][1]:g})"
+                                    for P_ in _parts)
+                         + f" - {_pct}% of {len(_rows)} readings in band")
+                _chg = ", ".join(
+                    f"{p_['band'][0]:g}-{p_['band'][1]:g} "
+                    + (f"to {_dmy5(p_['to'])}/{p_['to'][:4]}" if p_["to"]
+                       else f"from {_dmy5(p_['from'])}/{p_['from'][:4]}")
+                    + (f" ({p_['set']})" if p_.get("set") else "")
+                    for p_ in _per)
+                _basis = (f"The factory's after-ice band for {_prod} CHANGED during "
+                          f"{_mlabel(_m)} - {_chg} - so the month is split at the change "
+                          f"and each part is averaged against its own band: "
+                          + "; ".join(
+                              f"{len(P_['rows'])} reading(s) {_span(P_)} averaged "
+                              f"{P_['mean']:g} against {P_['p']['band'][0]:g}-"
+                              f"{P_['p']['band'][1]:g}"
+                              + (", inside band" if not P_["out"] else
+                                 f", {P_['out']:g} outside band")
+                              for P_ in _parts)
+                          + f". The month is scored on the distance outside band weighted "
+                            f"by each part's readings, {_out:g}"
+                          + (" (inside band)" if not _out else "")
+                          + " - in a month with one band this is simply its mean against "
+                            "its band - and the value shown is the newest part's mean, the "
+                            "band the factory now works to"
+                          + _src_txt + _tail)
+            if any(P_["p"]["from"] for P_ in _parts):
+                _basis += (f". The KR's wording is Matthew's sheet's, verbatim ('"
+                           + next(t_ for o_, k_, t_, *_ in OKR_SPEC if (o_, k_) == ("OO5", _oid))
+                           + f"'); the factory band it is scored against was moved by "
+                             f"{_hist[-1]['set']}")
             _vars.append(_mvar(
-                _m, value=_mean,
-                display=f"{_mean:g} avg - {_pct}% of {len(_rows)} readings in band",
-                score=_s, rag=_rag_of(_s), coverage_days=_days,
-                basis=(f"Mean after-ice refractometer reading for {_prod} in "
-                       f"{_mlabel(_m)}: {_mean:g} against a band of "
-                       f"{_band[0]:g}-{_band[1]:g}"
-                       + (", inside band" if not _out else
-                          f", {_out:g} outside band")
-                       + f". {_in} of {len(_rows)} reading(s) were individually in band "
-                         f"({_pct}%), across {_days} production day(s), from '{FB_FEED}'"
-                       + (f" as at its own pull {fb_pull}" if fb_pull else "")
-                       + (". MONTH TO DATE - the month is not finished, so this figure is "
-                          "still moving" if _mtd else "")
-                       + (f". {'ALL' if _pre == len(_rows) else _pre} of this month's "
-                          f"{len(_rows)} reading(s) were taken before {FB_BAND_SET}, the day "
-                          f"the after-ice band was agreed, so they are graded against a spec "
-                          f"that did not exist when they were taken" if _pre else "")
-                       + ". THE SCORE IS ON THE MEAN, which is what the band was agreed "
-                         "against; the in-band percentage is shown beside it because a mean "
-                         "can sit inside band while individual batches miss it in both "
-                         "directions. Readings with no after-ice value, no usable date or a "
-                         "non-numeric value are excluded and never scored as zero, exactly "
-                         "as on the Quality tab")))
+                _m, value=_mean, display=_disp,
+                score=_s, rag=_rag_of(_s), coverage_days=_days, basis=_basis))
         if _vars:
-            _okr_broth[("OO5", _oid)] = {"months": _vars, "source_kind": "computed",
-                                         "tab": "p-qual"}
+            _ent = {"months": _vars, "source_kind": "computed", "tab": "p-qual"}
+            if len(_hist) > 1:
+                # the sheet's target ("8-9") is the band it was written against;
+                # the row shows the one in force, and the one it replaced
+                _now, _was = _hist[-1], _hist[-2]
+                _ent["target"] = (f"{_now['band'][0]:g}-{_now['band'][1]:g} from "
+                                  f"{_now['from'][8:10]}/{_now['from'][5:7]}/{_now['from'][:4]} "
+                                  f"({_was['band'][0]:g}-{_was['band'][1]:g} before)")
+            _okr_broth[("OO5", _oid)] = _ent
     _okr_extra.update(_okr_broth)
 
     # --- Phase 2 (11/10/2026): OO3 KR5, OO4 KR5, OO4 KR2 --------------------

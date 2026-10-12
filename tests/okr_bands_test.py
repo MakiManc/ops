@@ -160,7 +160,7 @@ for band, (direction, table) in bake.OKR_BANDS.items():
 
 # ---- okr_density_outside --------------------------------------------------
 # The bridge between a broth mean and the `density` band. Bounds are INCLUSIVE,
-# matching FACTORY_BROTH_BANDS, so a reading exactly on 8.0 or 9.0 is in band.
+# matching FACTORY_BROTH_BAND_HISTORY, so a reading exactly on 8.0 or 9.0 is in band.
 TONKOTSU, CHICKEN = (8.0, 9.0), (5.0, 6.0)
 eq(bake.okr_density_outside(8.35, TONKOTSU), 0.0, "tonkotsu 8.35 is in band")
 eq(bake.okr_density_outside(8.0, TONKOTSU), 0.0, "tonkotsu 8.0 (lower bound)")

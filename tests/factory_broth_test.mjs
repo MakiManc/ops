@@ -370,6 +370,75 @@ page.on('console', msg => {
     'the factory after-ice band does not appear on the site card');
 }
 
+// ------------------------------------------- a band that changes (12/10) ---
+// Ross, 12/10/2026: "The new factory score for tonkotsu is between 6 and 7 as
+// of today onwards". Every reading carries the band in force on ITS OWN date,
+// so the shell grades by r.band; what it must not do is caption, or take a
+// median across, two specs as if they were one.
+{
+  const OLD = [8.0, 9.0], NEW = [6.0, 7.0];
+  const fx = { ...factoryFixture(),
+    readings: [
+      { d: '2026-10-14', ts: '14/10/2026 18:00:00', batch: '1410GA1', product: 'Tonkotsu Broth',
+        score: 6.5, before: 9.6, date_source: 'form', repeat: false, band: NEW, grade: 'in' },
+      { d: '2026-10-13', ts: '13/10/2026 18:00:00', batch: '1310GA1', product: 'Tonkotsu Broth',
+        score: 6.7, before: 9.8, date_source: 'form', repeat: false, band: NEW, grade: 'in' },
+      { d: '2026-10-12', ts: '12/10/2026 18:00:00', batch: '1210GA1', product: 'Tonkotsu Broth',
+        score: 7.4, before: 10.1, date_source: 'form', repeat: false, band: NEW, grade: 'high' },
+      { d: '2026-10-09', ts: '09/10/2026 18:00:00', batch: '0910GA1', product: 'Tonkotsu Broth',
+        score: 8.4, before: 11.8, date_source: 'form', repeat: false, band: OLD, grade: 'in' },
+      { d: '2026-10-06', ts: '06/10/2026 18:00:00', batch: '0610GA2', product: 'Chicken Broth',
+        score: 5.5, before: 6.6, date_source: 'form', repeat: false, band: CHICKEN, grade: 'in' },
+      { d: '2026-10-05', ts: '05/10/2026 18:00:00', batch: '0510GA1', product: 'Tonkotsu Broth',
+        score: 8.6, before: 12.0, date_source: 'form', repeat: false, band: OLD, grade: 'in' },
+    ],
+    scored: 6, responses: 6, median: 7.0, suspect: 0,
+    bands: { 'Tonkotsu Broth': NEW, 'Chicken Broth': CHICKEN },
+    band_history: {
+      'Tonkotsu Broth': [{ from: null, to: '2026-10-11', band: OLD, set: 'Ross, 27/08/2026' },
+                         { from: '2026-10-12', to: null, band: NEW, set: 'Ross, 12/10/2026' }],
+      'Chicken Broth': [{ from: null, to: null, band: CHICKEN, set: 'Ross, 27/08/2026' }] },
+    grades: { in: 5, low: 0, high: 1, ungraded: 0, out_suspect: 0 },
+    excluded: { no_after_ice: 0, undated: 0, non_numeric: 0 } };
+  const snap = { ...baseSnap, quality: { ...baseSnap.quality, factory: fx } };
+  const renderIn = (f, t) => page.evaluate(([s, f, t]) => {
+    document.getElementById('d-from').value = f; document.getElementById('d-to').value = t;
+    calcEV(); window.render(s); window.gotoPage('p-qual'); }, [snap, f, t]);
+
+  await renderIn('', '');
+  const note = await page.locator('#qual-fb-spec').innerText();
+  assert(note === 'tonkotsu 8–9 to 11/10/2026, 6–7 from 12/10/2026, chicken 5–6',
+    `the page note names both tonkotsu bands with their dates, from the snapshot (got "${note}")`);
+  const prov = await page.locator('#fb-tbl .prov').innerText();
+  assert(/graded against the after-ice spec: Tonkotsu 8–9 to 11\/10\/2026, 6–7 from 12\/10\/2026, Chicken 5–6/.test(prov),
+    `the disclosure names every band in force in the range, dated (got "${prov}")`);
+  assert(/5 of 6 in spec/.test(prov), `in spec counts each reading against its own date's band (got "${prov}")`);
+  const labs = await page.locator('#fb-prod .blab').allInnerTexts();
+  assert(labs.includes('Tonkotsu Broth to 11/10/2026') && labs.includes('Tonkotsu Broth from 12/10/2026')
+         && labs.includes('Chicken Broth') && labs.length === 3,
+    `tonkotsu gets one median per band, never one across both (got ${JSON.stringify(labs)})`);
+  const vals = await page.locator('#fb-prod .bval').allInnerTexts();
+  const byLab = Object.fromEntries(labs.map((l, i) => [l, vals[i].replace(/\s+/g, ' ')]));
+  assert(/^8\.5 8–9 · 100% in spec/.test(byLab['Tonkotsu Broth to 11/10/2026']),
+    `the 8–9 bar: median 8.5, all in spec (got "${byLab['Tonkotsu Broth to 11/10/2026']}")`);
+  assert(/^6\.7 6–7 · 67% in spec/.test(byLab['Tonkotsu Broth from 12/10/2026']),
+    `the 6–7 bar: median 6.7, 2 of 3 in spec (got "${byLab['Tonkotsu Broth from 12/10/2026']}")`);
+  const hi = await page.locator('#fb-tbl table tbody tr', { hasText: '1210GA1' }).innerHTML();
+  assert(/Above spec \(7\)/.test(hi), 'a 7.4 on 12/10 is above the 6–7 band in force that day');
+  const old = await page.locator('#fb-tbl table tbody tr', { hasText: '0910GA1' }).innerHTML();
+  assert(!/spec \(/.test(old) && /fb-in/.test(old), 'an 8.4 on 09/10 is in the 8–9 band it was read against');
+
+  // a range inside one band names only that band, and splits nothing
+  await renderIn('2026-10-01', '2026-10-11');
+  const prov2 = await page.locator('#fb-tbl .prov').innerText();
+  assert(/spec: Tonkotsu 8–9, Chicken 5–6/.test(prov2) && !/6–7/.test(prov2),
+    `a range before 12/10 names only 8–9 (got "${prov2}")`);
+  const labs2 = await page.locator('#fb-prod .blab').allInnerTexts();
+  assert(labs2.includes('Tonkotsu Broth') && labs2.length === 2,
+    `one tonkotsu bar when the range holds one band (got ${JSON.stringify(labs2)})`);
+  await renderIn('', '');
+}
+
 assert(consoleErrors.length === 0,
   `no console/page errors during any render() call (got ${consoleErrors.length}: ${consoleErrors.slice(0,3).join(' | ')})`);
 
