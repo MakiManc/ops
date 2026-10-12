@@ -272,7 +272,7 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
 <div class="page" id="p-qual">
   <div id="qual-note"></div>
   <div class="kpis" id="qual-kpis"></div>
-  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added, graded against its product's spec (tonkotsu 8&ndash;9, chicken 5&ndash;6). The <b>site</b> cards below are GetCompliant broth checks of broth <b>as served</b>, graded against their own site spec (chicken 6&plusmn;1, tonkotsu 6&ndash;7). Same instrument, different moment in the broth's life — which is why the two sets of numbers are different and neither band transfers to the other. They are shown separately and never averaged into one another.</div>
+  <div class="note">Two different measurements sit on this page. The <b>factory</b> cards are the factory's own refractometer readings of the batch it produced &mdash; the score is the reading taken <b>after</b> ice is added, graded against its product's spec in force on the reading's own date (<span id="qual-fb-spec">tonkotsu 8&ndash;9, chicken 5&ndash;6</span>). The <b>site</b> cards below are GetCompliant broth checks of broth <b>as served</b>, graded against their own site spec (chicken 6&plusmn;1, tonkotsu 6&ndash;7). Same instrument, different moment in the broth's life — two specs, set separately, so neither band is read from the other even where the numbers match (tonkotsu's do from 12/10/2026). They are shown separately and never averaged into one another.</div>
   <div class="card"><div class="card-h"><div class="t">Factory broth score &mdash; by product</div>
     <div class="s" id="fb-prod-sub">Median after-ice reading per product · refractometer form, factory production batches</div></div>
     <div class="card-b" id="fb-prod"></div></div>
@@ -1336,8 +1336,12 @@ function renderScorecard(snap){
       ? ` <span class="tag t-n" style="font-size:10.5px">${esc(r0.owner)}</span>` : '';
     return head+`<tr${measured?'':' style="opacity:.72"'}>`+
       `<td><div>${esc(r0.kr)} <span style="opacity:.85">${esc(r0.text||'')}</span>${owner}${prop}</div>${kind}${detail}${offMonth}</td>`+
-      `<td class="n" style="white-space:nowrap">${esc(r0.target)}</td>`+
-      `<td class="n" style="font-weight:650;white-space:nowrap">${
+      /* A long target or figure WRAPS (review, 12/10/2026): OO5 KR1's month
+         split at a band change reads "6.7 avg from 12/10 · 7.8 to 11/10 - ...",
+         and one nowrap cell that long pushed Score, Status and Trend out of
+         the card for every row. Short values keep the one-line look. */
+      `<td class="n" style="${String(r0.target||'').length>16?'white-space:normal;min-width:7.5em':'white-space:nowrap'}">${esc(r0.target)}</td>`+
+      `<td class="n" style="font-weight:650;${String(r.display||'').length>42?'white-space:normal;min-width:11em':'white-space:nowrap'}">${
         r.display!=null&&r.display!=='' ? esc(r.display)
         : (r.value==null&&r.score!=null) ? '<span style="opacity:.6;font-weight:400">score only</span>'
         : '—'}</td>`+
@@ -1407,9 +1411,11 @@ function renderScorecard(snap){
       (isDefault?'':`<button class="lnk" id="sc-month-now" style="background:none;border:0;color:var(--maki-orange);cursor:pointer;padding:0">back to ${esc(monthLabel(defMonth))} →</button>`)+
       `</div>`
     : '';
+  /* overflow-x: a table wider than its card scrolls - .card clips, so a
+     column pushed past the edge would otherwise simply vanish */
   el.innerHTML=picker+opsLine+
-    '<table><thead><tr><th>Objective / KR</th><th class="n">Target</th><th class="n">Now</th>'+
-    '<th class="n">Score</th><th>Status</th><th>'+(isDefault?'Last 4 weeks':'4 weeks to month end')+'</th></tr></thead><tbody>'+body+'</tbody></table>'+
+    '<div class="sc-x" style="overflow-x:auto"><table><thead><tr><th>Objective / KR</th><th class="n">Target</th><th class="n">Now</th>'+
+    '<th class="n">Score</th><th>Status</th><th>'+(isDefault?'Last 4 weeks':'4 weeks to month end')+'</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
     kpiTable+
     `<div class="prov">${esc(shown)} of ${esc(s.total)} measured, ${esc(s.scored==null?'—':s.scored)} scored`+
     (months.length>1?` · showing <b>${esc(monthLabel(sel))}</b>, which ${esc(monthly)} of ${esc(s.total)} rows are scored for`:'')+
@@ -2393,8 +2399,9 @@ function render(snap){
   const fbAll=(fbBlock&&fbBlock.readings)||[];
   const fbIn=fbAll.filter(r=>inEV(r.d));
   const fbVals=fbIn.map(r=>r.score).filter(v=>v!=null).sort((a,b)=>a-b);
-  /* The colour is now a GRADE against the after-ice spec band Ross set on
-     27/08/2026 (tonkotsu 8-9, chicken 5-6), not a shading of the observed
+  /* The colour is now a GRADE against the after-ice spec band in force on the
+     reading's own date (r.band - Ross set tonkotsu 8-9 and chicken 5-6 on
+     27/08/2026, and tonkotsu 6-7 from 12/10/2026), not a shading of the observed
      range. That is a better encoding for a simpler reason than aesthetics: a
      range scale answers "how does this batch compare with the others", and the
      question the factory actually asks is "did this batch meet spec". It also
@@ -2413,11 +2420,45 @@ function render(snap){
   const fbSpecPct=fbGraded.length?100*fbInSpec/fbGraded.length:null;
   const fbUngraded=fbIn.length-fbGraded.length;
   const fbBandTxt=r=>r.band?r.band[0]+'–'+r.band[1]:null;
-  /* Rendered from the snapshot's own band map, never hard-coded here: the
+  /* Rendered from the snapshot's own band history, never hard-coded here: the
      spec lives in the builder with the rest of the classification, so
-     changing it is a bake, not a shell deploy. */
-  const bandsTxt=Object.entries((fbBlock&&fbBlock.bands)||{})
-    .map(([k,v])=>k.replace(/ Broth$/,'')+' '+v[0]+'–'+v[1]).join(', ');
+     changing it is a bake, not a shell deploy. A band can CHANGE (Ross,
+     12/10/2026: tonkotsu 6–7 from that day, 8–9 before) and every reading is
+     graded against the band in force on its own date, carried on the row as
+     r.band - so a caption names every band in force inside the range shown,
+     dated where there is more than one. A snapshot baked before the history
+     existed has only the flat band map, and gets that. */
+  const fbHist=(fbBlock&&fbBlock.band_history)||null;
+  const fbDmy=iso=>iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4);
+  const fbSpan=(p,many)=>!many?'':(p.from&&p.to)?' '+fbDmy(p.from)+'–'+fbDmy(p.to):
+    p.to?' to '+fbDmy(p.to):p.from?' from '+fbDmy(p.from):'';
+  function fbBandsIn(f,t){
+    if(!fbHist) return Object.entries((fbBlock&&fbBlock.bands)||{})
+      .map(([k,v])=>k.replace(/ Broth$/,'')+' '+v[0]+'–'+v[1]).join(', ');
+    return Object.entries(fbHist).map(([k,ps])=>{
+      const ins=(ps||[]).filter(p=>(!f||!p.to||p.to>=f)&&(!t||!p.from||p.from<=t));
+      return ins.length?k.replace(/ Broth$/,'')+' '+
+        ins.map(p=>p.band[0]+'–'+p.band[1]+fbSpan(p,ins.length>1)).join(', '):null;
+    }).filter(Boolean).join(', ');
+  }
+  /* which of a product's bands a reading was graded under - the median card
+     never pools readings taken against two different specs */
+  function fbPeriod(r){
+    const ps=fbHist&&fbHist[r.product||''];
+    if(!ps||ps.length<2) return null;
+    const i=ps.findIndex(p=>(!p.from||r.d>=p.from)&&(!p.to||r.d<=p.to));
+    return i<0?null:{i,p:ps[i]};
+  }
+  const bandsTxt=fbBandsIn(EV.f,EV.t);
+  /* the note's text is this snapshot's own - a roll-back to one with no
+     factory block restores the page's default rather than keeping the
+     previous snapshot's dated bands (review, 12/10/2026) */
+  const fbNote=$('qual-fb-spec');
+  if(fbNote){
+    if(fbNote.dataset.def==null) fbNote.dataset.def=fbNote.textContent;
+    fbNote.textContent=(fbBlock&&(fbHist||fbBlock.bands)&&fbBandsIn(null,null).toLowerCase())
+      ||fbNote.dataset.def;
+  }
   const fbBatches=new Set(fbIn.map(r=>r.batch||'(no batch)')).size;
   const fbLegacy='This snapshot predates the factory broth score - rebake to populate it.';
   /* colour scaled to the observed range, exactly as the site heatmaps are:
@@ -2444,8 +2485,14 @@ function render(snap){
     $('fb-tbl-sub').textContent='Not in this snapshot';
   } else {
     const prodAgg={};
+    /* A product whose band changed inside the range gets one bar per band,
+       labelled with its dates: a median of 8–9 readings and 6–7 readings
+       together sits between the two specs and describes neither. */
+    const multi={};
+    fbIn.forEach(r=>{const q=fbPeriod(r); if(q){(multi[r.product]=multi[r.product]||new Set()).add(q.i);}});
     fbIn.forEach(r=>{
-      const k=r.product||'(no product named)';
+      const q=fbPeriod(r), split=q&&multi[r.product]&&multi[r.product].size>1;
+      const k=(r.product||'(no product named)')+(split?fbSpan(q.p,true):'');
       const a=prodAgg[k]=prodAgg[k]||{vals:[],batches:new Set(),band:r.band,graded:0,inSpec:0};
       a.vals.push(r.score); a.batches.add(r.batch||'(no batch)');
       if(r.grade){ a.graded++; if(r.grade==='in') a.inSpec++; }
@@ -2473,8 +2520,9 @@ function render(snap){
     if(prodRows.length) $('fb-prod').insertAdjacentHTML('beforeend',
       '<div class="prov">Median after-ice reading per product in '+esc(evLabel())+
       ' · the spec each is graded against sits beside it. The median is a midpoint, not a pass mark: a product can sit mid-band and still have batches out of spec on both sides, which is what the per-batch table below is for.</div>');
+    const nProd=new Set(fbIn.map(r=>r.product||'(no product named)')).size;
     $('fb-prod-sub').textContent=prodRows.length
-      ? prodRows.length+' product(s) · '+fbIn.length+' reading(s) · '+evLabel()
+      ? nProd+' product(s) · '+fbIn.length+' reading(s) · '+evLabel()
       : 'No factory readings in '+evLabel();
     table('fb-tbl',[{h:'Date'},{h:'Batch'},{h:'Product'},{h:'After ice',n:1,raw:1},
         {h:'Before ice',n:1},{h:'Notes',raw:1}],
