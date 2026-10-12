@@ -8,6 +8,22 @@
  *
  * The suggestions here are only ever suggestions. Two lines that look identical can be
  * genuinely different items, so nothing is merged without someone choosing to.
+ *
+ * STOCK AWARENESS
+ *
+ * Three of Mintsoft's lines have no inventory record at all -- not zero, absent. Mapping
+ * one into a product has consequences nobody could see from this screen: the product's
+ * stock figure becomes a floor rather than a total, so it understates what the shelf
+ * holds, and if the OTHER lines happen to hold nothing, every order for that product is
+ * refused outright. That is how "Tea cups" came to be unorderable for three weeks with
+ * 577 units sitting in Witham.
+ *
+ * So the lines carry their stock position here, and the tool says what mapping one will
+ * do. It does not refuse: a line awaiting its first shipment legitimately has no record
+ * yet, and this file's whole premise is that the person decides. It warns, it steers the
+ * primary away from a line with no figure -- orders are placed against the primary first
+ * -- and productsWithUnreadableLines surfaces the ones already mapped, because a guard
+ * that only protects future mappings leaves today's three invisible.
  */
 import { findDuplicates } from '../../lib/mintsoft/discovery-analysis.ts'
 import type { Product } from '../../lib/mintsoft/types.ts'
@@ -25,6 +41,15 @@ export interface MintsoftLine {
   /** The Maki product this line already belongs to, if any. */
   mappedToProductId: number | null
   mappedToProductName: string | null
+  /**
+   * Whether Mintsoft holds an inventory record for this line at all.
+   *
+   * False is not "none in stock" -- it is "Mintsoft has never had a record of this", and
+   * it is what makes a product's figure a floor once the line is mapped.
+   */
+  hasStockRecord: boolean
+  /** Free to order on this line, or null when there is no usable figure. */
+  available: number | null
 }
 
 interface LineRow {
@@ -38,6 +63,9 @@ interface LineRow {
   synced_at: string
   product_id: number | null
   product_name: string | null
+  stock_rows: number
+  stock_rows_with_value: number
+  stock_available: number | null
 }
 
 const toLine = (r: LineRow): MintsoftLine => ({
@@ -51,11 +79,26 @@ const toLine = (r: LineRow): MintsoftLine => ({
   syncedAt: r.synced_at,
   mappedToProductId: r.product_id,
   mappedToProductName: r.product_name,
+  hasStockRecord: r.stock_rows > 0,
+  // The same derivation as orders/stock.ts, so this screen and the approval guard agree
+  // about what "no figure" means. Part of the picture missing is unknown, not low.
+  available: r.stock_rows === 0 || r.stock_rows_with_value < r.stock_rows ? null : r.stock_available,
 })
+
+// Correlated subqueries rather than a join: stock_cache holds a row per location, and
+// joining would multiply the line rows and quietly break the mapped-to columns.
+const STOCK_COLUMNS = `
+         (SELECT COUNT(sc.id) FROM stock_cache sc
+           WHERE sc.mintsoft_product_id = mp.mintsoft_product_id) AS stock_rows,
+         (SELECT COUNT(sc.available) FROM stock_cache sc
+           WHERE sc.mintsoft_product_id = mp.mintsoft_product_id) AS stock_rows_with_value,
+         (SELECT SUM(sc.available) FROM stock_cache sc
+           WHERE sc.mintsoft_product_id = mp.mintsoft_product_id) AS stock_available`
 
 const LINE_SELECT = `
   SELECT mp.mintsoft_product_id, mp.sku, mp.name, mp.ean, mp.upc, mp.image_url,
-         mp.discontinued, mp.synced_at, pmm.product_id, p.name AS product_name
+         mp.discontinued, mp.synced_at, pmm.product_id, p.name AS product_name,
+${STOCK_COLUMNS}
     FROM mintsoft_products mp
     LEFT JOIN product_mintsoft_map pmm ON pmm.mintsoft_product_id = mp.mintsoft_product_id
     LEFT JOIN products p ON p.id = pmm.product_id`
@@ -160,7 +203,15 @@ export interface NewProductInput {
  * the confident-undercount failure again -- and a product created with no mappings at
  * all would sit in the catalogue permanently unorderable.
  */
-export async function createProductFromLines(db: Database, input: NewProductInput): Promise<number> {
+export interface MappingResult {
+  productId: number
+  /** How many lines are now mapped by this call. */
+  lines: number
+  /** What this did to the product's stock figure, if it is worth saying. */
+  warning: string | null
+}
+
+export async function createProductFromLines(db: Database, input: NewProductInput): Promise<MappingResult> {
   const ids = [...new Set(input.mintsoftProductIds)]
   if (ids.length === 0) throw new MappingError('Choose at least one Mintsoft line to map.')
   if (!ids.includes(input.primaryMintsoftProductId)) {
@@ -224,13 +275,164 @@ export async function createProductFromLines(db: Database, input: NewProductInpu
     .bind(name)
     .first<{ id: number }>()
   if (!created) throw new MappingError('Could not create the product.')
-  return created.id
+
+  return {
+    productId: created.id,
+    lines: ids.length,
+    // Read after the write, so the warning describes the product as it now stands.
+    warning: stockWarning(await stockPositionOf(db, ids), {
+      primaryMintsoftProductId: input.primaryMintsoftProductId,
+    }),
+  }
+}
+
+/** The stock position of a set of Mintsoft lines, for the warning below. */
+async function stockPositionOf(
+  db: Database, mintsoftProductIds: number[],
+): Promise<Pick<MintsoftLine, 'mintsoftProductId' | 'sku' | 'hasStockRecord' | 'available'>[]> {
+  if (mintsoftProductIds.length === 0) return []
+  const placeholders = mintsoftProductIds.map(() => '?').join(', ')
+  const { results } = await db
+    .prepare(
+      `SELECT mp.mintsoft_product_id, mp.sku,
+${STOCK_COLUMNS}
+         FROM mintsoft_products mp
+        WHERE mp.mintsoft_product_id IN (${placeholders})`,
+    )
+    .bind(...mintsoftProductIds)
+    .all<{
+      mintsoft_product_id: number; sku: string
+      stock_rows: number; stock_rows_with_value: number; stock_available: number | null
+    }>()
+  return (results ?? []).map((r) => ({
+    mintsoftProductId: r.mintsoft_product_id,
+    sku: r.sku,
+    hasStockRecord: r.stock_rows > 0,
+    available: r.stock_rows === 0 || r.stock_rows_with_value < r.stock_rows ? null : r.stock_available,
+  }))
+}
+
+/**
+ * What mapping these lines will do to the product's stock figure, in words, or null when
+ * there is nothing worth saying.
+ *
+ * Deliberately not an error. A line awaiting its first shipment has no inventory record
+ * yet and is perfectly reasonable to map; the point is that the person doing it should
+ * not have to know the availability rules to see what follows.
+ */
+export function stockWarning(
+  lines: Pick<MintsoftLine, 'mintsoftProductId' | 'sku' | 'hasStockRecord' | 'available'>[],
+  { primaryMintsoftProductId }: { primaryMintsoftProductId?: number } = {},
+): string | null {
+  const recordless = lines.filter((l) => !l.hasStockRecord)
+  if (recordless.length === 0) return null
+
+  const names = recordless.map((l) => l.sku).join(', ')
+  const readable = lines.filter((l) => l.available !== null)
+  const floor = readable.reduce((n, l) => n + (l.available ?? 0), 0)
+
+  // Nothing readable anywhere: the product has no floor, so it cannot be ordered at all
+  // until one of these lines appears in the stock feed. The strongest thing to say.
+  if (readable.length === 0) {
+    return `Mintsoft has no stock record for ${names}, and ${lines.length === 1 ? 'that is the only line' : 'none of the other lines has one either'}. `
+      + 'Until one of them appears in the stock feed this product will show no stock and '
+      + 'orders for it will be refused. Map it if the shipment is still to land, but it '
+      + 'will not be orderable yet.'
+  }
+
+  const isPrimary = primaryMintsoftProductId !== undefined
+    && recordless.some((l) => l.mintsoftProductId === primaryMintsoftProductId)
+
+  return `Mintsoft has no stock record for ${names}, so this product will show at least `
+    + `${floor} rather than a total — the real figure may be higher and we cannot see it. `
+    + `Orders up to ${floor} are unaffected.`
+    + (isPrimary
+      // Orders fill from the primary first, and removing a primary later needs another
+      // line promoted first, so this is the one case worth steering away from up front.
+      ? ' That line is also set as the primary, which is where orders are placed first.'
+        + ' Pick a line with a stock figure as the primary instead.'
+      : '')
+}
+
+export interface ProductWithUnreadableLines {
+  productId: number
+  productName: string
+  active: boolean
+  /** Mapped lines Mintsoft has no inventory record for. */
+  recordlessLines: { mintsoftProductId: number; sku: string; isPrimary: boolean }[]
+  mappedLines: number
+  /** What the readable lines come to — what a site can actually order today. */
+  readableFloor: number
+  /**
+   * How many of the product's lines have a usable figure.
+   *
+   * Zero is a different thing from a floor of zero, and the two want saying differently.
+   * No readable line means no figure at all, which the approval guard refuses outright and
+   * which only a mapping change can resolve. Readable lines adding up to zero means the
+   * shelf is genuinely empty, which the next shipment resolves on its own.
+   */
+  readableLines: number
+}
+
+/**
+ * Products already mapped to a line Mintsoft has no stock record for.
+ *
+ * This is the half of the guard that pays for itself today. Three products are in this
+ * state right now and nothing anywhere surfaces them: one of them, Tea cups, had four
+ * orders signed off and shipped before a mapping change made it unorderable, and the
+ * first anyone knew was a GM's order being refused. Warning on new mappings would not
+ * have found any of them.
+ */
+export async function productsWithUnreadableLines(db: Database): Promise<ProductWithUnreadableLines[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT p.id AS product_id, p.name AS product_name, p.active,
+              pmm.mintsoft_product_id, pmm.sku, pmm.is_primary,
+              (SELECT COUNT(*) FROM product_mintsoft_map m WHERE m.product_id = p.id) AS mapped_lines,
+              (SELECT COALESCE(SUM(sc.available), 0)
+                 FROM product_mintsoft_map m
+                 JOIN stock_cache sc ON sc.mintsoft_product_id = m.mintsoft_product_id
+                WHERE m.product_id = p.id) AS readable_floor,
+              (SELECT COUNT(DISTINCT m.mintsoft_product_id)
+                 FROM product_mintsoft_map m
+                 JOIN stock_cache sc ON sc.mintsoft_product_id = m.mintsoft_product_id
+                WHERE m.product_id = p.id) AS readable_lines
+         FROM product_mintsoft_map pmm
+         JOIN products p ON p.id = pmm.product_id
+        WHERE NOT EXISTS (
+                SELECT 1 FROM stock_cache sc
+                 WHERE sc.mintsoft_product_id = pmm.mintsoft_product_id)
+        ORDER BY p.active DESC, p.name, pmm.is_primary DESC`,
+    )
+    .all<{
+      product_id: number; product_name: string; active: number
+      mintsoft_product_id: number; sku: string; is_primary: number
+      mapped_lines: number; readable_floor: number; readable_lines: number
+    }>()
+
+  const byProduct = new Map<number, ProductWithUnreadableLines>()
+  for (const r of results ?? []) {
+    const entry = byProduct.get(r.product_id) ?? {
+      productId: r.product_id,
+      productName: r.product_name,
+      active: r.active === 1,
+      recordlessLines: [],
+      mappedLines: r.mapped_lines,
+      readableFloor: r.readable_floor,
+      readableLines: r.readable_lines,
+    }
+    entry.recordlessLines.push({
+      mintsoftProductId: r.mintsoft_product_id, sku: r.sku, isPrimary: r.is_primary === 1,
+    })
+    byProduct.set(r.product_id, entry)
+  }
+  return [...byProduct.values()]
 }
 
 /** Adds further Mintsoft lines to a product that already exists. */
 export async function addLinesToProduct(
   db: Database, productId: number, mintsoftProductIds: number[],
-): Promise<number> {
+): Promise<MappingResult> {
   const ids = [...new Set(mintsoftProductIds)]
   if (ids.length === 0) throw new MappingError('Choose at least one Mintsoft line to add.')
 
@@ -245,7 +447,24 @@ export async function addLinesToProduct(
       ).bind(productId, id),
     ),
   )
-  return ids.length
+
+  // Every line the product now has, not just the new ones: the floor is the sum across
+  // all of them, so adding a recordless line to a product that already holds plenty is
+  // a far smaller thing to say than adding one to a product that holds nothing.
+  const { results: all } = await db
+    .prepare(`SELECT mintsoft_product_id, is_primary FROM product_mintsoft_map WHERE product_id = ?`)
+    .bind(productId)
+    .all<{ mintsoft_product_id: number; is_primary: number }>()
+  const primary = (all ?? []).find((r) => r.is_primary === 1)?.mintsoft_product_id
+
+  return {
+    productId,
+    lines: ids.length,
+    warning: stockWarning(
+      await stockPositionOf(db, (all ?? []).map((r) => r.mintsoft_product_id)),
+      { primaryMintsoftProductId: primary },
+    ),
+  }
 }
 
 /**

@@ -13,7 +13,7 @@ import { APPROVING_ROLES } from './db/types.ts'
 import { catalogueForSite, stockStatus } from './db/catalogue.ts'
 import {
   addLinesToProduct, createProductFromLines, duplicateSuggestions, MappingError,
-  setPrimaryLine, unmapLine, unmappedLines,
+  productsWithUnreadableLines, setPrimaryLine, unmapLine, unmappedLines,
 } from './db/mapping.ts'
 import {
   addToBasket, approvalQueue, approveOrder, cancelOrder, eventsForOrder, linesForOrder,
@@ -741,6 +741,12 @@ export const createApp = () => {
   app.get('/admin/mapping/unmapped', async (c) =>
     c.json({ lines: await unmappedLines(c.env.DB) }))
 
+  // Products already mapped to a line Mintsoft has no stock record for. Warning on new
+  // mappings does nothing about the ones that are already like that, and those are the
+  // ones costing orders today.
+  app.get('/admin/mapping/stock-gaps', async (c) =>
+    c.json({ products: await productsWithUnreadableLines(c.env.DB) }))
+
   app.post('/admin/mapping/products', async (c) => {
     try {
       const body = await c.req.json<{
@@ -748,8 +754,10 @@ export const createApp = () => {
         packSize?: number | null; unit?: string | null; rechargeUnitPrice?: number | null
         mintsoftProductIds: number[]; primaryMintsoftProductId: number
       }>()
-      const id = await createProductFromLines(c.env.DB, body)
-      return c.json({ productId: id }, 201)
+      const { productId, warning } = await createProductFromLines(c.env.DB, body)
+      // The warning is not an error: the product was created. It says what mapping a line
+      // Mintsoft has no stock record for will do to the figure GMs see.
+      return c.json({ productId, warning }, 201)
     } catch (err) {
       // Mapping errors are for a human to act on, so their message is the useful part.
       if (err instanceof MappingError) return c.json({ error: err.message }, 400)
@@ -761,8 +769,10 @@ export const createApp = () => {
   app.post('/admin/mapping/products/:productId/lines', async (c) => {
     try {
       const { mintsoftProductIds } = await c.req.json<{ mintsoftProductIds: number[] }>()
-      const added = await addLinesToProduct(c.env.DB, Number(c.req.param('productId')), mintsoftProductIds)
-      return c.json({ added })
+      const { lines, warning } = await addLinesToProduct(
+        c.env.DB, Number(c.req.param('productId')), mintsoftProductIds,
+      )
+      return c.json({ added: lines, warning })
     } catch (err) {
       if (err instanceof MappingError) return c.json({ error: err.message }, 400)
       if (err instanceof SyntaxError) return c.json({ error: 'bad_request' }, 400)

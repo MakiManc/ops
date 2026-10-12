@@ -7,6 +7,13 @@ import { btnSecondary, card, input } from './ui.ts'
  * Mintsoft's catalogue carries the same product several times over, once per shipment.
  * This is where an admin says "these four lines are one bowl", after which GMs see one
  * product with one stock figure. Nothing is ever changed in Mintsoft itself.
+ *
+ * It now says what each line's stock position is, because that was invisible here and it
+ * has consequences this screen causes. A line Mintsoft holds no inventory record for
+ * turns the product's figure into a floor, and if the other lines hold nothing, orders
+ * for the product are refused. Nothing is blocked -- a line awaiting its first shipment
+ * legitimately has no record -- but the primary defaults to a line that has a figure,
+ * since orders are placed against the primary first.
  */
 
 interface Line {
@@ -16,6 +23,31 @@ interface Line {
   ean: string | null
   mappedToProductId: number | null
   mappedToProductName: string | null
+  hasStockRecord: boolean
+  available: number | null
+}
+
+interface StockGap {
+  productId: number
+  productName: string
+  active: boolean
+  recordlessLines: { mintsoftProductId: number; sku: string; isPrimary: boolean }[]
+  mappedLines: number
+  readableFloor: number
+  readableLines: number
+}
+
+/** What a line's stock says, for the label beside it. */
+function StockNote({ line }: { line: Line }) {
+  if (!line.hasStockRecord) {
+    return (
+      <span className="text-amber-900">
+        {' '}· no stock record in Mintsoft
+      </span>
+    )
+  }
+  if (line.available === null) return <span className="text-amber-900">{' '}· stock figure unreadable</span>
+  return <span className="text-gray-600">{' '}· {line.available} free</span>
 }
 
 interface Suggestion {
@@ -37,9 +69,15 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
 
   const [name, setName] = useState(suggestion.lines[0]?.name ?? '')
   const [selected, setSelected] = useState<number[]>(unmapped.map((l) => l.mintsoftProductId))
-  const [primary, setPrimary] = useState<number | undefined>(unmapped[0]?.mintsoftProductId)
+  // Orders fill from the primary first, and a primary with no stock figure is both the
+  // worst choice and the hardest to undo -- unmapping one needs another line promoted
+  // first. So the default is a line that has a figure, where there is one.
+  const [primary, setPrimary] = useState<number | undefined>(
+    (unmapped.find((l) => l.hasStockRecord) ?? unmapped[0])?.mintsoftProductId,
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [warning, setWarning] = useState<string | null>(null)
 
   const submit = async () => {
     setBusy(true); setError(null)
@@ -60,11 +98,14 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
               mintsoftProductIds: selected, primaryMintsoftProductId: primary,
             }),
           })
+      const body = await res.json().catch(() => ({})) as { error?: string; warning?: string | null }
       if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string }
         setError(body.error ?? 'That could not be saved.')
         return
       }
+      // Saved. If mapping a line with no stock record changed what GMs will see, say so
+      // and leave it on screen -- the work is done, but somebody has to know.
+      if (body.warning) { setWarning(body.warning); return }
       onDone()
     } catch {
       setError('That could not be saved.')
@@ -112,6 +153,7 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
               <label htmlFor={`line-${l.mintsoftProductId}`} className="text-gray-900">
                 <span className="font-mono text-sm">{l.sku}</span>
                 <span className="text-gray-700"> · {l.name ?? 'no name'}</span>
+                <StockNote line={l} />
               </label>
             </li>
           ))}
@@ -132,6 +174,7 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
             {unmapped.filter((l) => selected.includes(l.mintsoftProductId)).map((l) => (
               <option key={l.mintsoftProductId} value={l.mintsoftProductId}>
                 {l.sku} — {l.name ?? 'no name'}
+                {l.hasStockRecord ? '' : ' (no stock record)'}
               </option>
             ))}
           </select>
@@ -140,13 +183,93 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
 
       {error && <p role="alert" className="mt-3 text-red-800 bg-red-50 border border-red-300 rounded p-2">{error}</p>}
 
-      <button
-        onClick={() => void submit()}
-        disabled={busy || selected.length === 0 || (!alreadyMapped && !name.trim())}
-        className={`mt-3 ${btnSecondary}`}
-      >
-        {busy ? 'Saving…' : alreadyMapped ? 'Add to that product' : 'Combine into one product'}
-      </button>
+      {warning ? (
+        <div className="mt-3 space-y-2">
+          <p role="status" className="text-amber-900 bg-amber-50 border border-amber-400 rounded p-2">
+            <strong>Saved.</strong> {warning}
+          </p>
+          <button onClick={onDone} className={btnSecondary}>Done</button>
+        </div>
+      ) : (
+        <button
+          onClick={() => void submit()}
+          disabled={busy || selected.length === 0 || (!alreadyMapped && !name.trim())}
+          className={`mt-3 ${btnSecondary}`}
+        >
+          {busy ? 'Saving…' : alreadyMapped ? 'Add to that product' : 'Combine into one product'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Products already mapped to a line Mintsoft has no stock record for.
+ *
+ * Warning on new mappings does nothing about the ones that are already like that, and
+ * those are the ones costing orders. Tea cups had four orders signed off and shipped and
+ * then went unorderable with 577 units in Witham; the first anyone knew was a GM's order
+ * being refused three weeks later.
+ */
+function StockGaps({ products }: { products: StockGap[] }) {
+  if (products.length === 0) return null
+  return (
+    <div className={`${card} border-amber-400 bg-amber-50`}>
+      <h3 className="font-semibold text-gray-900">
+        {products.length} mapped {products.length === 1 ? 'product has' : 'products have'} a
+        line with no stock record
+      </h3>
+      <p className="mt-1 text-sm text-gray-700">
+        Mintsoft holds no inventory record for these lines, so each product&apos;s stock
+        figure is a floor rather than a total. Unmap the line, or leave it if its shipment
+        is still to land.
+      </p>
+      <ul className="mt-3 space-y-3">
+        {products.map((p) => (
+          <li key={p.productId}>
+            <p className="text-gray-900">
+              <strong>{p.productName}</strong>
+              {!p.active && <span className="text-gray-600"> (not in the catalogue)</span>}
+            </p>
+            <p className="text-sm text-gray-700">
+              {p.recordlessLines.length} of {p.mappedLines} lines:{' '}
+              {p.recordlessLines.map((l) => (
+                <span key={l.mintsoftProductId} className="font-mono">
+                  {l.sku}{l.isPrimary ? ' (primary)' : ''}{' '}
+                </span>
+              ))}
+            </p>
+            <p className="text-sm">
+              {/* Three different situations, and only the first is a mapping problem.
+                  No readable line at all means no figure, which the approval guard
+                  refuses outright. Readable lines adding to zero means the shelf is
+                  empty, which the next shipment fixes by itself. */}
+              {p.readableLines === 0 ? (
+                <span className="text-red-900 font-medium">
+                  No line has a stock figure, so this cannot be ordered at all until one
+                  appears in the feed.
+                </span>
+              ) : p.readableFloor === 0 ? (
+                <span className="text-gray-700">
+                  The {p.readableLines} readable {p.readableLines === 1 ? 'line holds' : 'lines hold'}{' '}
+                  nothing, so there is nothing to order today — though the real figure may
+                  be higher than zero and we cannot see it.
+                </span>
+              ) : (
+                <span className="text-gray-700">
+                  Sites can order up to {p.readableFloor}; the real figure may be higher.
+                </span>
+              )}
+              {p.recordlessLines.some((l) => l.isPrimary) && (
+                <span className="text-amber-900">
+                  {' '}Orders are placed against the primary first — promote a line that has
+                  a figure.
+                </span>
+              )}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -154,17 +277,22 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
 export function Mapping() {
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null)
   const [unmappedCount, setUnmappedCount] = useState<number | null>(null)
+  const [stockGaps, setStockGaps] = useState<StockGap[]>([])
   const [error, setError] = useState(false)
 
   const load = useCallback(async () => {
     try {
-      const [s, u] = await Promise.all([
+      const [s, u, g] = await Promise.all([
         fetch('/api/admin/mapping/suggestions', { credentials: 'same-origin' }),
         fetch('/api/admin/mapping/unmapped', { credentials: 'same-origin' }),
+        fetch('/api/admin/mapping/stock-gaps', { credentials: 'same-origin' }),
       ])
       if (!s.ok || !u.ok) throw new Error('failed')
       setSuggestions((await s.json() as { suggestions: Suggestion[] }).suggestions)
       setUnmappedCount((await u.json() as { lines: Line[] }).lines.length)
+      // The gaps panel is useful, not essential: a failure there must not take the
+      // mapping tool down with it.
+      setStockGaps(g.ok ? (await g.json() as { products: StockGap[] }).products : [])
     } catch {
       setError(true)
     }
@@ -186,6 +314,8 @@ export function Mapping() {
       <p className="text-sm text-gray-600" role="status">
         {unmappedCount} warehouse {unmappedCount === 1 ? 'line is' : 'lines are'} not mapped yet.
       </p>
+
+      <StockGaps products={stockGaps} />
 
       {suggestions.length === 0 ? (
         <p className="text-gray-700">
