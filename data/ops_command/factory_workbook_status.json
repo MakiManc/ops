@@ -1,0 +1,19 @@
+{
+ "attempted_at": "2026-10-12T18:41:09Z",
+ "cause": "ok",
+ "detail": "read both tabs",
+ "failing_since": null,
+ "http_status": 200,
+ "last_ok_at": "2026-10-12T18:41:09Z",
+ "ok": true,
+ "parts": {
+  "site_orders": {
+   "cause": "ok",
+   "detail": "read both tabs"
+  },
+  "stocktake": {
+   "cause": "ok",
+   "detail": "read both tabs"
+  }
+ }
+}

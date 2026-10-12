@@ -1,0 +1,112 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W41",
+ "from": "2026-10-05",
+ "to": "2026-10-11",
+ "generated_on": "2026-10-12",
+ "updated_on": "2026-10-12",
+ "final": true,
+ "issue_feed_through": "2026-10-11",
+ "forms": 6,
+ "deliveries": 67,
+ "deliveries_counted": 67,
+ "rate": 91.0,
+ "not_measured": null,
+ "credit_flagged": 2,
+ "by_site": [
+  {
+   "site": "AA Factory1 Limited",
+   "forms": 3
+  },
+  {
+   "site": "Fountain Good Food Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki Newcastle Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 4
+  },
+  {
+   "category": "damage_quality",
+   "forms": 1
+  },
+  {
+   "category": "temperature",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-10-06",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "Missing Cider Vinegar",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-06",
+   "site": "Maki SJQ Ltd",
+   "category": "damage_quality",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "One case of ramen is in bad quality, the ramen hard like a rock, please credit. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-08",
+   "site": "Fountain Good Food Ltd",
+   "category": "temperature",
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Sent half as much frozen ramen as on the invoice (claims 7 boxes of 10 but we received 7 boxes of 5)",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-09",
+   "site": "Maki Newcastle Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "lack of one box laksa frozen ramen\n",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-10",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Missing White Truffle FLavor Oil.",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-10",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Missing 1 case of Chicken Fillet Sliced.",
+   "credit_flag": false
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-10-12"
+}
