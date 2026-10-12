@@ -355,7 +355,8 @@ FORMS = {"L1": ("2026-10-06", "Lynas", "missing panko"),
          "F2": ("2026-10-20", "AA Factory", "late delivery"),
          "F3": ("2026-10-22", "AA Factory", "chilli oil damaged"),
          "L3": ("2026-10-23", "Lynas", "missing tom yum, exploded Soba sauce"),
-         "L4": ("2026-10-24", "Lynas", "prawn crackers short, crushed chilli for the broth")}
+         "L4": ("2026-10-24", "Lynas", "prawn crackers short, crushed chilli for the broth"),
+         "J1": ("2026-10-25", "JFC", "soy sauce bottle broken")}
 ORDERS = [{"Order Ref": f"O{s}{d}", "Supplier": s, "Site": "Maki Test", "Delivery Date ISO": d,
            "Order Email Date": d, "Order Value GBP": "100", "Line Items": "3", "Items Ordered": "10",
            "Order Placed At": d + "T06:00:00"}
@@ -423,12 +424,12 @@ if p.returncode == 0:
     check("Lynas" in (k5b.get("basis") or "") and "Harro 100%" in (k5b.get("basis") or ""),
           "...and its basis lists each supplier's rate")
     k2 = var(("OO4", "KR2"), "2026-10")
-    check(k2.get("value") == 1 and k2.get("score") == 100 and not k2.get("incomplete")
-          and "2026-10-14" in (k2.get("basis") or ""),
-          f"OO4 KR2 October: 1 factory form names damage to a broth line (the chilli-oil and late ones do not) -> 100 (got {k2.get('value')}, {k2.get('score')})")
+    check(k2.get("value") == 2 and k2.get("score") == 100 and not k2.get("incomplete")
+          and "2026-10-14" in (k2.get("basis") or "") and "2026-10-23 Maki Test (Lynas)" in (k2.get("basis") or ""),
+          f"OO4 KR2 October: the factory's broth tub AND Lynas's exploded soba sauce count (Ross, 11/10); the chilli oil, the late one, crackers and crushed chilli do not -> 2, 100 (got {k2.get('value')}, {k2.get('score')})")
     check("NOT COUNTED: 1 form(s) naming another supplier" in (k2.get("basis") or "")
-          and "2026-10-23 Lynas" in (k2.get("basis") or ""),
-          "...and the broth-sauce damage filed against Lynas is named, not counted (crackers and crushed chilli are not damage)")
+          and "2026-10-25 JFC" in (k2.get("basis") or ""),
+          "...and another supplier's sauce (JFC soy sauce, a bought-in product) is named, not counted")
     k2n = var(("OO4", "KR2"), "2026-11")
     check(k2n.get("mtd") and k2n.get("score") is None, "OO4 KR2 November: month to date, unscored")
     st = snap["suppliers"]["statements"]

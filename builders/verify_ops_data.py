@@ -132,6 +132,9 @@ OKR_SHEET_PATH = os.path.join(OUT_DIR, "okr_sheet.json")
 OKR_SHEET_STATUS_PATH = os.path.join(OUT_DIR, "okr_sheet_status.json")
 CONTACTS_PATH = os.path.join(OUT_DIR, "maintenance_contacts.json")
 CONTACTS_STATUS_PATH = os.path.join(OUT_DIR, "maintenance_contacts_status.json")
+# Phase 3: the factory's Weekly Report workbook (OO5 KR3 and KR5's site orders)
+FACTORY_WB_PATH = os.path.join(OUT_DIR, "factory_workbook.json")
+FACTORY_WB_STATUS_PATH = os.path.join(OUT_DIR, "factory_workbook_status.json")
 #: The only values an OO1 score may take (Finance scores in these four steps).
 OO1_SCORE_SET = (0, 50, 80, 100)
 #: How stale the hand-entered sheet may get before the page is lying by
@@ -705,7 +708,9 @@ def _snapshot_aggregates(snap: dict) -> dict:
 #: What the recompute needs beside bake_ops_command.py and archive_source.py
 #: (Phase 2): the modules the bake imports from its own directory, and the
 #: folders of files it reads back.
-RECOMPUTE_MODULES = ("supplier_statements.py", "okr_pack.py")
+RECOMPUTE_MODULES = ("supplier_statements.py", "okr_pack.py",
+                     # Phase 3: OO5 KR3/KR5
+                     "factory_kpis.py")
 RECOMPUTE_DIRS = ("supplier_statements", "okr_pack")
 
 
@@ -763,8 +768,10 @@ def check_consistency(pg_latest: str, snap_latest: str):
         # ...and the Operations Input sheet and contact list copies (Phase 1),
         # or the recompute greys ten KRs the live bake scored - and the OO1
         # check below would pass on rows that never carried a score at all.
+        # Phase 3 adds the factory workbook copy, or the recompute greys OO5
+        # KR3 and counts KR5 without its site orders.
         for _sp in (OKR_SHEET_PATH, OKR_SHEET_STATUS_PATH, CONTACTS_PATH,
-                    CONTACTS_STATUS_PATH):
+                    CONTACTS_STATUS_PATH, FACTORY_WB_PATH, FACTORY_WB_STATUS_PATH):
             if os.path.exists(_sp):
                 shutil.copy(_sp, os.path.join(tmp, "data", "ops_command",
                                               os.path.basename(_sp)))
