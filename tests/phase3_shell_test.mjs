@@ -70,6 +70,16 @@ function fixture() {
         basis: 'not scored - an INCOMPLETE month: no pull of the issue-form feed covers 20/09, 21/09, 22/09, so 75.0% is an upper bound - (a) PO UK 16238 (collected 17/09) NOT IN FULL - short MR005 1 carton' }),
       v('2026-10', { mtd: true, basis: 'month-to-date, not yet scored - the site-orders table is not counted. So far: 100.0% (2 of 2)' })],
   });
+  Object.assign(row('OO5', 'KR4'), {
+    source_kind: 'computed', tab: 'p-tasks', not_measured: null, value: 100.0, display: '100.0% (360 of 360)',
+    score: 100, rag: 'green', mtd: false, coverage_days: 10,
+    basis: '360 of 360 scheduled tasks at AA Factory1 Limited due in October 2026 were done on time. No task missed on the days covered.',
+    months: [
+      v('2026-08', { value: 94.0, display: '94.0% (893 of 949) - 27 of 31 days', incomplete: true,
+        basis: 'not scored - an INCOMPLETE month: no pull of the feed covers 01/08, 02/08, 03/08, 04/08, so 27 of 31 days are counted' }),
+      v('2026-10', { value: 100.0, display: '100.0% (360 of 360)', score: 100, rag: 'green', coverage_days: 10,
+        basis: '360 of 360 scheduled tasks at AA Factory1 Limited due in October 2026 were done on time. No task missed on the days covered.' })],
+  });
   s.scorecard.operating_kpis = (sc.operating_kpis || []).filter(k => k.kr !== 'Stock variance');
   const st = sc.operating_kpis.find(k => k.kr === 'Scheduled task on-time');
   if (st) Object.assign(st, { target: '>=95%', value: 98.7, display: '98.7%', rag: 'green',
@@ -122,6 +132,18 @@ const kr3 = t => /Stock|stocktake|variance/i.test(t) && /OO5|KR3/.test(t);
     assert(r3 && want(r3), 'OO5 KR3 ' + label + (r3 ? '' : ' (row not found)'));
     assert(r3 && !/undefined|NaN|\bnull\b/.test(r3), `OO5 KR3 ${m}: no undefined/NaN/null on the page`);
   }
+  await page.selectOption('#sc-month', '2026-09');
+  await page.waitForTimeout(250);
+  await page.selectOption('#sc-month', '2026-08');
+  await page.waitForTimeout(250);
+  const r4a = (await rowsOf(page)).find(t => /Aggregated Weekly Compliance/.test(t));
+  assert(r4a && /94\.0% \(893 of 949\)/.test(r4a) && /27 of 31 days/.test(r4a) && /INCOMPLETE/.test(r4a),
+    'OO5 KR4 August: the count shown, 27 of 31 days, NOT scored');
+  await page.selectOption('#sc-month', '2026-10');
+  await page.waitForTimeout(250);
+  const r4o = (await rowsOf(page)).find(t => /Aggregated Weekly Compliance/.test(t));
+  assert(r4o && /100\.0% \(360 of 360\)/.test(r4o) && /\b100\b/.test(r4o) && !/undefined|NaN/.test(r4o),
+    'OO5 KR4 October: 360 of 360 on time, scored 100');
   await page.selectOption('#sc-month', '2026-09');
   await page.waitForTimeout(250);
   const r5 = (await rowsOf(page)).find(t => /KR5/.test(t) && /[Pp]roduction|in full/.test(t));

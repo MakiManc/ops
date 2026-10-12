@@ -466,7 +466,7 @@ OKR_PENDING = {
     ("OO4", "KR3"): "internal orders marked received in Kobas; Phase 2. Step 0 found internal orders CAN be isolated (factory as sending venue) but carry no received status at all, so this may stay grey",
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
-    ("OO5", "KR4"): "factory scheduled-task on-time from GetCompliant; Phase 3",
+    ("OO5", "KR4"): "the factory's scheduled tasks done on time, from GetCompliant (builders/factory_kpis.py) - needs the 'GC Scheduled Task Answers' feed",
     ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the factory's site-orders table (builders/factory_kpis.py)",
     ("OO6", "KR1"): "no agreed measure. Ross signs one off after Step 0 before anything is built",
     ("OO6", "KR2"): "no agreed measure, and no dated demand event exists in any feed to build one from",
@@ -3247,6 +3247,40 @@ def main():
       "per-site bars/table and the drill-down; deleted rows excluded; drill-down capped "
       f"at {TASK_DRILLDOWN_CAP} rows per site, most recent due date first (see "
       "'total'/'truncated' per site for anything past the cap)"}
+    # ---- OO5 KR4: the FACTORY's scheduled tasks, across EVERY pull (Phase 3) ----
+    # Ross, 12/10/2026: "AA Factory1 only, GetCompliant, count missed days".
+    # Unlike the estate block above (newest pull only), the factory's count is
+    # taken over the union of all pulls - each pull holds 8 days of ANSWERS, so
+    # a task answered before its due day drops out of later pulls and one pull
+    # under-counts. See factory_kpis.factory_task_days for the rule.
+    fac_tasks=None
+    if has_feed(cur,factory_kpis.TASK_FEED):
+        cur.execute("SELECT DISTINCT pull_date::text FROM etl_feed_rows WHERE feed=%s",
+                    (factory_kpis.TASK_FEED,))
+        _tp=[r_[0] for r_ in cur.fetchall()]
+        cur.execute(
+          "SELECT pull_date::text, data->>'DueDateTime', "
+          "  data->>'IsSystemOverdue', nullif(data->>'AnswerID',''), data->>'IsDeleted', "
+          "  CASE WHEN coalesce(data->>'LocalTaskId','')<>'' AND coalesce(data->>'TaskID','')<>'' "
+          "       THEN (data->>'LocalTaskId')||'|'||(data->>'TaskID') END "
+          "FROM etl_feed_rows WHERE feed=%s AND data->>'LocationNameLabel'=%s",
+          (factory_kpis.TASK_FEED, factory_kpis.TASK_LOCATION))
+        fac_tasks=factory_kpis.factory_task_days(
+            cur.fetchall(), _tp, upto=(asof-datetime.timedelta(days=1)).isoformat())
+    if fac_tasks:
+        snap["factory_tasks"]={
+          "location":factory_kpis.TASK_LOCATION,
+          "days":[{"d":d_,**fac_tasks["days"][d_]} for d_ in fac_tasks["covered"]],
+          "holes":fac_tasks["holes"],"first":fac_tasks["first"],"last":fac_tasks["last"],
+          "pulls":fac_tasks["pulls"],"months":factory_kpis.task_month_facts(fac_tasks),
+          "basis":("per due day, the scheduled GetCompliant tasks at "+factory_kpis.TASK_LOCATION
+                   +" done on time (IsSystemOverdue false, counted once per task - LocalTaskId + "
+                   "TaskID + DueDateTime, the AnswerID where those are missing - across every "
+                   "pull of '"+factory_kpis.TASK_FEED+"') and missed (auto-closed, counted from "
+                   "the pull holding most of them for the day); 'holes' are days no pull covers. "
+                   "'months' is what the verifier stores in ops_daily_aggregates.jsonl (metric "
+                   "'"+factory_kpis.TASK_MONTH_METRIC+"') so a closed month stays scoreable "
+                   "after its pulls are gone")}
     # ---- supply / projected spend this week, by site + supplier ----
     # Ross, 17 Aug: replace the "orders outstanding" aging/backlog framing
     # with a forward-looking view - what do we expect to SPEND this week,
@@ -6213,6 +6247,26 @@ def main():
         _k5g = [f"OO5 KR5 is grey: {_k5['not_measured']}"]
     _okr_extra[("OO5", "KR5")] = _k5
     gaps.extend(_k5g)
+    # OO5 KR4 (Ross, 12/10/2026): AA Factory1's scheduled tasks on time, over
+    # every pull; a month whose pulls are gone falls back to the count the
+    # verifier stored for it in the aggregates archive.
+    _k4_stored = {}
+    for r_ in agg:
+        if (r_.get("metric") == factory_kpis.TASK_MONTH_METRIC
+                and r_.get("site") == factory_kpis.TASK_LOCATION and r_.get("metric_date")):
+            _k4_stored[str(r_["metric_date"])[:7]] = {
+                "on_time": r_.get("v1"), "missed": r_.get("v2"), "days": r_.get("v3"),
+                "updated_at": r_.get("updated_at")}
+    try:
+        _k4, _k4g = factory_kpis.kr4_months(
+            fac_tasks, _k4_stored, _pm2, OTIF_FIRST_MONTH, _mvar,
+            lambda v: okr_score("comp", v), _rag_of)
+    except Exception as e:  # noqa: BLE001
+        _k4 = {"months": None, "source_kind": "not_measured",
+               "not_measured": f"the factory's scheduled tasks could not be counted ({type(e).__name__})"}
+        _k4g = [f"OO5 KR4 is grey: {_k4['not_measured']}"]
+    _okr_extra[("OO5", "KR4")] = _k4
+    gaps.extend(_k4g)
 
     # --- the month-to-date rule (Ross, 09/10/2026) -------------------------
     # See OKR_MTD_MIN_DAYS. "Days of source data" is measured per KR from what

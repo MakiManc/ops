@@ -1419,6 +1419,14 @@ CREATE TABLE IF NOT EXISTS ops_daily_aggregates (
 """
 
 
+#: OO5 KR4's per-month factory count (factory_kpis.TASK_MONTH_METRIC - the
+#: name is repeated here so the verifier needs no import of the bake's module).
+FACTORY_MONTH_METRIC = "factory_tasks_month"
+#: Metrics whose v3 is "days covered": a row is only replaced by one covering
+#: at least as many days.
+KEEP_MORE_DAYS = frozenset({FACTORY_MONTH_METRIC})
+
+
 def archive_aggregates(conn, snap: dict | None) -> None:
     """Upsert per-site daily aggregates from the recomputed snapshot.
 
@@ -1451,6 +1459,16 @@ def archive_aggregates(conn, snap: dict | None) -> None:
             per[k] = (tot + 1, op + (1 if i.get("open") else 0))
     for (d, site), (tot, op) in per.items():
         rows.append((d, site, "supplier_issues", tot, op, None))
+    # Phase 3 (Ross, 12/10/2026): OO5 KR4's per-MONTH count for the factory -
+    # on time, missed, days covered - so a closed month stays scoreable after
+    # the pulls behind it are gone. v3 is the days covered; a later run that
+    # covers FEWER days of a month (its early pulls trimmed) never overwrites a
+    # better count (see KEEP_MORE_DAYS below).
+    _ft = snap.get("factory_tasks") or {}
+    for f in _ft.get("months") or []:
+        if f.get("m") and _ft.get("location") and (f.get("days") or 0) > 0:
+            rows.append((f["m"] + "-01", _ft["location"], FACTORY_MONTH_METRIC,
+                         f.get("on_time") or 0, f.get("missed") or 0, f.get("days") or 0))
     if not rows:
         add("aggregates", "warning",
             "recomputed snapshot had no aggregatable cells - nothing "
@@ -1473,6 +1491,10 @@ def archive_aggregates(conn, snap: dict | None) -> None:
                             current[(r["metric_date"], r["site"],
                                      r["metric"])] = r
             for d, site, metric, v1, v2, v3 in rows:
+                old = current.get((d, site, metric))
+                if (metric in KEEP_MORE_DAYS and old
+                        and (old.get("v3") or 0) > (v3 or 0)):
+                    continue        # the stored count covers more days
                 current[(d, site, metric)] = {
                     "metric_date": d, "site": site, "metric": metric,
                     "v1": v1, "v2": v2, "v3": v3, "updated_at": utcnow()}
@@ -1500,7 +1522,15 @@ def archive_aggregates(conn, snap: dict | None) -> None:
                 "VALUES (%s,%s,%s,%s,%s,%s) "
                 "ON CONFLICT (metric_date, site, metric) DO UPDATE SET "
                 "v1=EXCLUDED.v1, v2=EXCLUDED.v2, v3=EXCLUDED.v3, "
-                "updated_at=now()", rows)
+                "updated_at=now()", [r for r in rows if r[2] not in KEEP_MORE_DAYS])
+            cur.executemany(
+                "INSERT INTO ops_daily_aggregates "
+                "(metric_date, site, metric, v1, v2, v3) "
+                "VALUES (%s,%s,%s,%s,%s,%s) "
+                "ON CONFLICT (metric_date, site, metric) DO UPDATE SET "
+                "v1=EXCLUDED.v1, v2=EXCLUDED.v2, v3=EXCLUDED.v3, updated_at=now() "
+                "WHERE coalesce(ops_daily_aggregates.v3, 0) <= coalesce(EXCLUDED.v3, 0)",
+                [r for r in rows if r[2] in KEEP_MORE_DAYS])
         conn.commit()
         add("aggregates", "ok",
             f"{len(rows)} per-site daily aggregate rows upserted "
