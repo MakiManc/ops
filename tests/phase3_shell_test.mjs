@@ -73,12 +73,12 @@ function fixture() {
   Object.assign(row('OO5', 'KR4'), {
     source_kind: 'computed', tab: 'p-tasks', not_measured: null, value: 100.0, display: '100.0% (360 of 360)',
     score: 100, rag: 'green', mtd: false, coverage_days: 10,
-    basis: '360 of 360 scheduled tasks at AA Factory1 Limited due in October 2026 were done on time. No task missed.',
+    basis: '360 of 360 scheduled tasks at AA Factory1 Limited due in October 2026 were done on time. No task missed on the days covered.',
     months: [
       v('2026-08', { value: 94.0, display: '94.0% (893 of 949) - 27 of 31 days', incomplete: true,
         basis: 'not scored - an INCOMPLETE month: no pull of the feed covers 01/08, 02/08, 03/08, 04/08, so 27 of 31 days are counted' }),
       v('2026-10', { value: 100.0, display: '100.0% (360 of 360)', score: 100, rag: 'green', coverage_days: 10,
-        basis: '360 of 360 scheduled tasks at AA Factory1 Limited due in October 2026 were done on time. No task missed.' })],
+        basis: '360 of 360 scheduled tasks at AA Factory1 Limited due in October 2026 were done on time. No task missed on the days covered.' })],
   });
   s.scorecard.operating_kpis = (sc.operating_kpis || []).filter(k => k.kr !== 'Stock variance');
   const st = sc.operating_kpis.find(k => k.kr === 'Scheduled task on-time');

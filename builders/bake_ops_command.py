@@ -3259,8 +3259,10 @@ def main():
                     (factory_kpis.TASK_FEED,))
         _tp=[r_[0] for r_ in cur.fetchall()]
         cur.execute(
-          "SELECT pull_date::text, left(data->>'DueDateTime',10), "
-          "  data->>'IsSystemOverdue', nullif(data->>'AnswerID',''), data->>'IsDeleted' "
+          "SELECT pull_date::text, data->>'DueDateTime', "
+          "  data->>'IsSystemOverdue', nullif(data->>'AnswerID',''), data->>'IsDeleted', "
+          "  CASE WHEN coalesce(data->>'LocalTaskId','')<>'' AND coalesce(data->>'TaskID','')<>'' "
+          "       THEN (data->>'LocalTaskId')||'|'||(data->>'TaskID') END "
           "FROM etl_feed_rows WHERE feed=%s AND data->>'LocationNameLabel'=%s",
           (factory_kpis.TASK_FEED, factory_kpis.TASK_LOCATION))
         fac_tasks=factory_kpis.factory_task_days(
@@ -3272,7 +3274,8 @@ def main():
           "holes":fac_tasks["holes"],"first":fac_tasks["first"],"last":fac_tasks["last"],
           "pulls":fac_tasks["pulls"],"months":factory_kpis.task_month_facts(fac_tasks),
           "basis":("per due day, the scheduled GetCompliant tasks at "+factory_kpis.TASK_LOCATION
-                   +" done on time (IsSystemOverdue false, counted once by AnswerID across every "
+                   +" done on time (IsSystemOverdue false, counted once per task - LocalTaskId + "
+                   "TaskID + DueDateTime, the AnswerID where those are missing - across every "
                    "pull of '"+factory_kpis.TASK_FEED+"') and missed (auto-closed, counted from "
                    "the pull holding most of them for the day); 'holes' are days no pull covers. "
                    "'months' is what the verifier stores in ops_daily_aggregates.jsonl (metric "

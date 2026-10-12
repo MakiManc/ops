@@ -910,8 +910,9 @@ def _true(v) -> bool:
 def factory_task_days(rows, pulls, upto=None):
     """Per due day, the factory's scheduled tasks done on time and missed.
 
-    rows   (pull_date, due_day, is_system_overdue, answer_id, is_deleted), the
-           factory location's rows from EVERY pull of the feed
+    rows   (pull_date, due, is_system_overdue, answer_id, is_deleted[, task]),
+           the factory location's rows from EVERY pull of the feed; due is
+           DueDateTime, task "LocalTaskId|TaskID" (None when either is missing)
     pulls  every pull date of the feed, factory rows or not
     upto   the last day that may count (the bake's date - 1)
 
@@ -920,14 +921,18 @@ def factory_task_days(rows, pulls, upto=None):
     out of the later pulls that still cover that day (the factory's probe
     calibrations, answered days early) - the newest pull, and the per-day
     aggregates written from it, under-count on-time tasks. So: a task done ON
-    TIME (IsSystemOverdue false) is counted once by its AnswerID over the union
-    of all pulls; a MISSED one (IsSystemOverdue true, auto-closed with no
-    AnswerID) is counted from the pull holding the most of them for that day -
-    every pull covering a day holds the same missed count. Bucketed on the due
-    date. Deleted rows are left out.
+    TIME (IsSystemOverdue false) is counted once over the union of all pulls -
+    once per TASK (LocalTaskId + TaskID + DueDateTime), not per answer: a task
+    answered twice carries two AnswerIDs (review, 12/10/2026 - ~2% of tasks
+    at the other sites; none at the factory yet), and the AnswerID is the key
+    only where the task ids are missing. A MISSED one (IsSystemOverdue true,
+    auto-closed with no AnswerID) is counted from the pull holding the most of
+    them for that day - every pull covering a day holds the same missed count.
+    Bucketed on the due date. Deleted rows are left out.
 
     -> {"days": {d: {"on_time", "missed"}}, "covered": [d...], "holes": [d...],
-        "first": d, "last": d, "pulls": n} or None when there is no pull.
+        "first": d, "last": d, "upto": d, "pulls": n} or None when there is no
+        pull.
     """
     ps = sorted({str(p)[:10] for p in pulls or [] if p})
     if not ps:
@@ -949,16 +954,22 @@ def factory_task_days(rows, pulls, upto=None):
         if d.isoformat() not in cov:
             holes.append(d.isoformat())
         d += datetime.timedelta(days=1)
+    rows = [tuple(r) + (None,) * (6 - len(r)) for r in rows or []]
+    # an answer seen with its task ids in any pull keeps that task's key in
+    # the pulls that lack them, so one answer is never counted under both
+    by_aid = {str(aid): (task, str(due)) for _, due, _, aid, _, task in rows if aid and task}
     answered, noid, missed = {}, {}, {}
-    for p, due, overdue, aid, deleted in rows or []:
-        due = str(due or "")[:10]
+    for p, due_at, overdue, aid, deleted, task in rows:
+        due = str(due_at or "")[:10]
         if not due or _true(deleted):
             continue
         if _true(overdue):
             k = (due, str(p)[:10])
             missed[k] = missed.get(k, 0) + 1
-        elif aid:
-            answered.setdefault(str(aid), due)
+        elif aid or task:
+            key = ((task, str(due_at)) if task
+                   else by_aid.get(str(aid)) or ("answer", str(aid)))
+            answered.setdefault(key, due)
         else:
             k = (due, str(p)[:10])
             noid[k] = noid.get(k, 0) + 1
@@ -972,7 +983,7 @@ def factory_task_days(rows, pulls, upto=None):
     days = {d: {"on_time": on.get(d, 0) + _most(noid, d), "missed": _most(missed, d)}
             for d in covered}
     return {"days": days, "covered": covered, "holes": holes, "first": first,
-            "last": last, "pulls": len(ps)}
+            "last": last, "upto": upto or last, "pulls": len(ps)}
 
 
 def task_month_facts(info) -> list[dict]:
@@ -1002,10 +1013,10 @@ def kr4_months(info, stored, pull_month, first_month, mvar, score_fn, rag_fn,
     month counts its covered days for the month-to-date rule.
     """
     gaps = []
+    absent = feed_absent_why or f"the '{TASK_FEED}' feed is absent from this bake"
     if info is None and not stored:
-        why = feed_absent_why or f"the '{TASK_FEED}' feed is absent from this bake"
-        return {"months": None, "source_kind": "not_measured", "not_measured": why}, \
-            [f"OO5 KR4 (factory scheduled tasks on time) is grey: {why}"]
+        return {"months": None, "source_kind": "not_measured", "not_measured": absent}, \
+            [f"OO5 KR4 (factory scheduled tasks on time) is grey: {absent}"]
     note = (f"Scheduled GetCompliant tasks at {TASK_LOCATION} only (Ross, 12/10/2026 - 'AA "
             "Factory' tasks set up at other locations are not counted): a task is ON TIME when "
             "GetCompliant's own flag says it was done by its due time, and every other task "
@@ -1028,19 +1039,27 @@ def kr4_months(info, stored, pull_month, first_month, mvar, score_fn, rag_fn,
             on, ms, src = int(st.get("on_time") or 0), int(st.get("missed") or 0), "stored"
         n = on + ms
         ndays = len(cdays) if src == "union" else int(st.get("days") or 0)
-        last = (info or {}).get("last") or ""
-        span_end = min(me, last) if (open_ and last) else me
+        upto = (info or {}).get("upto") or (info or {}).get("last") or ""
+        span_end = min(me, upto) if (open_ and upto) else me
         span = [(datetime.date.fromisoformat(m + "-01") + datetime.timedelta(days=k)).isoformat()
                 for k in range((datetime.date.fromisoformat(span_end)
                                 - datetime.date.fromisoformat(m + "-01")).days + 1)] \
             if span_end >= m + "-01" else []
         uncovered = ([d for d in span if d not in set(cdays)] if src == "union"
                      else ([] if ndays >= len(span) else ["(not recorded)"]))
+        # the open month names the days it has not seen - holes, and a tail
+        # the newest pull does not reach yet (review, 12/10/2026)
+        unseen = (f". Not counted yet: no pull of the feed covers "
+                  f"{', '.join(dmy(d)[:5] for d in uncovered)}"
+                  if (open_ and src == "union" and uncovered) else "")
         if n == 0:
-            if open_:
+            if info is None:
+                out.append(mvar(m, not_measured=absent))
+            elif open_:
                 out.append(mvar(m, mtd=True, score=None, coverage_days=ndays, basis=(
                     f"month-to-date, not yet scored ({ndays} day(s) of data) - no scheduled "
-                    f"task at {TASK_LOCATION} is due in {mlabel(m)} in the pulls so far. {note}")))
+                    f"task at {TASK_LOCATION} is due in {mlabel(m)} in the pulls so far"
+                    f"{unseen}. {note}")))
             else:
                 out.append(mvar(m, not_measured=(
                     f"no pull of GetCompliant's scheduled-task feed holds a task at "
@@ -1055,14 +1074,14 @@ def kr4_months(info, stored, pull_month, first_month, mvar, score_fn, rag_fn,
         miss_txt = ((". Days with tasks missed, most first: " + ", ".join(
             f"{dmy(d)[:5]} {c['missed']} of {c['missed'] + c['on_time']}"
             + (" (nothing done)" if c["on_time"] == 0 else "") for d, c in worst))
-            if worst else (". No task missed" if src == "union" else ""))
+            if worst else (". No task missed on the days covered" if src == "union" else ""))
         basis = (f"{on} of {n} scheduled tasks at {TASK_LOCATION} due in {mlabel(m)} were done "
                  f"on time" + miss_txt
                  + (f"; {len(whole)} whole day(s) with nothing done count as missed" if whole else "")
                  + (f". From the count stored on {str(st.get('updated_at'))[:10]} - the pulls "
                     f"behind it are no longer all in the archive ({ndays} day(s))"
                     if src == "stored" else f". {ndays} day(s) covered")
-                 + f". {note}")
+                 + unseen + f". {note}")
         s_ = score_fn(float(val))
         if open_:
             out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
@@ -1080,6 +1099,11 @@ def kr4_months(info, stored, pull_month, first_month, mvar, score_fn, rag_fn,
                             basis=basis))
         m = next_month(m)
     if info is None:
-        gaps.append(f"OO5 KR4: the '{TASK_FEED}' feed is absent from this bake - months are "
-                    "from the counts stored in the aggregates archive")
+        gaps.append(f"OO5 KR4: {absent} - months are from the counts stored in the "
+                    "aggregates archive, and months with none are grey")
+    hs = [d for d in (info or {}).get("holes") or [] if d >= first_month + "-01"]
+    if hs:
+        gaps.append(f"OO5 KR4: no pull of the '{TASK_FEED}' feed covers "
+                    f"{', '.join(dmy(d) for d in hs)} - the factory's scheduled tasks due on "
+                    "those days are in no count, so a closed month holding one is not scored")
     return {"months": out, "source_kind": "computed", "tab": "p-tasks"}, gaps

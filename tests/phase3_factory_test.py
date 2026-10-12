@@ -468,7 +468,7 @@ def task_rows(pulls, days, early=(), missed_days=(), stray=False):
                          if (k == 2 and d in early) else d)
                     od, aid = "false", f"A{d}-{k}"
                 if lo <= a <= hi:
-                    out.append((p, d + "T10:00:00", od, aid, None))
+                    out.append((p, d + "T10:00:00", od, aid, None, f"L{k}|T{k}"))
     return out
 
 
@@ -481,7 +481,7 @@ check(info["first"] == "2026-09-20" and info["last"] == "2026-11-02" and info["h
 oct_ = [f for f in fk.task_month_facts(info) if f["m"] == "2026-10"][0]
 check(oct_ == {"m": "2026-10", "on_time": 90, "missed": 3, "days": 31},
       f"October: 93 tasks, each counted ONCE across the pulls - the early-answered ones too - 90 on time, 3 missed (got {oct_})")
-newest_only = sum(1 for p_, d_, od, a_, _ in R if p_ == PULLS[-1] and od == "false")
+newest_only = sum(1 for p_, d_, od, *_ in R if p_ == PULLS[-1] and od == "false")
 check(newest_only < 3 * 8, "(the newest pull alone holds fewer on-time tasks than its 8 days had - the union is needed)")
 rep_pulls = PULLS + ["2026-10-01"]                 # a pull taken twice in a week holds the same missed rows
 info2 = fk.factory_task_days(R + task_rows(["2026-10-01"], DAYS, missed_days={"2026-09-25"}), rep_pulls, upto="2026-11-03")
@@ -491,6 +491,16 @@ check(holes["holes"] == ["2026-09-26", "2026-09-27", "2026-09-28", "2026-09-29",
       "days no pull covers are holes")
 dele = fk.factory_task_days([("2026-10-02", "2026-10-01", "false", "X", "true")], ["2026-10-02"])
 check(dele["days"]["2026-10-01"] == {"on_time": 0, "missed": 0}, "deleted rows are left out")
+# REVIEW, 12/10/2026: a task answered twice carries two AnswerIDs - count the task once
+twice = fk.factory_task_days([
+    ("2026-10-03", "2026-10-01T22:59:59", "false", "A1", None, "L1|T1"),
+    ("2026-10-03", "2026-10-01T22:59:59", "false", "A2", None, "L1|T1"),      # re-answered a minute later
+    ("2026-10-03", "2026-10-01T22:59:59", "true", None, None, "L2|T2"),
+    ("2026-10-04", "2026-10-01T22:59:59", "false", "A1", None, None),         # a pull without the task ids
+    ("2026-10-04", "2026-10-01T22:59:59", "false", "A9", None, None)], ["2026-10-03", "2026-10-04"])
+check(twice["days"]["2026-10-01"] == {"on_time": 2, "missed": 1},
+      f"a task answered twice counts ONCE; an answer seen without its task ids keeps its task; "
+      f"an answer with no task ids at all counts by AnswerID (got {twice['days']['2026-10-01']})")
 k4, g4 = fk.kr4_months(info, {}, "2026-11", "2026-09", mvar, comp_score, rag)
 K = {v["m"]: v for v in k4["months"]}
 check(K["2026-10"]["display"] == "96.7% (90 of 93)" and K["2026-10"]["score"] == 100
@@ -502,6 +512,23 @@ check(K["2026-09"]["score"] is None and K["2026-09"]["incomplete"] and "11 of 30
       "September: the feed starts 20/09 -> shown, NOT scored, the uncovered days named")
 check(K["2026-11"]["coverage_days"] == 2 and K["2026-11"]["value"] == 100.0,
       "November: 2 covered days carried for the month-to-date rule")
+check("No task missed on the days covered" in K["2026-11"]["basis"]
+      and "Not counted yet: no pull of the feed covers 03/11." in K["2026-11"]["basis"],
+      "November: 'no task missed' is said of the days covered, and 03/11 - which no pull reaches yet - is named")
+check(any("no pull of the 'GC Scheduled Task Answers' feed covers" in g for g in g4) is False,
+      "no holes, no holes gap")
+# REVIEW, 12/10/2026: the open month names the days it has not seen - holes and a stale tail
+hp = ["2026-10-05", "2026-10-20"]
+hinfo = fk.factory_task_days(task_rows(hp, DAYS), hp, upto="2026-10-21")
+hk, hg = fk.kr4_months(hinfo, {}, "2026-10", "2026-10", mvar, comp_score, rag)
+H = hk["months"][0]
+check(hinfo["holes"] == ["2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11"]
+      and hinfo["upto"] == "2026-10-21", f"(probe: holes 05-11/10, the newest day 19/10, the bake's last day 21/10 - got {hinfo['holes']})")
+check("Not counted yet: no pull of the feed covers 05/10, 06/10, 07/10, 08/10, 09/10, 10/10, 11/10, 20/10, 21/10" in H["basis"]
+      and H["coverage_days"] == 12,
+      "the open month names the holes and the days the newest pull does not reach yet, and counts only the days covered")
+check(any("covers 05/10/2026, 06/10/2026" in g and "a closed month holding one is not scored" in g for g in hg),
+      "holes in the factory feed are named in the gaps too")
 edge = fk.kr4_months({"days": {"2026-10-01": {"on_time": 1899, "missed": 101}}, "covered": ["2026-10-01"],
                       "holes": [], "first": "2026-10-01", "last": "2026-10-01", "pulls": 1},
                      {}, "2026-10", "2026-10", mvar, comp_score, rag)[0]["months"][0]
@@ -517,6 +544,13 @@ check(S4["2026-10"]["display"] == "96.7% (90 of 93)", "...but a stored count cov
 none4, gnone = fk.kr4_months(None, {}, "2026-10", "2026-08", mvar, comp_score, rag)
 check(none4["months"] is None and "absent from this bake" in none4["not_measured"] and gnone,
       "no feed and nothing stored: grey, with the blocker")
+# REVIEW, 12/10/2026: no feed, but counts stored - the months without one name the absent feed
+gone, ggone = fk.kr4_months(None, {"2026-08": {"on_time": 893, "missed": 56, "days": 31, "updated_at": "2026-09-02"}},
+                            "2026-10", "2026-08", mvar, comp_score, rag)
+G = {v["m"]: v for v in gone["months"]}
+check(G["2026-08"]["display"] == "94.0% (893 of 949)" and "absent from this bake" in (G["2026-09"]["not_measured"] or "")
+      and "absent from this bake" in (G["2026-10"]["not_measured"] or "") and not G["2026-10"].get("mtd"),
+      "no feed: a stored month is shown; the others are grey and name the absent feed, not 'no task due'")
 
 print("\n-- the verifier stores each month, keeping the count that covers more days --")
 import verify_ops_data as vod  # noqa: E402
@@ -588,7 +622,8 @@ for p_ in PULLS:                       # the factory's scheduled tasks, every 4 
         [{"LocationNameLabel": fk.TASK_LOCATION, "TaskName": "Check", "DueDateTime": d_,
           "AnsweredDateTime": d_, "IsSystemOverdue": od, "AnswerID": aid, "IsDeleted": None,
           "Answer": "ok" if od == "false" else "Not registered on time"}
-         for pp, d_, od, aid, _ in R if pp == p_]
+         | {"LocalTaskId": t_.split("|")[0], "TaskID": t_.split("|")[1]}
+         for pp, d_, od, aid, _, t_ in R if pp == p_]
         + [{"LocationNameLabel": "Maki Braehead", "TaskName": "AA Factory - Opening Checklist",
             "DueDateTime": "2026-10-05T10:00:00", "AnsweredDateTime": "2026-10-05T10:00:00",
             "IsSystemOverdue": "true", "AnswerID": None, "IsDeleted": None,
