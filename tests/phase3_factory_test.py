@@ -437,6 +437,104 @@ check({v["m"]: v for v in e9["months"]}["2026-09"]["score"] is None,
       "a back-bake does not use a site-orders copy read after its date")
 
 # ===========================================================================
+print("\n== Part 4b: OO5 KR4 - the factory's scheduled tasks (Ross, 12/10/2026) ==")
+
+
+def comp_score(v):
+    return 100 if v >= 95 else 80 if v >= 94 else 50 if v >= 92.5 else 0
+
+
+def drange(a, b):
+    x, y = dt.date.fromisoformat(a), dt.date.fromisoformat(b)
+    while x <= y:
+        yield x.isoformat()
+        x += dt.timedelta(days=1)
+
+
+def task_rows(pulls, days, early=(), missed_days=(), stray=False):
+    """The factory's GC Scheduled Task Answers rows, as each pull P holds them:
+    tasks ANSWERED in [P-8, P-1]. 3 tasks a day; the 'probe' task is answered 3
+    days EARLY (it drops out of later pulls); on missed_days nothing is done."""
+    out = []
+    for p in pulls:
+        p0 = dt.date.fromisoformat(p)
+        lo, hi = (p0 - dt.timedelta(days=8)).isoformat(), (p0 - dt.timedelta(days=1)).isoformat()
+        for d in days:
+            for k in range(3):
+                if d in missed_days:
+                    a, od, aid = d, "true", None
+                else:
+                    a = ((dt.date.fromisoformat(d) - dt.timedelta(days=3)).isoformat()
+                         if (k == 2 and d in early) else d)
+                    od, aid = "false", f"A{d}-{k}"
+                if lo <= a <= hi:
+                    out.append((p, d + "T10:00:00", od, aid, None))
+    return out
+
+
+PULLS = [d for d in drange("2026-09-28", "2026-11-03")][::4]          # every 4 days, the last 03/11
+DAYS = list(drange("2026-09-18", "2026-11-02"))
+R = task_rows(PULLS, DAYS, early=set(DAYS), missed_days={"2026-10-20"})
+info = fk.factory_task_days(R, PULLS, upto="2026-11-03")
+check(info["first"] == "2026-09-20" and info["last"] == "2026-11-02" and info["holes"] == [],
+      "coverage: each pull covers the 8 days before it; first and last day, no holes")
+oct_ = [f for f in fk.task_month_facts(info) if f["m"] == "2026-10"][0]
+check(oct_ == {"m": "2026-10", "on_time": 90, "missed": 3, "days": 31},
+      f"October: 93 tasks, each counted ONCE across the pulls - the early-answered ones too - 90 on time, 3 missed (got {oct_})")
+newest_only = sum(1 for p_, d_, od, a_, _ in R if p_ == PULLS[-1] and od == "false")
+check(newest_only < 3 * 8, "(the newest pull alone holds fewer on-time tasks than its 8 days had - the union is needed)")
+rep_pulls = PULLS + ["2026-10-01"]                 # a pull taken twice in a week holds the same missed rows
+info2 = fk.factory_task_days(R + task_rows(["2026-10-01"], DAYS, missed_days={"2026-09-25"}), rep_pulls, upto="2026-11-03")
+check(info2["days"]["2026-09-25"]["missed"] == 3, "a missed day counts its tasks once, not once per pull")
+holes = fk.factory_task_days(task_rows(["2026-09-26", "2026-10-10"], DAYS), ["2026-09-26", "2026-10-10"], upto="2026-10-09")
+check(holes["holes"] == ["2026-09-26", "2026-09-27", "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01"],
+      "days no pull covers are holes")
+dele = fk.factory_task_days([("2026-10-02", "2026-10-01", "false", "X", "true")], ["2026-10-02"])
+check(dele["days"]["2026-10-01"] == {"on_time": 0, "missed": 0}, "deleted rows are left out")
+k4, g4 = fk.kr4_months(info, {}, "2026-11", "2026-09", mvar, comp_score, rag)
+K = {v["m"]: v for v in k4["months"]}
+check(K["2026-10"]["display"] == "96.7% (90 of 93)" and K["2026-10"]["score"] == 100
+      and "20/10 3 of 3 (nothing done)" in K["2026-10"]["basis"]
+      and "1 whole day(s) with nothing done count as missed" in K["2026-10"]["basis"],
+      f"October: 96.77% cut down to 96.7 -> 100; the day with nothing done is named and counted as missed (got {K['2026-10'].get('display')})")
+check(K["2026-09"]["score"] is None and K["2026-09"]["incomplete"] and "11 of 30 days" in K["2026-09"]["display"]
+      and "no pull of the feed covers 01/09" in K["2026-09"]["basis"],
+      "September: the feed starts 20/09 -> shown, NOT scored, the uncovered days named")
+check(K["2026-11"]["coverage_days"] == 2 and K["2026-11"]["value"] == 100.0,
+      "November: 2 covered days carried for the month-to-date rule")
+edge = fk.kr4_months({"days": {"2026-10-01": {"on_time": 1899, "missed": 101}}, "covered": ["2026-10-01"],
+                      "holes": [], "first": "2026-10-01", "last": "2026-10-01", "pulls": 1},
+                     {}, "2026-10", "2026-10", mvar, comp_score, rag)[0]["months"][0]
+check(edge["value"] == 94.9 and edge["score"] == 80, "94.95% is cut DOWN to 94.9 - never rounded into the 100 band")
+st, _ = fk.kr4_months(info, {"2026-08": {"on_time": 900, "missed": 30, "days": 31, "updated_at": "2026-09-05T10:00:00"},
+                             "2026-10": {"on_time": 1, "missed": 0, "days": 10, "updated_at": "2026-10-11T10:00:00"}},
+                      "2026-11", "2026-08", mvar, comp_score, rag)
+S4 = {v["m"]: v for v in st["months"]}
+check(S4["2026-08"]["display"] == "96.7% (900 of 930)" and S4["2026-08"]["score"] == 100
+      and "From the count stored on 2026-09-05" in S4["2026-08"]["basis"],
+      "a month whose pulls are gone is scored from the count the verifier stored for it")
+check(S4["2026-10"]["display"] == "96.7% (90 of 93)", "...but a stored count covering FEWER days never beats the pulls")
+none4, gnone = fk.kr4_months(None, {}, "2026-10", "2026-08", mvar, comp_score, rag)
+check(none4["months"] is None and "absent from this bake" in none4["not_measured"] and gnone,
+      "no feed and nothing stored: grey, with the blocker")
+
+print("\n-- the verifier stores each month, keeping the count that covers more days --")
+import verify_ops_data as vod  # noqa: E402
+_atmp = tempfile.mkdtemp(prefix="p3agg-")
+vod.OUT_DIR, vod.ARCHIVE_MODE = _atmp, True
+vod.RESULTS.clear()
+vod.archive_aggregates(None, {"factory_tasks": {"location": fk.TASK_LOCATION, "months": [
+    {"m": "2026-09", "on_time": 859, "missed": 98, "days": 27}]}})
+vod.archive_aggregates(None, {"factory_tasks": {"location": fk.TASK_LOCATION, "months": [
+    {"m": "2026-09", "on_time": 400, "missed": 50, "days": 12}, {"m": "2026-10", "on_time": 333, "missed": 0, "days": 9}]}})
+AG = {(r["metric_date"], r["metric"]): r for r in map(json.loads, open(os.path.join(_atmp, "ops_daily_aggregates.jsonl")))}
+check(AG[("2026-09-01", fk.TASK_MONTH_METRIC)]["v1"] == 859 and AG[("2026-09-01", fk.TASK_MONTH_METRIC)]["v3"] == 27,
+      "a later run covering fewer days of September does not overwrite the better stored count")
+check(AG[("2026-10-01", fk.TASK_MONTH_METRIC)]["v1"] == 333 and vod.FACTORY_MONTH_METRIC == fk.TASK_MONTH_METRIC,
+      "a new month is stored; the verifier and the bake agree on the metric name")
+shutil.rmtree(_atmp)
+
+# ===========================================================================
 print("\n== Part 5: the real builder ==")
 btmp = tempfile.mkdtemp(prefix="p3bake-")
 wd = os.path.join(btmp, "warehouse_direct")
@@ -485,6 +583,16 @@ while x <= dt.date(2026, 11, 4):
     put(x.isoformat(), "GC_Form_Task_Answers", "GC Form Task Answers",
         answers((x - dt.timedelta(days=8)).isoformat(), (x - dt.timedelta(days=1)).isoformat()))
     x += dt.timedelta(days=4)
+for p_ in PULLS:                       # the factory's scheduled tasks, every 4 days
+    put(p_, "GC_Scheduled_Task_Answers", "GC Scheduled Task Answers",
+        [{"LocationNameLabel": fk.TASK_LOCATION, "TaskName": "Check", "DueDateTime": d_,
+          "AnsweredDateTime": d_, "IsSystemOverdue": od, "AnswerID": aid, "IsDeleted": None,
+          "Answer": "ok" if od == "false" else "Not registered on time"}
+         for pp, d_, od, aid, _ in R if pp == p_]
+        + [{"LocationNameLabel": "Maki Braehead", "TaskName": "AA Factory - Opening Checklist",
+            "DueDateTime": "2026-10-05T10:00:00", "AnsweredDateTime": "2026-10-05T10:00:00",
+            "IsSystemOverdue": "true", "AnswerID": None, "IsDeleted": None,
+            "Answer": "Not registered on time"}])
 put("2026-11-03", "JFC_Factory_POs", "JFC Factory POs",
     [msg("UK 16500", "po", "2026-10-09T08:00:00+00:00", "jfc", "collect the shipment on Thursday."),
      msg("UK 16500", "reply", "2026-10-16T09:00:00+00:00", "jfc", "MR014 2 cartons damaged in transit"),
@@ -500,6 +608,9 @@ json.dump({"pulled_at": "2026-11-03T19:00:00Z",
            **days_doc([(d, [SJQ, LEITH]) for d in drange("2026-10-01", "2026-11-03")],
                       read="2026-11-03T19:00:00Z")},
           open(os.path.join(out, "factory_workbook.json"), "w"))
+with open(os.path.join(out, "ops_daily_aggregates.jsonl"), "w") as fh_:     # August, stored by the verifier
+    fh_.write(json.dumps({"metric_date": "2026-08-01", "site": fk.TASK_LOCATION, "metric": fk.TASK_MONTH_METRIC,
+                          "v1": 900, "v2": 30, "v3": 31, "updated_at": "2026-09-05T10:00:00"}) + "\n")
 env = dict(os.environ, OPS_WAREHOUSE_SOURCE="archive", OPS_ARCHIVE_DIR=wd, OPS_OUT_DIR=out)
 p = subprocess.run([sys.executable, os.path.join(REPO, "builders", "bake_ops_command.py"),
                     "--date", "2026-11-04"], env=env, capture_output=True, text=True)
@@ -529,6 +640,17 @@ if p.returncode == 0:
           "...naming the PO and its damaged line")
     check(rows[("OO5", "KR3")]["band"] == "stock" and rows[("OO5", "KR5")]["band"] == "prod",
           "the bands are the sheet's: stock and prod")
+    k4o = var(("OO5", "KR4"), "2026-10")
+    check(k4o.get("display") == "96.7% (90 of 93)" and k4o.get("score") == 100 and rows[("OO5", "KR4")]["band"] == "comp",
+          f"OO5 KR4 October: the factory's 93 tasks over every pull, Braehead's 'AA Factory' task left out -> 96.7% -> 100 (got {k4o.get('display')})")
+    k4a = var(("OO5", "KR4"), "2026-08")
+    check(k4a.get("display") == "96.7% (900 of 930)" and "stored on 2026-09-05" in (k4a.get("basis") or ""),
+          "OO5 KR4 August: no pull left - scored from the verifier's stored count")
+    k4n = var(("OO5", "KR4"), "2026-11")
+    check(k4n.get("mtd") and k4n.get("score") is None, "OO5 KR4 November: 2 days of data -> month to date, unscored")
+    ft = snap.get("factory_tasks") or {}
+    check(ft.get("location") == fk.TASK_LOCATION and any(m_["m"] == "2026-10" and m_["on_time"] == 90 for m_ in ft.get("months") or []),
+          "the snapshot carries the factory's per-day and per-month counts for the verifier to store")
     check(not any(r["kr"] == "Stock variance" for r in snap["scorecard"]["operating_kpis"]),
           "the Production 'Stock variance' placeholder is gone from the Operating KPIs")
     for op in snap["scorecard"]["operating_kpis"]:

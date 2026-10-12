@@ -884,3 +884,202 @@ def published_leaks(variants) -> list[str]:
             if isinstance(t, str) and re.search(r"@|\+\s*\d|\d{7,}", t):
                 bad.append(f"{v.get('m')}.{k}")
     return bad
+
+
+# ---------------------------------------------------------------------------
+# OO5 KR4 - the factory's scheduled tasks done on time
+# ---------------------------------------------------------------------------
+#: Ross, 12/10/2026: "AA Factory1 only, GetCompliant, count missed days".
+#: 'AA Factory' tasks set up at other GetCompliant locations (Maki Braehead's
+#: 194 missed in 4-10 Sep, an onboarding leftover; one at Maki Lakeside) are
+#: not counted.
+TASK_LOCATION = FACTORY_NAME
+TASK_FEED = "GC Scheduled Task Answers"
+#: Each pull of the feed holds the tasks ANSWERED in the 8 days before it
+#: (AnsweredDateTime in [P-8, P-1], checked on every pull); a task nobody did
+#: is auto-closed at its due time, so its row is answered on its due day.
+TASK_WINDOW_DAYS = 8
+#: The aggregates metric that keeps each month's count once its pulls are gone.
+TASK_MONTH_METRIC = "factory_tasks_month"
+
+
+def _true(v) -> bool:
+    return str(v).strip().lower() in ("true", "1", "yes")
+
+
+def factory_task_days(rows, pulls, upto=None):
+    """Per due day, the factory's scheduled tasks done on time and missed.
+
+    rows   (pull_date, due_day, is_system_overdue, answer_id, is_deleted), the
+           factory location's rows from EVERY pull of the feed
+    pulls  every pull date of the feed, factory rows or not
+    upto   the last day that may count (the bake's date - 1)
+
+    COUNTED ACROSS EVERY PULL, NOT FROM ONE (review of recon, 11/10/2026). A
+    pull holds 8 days of ANSWERS, so a task answered before its due day drops
+    out of the later pulls that still cover that day (the factory's probe
+    calibrations, answered days early) - the newest pull, and the per-day
+    aggregates written from it, under-count on-time tasks. So: a task done ON
+    TIME (IsSystemOverdue false) is counted once by its AnswerID over the union
+    of all pulls; a MISSED one (IsSystemOverdue true, auto-closed with no
+    AnswerID) is counted from the pull holding the most of them for that day -
+    every pull covering a day holds the same missed count. Bucketed on the due
+    date. Deleted rows are left out.
+
+    -> {"days": {d: {"on_time", "missed"}}, "covered": [d...], "holes": [d...],
+        "first": d, "last": d, "pulls": n} or None when there is no pull.
+    """
+    ps = sorted({str(p)[:10] for p in pulls or [] if p})
+    if not ps:
+        return None
+    covered = set()
+    for p in ps:
+        p0 = datetime.date.fromisoformat(p)
+        for k in range(1, TASK_WINDOW_DAYS + 1):
+            covered.add((p0 - datetime.timedelta(days=k)).isoformat())
+    last = max(covered)
+    if upto:
+        last = min(last, upto)
+    first = min(covered)
+    covered = sorted(d for d in covered if d <= last)
+    holes, d = [], datetime.date.fromisoformat(first)
+    end = datetime.date.fromisoformat(last)
+    cov = set(covered)
+    while d <= end:
+        if d.isoformat() not in cov:
+            holes.append(d.isoformat())
+        d += datetime.timedelta(days=1)
+    answered, noid, missed = {}, {}, {}
+    for p, due, overdue, aid, deleted in rows or []:
+        due = str(due or "")[:10]
+        if not due or _true(deleted):
+            continue
+        if _true(overdue):
+            k = (due, str(p)[:10])
+            missed[k] = missed.get(k, 0) + 1
+        elif aid:
+            answered.setdefault(str(aid), due)
+        else:
+            k = (due, str(p)[:10])
+            noid[k] = noid.get(k, 0) + 1
+    on = {}
+    for due in answered.values():
+        on[due] = on.get(due, 0) + 1
+
+    def _most(table, day):
+        return max((n for (dd, _), n in table.items() if dd == day), default=0)
+
+    days = {d: {"on_time": on.get(d, 0) + _most(noid, d), "missed": _most(missed, d)}
+            for d in covered}
+    return {"days": days, "covered": covered, "holes": holes, "first": first,
+            "last": last, "pulls": len(ps)}
+
+
+def task_month_facts(info) -> list[dict]:
+    """Per month: on time, missed and days covered - the aggregates rows."""
+    out = {}
+    for d in (info or {}).get("covered") or []:
+        c = info["days"][d]
+        f = out.setdefault(d[:7], {"m": d[:7], "on_time": 0, "missed": 0, "days": 0})
+        f["on_time"] += c["on_time"]
+        f["missed"] += c["missed"]
+        f["days"] += 1
+    return [out[k] for k in sorted(out)]
+
+
+def kr4_months(info, stored, pull_month, first_month, mvar, score_fn, rag_fn,
+               feed_absent_why=None):
+    """OO5 KR4 as an `_okr_extra` entry, plus gaps.
+
+    info    factory_task_days() over this bake's pulls, or None
+    stored  {month: {"on_time", "missed", "days", "updated_at"}} from the
+            aggregates archive - a month's count kept after its pulls are gone
+
+    Value = tasks done on time / tasks due, at AA Factory1 Limited, for the
+    month, cut DOWN to 0.1 (band 'comp' - never rounded into a better band).
+    Whole days with nothing done count as missed (Ross, 12/10/2026). A CLOSED
+    month is scored only when a pull covers every one of its days; the open
+    month counts its covered days for the month-to-date rule.
+    """
+    gaps = []
+    if info is None and not stored:
+        why = feed_absent_why or f"the '{TASK_FEED}' feed is absent from this bake"
+        return {"months": None, "source_kind": "not_measured", "not_measured": why}, \
+            [f"OO5 KR4 (factory scheduled tasks on time) is grey: {why}"]
+    note = (f"Scheduled GetCompliant tasks at {TASK_LOCATION} only (Ross, 12/10/2026 - 'AA "
+            "Factory' tasks set up at other locations are not counted): a task is ON TIME when "
+            "GetCompliant's own flag says it was done by its due time, and every other task "
+            "due counts as missed - whole days with nothing done included (Ross, 12/10/2026). "
+            "Each task counted once across every pull of the feed, by its due date. The "
+            "sheet words this KR 'Aggregated Weekly Compliance Score'; it is measured as the "
+            "month's on-time % (Phase 3 brief). A closed month is scored only when a pull "
+            "covers every one of its days")
+    out = []
+    m = first_month
+    while m <= pull_month:
+        me = month_end(m)
+        open_ = m == pull_month
+        cdays = [d for d in (info or {}).get("covered") or [] if d[:7] == m]
+        on = sum(info["days"][d]["on_time"] for d in cdays) if cdays else 0
+        ms = sum(info["days"][d]["missed"] for d in cdays) if cdays else 0
+        src = "union"
+        st = (stored or {}).get(m)
+        if st and (st.get("days") or 0) > len(cdays):
+            on, ms, src = int(st.get("on_time") or 0), int(st.get("missed") or 0), "stored"
+        n = on + ms
+        ndays = len(cdays) if src == "union" else int(st.get("days") or 0)
+        last = (info or {}).get("last") or ""
+        span_end = min(me, last) if (open_ and last) else me
+        span = [(datetime.date.fromisoformat(m + "-01") + datetime.timedelta(days=k)).isoformat()
+                for k in range((datetime.date.fromisoformat(span_end)
+                                - datetime.date.fromisoformat(m + "-01")).days + 1)] \
+            if span_end >= m + "-01" else []
+        uncovered = ([d for d in span if d not in set(cdays)] if src == "union"
+                     else ([] if ndays >= len(span) else ["(not recorded)"]))
+        if n == 0:
+            if open_:
+                out.append(mvar(m, mtd=True, score=None, coverage_days=ndays, basis=(
+                    f"month-to-date, not yet scored ({ndays} day(s) of data) - no scheduled "
+                    f"task at {TASK_LOCATION} is due in {mlabel(m)} in the pulls so far. {note}")))
+            else:
+                out.append(mvar(m, not_measured=(
+                    f"no pull of GetCompliant's scheduled-task feed holds a task at "
+                    f"{TASK_LOCATION} due in {mlabel(m)}")))
+            m = next_month(m)
+            continue
+        val = _floor1(Decimal(100 * on) / Decimal(n))
+        disp = f"{val}% ({on} of {n})"
+        worst = sorted(((d, c) for d in cdays for c in [info["days"][d]] if c["missed"]),
+                       key=lambda x: (-x[1]["missed"], x[0])) if src == "union" else []
+        whole = [(d, c) for d, c in worst if c["on_time"] == 0]
+        miss_txt = ((". Days with tasks missed, most first: " + ", ".join(
+            f"{dmy(d)[:5]} {c['missed']} of {c['missed'] + c['on_time']}"
+            + (" (nothing done)" if c["on_time"] == 0 else "") for d, c in worst))
+            if worst else (". No task missed" if src == "union" else ""))
+        basis = (f"{on} of {n} scheduled tasks at {TASK_LOCATION} due in {mlabel(m)} were done "
+                 f"on time" + miss_txt
+                 + (f"; {len(whole)} whole day(s) with nothing done count as missed" if whole else "")
+                 + (f". From the count stored on {str(st.get('updated_at'))[:10]} - the pulls "
+                    f"behind it are no longer all in the archive ({ndays} day(s))"
+                    if src == "stored" else f". {ndays} day(s) covered")
+                 + f". {note}")
+        s_ = score_fn(float(val))
+        if open_:
+            out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
+                            coverage_days=ndays, basis=basis))
+        elif uncovered:
+            short = [d for d in uncovered if d != "(not recorded)"]
+            why = (f"no pull of the feed covers {', '.join(dmy(d)[:5] for d in short)}"
+                   if short else "the stored count does not cover every day")
+            out.append(mvar(m, value=float(val), display=f"{disp} - {ndays} of {len(span)} days",
+                            score=None, rag=None, incomplete=True,
+                            basis=(f"not scored - an INCOMPLETE month: {why}, so {ndays} of "
+                                   f"{len(span)} days are counted - " + basis)))
+        else:
+            out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
+                            basis=basis))
+        m = next_month(m)
+    if info is None:
+        gaps.append(f"OO5 KR4: the '{TASK_FEED}' feed is absent from this bake - months are "
+                    "from the counts stored in the aggregates archive")
+    return {"months": out, "source_kind": "computed", "tab": "p-tasks"}, gaps
