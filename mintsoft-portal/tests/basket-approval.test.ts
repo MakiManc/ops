@@ -132,11 +132,111 @@ describe('allocating a line across warehouse SKUs', () => {
     expect(a.kind === 'short' && a.message).toMatch(/only 25 in stock — 25 short/)
   })
 
-  it('refuses to approve against an unknown stock figure', () => {
-    // Approving against an unknown total is how an order goes out that cannot be filled.
+  it('refuses when no mapped line has a stock figure at all', () => {
+    // No readable line means no floor, and a floor was the only thing that could have
+    // justified going ahead. Same rule as availability.ts: no answer is still no answer.
     const a = allocateLine(toApprove({ skus: [sku(7001, 'BOWL-01', null, true)] }))
     expect(a.kind).toBe('short')
-    expect(a.kind === 'short' && a.message).toMatch(/could not be read just now/)
+    expect(a.kind === 'short' && a.message).toMatch(/no stock figure for the warehouse line/)
+  })
+
+  it('does not promise that a sync will fix a line missing from the feed', () => {
+    // It used to say "try again once the next sync has run". The only way a line has no
+    // figure is that it is absent from the stock feed, which no sync creates a record for,
+    // so that advice could never come true and sent the approver round a loop.
+    const a = allocateLine(toApprove({ skus: [sku(7001, 'BOWL-01', null, true)] }))
+    const message = a.kind === 'short' ? a.message : ''
+    expect(message).not.toMatch(/try again/i)
+    expect(message).not.toMatch(/could not be read just now/)
+    expect(message).toMatch(/a sync will not fill them in/)
+  })
+
+  // ---- the floor contract, which is what the Tea cups bug was ------------------------
+  //
+  // sync/availability.ts reports a FLOOR when only some of a product's Mintsoft lines can
+  // be read, and invites an order against it. This function used to refuse that order
+  // outright. Nothing tested the two together, which is exactly how the halves came to
+  // disagree for three weeks.
+
+  it('approves against the readable lines when they cover the quantity', () => {
+    // The live shape: Tea cups, 8 mapped lines, one absent from the stock feed, 577 free
+    // across the other seven, a site asking for 30.
+    const a = allocateLine(toApprove({
+      qtyApproved: 30,
+      skus: [
+        sku(1212, 'MRK001-TCT', 0, true),
+        sku(1585, 'MRK010-TCT', null),
+        sku(1618, 'MRK011-TCT', 250),
+      ],
+    }))
+    expect(a).toEqual({
+      kind: 'allocated', productId: 1, parts: [{ sku: 'MRK011-TCT', qty: 30 }],
+    })
+  })
+
+  it('never allocates against a line with no stock figure', () => {
+    // An unreadable line might hold plenty, but we cannot ask Mercium to pick from a
+    // number we do not have.
+    const a = allocateLine(toApprove({
+      qtyApproved: 30, skus: [sku(7001, 'BOWL-01', null, true), sku(7002, 'BOWL-02', 100)],
+    }))
+    expect(a.kind).toBe('allocated')
+    expect(a.kind === 'allocated' && a.parts.map((p) => p.sku)).toEqual(['BOWL-02'])
+    expect(a.kind === 'allocated' && a.parts.reduce((n, p) => n + p.qty, 0)).toBe(30)
+  })
+
+  it('still approves when the unreadable line is the primary one', () => {
+    // SAKURA TREES PLANTERS is live in this shape: the missing line IS the primary.
+    const a = allocateLine(toApprove({
+      qtyApproved: 2, skus: [sku(1308, 'MRK002-STS-30', null, true), sku(1309, 'MRK002-STS', 2)],
+    }))
+    expect(a).toEqual({
+      kind: 'allocated', productId: 1, parts: [{ sku: 'MRK002-STS', qty: 2 }],
+    })
+  })
+
+  it('refuses, without claiming a shortage, when the readable lines cannot cover it', () => {
+    const a = allocateLine(toApprove({
+      qtyApproved: 40, skus: [sku(7001, 'BOWL-01', 10, true), sku(7002, 'BOWL-02', null)],
+    }))
+    expect(a.kind).toBe('short')
+    const message = a.kind === 'short' ? a.message : ''
+    // The warehouse may well have 40. We just cannot see it, and saying "only 10 in
+    // stock" would be asserting something we do not know.
+    expect(message).toMatch(/only 10 can be accounted for/)
+    expect(message).toMatch(/1 of its 2 warehouse lines is missing from Mintsoft’s stock feed/)
+    expect(message).not.toMatch(/in stock —/)
+    expect(message).not.toMatch(/try again/i)
+    // And it names the way out.
+    expect(message).toMatch(/Approve 10 or fewer/)
+    expect(a.kind === 'short' && a.found).toBe(10)
+  })
+
+  it('reports a plain shortfall as a shortfall when every line is readable', () => {
+    const a = allocateLine(toApprove({
+      qtyApproved: 40, skus: [sku(7001, 'BOWL-01', 10, true), sku(7002, 'BOWL-02', 5)],
+    }))
+    expect(a.kind === 'short' && a.message).toMatch(/only 15 in stock — 25 short/)
+  })
+
+  it('lets a line approved at nothing through, whatever the stock says', () => {
+    // The approver's way out of a product the warehouse cannot account for: zero the
+    // line and the rest of the order goes. Nothing is ordered, so no stock question
+    // arises. An order where every line ends at zero is caught at send instead.
+    for (const skus of [
+      [sku(7001, 'BOWL-01', null, true)],
+      [sku(7001, 'BOWL-01', 0, true), sku(7002, 'BOWL-02', null)],
+    ]) {
+      const a = allocateLine(toApprove({ qtyApproved: 0, skus }))
+      expect(a).toEqual({ kind: 'allocated', productId: 1, parts: [] })
+    }
+  })
+
+  it('still refuses a product mapped to nothing even at zero', () => {
+    // Nothing to order against is a configuration problem, not a quantity one, so the
+    // zero shortcut must not swallow it.
+    const a = allocateLine(toApprove({ qtyApproved: 0, skus: [] }))
+    expect(a.kind === 'short' && a.message).toMatch(/not mapped to any warehouse line/)
   })
 
   it('refuses a product mapped to nothing', () => {

@@ -139,7 +139,12 @@ describe('when combining would cost money, the approval still stands', () => {
     const second = await raiseAndApprove(1, 60)
 
     expect(second.autoMerge).toMatchObject({ kind: 'held_back' })
-    expect((second.autoMerge as { reason: string }).reason).toMatch(/more than the warehouse has/)
+    // The reason carries the shortfall itself. The wrapper no longer asserts a cause,
+    // because a line with no stock figure is not a line the warehouse is short of.
+    expect((second.autoMerge as { reason: string }).reason)
+      .toMatch(/cannot be combined into one/)
+    expect((second.autoMerge as { reason: string }).reason)
+      .toMatch(/120 approved but only 100 in stock — 20 short/)
 
     // Both still signed off, both still sendable, nothing lost.
     expect((await orderById(db, first.orderId))?.status).toBe('approved')

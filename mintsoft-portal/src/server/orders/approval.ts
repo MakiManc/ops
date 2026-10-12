@@ -40,6 +40,21 @@ export type LineAllocation =
  * Fills from the primary first, then the others, largest first — using the biggest
  * remaining holdings keeps the number of separate lines down, which keeps the pick
  * simple at Mercium's end.
+ *
+ * A mapped line Mintsoft has no stock figure for does not block this on its own. It used
+ * to, and that was the "Tea cups" bug: the catalogue reports a FLOOR when only some of a
+ * product's lines can be read (sync/availability.ts rule 3, added in dae73f1), so a GM
+ * saw "at least 577 free to order, from 7 of the 8 Mintsoft lines" and asked for 30 — and
+ * this function refused the whole order because the eighth line read null. Seven lines
+ * holding 577 between them can plainly cover 30, and an unreadable line can only ADD to a
+ * total, never subtract from it. So the question is not "is every line readable" but "can
+ * the readable ones cover what was approved".
+ *
+ * The refusal that remains is the one that is actually undecidable: the readable lines
+ * cannot cover the quantity and there is an unreadable line that might have made up the
+ * difference. That is a real wall, and it is worth being honest that no sync will move it
+ * — the only way a line has no figure here is that it is absent from Mintsoft's stock feed
+ * altogether, which is a mapping problem rather than a timing one.
  */
 export function allocateLine(line: LineToApprove): LineAllocation {
   if (line.skus.length === 0) {
@@ -50,28 +65,53 @@ export function allocateLine(line: LineToApprove): LineAllocation {
     }
   }
 
-  // An unknown figure on any mapped SKU makes the total unknowable, and approving
-  // against an unknown total is how an order gets sent that cannot be filled.
-  if (line.skus.some((s) => s.available === null)) {
+  // Nothing is being ordered, so there is no stock question to answer. This is also the
+  // approver's way out of a product the warehouse cannot account for: zero the line and
+  // the rest of the order goes. An order where EVERY line ends up at zero is caught at
+  // send with its own message, so this cannot quietly despatch an empty order.
+  if (line.qtyApproved === 0) {
+    return { kind: 'allocated', productId: line.productId, parts: [] }
+  }
+
+  const readable = line.skus.filter((s) => s.available !== null)
+  const unreadable = line.skus.length - readable.length
+  const floor = readable.reduce((n, s) => n + (s.available ?? 0), 0)
+
+  // No readable line at all means there is no floor, and a floor is the only thing that
+  // could have justified going ahead. Same rule as availability.ts: a partial answer
+  // beats no answer, but no answer is still no answer.
+  if (readable.length === 0) {
     return {
       kind: 'short', productId: line.productId, productName: line.productName,
       wanted: line.qtyApproved, found: null,
-      message: `Stock for ${line.productName} could not be read just now, so it cannot be approved yet. ` +
-        'Try again once the next sync has run.',
+      message: `${line.productName}: Mintsoft has no stock figure for `
+        + `${line.skus.length === 1 ? 'the warehouse line' : `any of the ${line.skus.length} warehouse lines`} `
+        + 'mapped to this product, so there is nothing to order against. Those lines are missing '
+        + 'from the stock feed rather than out of date, so a sync will not fill them in — the '
+        + 'mapping needs looking at.',
     }
   }
 
-  const total = line.skus.reduce((n, s) => n + (s.available ?? 0), 0)
-  if (total < line.qtyApproved) {
+  if (floor < line.qtyApproved) {
     return {
       kind: 'short', productId: line.productId, productName: line.productName,
-      wanted: line.qtyApproved, found: total,
-      message: `${line.productName}: ${line.qtyApproved} approved but only ${total} in stock — ` +
-        `${line.qtyApproved - total} short.`,
+      wanted: line.qtyApproved, found: floor,
+      message: unreadable === 0
+        ? `${line.productName}: ${line.qtyApproved} approved but only ${floor} in stock — `
+          + `${line.qtyApproved - floor} short.`
+        // The shortfall is real but the total is a floor, so this does not claim the
+        // warehouse is short — only that we cannot see enough to sign it off.
+        : `${line.productName}: ${line.qtyApproved} approved but only ${floor} can be accounted for. `
+          + `${unreadable} of its ${line.skus.length} warehouse lines ${unreadable === 1 ? 'is' : 'are'} `
+          + 'missing from Mintsoft’s stock feed, so there may be more on the shelf that we cannot '
+          + `see, and a sync will not fix that. Approve ${floor} or fewer, or get the mapping looked at.`,
     }
   }
 
-  const ordered = [...line.skus].sort((a, b) => {
+  // Readable lines only. An unreadable one contributes nothing to the fill loop below in
+  // any case (`s.available ?? 0` is 0, and a zero take is skipped), but leaving it out
+  // here says so explicitly rather than relying on that.
+  const ordered = [...readable].sort((a, b) => {
     if (a.isPrimary !== b.isPrimary) return a.isPrimary ? -1 : 1
     return (b.available ?? 0) - (a.available ?? 0)
   })

@@ -53,7 +53,11 @@ export async function combinedStockRefusal(
 
   const short = lines.map(allocateLine).filter((a) => a.kind === 'short')
   if (short.length === 0) return null
-  return 'Together these orders want more than the warehouse has: '
+  // The prefix used to assert "Together these orders want more than the warehouse has",
+  // which is not always why allocateLine refused -- a line whose stock figure is missing
+  // is not a line the warehouse is short of. Each message states its own reason, so this
+  // no longer puts a cause in front of them.
+  return 'These orders cannot be combined into one: '
     + `${short.map((a) => a.message).join(' ')} They have been left as two orders.`
 }
 
