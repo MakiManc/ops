@@ -532,14 +532,14 @@ OKR_PENDING = {
     ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
     ("OO4", "KR2"): "damage to the factory's broth and sauce lines in the GetCompliant issue forms (filed against the factory or Lynas, which carries them) - needs the 'GC Form Task Answers' feed, which is absent from this bake",
-    ("OO4", "KR3"): "internal orders marked received in Kobas; Phase 2. Step 0 found internal orders CAN be isolated (factory as sending venue) but carry no received status at all, so this may stay grey",
+    ("OO4", "KR3"): "a 'received' event for each internal delivery, from the source Ross chooses (Phase 4.2): Kobas goods-in with the factory as supplier, or Mintsoft portal despatch/receipt events. Kobas does record the receipt, but only one test report (deliveries 04/08-20/08/2026) has ever landed, so no month since has one; Mintsoft carries no 'received' event",
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
     ("OO5", "KR4"): "the factory's scheduled tasks done on time, from GetCompliant (builders/factory_kpis.py) - needs the 'GC Scheduled Task Answers' feed",
     ("OO5", "KR5"): "production orders to the factory, from the JFC PO emails and the factory's site-orders table (builders/factory_kpis.py)",
     ("OO6", "KR1"): "no agreed measure. Ross signs one off after Step 0 before anything is built",
     ("OO6", "KR2"): "no agreed measure, and no dated demand event exists in any feed to build one from",
-    ("OO6", "KR3"): "no agreed measure. Step 0 found no site has ever stock-counted a frozen-ramen SKU",
+    ("OO6", "KR3"): "no agreed measure, and no feed holds a frozen-ramen stock COUNT: Kobas's stock-check edits show at least 5 sites (Manchester NQ, Nottingham, Renfield, Newcastle, Leeds) editing a frozen-ramen line since 03/08/2026, but that report carries no quantities",
     ("OO6", "KR4"): "no agreed measure, and no par-level field for frozen ramen exists in any feed",
     ("OO6", "KR5"): "no agreed measure, and no feed carries a product dimension on an invoice",
 }
@@ -2109,6 +2109,13 @@ def facilities_block(feed, err, today,
                                "items; the other "
                                f"{g_t - con_t:g} have no contractor assigned"
                                if g_t is not None and contractors and con_t < g_t
+                               # review, 12/10/2026: 220 against 208 went unsaid
+                               else f". These rows add to {con_t:g} items, "
+                               f"{con_t - g_t:g} more than the {g_t:g} the register "
+                               "tracks - the app's contractor counts do not reconcile "
+                               "with its register; KR4 uses the register's "
+                               f"{g_t:g}"
+                               if g_t is not None and contractors and con_t > g_t
                                else "")),
         },
         "basis": ("read-only, from the " + src
@@ -2276,8 +2283,9 @@ def facilities_block(feed, err, today,
     elif len(base_ok) < len(FACILITIES_KR2_BASELINE):
         rows["KR2 repeat issues vs baseline"] = {"not_measured": (
             "baseline needs Jun–Aug; the app's fault log starts "
-            f"{_fac_ym(fault_log_start)} — the sheet-based KR2 build (plan of 17 "
-            "Sep) remains the baseline source until the January re-baseline. The "
+            f"{_fac_ym(fault_log_start)}, and nothing else supplies one: the "
+            "sheet-based KR2 baseline planned on 17 Sep was never built, so KR2 stays "
+            "grey until a baseline is agreed (the plan was a January re-baseline). The "
             f"app is already counting under its rule {rule_s}, with {ch_s}.{now_s} "
             f"Its months before {_fac_ym(fault_log_start)} are zero-filled, not "
             "measured, and are never used as a baseline. Pairs and per-site counts "
