@@ -428,14 +428,16 @@ def fb_bands_text(first=None, last=None, sources=False):
         for p in ps:
             txt = f"{p['band'][0]:g}-{p['band'][1]:g}"
             if len(ps) > 1:
-                txt += (f" to {_d(p['to'])}" if p["to"] else f" from {_d(p['from'])}")
+                txt += (f" {_d(p['from'])}-{_d(p['to'])}" if (p["from"] and p["to"]) else
+                        f" to {_d(p['to'])}" if p["to"] else f" from {_d(p['from'])}")
             if sources and p.get("set"):
                 txt += f" ({p['set']})"
             bits.append(txt)
         if bits:
             parts.append(f"{name} " + ", ".join(bits))
     return ", ".join(parts)
-#: The day the band above was agreed. The factory broth score is a data card and
+#: The day the FIRST after-ice bands were agreed (27/08/2026; tonkotsu's moved on
+#: 12/10/2026, see FACTORY_BROTH_BAND_HISTORY). The factory broth score is a data card and
 #: grades the whole feed against it, which is right for a card. The Quality KR is
 #: a JUDGEMENT on the same readings, and a reading taken before the spec existed
 #: was taken by a factory that had not been told the target - so the KR's basis
@@ -6137,12 +6139,27 @@ def main():
                         f"{len(_rows)} reading(s) were taken before {FB_BAND_SET}, the day "
                         f"the after-ice band was agreed, so they are graded against a spec "
                         f"that did not exist when they were taken" if _pre else "")
-                     + ". THE SCORE IS ON THE MEAN, which is what the band was agreed "
-                       "against; the in-band percentage is shown beside it because a mean "
+                     + (". THE SCORE IS ON EACH PART'S MEAN against its own band, which is "
+                        "what each band was agreed against" if len(_parts) > 1 else
+                        ". THE SCORE IS ON THE MEAN, which is what the band was agreed "
+                        "against")
+                     + "; the in-band percentage is shown beside it because a mean "
                        "can sit inside band while individual batches miss it in both "
                        "directions. Readings with no after-ice value, no usable date or a "
                        "non-numeric value are excluded and never scored as zero, exactly "
                        "as on the Quality tab")
+            def _span(p_):
+                return (f"{_dmy5(p_['from'])}-{_dmy5(p_['to'])}" if (p_["from"] and p_["to"]) else
+                        f"to {_dmy5(p_['to'])}" if p_["to"] else
+                        f"from {_dmy5(p_['from'])}" if p_["from"] else "")
+            _chg = ", ".join(
+                f"{p_['band'][0]:g}-{p_['band'][1]:g} "
+                + (f"{_dmy5(p_['from'])}/{p_['from'][:4]}-{_dmy5(p_['to'])}/{p_['to'][:4]}"
+                   if (p_["from"] and p_["to"]) else
+                   f"to {_dmy5(p_['to'])}/{p_['to'][:4]}" if p_["to"]
+                   else f"from {_dmy5(p_['from'])}/{p_['from'][:4]}")
+                + (f" ({p_['set']})" if p_.get("set") else "")
+                for p_ in _per) if len(_per) > 1 else ""
             _src_txt = (f". {_in} of {len(_rows)} reading(s) were individually in band"
                         + (", each against the band in force on its own date"
                            if len(_parts) > 1 else "")
@@ -6160,31 +6177,28 @@ def main():
                              f"{_dmy5(_P['p']['from'])}/{_P['p']['from'][:4]})"
                              if _P["p"]["from"] else "")
                           + (", inside band" if not _out else f", {_out:g} outside band")
+                          + (f". The band changed during {_mlabel(_m)} - {_chg} - and all "
+                             f"of this month's readings fall under {_band[0]:g}-{_band[1]:g}"
+                             if _chg else "")
                           + _src_txt + _tail)
             else:
                 _mean = _parts[-1]["mean"]
                 _out = round(sum(P_["out"] * len(P_["rows"]) for P_ in _parts) / len(_rows), 4)
                 _s = okr_score("density", _out)
 
-                def _span(P_):
-                    p_ = P_["p"]
-                    return (f"to {_dmy5(p_['to'])}" if p_["to"] else
-                            f"from {_dmy5(p_['from'])}" if p_["from"] else "")
-                _disp = (" · ".join(f"{P_['mean']:g} avg {_span(P_)} (band "
-                                    f"{P_['p']['band'][0]:g}-{P_['p']['band'][1]:g})"
-                                    for P_ in _parts)
-                         + f" - {_pct}% of {len(_rows)} readings in band")
-                _chg = ", ".join(
-                    f"{p_['band'][0]:g}-{p_['band'][1]:g} "
-                    + (f"to {_dmy5(p_['to'])}/{p_['to'][:4]}" if p_["to"]
-                       else f"from {_dmy5(p_['from'])}/{p_['from'][:4]}")
-                    + (f" ({p_['set']})" if p_.get("set") else "")
-                    for p_ in _per)
+                # newest part first - it is the value - and short: a long display
+                # in the scorecard's Now cell pushed the other columns off the
+                # card (review, 12/10/2026); each part's band is in the target
+                # and the basis
+                _disp = (" · ".join(f"{P_['mean']:g}" + (" avg " if i_ == 0 else " ")
+                                    + _span(P_["p"])
+                                    for i_, P_ in enumerate(reversed(_parts)))
+                         + f" - {_pct}% of {len(_rows)} in band")
                 _basis = (f"The factory's after-ice band for {_prod} CHANGED during "
                           f"{_mlabel(_m)} - {_chg} - so the month is split at the change "
                           f"and each part is averaged against its own band: "
                           + "; ".join(
-                              f"{len(P_['rows'])} reading(s) {_span(P_)} averaged "
+                              f"{len(P_['rows'])} reading(s) {_span(P_['p'])} averaged "
                               f"{P_['mean']:g} against {P_['p']['band'][0]:g}-"
                               f"{P_['p']['band'][1]:g}"
                               + (", inside band" if not P_["out"] else
@@ -6194,14 +6208,15 @@ def main():
                             f"by each part's readings, {_out:g}"
                           + (" (inside band)" if not _out else "")
                           + " - in a month with one band this is simply its mean against "
-                            "its band - and the value shown is the newest part's mean, the "
-                            "band the factory now works to"
+                            "its band - and the value shown is the newest part's mean, under "
+                            f"the newer band in force in {_mlabel(_m)}"
                           + _src_txt + _tail)
-            if any(P_["p"]["from"] for P_ in _parts):
+            _movers = list(dict.fromkeys(p_["set"] for p_ in _per if p_["from"] and p_.get("set")))
+            if _movers:
                 _basis += (f". The KR's wording is Matthew's sheet's, verbatim ('"
                            + next(t_ for o_, k_, t_, *_ in OKR_SPEC if (o_, k_) == ("OO5", _oid))
-                           + f"'); the factory band it is scored against was moved by "
-                             f"{_hist[-1]['set']}")
+                           + "'); the factory band in force this month was moved by "
+                             + " and ".join(_movers))
             _vars.append(_mvar(
                 _m, value=_mean, display=_disp,
                 score=_s, rag=_rag_of(_s), coverage_days=_days, basis=_basis))

@@ -134,13 +134,17 @@ check(sep["value"] == 8.5 and sep["score"] == 100 and "against a band of 8-9, in
 check(octo["value"] == 7.3, f"October's value is the newest part's mean, 7.3 (got {octo['value']})")
 check(octo["score"] == 80 and octo["rag"] == bake.OKR_RAG[80],
       f"October: weighted distance (0*3 + 0.3*5)/8 = 0.1875 outside band -> 80 (got {octo['score']})")
-check(octo["display"] == "8.4 avg to 11/10 (band 8-9) · 7.3 avg from 12/10 (band 6-7) - 75.0% of 8 readings in band",
-      f"the display names both parts (got {octo['display']!r})")
+check(octo["display"] == "7.3 avg from 12/10 · 8.4 to 11/10 - 75.0% of 8 in band",
+      f"the display names both parts, newest (the value) first, and stays short (got {octo['display']!r})")
+check("THE SCORE IS ON EACH PART'S MEAN against its own band" in octo["basis"]
+      and "THE SCORE IS ON THE MEAN," not in octo["basis"],
+      "a split month's basis says each part's mean is scored, not 'the mean'")
 check("CHANGED during October 2026 - 8-9 to 11/10/2026 (Ross, 27/08/2026), 6-7 from 12/10/2026 (Ross, 12/10/2026)"
       in octo["basis"] and "0.1875" in octo["basis"] and "chicken" not in octo["basis"].lower(),
       "the basis says the band changed, how the month was split, and names only tonkotsu's bands")
-check("('KR1: Maintain Pork broth density within 8-9')" in octo["basis"],
-      "the basis quotes Matthew's KR text verbatim and says the band moved")
+check("('KR1: Maintain Pork broth density within 8-9'); the factory band in force this month was moved by "
+      "Ross, 12/10/2026" in octo["basis"],
+      "the basis quotes Matthew's KR text verbatim and says who moved the band")
 check(k1["text"] == "KR1: Maintain Pork broth density within 8-9", "the KR text is untouched")
 check(k1["target"] == "6-7 from 12/10/2026 (8-9 before)", f"the target names both bands (got {k1['target']!r})")
 check(k2["target"] == "5-6" and "CHANGED" not in k2["basis"], "chicken's KR2 is untouched")
@@ -163,6 +167,32 @@ blob = json.dumps({"factory": {k: f0[k] for k in ("bands", "band_history", "basi
                    "kr1": r0[("OO5", "KR1")]})
 check("6-7" not in blob and "12/10/2026" not in blob, "no trace of the 6-7 band before it existed")
 check(r0[("OO5", "KR1")]["target"] == "8-9", "the target is the sheet's own, 8-9")
+
+print("\n-- the day of the change, before any reading under the new band (12/10/2026) --")
+s1 = bake_at("2026-10-12", early)
+o1 = {v["m"]: v for v in {(r["objective"], r["kr"]): r for r in s1["scorecard"]["rows"]}[("OO5", "KR1")]["months"]}["2026-10"]
+check(o1["value"] == 8.4 and o1["display"] == "8.4 avg - 100.0% of 3 readings in band MTD",
+      f"October is one part, measured as before (3 days: month to date) (got {o1['display']!r})")
+check("The band changed during October 2026 - 8-9 to 11/10/2026 (Ross, 27/08/2026), 6-7 from 12/10/2026 "
+      "(Ross, 12/10/2026) - and all of this month's readings fall under 8-9" in o1["basis"],
+      "...but its basis already says the band changed, and that every reading so far is under 8-9")
+late = bake_at("2026-10-20", [r for r in ROWS if r["Date"] >= "12/10/2026" and r["Date"].endswith("10/2026")
+                              and r["Product Name"] == T])
+ol = {v["m"]: v for v in {(r["objective"], r["kr"]): r for r in late["scorecard"]["rows"]}[("OO5", "KR1")]["months"]}["2026-10"]
+check("against a band of 6-7 (set by Ross, 12/10/2026, in force from 12/10/2026)" in ol["basis"]
+      and "all of this month's readings fall under 6-7" in ol["basis"] and ol["value"] == 7.3,
+      "a month whose only readings are under the new band says so, without a 'yet'")
+
+print("\n-- a third band, appended the way the comment says (in-process) --")
+_orig = bake.FACTORY_BROTH_BAND_HISTORY[T]
+bake.FACTORY_BROTH_BAND_HISTORY[T] = _orig + [("2026-12-01", (6.5, 7.5), "Someone, 01/12/2026")]
+try:
+    check(bake.fb_bands_text("2026-10-01", None) == "tonkotsu 8-9 to 11/10/2026, 6-7 12/10/2026-30/11/2026, "
+          "6.5-7.5 from 01/12/2026, chicken 5-6", "a middle band names both its ends")
+    check(bake.fb_band(T, "2026-11-30") == (6.0, 7.0) and bake.fb_band(T, "2026-12-01") == (6.5, 7.5),
+          "each day still gets its own band")
+finally:
+    bake.FACTORY_BROTH_BAND_HISTORY[T] = _orig
 check(f0["bands"] == {T: [8.0, 9.0], C: [5.0, 6.0]}, "bands as they stood on 11/10")
 
 print(f"\n{failures} failure(s)")

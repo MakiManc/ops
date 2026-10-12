@@ -437,6 +437,44 @@ page.on('console', msg => {
   assert(labs2.includes('Tonkotsu Broth') && labs2.length === 2,
     `one tonkotsu bar when the range holds one band (got ${JSON.stringify(labs2)})`);
   await renderIn('', '');
+  const sub = await page.locator('#fb-prod-sub').innerText();
+  assert(/^2 product\(s\)/.test(sub), `three bars are still two products (got "${sub}")`);
+
+  // REVIEW, 12/10/2026: a roll-back to a snapshot with no factory block must
+  // not keep the previous snapshot's dated bands in the page note
+  const bare = { ...baseSnap, quality: { ...baseSnap.quality } };
+  delete bare.quality.factory;
+  await page.evaluate((s) => { window.render(s); window.gotoPage('p-qual'); }, bare);
+  const note2 = await page.locator('#qual-fb-spec').innerText();
+  assert(note2 === 'tonkotsu 8–9, chicken 5–6',
+    `the note goes back to the page's default, not the last snapshot's 6–7 (got "${note2}")`);
+
+  // REVIEW, 12/10/2026: the split-month KR1 figure is long; on the Overview it
+  // must not push Score, Status and Trend off the card for every row
+  const sc = JSON.parse(JSON.stringify(baseSnap));
+  // the LONGEST form a builder has produced (57ce3f0, before the review shortened
+  // it): on main this pushed the table to 1404px inside a 1212px card
+  const SPLIT = '7.8 avg to 11/10 (band 8-9) · 7.03 avg from 12/10 (band 6-7) - 68.1% of 47 readings in band';
+  for (const r of sc.scorecard.rows) {
+    if (r.objective === 'OO5' && r.kr === 'KR1') {
+      r.display = SPLIT; r.target = '6-7 from 12/10/2026 (8-9 before)';
+      for (const v of (r.months || [])) v.display = SPLIT;
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate((s) => { window.render(s); window.gotoPage('p-over'); }, sc);
+  const geo = await page.evaluate(() => {
+    const host = document.getElementById('scorecard');
+    const card = host.closest('.card').getBoundingClientRect();
+    const t = host.querySelector('table').getBoundingClientRect();
+    const cells = [...host.querySelectorAll('table tbody tr')].map(tr => tr.children[4])
+      .filter(Boolean).map(td => td.getBoundingClientRect().right);
+    return { card: card.right, table: t.right, worst: Math.max(...cells), n: cells.length };
+  });
+  assert(geo.n > 20 && geo.table <= geo.card + 1 && geo.worst <= geo.card + 1,
+    `the scorecard fits its card with the split KR1 figure - every Status cell visible (got ${JSON.stringify(geo)})`);
+  const kr1 = await page.locator('#scorecard table tbody tr', { hasText: 'Pork broth' }).first().innerText();
+  assert(kr1.includes(SPLIT.split(' - ')[0]), 'and the split figure is shown, wrapped rather than cut');
 }
 
 assert(consoleErrors.length === 0,
