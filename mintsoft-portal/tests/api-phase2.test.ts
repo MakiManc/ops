@@ -131,9 +131,64 @@ describe('the mapping tool', () => {
     expect((await res.json() as { error: string }).error).toMatch(/already mapped to "Ramen Bowl"/)
   })
 
+  it('reports a mapped line with no stock figure, over the wire', async () => {
+    // Both the server function and the mapping screen were tested against a payload shape
+    // nothing guaranteed: the UI test hand-wrote the JSON it expected. This pins the field
+    // names the screen actually reads, so a rename on either side fails here rather than
+    // silently rendering blanks.
+    // The shared fixture omits stock_cache.available, which the real sync always writes
+    // (sync/jobs.ts) -- the catalogue derives its figure from on_hand instead, so the gap
+    // never shows up there. This path reads the stored column, so the row has to be the
+    // shape production actually holds or the test proves nothing.
+    db.exec(`
+      UPDATE stock_cache SET available = 40 WHERE mintsoft_product_id = 7001;
+      INSERT INTO product_mintsoft_map (product_id, mintsoft_product_id, sku, is_primary)
+        VALUES (1, 7002, 'BOWL-02', 0);
+    `)
+    const res = await call('/api/admin/mapping/stock-gaps', await as(ADMIN))
+    expect(res.status).toBe(200)
+
+    const body = await res.json() as {
+      products: {
+        productId: number; productName: string; active: boolean; mappedLines: number
+        readableFloor: number
+        readableLines: { sku: string; available: number }[]
+        unreadableLines: { sku: string; isPrimary: boolean; hasStockRecord: boolean }[]
+      }[]
+    }
+    expect(body.products).toHaveLength(1)
+    expect(body.products[0]).toMatchObject({
+      productId: 1, productName: 'Ramen Bowl', active: true,
+      mappedLines: 2, readableFloor: 40,
+    })
+    expect(body.products[0]?.readableLines).toEqual([{ mintsoftProductId: 7001, sku: 'BOWL-01', available: 40 }])
+    expect(body.products[0]?.unreadableLines).toEqual([
+      { mintsoftProductId: 7002, sku: 'BOWL-02', isPrimary: false, hasStockRecord: false },
+    ])
+  })
+
+  it('says nothing when every mapped line has a figure', async () => {
+    db.exec(`UPDATE stock_cache SET available = 40 WHERE mintsoft_product_id = 7001`)
+    expect((await (await call('/api/admin/mapping/stock-gaps', await as(ADMIN))).json() as
+      { products: unknown[] }).products).toEqual([])
+  })
+
+  it('reports a line whose stock row carries no figure, not only an absent one', async () => {
+    // The fixture's own row is this shape: present, but with no available. It is the case
+    // the first version of this panel called "readable", contradicting the approval guard.
+    const body = await (await call('/api/admin/mapping/stock-gaps', await as(ADMIN))).json() as
+      { products: { unreadableLines: { sku: string; hasStockRecord: boolean }[]; readableFloor: number }[] }
+    expect(body.products[0]?.unreadableLines).toEqual([
+      { mintsoftProductId: 7001, sku: 'BOWL-01', isPrimary: true, hasStockRecord: true },
+    ])
+    expect(body.products[0]?.readableFloor).toBe(0)
+  })
+
   it('is closed to an approver and to a GM', async () => {
-    for (const user of [APPROVER, GM]) {
-      expect((await call('/api/admin/mapping/unmapped', await as(user))).status).toBe(403)
+    for (const path of ['/api/admin/mapping/unmapped', '/api/admin/mapping/stock-gaps']) {
+      for (const user of [APPROVER, GM]) {
+        expect((await call(path, await as(user))).status).toBe(403)
+      }
     }
   })
 })

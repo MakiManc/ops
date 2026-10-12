@@ -95,14 +95,26 @@ describe('a line’s stock position, where the decision is made', () => {
     expect(screen.getByRole('button', { name: 'Done' })).toBeDefined()
   })
 
-  it('closes straight away when there is nothing to warn about', async () => {
+  it('saves and reloads the list when there is nothing to warn about', async () => {
+    // This test used to assert only that 'Saved.' was absent, which is true before the
+    // click and before the POST resolves -- it passed with no click at all. Assert the
+    // positive effects instead: the POST went, and the screen reloaded.
     serve({
       suggestions: [suggestion([line()])],
       post: { status: 201, body: { productId: 9, warning: null } },
     })
     render(<Mapping />)
     fireEvent.click(await waitFor(() => screen.getByRole('button', { name: /Combine into one product/ })))
-    await waitFor(() => expect(screen.queryByText('Saved.')).toBeNull())
+
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledWith(
+      '/api/admin/mapping/products', expect.objectContaining({ method: 'POST' }),
+    ))
+    // onDone reloads, so the suggestions endpoint is hit again.
+    await waitFor(() => {
+      const calls = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
+      expect(calls.filter((c) => String(c[0]).includes('/suggestions')).length).toBeGreaterThan(1)
+    })
+    expect(screen.queryByText('Saved.')).toBeNull()
   })
 
   it('still shows a real failure as an error', async () => {
@@ -117,10 +129,13 @@ describe('a line’s stock position, where the decision is made', () => {
 })
 
 describe('the products already mapped to a recordless line', () => {
+  const readable = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ mintsoftProductId: 2000 + i, sku: `OK-${i}`, available: 10 }))
+
   const gap = (over: Record<string, unknown> = {}) => ({
     productId: 1, productName: 'Tea cups', active: true,
-    recordlessLines: [{ mintsoftProductId: 1585, sku: 'MRK010-TCT', isPrimary: false }],
-    mappedLines: 8, readableFloor: 577, readableLines: 7, ...over,
+    unreadableLines: [{ mintsoftProductId: 1585, sku: 'MRK010-TCT', isPrimary: false, hasStockRecord: false }],
+    mappedLines: 8, readableFloor: 577, readableLines: readable(7), ...over,
   })
 
   it('names the product, the line and what sites can still order', async () => {
@@ -128,40 +143,43 @@ describe('the products already mapped to a recordless line', () => {
     render(<Mapping />)
     await waitFor(() => expect(screen.getByText(/1 mapped product has a/)).toBeDefined())
     expect(screen.getByText('Tea cups')).toBeDefined()
-    expect(screen.getByText(/MRK010-TCT/)).toBeDefined()
+    expect(screen.getByText('MRK010-TCT')).toBeDefined()
     expect(screen.getByText(/Sites can order up to 577/)).toBeDefined()
   })
 
   it('says when no line has a figure at all, which is the one that stops an order', async () => {
-    serve({ products: [gap({ productName: 'All absent', readableFloor: 0, readableLines: 0 })] })
+    serve({ products: [gap({ productName: 'All absent', readableFloor: 0, readableLines: [] })] })
     render(<Mapping />)
-    await waitFor(() => expect(screen.getByText(/cannot be ordered at all until one appears in the feed/)).toBeDefined())
+    await waitFor(() => expect(screen.getByText(/cannot be ordered at all until one starts reporting/)).toBeDefined())
   })
 
   it('says something different when the readable lines are simply empty', async () => {
     // Round Table Base: a floor of zero, but the next shipment fixes it without anybody
     // touching the mapping. Not the same as having no figure.
-    serve({ products: [gap({ productName: 'Round Table Base', readableFloor: 0, readableLines: 6, mappedLines: 7 })] })
+    serve({ products: [gap({ productName: 'Round Table Base', readableFloor: 0, readableLines: readable(6), mappedLines: 7 })] })
     render(<Mapping />)
-    await waitFor(() => expect(screen.getByText(/6 readable lines hold nothing/)).toBeDefined())
+    await waitFor(() => expect(screen.getByText(/6 readable/)).toBeDefined())
+    expect(screen.getByText(/lines hold.*nothing, so/s)).toBeDefined()
     expect(screen.queryByText(/cannot be ordered at all/)).toBeNull()
   })
 
   it('calls out a recordless line that is the primary', async () => {
     serve({ products: [gap({
-      productName: 'Sakura planters', readableFloor: 2, readableLines: 1, mappedLines: 2,
-      recordlessLines: [{ mintsoftProductId: 1308, sku: 'MRK002-STS-30', isPrimary: true }],
+      productName: 'Sakura planters', readableFloor: 2, mappedLines: 2,
+      readableLines: [{ mintsoftProductId: 1309, sku: 'MRK002-STS', available: 2 }],
+      unreadableLines: [{ mintsoftProductId: 1308, sku: 'MRK002-STS-30', isPrimary: true, hasStockRecord: false }],
     })] })
     render(<Mapping />)
-    await waitFor(() => expect(screen.getByText(/MRK002-STS-30 \(primary\)/)).toBeDefined())
-    expect(screen.getByText(/promote a line that has a figure/)).toBeDefined()
+    await waitFor(() => expect(screen.getByText('MRK002-STS-30')).toBeDefined())
+    expect(screen.getByText(/holds the primary flag, which must move before it can be unmapped/))
+      .toBeDefined()
   })
 
   it('says nothing at all when there are no gaps', async () => {
     serve({ products: [] })
     render(<Mapping />)
     await waitFor(() => expect(screen.getByText(/not mapped yet/)).toBeDefined())
-    expect(screen.queryByText(/no stock record/)).toBeNull()
+    expect(screen.queryByText(/line with no stock figure/)).toBeNull()
   })
 
   it('keeps the mapping tool working when the gaps call fails', async () => {

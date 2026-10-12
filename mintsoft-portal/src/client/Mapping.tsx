@@ -31,10 +31,10 @@ interface StockGap {
   productId: number
   productName: string
   active: boolean
-  recordlessLines: { mintsoftProductId: number; sku: string; isPrimary: boolean }[]
   mappedLines: number
+  unreadableLines: { mintsoftProductId: number; sku: string; isPrimary: boolean; hasStockRecord: boolean }[]
+  readableLines: { mintsoftProductId: number; sku: string; available: number }[]
   readableFloor: number
-  readableLines: number
 }
 
 /** What a line's stock says, for the label beside it. */
@@ -204,69 +204,158 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
 }
 
 /**
- * Products already mapped to a line Mintsoft has no stock record for.
+ * Products mapped to a line with no usable stock figure.
  *
  * Warning on new mappings does nothing about the ones that are already like that, and
  * those are the ones costing orders. Tea cups had four orders signed off and shipped and
  * then went unorderable with 577 units in Witham; the first anyone knew was a GM's order
  * being refused three weeks later.
+ *
+ * The buttons are the point. The first version of this panel told the admin to "unmap the
+ * line" and to "promote a line that has a figure" and the screen had neither control --
+ * the routes existed and nothing in the client had ever called them. That is the same
+ * mistake as telling an approver to "try again once the next sync has run" for a condition
+ * no sync could change: advice nobody can act on is worse than silence, because it looks
+ * like help.
+ *
+ * It also no longer carries one standing imperative over every row. Of the three live
+ * products, unmapping is right for none of them as a reflex: it would not move Tea cups'
+ * floor by a single unit, and for a product whose only line is unreadable it would leave
+ * the product mapped to nothing at all, which is strictly worse. Each row says what its
+ * own situation warrants.
  */
-function StockGaps({ products }: { products: StockGap[] }) {
+function StockGaps({ products, onChange }: { products: StockGap[]; onChange: () => void }) {
+  const [busy, setBusy] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const act = async (lineId: number, url: string, method: string) => {
+    setBusy(lineId); setError(null)
+    try {
+      const res = await fetch(url, { method, credentials: 'same-origin' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        setError(body.error ?? 'That could not be done.')
+        return
+      }
+      onChange()
+    } catch {
+      setError('That could not be done.')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   if (products.length === 0) return null
   return (
     <div className={`${card} border-amber-400 bg-amber-50`}>
       <h3 className="font-semibold text-gray-900">
         {products.length} mapped {products.length === 1 ? 'product has' : 'products have'} a
-        line with no stock record
+        line with no stock figure
       </h3>
       <p className="mt-1 text-sm text-gray-700">
-        Mintsoft holds no inventory record for these lines, so each product&apos;s stock
-        figure is a floor rather than a total. Unmap the line, or leave it if its shipment
-        is still to land.
+        Mintsoft gives no usable stock figure for these lines, so each product&apos;s figure
+        is a floor rather than a total. A line still awaiting its first shipment will start
+        reporting on its own — there is nothing to do for those.
       </p>
-      <ul className="mt-3 space-y-3">
+
+      {error && <p role="alert" className="mt-3 text-red-800 bg-red-50 border border-red-300 rounded p-2">{error}</p>}
+
+      <ul className="mt-3 space-y-4">
         {products.map((p) => (
-          <li key={p.productId}>
+          <li key={p.productId} className="border-t border-amber-300 pt-3 first:border-0 first:pt-0">
             <p className="text-gray-900">
               <strong>{p.productName}</strong>
               {!p.active && <span className="text-gray-600"> (not in the catalogue)</span>}
             </p>
             <p className="text-sm text-gray-700">
-              {p.recordlessLines.length} of {p.mappedLines} lines:{' '}
-              {p.recordlessLines.map((l) => (
-                <span key={l.mintsoftProductId} className="font-mono">
-                  {l.sku}{l.isPrimary ? ' (primary)' : ''}{' '}
-                </span>
-              ))}
+              {p.unreadableLines.length} of {p.mappedLines}{' '}
+              {p.mappedLines === 1 ? 'line' : 'lines'} without a figure
             </p>
+
             <p className="text-sm">
-              {/* Three different situations, and only the first is a mapping problem.
-                  No readable line at all means no figure, which the approval guard
-                  refuses outright. Readable lines adding to zero means the shelf is
-                  empty, which the next shipment fixes by itself. */}
-              {p.readableLines === 0 ? (
+              {/* Three situations, and only the first is a mapping problem. No readable
+                  line means no figure, which the approval guard refuses outright. Readable
+                  lines adding to zero means the shelf is empty, which the next shipment
+                  fixes by itself. */}
+              {p.readableLines.length === 0 ? (
                 <span className="text-red-900 font-medium">
                   No line has a stock figure, so this cannot be ordered at all until one
-                  appears in the feed.
+                  starts reporting.
                 </span>
               ) : p.readableFloor === 0 ? (
                 <span className="text-gray-700">
-                  The {p.readableLines} readable {p.readableLines === 1 ? 'line holds' : 'lines hold'}{' '}
-                  nothing, so there is nothing to order today — though the real figure may
-                  be higher than zero and we cannot see it.
+                  The {p.readableLines.length} readable{' '}
+                  {p.readableLines.length === 1 ? 'line holds' : 'lines hold'} nothing, so
+                  there is nothing to order yet — though the real figure may be higher than
+                  zero and we cannot see it.
                 </span>
               ) : (
                 <span className="text-gray-700">
                   Sites can order up to {p.readableFloor}; the real figure may be higher.
-                </span>
-              )}
-              {p.recordlessLines.some((l) => l.isPrimary) && (
-                <span className="text-amber-900">
-                  {' '}Orders are placed against the primary first — promote a line that has
-                  a figure.
+                  Nothing needs doing unless this line is dead.
                 </span>
               )}
             </p>
+
+            <ul className="mt-2 space-y-2">
+              {p.unreadableLines.map((l) => (
+                <li key={l.mintsoftProductId} className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-sm text-gray-900">{l.sku}</span>
+                  <span className="text-sm text-gray-600">
+                    {l.hasStockRecord ? 'row reports no figure' : 'no stock record'}
+                  </span>
+
+                  {l.isPrimary ? (
+                    // The flag has to move before this line can be unmapped, and it is the
+                    // only true consequence of a primary with no figure -- allocation
+                    // already skips it.
+                    <>
+                      <span className="text-sm text-amber-900">
+                        holds the primary flag, which must move before it can be unmapped
+                      </span>
+                      {p.readableLines.length > 0 && (
+                        <label className="text-sm text-gray-800">
+                          Make primary:{' '}
+                          <select
+                            className="rounded border border-gray-400 px-2 py-1"
+                            defaultValue=""
+                            disabled={busy !== null}
+                            onChange={(e) => {
+                              if (!e.target.value) return
+                              void act(
+                                l.mintsoftProductId,
+                                `/api/admin/mapping/products/${p.productId}/primary/${e.target.value}`,
+                                'POST',
+                              )
+                            }}
+                          >
+                            <option value="">choose a line…</option>
+                            {p.readableLines.map((r) => (
+                              <option key={r.mintsoftProductId} value={r.mintsoftProductId}>
+                                {r.sku} ({r.available} free)
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy === l.mintsoftProductId}
+                      onClick={() => void act(
+                        l.mintsoftProductId,
+                        `/api/admin/mapping/lines/${l.mintsoftProductId}`,
+                        'DELETE',
+                      )}
+                      className="min-h-[44px] px-3 rounded-lg border border-gray-400 text-gray-900"
+                    >
+                      {busy === l.mintsoftProductId ? 'Unmapping…' : 'Unmap'}
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>
@@ -315,7 +404,7 @@ export function Mapping() {
         {unmappedCount} warehouse {unmappedCount === 1 ? 'line is' : 'lines are'} not mapped yet.
       </p>
 
-      <StockGaps products={stockGaps} />
+      <StockGaps products={stockGaps} onChange={() => void load()} />
 
       {suggestions.length === 0 ? (
         <p className="text-gray-700">

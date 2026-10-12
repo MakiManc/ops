@@ -161,12 +161,39 @@ describe('when stock has moved since approval', () => {
     expect((await orderById(db, 1))!.status).toBe('post_failed')
   })
 
-  it('blocks when a mapped SKU has no stock reading at all', async () => {
+  it('blocks when the readable lines cannot cover the quantity', async () => {
+    // This was called "blocks when a mapped SKU has no stock reading at all", and it no
+    // longer tests that. Deleting 7002's row leaves BOWL-01's 20 against an approved 30,
+    // so what refuses the send is the shortfall, not the unreadable line -- it refuses
+    // identically if 7002 reads a readable 0. The name and its old comment ("an unknown
+    // total must not be ordered against") outlived the policy they described.
     fake.exec(`DELETE FROM stock_cache WHERE mintsoft_product_id = 7002`)
     const { client, puts } = stub()
-    // Unknown is not zero, and an unknown total must not be ordered against.
-    expect((await send(client)).ok).toBe(false)
+    const result = await send(client)
+    expect(result.ok).toBe(false)
     expect(puts).toHaveLength(0)
+    expect(result.message).toMatch(/only 20 can be accounted for/)
+    expect(result.message).not.toMatch(/try again/i)
+  })
+
+  it('sends against the readable lines when an unreadable one is the primary', async () => {
+    // The case nothing covered, and the one every approved Tea cups order now takes: an
+    // unreadable mapped line with readable lines that cover the quantity. It is also the
+    // live SAKURA TREES PLANTERS shape, where the unreadable line IS the primary.
+    //
+    // This matters here and not only at approval because send re-reads stock and
+    // re-allocates, so a send that still refused would leave an order approved and
+    // unsendable -- the dead end the approval fix was meant to remove.
+    fake.exec(`DELETE FROM stock_cache WHERE mintsoft_product_id = 7001`)
+    const { client, puts } = stub()
+    const result = await send(client)
+
+    expect(result.ok).toBe(true)
+    expect(result.status).toBe('posted')
+    // Allocated entirely against the line that has a figure. Mercium cannot pick from a
+    // number we do not have, so the unreadable SKU must not appear at all.
+    expect((puts[0] as { OrderItems: unknown }).OrderItems)
+      .toEqual([{ SKU: 'BOWL-02', Quantity: 30 }])
   })
 })
 

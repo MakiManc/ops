@@ -237,7 +237,7 @@ describe('mapping a line with no stock record', () => {
       { mintsoftProductId: 1, sku: 'MRK001-TCT', hasStockRecord: true, available: 577 },
       { mintsoftProductId: 2, sku: 'MRK010-TCT', hasStockRecord: false, available: null },
     ])
-    expect(warning).toMatch(/no stock record for MRK010-TCT/)
+    expect(warning).toMatch(/no stock figure for MRK010-TCT/)
     expect(warning).toMatch(/show at least 577 rather than a total/)
     // The reassuring half matters as much: this is not a reason to abandon the mapping.
     expect(warning).toMatch(/Orders up to 577 are unaffected/)
@@ -247,7 +247,7 @@ describe('mapping a line with no stock record', () => {
     const warning = stockWarning([
       { mintsoftProductId: 1, sku: 'ONLY-LINE', hasStockRecord: false, available: null },
     ])
-    expect(warning).toMatch(/that is the only line/)
+    expect(warning).toMatch(/the only line mapped to this product/)
     expect(warning).toMatch(/orders for it will be refused/)
     // And still not a refusal: the shipment may simply not have landed.
     expect(warning).toMatch(/Map it if the shipment is still to land/)
@@ -260,8 +260,13 @@ describe('mapping a line with no stock record', () => {
       { mintsoftProductId: 1, sku: 'STS-30', hasStockRecord: false, available: null },
       { mintsoftProductId: 2, sku: 'STS', hasStockRecord: true, available: 2 },
     ]
-    expect(stockWarning(lines, { primaryMintsoftProductId: 1 }))
-      .toMatch(/also set as the primary.*Pick a line with a stock figure as the primary instead/s)
+    const warned = stockWarning(lines, { primaryMintsoftProductId: 1 })
+    expect(warned).toMatch(/also holds the primary flag/)
+    expect(warned).toMatch(/moved to another line before this one could be unmapped/)
+    // It must NOT claim orders are placed against it first. allocateLine filters out
+    // lines with no figure BEFORE it sorts by primary, so a primary with no figure has no
+    // effect on allocation at all, and saying otherwise sends someone chasing nothing.
+    expect(warned).toMatch(/does not change which line an order is filled from/)
     // Not mentioned when the primary is a line that has a figure.
     expect(stockWarning(lines, { primaryMintsoftProductId: 2 })).not.toMatch(/primary/)
   })
@@ -277,7 +282,7 @@ describe('mapping a line with no stock record', () => {
     // The product exists. A warning is not a failure.
     expect(result.productId).toBeGreaterThan(0)
     expect(result.lines).toBe(2)
-    expect(result.warning).toMatch(/no stock record for BOWL-02/)
+    expect(result.warning).toMatch(/no stock figure for BOWL-02/)
     expect(fake.sqlite.prepare(
       `SELECT COUNT(*) AS n FROM product_mintsoft_map WHERE product_id = ?`,
     ).get(result.productId)).toEqual({ n: 2 })
@@ -358,19 +363,26 @@ describe('finding the products already mapped to a recordless line', () => {
     const [found] = await productsWithUnreadableLines(db)
     expect(found).toMatchObject({
       productName: 'Tea cups', active: true, mappedLines: 8, readableFloor: 577,
-      readableLines: 7,
     })
-    expect(found?.recordlessLines).toEqual([
-      { mintsoftProductId: 1585, sku: 'MRK010-TCT', isPrimary: false },
+    expect(found?.readableLines).toHaveLength(7)
+    expect(found?.unreadableLines).toEqual([
+      { mintsoftProductId: 1585, sku: 'MRK010-TCT', isPrimary: false, hasStockRecord: false },
+    ])
+    // The readable lines are carried, not just counted: the screen offers to move the
+    // primary onto one of them and cannot build that control out of a number.
+    expect(found?.readableLines.map((l) => l.sku)).toEqual([
+      'MRK001-TCT', 'MRK002-TCT', 'MRK004-TCT', 'MRK005-TCT', 'MRK008-TCT',
+      'MRK011-TCT', 'MRK013-TCT',
     ])
   })
 
   it('reports the SAKURA shape, where the absent line is the primary', async () => {
     await product('Sakura planters', [[1308, 'STS-30', null], [1309, 'STS', 2]], 0)
     const [found] = await productsWithUnreadableLines(db)
-    expect(found).toMatchObject({ readableFloor: 2, readableLines: 1 })
+    expect(found).toMatchObject({ readableFloor: 2 })
+    expect(found?.readableLines).toHaveLength(1)
     // Worth flagging on its own: orders are placed against the primary first.
-    expect(found?.recordlessLines[0]).toMatchObject({ sku: 'STS-30', isPrimary: true })
+    expect(found?.unreadableLines[0]).toMatchObject({ sku: 'STS-30', isPrimary: true })
   })
 
   it('reports the Round Table Base shape as unorderable, not merely a floor', async () => {
@@ -382,7 +394,8 @@ describe('finding the products already mapped to a recordless line', () => {
     const [found] = await productsWithUnreadableLines(db)
     // Two readable lines, both empty. Not the same as having no figure: the next
     // shipment fixes this one without anybody touching the mapping.
-    expect(found).toMatchObject({ readableFloor: 0, readableLines: 2 })
+    expect(found).toMatchObject({ readableFloor: 0 })
+    expect(found?.readableLines).toHaveLength(2)
   })
 
   it('distinguishes no readable row from readable rows totalling zero', async () => {
@@ -390,16 +403,18 @@ describe('finding the products already mapped to a recordless line', () => {
     // none, which a sync can change tomorrow.
     await product('All absent', [[8001, 'A-01', null], [8002, 'A-02', null]])
     const [found] = await productsWithUnreadableLines(db)
-    expect(found).toMatchObject({ readableFloor: 0, readableLines: 0, mappedLines: 2 })
-    expect(found?.recordlessLines).toHaveLength(2)
+    expect(found).toMatchObject({ readableFloor: 0, mappedLines: 2 })
+    expect(found?.readableLines).toHaveLength(0)
+    expect(found?.unreadableLines).toHaveLength(2)
   })
 
   it('groups several recordless lines under one product', async () => {
     await product('Patchy', [[9001, 'P-01', 5], [9002, 'P-02', null], [9003, 'P-03', null]])
     const found = await productsWithUnreadableLines(db)
     expect(found).toHaveLength(1)
-    expect(found[0]?.recordlessLines.map((l) => l.sku)).toEqual(['P-02', 'P-03'])
-    expect(found[0]).toMatchObject({ mappedLines: 3, readableFloor: 5, readableLines: 1 })
+    expect(found[0]?.unreadableLines.map((l) => l.sku)).toEqual(['P-02', 'P-03'])
+    expect(found[0]).toMatchObject({ mappedLines: 3, readableFloor: 5 })
+    expect(found[0]?.readableLines).toHaveLength(1)
   })
 
   it('puts the catalogue products first, since a retired one costs nobody an order', async () => {
@@ -409,5 +424,93 @@ describe('finding the products already mapped to a recordless line', () => {
     const found = await productsWithUnreadableLines(db)
     expect(found.map((p) => [p.productName, p.active]))
       .toEqual([['Live one', true], ['Retired one', false]])
+  })
+})
+
+/**
+ * The cases that let the first version of this guard contradict the approval guard.
+ *
+ * It decided readable/unreadable in SQL, counting a line as readable because a stock ROW
+ * existed and summing available across rows that carried no figure. So a product whose
+ * only row said nothing was described here as "1 readable line holding nothing" while
+ * allocateLine refused it as having no figure at all -- two statements of one rule, which
+ * is exactly how the Tea cups bug happened. These pin the single rule.
+ */
+describe('a row that exists but gives no figure', () => {
+  const rowWithoutFigure = (id: number, sku: string) => {
+    line(id, sku, `Line ${sku}`)
+    stock(id, null, { onHand: null })
+  }
+
+  it('is unreadable, not readable-and-empty', async () => {
+    line(7001, 'HAS-FIGURE', 'Readable'); stock(7001, 40)
+    rowWithoutFigure(7002, 'NO-FIGURE')
+    const { productId } = await createProductFromLines(db, {
+      name: 'Mixed', stockType: 'internal',
+      mintsoftProductIds: [7001, 7002], primaryMintsoftProductId: 7001,
+    })
+    expect(productId).toBeGreaterThan(0)
+
+    const [found] = await productsWithUnreadableLines(db)
+    expect(found?.unreadableLines).toEqual([
+      // hasStockRecord is true -- there IS a row -- but it yields no figure, so the line
+      // counts as unreadable all the same. The two are different facts.
+      { mintsoftProductId: 7002, sku: 'NO-FIGURE', isPrimary: false, hasStockRecord: true },
+    ])
+    expect(found?.readableLines.map((l) => l.sku)).toEqual(['HAS-FIGURE'])
+    expect(found?.readableFloor).toBe(40)
+  })
+
+  it('leaves a product with no floor when it is the only kind of line there is', async () => {
+    rowWithoutFigure(7001, 'NO-FIGURE-1'); rowWithoutFigure(7002, 'NO-FIGURE-2')
+    await createProductFromLines(db, {
+      name: 'Nothing readable', stockType: 'internal',
+      mintsoftProductIds: [7001, 7002], primaryMintsoftProductId: 7001,
+    })
+
+    const [found] = await productsWithUnreadableLines(db)
+    // Not "2 readable lines holding nothing", which is what the SQL version said.
+    expect(found?.readableLines).toHaveLength(0)
+    expect(found?.unreadableLines).toHaveLength(2)
+    expect(found?.readableFloor).toBe(0)
+  })
+
+  it('never sums a figure across rows where one of them is missing it', async () => {
+    // Two locations, one reporting 10 and one reporting nothing. The true total is
+    // unknowable; answering 10 is the confident undercount the whole availability module
+    // exists to prevent, because it gets ordered against.
+    line(7001, 'SPLIT', 'Two locations')
+    stock(7001, 10, { location: 1 })
+    stock(7001, null, { onHand: null, location: 2 })
+    await createProductFromLines(db, {
+      name: 'Split', stockType: 'internal',
+      mintsoftProductIds: [7001], primaryMintsoftProductId: 7001,
+    })
+
+    const [found] = await productsWithUnreadableLines(db)
+    expect(found?.readableFloor).toBe(0)
+    expect(found?.readableLines).toHaveLength(0)
+    expect((await unmappedLines(db)).length).toBe(0)
+  })
+
+  it('warns about it, where it used to say nothing at all', () => {
+    // Every line has a record, none has a figure. The approval guard refuses this
+    // outright, so silence was the worst available answer.
+    expect(stockWarning([
+      { mintsoftProductId: 1, sku: 'A', hasStockRecord: true, available: null },
+      { mintsoftProductId: 2, sku: 'B', hasStockRecord: true, available: null },
+    ])).toMatch(/no stock figure for A, B, which is every line mapped to this product/)
+  })
+
+  it('does not claim orders are unaffected when the floor is zero', () => {
+    // "Orders up to 0 are unaffected" is nonsense: nothing can be ordered. But it is a
+    // different problem from having no figure, and the next shipment fixes it.
+    const warning = stockWarning([
+      { mintsoftProductId: 1, sku: 'EMPTY', hasStockRecord: true, available: 0 },
+      { mintsoftProductId: 2, sku: 'ABSENT', hasStockRecord: false, available: null },
+    ])
+    expect(warning).toMatch(/one line that does currently holds nothing, so there is nothing to order yet/)
+    expect(warning).not.toMatch(/Orders up to 0 are unaffected/)
+    expect(warning).not.toMatch(/at least 0/)
   })
 })

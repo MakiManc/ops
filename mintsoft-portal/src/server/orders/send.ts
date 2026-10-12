@@ -13,7 +13,8 @@ import { auditStatement, orderById, linesForOrder } from '../db/orders.ts'
 import { readSettings } from '../db/settings.ts'
 import type { Database } from '../db/repo.ts'
 import type { Role } from '../db/types.ts'
-import { allocateLine, type MappedSku } from './approval.ts'
+import { allocateLine } from './approval.ts'
+import { skusByProduct } from './stock.ts'
 import { type MintsoftWriteClient, postOrder, type OrderToPost } from './post.ts'
 import { mayWriteToMintsoft } from './write-gate.ts'
 
@@ -159,32 +160,12 @@ export async function sendApprovedOrder(
   // Work out which warehouse SKUs each line is ordered against, re-reading stock now
   // rather than trusting what was on screen at approval.
   const lines = await linesForOrder(db, orderId)
-  const { results: skuRows } = await db
-    .prepare(
-      `SELECT pmm.product_id, pmm.mintsoft_product_id, pmm.sku, pmm.is_primary,
-              SUM(sc.available) AS available,
-              COUNT(sc.id) AS rows_seen,
-              COUNT(sc.available) AS rows_with_value
-         FROM product_mintsoft_map pmm
-         LEFT JOIN stock_cache sc ON sc.mintsoft_product_id = pmm.mintsoft_product_id
-        GROUP BY pmm.mintsoft_product_id`,
-    )
-    .all<{
-      product_id: number; mintsoft_product_id: number; sku: string; is_primary: number
-      available: number | null; rows_seen: number; rows_with_value: number
-    }>()
-
-  const skusByProduct = new Map<number, MappedSku[]>()
-  for (const r of skuRows ?? []) {
-    // A SKU with no stock row, or with any row missing its figure, is unknown rather
-    // than zero — and an unknown blocks the allocation rather than silently ordering
-    // against nothing.
-    const available = r.rows_seen === 0 || r.rows_with_value < r.rows_seen ? null : r.available
-    skusByProduct.set(r.product_id, [
-      ...(skusByProduct.get(r.product_id) ?? []),
-      { mintsoftProductId: r.mintsoft_product_id, sku: r.sku, isPrimary: r.is_primary === 1, available },
-    ])
-  }
+  // The shared read, not a local copy of it. This file carried its own byte-near-identical
+  // version of that query and of the "unknown is not zero" derivation, which is the third
+  // place one rule was written down -- and stating this rule in several places is exactly
+  // how the catalogue came to offer stock the approval guard refused. stock.ts exists to
+  // be the single statement of it.
+  const skus = await skusByProduct(db)
 
   /**
    * A line nobody approved stops the send. It used to inherit the GM's requested
@@ -213,7 +194,7 @@ export async function sendApprovedOrder(
     productId: line.productId,
     productName: line.productName,
     qtyApproved: line.qtyApproved!,
-    skus: skusByProduct.get(line.productId) ?? [],
+    skus: skus.get(line.productId) ?? [],
     rechargeUnitPrice: line.rechargeUnitPrice,
   }))
 

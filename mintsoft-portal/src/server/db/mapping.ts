@@ -82,7 +82,9 @@ const toLine = (r: LineRow): MintsoftLine => ({
   hasStockRecord: r.stock_rows > 0,
   // The same derivation as orders/stock.ts, so this screen and the approval guard agree
   // about what "no figure" means. Part of the picture missing is unknown, not low.
-  available: r.stock_rows === 0 || r.stock_rows_with_value < r.stock_rows ? null : r.stock_available,
+  available: usableFigure({ rows_seen: r.stock_rows, rows_with_value: r.stock_rows_with_value })
+    ? r.stock_available
+    : null,
 })
 
 // Correlated subqueries rather than a join: stock_cache holds a row per location, and
@@ -286,6 +288,17 @@ export async function createProductFromLines(db: Database, input: NewProductInpu
   }
 }
 
+/**
+ * Whether a line's stock rows add up to a figure we may use.
+ *
+ * The one statement of the rule in this file, and the same one orders/stock.ts applies:
+ * no rows at all is unknown, and rows where part of the picture is missing are unknown
+ * too. Adding up the rows that did report would produce a confident undercount, which is
+ * worse than no number because it gets ordered against.
+ */
+const usableFigure = (r: { rows_seen: number; rows_with_value: number }): boolean =>
+  r.rows_seen > 0 && r.rows_with_value === r.rows_seen
+
 /** The stock position of a set of Mintsoft lines, for the warning below. */
 async function stockPositionOf(
   db: Database, mintsoftProductIds: number[],
@@ -308,7 +321,9 @@ ${STOCK_COLUMNS}
     mintsoftProductId: r.mintsoft_product_id,
     sku: r.sku,
     hasStockRecord: r.stock_rows > 0,
-    available: r.stock_rows === 0 || r.stock_rows_with_value < r.stock_rows ? null : r.stock_available,
+    available: usableFigure({ rows_seen: r.stock_rows, rows_with_value: r.stock_rows_with_value })
+      ? r.stock_available
+      : null,
   }))
 }
 
@@ -319,95 +334,133 @@ ${STOCK_COLUMNS}
  * Deliberately not an error. A line awaiting its first shipment has no inventory record
  * yet and is perfectly reasonable to map; the point is that the person doing it should
  * not have to know the availability rules to see what follows.
+ *
+ * It keys on whether a line yields a usable FIGURE, not on whether a row exists. Keying
+ * on the row missed the case where every line has a row and none of them says anything --
+ * which is the state the approval guard refuses outright, so staying silent about it was
+ * the worst possible choice.
  */
 export function stockWarning(
   lines: Pick<MintsoftLine, 'mintsoftProductId' | 'sku' | 'hasStockRecord' | 'available'>[],
   { primaryMintsoftProductId }: { primaryMintsoftProductId?: number } = {},
 ): string | null {
-  const recordless = lines.filter((l) => !l.hasStockRecord)
-  if (recordless.length === 0) return null
+  const unreadable = lines.filter((l) => l.available === null)
+  if (unreadable.length === 0) return null
 
-  const names = recordless.map((l) => l.sku).join(', ')
+  const names = unreadable.map((l) => l.sku).join(', ')
   const readable = lines.filter((l) => l.available !== null)
   const floor = readable.reduce((n, l) => n + (l.available ?? 0), 0)
 
-  // Nothing readable anywhere: the product has no floor, so it cannot be ordered at all
-  // until one of these lines appears in the stock feed. The strongest thing to say.
+  // No figure anywhere: the product has no floor, so it cannot be ordered at all until
+  // one of these lines reports. The strongest thing to say, and the only case where
+  // "orders will be refused" is true.
   if (readable.length === 0) {
-    return `Mintsoft has no stock record for ${names}, and ${lines.length === 1 ? 'that is the only line' : 'none of the other lines has one either'}. `
-      + 'Until one of them appears in the stock feed this product will show no stock and '
-      + 'orders for it will be refused. Map it if the shipment is still to land, but it '
-      + 'will not be orderable yet.'
+    return `Mintsoft has no stock figure for ${names}`
+      + `${lines.length === 1 ? ', the only line mapped to this product' : ', which is every line mapped to this product'}. `
+      + 'Until one of them reports, this product will show no stock and orders for it will '
+      + 'be refused. Map it if the shipment is still to land — it just will not be orderable yet.'
   }
 
-  const isPrimary = primaryMintsoftProductId !== undefined
-    && recordless.some((l) => l.mintsoftProductId === primaryMintsoftProductId)
+  // There IS a floor, but it is zero: the readable lines are genuinely empty. Saying
+  // "orders up to 0 are unaffected" here, as this once did, is nonsense -- nothing can be
+  // ordered -- but it is a different problem from having no figure, and one the next
+  // shipment fixes without anybody touching the mapping.
+  const consequence = floor === 0
+    ? `and the ${readable.length === 1 ? 'one line that does' : `${readable.length} lines that do`} `
+      + 'currently holds nothing, so there is nothing to order yet. The real figure may be '
+      + 'higher than zero and we cannot see it.'
+    : `so this product will show at least ${floor} rather than a total — the real figure `
+      + `may be higher and we cannot see it. Orders up to ${floor} are unaffected.`
 
-  return `Mintsoft has no stock record for ${names}, so this product will show at least `
-    + `${floor} rather than a total — the real figure may be higher and we cannot see it. `
-    + `Orders up to ${floor} are unaffected.`
+  const isPrimary = primaryMintsoftProductId !== undefined
+    && unreadable.some((l) => l.mintsoftProductId === primaryMintsoftProductId)
+
+  return `Mintsoft has no stock figure for ${names}, ${consequence}`
     + (isPrimary
-      // Orders fill from the primary first, and removing a primary later needs another
-      // line promoted first, so this is the one case worth steering away from up front.
-      ? ' That line is also set as the primary, which is where orders are placed first.'
-        + ' Pick a line with a stock figure as the primary instead.'
+      // NOT "orders are placed against it first". They are not: allocateLine filters out
+      // lines with no figure before it sorts by primary, so a primary with no figure has
+      // no effect on allocation at all. The one real consequence is that the flag has to
+      // be moved before the line can ever be unmapped.
+      ? ` That line also holds the primary flag. It does not change which line an order is`
+        + ' filled from — allocation skips lines with no figure — but the flag has to be'
+        + ' moved to another line before this one could be unmapped.'
       : '')
+}
+
+export interface UnreadableLine {
+  mintsoftProductId: number
+  sku: string
+  isPrimary: boolean
+  /** False when Mintsoft has no inventory record at all; true when it has one that says nothing. */
+  hasStockRecord: boolean
 }
 
 export interface ProductWithUnreadableLines {
   productId: number
   productName: string
   active: boolean
-  /** Mapped lines Mintsoft has no inventory record for. */
-  recordlessLines: { mintsoftProductId: number; sku: string; isPrimary: boolean }[]
   mappedLines: number
+  /** Lines with no usable stock figure: no row at all, or a row that does not give one. */
+  unreadableLines: UnreadableLine[]
+  /**
+   * Lines that do have a figure.
+   *
+   * Carried, not just counted, because the screen offers to move the primary flag onto one
+   * of them and cannot build that control out of a number.
+   */
+  readableLines: { mintsoftProductId: number; sku: string; available: number }[]
   /** What the readable lines come to — what a site can actually order today. */
   readableFloor: number
-  /**
-   * How many of the product's lines have a usable figure.
-   *
-   * Zero is a different thing from a floor of zero, and the two want saying differently.
-   * No readable line means no figure at all, which the approval guard refuses outright and
-   * which only a mapping change can resolve. Readable lines adding up to zero means the
-   * shelf is genuinely empty, which the next shipment resolves on its own.
-   */
-  readableLines: number
 }
 
 /**
- * Products already mapped to a line Mintsoft has no stock record for.
+ * Products mapped to a line with no usable stock figure.
  *
  * This is the half of the guard that pays for itself today. Three products are in this
- * state right now and nothing anywhere surfaces them: one of them, Tea cups, had four
+ * state right now and nothing anywhere surfaced them: one of them, Tea cups, had four
  * orders signed off and shipped before a mapping change made it unorderable, and the
  * first anyone knew was a GM's order being refused. Warning on new mappings would not
  * have found any of them.
+ *
+ * The readable/unreadable split is decided in TypeScript rather than in SQL, by the same
+ * `usable` predicate orders/stock.ts applies. The first version of this did it in SQL with
+ * `JOIN stock_cache` and `COALESCE(SUM(available), 0)`, which counted a line as readable
+ * because a ROW existed and summed across rows that carried no figure. That is the
+ * confident undercount the whole availability module exists to prevent, and it made this
+ * panel contradict the approval guard: a product whose only row carried no figure was
+ * described here as "1 readable line holding nothing" while the guard refused it as having
+ * no figure at all. Two statements of one rule is how the original bug happened; there is
+ * now one.
  */
 export async function productsWithUnreadableLines(db: Database): Promise<ProductWithUnreadableLines[]> {
   const { results } = await db
     .prepare(
-      `SELECT p.id AS product_id, p.name AS product_name, p.active,
-              pmm.mintsoft_product_id, pmm.sku, pmm.is_primary,
-              (SELECT COUNT(*) FROM product_mintsoft_map m WHERE m.product_id = p.id) AS mapped_lines,
-              (SELECT COALESCE(SUM(sc.available), 0)
-                 FROM product_mintsoft_map m
-                 JOIN stock_cache sc ON sc.mintsoft_product_id = m.mintsoft_product_id
-                WHERE m.product_id = p.id) AS readable_floor,
-              (SELECT COUNT(DISTINCT m.mintsoft_product_id)
-                 FROM product_mintsoft_map m
-                 JOIN stock_cache sc ON sc.mintsoft_product_id = m.mintsoft_product_id
-                WHERE m.product_id = p.id) AS readable_lines
-         FROM product_mintsoft_map pmm
-         JOIN products p ON p.id = pmm.product_id
-        WHERE NOT EXISTS (
-                SELECT 1 FROM stock_cache sc
-                 WHERE sc.mintsoft_product_id = pmm.mintsoft_product_id)
-        ORDER BY p.active DESC, p.name, pmm.is_primary DESC`,
+      // Every line of every product that has at least one unreadable line, so both lists
+      // can be built from one read.
+      `WITH line_stock AS (
+         SELECT pmm.product_id, pmm.mintsoft_product_id, pmm.sku, pmm.is_primary,
+                (SELECT COUNT(sc.id) FROM stock_cache sc
+                  WHERE sc.mintsoft_product_id = pmm.mintsoft_product_id) AS rows_seen,
+                (SELECT COUNT(sc.available) FROM stock_cache sc
+                  WHERE sc.mintsoft_product_id = pmm.mintsoft_product_id) AS rows_with_value,
+                (SELECT SUM(sc.available) FROM stock_cache sc
+                  WHERE sc.mintsoft_product_id = pmm.mintsoft_product_id) AS available
+           FROM product_mintsoft_map pmm
+       )
+       SELECT p.id AS product_id, p.name AS product_name, p.active,
+              ls.mintsoft_product_id, ls.sku, ls.is_primary,
+              ls.rows_seen, ls.rows_with_value, ls.available
+         FROM line_stock ls
+         JOIN products p ON p.id = ls.product_id
+        WHERE ls.product_id IN (
+                SELECT product_id FROM line_stock
+                 WHERE rows_seen = 0 OR rows_with_value < rows_seen)
+        ORDER BY p.active DESC, p.name, ls.is_primary DESC, ls.sku`,
     )
     .all<{
       product_id: number; product_name: string; active: number
       mintsoft_product_id: number; sku: string; is_primary: number
-      mapped_lines: number; readable_floor: number; readable_lines: number
+      rows_seen: number; rows_with_value: number; available: number | null
     }>()
 
   const byProduct = new Map<number, ProductWithUnreadableLines>()
@@ -416,14 +469,26 @@ export async function productsWithUnreadableLines(db: Database): Promise<Product
       productId: r.product_id,
       productName: r.product_name,
       active: r.active === 1,
-      recordlessLines: [],
-      mappedLines: r.mapped_lines,
-      readableFloor: r.readable_floor,
-      readableLines: r.readable_lines,
+      mappedLines: 0,
+      unreadableLines: [],
+      readableLines: [],
+      readableFloor: 0,
     }
-    entry.recordlessLines.push({
-      mintsoftProductId: r.mintsoft_product_id, sku: r.sku, isPrimary: r.is_primary === 1,
-    })
+    entry.mappedLines += 1
+
+    if (usableFigure(r) && r.available !== null) {
+      entry.readableLines.push({
+        mintsoftProductId: r.mintsoft_product_id, sku: r.sku, available: r.available,
+      })
+      entry.readableFloor += r.available
+    } else {
+      entry.unreadableLines.push({
+        mintsoftProductId: r.mintsoft_product_id,
+        sku: r.sku,
+        isPrimary: r.is_primary === 1,
+        hasStockRecord: r.rows_seen > 0,
+      })
+    }
     byProduct.set(r.product_id, entry)
   }
   return [...byProduct.values()]
