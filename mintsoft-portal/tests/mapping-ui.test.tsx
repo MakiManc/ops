@@ -117,6 +117,51 @@ describe('a line’s stock position, where the decision is made', () => {
     expect(screen.queryByText('Saved.')).toBeNull()
   })
 
+  it('does not leave the card stuck on "Saved." when the cluster survives', async () => {
+    // onDone reloads and the parent re-renders this card under the same key, so a warning
+    // left in state outlives the reload. That happens precisely when the cluster still has
+    // unmapped lines -- when there is more to do -- and the card would have no way back.
+    serve({
+      suggestions: [suggestion([line({ hasStockRecord: false, available: null })])],
+      post: { status: 201, body: { productId: 9, warning: 'at least 40 rather than a total' } },
+    })
+    render(<Mapping />)
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: /Combine into one product/ })))
+    const done = await waitFor(() => screen.getByRole('button', { name: 'Done' }))
+    fireEvent.click(done)
+
+    await waitFor(() => expect(screen.queryByText('Saved.')).toBeNull())
+    // The card is usable again.
+    expect(screen.getByRole('button', { name: /Combine into one product/ })).toBeDefined()
+  })
+
+  it('submits a primary that is actually one of the selected lines', async () => {
+    // Asserting select.value here proves nothing: a <select> whose value matches no option
+    // reports the FIRST option's value, so the element reads '7002' either way while React
+    // state still holds 7001. The bug is only visible in what gets submitted -- the server
+    // refused with "The primary SKU must be one of the lines being mapped", an error with
+    // no visible cause.
+    serve({ suggestions: [suggestion([
+      line({ mintsoftProductId: 7001, sku: 'HAS-STOCK', available: 40 }),
+      line({ mintsoftProductId: 7002, sku: 'ALSO-STOCK', available: 7 }),
+    ])] })
+    render(<Mapping />)
+    await waitFor(() => screen.getByLabelText(/Primary SKU/))
+
+    fireEvent.click(screen.getByLabelText(/HAS-STOCK/))        // deselect the default primary
+    fireEvent.click(screen.getByRole('button', { name: /Combine into one product/ }))
+
+    await waitFor(() => {
+      const post = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls
+        .find((c) => (c[1] as { method?: string } | undefined)?.method === 'POST')
+      expect(post, 'nothing was submitted').toBeDefined()
+      const body = JSON.parse((post![1] as { body: string }).body) as
+        { mintsoftProductIds: number[]; primaryMintsoftProductId: number }
+      expect(body.mintsoftProductIds).toEqual([7002])
+      expect(body.primaryMintsoftProductId).toBe(7002)
+    })
+  })
+
   it('still shows a real failure as an error', async () => {
     serve({
       suggestions: [suggestion([line()])],

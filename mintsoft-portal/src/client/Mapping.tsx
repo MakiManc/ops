@@ -115,7 +115,19 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
   }
 
   const toggle = (id: number) =>
-    setSelected((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id])
+    setSelected((s) => {
+      const next = s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
+      // The dropdown only lists selected lines, so deselecting the primary left it
+      // displaying one line while submitting another, and the server rightly refused with
+      // "The primary SKU must be one of the lines being mapped" -- a confusing error with
+      // no visible cause. Move the flag to another selected line instead, preferring one
+      // that has a stock figure.
+      if (primary !== undefined && !next.includes(primary)) {
+        const left = unmapped.filter((l) => next.includes(l.mintsoftProductId))
+        setPrimary((left.find((l) => l.hasStockRecord) ?? left[0])?.mintsoftProductId)
+      }
+      return next
+    })
 
   return (
     <div className="mt-3 border-t border-gray-200 pt-3">
@@ -188,7 +200,19 @@ function MergeForm({ suggestion, onDone }: { suggestion: Suggestion; onDone: () 
           <p role="status" className="text-amber-900 bg-amber-50 border border-amber-400 rounded p-2">
             <strong>Saved.</strong> {warning}
           </p>
-          <button onClick={onDone} className={btnSecondary}>Done</button>
+          <button
+            onClick={() => {
+              // Cleared before reloading. The parent re-renders this card under the same
+              // key, so a warning left in state survives the reload and the card is stuck
+              // on "Saved." with no submit button -- which happens whenever the cluster
+              // still has unmapped lines, i.e. exactly when there is more to do.
+              setWarning(null)
+              onDone()
+            }}
+            className={btnSecondary}
+          >
+            Done
+          </button>
         </div>
       ) : (
         <button

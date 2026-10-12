@@ -17,10 +17,20 @@
  * THE INVARIANT: whatever quantity the catalogue tells a site it may order, approval must
  * accept. Not "usually" -- if the screen says a site can have 30, signing off 30 cannot
  * fail on stock.
+ *
+ * The mapping tool then became a THIRD and FOURTH statement of the same rule --
+ * stockWarning and productsWithUnreadableLines -- and promptly disagreed with the other
+ * two: it counted a line as readable because a stock ROW existed rather than because the
+ * row gave a figure, so a product the approval guard refuses outright was described on the
+ * mapping screen as merely having empty shelves. Those two are now driven from the same
+ * fixtures here, so a fifth statement cannot drift either.
  */
 import { describe, expect, it } from 'vitest'
 import { combineMappedLines, deriveAvailability, type StockRow } from '../src/server/sync/availability.ts'
 import { allocateLine, type LineToApprove, type MappedSku } from '../src/server/orders/approval.ts'
+import { productsWithUnreadableLines, stockWarning } from '../src/server/db/mapping.ts'
+import type { Database } from '../src/server/db/repo.ts'
+import { FakeD1 } from './helpers/d1.ts'
 
 /** One mapped Mintsoft line: its inventory rows, or null when it is absent from the feed. */
 type Line = { sku: string; rows: StockRow[] | null; primary?: boolean }
@@ -56,6 +66,39 @@ function bothSides(lines: Line[]) {
 }
 
 const on = (onHand: number, allocated = 0): StockRow[] => [{ onHand, allocated }]
+
+/**
+ * The same lines, materialised into a real database, so the mapping tool's two statements
+ * of the rule are exercised against the real queries rather than a model of them.
+ */
+async function mappingSides(lines: Line[]) {
+  const fake = new FakeD1()
+  const db = fake as unknown as Database
+  fake.exec(`INSERT INTO products (id, name, stock_type) VALUES (1, 'Tea cups', 'internal')`)
+  lines.forEach((l, i) => {
+    const id = 1000 + i
+    fake.exec(`INSERT INTO mintsoft_products (mintsoft_product_id, sku, name, synced_at)
+               VALUES (${id}, '${l.sku}', '${l.sku}', '2026-10-12T10:00:00Z')`)
+    fake.exec(`INSERT INTO product_mintsoft_map (product_id, mintsoft_product_id, sku, is_primary)
+               VALUES (1, ${id}, '${l.sku}', ${l.primary === true ? 1 : 0})`)
+    // rows === null is the line Mintsoft has no inventory record for at all.
+    ;(l.rows ?? []).forEach((row, j) => {
+      const a = deriveAvailability([row], 'on_hand').available
+      fake.exec(`INSERT INTO stock_cache (mintsoft_product_id, warehouse_id, location_id,
+                                          on_hand, allocated, available, available_basis, synced_at)
+                 VALUES (${id}, 1, ${j + 1}, ${row.onHand ?? 'NULL'}, ${row.allocated ?? 'NULL'},
+                         ${a ?? 'NULL'}, 'contract', '2026-10-12T10:00:00Z')`)
+    })
+  })
+  const gaps = await productsWithUnreadableLines(db)
+  const warning = stockWarning(lines.map((l, i) => ({
+    mintsoftProductId: 1000 + i,
+    sku: l.sku,
+    hasStockRecord: l.rows !== null && l.rows.length > 0,
+    available: l.rows === null ? null : deriveAvailability(l.rows, 'on_hand').available,
+  })))
+  return { gaps, warning }
+}
 
 /** The live production shape on 2026-10-12: 8 lines, one absent from the stock feed. */
 const TEA_CUPS: Line[] = [
@@ -186,4 +229,71 @@ describe('what the catalogue offers, approval accepts', () => {
       }
     }
   })
+})
+
+describe('the mapping tool agrees with both of them', () => {
+  /** Every shape, driven through all four statements of the rule at once. */
+  const SHAPES: { name: string; lines: Line[] }[] = [
+    { name: 'Tea cups: one line absent, the rest hold 577', lines: TEA_CUPS },
+    {
+      name: 'the absent line is the primary',
+      lines: [{ sku: 'STS-30', rows: null, primary: true }, { sku: 'STS', rows: on(2) }],
+    },
+    {
+      name: 'readable lines hold nothing',
+      lines: [{ sku: 'RTR', rows: null }, { sku: 'A', rows: on(0), primary: true }],
+    },
+    {
+      name: 'a row that exists but gives no figure',
+      lines: [{ sku: 'NULLROW', rows: [{ onHand: null, allocated: null }], primary: true }, { sku: 'OK', rows: on(40) }],
+    },
+    {
+      name: 'every line unreadable, one absent and one empty-rowed',
+      lines: [{ sku: 'ABSENT', rows: null, primary: true }, { sku: 'NULLROW', rows: [{ onHand: null, allocated: null }] }],
+    },
+    {
+      name: 'nothing unreadable at all',
+      lines: [{ sku: 'A', rows: on(40), primary: true }, { sku: 'B', rows: on(2) }],
+    },
+  ]
+
+  for (const shape of SHAPES) {
+    it(`holds for ${shape.name}`, async () => {
+      const { catalogue, approve } = bothSides(shape.lines)
+      const { gaps, warning } = await mappingSides(shape.lines)
+      const floor = catalogue.available
+
+      const noFigure = floor === null
+
+      // A product with nothing unreadable is not listed at all, so there is no panel
+      // figure to compare -- assertion 3 below is what pins that case.
+      if (gaps.length > 0) {
+        // 1. The mapping panel's floor is the catalogue's floor. This is the one that
+        //    broke: the panel summed across rows carrying no figure and counted a line
+        //    readable because a row existed, so it could print a number above the
+        //    catalogue's -- a confident overstatement on the one screen meant to diagnose
+        //    exactly this.
+        expect(gaps[0]!.readableFloor).toBe(floor ?? 0)
+
+        // 2. "No readable line" on the panel means exactly "no figure" to the approval
+        //    guard. These were the two that disagreed: empty shelves and no figure at all
+        //    have different causes and different remedies.
+        expect(gaps[0]!.readableLines.length === 0).toBe(noFigure)
+      }
+
+      // 3. The panel lists a product iff something about it is unreadable, which is iff
+      //    the catalogue is reporting a floor rather than a total.
+      expect(gaps.length > 0).toBe(catalogue.linesUnknown > 0)
+
+      // 4. The warning speaks iff there is something to warn about, and claims nothing
+      //    cannot-be-ordered unless that is true.
+      expect(warning !== null).toBe(catalogue.linesUnknown > 0)
+      if (warning !== null) {
+        expect(/orders for it will be refused/.test(warning)).toBe(noFigure)
+      }
+
+      // 5. And the original invariant still holds underneath all of it.
+      if (floor !== null && floor > 0) expect(approve(floor).kind).toBe('allocated')
+    })
+  }
 })

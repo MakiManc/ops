@@ -514,3 +514,56 @@ describe('a row that exists but gives no figure', () => {
     expect(warning).not.toMatch(/at least 0/)
   })
 })
+
+describe('adding a line to a product that already has an unreadable one', () => {
+  it('warns about the existing line, not only a newly-added bad one', async () => {
+    // Only the opposite direction was covered -- adding a BAD line to a good product. This
+    // is the SAKURA remedy loop: the product already carries the unreadable line, and the
+    // admin maps a good one alongside it. Staying silent here would tell the admin the
+    // problem was solved when the floor is still a floor.
+    line(7001, 'ABSENT', 'No record at all')          // no stock() call: no record
+    line(7002, 'GOOD', 'Reports properly'); stock(7002, 60)
+    const { productId } = await createProductFromLines(db, {
+      name: 'Planters', stockType: 'internal',
+      mintsoftProductIds: [7001], primaryMintsoftProductId: 7001,
+    })
+
+    const added = await addLinesToProduct(db, productId, [7002])
+    expect(added.lines).toBe(1)
+    expect(added.warning).toMatch(/no stock figure for ABSENT/)
+    expect(added.warning).toMatch(/show at least 60 rather than a total/)
+    // The existing line holds the primary flag, and that is the one fact worth stating.
+    expect(added.warning).toMatch(/also holds the primary flag/)
+  })
+
+  it('reports the remedy loop as complete once the flag has moved and the line is gone', async () => {
+    // The two-step the panel offers: promote a readable line, then unmap the unreadable
+    // one. If that does not actually clear the product from the panel, the advice is a
+    // dead end and the admin has no way to tell they are finished.
+    line(7001, 'ABSENT', 'No record'); line(7002, 'GOOD', 'Reports'); stock(7002, 60)
+    const { productId } = await createProductFromLines(db, {
+      name: 'Planters', stockType: 'internal',
+      mintsoftProductIds: [7001, 7002], primaryMintsoftProductId: 7001,
+    })
+    expect(await productsWithUnreadableLines(db)).toHaveLength(1)
+
+    await setPrimaryLine(db, productId, 7002)
+    await unmapLine(db, 7001)
+
+    expect(await productsWithUnreadableLines(db)).toEqual([])
+    // And the product is left whole: one line, which is the primary.
+    expect(fake.sqlite.prepare(
+      `SELECT mintsoft_product_id, is_primary FROM product_mintsoft_map WHERE product_id = ?`,
+    ).all(productId)).toEqual([{ mintsoft_product_id: 7002, is_primary: 1 }])
+  })
+
+  it('refuses to unmap the unreadable line before the flag has moved', async () => {
+    // Which is why the panel says the flag must move first rather than offering Unmap.
+    line(7001, 'ABSENT', 'No record'); line(7002, 'GOOD', 'Reports'); stock(7002, 60)
+    await createProductFromLines(db, {
+      name: 'Planters', stockType: 'internal',
+      mintsoftProductIds: [7001, 7002], primaryMintsoftProductId: 7001,
+    })
+    await expect(unmapLine(db, 7001)).rejects.toThrow(/Make another line primary first/)
+  })
+})
