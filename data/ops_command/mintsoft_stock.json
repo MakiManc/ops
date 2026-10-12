@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated_at": "2026-10-11T09:54:58Z",
+ "generated_at": "2026-10-12T10:39:15Z",
  "source": {
   "system": "Mintsoft",
   "operator": "Mercium",
@@ -21,15 +21,15 @@
   "products_partial": 3
  },
  "totals": {
-  "free_units": 31228,
-  "allocated_units": 493
+  "free_units": 27228,
+  "allocated_units": 4619
  },
  "products": [
   {
    "item_code": "BCB",
    "name": "Black Chopsticks",
    "free": 0,
-   "allocated": 0,
+   "allocated": 200,
    "lines_unknown": 0,
    "lines": [
     {
@@ -78,7 +78,7 @@
      "sku": "MRK011113-BCB",
      "mintsoft_product_id": 1676,
      "free": 0,
-     "allocated": 0
+     "allocated": 200
     }
    ]
   },
@@ -350,7 +350,7 @@
    "item_code": "CHR",
    "name": "Chairs",
    "free": 20,
-   "allocated": 30,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -387,7 +387,7 @@
      "sku": "MRK014-CHR",
      "mintsoft_product_id": 1756,
      "free": 20,
-     "allocated": 30
+     "allocated": 0
     }
    ]
   },
@@ -523,8 +523,8 @@
   {
    "item_code": "DC",
    "name": "Disposable chopsticks - MRK010",
-   "free": 7499,
-   "allocated": 0,
+   "free": 3499,
+   "allocated": 4000,
    "lines_unknown": 0,
    "lines": [
     {
@@ -536,8 +536,8 @@
     {
      "sku": "MRK014 - DC",
      "mintsoft_product_id": 1712,
-     "free": 6000,
-     "allocated": 0
+     "free": 2000,
+     "allocated": 4000
     }
    ]
   },
@@ -1136,7 +1136,7 @@
    "item_code": "MHM",
    "name": "MENU HOLDERS - MRK001",
    "free": 25,
-   "allocated": 25,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1167,7 +1167,7 @@
      "sku": "MRK014-MHM",
      "mintsoft_product_id": 1760,
      "free": 25,
-     "allocated": 25
+     "allocated": 0
     }
    ]
   },
@@ -1727,14 +1727,14 @@
    "item_code": "RTR - 900",
    "name": "ROUND TABLE - 900MM - MRK014",
    "free": 2,
-   "allocated": 8,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK014-RTR - 900",
      "mintsoft_product_id": 1757,
      "free": 2,
-     "allocated": 8
+     "allocated": 0
     }
    ]
   },
@@ -1790,7 +1790,7 @@
    "item_code": "RTR-B",
    "name": "Rectangle Table Base",
    "free": 0,
-   "allocated": 10,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1833,7 +1833,7 @@
      "sku": "MRK014-RTR-B",
      "mintsoft_product_id": 1758,
      "free": 0,
-     "allocated": 10
+     "allocated": 0
     }
    ]
   },
@@ -2582,7 +2582,7 @@
    "item_code": "TDT",
    "name": "Taiko Drum with Maki Logo",
    "free": 0,
-   "allocated": 1,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -2619,7 +2619,7 @@
      "sku": "MRK014-TDT",
      "mintsoft_product_id": 1759,
      "free": 0,
-     "allocated": 1
+     "allocated": 0
     }
    ]
   },
