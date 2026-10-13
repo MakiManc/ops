@@ -208,8 +208,12 @@ check(ov["value"] == 100 and ov["coverage_days"] == 12 and ov["display"] == "100
 # review, 13/10/2026: the ORDER side has gaps too. An export outage that
 # missed a week of order emails shrinks the month's denominator; the month
 # must say so and never be scored as complete.
-pulls_all = list(days("2026-08-20", "2026-10-06"))
-pulls_gap = [p_ for p_ in pulls_all if not ("2026-09-10" <= p_ <= "2026-09-30")]
+def span(p_, lo=-14, hi=-1):
+    return (p_, add(p_, lo), add(p_, hi))
+
+
+pulls_all = [span(p_) for p_ in days("2026-08-20", "2026-10-06")]
+pulls_gap = [span(p_) for p_ in days("2026-08-20", "2026-10-06") if not ("2026-09-10" <= p_ <= "2026-09-30")]
 e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
                     status="agreed", order_pulls=pulls_all, asof="2026-10-06")
 check(next(v for v in e["months"] if v["m"] == "2026-09")["score"] == 100,
@@ -217,9 +221,55 @@ check(next(v for v in e["months"] if v["m"] == "2026-09")["score"] == 100,
 e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
                     status="agreed", order_pulls=pulls_gap, asof="2026-10-06")
 sv = next(v for v in e["months"] if v["m"] == "2026-09")
-check(sv["score"] is None and sv["incomplete"] and "order emails of 9 day(s) were never read (09/09, 10/09" in sv["basis"],
-      f"no pull of 'Kobas Orders' 10-30/09: each pull reads 14 days back, so the 01/10 pull reaches 18/09 "
-      f"and the emails of 09-17/09 were never read - September is INCOMPLETE and unscored")
+check(sv["score"] is None and sv["incomplete"] and "order emails of 8 day(s) were never read (09/09, 10/09" in sv["basis"],
+      "no pull of 'Kobas Orders' 10-30/09: the 09/09 pull read to 08/09 and the 01/10 pull from 17/09, so the "
+      "emails of 09-16/09 were never read - September is INCOMPLETE and unscored")
+# a backfill pull holding the whole month covers it all (its rows say so)
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=pulls_gap + [("2026-10-02", "2026-08-25", "2026-10-01")],
+                    asof="2026-10-06")
+check(next(v for v in e["months"] if v["m"] == "2026-09")["score"] == 100,
+      "after a backfill pull holding 25/08-01/10, September is complete again (coverage comes from the rows)")
+# pulls that keep running after the emails stop arriving cover nothing new
+frozen = [(p_, add(p_, -14), min(add(p_, -1), "2026-09-20")) for p_ in days("2026-08-20", "2026-10-06")]
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=frozen, asof="2026-10-06")
+sv = next(v for v in e["months"] if v["m"] == "2026-09")
+check(sv["score"] is None and "were never read (21/09" in sv["basis"],
+      "the export still runs but no order email arrives after 20/09: September is INCOMPLETE, naming 21/09 on")
+# the order side starts the longest lead before the 1st
+lead_orders = orders + [o("LEAD", "2026-09-10", em="2026-08-30")]
+gap_before = [span(p_) for p_ in days("2026-08-01", "2026-10-06") if not ("2026-08-20" <= p_ <= "2026-09-12")]
+e, _ = T.kr3_months(lead_orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=gap_before, asof="2026-10-06")
+sv = next(v for v in e["months"] if v["m"] == "2026-09")
+check(sv["score"] is None and "were never read (21/08" in sv["basis"],
+      "an order is emailed 11 days ahead, so emails unread on 21-29/08 (before the 1st) make September incomplete too")
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=gap_before, asof="2026-10-06")
+check(next(v for v in e["months"] if v["m"] == "2026-09")["score"] == 100,
+      "...while with every order emailed the day before, the same gap ends before September's window")
+# the open month: unread days are not days of data; days after the newest pull are not 'never read'
+OCT2 = list(days("2026-10-01", "2026-10-20"))
+po = [span(p_) for p_ in days("2026-09-20", "2026-10-21") if not ("2026-10-06" <= p_ <= "2026-10-18")]
+e, _ = T.kr3_months([o(f"Q{d}", d) for d in OCT2], [g(f"q{d}", d) for d in OCT2], list(days("2026-09-25", "2026-10-20")),
+                    "2026-10", mvar, score, rag, first_dd=first, feeds=[F], status="agreed",
+                    order_pulls=po, asof="2026-10-21")
+ov = next(v for v in e["months"] if v["m"] == "2026-10")
+check(ov["coverage_days"] == 20 and "never read" not in ov["basis"],
+      f"the 19/10 pull reaches back 14 days, to 05/10: nothing unread, 20 days of data (got {ov['coverage_days']})")
+po2 = [span(p_) for p_ in days("2026-09-20", "2026-10-21") if not ("2026-10-03" <= p_ <= "2026-10-19")]
+e, _ = T.kr3_months([o(f"Q{d}", d) for d in OCT2], [g(f"q{d}", d) for d in OCT2], list(days("2026-09-25", "2026-10-20")),
+                    "2026-10", mvar, score, rag, first_dd=first, feeds=[F], status="agreed",
+                    order_pulls=po2, asof="2026-10-21")
+ov = next(v for v in e["months"] if v["m"] == "2026-10")
+check(ov["coverage_days"] == 20 - 4 and "order emails of 4 day(s) were never read (02/10, 03/10, 04/10, 05/10)" in ov["basis"],
+      f"open month, no pull 03-19/10: 02-05/10 unread - 4 days fewer of data for the MTD rule (got {ov['coverage_days']})")
+e, _ = T.kr3_months([o(f"Q{d}", d) for d in OCT2], [g(f"q{d}", d) for d in OCT2], list(days("2026-09-25", "2026-10-20")),
+                    "2026-10", mvar, score, rag, first_dd=first, feeds=[F], status="agreed",
+                    order_pulls=[span(p_) for p_ in days("2026-09-20", "2026-10-18")], asof="2026-10-21")
+ov = next(v for v in e["months"] if v["m"] == "2026-10")
+check("never read" not in ov["basis"], "the bake runs after the newest pull (18/10): 18-20/10 are not yet read, never 'never read'")
 # the stale gap compares with the BAKE's date, not the month: a daily report
 # read on 01/11 (covering to 31/10) is not stale; one that stopped mid-month is
 cov_oct = list(days("2026-09-20", "2026-10-31"))

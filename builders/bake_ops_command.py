@@ -1973,7 +1973,11 @@ def fac_grease(block, parent):
     if not isinstance(block, dict):
         return None, "is not an object"
     c = {k: _fac_num(block.get(k)) for k in FACILITIES_GROUP_COUNTS}
-    bad = [k for k in ("tasks", "current", "due30") if c[k] is None or c[k] < 0]
+    # item counts are whole and not negative; the two KR4 does not use are
+    # published as null when they are not (re-review, 13/10/2026)
+    c = {k: (v if v is not None and v >= 0 and float(v).is_integer() else None)
+         for k, v in c.items()}
+    bad = [k for k in ("tasks", "current", "due30") if c[k] is None]
     if bad:
         return None, "lacks a usable " + ", ".join(bad)
     if c["current"] + c["due30"] > c["tasks"]:
@@ -2056,17 +2060,25 @@ def fac_kr4_notes(kr4, cnt, grease, value, ok, of):
     return rounded, drift
 
 
-def fac_grease_site_note(group_grease, sites):
+def fac_grease_site_note(group_grease, sites, kr4_why=None):
     """The Maintenance KR4 card's sentence on grease traps (Ross, 09/10/2026:
     out of KR4), saying exactly which figures leave them out.
 
     group_grease  fac_grease()'s (counts, why) for the group block
     sites         the tab's site rows (kr4_ex_grease, grease_traps_unusable)
+    kr4_why       why the group KR4 is not quoted, or None - then there is no
+                  Group row and no Overview figure to describe
     """
     gg, gwhy = group_grease
     ex = [r for r in sites if r.get("kr4_ex_grease")]
     bad = [r for r in sites if r.get("grease_traps_unusable")]
-    if gg and ex:
+    if kr4_why:
+        t = ("The Overview's KR4 is not quoted (the reason is above)"
+             + ("; sites with a Grease traps figure are computed here without those items "
+                "(Ross, 09/10/2026: out of KR4), the others count every item" if ex else
+                "; the site rows count every item, grease traps included (Ross, 09/10/2026: "
+                "out of KR4) - the app does not separate them per site"))
+    elif gg and ex:
         t = ("Grease-trap servicing is left out of KR4 (Ross, 09/10/2026): the Group row and "
              "every site with a Grease traps figure are computed here without those items; a "
              "site showing — in that column was not separated by the app and still counts every "
@@ -2105,6 +2117,13 @@ def fac_grease_text(grease, cnt, of):
     return (" This figure still INCLUDES grease-trap servicing, which KR4 leaves out "
             "(Ross, 09/10/2026): the feed sends totals only, and the grease-trap items "
             f"come out once the app sends group.{FACILITIES_GREASE_KEY}.")
+
+
+def _fac_date(iso):
+    try:
+        return datetime.date.fromisoformat(str(iso)[:10])
+    except ValueError:
+        return datetime.date.min
 
 
 def _fac_dmy(iso):
@@ -2339,8 +2358,19 @@ def facilities_months(kr, open_variant, readings, fails, pull_month, today,
               if k not in ("source_kind", "months")}
         if history_open:
             hist = max((d for d in readings if d[:7] == m and d <= today), default=None)
-            out.append({"m": m, **(facilities_month_figure(kr, readings[hist], closing=False)
-                                   if hist else ov)})
+            age = ((_fac_date(today) - _fac_date(str(readings[hist].get("pulled_at") or "")[:10])).days
+                   if hist else None)
+            if hist and age is not None and age <= FACILITIES_STALE_DAYS:
+                out.append({"m": m, **facilities_month_figure(kr, readings[hist], closing=False)})
+            elif hist:
+                # the live stale gate holds for a back-bake too (re-review, 13/10/2026)
+                out.append({"m": m, "not_measured": (
+                    f"the newest reading of {_fac_ym(m)} in {FACILITIES_READINGS_FILE}, "
+                    f"{_fac_dmy(hist)}, was pulled {age} days before this snapshot's date "
+                    f"({_fac_dmy(today)}); the limit is {FACILITIES_STALE_DAYS}, as for a live "
+                    "bake, so it is not quoted")})
+            else:
+                out.append({"m": m, **ov})
         elif ov.get("value") is not None and open_as_of and open_as_of[:7] == m:
             ov["coverage_days"] = int(open_as_of[8:10])
             if ov.get("basis"):
@@ -2500,6 +2530,7 @@ def facilities_block(feed, err, today,
     g_t = _fac_num(g.get("tasks"))
     _grp_grease = fac_grease(g.get(FACILITIES_GREASE_KEY),
                              {k: _fac_num(g.get(k)) for k in FACILITIES_GROUP_COUNTS})
+    _kr4_gate = fac_kr4_check(g, f"the Facilities feed (as of {feed['as_of']})")
     src = _fac_str(feed.get("source"), "M&R Facilities app")
     k2_last = months[-1] if months else {}
     tab.update({
@@ -2542,7 +2573,7 @@ def facilities_block(feed, err, today,
                     "placeholder date) and never counts as compliant. Sorted "
                     "worst first. The Overview's KR4 is the Group row's figure, "
                     "from the app's group counts, not a mean of these rows. "
-                    + fac_grease_site_note(_grp_grease, sites)),
+                    + fac_grease_site_note(_grp_grease, sites, _kr4_gate[3])),
             "kr2": (f"rule: {rule or '(the feed states no rule)'}; "
                     + (f"{chasers:g} chaser report(s) merged into the fault "
                        "they chase, not counted as repeats. "
@@ -6891,9 +6922,11 @@ def main():
         _dt_cov = delivery_tracking.coverage(_dt_pulls, _dt_sent)
         _dt_orders, _dt_first, _dt_opulls = [], {}, []
         if order_feed_usable:
-            cur.execute("SELECT DISTINCT pull_date::text FROM etl_feed_rows WHERE feed=%s",
-                        (ORDER_EMAIL_FEED,))
-            _dt_opulls = sorted(str(p_)[:10] for (p_,) in cur.fetchall() if p_)
+            # each pull's own span of order emails - see order_email_days()
+            cur.execute("SELECT pull_date::text, min(nullif(data->>'Order Email Date','')), "
+                        "max(nullif(data->>'Order Email Date','')) FROM etl_feed_rows "
+                        "WHERE feed=%s GROUP BY 1", (ORDER_EMAIL_FEED,))
+            _dt_opulls = sorted((str(p_)[:10], lo_, hi_) for p_, lo_, hi_ in cur.fetchall() if p_)
             cur.execute("WITH o AS (" + ORDER_EMAIL_DEDUP + ") "
                         "SELECT ref, site, sup, dd, emailed FROM o WHERE dd IS NOT NULL",
                         (ORDER_EMAIL_FEED,))
@@ -6910,7 +6943,7 @@ def main():
             _dt_orders, _dt_goods, _dt_cov, (pull or "")[:7], _mvar,
             lambda v: okr_score("pct95", v), _rag_of, first_dd=_dt_first,
             deleted=_dt_del, feeds=_dt_feeds, order_pulls=_dt_opulls,
-            asof=asof.isoformat(),
+            asof=asof.isoformat(), mtd_min_days=OKR_MTD_MIN_DAYS,
             orders_why=(None if order_feed_usable else
                         f"'{ORDER_EMAIL_FEED}' has no usable row (no 'Delivery Date ISO')"))
     except Exception as e:  # noqa: BLE001 - one KR greys, the bake goes on

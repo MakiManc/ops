@@ -239,27 +239,32 @@ def _floor1(x):
 REPORT_NEEDS = ("Kobas needs to email the deliveries report DAILY, with 'Ops Deliveries' in "
                 "its subject and no '[TEST]' (the export skips test sends), over a rolling "
                 "window of at least 7 days")
-#: The export reads the order emails of the last 14 days on each pull
-#: (daily_export.fetch_kobas_orders); a pull on day P is taken to have seen
-#: every email sent from P-13 to P-1 - the day it ran is only partly seen.
-ORDER_EMAIL_WINDOW_DAYS = 14
-
-
 def order_email_days(order_pulls):
-    """The days whose order emails some pull of 'Kobas Orders' read, sorted."""
+    """The days whose order emails some pull of 'Kobas Orders' read, sorted.
+
+    order_pulls  [(pull_date, oldest 'Order Email Date', newest), ...] - one per
+                 pull of the feed, from its OWN rows
+
+    A pull covers from the oldest email it holds to the newest, and never the
+    day it ran (that day is only partly read). Taken from the rows rather than
+    from the export's 14-day fetch window (re-review, 13/10/2026): a backfill
+    pull holding weeks of emails covers them all, and a pull that keeps
+    running after the emails stop arriving covers nothing new.
+    """
     days = set()
-    for p in order_pulls or ():
-        p = _iso(p)
-        if p:
-            days.update(_days((_d(p) - datetime.timedelta(days=ORDER_EMAIL_WINDOW_DAYS - 1)).isoformat(),
-                              (_d(p) - datetime.timedelta(days=1)).isoformat()))
+    for p, lo, hi in order_pulls or ():
+        p, lo, hi = _iso(p), _iso(lo), _iso(hi)
+        if p and lo and hi:
+            end = min(hi, (_d(p) - datetime.timedelta(days=1)).isoformat())
+            if lo <= end:
+                days.update(_days(lo, end))
     return sorted(days)
 
 
 def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                first_dd=None, deleted=0, feeds=(), first_month=FIRST_MONTH,
                k=MATCH_DAYS_AFTER_DUE, status=MATCH_RULE_STATUS, orders_why=None,
-               order_pulls=None, asof=None):
+               order_pulls=None, asof=None, mtd_min_days=7):
     """OO4 KR3 as an `_okr_extra` entry, plus gaps.
 
     orders      the deduped 'Kobas Orders' rows: {"ref","site","sup","dd","emailed"}
@@ -269,11 +274,14 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                 and named (the OTIF rule, 09/09/2026)
     feeds       the deliveries feed names read, for the basis
     orders_why  why the order emails cannot be used, or None
-    order_pulls the pull dates of 'Kobas Orders' - a day no pull read is a day
-                whose orders may be missing (review, 13/10/2026: an email
-                outage shrank the month and nothing said so). None skips the
-                check (pure-function tests only; the bake always passes them).
+    order_pulls each pull of 'Kobas Orders' as (pull_date, oldest email date,
+                newest) - a day no pull read is a day whose orders may be
+                missing (review, 13/10/2026: an email outage shrank the month
+                and nothing said so). None skips the check (pure-function
+                tests only; the bake always passes them).
     asof        the bake's own date, for the "is the report still coming" gap
+    mtd_min_days the scorecard's month-to-date minimum (OKR_MTD_MIN_DAYS), so
+                the open month's display says "not scored" only past it
 
     An order is JUDGED when the report covers every day of its window [email
     date, due + k]; it is RECEIVED when match() pairs it. Value = received /
@@ -301,6 +309,12 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
     # bake can run before the day's email lands
     stale = through is None or through < (_d(asof) - datetime.timedelta(days=2)).isoformat()
     email_days = set(order_email_days(order_pulls)) if order_pulls is not None else None
+    newest_pull = max((_iso(p[0]) or "" for p in order_pulls or ()), default="") or None
+    # an order can be emailed up to this many days before it is due (the
+    # longest lead the orders themselves show), so the order side of a month
+    # starts that many days before its 1st (re-review, 13/10/2026)
+    lead = max([1] + [(_d(o["dd"]) - _d(o["emailed"])).days for o in orders
+                      if o.get("emailed") and o.get("dd") and _iso(o["emailed"]) and o["emailed"] < o["dd"]])
     paired = match(orders, goods, k)
     rule = (f"paired at the same site from the same supplier, booked between the order email "
             f"and {k} day{'' if k == 1 else 's'} after the due date, one goods-in per order (or "
@@ -342,11 +356,13 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
         # the order side: every day an order due in the month could have been
         # emailed (the day before the 1st to the day before the last day, as
         # far as the bake's date) must have been read by some pull
-        unread = ([d for d in _days((_d(m + "-01") - datetime.timedelta(days=1)).isoformat(),
-                                    min((_d(last) - datetime.timedelta(days=1)).isoformat(),
-                                        (_d(asof) - datetime.timedelta(days=1)).isoformat()))
-                   if d not in email_days]
-                  if email_days is not None else [])
+        # (the open month stops at the newest pull: a day after it is not yet
+        # read, which is not "never read")
+        _ue = min((_d(last) - datetime.timedelta(days=1)).isoformat(),
+                  (_d(newest_pull or asof) - datetime.timedelta(days=1)).isoformat())
+        _us = (_d(m + "-01") - datetime.timedelta(days=lead)).isoformat()
+        unread = ([d for d in _days(_us, _ue) if d not in email_days]
+                  if email_days is not None and _us <= _ue else [])
         recv = [o for o in judged if o["ref"] in paired]
         left = ""
         if late_sup:
@@ -395,8 +411,13 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
         complete = not waiting and not holed and not unread
         cdays = sum(1 for d in _days(m + "-01", min(last, through or last)) if d in cov)
         if m == pull_month:
+            # a day whose order emails were never read is not a day of data
+            # for the month-to-date rule either (as _cov_holes does)
+            cdays = max(0, cdays - sum(1 for d in unread if d >= m + "-01"))
             agreed = status == "agreed"
-            out.append(mvar(m, value=val, display=disp if agreed else f"{disp} - not scored",
+            out.append(mvar(m, value=val,
+                            display=(disp if agreed or cdays < mtd_min_days
+                                     else f"{disp} - not scored"),
                             score=score_fn(val) if agreed else None,
                             rag=rag_fn(score_fn(val)) if agreed else None,
                             coverage_days=cdays,

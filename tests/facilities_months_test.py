@@ -203,6 +203,12 @@ check(mv[-1]["value"] == 98.0 and "the month so far" in mv[-1]["basis"] and mv[-
 mv = bake.facilities_months("KR4", {"not_measured": "pulled after"}, {}, {}, "2026-10", "2026-10-30",
                             history_open=True)
 check(mv[-1] == {"m": "2026-10", "not_measured": "pulled after"}, "...and with none, the block's own reason")
+# re-review, 13/10/2026: the live stale gate holds for a back-bake too
+mv = bake.facilities_months("KR4", {"not_measured": "pulled after"}, readings, {}, "2026-09", "2026-09-30",
+                            history_open=True)
+check(mv[-1].get("value") is None and "25/09/2026, was pulled 5 days before this snapshot's date" in mv[-1]["not_measured"]
+      and "the limit is 3" in mv[-1]["not_measured"],
+      "back-bake of 30/09 whose only reading is 25/09: grey - 5 days old, past the live limit of 3")
 # a stored reading is held to the live gate: kr4_pct missing -> grey; drift kept
 r_bad = dict(rec, group=dict(rec["group"], kr4_pct=None))
 check(bake.facilities_month_figure("KR4", r_bad).get("not_measured", "").count("no usable group.kr4_pct") == 1,
@@ -278,6 +284,27 @@ check(su["grease_traps"] is None and su["grease_traps_unusable"] == "lacks a usa
       and f"{gu['sites'][0]['code']} (lacks a usable tasks, current, due30)" in bu["tab"]["notes"]["kr4"]
       and "keeps the app's all-item figure" in bu["tab"]["notes"]["kr4"],
       "an unusable site block: the site keeps the app's figure and the note names the site and why")
+# re-review: KR4 grey with a usable group block - the note describes no Group
+# row, column or Overview figure that is not on the page
+gk = copy.deepcopy(FEED)
+gk["group"]["grease_traps"] = {"tasks": 6, "current": 1, "due30": 1, "overdue": 3, "no_evidence": 1}
+gk["group"]["kr4_pct"] = None
+bk = block(gk)
+nk = bk["tab"]["notes"]["kr4"]
+check(bk["rows"][KR4].get("value") is None and "The Overview's KR4 is not quoted" in nk
+      and "Group row's Compliant figure" not in nk and bk["tab"]["group"]["grease_traps"] is None,
+      "KR4 grey for another reason: the note says it is not quoted and describes only the site rows")
+# whole counts only: a fractional block is not a count of items
+gf = copy.deepcopy(FEED)
+gf["group"]["grease_traps"] = {"tasks": 5.5, "current": 1, "due30": 1}
+check("lacks a usable tasks" in (block(gf)["rows"][KR4].get("not_measured") or ""),
+      "a fractional grease-trap count: grey, naming it")
+gn = copy.deepcopy(FEED)
+gn["group"]["grease_traps"] = {"tasks": 6, "current": 1, "due30": 1, "overdue": "x", "no_evidence": -9}
+bn = block(gn)
+check(bn["rows"][KR4].get("value") == 37.1 and bn["tab"]["group"]["grease_traps"]["overdue"] is None
+      and bn["tab"]["group"]["grease_traps"]["no_evidence"] is None,
+      "unusable overdue/no_evidence in the block (KR4 does not use them) are published as null, never as sent")
 # (G3): the basis no longer says "over every item" once grease traps are out
 check("over every item except the grease traps" in r4["basis"], "the KR4 basis says the figure excludes grease traps")
 # (G5): more out-of-date grease-trap items than the register has: grey, named
