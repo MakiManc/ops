@@ -248,6 +248,9 @@ FACILITIES_FILE = "facilities_ppm.json"
 # its own last pull attempt - see bake_ops_command.load_facilities_best.
 FACILITIES_PUSHED_FILE = "facilities_ppm_pushed.json"
 FACILITIES_STATUS_FILE = "facilities_pull_status.json"
+#: Phase 4.1: the bake's own record of each day's reading - OO2 KR1/KR4's
+#: closed months are read back from it (bake_ops_command.FACILITIES_READINGS_FILE)
+FACILITIES_READINGS_FILE = "facilities_readings.jsonl"
 FACILITIES_AGE_WARN_DAYS = 2
 FACILITIES_AGE_CRIT_DAYS = 7
 
@@ -760,8 +763,10 @@ def check_consistency(pg_latest: str, snap_latest: str):
                 tmp, "data", "ops_command", FACILITIES_FILE))
         # ...and its pushed twin and the pull record, or the recompute picks a
         # different copy from the live bake and the scorecard check compares
-        # two different snapshots (09/10/2026).
-        for _side in (FACILITIES_PUSHED_FILE, FACILITIES_STATUS_FILE):
+        # two different snapshots (09/10/2026). The readings history too
+        # (Phase 4.1), or every closed month of OO2 KR1/KR4 recomputes grey.
+        for _side in (FACILITIES_PUSHED_FILE, FACILITIES_STATUS_FILE,
+                      FACILITIES_READINGS_FILE):
             _sp = os.path.join(os.path.dirname(FACILITIES_PATH), _side)
             if os.path.exists(_sp):
                 shutil.copy(_sp, os.path.join(tmp, "data", "ops_command", _side))

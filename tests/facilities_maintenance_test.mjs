@@ -58,8 +58,8 @@ const overlay = {
     ontime_pct_12m: null, avg_days_late: null, last_cert: null }))],
 };
 const tmp = mkdtempSync(path.join(os.tmpdir(), 'facmjs-'));
-function bakeWith(daysAgo) {
-  const out = path.join(tmp, 'd' + daysAgo);
+function bakeWith(daysAgo, patch = f => f, tag = '') {
+  const out = path.join(tmp, 'd' + daysAgo + tag);
   const arch = path.join(out, 'arch', '2026-09-25');
   mkdirSync(arch, { recursive: true });
   writeFileSync(path.join(arch, 'Dummy.jsonl.gz'),
@@ -68,7 +68,8 @@ function bakeWith(daysAgo) {
   // Relative to the bake date, not the wall clock: a --date bake judges age as of
   // that date (as-of semantics for back-bakes, 09/10/2026).
   const pulled = new Date(Date.parse('2026-09-25T07:00:00Z') - daysAgo * 86400e3).toISOString().slice(0, 19) + 'Z';
-  writeFileSync(path.join(out, 'facilities_ppm.json'), JSON.stringify({ ...fixture, ...overlay, pulled_at: pulled }));
+  writeFileSync(path.join(out, 'facilities_ppm.json'),
+    JSON.stringify(patch(JSON.parse(JSON.stringify({ ...fixture, ...overlay, pulled_at: pulled })))));
   const p = spawnSync('python3', [path.join(repoRoot, 'builders', 'bake_ops_command.py'), '--date', '2026-09-25'], {
     env: { ...process.env, OPS_WAREHOUSE_SOURCE: 'archive', OPS_ARCHIVE_DIR: path.join(out, 'arch'), OPS_OUT_DIR: out },
     encoding: 'utf-8',
@@ -82,6 +83,14 @@ function bakeWith(daysAgo) {
 }
 const fresh = bakeWith(0);
 const stale = bakeWith(10);
+/* Phase 4.1: the app separates grease-trap items (Ross, 09/10/2026: out of
+   KR4) - 6 on the group, 2 of them in date, and a block on the first site. */
+const greaseSite = fixture.sites[0].code;
+const greased = bakeWith(0, f => {
+  f.group.grease_traps = { tasks: 6, current: 1, due30: 1, overdue: 3, no_evidence: 1 };
+  f.sites[0].grease_traps = { tasks: 2, current: 1, due30: 0, overdue: 1, no_evidence: 0 };
+  return f;
+}, 'g');
 
 const pinnedChromium = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const browser = await chromium.launch(existsSync(pinnedChromium) ? { executablePath: pinnedChromium } : {});
@@ -169,6 +178,30 @@ const okrRow = kr => page.locator('#scorecard table tbody tr', { hasText: kr }).
   assert(await page.locator('#fac-contractors .tscroll table').count() === 1, 'more than 25 contractors: the table scrolls');
   assert(/have no contractor assigned/.test(await page.locator('#fac-contractors').innerText()),
     'Contractor scorecard says how many items have no contractor');
+}
+
+// ---- grease traps separated: KR4 without them, and the column appears -----
+{
+  await page.evaluate(s => window.render(s), greased);
+  const k4 = await okrRow('KR4: Maintain 100% statutory compliance').locator('td').allInnerTexts();
+  assert(k4[2] === '37.1% (82 of 221)', `grease traps out: Overview KR4 is 37.1% (82 of 221) (got ${JSON.stringify(k4[2])})`);
+  assert(/LEFT OUT \(Ross, 09\/10\/2026\)/.test(k4[0]) && /6 grease-trap items \(2 in date\)/.test(k4[0]),
+    'the KR4 row says how many grease-trap items came out and why');
+  await page.evaluate(s => { window.render(s); window.gotoPage('p-maint'); }, greased);
+  const heads = await page.locator('#fac-kr4 thead th').allInnerTexts();
+  assert(heads.length === 9 && /grease traps \(left out\)/i.test(heads[8]),
+    `the drill-down gains a "Grease traps (left out)" column (got ${JSON.stringify(heads)})`);
+  const rows = await page.locator('#fac-kr4 tbody tr').evaluateAll(trs =>
+    trs.map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim())));
+  const gs = rows.find(r => r[0] === greaseSite);
+  assert(gs && gs[8] === '2', `the site with a block shows its 2 grease-trap items (got ${JSON.stringify(gs)})`);
+  assert(rows.filter(r => r[0] !== greaseSite && r[0] !== 'Group').every(r => r[8] === '—'),
+    'sites the app has not separated show — (not separated), never 0');
+  const g = rows.find(r => r[0] === 'Group');
+  assert(g && g[2] === '37.1%' && g[3] === '70' && g[8] === '6',
+    `group row: the ex-grease figure, the register's counts, 6 grease-trap items (got ${JSON.stringify(g)})`);
+  assert(/computed here without them/.test(await page.locator('#fac-kr4').innerText()),
+    'the note under the table says which figures leave grease traps out');
 }
 
 // ---- stale: the three KRs grey naming the file; the tab keeps its data -----
