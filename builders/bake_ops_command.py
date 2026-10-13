@@ -70,6 +70,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import supplier_statements  # noqa: E402 - Phase 2, OO3 KR5
 import okr_pack  # noqa: E402 - Phase 2, the monthly OKR pack
 import factory_kpis  # noqa: E402 - Phase 3, OO5 KR3 and KR5
+import delivery_tracking  # noqa: E402 - Phase 4.2, OO4 KR3
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
 # OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
@@ -532,7 +533,7 @@ OKR_PENDING = {
     ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
     ("OO4", "KR2"): "damage to the factory's broth and sauce lines in the GetCompliant issue forms (filed against the factory or Lynas, which carries them) - needs the 'GC Form Task Answers' feed, which is absent from this bake",
-    ("OO4", "KR3"): "a 'received' event for each internal delivery, from the source Ross chooses (Phase 4.2): Kobas goods-in with the factory as supplier, or Mintsoft portal despatch/receipt events. Kobas does record the receipt, but only one test report (deliveries 04/08-20/08/2026) has ever landed, so no month since has one; Mintsoft carries no 'received' event",
+    ("OO4", "KR3"): "Ross chose Kobas (12/10/2026): supplier orders from the Kobas order emails, each paired with a goods-in on Kobas's deliveries report - built in builders/delivery_tracking.py. This note shows only if that step fails; the row itself names what it is waiting for (the report emailed daily without '[TEST]', and Ross agreeing the pairing window)",
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
     ("OO5", "KR4"): "the factory's scheduled tasks done on time, from GetCompliant (builders/factory_kpis.py) - needs the 'GC Scheduled Task Answers' feed",
@@ -6749,6 +6750,63 @@ def main():
     if _oo4k2:
         _okr_extra[("OO4", "KR2")] = {"months": _oo4k2, "source_kind": "computed",
                                       "tab": "p-supi"}
+
+    # --- Phase 4.2 (12/10/2026): OO4 KR3, supplier orders tracked to receipt --
+    # Ross chose Kobas: the order emails against the deliveries report's
+    # goods-ins. The rule lives in builders/delivery_tracking.py, including
+    # why the pairing window is PROPOSED and no month is scored until Ross
+    # agrees it. Every copy of any report named "... Ops Deliveries" is read,
+    # so a scheduled daily send lands with no code change.
+    try:
+        cur.execute("SELECT DISTINCT feed FROM etl_feed_rows")
+        _dt_feeds = sorted(f_ for (f_,) in cur.fetchall()
+                           if delivery_tracking.is_deliveries_feed(f_))
+        _dt_rows, _dt_sent = [], {}
+        for _f in _dt_feeds:
+            cur.execute("SELECT pull_date::text, data->>'Venue', data->>'Supplier', "
+                        "data->>'Kobas ID', data->>'Delivery Date', data->>'Invoice Number', "
+                        "data->>'Last Modified', data->>'Created', data->>'status' "
+                        "FROM etl_feed_rows WHERE feed=%s", (_f,))
+            _n = collections.Counter()
+            for _pd, *_v in cur.fetchall():
+                _dt_rows.append((_pd, _f, dict(zip(
+                    ("Venue", "Supplier", "Kobas ID", "Delivery Date", "Invoice Number",
+                     "Last Modified", "Created", "status"), _v))))
+                _n[str(_pd)[:10]] += 1
+            # each pull dated by its email where the export's receipt says so
+            _rc = load_report_receipts(run_log_file, _f, pull)
+            for _pd, _c in _n.items():
+                _sd = report_event_date([_pd], _c, _rc)
+                if _sd:
+                    _dt_sent[(_pd, _f)] = _sd
+        _dt_goods, _dt_pulls, _dt_del = delivery_tracking.goods_in(_dt_rows)
+        _dt_cov = delivery_tracking.coverage(_dt_pulls, _dt_sent)
+        _dt_orders, _dt_first = [], {}
+        if order_feed_usable:
+            cur.execute("WITH o AS (" + ORDER_EMAIL_DEDUP + ") "
+                        "SELECT ref, site, sup, dd, emailed FROM o WHERE dd IS NOT NULL",
+                        (ORDER_EMAIL_FEED,))
+            for _ref, _site, _sup, _dd, _em in cur.fetchall():
+                _dd = str(_dd or "")[:10]
+                if not _ref or not _site or not _sup or not _dd:
+                    continue
+                _sup, _site = str(_sup).strip(), str(_site).strip()
+                _dt_orders.append({"ref": str(_ref).strip(), "site": _site, "sup": _sup,
+                                   "dd": _dd, "emailed": str(_em or "")[:10] or None})
+                if _sup not in _dt_first or _dd < _dt_first[_sup]:
+                    _dt_first[_sup] = _dd
+        _k3, _k3g = delivery_tracking.kr3_months(
+            _dt_orders, _dt_goods, _dt_cov, (pull or "")[:7], _mvar,
+            lambda v: okr_score("pct95", v), _rag_of, first_dd=_dt_first,
+            deleted=_dt_del, feeds=_dt_feeds,
+            orders_why=(None if order_feed_usable else
+                        f"'{ORDER_EMAIL_FEED}' has no usable row (no 'Delivery Date ISO')"))
+    except Exception as e:  # noqa: BLE001 - one KR greys, the bake goes on
+        _k3 = {"months": None, "source_kind": "not_measured",
+               "not_measured": f"supplier orders could not be paired with goods-ins ({type(e).__name__}: {e})"}
+        _k3g = [f"OO4 KR3 is grey: {_k3['not_measured']}"]
+    _okr_extra[("OO4", "KR3")] = _k3
+    gaps.extend(_k3g)
 
     # --- Phase 3 (11/10/2026): OO5 KR3 and OO5 KR5 -------------------------
     # Both rules live in builders/factory_kpis.py. KR3: the mean ABSOLUTE weekly

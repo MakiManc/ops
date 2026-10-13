@@ -713,7 +713,9 @@ def _snapshot_aggregates(snap: dict) -> dict:
 #: folders of files it reads back.
 RECOMPUTE_MODULES = ("supplier_statements.py", "okr_pack.py",
                      # Phase 3: OO5 KR3/KR5
-                     "factory_kpis.py")
+                     "factory_kpis.py",
+                     # Phase 4.2: OO4 KR3
+                     "delivery_tracking.py")
 RECOMPUTE_DIRS = ("supplier_statements", "okr_pack")
 
 
