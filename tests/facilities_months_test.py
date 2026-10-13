@@ -140,7 +140,7 @@ readings = {"2026-09-25": {"as_of": "2026-09-25", "pulled_at": "2026-09-25T09:47
             "2026-10-30": dict(rec, as_of="2026-10-30", pulled_at="2026-10-30T18:00:00Z"),
             "2026-10-31": rec}
 open_kr4 = {"value": 80.0, "display": "80% (160 of 200)", "basis": "today's row.", "source_kind": "facilities_app"}
-mv = bake.facilities_months("KR4", open_kr4, readings, {}, "2026-11")
+mv = bake.facilities_months("KR4", open_kr4, readings, {}, "2026-11", "2026-11-05", open_as_of="2026-11-05")
 check([v["m"] for v in mv] == ["2026-08", "2026-09", "2026-10", "2026-11"], "months run from August to the pull month")
 check(mv[0]["not_measured"] and "first read on 25/09/2026" in mv[0]["not_measured"],
       "August: grey, the app was first read on 25/09/2026")
@@ -151,27 +151,72 @@ check(mv[1].get("value") is None and "30/09/2026" in mv[1]["not_measured"]
 o = mv[2]
 check(o["value"] == 98.0 and o["display"] == "98% (204 of 208)",
       f"October: scored from the 31/10 reading - 204 of 208 is 98.0% (got {o.get('display')})")
-check("read 31/10/2026" in o["basis"] and "the month's last day" in o["basis"]
+check("the reading of 31/10/2026" in o["basis"] and "the month's last day" in o["basis"]
       and "Ross, 12/10/2026" in o["basis"] and "still INCLUDES grease-trap servicing" in o["basis"],
       "October's basis names the reading, Ross's rule and the grease-trap caveat")
-check(mv[3]["value"] == 80.0 and "source_kind" not in mv[3]
+check(mv[3]["value"] == 80.0 and "source_kind" not in mv[3] and mv[3]["coverage_days"] == 5
       and "its figure will be the reading taken on 30/11/2026" in mv[3]["basis"]
       and mv[3]["basis"].count("today's row") == 1 and ".." not in mv[3]["basis"],
-      "November (open): today's row, saying the month's figure will be the 30/11 reading")
-mv1 = bake.facilities_months("KR1", {"not_measured": "stale"}, readings, {}, "2026-11")
+      "November (open): today's row, 5 days in for the MTD rule, saying the month's figure will be the 30/11 reading")
+check(o["coverage_days"] == 31, "a closed month's figure counts the whole month for the MTD rule")
+mv1 = bake.facilities_months("KR1", {"not_measured": "stale"}, readings, {}, "2026-11", "2026-11-05")
 check(mv1[2]["value"] == 90 and mv1[2]["display"] == "90% (9 of 10)"
       and "CUMULATIVE from 25 Sep 2026" in mv1[2]["basis"],
       "KR1 October from the 31/10 reading, saying plainly it is cumulative, not October's jobs alone")
 check(mv1[3] == {"m": "2026-11", "not_measured": "stale"}, "an open month that is grey stays grey, unchanged")
 r30 = {k: v for k, v in readings.items() if k != "2026-10-31"}
-mv = bake.facilities_months("KR4", open_kr4, r30, {"2026-10-31": fail}, "2026-11")
+mv = bake.facilities_months("KR4", open_kr4, r30, {"2026-10-31": fail}, "2026-11", "2026-11-05",
+                            open_as_of="2026-11-05")
 check(mv[2].get("value") is None and "31/10/2026" in mv[2]["not_measured"]
       and "did not answer in time" in mv[2]["not_measured"]
       and "30/10/2026, is not its last day and is not used" in mv[2]["not_measured"],
       "October with no 31/10 reading: grey, naming the failed pull and the unused 30/10 reading - never the 30th's figure")
 nov1 = {"2026-11-01": dict(rec, as_of="2026-11-01", pulled_at="2026-11-01T00:05:00Z")}
-mv = bake.facilities_months("KR4", open_kr4, nov1, {}, "2026-11")
+mv = bake.facilities_months("KR4", open_kr4, nov1, {}, "2026-11", "2026-11-05", open_as_of="2026-11-05")
 check(mv[2].get("value") is None, "a reading dated 01/11 never stands in for October")
+
+# review, 13/10/2026 - the month split follows the bake's OWN date, not the
+# archive's newest pull: a live bake on 01/11 over an archive still at 31/10
+# reads the app on 01/11 (72.1%). October is closed - it takes the 31/10
+# reading, never the 1st's.
+o1 = {"value": 72.1, "display": "72.1% (150 of 208)", "basis": "the 01/11 reading."}
+mv = bake.facilities_months("KR4", o1, readings, {}, "2026-10", "2026-11-01", open_as_of="2026-11-01")
+check([v["m"] for v in mv][-1] == "2026-10" and mv[-1]["value"] == 98.0 and mv[-1]["coverage_days"] == 31
+      and "the month's last day" in mv[-1]["basis"],
+      "pull month October, bake date 01/11: October is CLOSED and takes the 31/10 reading (98.0), not 01/11's 72.1")
+# ...and the reverse: the copy on disk is still 31/10's when November opens
+o2 = {"value": 98.0, "display": "98% (204 of 208)", "basis": "the 31/10 reading."}
+mv = bake.facilities_months("KR4", o2, readings, {"2026-11-01": fail}, "2026-11", "2026-11-01",
+                            open_as_of="2026-10-31")
+nv = mv[-1]
+check(nv["m"] == "2026-11" and nv.get("value") is None
+      and "no reading of the Facilities app is dated in Nov 2026 yet" in nv["not_measured"]
+      and "belongs to Oct 2026" in nv["not_measured"] and "did not answer in time" in nv["not_measured"],
+      "November opens on a 31/10 copy: grey naming why - never October's closing reading under November's name")
+check(mv[-2]["value"] == 98.0, "...while October takes that reading as its own")
+# a back-bake whose copy on disk was pulled after its date takes the month
+# so far from the history
+mv = bake.facilities_months("KR4", {"not_measured": "pulled after this snapshot's date"}, readings, {},
+                            "2026-10", "2026-10-30", history_open=True)
+check(mv[-1]["value"] == 98.0 and "the month so far" in mv[-1]["basis"] and mv[-1]["coverage_days"] == 30,
+      "back-bake of 30/10: the 30/10 reading from the history, as the month so far")
+mv = bake.facilities_months("KR4", {"not_measured": "pulled after"}, {}, {}, "2026-10", "2026-10-30",
+                            history_open=True)
+check(mv[-1] == {"m": "2026-10", "not_measured": "pulled after"}, "...and with none, the block's own reason")
+# a stored reading is held to the live gate: kr4_pct missing -> grey; drift kept
+r_bad = dict(rec, group=dict(rec["group"], kr4_pct=None))
+check(bake.facilities_month_figure("KR4", r_bad).get("not_measured", "").count("no usable group.kr4_pct") == 1,
+      "a stored reading without kr4_pct is grey for its month, as the live row would be")
+r_ov = dict(rec, group=dict(rec["group"], overdue=None))
+check("group.overdue" in (bake.facilities_month_figure("KR4", r_ov).get("not_measured") or ""),
+      "a stored reading missing a count is grey, naming it")
+r_dr = dict(rec, group=dict(rec["group"], kr4_pct=60))
+check("does not match its counts" in bake.facilities_month_figure("KR4", r_dr)["basis"],
+      "a stored reading whose kr4_pct drifts from its counts keeps the NOTE")
+r_in = dict(rec, group=dict(rec["group"], current=210, due30=4))
+check("current+due30 exceeds tasks" in bake.facilities_month_figure("KR4", r_in)["not_measured"]
+      and "the reading read" not in bake.facilities_month_figure("KR4", r_in)["not_measured"],
+      "inconsistent stored counts: grey naming the real blocker")
 
 # ---- 3. grease traps --------------------------------------------------------
 TODAY = datetime.date(2026, 9, 25)
@@ -187,7 +232,8 @@ check("still INCLUDES grease-trap servicing" in b["rows"][KR4]["basis"]
       and b["tab"]["group"]["grease_traps"] is None
       and not any(s["grease_traps"] is not None for s in b["tab"]["sites"]),
       "no block in the feed: KR4 scored on every item and says grease traps are still in")
-check("not separate it per site yet" in b["tab"]["notes"]["kr4"], "the site table's note says so too")
+check("is still in these figures: the app does not separate it yet" in b["tab"]["notes"]["kr4"],
+      "the site table's note says so too")
 g = copy.deepcopy(FEED)
 # 84 of 227 in date; say 6 grease-trap items, 2 of them in date
 g["group"]["grease_traps"] = {"tasks": 6, "current": 1, "due30": 1, "overdue": 3, "no_evidence": 1}
@@ -213,7 +259,33 @@ check(site["kr4_ex_grease"] and site["grease_traps"] == 2 and site["kr4_pct"] ==
       f"a site with its own block: its figure computed here without grease traps ({want})")
 check(all(x["grease_traps"] is None and not x["kr4_ex_grease"] for x in b["tab"]["sites"]
           if x["code"] != s0["code"]), "sites without a block keep the app's figure")
-check("computed here without them" in b["tab"]["notes"]["kr4"], "the site note says which figures are ex grease")
+check("the Group row and every site with a Grease traps figure are computed here without those items"
+      in b["tab"]["notes"]["kr4"], "the site note says which figures are ex grease")
+# review, 13/10/2026 (G2): a GROUP block only - the note must not say grease
+# traps are still in the figures while the Group row leaves them out
+go = copy.deepcopy(FEED)
+go["group"]["grease_traps"] = {"tasks": 6, "current": 1, "due30": 1, "overdue": 3, "no_evidence": 1}
+nb = block(go)["tab"]["notes"]["kr4"]
+check("Group row's Compliant figure - the one the Overview scores - is computed here without" in nb
+      and "site rows still include them" in nb and "is still in these figures" not in nb,
+      "group block only: the note says the Group row leaves them out and the site rows do not")
+# (G1): a site's block that cannot be used is named, never dropped silently
+gu = copy.deepcopy(FEED)
+gu["sites"][0]["grease_traps"] = {"tasks": "two"}
+bu = block(gu)
+su = next(x for x in bu["tab"]["sites"] if x["code"] == gu["sites"][0]["code"])
+check(su["grease_traps"] is None and su["grease_traps_unusable"] == "lacks a usable tasks, current, due30"
+      and f"{gu['sites'][0]['code']} (lacks a usable tasks, current, due30)" in bu["tab"]["notes"]["kr4"]
+      and "keeps the app's all-item figure" in bu["tab"]["notes"]["kr4"],
+      "an unusable site block: the site keeps the app's figure and the note names the site and why")
+# (G3): the basis no longer says "over every item" once grease traps are out
+check("over every item except the grease traps" in r4["basis"], "the KR4 basis says the figure excludes grease traps")
+# (G5): more out-of-date grease-trap items than the register has: grey, named
+gx = copy.deepcopy(FEED)
+gx["group"]["grease_traps"] = {"tasks": 200, "current": 0, "due30": 0}
+r = block(gx)["rows"][KR4]
+check(r.get("value") is None and "more out-of-date items than the whole register" in r["not_measured"],
+      "a block with more out-of-date items than the register: grey with that reason")
 for what, blk in (("not an object", 6), ("a missing count", {"tasks": 6, "current": 1}),
                   ("current+due30 above tasks", {"tasks": 1, "current": 1, "due30": 1}),
                   ("more than the register", {"tasks": 300, "current": 0, "due30": 0}),

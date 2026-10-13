@@ -533,7 +533,7 @@ OKR_PENDING = {
     ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
     ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
     ("OO4", "KR2"): "damage to the factory's broth and sauce lines in the GetCompliant issue forms (filed against the factory or Lynas, which carries them) - needs the 'GC Form Task Answers' feed, which is absent from this bake",
-    ("OO4", "KR3"): "Ross chose Kobas (12/10/2026): supplier orders from the Kobas order emails, each paired with a goods-in on Kobas's deliveries report - built in builders/delivery_tracking.py. This note shows only if that step fails; the row itself names what it is waiting for (the report emailed daily without '[TEST]', and Ross agreeing the pairing window)",
+    ("OO4", "KR3"): "Ross chose Kobas (12/10/2026): supplier orders from the Kobas order emails, each paired with a goods-in on Kobas's deliveries report. The row is built every bake in builders/delivery_tracking.py and names its own blockers, so this placeholder is not shown",
     ("OO4", "KR4"): "Finance's % actioned on the Operations Input sheet's '2026 OKRs' tab, read by builders/refresh_okr_sources.py",
     ("OO4", "KR5"): "the unweighted mean of per-supplier issue-free rates (supply.otif) - needs the Kobas order-confirmation email feed, which is absent from this bake",
     ("OO5", "KR4"): "the factory's scheduled tasks done on time, from GetCompliant (builders/factory_kpis.py) - needs the 'GC Scheduled Task Answers' feed",
@@ -1962,9 +1962,11 @@ def fac_grease(block, parent):
     """(counts, why) for one grease-trap block against its parent counts.
 
     (None, None)  no block - not separated yet
-    (None, why)   a block KR4 cannot use; `why` finishes "group.grease_traps ..."
+    (None, why)   a block KR4 cannot use; `why` finishes "...grease_traps ..."
     (counts, None) usable: tasks, current and due30 are counts no larger than
-                  the parent's, and current+due30 is no more than tasks
+                  the parent's, current+due30 is no more than tasks, and its
+                  out-of-date items (tasks-current-due30) are no more than the
+                  register's - so what is left is always a real register
     """
     if block is None:
         return None, None
@@ -1980,6 +1982,10 @@ def fac_grease(block, parent):
             if parent.get(k) is not None and c[k] > parent[k]]
     if over:
         return None, "holds more items than the register's own " + ", ".join(over)
+    if None not in (parent.get("tasks"), parent.get("current"), parent.get("due30")) and (
+            c["tasks"] - c["current"] - c["due30"]
+            > parent["tasks"] - parent["current"] - parent["due30"]):
+        return None, "holds more out-of-date items than the whole register"
     return c, None
 
 
@@ -1999,6 +2005,94 @@ def fac_kr4_figure(cnt, grease):
     if not of or of <= 0 or ok < 0 or ok > of:
         return None, None, None
     return math.floor(round(100.0 * ok / of * 10, 6)) / 10, ok, of
+
+
+def fac_kr4_check(g, src):
+    """(kr4_app, cnt, grease, why) - ONE gate for KR4, live or stored.
+
+    g    a reading's group block (the live feed's or a history line's)
+    src  how the reason names it: "the Facilities feed (as of ...)" or "the
+         reading of 31/10/2026 (...)"
+    `why` is None when KR4 can be quoted; otherwise the blocker, named. A
+    closed month is held to exactly the rule the live row is held to.
+    """
+    kr4 = _fac_num(g.get("kr4_pct"))
+    cnt = {k: _fac_num(g.get(k)) for k in FACILITIES_GROUP_COUNTS}
+    miss = [k for k, v in cnt.items() if v is None]
+    grease, gwhy = fac_grease(g.get(FACILITIES_GREASE_KEY), cnt)
+    why = None
+    if kr4 is None or not 0 <= kr4 <= 100:
+        why = (f"{src} carries no usable group.kr4_pct, and this system does not rebuild it "
+               "from the site rows - the group figure is the app's own (current+due30)/tasks")
+    elif miss or not cnt["tasks"] or cnt["current"] + cnt["due30"] > cnt["tasks"]:
+        why = (f"{src} gives kr4_pct {kr4:g} but not usable counts behind it (" + (
+            ", ".join("group." + k for k in miss) if miss
+            else "group.tasks is 0" if not cnt["tasks"]
+            else "current+due30 exceeds tasks")
+            + "), and no number is quoted here without its basis")
+    elif gwhy:
+        why = (f"{src} carries group.{FACILITIES_GREASE_KEY} but it {gwhy}, so grease-trap "
+               "servicing cannot be taken out of KR4 (Ross, 09/10/2026) and the figure is not "
+               "quoted - fix the block in the app")
+    elif fac_kr4_figure(cnt, grease)[0] is None:
+        why = (f"{src} leaves no statutory item to score once its grease-trap items are "
+               "taken out")
+    return kr4, cnt, grease, why
+
+
+def fac_kr4_notes(kr4, cnt, grease, value, ok, of):
+    """(rounded, drift): the KR4 basis notes on the app's own kr4_pct.
+
+    The app's figure is over EVERY item, so both compare it with the counts
+    before grease traps come out - like with like."""
+    calc = 100.0 * (cnt["current"] + cnt["due30"]) / cnt["tasks"]
+    rounded = (f" The app shows {kr4:g}%, rounded to a whole percent"
+               + (" and over every item, grease traps included" if grease else "")
+               + f"; this is scored on the exact {ok:g}/{of:g}, rounded down."
+               if abs(calc - kr4) <= 0.5 and (value != kr4 or grease) else "")
+    drift = (f" NOTE: the app's own kr4_pct is {kr4:g}, which does not match its "
+             f"counts ({calc:.1f}%) - scored on the counts; fix it in the app."
+             if abs(calc - kr4) > 0.5 else "")
+    return rounded, drift
+
+
+def fac_grease_site_note(group_grease, sites):
+    """The Maintenance KR4 card's sentence on grease traps (Ross, 09/10/2026:
+    out of KR4), saying exactly which figures leave them out.
+
+    group_grease  fac_grease()'s (counts, why) for the group block
+    sites         the tab's site rows (kr4_ex_grease, grease_traps_unusable)
+    """
+    gg, gwhy = group_grease
+    ex = [r for r in sites if r.get("kr4_ex_grease")]
+    bad = [r for r in sites if r.get("grease_traps_unusable")]
+    if gg and ex:
+        t = ("Grease-trap servicing is left out of KR4 (Ross, 09/10/2026): the Group row and "
+             "every site with a Grease traps figure are computed here without those items; a "
+             "site showing — in that column was not separated by the app and still counts every "
+             "item. The item-count columns count every item")
+    elif gg:
+        t = ("Grease-trap servicing is left out of KR4 (Ross, 09/10/2026): the Group row's "
+             "Compliant figure - the one the Overview scores - is computed here without the "
+             "grease-trap items (the Grease traps column). The site rows still include them: the "
+             f"app does not separate them per site yet ({FACILITIES_GREASE_KEY}). The "
+             "item-count columns count every item")
+    elif ex:
+        t = ("Grease-trap servicing is left out of KR4 (Ross, 09/10/2026): sites with a Grease "
+             "traps figure are computed here without those items, but the Group row and the "
+             "Overview still include them - the app sends no usable group block"
+             + (f" (it {gwhy})" if gwhy else f" ({FACILITIES_GREASE_KEY})"))
+    else:
+        t = ("Grease-trap servicing, which KR4 leaves out (Ross, 09/10/2026), is still in "
+             "these figures: the app does not separate it yet"
+             + (f" - its group block {gwhy}" if gwhy else f" ({FACILITIES_GREASE_KEY})"))
+    if bad:
+        t += (". The app's grease-trap block for " + ", ".join(
+            f"{r.get('code') or r.get('site')} ({r['grease_traps_unusable']})" for r in bad[:5])
+            + (f" and {len(bad) - 5} more" if len(bad) > 5 else "")
+            + " cannot be used, so " + ("that site keeps" if len(bad) == 1 else "those sites keep")
+            + " the app's all-item figure")
+    return t
 
 
 def fac_grease_text(grease, cnt, of):
@@ -2138,41 +2232,48 @@ def load_facilities_readings(out_dir, asof):
     return by_day, fails
 
 
-def facilities_month_figure(kr, r):
-    """One CLOSED month's OO2 KR1 or KR4 variant from its last-day reading `r`
-    (a FACILITIES_READINGS_FILE line). Returns variant kwargs."""
-    g = r["group"]
-    when = (f"read {_fac_dmy(r['as_of'])} (pulled {str(r.get('pulled_at') or '')[:16].replace('T', ' ')}"
-            f" UTC, {r.get('copy') or 'copy not recorded'}), the month's last day - "
-            + FACILITIES_MONTH_RULE)
+def facilities_month_figure(kr, r, closing=True):
+    """One month's OO2 KR1 or KR4 variant from a stored reading `r` (a
+    FACILITIES_READINGS_FILE line). Returns variant kwargs.
+
+    closing  True: `r` is dated the month's last day and IS the month's
+             figure. False: the month so far (a back-bake whose own date has
+             a stored reading) - its figure will be the last day's.
+
+    KR4 goes through fac_kr4_check(), the gate the live row uses, so a closed
+    month never quotes a reading the live rule refused, and keeps its notes.
+    """
+    # the history keeps the grease-trap block beside the group counts, as sent
+    g = {**r["group"], FACILITIES_GREASE_KEY: r.get(FACILITIES_GREASE_KEY)}
+    day = r["as_of"]
+    src = (f"the reading of {_fac_dmy(day)} (pulled "
+           f"{str(r.get('pulled_at') or '')[:16].replace('T', ' ')} UTC, "
+           f"{r.get('copy') or 'copy not recorded'})")
+    when = (src + (", the month's last day - " + FACILITIES_MONTH_RULE if closing else
+                   f" - the month so far; its figure will be the reading taken on "
+                   f"{_fac_dmy(_fac_last_day(day[:7]))} - " + FACILITIES_MONTH_RULE))
+    cov = int(day[8:10])
     if kr == "KR4":
-        cnt = {k: _fac_num(g.get(k)) for k in FACILITIES_GROUP_COUNTS}
-        if any(cnt[k] is None for k in ("tasks", "current", "due30")) or not cnt["tasks"]:
-            return {"not_measured": f"the reading {when} carries no usable group counts"}
-        grease, gwhy = fac_grease(r.get(FACILITIES_GREASE_KEY), cnt)
-        if gwhy:
-            return {"not_measured": (f"the reading {when} carries group.{FACILITIES_GREASE_KEY} "
-                                     f"but it {gwhy}, so grease-trap servicing cannot be taken "
-                                     "out of KR4 (Ross, 09/10/2026) and the month is not quoted")}
+        kr4, cnt, grease, why = fac_kr4_check(g, src)
+        if why:
+            return {"not_measured": why}
         value, ok, of = fac_kr4_figure(cnt, grease)
-        if value is None:
-            return {"not_measured": f"the reading {when} leaves no statutory item to score"}
-        rest = "; ".join(f"{cnt[k]:g} {lbl}" for k, lbl in
-                         (("overdue", "overdue"), ("no_evidence", "with no certificate on file"))
-                         if cnt[k] is not None)
-        return {"value": value,
+        rounded, drift = fac_kr4_notes(kr4, cnt, grease, value, ok, of)
+        return {"value": value, "coverage_days": cov,
                 "display": f"{value:g}% ({ok:g} of {of:g})",
                 "basis": (f"{ok:g} of {of:g} tracked statutory items current or due within 30 "
-                          f"days" + (f" ({rest}, register-wide)" if rest else "")
-                          + f"; franchise sites excluded; {when}. The app's (current+due30)/tasks "
-                          "over every item, rounded down." + fac_grease_text(grease, cnt, of))}
+                          f"days ({cnt['overdue']:g} overdue; {cnt['no_evidence']:g} with no "
+                          f"certificate on file, register-wide); franchise sites excluded; "
+                          f"{when}. (current+due30)/tasks over every item"
+                          + (" except the grease traps" if grease else "") + ", rounded down."
+                          + fac_grease_text(grease, cnt, of) + rounded + drift)}
     kr1, n, ok = (_fac_num(g.get("kr1_pct")), _fac_num(g.get("kr1_n")),
                   _fac_num(g.get("kr1_ok")))
     if kr1 is None or (n is not None and n <= 0) or not 0 <= kr1 <= 100:
-        return {"not_measured": (f"the reading {when} holds no PPM completion logged against a "
-                                 f"due date (the app counts from {FACILITIES_KR1_START})")}
+        return {"not_measured": (f"{src} holds no PPM completion logged against a due date "
+                                 f"(the app counts from {FACILITIES_KR1_START})")}
     counts = n is not None and ok is not None
-    return {"value": kr1,
+    return {"value": kr1, "coverage_days": cov,
             "display": f"{kr1:g}%" + (f" ({ok:g} of {n:g})" if counts else ""),
             "basis": ((f"{ok:g} of {n:g} PPM completions" if counts
                        else "the share of PPM completions")
@@ -2183,50 +2284,82 @@ def facilities_month_figure(kr, r):
                       "counted (the app counts finished jobs)")}
 
 
-def facilities_months(kr, open_variant, readings, fails, pull_month,
+def facilities_months(kr, open_variant, readings, fails, pull_month, today,
+                      open_as_of=None, history_open=False,
                       first=FACILITIES_MONTHS_FROM):
     """Month variants for OO2 KR1 or KR4, oldest first, the pull month last.
 
-    open_variant  the pull month's kwargs - today's row from facilities_block
+    open_variant  today's row from facilities_block (value/display/basis, or
+                  not_measured)
     readings      load_facilities_readings()'s readings by day
     fails         ...and its failed pulls by day
+    pull_month    the scorecard's month (the archive's newest pull)
+    today         'YYYY-MM-DD', the bake's OWN date - the wall clock, or --date
+    open_as_of    the as_of of the reading behind open_variant, if it is quoted
+    history_open  a back-bake whose copy on disk is not as of its date: take
+                  the month so far from the history instead
 
-    A closed month takes the reading dated its last day and nothing else; with
-    none it is grey, naming that day, the nearest earlier reading it did NOT
-    use, and the failed pull if the bake recorded one.
+    A month is CLOSED once its last day is before `today`, whatever the
+    archive's newest pull is (review, 13/10/2026: a bake on 01/11 over an
+    archive still at 31/10 scored October from 01/11's reading). A closed month
+    takes the reading dated its last day and nothing else; with none it is
+    grey, naming that day, the nearest earlier reading it did NOT use, and the
+    failed pull if the bake recorded one. The month still open takes today's
+    reading only if that reading is dated in it - never last month's closing
+    reading under this month's name.
     """
     out, m = [], first
-    while pull_month and m < pull_month:
+    while pull_month and m <= pull_month:
         last = _fac_last_day(m)
-        r = readings.get(last)
-        if r is not None:
-            out.append({"m": m, **facilities_month_figure(kr, r)})
-        else:
-            prior = max((d for d in readings if m <= d[:7] and d < last), default=None)
-            f = fails.get(last)
-            why = (f"no reading of the Facilities app is dated {_fac_dmy(last)}, the month's "
-                   f"last day, and {FACILITIES_MONTH_RULE}")
-            if last < FACILITIES_FIRST_READ:
-                why += f" - the app was first read on {_fac_dmy(FACILITIES_FIRST_READ)}"
-            elif f:
-                why += (" - the bake's pull that day failed: "
-                        + FACILITIES_CAUSE_TEXT.get(str(f.get("cause") or ""),
-                                                    f"cause {f.get('cause') or 'not recorded'}"))
+        if last < today:
+            r = readings.get(last)
+            if r is not None:
+                out.append({"m": m, **facilities_month_figure(kr, r)})
             else:
-                why += " - no bake read the app that day"
-            if prior:
-                why += (f". The month's latest reading, {_fac_dmy(prior)}, is not its last day "
-                        "and is not used")
-            out.append({"m": m, "not_measured": why})
-        m = _fac_next_month(m)
-    if pull_month:
+                prior = max((d for d in readings if m <= d[:7] and d < last), default=None)
+                f = fails.get(last)
+                why = (f"no reading of the Facilities app is dated {_fac_dmy(last)}, the "
+                       f"month's last day, and {FACILITIES_MONTH_RULE}")
+                if last < FACILITIES_FIRST_READ:
+                    why += f" - the app was first read on {_fac_dmy(FACILITIES_FIRST_READ)}"
+                elif f:
+                    why += (" - the bake's pull that day failed: "
+                            + FACILITIES_CAUSE_TEXT.get(str(f.get("cause") or ""),
+                                                        f"cause {f.get('cause') or 'not recorded'}"))
+                else:
+                    why += " - no bake read the app that day"
+                if prior:
+                    why += (f". The month's latest reading, {_fac_dmy(prior)}, is not its last "
+                            "day and is not used")
+                out.append({"m": m, "not_measured": why})
+            m = _fac_next_month(m)
+            continue
+        # the month still open
         ov = {k: v for k, v in (open_variant or {}).items()
               if k not in ("source_kind", "months")}
-        if ov.get("basis"):
-            ov["basis"] = ov["basis"].rstrip(". ") + (
-                            f". The month so far: its figure will be the reading taken on "
-                            f"{_fac_dmy(_fac_last_day(pull_month))} - {FACILITIES_MONTH_RULE}")
-        out.append({"m": pull_month, **ov})
+        if history_open:
+            hist = max((d for d in readings if d[:7] == m and d <= today), default=None)
+            out.append({"m": m, **(facilities_month_figure(kr, readings[hist], closing=False)
+                                   if hist else ov)})
+        elif ov.get("value") is not None and open_as_of and open_as_of[:7] == m:
+            ov["coverage_days"] = int(open_as_of[8:10])
+            if ov.get("basis"):
+                ov["basis"] = ov["basis"].rstrip(". ") + (
+                    f". The month so far: its figure will be the reading taken on "
+                    f"{_fac_dmy(last)} - {FACILITIES_MONTH_RULE}")
+            out.append({"m": m, **ov})
+        elif ov.get("value") is not None:
+            f = fails.get(today)
+            out.append({"m": m, "not_measured": (
+                f"no reading of the Facilities app is dated in {_fac_ym(m)} yet - the newest, "
+                f"as of {_fac_dmy(open_as_of or '')}, belongs to "
+                f"{_fac_ym((open_as_of or m)[:7])}"
+                + (" - today's pull failed: " + FACILITIES_CAUSE_TEXT.get(
+                    str(f.get("cause") or ""), f"cause {f.get('cause') or 'not recorded'}")
+                   if f else ""))})
+        else:
+            out.append({"m": m, **ov})
+        m = _fac_next_month(m)
     return out
 
 
@@ -2315,9 +2448,10 @@ def facilities_block(feed, err, today,
         # the site's figure is computed here, ex grease traps, from its counts;
         # without one it stays the app's figure over every item.
         _sc = {k: _fac_num(s.get(k)) for k in FACILITIES_GROUP_COUNTS}
-        _sg, _ = (fac_grease(s.get(FACILITIES_GREASE_KEY), _sc)
-                  if None not in (_sc["tasks"], _sc["current"], _sc["due30"])
-                  else (None, None))
+        _sg, _sgw = (fac_grease(s.get(FACILITIES_GREASE_KEY), _sc)
+                     if None not in (_sc["tasks"], _sc["current"], _sc["due30"])
+                     else (None, "cannot be checked: the site's own counts are unusable")
+                     if s.get(FACILITIES_GREASE_KEY) is not None else (None, None))
         _sx = fac_kr4_figure(_sc, _sg)[0] if _sg else None
         sites.append({
             "code": s.get("code"), "site": s.get("site"),
@@ -2335,6 +2469,9 @@ def facilities_block(feed, err, today,
                         if 0 <= (_fac_num(s.get("kr4_pct")) or 0) <= 100 else None),
             "grease_traps": _sg["tasks"] if _sg else None,
             "kr4_ex_grease": bool(_sg),
+            # a block the app sent that cannot be used: the site keeps the
+            # app's all-item figure, and the note below names it
+            "grease_traps_unusable": _sgw,
             "franchise": _franchise(s)})
     # Worst first. Franchise sites (none today - the app already leaves them
     # out) and sites with no figure sink to the bottom rather than reading as 0.
@@ -2361,6 +2498,8 @@ def facilities_block(feed, err, today,
     # 25/09/2026). Said on the card rather than implied away.
     con_t = sum(c["tasks"] or 0 for c in contractors)
     g_t = _fac_num(g.get("tasks"))
+    _grp_grease = fac_grease(g.get(FACILITIES_GREASE_KEY),
+                             {k: _fac_num(g.get(k)) for k in FACILITIES_GROUP_COUNTS})
     src = _fac_str(feed.get("source"), "M&R Facilities app")
     k2_last = months[-1] if months else {}
     tab.update({
@@ -2401,17 +2540,9 @@ def facilities_block(feed, err, today,
                     "due within 30 days over the site's tracked items. 'No "
                     "evidence' is an item with no certificate on file (a "
                     "placeholder date) and never counts as compliant. Sorted "
-                    "worst first. The Overview's KR4 is the app's group figure "
-                    "over every item, not a mean of these rows"
-                    + (". Grease-trap servicing is left out of KR4 (Ross, "
-                       "09/10/2026): where the app separates a site's grease-trap "
-                       "items (the Grease traps column) its Compliant figure is "
-                       "computed here without them; the other columns still count "
-                       "every item"
-                       if any(r["kr4_ex_grease"] for r in sites) else
-                       ". Grease-trap servicing, which KR4 leaves out (Ross, "
-                       "09/10/2026), is still in these figures: the app does not "
-                       f"separate it per site yet ({FACILITIES_GREASE_KEY})")),
+                    "worst first. The Overview's KR4 is the Group row's figure, "
+                    "from the app's group counts, not a mean of these rows. "
+                    + fac_grease_site_note(_grp_grease, sites)),
             "kr2": (f"rule: {rule or '(the feed states no rule)'}; "
                     + (f"{chasers:g} chaser report(s) merged into the fault "
                        "they chase, not counted as repeats. "
@@ -2463,8 +2594,10 @@ def facilities_block(feed, err, today,
         # the day being baked, and the feed is current-state only, so there is
         # no copy as it stood then. Quoting it would publish the future.
         why = (f"{label} was pulled {pulled_s[:10]}, after this snapshot's date "
-               f"({today.isoformat()}); the feed is stored as current state only, "
-               "so a back-baked snapshot cannot quote it")
+               f"({today.isoformat()}); the feed is current state only, so a "
+               "back-baked snapshot cannot quote it - OO2 KR1 and KR4 take the month "
+               f"so far from {FACILITIES_READINGS_FILE} instead, when it holds a "
+               "reading of the month by that date")
         return _grey("not_as_of", why, None)
     _cause = facilities_cause(pull_status)
     if age > FACILITIES_STALE_DAYS:
@@ -2486,61 +2619,30 @@ def facilities_block(feed, err, today,
 
     rows = {}
     # ---- OO2 KR4: statutory compliance ------------------------------------
-    kr4 = _fac_num(g.get("kr4_pct"))
-    cnt = {k: _fac_num(g.get(k)) for k in
-           ("tasks", "current", "due30", "overdue", "no_evidence")}
-    miss = [k for k, v in cnt.items() if v is None]
-    kr4_why = None
-    grease, grease_why = fac_grease(g.get(FACILITIES_GREASE_KEY), cnt)
-    tab["group"][FACILITIES_GREASE_KEY] = grease
-    if kr4 is None or not 0 <= kr4 <= 100:
-        kr4_why = (f"the Facilities feed (as of {as_of}) carries no usable "
-                   "group.kr4_pct, and this system does not rebuild it from the site "
-                   "rows - the group figure is the app's own (current+due30)/tasks")
-    elif miss or not cnt["tasks"] or cnt["current"] + cnt["due30"] > cnt["tasks"]:
-        kr4_why = (f"the Facilities feed (as of {as_of}) gives kr4_pct {kr4:g} but not "
-                   "usable counts behind it (" + (
-                       ", ".join("group." + k for k in miss) if miss
-                       else "group.tasks is 0" if not cnt["tasks"]
-                       else "current+due30 exceeds tasks")
-                   + "), and no number is quoted here without its basis")
-    elif grease_why:
-        kr4_why = (f"the Facilities feed (as of {as_of}) carries group.{FACILITIES_GREASE_KEY} "
-                   f"but it {grease_why}, so grease-trap servicing cannot be taken out of "
-                   "KR4 (Ross, 09/10/2026) and the figure is not quoted - fix the block in "
-                   "the app")
-    elif fac_kr4_figure(cnt, grease)[0] is None:
-        kr4_why = (f"the Facilities feed (as of {as_of}) leaves no statutory item to score "
-                   "once its grease-trap items are taken out")
+    # One gate, shared with the closed months (fac_kr4_check).
+    kr4, cnt, grease, kr4_why = fac_kr4_check(g, f"the Facilities feed (as of {as_of})")
+    tab["group"][FACILITIES_GREASE_KEY] = grease if not kr4_why else None
     if kr4_why:
         rows["KR4 statutory compliance"] = {"not_measured": kr4_why}
         # The tab's group row must not show the figure the Overview refused.
         tab["group"]["kr4_pct"] = None
         tab["group_note"] = kr4_why
     else:
-        # The app's figure is over EVERY item; the drift and rounding checks
-        # compare like with like, so they use the counts before grease traps
-        # come out.
-        calc = 100.0 * (cnt["current"] + cnt["due30"]) / cnt["tasks"]
         # SCORED ON THE EXACT RATIO, ROUNDED DOWN (review, 25/09/2026). The app
         # rounds kr4_pct to a whole percent, and the band is 'full': 226 of 227
         # items is 99.56%, which the app sends as 100 and which would score 100
         # and go green with an item overdue. This is the same group formula
         # the app uses - (current+due30)/tasks over every item, from the app's
         # own group counts - at a precision that cannot round up into the band.
+        # The app's figure is over EVERY item, so fac_kr4_notes compares it
+        # with the counts before grease traps come out.
         value, ok4, of4 = fac_kr4_figure(cnt, grease)
         tab["group"]["kr4_pct"] = value
         tab["group"]["kr4_pct_app"] = kr4
-        _all = math.floor(round(calc * 10, 6)) / 10
-        rounded = (f" The app shows {kr4:g}%, rounded to a whole percent"
-                   + (" and over every item, grease traps included" if grease else "")
-                   + f"; this is scored on the exact {ok4:g}/{of4:g}, rounded down."
-                   if abs(calc - kr4) <= 0.5 and (value != kr4 or grease) else "")
-        drift = (f" NOTE: the app's own kr4_pct is {kr4:g}, which does not match its "
-                 f"counts ({calc:.1f}%) - scored on the counts; fix it in the app."
-                 if abs(calc - kr4) > 0.5 else "")
+        rounded, drift = fac_kr4_notes(kr4, cnt, grease, value, ok4, of4)
         if grease:
-            tab["group"]["kr4_pct_all_items"] = _all
+            tab["group"]["kr4_pct_all_items"] = math.floor(round(
+                100.0 * (cnt["current"] + cnt["due30"]) / cnt["tasks"] * 10, 6)) / 10
         sum_t = sum(r["tasks"] or 0 for r in sites if not r["franchise"])
         split = (f" The per-site rows sum to {sum_t:g} items against the group's "
                  f"{cnt['tasks']:g}." if sum_t != cnt["tasks"] else "")
@@ -2559,7 +2661,8 @@ def facilities_block(feed, err, today,
                 + (", register-wide" if grease else "")
                 + f"; franchise sites excluded; from the Facilities app, as of {as_of}. "
                 "The group figure is the app's (current+due30)/tasks over every "
-                "item - never an average of the site percentages. The app keeps no "
+                + ("item except the grease traps" if grease else "item")
+                + " - never an average of the site percentages. The app keeps no "
                 "history, so this system records each day's reading."
                 + fac_grease_text(grease, cnt, of4)
                 + (" Per-site breakdown on the Maintenance tab." if n_sites else "")
@@ -5500,9 +5603,14 @@ def main():
             print(f"[bake] facilities readings: {_fac_added} line(s) added to "
                   f"{FACILITIES_READINGS_FILE}")
         _fac_hist, _fac_fails = load_facilities_readings(OUT_DIR, _fac_today.isoformat())
+        _fac_asof = str(fac["tab"].get("as_of") or "")[:10] or None
         for _k, _kr in (("KR1", "KR1 PPM on time"), ("KR4", "KR4 statutory compliance")):
             fac["rows"][_kr] = {**fac["rows"][_kr], "months": facilities_months(
-                _k, fac["rows"][_kr], _fac_hist, _fac_fails, (pull or "")[:7])}
+                _k, fac["rows"][_kr], _fac_hist, _fac_fails, (pull or "")[:7],
+                _fac_today.isoformat(), open_as_of=_fac_asof,
+                # a back-bake whose copy on disk was pulled after its date
+                # takes the month so far from the history (review, 13/10/2026)
+                history_open=bool(dated) and fac["tab"].get("status") == "not_as_of")}
     except Exception as e:  # noqa: BLE001 - the months are extra; today's rows stand
         print(f"[bake] facilities months not built: {type(e).__name__}: {e}")
     _fac_g = (fac["tab"].get("group") or {})
@@ -6781,8 +6889,11 @@ def main():
                     _dt_sent[(_pd, _f)] = _sd
         _dt_goods, _dt_pulls, _dt_del = delivery_tracking.goods_in(_dt_rows)
         _dt_cov = delivery_tracking.coverage(_dt_pulls, _dt_sent)
-        _dt_orders, _dt_first = [], {}
+        _dt_orders, _dt_first, _dt_opulls = [], {}, []
         if order_feed_usable:
+            cur.execute("SELECT DISTINCT pull_date::text FROM etl_feed_rows WHERE feed=%s",
+                        (ORDER_EMAIL_FEED,))
+            _dt_opulls = sorted(str(p_)[:10] for (p_,) in cur.fetchall() if p_)
             cur.execute("WITH o AS (" + ORDER_EMAIL_DEDUP + ") "
                         "SELECT ref, site, sup, dd, emailed FROM o WHERE dd IS NOT NULL",
                         (ORDER_EMAIL_FEED,))
@@ -6798,7 +6909,8 @@ def main():
         _k3, _k3g = delivery_tracking.kr3_months(
             _dt_orders, _dt_goods, _dt_cov, (pull or "")[:7], _mvar,
             lambda v: okr_score("pct95", v), _rag_of, first_dd=_dt_first,
-            deleted=_dt_del, feeds=_dt_feeds,
+            deleted=_dt_del, feeds=_dt_feeds, order_pulls=_dt_opulls,
+            asof=asof.isoformat(),
             orders_why=(None if order_feed_usable else
                         f"'{ORDER_EMAIL_FEED}' has no usable row (no 'Delivery Date ISO')"))
     except Exception as e:  # noqa: BLE001 - one KR greys, the bake goes on
@@ -6931,10 +7043,7 @@ def main():
         # Facilities repeat issues: the app counts its fault log up to its
         # own as_of date (only quoted at all when the feed is fresh)
         ("OO2", "KR2"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
-        # Phase 4.1: KR1 and KR4 are the app's register as read on its as_of
-        # date - the month so far is covered up to that day, as for KR2
-        ("OO2", "KR1"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
-        ("OO2", "KR4"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
+        # (OO2 KR1/KR4 carry coverage_days on each variant - facilities_months)
     }
 
     # Days no pull of the source ever saw, per KR: only the GC answer feed

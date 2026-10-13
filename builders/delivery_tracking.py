@@ -235,25 +235,52 @@ def _floor1(x):
     return math.floor(round(x * 10, 6)) / 10
 
 
+#: What the deliveries report needs, said wherever the row is grey for want of it.
+REPORT_NEEDS = ("Kobas needs to email the deliveries report DAILY, with 'Ops Deliveries' in "
+                "its subject and no '[TEST]' (the export skips test sends), over a rolling "
+                "window of at least 7 days")
+#: The export reads the order emails of the last 14 days on each pull
+#: (daily_export.fetch_kobas_orders); a pull on day P is taken to have seen
+#: every email sent from P-13 to P-1 - the day it ran is only partly seen.
+ORDER_EMAIL_WINDOW_DAYS = 14
+
+
+def order_email_days(order_pulls):
+    """The days whose order emails some pull of 'Kobas Orders' read, sorted."""
+    days = set()
+    for p in order_pulls or ():
+        p = _iso(p)
+        if p:
+            days.update(_days((_d(p) - datetime.timedelta(days=ORDER_EMAIL_WINDOW_DAYS - 1)).isoformat(),
+                              (_d(p) - datetime.timedelta(days=1)).isoformat()))
+    return sorted(days)
+
+
 def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                first_dd=None, deleted=0, feeds=(), first_month=FIRST_MONTH,
-               k=MATCH_DAYS_AFTER_DUE, status=MATCH_RULE_STATUS, orders_why=None):
+               k=MATCH_DAYS_AFTER_DUE, status=MATCH_RULE_STATUS, orders_why=None,
+               order_pulls=None, asof=None):
     """OO4 KR3 as an `_okr_extra` entry, plus gaps.
 
-    orders     the deduped 'Kobas Orders' rows: {"ref","site","sup","dd","emailed"}
-    goods      goods_in()'s goods-ins; covered: coverage()'s days
-    first_dd   {supplier: the first due date its order emails show} - a supplier
-               whose emails start after a month's 1st is left out of that month
-               and named (the OTIF rule, 09/09/2026)
-    feeds      the deliveries feed names read, for the basis
-    orders_why why the order emails cannot be used, or None
+    orders      the deduped 'Kobas Orders' rows: {"ref","site","sup","dd","emailed"}
+    goods       goods_in()'s goods-ins; covered: coverage()'s days
+    first_dd    {supplier: the first due date its order emails show} - a supplier
+                whose emails start after a month's 1st is left out of that month
+                and named (the OTIF rule, 09/09/2026)
+    feeds       the deliveries feed names read, for the basis
+    orders_why  why the order emails cannot be used, or None
+    order_pulls the pull dates of 'Kobas Orders' - a day no pull read is a day
+                whose orders may be missing (review, 13/10/2026: an email
+                outage shrank the month and nothing said so). None skips the
+                check (pure-function tests only; the bake always passes them).
+    asof        the bake's own date, for the "is the report still coming" gap
 
     An order is JUDGED when the report covers every day of its window [email
     date, due + k]; it is RECEIVED when match() pairs it. Value = received /
     judged, cut DOWN to 0.1. A closed month is scored only when every order in
-    it is judged AND the pairing rule is agreed; otherwise it is shown,
-    unscored, with the reason. The open month carries its covered days for the
-    month-to-date rule.
+    it is judged, every day its orders could have been emailed was read, AND
+    the pairing rule is agreed; otherwise it is shown, unscored, with the
+    reason. The open month carries its covered days for the month-to-date rule.
     """
     gaps = []
     if orders_why:
@@ -262,14 +289,18 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                 [f"OO4 KR3 is grey: {why}"])
     if not feeds:
         why = ("no Kobas deliveries report has reached the export. Ross chose Kobas goods-in "
-               "(12/10/2026); the report must be emailed DAILY by Kobas with 'Ops Deliveries' "
-               "in its subject and without '[TEST]' (the export skips test sends), over a "
-               "rolling window of at least 7 days")
+               "(12/10/2026); " + REPORT_NEEDS)
         return ({"months": None, "source_kind": "not_measured", "not_measured": why},
                 [f"OO4 KR3 (deliveries tracked to receipt) is grey: {why}"])
     first_dd = first_dd or {}
     cov = set(covered)
     through = covered[-1] if covered else None
+    asof = asof or _last_day(pull_month)
+    # the report has stopped (or never covered a day) when its newest covered
+    # day is more than 2 days old: a daily send covers up to yesterday, and a
+    # bake can run before the day's email lands
+    stale = through is None or through < (_d(asof) - datetime.timedelta(days=2)).isoformat()
+    email_days = set(order_email_days(order_pulls)) if order_pulls is not None else None
     paired = match(orders, goods, k)
     rule = (f"paired at the same site from the same supplier, booked between the order email "
             f"and {k} day{'' if k == 1 else 's'} after the due date, one goods-in per order (or "
@@ -282,16 +313,18 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
             + (", so no month is scored until Ross agrees it" if status != "agreed" else "")
             + ". A cancelled order cannot be seen and counts as not received; factory "
             "deliveries send no order email and are outside this measure"
-            + (f"; {deleted} goods-in{'' if deleted == 1 else 's'} marked Deleted are not counted"
-               if deleted else ""))
-    span = (f"the report covers {dmy(covered[0])}-{dmy(through)}"
-            + (f" with {len(list(_days(covered[0], through))) - len(covered)} day(s) missing"
-               if len(list(_days(covered[0], through))) != len(covered) else "")
-            if covered else "no day is covered by any copy of the report")
+            + (f"; {deleted} goods-in{' is' if deleted == 1 else 's are'} marked Deleted and "
+               "not counted" if deleted else ""))
+    needs = (" " + REPORT_NEEDS + "." if stale else "")
     out = []
     m = first_month
     while m <= pull_month:
         last = _last_day(m)
+        m_days = list(_days(m + "-01", last))
+        n_cov = sum(1 for d in m_days if d in cov)
+        span = (f"the deliveries report covers {n_cov} of {mlabel(m)}'s {len(m_days)} days"
+                + (f" (its newest covered day is {dmy(through)})" if through else
+                   " (no copy of it covers any day)"))
         due = [o for o in orders if o.get("dd", "")[:7] == m and o.get("ref")]
         late_sup = sorted({o["sup"] for o in due
                            if first_dd.get(o["sup"], "") > m + "-01"})
@@ -306,11 +339,24 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                 judged.append(o)
             else:
                 holed += 1
+        # the order side: every day an order due in the month could have been
+        # emailed (the day before the 1st to the day before the last day, as
+        # far as the bake's date) must have been read by some pull
+        unread = ([d for d in _days((_d(m + "-01") - datetime.timedelta(days=1)).isoformat(),
+                                    min((_d(last) - datetime.timedelta(days=1)).isoformat(),
+                                        (_d(asof) - datetime.timedelta(days=1)).isoformat()))
+                   if d not in email_days]
+                  if email_days is not None else [])
         recv = [o for o in judged if o["ref"] in paired]
         left = ""
         if late_sup:
             left += (f" Left out: {', '.join(late_sup)} - their order emails begin after "
                      f"{dmy(m + '-01')}, so part of the month's orders were never seen.")
+        if unread:
+            left += (f" The order emails of {len(unread)} day(s) were never read "
+                     f"({', '.join(dmy(d)[:5] for d in unread[:6])}"
+                     + (f" and {len(unread) - 6} more" if len(unread) > 6 else "")
+                     + "), so orders due in the month may be missing from it.")
         if waiting:
             left += (f" {waiting} order(s) not judged: their window runs past "
                      + (f"{dmy(through)}, the last day any copy of the report covers." if through
@@ -323,7 +369,7 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                    + (f"; {len(due_in)} order(s) emailed" if due_in
                       else f"; {len(due)} order(s) emailed, all from suppliers left out" if due
                       else "; none emailed")
-                   + "." + left)
+                   + "." + left + needs)
             if m == pull_month:
                 out.append(mvar(m, mtd=True, score=None, coverage_days=0,
                                 basis="month-to-date, not yet scored (0 orders judged) - " + why
@@ -342,35 +388,37 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                   + ("" if len(miss) <= 8 else f" and {len(miss) - 8} more supplier(s)") + "."
                   if miss else "")
         exact = sum(1 for o in recv if paired[o["ref"]][1] == "ref")
-        basis = (f"{len(recv)} of {len(judged)} supplier orders due in {mlabel(m)} have a goods-in"
-                 + (f" ({exact} by the order ref typed on the goods-in)" if exact else "")
-                 + f"; {span}." + miss_t + left + " " + note)
+        core = (f"{len(recv)} of {len(judged)} supplier orders due in {mlabel(m)} have a goods-in"
+                + (f" ({exact} by the order ref typed on the goods-in)" if exact else "")
+                + f"; {span}." + miss_t)
         disp = f"{val:g}% ({len(recv)} of {len(judged)})"
-        complete = not waiting and not holed
+        complete = not waiting and not holed and not unread
         cdays = sum(1 for d in _days(m + "-01", min(last, through or last)) if d in cov)
         if m == pull_month:
-            out.append(mvar(m, value=val, display=disp,
-                            score=score_fn(val) if status == "agreed" else None,
-                            rag=rag_fn(score_fn(val)) if status == "agreed" else None,
+            agreed = status == "agreed"
+            out.append(mvar(m, value=val, display=disp if agreed else f"{disp} - not scored",
+                            score=score_fn(val) if agreed else None,
+                            rag=rag_fn(score_fn(val)) if agreed else None,
                             coverage_days=cdays,
-                            basis=(basis if status == "agreed" else
+                            basis=((core + left + needs + " " + note) if agreed else
                                    f"not scored - the pairing window is {status}, not agreed - "
-                                   + basis)))
+                                   + core + left + needs + " " + note)))
         elif not complete or status != "agreed":
-            why = ("an INCOMPLETE month: " + left.strip() if not complete
+            why = ("an INCOMPLETE month" if not complete
                    else f"the pairing window is {status}, not agreed")
             out.append(mvar(m, value=val, display=f"{disp} - not scored", score=None, rag=None,
                             incomplete=True, coverage_days=cdays,
-                            basis=f"not scored - {why} - {basis}"))
+                            basis=f"not scored - {why} - " + core + left + needs + " " + note))
         else:
             s = score_fn(val)
             out.append(mvar(m, value=val, display=disp, score=s, rag=rag_fn(s),
-                            coverage_days=cdays, basis=basis))
+                            coverage_days=cdays, basis=core + left + " " + note))
         m = _next_month(m)
-    if through and through < (pull_month + "-01"):
-        gaps.append(f"OO4 KR3: the newest Kobas deliveries report covers goods-ins to "
-                    f"{dmy(through)} only - it needs to be emailed daily ('Ops Deliveries' in "
-                    "the subject, no '[TEST]') for any month after it to be measured")
+    if stale:
+        gaps.append("OO4 KR3: "
+                    + (f"the newest Kobas deliveries report covers goods-ins to {dmy(through)} only"
+                       if through else "no copy of the Kobas deliveries report covers a whole day")
+                    + " - " + REPORT_NEEDS)
     if status != "agreed":
         gaps.append(f"OO4 KR3: the order-to-goods-in pairing window (due date + {k} days) is "
                     f"{status}, not agreed - no month is scored until Ross confirms it")

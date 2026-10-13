@@ -196,12 +196,49 @@ check(ov["value"] is None and ov.get("mtd") and ov["score"] is None and ov["cove
       "October, open, with no day covered: month to date, 0 orders judged - never 0%")
 check(next(v for v in e["months"] if v["m"] == "2026-08").get("not_measured"),
       "August with no order judged: grey with its reason, never 0")
+check(sv["basis"].count("Left out: TWF") == 1 and sv["basis"].count("not judged: their window") == 1,
+      "an incomplete month's basis says each reason once (review, 13/10/2026)")
 OCT = list(days("2026-10-01", "2026-10-12"))
 e, _ = T.kr3_months([o(f"O{d}", d) for d in OCT], [g(f"h{d}", d) for d in OCT], list(days("2026-09-25", "2026-10-12")),
                     "2026-10", mvar, score, rag, first_dd=first, feeds=[F], status="agreed")
 ov = next(v for v in e["months"] if v["m"] == "2026-10")
 check(ov["value"] == 100 and ov["coverage_days"] == 12 and ov["display"] == "100% (10 of 10)",
       f"October, open: the 10 orders whose window has closed are judged; 12 days covered for the MTD rule (got {ov['display']}, {ov['coverage_days']})")
+
+# review, 13/10/2026: the ORDER side has gaps too. An export outage that
+# missed a week of order emails shrinks the month's denominator; the month
+# must say so and never be scored as complete.
+pulls_all = list(days("2026-08-20", "2026-10-06"))
+pulls_gap = [p_ for p_ in pulls_all if not ("2026-09-10" <= p_ <= "2026-09-30")]
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=pulls_all, asof="2026-10-06")
+check(next(v for v in e["months"] if v["m"] == "2026-09")["score"] == 100,
+      "every day's order emails read: September still scores")
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=pulls_gap, asof="2026-10-06")
+sv = next(v for v in e["months"] if v["m"] == "2026-09")
+check(sv["score"] is None and sv["incomplete"] and "order emails of 9 day(s) were never read (09/09, 10/09" in sv["basis"],
+      f"no pull of 'Kobas Orders' 10-30/09: each pull reads 14 days back, so the 01/10 pull reaches 18/09 "
+      f"and the emails of 09-17/09 were never read - September is INCOMPLETE and unscored")
+# the stale gap compares with the BAKE's date, not the month: a daily report
+# read on 01/11 (covering to 31/10) is not stale; one that stopped mid-month is
+cov_oct = list(days("2026-09-20", "2026-10-31"))
+_, gp = T.kr3_months(orders, goods_s, cov_oct, "2026-11", mvar, score, rag, first_dd=first, feeds=[F],
+                     status="agreed", asof="2026-11-01")
+check(not any("covers goods-ins to" in x for x in gp), "01/11, report covering to 31/10: no stale gap")
+_, gp = T.kr3_months(orders, goods_s, list(days("2026-09-20", "2026-10-15")), "2026-10", mvar, score, rag,
+                     first_dd=first, feeds=[F], status="agreed", asof="2026-10-25")
+check(any("covers goods-ins to 15/10/2026 only" in x and "rolling window of at least 7 days" in x for x in gp),
+      "25/10, report stopped at 15/10: the gap names it and what Kobas must send")
+e, gp = T.kr3_months(orders, goods_s, [], "2026-10", mvar, score, rag, first_dd=first, feeds=[F], asof="2026-10-25")
+check(any("no copy of the Kobas deliveries report covers a whole day" in x for x in gp)
+      and "rolling window of at least 7 days" in next(v for v in e["months"] if v["m"] == "2026-09")["not_measured"],
+      "a report that covers no whole day (e.g. a one-day window): the row and the gap say what is needed")
+e, _ = T.kr3_months([o(f"O{d}", d) for d in OCT], [g(f"h{d}", d) for d in OCT], list(days("2026-09-25", "2026-10-12")),
+                    "2026-10", mvar, score, rag, first_dd=first, feeds=[F], asof="2026-10-13")
+ov = next(v for v in e["months"] if v["m"] == "2026-10")
+check(ov["display"].endswith("- not scored") and ov["score"] is None,
+      "the open month under a proposed window also reads '- not scored'")
 
 # ---- 2. the real builder over a synthetic archive ----------------------------
 btmp = tempfile.mkdtemp(prefix="oo4kr3-")
@@ -274,7 +311,7 @@ if p.returncode == 0:
           "...shown but not scored: the window is proposed")
     check("(1 by the order ref typed on the goods-in)" in (oc.get("basis") or "")
           and "LWC London 2" in oc["basis"] and "LWC Doncaster 1" in oc["basis"]
-          and "1 goods-in marked Deleted" in oc["basis"],
+          and "1 goods-in is marked Deleted" in oc["basis"],
           "...its basis names the exact link, the misses per supplier and the Deleted goods-in")
     check("A Person" not in json.dumps(row), "no staff name from 'Created By' reaches the KR3 row")
     check(row["tab"] == "p-supp" and row["source_kind"] == "computed", "the row drills to the Supply tab")

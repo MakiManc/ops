@@ -200,7 +200,7 @@ const okrRow = kr => page.locator('#scorecard table tbody tr', { hasText: kr }).
   const g = rows.find(r => r[0] === 'Group');
   assert(g && g[2] === '37.1%' && g[3] === '70' && g[8] === '6',
     `group row: the ex-grease figure, the register's counts, 6 grease-trap items (got ${JSON.stringify(g)})`);
-  assert(/computed here without them/.test(await page.locator('#fac-kr4').innerText()),
+  assert(/the Group row and every site with a Grease traps figure are computed here without those items/.test(await page.locator('#fac-kr4').innerText()),
     'the note under the table says which figures leave grease traps out');
 }
 
