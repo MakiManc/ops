@@ -18,7 +18,7 @@ WHAT MAKES IT HARD, STATED PLAINLY
     the order ref ("3031/<id>") into the goods-in's Invoice Number, which is an
     exact link (about 2% of goods-ins). So pairing needs a day window, and the
     window moves the figure: on the one week we hold (orders due 13-19/08),
-    same-day pairing finds about half, the due date + 2 days about 80%. That window is a
+    same-day pairing finds 39 of 61 (64%), the due date + 2 days 50 (82%). That window is a
     rule nobody has agreed, so it is PROPOSED here and NO MONTH IS SCORED
     until Ross confirms it (MATCH_RULE_STATUS).
   * THE REPORT HAS NEVER BEEN SCHEDULED. The only copy is a one-off "[TEST]"
