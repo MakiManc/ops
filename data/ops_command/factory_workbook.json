@@ -1,6 +1,6 @@
 {
  "basis": "From the factory's Weekly Report workbook ('AA FACTORY'), two tabs only. stocktake: each row of 'STOCK TAKE VARIANCE - WEEKLY' that has a variance, as the sheet writes it. site_orders: per day of 'CLOSING INVENTORY', per site, how many product lines it ordered from the factory and how many units. No product, money or person is kept - this repository is public.",
- "pulled_at": "2026-10-12T18:41:09Z",
+ "pulled_at": "2026-10-13T16:40:01Z",
  "site_orders": {
   "days": [
    {
@@ -10431,15 +10431,22 @@
     },
     "total_checked": 28,
     "total_mismatches": 0
+   },
+   {
+    "date": "2026-10-12",
+    "rows": 28,
+    "sites": {},
+    "total_checked": 28,
+    "total_mismatches": 0
    }
   ],
   "problems": [],
-  "read_at": "2026-10-12T18:41:09Z",
+  "read_at": "2026-10-13T16:40:01Z",
   "tab": "CLOSING INVENTORY"
  },
  "stocktake": {
   "blank_rows": 121,
-  "read_at": "2026-10-12T18:41:09Z",
+  "read_at": "2026-10-13T16:40:01Z",
   "rows": [
    {
     "row": 2,
