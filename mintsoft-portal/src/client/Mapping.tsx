@@ -389,7 +389,7 @@ function StockGaps({ products, onChange }: { products: StockGap[]; onChange: () 
 
 export function Mapping() {
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null)
-  const [unmappedCount, setUnmappedCount] = useState<number | null>(null)
+  const [unmapped, setUnmapped] = useState<{ count: number; stock: number }>({ count: 0, stock: 0 })
   const [stockGaps, setStockGaps] = useState<StockGap[]>([])
   const [error, setError] = useState(false)
 
@@ -402,7 +402,11 @@ export function Mapping() {
       ])
       if (!s.ok || !u.ok) throw new Error('failed')
       setSuggestions((await s.json() as { suggestions: Suggestion[] }).suggestions)
-      setUnmappedCount((await u.json() as { lines: Line[] }).lines.length)
+      const lines = (await u.json() as { lines: Line[] }).lines
+      setUnmapped({
+        count: lines.length,
+        stock: lines.reduce((n, l) => n + (l.available ?? 0), 0),
+      })
       // The gaps panel is useful, not essential: a failure there must not take the
       // mapping tool down with it.
       setStockGaps(g.ok ? (await g.json() as { products: StockGap[] }).products : [])
@@ -424,9 +428,24 @@ export function Mapping() {
         changed in Mintsoft itself.
       </p>
 
-      <p className="text-sm text-gray-600" role="status">
-        {unmappedCount} warehouse {unmappedCount === 1 ? 'line is' : 'lines are'} not mapped yet.
-      </p>
+      {/* The count on its own hid the thing that mattered. When Mercium merged the
+          shipment duplicates in October the new lines arrived unmapped, and this read
+          "19 warehouse lines are not mapped yet" while those lines held 6,236 units --
+          a quarter of everything we own, invisible to every restaurant, with 48 of 93
+          products showing nothing. It is the stock, not the count, that is worth
+          shouting about. */}
+      {unmapped.stock > 0 ? (
+        <p role="status" className="text-amber-900 bg-amber-50 border border-amber-400 rounded p-3">
+          <strong>{unmapped.stock.toLocaleString()} units</strong> are sitting on{' '}
+          {unmapped.count} unmapped warehouse {unmapped.count === 1 ? 'line' : 'lines'}, so no
+          site can order them. Map {unmapped.count === 1 ? 'it' : 'them'} to a product below.
+        </p>
+      ) : (
+        <p className="text-sm text-gray-600" role="status">
+          {unmapped.count} warehouse {unmapped.count === 1 ? 'line is' : 'lines are'} not
+          mapped yet, and {unmapped.count === 1 ? 'it holds' : 'they hold'} no stock.
+        </p>
+      )}
 
       <StockGaps products={stockGaps} onChange={() => void load()} />
 

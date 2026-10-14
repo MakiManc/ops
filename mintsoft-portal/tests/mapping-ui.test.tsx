@@ -220,6 +220,26 @@ describe('the products already mapped to a recordless line', () => {
       .toBeDefined()
   })
 
+  it('shouts about stock sitting on unmapped lines, not just the count', async () => {
+    // The count alone hid the October merge: "19 warehouse lines are not mapped yet"
+    // while those lines held 6,236 units and 48 of 93 products showed sites nothing.
+    serve({ lines: [
+      line({ mintsoftProductId: 1804, sku: 'RAM-MRK', available: 1821 }),
+      line({ mintsoftProductId: 1803, sku: 'BCB-MRK', available: 700 }),
+    ] })
+    render(<Mapping />)
+    await waitFor(() => expect(screen.getByText('2,521 units')).toBeDefined())
+    expect(screen.getByText(/sitting on 2 unmapped warehouse lines, so no site can order them/))
+      .toBeDefined()
+  })
+
+  it('stays quiet when the unmapped lines hold nothing', async () => {
+    serve({ lines: [line({ available: 0 })] })
+    render(<Mapping />)
+    await waitFor(() => expect(screen.getByText(/1 warehouse line is not mapped yet, and it holds no stock/)).toBeDefined())
+    expect(screen.queryByText(/so no site can order/)).toBeNull()
+  })
+
   it('says nothing at all when there are no gaps', async () => {
     serve({ products: [] })
     render(<Mapping />)
@@ -238,7 +258,9 @@ describe('the products already mapped to a recordless line', () => {
       return json({ lines: [line()] })
     })
     render(<Mapping />)
-    await waitFor(() => expect(screen.getByText(/1 warehouse line is not mapped yet/)).toBeDefined())
+    // The default fixture line holds stock, so the screen shows the unmapped-stock
+    // warning -- the point is that it renders at all when the gaps call has failed.
+    await waitFor(() => expect(screen.getByText(/sitting on 1 unmapped warehouse line/)).toBeDefined())
     expect(screen.queryByRole('alert')).toBeNull()
   })
 })
