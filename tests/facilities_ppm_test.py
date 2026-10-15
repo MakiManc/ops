@@ -105,9 +105,11 @@ check(r4.get("source_kind") == "facilities_app", "KR4 says it came from the Faci
 for frag in ("84 of 227 tracked statutory items across 19 sites current or due within 30 days",
              "37 overdue", "106 with no certificate on file (placeholder date, not counted as compliant)",
              "franchise sites excluded", "from the Facilities app, as of 2026-09-25",
-             "never an average of the site percentages", "no month variants"):
+             "never an average of the site percentages",
+             "this system records each day's reading",
+             "still INCLUDES grease-trap servicing"):
     check(frag in (r4.get("basis") or ""), f"KR4 basis says: {frag}")
-check(not r4.get("months"), "KR4 carries no month variants (the app has no history table)")
+check(not r4.get("months"), "facilities_block leaves KR4's month variants to main() (Phase 4.1)")
 check("does not match" not in r4["basis"], "KR4: the app's 37 agrees with its own counts (84/227 = 37.0%)")
 _mean = sum(s["kr4_pct"] for s in FEED["sites"]) / len(FEED["sites"])
 check(round(_mean, 1) != 37 and r4["value"] != round(_mean, 1),
@@ -356,7 +358,14 @@ if snap:
           "scorecard OO2 KR4: scores 0 / red on the agreed 'full' band")
     check(k4 and k4["source_kind"] == "facilities_app" and k4["tab"] == "p-maint",
           "scorecard OO2 KR4: from the Facilities app, drills to the Maintenance tab")
-    check(k4 and k4["months"] is None, "scorecard OO2 KR4: no month variants")
+    # Phase 4.1 (Ross, 12/10/2026): a month variant per month from August; on
+    # this 25/09 bake August is closed with no reading (the app was first read
+    # on 25/09) and September is the month so far.
+    check(k4 and [v["m"] for v in k4["months"] or []] == ["2026-08", "2026-09"]
+          and k4["months"][0]["value"] is None
+          and "first read on 25/09/2026" in (k4["months"][0]["not_measured"] or "")
+          and k4["months"][1]["value"] == 37,
+          "scorecard OO2 KR4: August grey (no reading), September is today's reading")
     check(k1s and k1s["value"] is None and k1s["not_measured"] == KR1_WHY, "scorecard OO2 KR1 grey, reason verbatim")
     check(k2s and k2s["value"] is None and k2s["not_measured"].startswith(KR2_WHY)
           and k2s["band_status"] == "proposed", "scorecard OO2 KR2 grey, reason verbatim, band still PROPOSED")
@@ -382,7 +391,10 @@ if snap:
     check([(b["site"], b["repeats"]) for b in fac["kr2"]["by_site"]] == [("Maki 3", 2), ("Maki 9", 1)],
           "KR2 by-site sorted most repeats first")
     check(fac["kr2"]["pairs"] == fresh["kr2_repeat_issues"]["pairs"], "KR2 pairs wired field-for-field")
-    check(not any("acilities" in g for g in snap["gaps"]), "no Facilities gap on a fresh file")
+    check([g for g in snap["gaps"] if "acilities" in g or "grease" in g]
+          == [g for g in snap["gaps"] if g.startswith("OO2 KR4 still counts grease-trap")]
+          and len([g for g in snap["gaps"] if "grease" in g]) == 1,
+          "a fresh file: no Facilities gap but the one naming the missing grease-trap block")
     check("Facilities PPM summary" not in [r["feed"] for r in snap["feed_health"]],
           "the side-channel manifest entry never appears in feed_health")
 

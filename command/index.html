@@ -1891,16 +1891,23 @@ function render(snap){
      only its reason. */
   const facG=(facData&&fac.group)||{};
   const facSites=(facData&&fac.sites)||[];
+  /* Grease traps (Ross, 09/10/2026: out of KR4). The column appears only once
+     the app separates them - for a site or the group - and its Compliant
+     figure is then the builder's, without them. '—' is "not separated". */
+  const facGT=!!facG.grease_traps||facSites.some(r=>r.grease_traps!=null);
   const facSiteRows=facSites.map(r=>[r.code||'—',
     (r.site||'—')+(r.trading_name&&r.trading_name!==r.site?' · '+r.trading_name:'')+(r.franchise?' (franchise, excluded)':''),
-    r.kr4_pct==null?'—':r.kr4_pct+'%',fmtN(r.current),fmtN(r.due30),fmtN(r.overdue),fmtN(r.no_evidence),fmtN(r.oldest_overdue_days)]);
+    r.kr4_pct==null?'—':r.kr4_pct+'%',fmtN(r.current),fmtN(r.due30),fmtN(r.overdue),fmtN(r.no_evidence),fmtN(r.oldest_overdue_days)]
+    .concat(facGT?[fmtN(r.grease_traps)]:[]));
   if(facSiteRows.length&&facG.kr4_pct!=null){
     const t=['Group',(fac.n_sites!=null?fac.n_sites+' sites':'all sites')+' · group total, as scored on the Overview',facG.kr4_pct+'%',
-      fmtN(facG.current),fmtN(facG.due30),fmtN(facG.overdue),fmtN(facG.no_evidence),'—'];
+      fmtN(facG.current),fmtN(facG.due30),fmtN(facG.overdue),fmtN(facG.no_evidence),'—']
+      .concat(facGT?[fmtN(facG.grease_traps&&facG.grease_traps.tasks)]:[]);
     t._tot=1; facSiteRows.push(t);
   }
   table('fac-kr4',[{h:'Code'},{h:'Site'},{h:'Compliant',n:1},{h:'Current',n:1},{h:'Due ≤30d',n:1},
-    {h:'Overdue',n:1},{h:'No evidence',n:1},{h:'Oldest overdue (days)',n:1}],facSiteRows,facEmpty);
+    {h:'Overdue',n:1},{h:'No evidence',n:1},{h:'Oldest overdue (days)',n:1}]
+    .concat(facGT?[{h:'Grease traps (left out)',n:1}]:[]),facSiteRows,facEmpty);
   if(facData) $('fac-kr4').insertAdjacentHTML('beforeend',
     (fac.group_note?'<div class="prov"><b>No group total:</b> '+esc(fac.group_note)+'</div>':'')+
     (facNotes.kr4?'<div class="prov">'+esc(facNotes.kr4)+'</div>':'')+okrLine('KR4')+okrLine('KR1'));
