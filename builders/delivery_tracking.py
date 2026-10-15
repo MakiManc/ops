@@ -19,8 +19,10 @@ WHAT MAKES IT HARD, STATED PLAINLY
     exact link (about 2% of goods-ins). So pairing needs a day window, and the
     window moves the figure: on the one week we hold (orders due 13-19/08),
     same-day pairing finds 39 of 61 (64%), the due date + 2 days 50 (82%). That window is a
-    rule nobody has agreed, so it is PROPOSED here and NO MONTH IS SCORED
-    until Ross confirms it (MATCH_RULE_STATUS).
+    rule, so it was PROPOSED (12/10/2026) and no month was scored until Ross
+    agreed it: "2 day window agreed" (Ross, 15/10/2026). MATCH_RULE_STATUS
+    keeps the gate, so a future change of window is shown, unscored, until
+    it too is agreed.
   * THE REPORT HAS NEVER BEEN SCHEDULED. The only copy is a one-off "[TEST]"
     send covering goods-ins booked 13-20/08; the export skips "[TEST]"
     subjects since 01/09. Any report whose subject holds "Ops Deliveries" is
@@ -48,13 +50,20 @@ DELIVERIES_FEED_RE = re.compile(r"^Kobas Report - .*\bOps Deliveries\b", re.I)
 
 #: An order pairs with a goods-in at the same site from the same supplier,
 #: booked from the day the order was emailed to this many days after its due
-#: date. PROPOSED (12/10/2026), NOT AGREED: it is the narrowest window that
-#: pairs every exact link (11 of 11 orders whose ref was typed on a goods-in)
-#: and agrees with Kobas's own pending list on 57 of 61 orders due 13-19/08.
+#: date. AGREED by Ross on 15/10/2026, verbatim "2 day window agreed"
+#: (proposed 12/10/2026): it is the narrowest window that pairs every exact
+#: link (11 of 11 orders whose ref was typed on a goods-in) and agrees with
+#: Kobas's own pending list on 57 of 61 orders due 13-19/08.
 MATCH_DAYS_AFTER_DUE = 2
-#: "proposed" - figures are shown, never scored; "agreed" once Ross confirms
-#: the window above (it is a rule, and no rule is scored before it is agreed).
-MATCH_RULE_STATUS = "proposed"
+#: "agreed" - months are scored; "proposed" - figures are shown, never scored
+#: (a rule is not scored before Ross agrees it). Set back to "proposed" with
+#: any change of MATCH_DAYS_AFTER_DUE until he agrees the new window.
+MATCH_RULE_STATUS = "agreed"
+#: What was agreed is THE WINDOW, not the flag: {days after due: by whom}. A
+#: window not in here is proposed whatever MATCH_RULE_STATUS says (review,
+#: 15/10/2026), so a back-test or a caller passing another k is never scored
+#: under, or labelled with, an agreement nobody gave.
+MATCH_RULE_AGREED = {2: "Ross, 15/10/2026"}
 
 FIRST_MONTH = "2026-08"
 _MONTHS = ("January", "February", "March", "April", "May", "June", "July",
@@ -319,12 +328,15 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
     rule = (f"paired at the same site from the same supplier, booked between the order email "
             f"and {k} day{'' if k == 1 else 's'} after the due date, one goods-in per order (or "
             "the order ref typed on the goods-in, an exact link)")
+    if status == "agreed" and k not in MATCH_RULE_AGREED:
+        status = "proposed"
     note = (f"Of the supplier orders Kobas emailed a confirmation for, the share with a goods-in "
             f"on Kobas's deliveries report ({', '.join(sorted(feeds))}) - Ross, 12/10/2026. "
             f"Departure is the order email (Kobas records no despatch), receipt the goods-in's "
             f"booking date; {rule}. The report carries no order number, so the day window is "
-            f"what pairs them - and it is {status.upper()}"
-            + (", so no month is scored until Ross agrees it" if status != "agreed" else "")
+            f"what pairs them - "
+            + (f"agreed ({MATCH_RULE_AGREED[k]})" if status == "agreed"
+               else f"{status.upper()}, so no month is scored until Ross agrees it")
             + ". A cancelled order cannot be seen and counts as not received; factory "
             "deliveries send no order email and are outside this measure"
             + (f"; {deleted} goods-in{' is' if deleted == 1 else 's are'} marked Deleted and "
@@ -355,11 +367,15 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                 holed += 1
         # the order side: every day an order due in the month could have been
         # emailed (the day before the 1st to the day before the last day, as
-        # far as the bake's date) must have been read by some pull
-        # (the open month stops at the newest pull: a day after it is not yet
-        # read, which is not "never read")
+        # far as the bake's date) must have been read by some pull. A CLOSED
+        # month is checked to its end, whatever the newest pull: an export that
+        # stopped mid-month leaves the rest of it "never read", so the month is
+        # incomplete until a later pull reads it (review, 15/10/2026 - the cap
+        # at the newest pull hid that once the window was agreed and months
+        # began to score). The open month allows one day of lag only: the
+        # export reads yesterday's emails, and a bake can run before it.
         _ue = min((_d(last) - datetime.timedelta(days=1)).isoformat(),
-                  (_d(newest_pull or asof) - datetime.timedelta(days=1)).isoformat())
+                  (_d(asof) - datetime.timedelta(days=2)).isoformat())
         _us = (_d(m + "-01") - datetime.timedelta(days=lead)).isoformat()
         unread = ([d for d in _days(_us, _ue) if d not in email_days]
                   if email_days is not None and _us <= _ue else [])
@@ -369,10 +385,21 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
             left += (f" Left out: {', '.join(late_sup)} - their order emails begin after "
                      f"{dmy(m + '-01')}, so part of the month's orders were never seen.")
         if unread:
-            left += (f" The order emails of {len(unread)} day(s) were never read "
-                     f"({', '.join(dmy(d)[:5] for d in unread[:6])}"
-                     + (f" and {len(unread) - 6} more" if len(unread) > 6 else "")
-                     + "), so orders due in the month may be missing from it.")
+            # a day after the newest pull's reach is not yet read; one before
+            # it was never read (a backfill can still recover either)
+            _reach = ((_d(newest_pull) - datetime.timedelta(days=1)).isoformat()
+                      if newest_pull else None)
+            never = [d for d in unread if _reach and d <= _reach]
+            notyet = [d for d in unread if not (_reach and d <= _reach)]
+            for days_, what in ((never, "were never read"),
+                                (notyet, "have not been read yet - the newest 'Kobas Orders' "
+                                         f"pull is {dmy(newest_pull)}" if newest_pull
+                                         else "have not been read - no 'Kobas Orders' pull is recorded")):
+                if days_:
+                    left += (f" The order emails of {len(days_)} day(s) {what} "
+                             f"({', '.join(dmy(d)[:5] for d in days_[:6])}"
+                             + (f" and {len(days_) - 6} more" if len(days_) > 6 else "")
+                             + "), so orders due in the month may be missing from it.")
         if waiting:
             left += (f" {waiting} order(s) not judged: their window runs past "
                      + (f"{dmy(through)}, the last day any copy of the report covers." if through
@@ -409,11 +436,15 @@ def kr3_months(orders, goods, covered, pull_month, mvar, score_fn, rag_fn,
                 + f"; {span}." + miss_t)
         disp = f"{val:g}% ({len(recv)} of {len(judged)})"
         complete = not waiting and not holed and not unread
+        _un = set(unread)
         cdays = sum(1 for d in _days(m + "-01", min(last, through or last)) if d in cov)
         if m == pull_month:
-            # a day whose order emails were never read is not a day of data
-            # for the month-to-date rule either (as _cov_holes does)
-            cdays = max(0, cdays - sum(1 for d in unread if d >= m + "-01"))
+            # a day whose order emails were not read is not a day of data for
+            # the month-to-date rule either (as _cov_holes does) - left out of
+            # the count, not subtracted after it, so a day the report never
+            # covered is not taken off twice (round-2 review, 15/10/2026)
+            cdays = sum(1 for d in _days(m + "-01", min(last, through or last))
+                        if d in cov and d not in _un)
             agreed = status == "agreed"
             out.append(mvar(m, value=val,
                             display=(disp if agreed or cdays < mtd_min_days

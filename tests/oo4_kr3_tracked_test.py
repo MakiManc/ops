@@ -154,7 +154,16 @@ orders = [o(f"S{d}", d) for d in SEP] + [o(f"T{d}", d, sup="TWF") for d in SEP[1
 goods_s = [g(f"g{d}", d) for d in SEP[1:]]          # 1 September order never booked in
 cov = list(days("2026-08-25", "2026-10-05"))
 first = {"Brakes": "2026-08-03", "TWF": "2026-09-15"}
+check(T.MATCH_RULE_STATUS == "agreed" and T.MATCH_DAYS_AFTER_DUE == 2,
+      "the 2-day window is AGREED (Ross, 15/10/2026: '2 day window agreed')")
 e, gp = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F])
+sv = next(v for v in e["months"] if v["m"] == "2026-09")
+check(sv["score"] == 100 and sv["rag"] == "green" and "agreed (Ross, 15/10/2026)" in sv["basis"]
+      and not any("not agreed" in x for x in gp),
+      "by default a complete September now SCORES (100 on pct95) and its basis cites the agreement")
+# the gate stays: a window that is only proposed is shown, never scored
+e, gp = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                     status="proposed")
 sv = next(v for v in e["months"] if v["m"] == "2026-09")
 check(sv["value"] == 96.6 and sv["display"].startswith("96.6% (29 of 30)"),
       f"September: 29 of 30 Brakes orders received = 96.6%, cut down (got {sv['display']})")
@@ -237,6 +246,46 @@ e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=
 sv = next(v for v in e["months"] if v["m"] == "2026-09")
 check(sv["score"] is None and "were never read (21/09" in sv["basis"],
       "the export still runs but no order email arrives after 20/09: September is INCOMPLETE, naming 21/09 on")
+# review, 15/10/2026: the export STOPS for good on 20/09 (its last pull reads
+# to 19/09) while the deliveries report keeps coming. A closed month is
+# checked to its end, not to the newest pull - so September is incomplete,
+# never scored, and says the rest is "not read yet", naming the newest pull.
+stopped = [span(p_) for p_ in days("2026-08-20", "2026-09-20")]
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=stopped, asof="2026-10-06")
+sv = next(v for v in e["months"] if v["m"] == "2026-09")
+check(sv["score"] is None and sv["incomplete"]
+      and "have not been read yet - the newest 'Kobas Orders' pull is 20/09/2026 (20/09" in sv["basis"],
+      f"the order export stopped on 20/09: September is INCOMPLETE, not scored on half its orders (got {sv.get('display')})")
+# ...and the open month: a bake on 06/10 whose newest order pull is 04/10
+# (one day of lag is allowed, two are not)
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=pulls_all[:-1], asof="2026-10-06")
+check("not been read yet" not in next(v for v in e["months"] if v["m"] == "2026-10")["basis"],
+      "open month, newest order pull yesterday: no unread day (one day of lag)")
+e, _ = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F],
+                    status="agreed", order_pulls=pulls_all[:-2], asof="2026-10-06")
+check("have not been read yet - the newest 'Kobas Orders' pull is 04/10/2026 (04/10)"
+      in next(v for v in e["months"] if v["m"] == "2026-10")["basis"],
+      "open month, newest order pull two days ago: 04/10's emails are named as not read yet")
+# round 2: both feeds stop on the same day (one workflow pulls both). The open
+# month's days of data leave the unread days out; a day the report never
+# covered is not taken off twice.
+OCT2 = list(days("2026-10-01", "2026-10-12"))
+both = [span(p_) for p_ in days("2026-09-20", "2026-10-08")]
+e, _ = T.kr3_months([o(f"Q{d}", d) for d in OCT2], [g(f"q{d}", d) for d in OCT2 if d <= "2026-10-07"],
+                    list(days("2026-09-25", "2026-10-07")), "2026-10", mvar, score, rag, first_dd=first,
+                    feeds=[F], status="agreed", order_pulls=both, asof="2026-10-12")
+ov = next(v for v in e["months"] if v["m"] == "2026-10")
+check(ov["coverage_days"] == 7,
+      f"open month, both feeds stopped after 07/10: 7 days of data (01-07/10), not fewer (got {ov['coverage_days']})")
+# review, 15/10/2026: the agreement is the 2-day WINDOW, not the flag - any
+# other window is proposed, unscored, and raises the gap
+e, gk = T.kr3_months(orders, goods_s, cov, "2026-10", mvar, score, rag, first_dd=first, feeds=[F], k=3)
+sv = next(v for v in e["months"] if v["m"] == "2026-09")
+check(T.MATCH_RULE_AGREED == {2: "Ross, 15/10/2026"} and sv["score"] is None
+      and "PROPOSED" in sv["basis"] and any("(due date + 3 days) is proposed" in x for x in gk),
+      "a 3-day window with the default status: proposed - unscored, labelled so, and a gap")
 # the order side starts the longest lead before the 1st
 lead_orders = orders + [o("LEAD", "2026-09-10", em="2026-08-30")]
 gap_before = [span(p_) for p_ in days("2026-08-01", "2026-10-06") if not ("2026-08-20" <= p_ <= "2026-09-12")]
@@ -285,7 +334,8 @@ check(any("no copy of the Kobas deliveries report covers a whole day" in x for x
       and "rolling window of at least 7 days" in next(v for v in e["months"] if v["m"] == "2026-09")["not_measured"],
       "a report that covers no whole day (e.g. a one-day window): the row and the gap say what is needed")
 e, _ = T.kr3_months([o(f"O{d}", d) for d in OCT], [g(f"h{d}", d) for d in OCT], list(days("2026-09-25", "2026-10-12")),
-                    "2026-10", mvar, score, rag, first_dd=first, feeds=[F], asof="2026-10-13")
+                    "2026-10", mvar, score, rag, first_dd=first, feeds=[F], asof="2026-10-13",
+                    status="proposed")
 ov = next(v for v in e["months"] if v["m"] == "2026-10")
 check(ov["display"].endswith("- not scored") and ov["score"] is None,
       "the open month under a proposed window also reads '- not scored'")
@@ -357,8 +407,9 @@ if p.returncode == 0:
     check(oc.get("value") == 95.1 and (oc.get("display") or "").startswith("95.1% (59 of 62)"),
           f"OO4 KR3 October: 59 of 62 orders have a goods-in (3 never booked; the one booked a week "
           f"late pairs by the ref typed on it) (got {oc.get('display')})")
-    check(oc.get("score") is None and oc.get("incomplete") and "proposed, not agreed" in (oc.get("basis") or ""),
-          "...shown but not scored: the window is proposed")
+    check(oc.get("score") == 100 and oc.get("rag") == "green" and not oc.get("incomplete")
+          and "agreed (Ross, 15/10/2026)" in (oc.get("basis") or ""),
+          "...and SCORED 100 on pct95 now the window is agreed (every order judged, every email day read)")
     check("(1 by the order ref typed on the goods-in)" in (oc.get("basis") or "")
           and "LWC London 2" in oc["basis"] and "LWC Doncaster 1" in oc["basis"]
           and "1 goods-in is marked Deleted" in oc["basis"],
@@ -371,9 +422,14 @@ if p.returncode == 0:
     check(nv.get("mtd") and nv.get("score") is None, "November: month to date, unscored")
     oo4 = next(x for x in snap["scorecard"]["objectives"] if x["objective"] == "OO4")
     oct4 = next(x for x in oo4["months"] if x["m"] == "2026-10")
-    check(all(r_["score"] is None for r_ in snap["scorecard"]["rows"]
-              if (r_["objective"], r_["kr"]) == ("OO4", "KR3")) and oct4["scored"] <= 4,
-          "an unscored KR3 never enters OO4's roll-up")
+    _k3_oct = [v.get("score") for r_ in snap["scorecard"]["rows"] if (r_["objective"], r_["kr"]) == ("OO4", "KR3")
+               for v in r_["months"] if v["m"] == "2026-10"]
+    _oct_scores = [v.get("score") for r_ in snap["scorecard"]["rows"] if r_["objective"] == "OO4"
+                   for v in (r_["months"] or []) if v["m"] == "2026-10" and v.get("score") is not None]
+    check(_k3_oct == [100] and oct4["scored"] == len(_oct_scores)
+          and oct4["pct"] == round(sum(_oct_scores) / len(_oct_scores), 1),
+          f"OO4 October rolls KR3's 100 in with its other scored KRs (got {oct4})")
+    check(row["score"] is None and row["mtd"], "the row's default month (November, 4 days in) stays MTD")
 
     print("\n-- the verifier's recompute (check 4b) --")
     import verify_ops_data as vod

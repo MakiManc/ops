@@ -115,11 +115,157 @@ _mean = sum(s["kr4_pct"] for s in FEED["sites"]) / len(FEED["sites"])
 check(round(_mean, 1) != 37 and r4["value"] != round(_mean, 1),
       f"KR4 is NOT the mean of site percentages ({_mean:.1f})")
 check(r1 == {"not_measured": KR1_WHY}, "KR1 grey with the exact 'no completion logged yet' reason")
-check("value" not in r2 and (r2.get("not_measured") or "").startswith(KR2_WHY),
-      "KR2 grey with the exact baseline reason")
-for frag in (FEED["kr2_repeat_issues"]["rule"], "2 chaser reports merged",
-             "zero-filled, not measured, and are never used as a baseline"):
-    check(frag in r2["not_measured"], f"KR2 reason carries: {frag[:60]}")
+# Ross, 15/10/2026: "if there is 0 repeat maintenance issues then it flags as
+# green 100%" - September has 0 repeats in the app, so KR2 is no longer grey:
+# its month is a fixed 100 (no baseline needed), held as a count.
+check(r2.get("value") == 0 and r2.get("display") == "0 repeats (19 sites)",
+      f"KR2: September's 0 repeats is a figure now (got {r2.get('display')!r})")
+check([(v["m"], v.get("score_fixed"), v.get("count_can_only_rise")) for v in r2.get("months") or []]
+      == [("2026-09", 100, True)],
+      "KR2's one logged month carries a fixed 100 and the count rule (zero-filled Apr-Aug are never months)")
+for frag in ("a month with 0 repeat issues scores 100, green (Ross, 15/10/2026)",
+             FEED["kr2_repeat_issues"]["rule"], "2 chaser reports merged",
+             "a month in which nothing was logged in the app also reads 0"):
+    check(frag in r2["basis"], f"KR2 basis carries: {frag[:60]}")
+fr = copy.deepcopy(FEED)
+fr["kr2_repeat_issues"]["months"][-1].update(repeats=2, per_site=0.1)
+r2r = block(fr)["rows"][KR2]
+check("value" not in r2r and r2r["not_measured"].startswith("2 repeat(s) across 19 sites in Sep 2026: a month WITH repeats")
+      and KR2_WHY in r2r["not_measured"],
+      "a month WITH repeats still needs the Jun-Aug baseline: grey, with the exact baseline reason")
+fx = copy.deepcopy(FEED)
+fx["kr2_repeat_issues"]["months"][-1].update(repeats=0, per_site=0.2)
+check("disagree" in (block(fx)["rows"][KR2].get("not_measured") or ""),
+      "0 repeats but a non-zero per-site figure: grey, never green")
+fp = copy.deepcopy(FEED)
+fp["kr2_repeat_issues"]["pairs"] = [{"site": "Maki 3", "asset": "Fryer 2", "first": "2026-09-02",
+                                     "fix_date": "2026-09-04", "second": "2026-09-20", "days": 18}]
+r2p = block(fp)["rows"][KR2]
+check("value" not in r2p and "its pairs list has 1 repeat re-reported in Sep 2026" in (r2p.get("not_measured") or ""),
+      "0 repeats but the app's own pairs list has one re-reported in that month: grey, never green")
+fp["kr2_repeat_issues"]["pairs"][0].update(first="2026-07-20", fix_date="2026-07-22", second="2026-08-05")
+check(block(fp)["rows"][KR2].get("value") == 0,
+      "a pair re-reported in another month does not touch September's 0")
+fp["kr2_repeat_issues"]["pairs"] = [{"second": None}, {"second": ""}, "x"]
+check(block(fp)["rows"][KR2].get("value") == 0,
+      "a pair with no re-report date, or an entry that is not a pair, proves nothing either way")
+fp["kr2_repeat_issues"]["pairs"] = [{"second": "20/09/2026"}]
+r2b = block(fp)["rows"][KR2]
+check("value" not in r2b and "1 entry in its pairs list carries a re-report date that is not a date"
+      in (r2b.get("not_measured") or ""),
+      "a re-report date in another format FAILS CLOSED: grey, never a green that cannot be checked")
+# review, 15/10/2026: more ways a 0 can be a blank, each grey and named
+for name, upd, frag in (
+        ("0 sites", dict(sites=0, per_site=None), "not a whole number of repeats over at least one site"),
+        ("negative sites", dict(sites=-3), "not a whole number of repeats over at least one site"),
+        ("fractional sites", dict(sites=0.5), "not a whole number of repeats over at least one site"),
+        ("a per-site figure that is not a number", dict(per_site="0.3"), "a per-site figure that is not a number")):
+    fz = copy.deepcopy(FEED)
+    fz["kr2_repeat_issues"]["months"][-1].update(repeats=0, **upd)
+    rz = block(fz)["rows"][KR2]
+    check("value" not in rz and frag in (rz.get("not_measured") or ""),
+          f"0 repeats with {name}: grey ({frag})")
+fd = copy.deepcopy(FEED)
+fd["kr2_repeat_issues"]["months"].append(dict(fd["kr2_repeat_issues"]["months"][-1], repeats=4, per_site=0.21))
+rd = block(fd)["rows"][KR2]
+check("value" not in rd and "lists Sep 2026 2 times with different counts" in (rd.get("not_measured") or "")
+      and len([v for v in rd["months"] if v["m"] == "2026-09"]) == 1,
+      "September listed twice with different counts: one grey month, never the first copy's 100")
+fd["kr2_repeat_issues"]["months"][-1] = dict(fd["kr2_repeat_issues"]["months"][-2])
+rd = block(fd)["rows"][KR2]
+check(rd.get("value") == 0 and len(rd["months"]) == 1, "...listed twice identically: one month, scored")
+fb_ = copy.deepcopy(FEED)
+fb_["kr2_repeat_issues"]["by_site"] = [{"site": "Maki 3", "repeats": 2}, {"site": "Maki 9", "repeats": 1}]
+rb_ = block(fb_)["rows"][KR2]
+check("value" not in rb_ and "its by-site tally counts 3 repeat(s)" in (rb_.get("not_measured") or ""),
+      "every logged month 0 while the by-site tally counts 3: grey, the two disagree")
+# round 2 (15/10/2026)
+fo = copy.deepcopy(FEED)
+fo["kr2_repeat_issues"]["months"].append({"month": "2026-10 ", "repeats": 0, "sites": 19, "per_site": 0})
+ro = block(fo)
+check(ro["rows"][KR1] == block()["rows"][KR1] and ro["rows"][KR2].get("value") == 0
+      and "1 month key(s) that are not YYYY-MM ('2026-10 ')" in (ro["rows"][KR2].get("basis") or ""),
+      "a month key that is not YYYY-MM is named and not read - it no longer greys KR1, KR4 and the tab")
+fo = copy.deepcopy(FEED)
+fo["kr2_repeat_issues"]["rule"] = "second fault report within 99999999 days"
+check(block(fo)["rows"][KR2].get("value") == 0, "a rule naming a vast number of days does not overflow")
+fo = copy.deepcopy(FEED)
+fo["kr2_repeat_issues"]["by_site"] = [{"site": "Maki 3", "repeats": 3}]
+fo["kr2_repeat_issues"]["months"].append({"month": "2026-10", "repeats": 1, "sites": 19, "per_site": 0.05})
+fo.update(as_of="2026-10-15", pulled_at="2026-10-15T07:00:00Z")
+ro = block(fo, today=datetime.date(2026, 10, 15))["rows"][KR2]
+s9 = next(v for v in ro["months"] if v["m"] == "2026-09")
+check(s9.get("value") is None and "by-site tally counts 3 repeat(s) against 1 in the logged months" in s9["not_measured"],
+      "a by-site tally above the logged months' total (from the log's start): a 0 month is grey")
+fo["kr2_repeat_issues"]["by_site"] = [{"site": "Maki 3", "repeats": "3"}]
+fo["kr2_repeat_issues"]["by_site"] = [{"site": "Maki 3", "repeats": "three"}]
+fo["kr2_repeat_issues"]["months"][-1].update(repeats=0, per_site=0.0)
+s9 = next(v for v in block(fo, today=datetime.date(2026, 10, 15))["rows"][KR2]["months"] if v["m"] == "2026-09")
+check(s9.get("value") is None and "a repeat count that is not a number" in s9["not_measured"],
+      "a by-site count that is not a number fails closed")
+fo = copy.deepcopy(FEED)
+fo["kr2_repeat_issues"]["months"].append(dict(fo["kr2_repeat_issues"]["months"][-1], label="September 2026"))
+ro = block(fo)["rows"][KR2]
+check(ro.get("value") == 0 and len(ro["months"]) == 1,
+      "September listed twice with the same counts but different labels is ONE month (counts compared, as stored)")
+for bad_as_of in ("2026-13-01", "2026-10-99"):
+    fo = copy.deepcopy(FEED)
+    fo["kr2_repeat_issues"]["months"].append({"month": "2026-10", "repeats": 0, "sites": 19, "per_site": 0.0})
+    fo.update(as_of=bad_as_of, pulled_at="2026-10-01T07:00:00Z")
+    s9 = next(v for v in block(fo, today=datetime.date(2026, 10, 2))["rows"][KR2]["months"] if v["m"] == "2026-09")
+    check(s9.get("value") is None and "is not a date" in (s9.get("not_measured") or ""),
+          f"an as_of that only looks like a date ({bad_as_of}) is not a reading date - grey")
+# fix 10: with a baseline, a month WITH repeats is a count too - never green before it closes
+fb2 = copy.deepcopy(FEED)
+for m_, ps_ in (("2026-06", 0.5), ("2026-07", 0.4), ("2026-08", 0.6)):
+    next(x for x in fb2["kr2_repeat_issues"]["months"] if x["month"] == m_).update(
+        per_site=ps_, repeats=round(ps_ * 19), sites=19)
+fb2["kr2_repeat_issues"]["months"][-1].update(repeats=6, per_site=0.3)
+rb2 = bake.facilities_block(copy.deepcopy(fb2), None, TODAY, fault_log_start="2026-06")["rows"][KR2]
+v9 = next(v for v in rb2["months"] if v["m"] == "2026-09")
+check(v9["value"] == -40.0 and v9.get("count_can_only_rise") is True,
+      f"with a Jun-Aug baseline, September's 0.3/site is -40% and a count (got {v9.get('value')})")
+g9 = bake.okr_mtd_variant({**v9, "score": bake.okr_score("repeat", v9["value"])}, "repeat", "2026-09", 25)
+check(g9["score"] is None and g9["mtd"] is True,
+      "...so on 25/09 it is MTD, not an early green - though 25 days of data would score a rate")
+g9 = bake.okr_mtd_variant({**v9, "value": 10.0, "score": bake.okr_score("repeat", 10.0)}, "repeat", "2026-09", 25)
+check(g9["score"] == 0 and "ALREADY BREACHED" in g9["basis"],
+      "...and a month already above the baseline scores 0 at once (a count can only rise)")
+zv = next(v for v in r2["months"] if v["m"] == "2026-09")
+check(zv["score_rule"] == "repeat.0" and zv["band_status"] == "agreed"
+      and bake.OKR_BAND_RULES["repeat"][0]["score"] == zv["score_fixed"] == 100
+      and bake.OKR_BAND_RULES["repeat"][0]["by"] == "Ross, 15/10/2026",
+      "the zero month's 100 comes from OKR_BAND_RULES, published beside the bands, and the month says so")
+check("The fault log starts in Sep 2026 and the rule looks back 60 days, so in Sep 2026 a re-report"
+      in zv["basis"],
+      "the log's first months say their 0 cannot include repeats of faults from before the log")
+check(r2.get("source_kind") == "facilities_app" and rb_.get("source_kind") == "facilities_app",
+      "a KR2 row is 'from the Facilities app' whether its newest month is scored or grey (it read 'computed')")
+# A month is final only from a reading taken after it ended: a copy up to 3
+# days old is still quoted, so on 02/10 the newest can be 30/09's, whose
+# September misses the 30th - a short month, never scored.
+fe = copy.deepcopy(FEED)
+fe["kr2_repeat_issues"]["months"].append({"label": "Oct 2026", "month": "2026-10", "per_site": 0.0,
+                                          "repeats": 0, "sites": 19})
+for as_of_, pulled_, want in (("2026-09-30", "2026-09-30T18:00:00Z", None),
+                              ("2026-10-01", "2026-10-01T07:00:00Z", 100),
+                              ("30 Sep", "2026-09-30T18:00:00Z", "nodate"),
+                              ("30 Sep", "2026-10-01T07:00:00Z", "nodate")):
+    fe.update(as_of=as_of_, pulled_at=pulled_, generated_at=pulled_)
+    sep = next((v for v in block(fe, today=datetime.date(2026, 10, 2))["rows"][KR2].get("months") or []
+                if v["m"] == "2026-09"), {})
+    if want is None:
+        check(sep.get("value") is None and "is not final" in (sep.get("not_measured") or "")
+              and "30/09/2026" in sep["not_measured"],
+              f"02/10, newest copy as of {as_of_} (pulled {pulled_[:10]}): September is not final - grey, naming the reading")
+    elif want == "nodate":
+        # the event date is the app's as_of - never the pull date (review, 15/10/2026)
+        check(sep.get("value") is None and "is not a date, so it cannot be shown to be read after"
+              in (sep.get("not_measured") or ""),
+              f"02/10, as_of {as_of_!r} (pulled {pulled_[:10]}): not a date - grey, never final on the pull date")
+    else:
+        check(sep.get("score_fixed") == want,
+              f"02/10, newest copy as of {as_of_} (pulled {pulled_[:10]}): September is final, 100")
 
 tab = b["tab"]
 pcts = [s["kr4_pct"] for s in tab["sites"]]
@@ -189,6 +335,7 @@ check("pulled_at" in block(nop)["rows"][KR4]["not_measured"], "no pulled_at: age
 f2 = copy.deepcopy(FEED)
 for m in f2["kr2_repeat_issues"]["months"]:
     m["per_site"] = {"2026-06": 0.5, "2026-07": 0.4, "2026-08": 0.6, "2026-09": 0.3}.get(m["month"], 0.0)
+    m["sites"], m["repeats"] = 10, round(m["per_site"] * 10)
 check("value" not in block(f2)["rows"][KR2],
       "Jun-Aug with non-zero rows but BEFORE the log start: still grey, never a baseline")
 m2 = block(f2, fault_log_start="2026-06")["rows"][KR2]
@@ -200,8 +347,13 @@ for frag in ("Jun–Aug 2026 baseline mean of 0.50 per site", "Rule '", "2 chase
              "app's own fault log"):
     check(frag in (m2.get("basis") or ""), f"KR2 measured basis: {frag}")
 z = block(fault_log_start="2026-04")["rows"][KR2]
-check("value" not in z and "undefined" in z["not_measured"],
-      "a genuine 0.0 baseline: grey ('change against zero is undefined'), never a number")
+check(z.get("value") == 0 and [v.get("score_fixed") for v in z["months"]] == [100],
+      "a genuine 0.0 baseline with 0 repeats in September: still 100 - a 0-repeat month needs no baseline (Ross, 15/10/2026)")
+fz = copy.deepcopy(FEED)
+fz["kr2_repeat_issues"]["months"][-1].update(repeats=3, per_site=0.16)
+z2 = block(fz, fault_log_start="2026-04")["rows"][KR2]
+check("value" not in z2 and "undefined" in z2["not_measured"],
+      "a 0.0 baseline and a month WITH repeats: grey ('change against zero is undefined'), never a number")
 
 # ---- 4. KR1 / KR4 edge cases -----------------------------------------------
 f1 = copy.deepcopy(FEED)
@@ -367,8 +519,13 @@ if snap:
           and k4["months"][1]["value"] == 37,
           "scorecard OO2 KR4: August grey (no reading), September is today's reading")
     check(k1s and k1s["value"] is None and k1s["not_measured"] == KR1_WHY, "scorecard OO2 KR1 grey, reason verbatim")
-    check(k2s and k2s["value"] is None and k2s["not_measured"].startswith(KR2_WHY)
-          and k2s["band_status"] == "proposed", "scorecard OO2 KR2 grey, reason verbatim, band still PROPOSED")
+    # This fixture's pairs list has a repeat re-reported on 20/09 while the
+    # app counts September as 0: a contradiction, so grey, never a 0 (the
+    # MTD zero itself is tested end to end in facilities_months_test.py).
+    check(k2s and k2s["value"] is None and k2s["score"] is None
+          and "its pairs list has 1 repeat re-reported in Sep 2026" in (k2s["not_measured"] or "")
+          and k2s["band_status"] == "proposed",
+          "scorecard OO2 KR2 on 25/09: 0 repeats against a September pair is grey, naming both")
     # Phase 1 (10/10/2026): KR3 is read from the Operations Input sheet and
     # KR5 from the Maintenance Contact List. This fixture carries neither
     # file, so both stay grey naming that - and the Facilities feed does not

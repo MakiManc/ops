@@ -100,9 +100,14 @@ n = bake.record_facilities_readings(d1, [(f31, "facilities_ppm.json"), (None, "f
                                     None, "2026-10-31")
 check(n == 1 and len(lines(H)) == 1, "a live bake records its usable copy once; an absent pushed copy adds nothing")
 rec = lines(H)[0]
-check(set(rec) == {"as_of", "pulled_at", "pulled_by", "copy", "generated_at", "group", "grease_traps"}
+check(set(rec) == {"as_of", "pulled_at", "pulled_by", "copy", "generated_at", "group", "grease_traps", "kr2"}
       and set(rec["group"]) == set(bake.FACILITIES_GROUP_COUNTS) | {"kr4_pct", "kr1_pct", "kr1_n", "kr1_ok"},
-      "the line holds group counts and KR1's fields only - no site, company or contractor names")
+      "the line holds group counts, KR1's fields and KR2's counts only - no site, company or contractor names")
+check(rec["kr2"] is None or (set(rec["kr2"]) == {"rule", "chasers", "months", "pairs", "by_site"}
+      and all(set(m) == {"month", "repeats", "sites", "per_site"} for m in rec["kr2"]["months"])
+      and all(set(p) == {"second"} for p in rec["kr2"]["pairs"])
+      and all(set(b) == {"repeats"} for b in rec["kr2"]["by_site"])),
+      "KR2's stored counts: months, re-report dates and by-site repeat counts - never a site or asset name")
 check(not any(k in json.dumps(rec) for k in ("Ikigai", "Ltd", "IDES", "contractor")),
       "nothing from the site or contractor rows reaches the public history")
 n = bake.record_facilities_readings(d1, [(f31, "facilities_ppm.json")], None, "2026-10-31")
@@ -339,6 +344,132 @@ o = bake.facilities_month_figure("KR4", bake.facilities_reading(gm, "facilities_
 check(o.get("value") is None and "grease_traps" in o["not_measured"],
       "a stored reading with an unusable block: that month is grey, naming the field")
 
+# ---- 3b. OO2 KR2's closed months from the history (review, 15/10/2026) -----
+# The app sends a rolling six months, and a stale or back-dated copy is not
+# quoted at all: either would make a published closed month disappear. A
+# stored reading keeps KR2's counts, and a month the row lacks comes from the
+# newest reading that lists it, judged as of THAT reading's as_of.
+h1 = feed_at("2026-10-01", "2026-10-01T07:00:00Z")
+h1["kr2_repeat_issues"]["months"].append(
+    {"label": "Oct 2026", "month": "2026-10", "per_site": 0.0, "repeats": 0, "sites": 19})
+r1 = bake.facilities_reading(h1, "facilities_ppm.json")
+check(any(m["month"] == "2026-09" and m["repeats"] == 0 and m["sites"] == 19 for m in r1["kr2"]["months"]),
+      "a stored reading keeps KR2's months (counts only)")
+grey = {"not_measured": "the feed is stale"}
+got = bake.facilities_kr2_months(grey, {"2026-10-01": r1}, datetime.date(2026, 10, 6))
+gm_ = {v["m"]: v for v in got.get("months") or []}
+check(gm_.get("2026-09", {}).get("score_fixed") == 100 and "stored on 01/10/2026" in gm_["2026-09"]["basis"]
+      and gm_.get("2026-10") == {"m": "2026-10", "not_measured": "the feed is stale"}
+      and got["not_measured"] == "the feed is stale" and got["source_kind"] == "facilities_app",
+      "a stale copy: September's 100 comes from the 01/10 reading, saying so; October (open) is never "
+      "from history and keeps the row's own blocker - no invented month-to-date line (round 2)")
+live = {"value": 0, "display": "x", "basis": "b", "source_kind": "facilities_app",
+        "months": [{"m": "2026-09", "not_measured": "live says grey"}]}
+got = bake.facilities_kr2_months(live, {"2026-10-01": r1}, datetime.date(2026, 10, 6))
+check([v.get("not_measured") for v in got["months"]] == ["live says grey"],
+      "a month today's copy lists is today's copy's answer - the history never overrides it")
+r30 = bake.facilities_reading(feed_at("2026-09-30", "2026-09-30T18:00:00Z"), "facilities_ppm.json")
+got = bake.facilities_kr2_months(grey, {"2026-09-30": r30}, datetime.date(2026, 10, 6))
+check("is not final" in ({v["m"]: v for v in got["months"]}["2026-09"].get("not_measured") or ""),
+      "a stored reading from inside the month: that month is not final there either")
+got = bake.facilities_kr2_months(grey, {"2026-09-30": r30, "2026-10-01": r1}, datetime.date(2026, 10, 6))
+check({v["m"]: v for v in got["months"]}["2026-09"].get("score_fixed") == 100,
+      "...the NEWEST reading listing the month decides it")
+# round 2: the NEWEST reading of a closed month wins - the quoted copy is one
+# reading among the stored ones (a back-bake can quote an older copy)
+r31 = bake.facilities_reading(feed_at("2026-10-31", "2026-10-31T18:00:00Z"), "facilities_ppm.json")
+r02 = bake.facilities_reading(feed_at("2026-11-02", "2026-11-02T07:00:00Z"), "facilities_ppm.json")
+for r_ in (r31, r02):
+    r_["kr2"]["months"].append({"month": "2026-10", "repeats": 0, "sites": 19, "per_site": 0.0})
+live_old = bake.fac_kr2_row({**r31["kr2"]}, "2026-10-31", datetime.date(2026, 10, 31), datetime.date(2026, 11, 3))
+o_live = {v["m"]: v for v in live_old["months"]}["2026-10"]
+check("is not final" in (o_live.get("not_measured") or ""), "(the 31/10 copy cannot finalise October)")
+got = bake.facilities_kr2_months(live_old, {"2026-10-31": r31, "2026-11-02": r02}, datetime.date(2026, 11, 3),
+                                 live_as_of="2026-10-31")
+o_ = {v["m"]: v for v in got["months"]}["2026-10"]
+check(o_.get("score_fixed") == 100 and "stored on 02/11/2026" in o_["basis"],
+      "an older quoted copy (as of 31/10) is outranked by a newer stored reading (02/11): October scores 100")
+got = bake.facilities_kr2_months(live_old, {"2026-10-31": r31}, datetime.date(2026, 11, 3), live_as_of="2026-10-31")
+check({v["m"]: v for v in got["months"]}["2026-10"] == o_live,
+      "...while a stored reading no newer than the quoted copy changes nothing")
+bad_line = dict(r1, kr2={"months": "not a list", "pairs": 3})
+got = bake.facilities_kr2_months(grey, {"2026-10-01": r1, "2026-10-02": bad_line}, datetime.date(2026, 10, 6))
+check({v["m"]: v for v in got["months"]}["2026-09"].get("score_fixed") == 100,
+      "a stored line that cannot be judged is skipped, never fatal - the next one still answers")
+# round 2: the stored KR2 block never carries a name, even when the app sends them
+fn = feed_at("2026-10-01", "2026-10-01T07:00:00Z")
+fn["kr2_repeat_issues"]["pairs"] = [{"site": "Maki 3", "asset": "Fryer 2", "first": "2026-09-02",
+                                     "fix_date": "2026-09-04", "second": "2026-09-20", "days": 18,
+                                     "note": "J. Smith reported"},
+                                    {"second": "re-reported by J. Smith"}]
+fn["kr2_repeat_issues"]["by_site"] = [{"site": "Maki 3", "repeats": 2}, {"site": "Maki 9", "repeats": "two"}]
+fn["kr2_repeat_issues"]["months"][-1]["repeats"] = "Fryer at Maki 3"
+rn = bake.facilities_reading(fn, "facilities_ppm.json")["kr2"]
+check(rn["pairs"] == [{"second": "2026-09-20"}, {"second": "invalid"}]
+      and rn["by_site"] == [{"repeats": 2}, {"repeats": "invalid"}]
+      and rn["months"][-1]["repeats"] == "invalid"
+      and not any(x in json.dumps(rn) for x in ("Maki", "Fryer", "Smith")),
+      "the public history keeps counts and dates only - a name the app put anywhere is never stored")
+old_line = {k: v for k, v in r1.items() if k != "kr2"}
+check(bake.facilities_kr2_months(grey, {"2026-10-01": old_line}, datetime.date(2026, 10, 6)) == grey,
+      "a line written before KR2 was stored adds nothing")
+
+
+def bake_at(name, date, feed, seed=()):
+    """The real builder, --date `date`, over `feed` and a seeded history."""
+    o_ = os.path.join(tmpd, name)
+    a_ = os.path.join(o_, "arch", date)
+    os.makedirs(a_)
+    with gzip.open(os.path.join(a_, "Dummy.jsonl.gz"), "wt") as fh_:
+        fh_.write(json.dumps({"row_num": 0, "data": {"x": 1}}) + "\n")
+    shutil.copy(MANIFEST, o_)
+    with open(os.path.join(o_, "facilities_ppm.json"), "w", encoding="utf-8") as fh_:
+        json.dump(feed, fh_)
+    if seed:
+        with open(os.path.join(o_, bake.FACILITIES_READINGS_FILE), "w", encoding="utf-8") as fh_:
+            for r_ in seed:
+                fh_.write(json.dumps(r_, sort_keys=True) + "\n")
+    env_ = dict(os.environ, OPS_WAREHOUSE_SOURCE="archive", OPS_ARCHIVE_DIR=os.path.join(o_, "arch"),
+                OPS_OUT_DIR=o_)
+    p_ = subprocess.run([sys.executable, BAKE, "--date", date], env=env_, capture_output=True, text=True)
+    if p_.returncode != 0:
+        print(p_.stdout[-2000:], p_.stderr[-2000:])
+        return None
+    with open(os.path.join(o_, f"snapshot_{date}.json"), encoding="utf-8") as fh_:
+        return json.load(fh_)
+
+
+def kr2_and_oo2(snap_, m):
+    r_ = next(r for r in snap_["scorecard"]["rows"] if r["objective"] == "OO2" and r["kr"] == "KR2")
+    v_ = next((v for v in r_["months"] or [] if v["m"] == m), {})
+    o_ = next(o for o in snap_["scorecard"]["objectives"] if o["objective"] == "OO2")
+    return r_, v_, next((x for x in o_["months"] if x["m"] == m), {})
+
+
+# the guards end to end, through main()'s scoring and the roll-up
+sn = bake_at("notfinal", "2026-10-02", feed_at("2026-09-30", "2026-09-30T18:00:00Z"))
+if sn:
+    r_, v_, o_ = kr2_and_oo2(sn, "2026-09")
+    check(v_.get("value") is None and v_.get("score") is None and "is not final" in (v_.get("not_measured") or "")
+          and o_.get("scored") == 0 and o_.get("pct") is None and r_["source_kind"] == "facilities_app",
+          f"real builder 02/10, newest copy as of 30/09: KR2 September grey, OO2 September 0 scored (got {o_})")
+fdis = feed_at("2026-10-01", "2026-10-01T07:00:00Z")
+fdis["kr2_repeat_issues"]["months"][-1].update(repeats=0, per_site=0.2)
+sn = bake_at("disagree", "2026-10-02", fdis)
+if sn:
+    r_, v_, o_ = kr2_and_oo2(sn, "2026-09")
+    check(v_.get("score") is None and "the two disagree" in (v_.get("not_measured") or "") and o_.get("scored") == 0,
+          "real builder: 0 repeats against 0.2 per site - grey, and OO2 September counts nothing")
+# a back-bake whose copy on disk was pulled after its date: the copy is not
+# quoted, and September comes from the reading stored on 01/10
+sn = bake_at("histback", "2026-10-02", feed_at("2026-10-15", "2026-10-15T07:00:00Z"), seed=[r1])
+if sn:
+    r_, v_, o_ = kr2_and_oo2(sn, "2026-09")
+    check(v_.get("score") == 100 and v_.get("rag") == "green" and "stored on 01/10/2026" in (v_.get("basis") or "")
+          and o_.get("scored") == 1 and o_.get("pct") == 100.0 and r_.get("value") is None,
+          f"real builder back-bake 02/10 over a copy pulled 15/10: September's 100 from the 01/10 reading, "
+          f"OO2 September 100% (got {v_.get('score')}, {o_})")
+
 # ---- 4. the real builder, dated 02/11/2026 over a seeded history -------------
 out = os.path.join(tmpd, "bake")
 arch = os.path.join(out, "arch", "2026-11-02")
@@ -348,6 +479,11 @@ with gzip.open(os.path.join(arch, "Dummy.jsonl.gz"), "wt") as fh:
 shutil.copy(MANIFEST, out)
 cur = feed_at("2026-11-02", "2026-11-02T07:00:00Z", tasks=208, current=190, due30=10,
               overdue=8, no_evidence=0, kr4_pct=96, kr1_pct=95, kr1_n=20, kr1_ok=19)
+# OO2 KR2 (Ross, 15/10/2026: 0 repeat issues is green 100%): September 0,
+# October 2 repeats (no Jun-Aug baseline exists), November 0 so far
+cur["kr2_repeat_issues"]["months"] += [
+    {"label": "Oct 2026", "month": "2026-10", "per_site": 0.1, "repeats": 2, "sites": 19},
+    {"label": "Nov 2026", "month": "2026-11", "per_site": 0.0, "repeats": 0, "sites": 19}]
 with open(os.path.join(out, "facilities_ppm.json"), "w", encoding="utf-8") as fh:
     json.dump(cur, fh)
 seed = [bake.facilities_reading(f31, "facilities_ppm.json"),
@@ -383,6 +519,19 @@ else:
     check(oct_["scored"] == 2 and oct_["pct"] == 65.0,
           f"OO2 October rolls up KR1 80 and KR4 50: 65.0% from 2 scored (got {oct_})")
     check(k4["2026-09"]["value"] is None and k4["2026-09"]["score"] is None, "September stays grey")
+    k2 = {v["m"]: v for v in row["KR2"]["months"]}
+    check(k2["2026-09"]["value"] == 0 and k2["2026-09"]["score"] == 100 and k2["2026-09"]["rag"] == "green"
+          and k2["2026-09"]["display"] == "0 repeats (19 sites)",
+          "OO2 KR2 September, closed with 0 repeat issues: 100, green (Ross, 15/10/2026)")
+    check(k2["2026-10"]["value"] is None and "a month WITH repeats" in (k2["2026-10"]["not_measured"] or ""),
+          "OO2 KR2 October, 2 repeats and no Jun-Aug baseline: grey with why, never 0 or green")
+    check(k2["2026-11"]["value"] == 0 and k2["2026-11"]["score"] is None and k2["2026-11"]["mtd"]
+          and "0 so far can still become 1, so it is scored only when the month closes" in k2["2026-11"]["basis"]
+          and "mtd_why" not in k2["2026-11"] and "unless it breaches" not in k2["2026-11"]["basis"],
+          "OO2 KR2 November, 0 so far on its 2nd: MTD - never green before the month closes")
+    sep_ = next(m for m in oo2["months"] if m["m"] == "2026-09")
+    check(sep_["scored"] == 1 and sep_["pct"] == 100.0,
+          f"OO2 September rolls up KR2's 100 - 1 of 5 scored (got {sep_})")
 
 shutil.rmtree(tmpd, ignore_errors=True)
 print()

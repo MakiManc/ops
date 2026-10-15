@@ -1327,8 +1327,12 @@ function renderScorecard(snap){
         ? `<div class="dt"><a href="${esc(r.link.href)}" target="_blank" rel="noopener">${esc(r.link.label||'document')} ↗</a></div>`
         : '');
     /* A PROPOSED band scores exactly like an agreed one. The chip is the only
-       thing that separates them, and it stays until Matthew confirms the band. */
-    const prop=r0.band_status==='proposed'
+       thing that separates them, and it stays until Matthew confirms the band.
+       A month scored by an agreed rule beside the band rather than by the band
+       itself (OO2 KR2's 0-repeat month, scorecard.band_rules) carries its own
+       band_status, and the chip follows the month on screen - the builder's
+       word, not a decision made here. */
+    const prop=((r.band_status!=null)?r.band_status:r0.band_status)==='proposed'
       ? ` <span class="tag t-b" style="font-size:10.5px">PROPOSED BAND</span>` : '';
     const kind=KIND[r0.source_kind]
       ? `<span class="dt" style="opacity:.55">${esc(KIND[r0.source_kind])}</span>` : '';

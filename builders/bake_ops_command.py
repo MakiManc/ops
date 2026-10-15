@@ -485,6 +485,8 @@ OKR_BANDS = {
     "pct95":       ("ge", [(95, 100), (90, 80), (85, 50)]),
     # OO2 KR2, repeat maintenance issues: the value is the PERCENTAGE CHANGE
     # against the baseline, so -20 is a 20% reduction and lower is better.
+    # A month with 0 repeats is NOT read off this table: it scores by the rule
+    # in OKR_BAND_RULES (Ross, 15/10/2026), and its value is the count, 0.
     "repeat":      ("le", [(-20, 100), (-10, 80), (0, 50)]),
     # Count-to-zero KRs. OO2 KR3 (closures), OO4 KR1 (logistics disruptions).
     "zero":        ("le", [(0, 100), (1, 80), (3, 50)]),
@@ -519,6 +521,18 @@ OKR_BAND_STATUS = {
     "spikes": "agreed", "comp": "agreed", "prod": "agreed",
     "repeat": "proposed", "audit": "proposed", "damaged": "proposed",
     "density": "proposed", "stock": "proposed",
+}
+
+#: A FIXED RULE BESIDE A BAND - the only one, and written down here for the
+#: same reason the bands are: a score must be checkable against a published
+#: table, not against a sentence in a basis. Published as scorecard.band_rules.
+#: OO2 KR2: Ross, 15/10/2026, verbatim "if there is 0 repeat maintenance issues
+#: then it flags as green 100%" - a logged month with 0 repeats scores 100
+#: whatever the baseline (fac_kr2_row's _k2_zero, which takes the score from
+#: here). A month WITH repeats is still read off the 'repeat' band.
+OKR_BAND_RULES = {
+    "repeat": [{"when": "a logged month with 0 repeat issues (its value is the count, 0)",
+                "score": 100, "status": "agreed", "by": "Ross, 15/10/2026"}],
 }
 
 #: A KR with no source yet names the PHASE that will give it one. Rule 4 has
@@ -609,9 +623,17 @@ def okr_mtd_variant(v, band, pull_month, n_days):
     Closed months, and months with no value, pass untouched. See
     OKR_MTD_MIN_DAYS and OKR_COUNT_BANDS for the two rules.
     """
+    # a variant may carry its own month-to-date reason (OO2 KR2's zero month,
+    # which a first repeat greys rather than breaches); it is never published
+    _mw = v.get("mtd_why")
+    if "mtd_why" in v:
+        v = {k: x for k, x in v.items() if k != "mtd_why"}
     if v.get("m", "") < pull_month or v.get("value") is None:
         return v
-    if band in OKR_COUNT_BANDS:
+    # A variant that is a COUNT whatever its band says (OO2 KR2's "0 repeat
+    # issues" month, Ross 15/10/2026) takes the count rule too: 0 so far can
+    # still become 1, so it is never green before the month closes.
+    if band in OKR_COUNT_BANDS or v.get("count_can_only_rise"):
         if v.get("score") == 0:
             _lim = OKR_BANDS[band][1][-1][0]
             return {**v, "mtd": False, "coverage_days": n_days,
@@ -620,7 +642,7 @@ def okr_mtd_variant(v, band, pull_month, n_days):
                               f"finish above 0" + (f" ({n_days} day{'' if n_days == 1 else 's'} "
                                                    "of data)" if n_days is not None else "")
                               + (f" - {v['basis']}" if v.get("basis") else ""))}
-        _why = "a count can only rise, so it is scored when the month closes unless it breaches first"
+        _why = _mw or "a count can only rise, so it is scored when the month closes unless it breaches first"
     else:
         if n_days is not None and n_days >= OKR_MTD_MIN_DAYS:
             return {**v, "coverage_days": n_days, "mtd": False}
@@ -1785,6 +1807,10 @@ def deep_pull_due(today, last_clean):
 FACILITIES_FAULT_LOG_START = "2026-09"
 #: The KR2 baseline Ross set on 17/09/2026: the mean of these three months.
 FACILITIES_KR2_BASELINE = ("2026-06", "2026-07", "2026-08")
+#: Ross, 15/10/2026, verbatim: "if there is 0 repeat maintenance issues then
+#: it flags as green 100%" - see facilities_block's _k2_zero.
+FACILITIES_KR2_ZERO_RULE = ("a month with 0 repeat issues scores 100, green "
+                            "(Ross, 15/10/2026)")
 #: The app started logging PPM completions against a due date on this day;
 #: everything earlier is a backfilled certificate with no on-time flag.
 FACILITIES_KR1_START = "25 Sep 2026"
@@ -2162,11 +2188,30 @@ def facilities_reading(feed, copy_name):
     if any(grp[k] is None for k in ("tasks", "current", "due30")):
         return None
     gt = g.get(FACILITIES_GREASE_KEY)
+    # OO2 KR2's counts (review, 15/10/2026): the app sends a rolling six months,
+    # so a closed month's 0 is kept here to be judged again when the feed no
+    # longer lists it. Counts and re-report dates only - no site, asset or
+    # contractor name (the pairs keep only their 'second' date).
+    k2 = feed.get("kr2_repeat_issues")
+    kr2 = None
+    if isinstance(k2, dict) and isinstance(k2.get("months"), list):
+        kr2 = {"rule": k2.get("rule") if isinstance(k2.get("rule"), str) else None,
+               "chasers": _fac_num(k2.get("chasers")),
+               "months": [{"month": m["month"],
+                           **{k: _fac_kr2_scalar(m.get(k)) for k in ("repeats", "sites", "per_site")}}
+                          for m in k2["months"]
+                          if isinstance(m, dict) and isinstance(m.get("month"), str)
+                          and _FAC_YM.fullmatch(m["month"])],
+               "pairs": [{"second": _fac_kr2_date(p.get("second"))}
+                         for p in _fac_list(k2.get("pairs")) if isinstance(p, dict)],
+               "by_site": [{"repeats": _fac_kr2_scalar(b.get("repeats"))}
+                           for b in _fac_list(k2.get("by_site")) if isinstance(b, dict)]}
     return {"as_of": as_of, "pulled_at": pulled, "pulled_by": feed.get("pulled_by"),
             "copy": copy_name, "generated_at": feed.get("generated_at"), "group": grp,
             FACILITIES_GREASE_KEY: ({k: gt.get(k) for k in FACILITIES_GROUP_COUNTS}
                                     if isinstance(gt, dict)
-                                    else None if gt is None else "not an object")}
+                                    else None if gt is None else "not an object"),
+            "kr2": kr2}
 
 
 def _fac_read_lines(path):
@@ -2390,6 +2435,407 @@ def facilities_months(kr, open_variant, readings, fails, pull_month, today,
         else:
             out.append({"m": m, **ov})
         m = _fac_next_month(m)
+    return out
+
+
+#: The app's repeat rule looks back this many days ("second fault report on the
+#: same asset at the same site within 60 days"); taken from the rule's own text
+#: when it names a number of days.
+FACILITIES_KR2_LOOKBACK_DAYS = 60
+
+
+def _fac_kr2_scalar(x):
+    """A count as stored in the readings history: the number, None when the
+    app sent none, else 'invalid' - so a malformed count still fails the guards
+    when read back, and no free text the app put there is stored (the history
+    is public)."""
+    if x is None:
+        return None
+    n = _fac_num(x)
+    return n if n is not None else "invalid"
+
+
+def _fac_kr2_date(x):
+    """A pair's re-report date as stored: None/'' as sent, an ISO date (its
+    first 10 characters), else 'invalid' - the same verdict as the live copy."""
+    if x in (None, ""):
+        return x
+    if isinstance(x, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", x[:10]):
+        return x[:10]
+    return "invalid"
+
+
+_FAC_YM = re.compile(r"20\d\d-(0[1-9]|1[0-2])")
+
+
+def fac_kr2_row(k2, as_of, pulled, today, fault_log_start=FACILITIES_FAULT_LOG_START,
+                label="data/ops_command/" + FACILITIES_FILE):
+    """OO2 KR2's row - its head and month variants - from ONE copy's
+    kr2_repeat_issues block.
+
+    k2       the block: the live feed's, or a stored reading's 'kr2'
+    as_of    that copy's own as_of - the app's reading date. A closed month is
+             FINAL only when this is after it ended; it is never the pull date
+             (event dates, not pull dates - review, 15/10/2026)
+    pulled   that copy's pull date (a datetime.date) or None - unused for
+             finality, kept for the caller's wording
+    today    the bake's own date (a datetime.date): the month it is in is the
+             open month
+
+    A logged month with 0 repeats scores 100 by Ross's rule (OKR_BAND_RULES,
+    15/10/2026) - but only when nothing in the copy says otherwise: every one
+    of the guards below greys the month and names why, because a 0 the app's
+    own lists contradict is a blank, not a result.
+    """
+    _listed = [m for m in _fac_list(k2.get("months"))
+               if isinstance(m, dict) and isinstance(m.get("month"), str)]
+    # only a YYYY-MM month is a month; any other key is named, never parsed
+    # (round-2 review, 15/10/2026: '2026-10 ' raised and greyed the whole tab)
+    months_all = [m for m in _listed if _FAC_YM.fullmatch(m["month"])]
+    _odd = [m["month"] for m in _listed if not _FAC_YM.fullmatch(m["month"])]
+    odd_s = (f" The feed also lists {len(_odd)} month key(s) that are not YYYY-MM "
+             f"({', '.join(repr(x[:12]) for x in _odd[:3])}"
+             + (f" and {len(_odd) - 3} more" if len(_odd) > 3 else "")
+             + "), not read." if _odd else "")
+    rule = k2.get("rule") if isinstance(k2.get("rule"), str) else None
+    chasers = _fac_num(k2.get("chasers"))
+    # A month listed twice: copies with the same counts are one month; copies
+    # whose counts differ are a contradiction, not quoted (review, 15/10/2026 -
+    # the first copy used to win the roll-up while the second said otherwise).
+    # Compared on the counts only, as the history stores them, so the live copy
+    # and a stored reading judge the same data the same way (round 2).
+    copies = collections.defaultdict(list)
+    for m in months_all:
+        copies[m["month"]].append(json.dumps(
+            {k: _fac_kr2_scalar(m.get(k)) for k in ("repeats", "sites", "per_site")},
+            sort_keys=True))
+    dup = {ym: len(c) for ym, c in copies.items() if len(set(c)) > 1}
+    months, _seen = [], set()
+    for m in months_all:
+        if m["month"] not in _seen:
+            _seen.add(m["month"])
+            months.append(m)
+    by_m = {m["month"]: m for m in months}
+    rule_s = (f"'{rule}'" if rule else "(the feed states no rule)")
+    ch_s = (f"{chasers:g} chaser report{'' if chasers == 1 else 's'} merged into "
+            "the fault they chase and not counted as repeats"
+            if chasers is not None else "chaser count not given") + odd_s
+    base_ok = []
+    for ym in FACILITIES_KR2_BASELINE:
+        m = by_m.get(ym)
+        ps = _fac_num((m or {}).get("per_site"))
+        if m is not None and ps is not None and ym >= fault_log_start and ym not in dup:
+            base_ok.append(ps)
+    cur2 = months[-1] if months else None
+    cur2_ps = _fac_num((cur2 or {}).get("per_site"))
+
+    def _counts(m):
+        """'N repeat(s) across S sites', or None when the feed omits either."""
+        r_, s_ = _fac_num(m.get("repeats")), _fac_num(m.get("sites"))
+        return (f"{r_:g} repeat(s) across {s_:g} sites"
+                if r_ is not None and s_ is not None else None)
+    now_s = ""
+    if cur2 is not None and _counts(cur2):
+        now_s = (f" So far: {_fac_ym(cur2['month'])} has {_counts(cur2)}"
+                 + (f" ({cur2_ps:g} per site)" if cur2_ps is not None else "") + ".")
+    elif cur2 is not None and cur2_ps is not None:
+        now_s = (f" So far: {_fac_ym(cur2['month'])} is {cur2_ps:g} repeats per "
+                 "site (the feed gives no repeat or site count for it).")
+    if not isinstance(k2.get("months"), list):
+        return {"not_measured": (
+            f"{label} carries no kr2_repeat_issues.months list, so there is no "
+            f"month to score and no baseline. Rule {rule_s}; {ch_s}")}
+    # Why a month WITH repeats cannot be scored yet (it is measured against
+    # the Jun-Aug baseline), or None when the baseline exists.
+    base = base_s = None
+    if len(base_ok) < len(FACILITIES_KR2_BASELINE):
+        base_why = (
+            "baseline needs Jun–Aug; the app's fault log starts "
+            f"{_fac_ym(fault_log_start)}, and nothing else supplies one: the "
+            "sheet-based KR2 baseline planned on 17 Sep was never built, so KR2 stays "
+            "grey until a baseline is agreed (the plan was a January re-baseline). The "
+            f"app is already counting under its rule {rule_s}, with {ch_s}.{now_s} "
+            f"Its months before {_fac_ym(fault_log_start)} are zero-filled, not "
+            "measured, and are never used as a baseline. Pairs and per-site counts "
+            "on the Maintenance tab")
+    elif not sum(base_ok):
+        base_why = (
+            "the Jun–Aug baseline from the app's fault log is 0 repeats per site, "
+            "and a percentage change against zero is undefined - this needs a "
+            f"re-agreed baseline, not a number. Rule {rule_s}; {ch_s}.{now_s}")
+    else:
+        base_why = None
+        base = sum(base_ok) / len(base_ok)
+        base_s = ", ".join(f"{_fac_ym(ym)} {by_m[ym]['per_site']:g}"
+                           for ym in FACILITIES_KR2_BASELINE)
+    _lb = re.search(r"(\d+)\s*days?", rule or "")
+    # clamped: a rule naming a vast number of days must not overflow a date
+    lookback = min(int(_lb.group(1)), 3660) if _lb else FACILITIES_KR2_LOOKBACK_DAYS
+    log_first = datetime.date.fromisoformat(fault_log_start + "-01")
+
+    def _short_lookback(ym):
+        """The month's first day is less than the rule's look-back after the
+        fault log began: a re-report of a fault from before the log cannot be
+        seen as a repeat."""
+        return datetime.date.fromisoformat(ym + "-01") - datetime.timedelta(days=lookback) < log_first
+
+    def _k2(m):
+        ps = _fac_num(m.get("per_site"))
+        chg = round(100.0 * (ps - base) / base, 1)
+        mtd = m["month"] == today.isoformat()[:7]
+        # a per-site repeat count only rises as the month goes on, so the
+        # month still open is never green before it closes (unless it has
+        # already breached) - the count rule, as for the zero month
+        return {"m": m["month"], "value": chg, "count_can_only_rise": True,
+                "display": f"{chg:+g}% ({ps:g}/site vs {base:.2f})",
+                "basis": (
+                    f"{_counts(m)} in {_fac_ym(m['month'])}"
+                    f" = {ps:g} per site, against a Jun–Aug 2026 baseline mean "
+                    f"of {base:.2f} per site ({base_s}): {chg:+g}%. Rule "
+                    f"{rule_s}; {ch_s}. The baseline is from the app's own "
+                    "fault log, not Lincoln's sheet"
+                    + (". MONTH TO DATE - still moving" if mtd else ""))}
+
+    # ZERO REPEATS IS GREEN (Ross, 15/10/2026, verbatim: "if there is 0 repeat
+    # maintenance issues then it flags as green 100%"). The score is the rule
+    # in OKR_BAND_RULES, not read off the 'repeat' band (whose 0% change is 50),
+    # and it is a COUNT: 0 so far can still become 1, so the month still open
+    # is never green before it closes (the 09/10/2026 rule for counts).
+    _zr = OKR_BAND_RULES["repeat"][0]
+
+    def _k2_zero(m):
+        s_ = _fac_num(m.get("sites"))
+        short = _short_lookback(m["month"])
+        return {"m": m["month"], "value": 0, "score_fixed": _zr["score"],
+                "score_rule": "repeat.0", "band_status": _zr["status"],
+                "count_can_only_rise": True,
+                "mtd_why": ("0 so far can still become 1, so it is scored only when the "
+                            "month closes; a repeat before then moves the month to the "
+                            "baseline rule"),
+                "display": f"0 repeats ({s_:g} sites)",
+                "basis": (
+                    f"0 repeat maintenance issues in {_fac_ym(m['month'])} across {s_:g} "
+                    f"sites in the Facilities app's fault log - {FACILITIES_KR2_ZERO_RULE}, "
+                    f"with no baseline needed. Rule {rule_s}; {ch_s}. The app does not say "
+                    "how many faults were logged in the month, so a month in which nothing "
+                    "was logged in the app also reads 0"
+                    + (f". The fault log starts in {_fac_ym(fault_log_start)} and the rule "
+                       f"looks back {lookback} days, so in {_fac_ym(m['month'])} a re-report "
+                       "of a fault first reported before the log began cannot count as a "
+                       "repeat - this 0 cannot include those" if short else ""))}
+
+    # The app's own pairs list, by the month each repeat was re-reported in. A
+    # month the counts call 0 while a pair was re-reported in it is a
+    # contradiction, never a green; a re-report date this cannot read makes
+    # every 0 uncheckable, so it fails closed (review, 15/10/2026). (The list
+    # may not reach back over every month, so a month with no pair proves
+    # nothing either way.)
+    _rerep, _bad_pairs = {}, 0
+    for p in _fac_list(k2.get("pairs")):
+        if not isinstance(p, dict):
+            continue
+        _sd = p.get("second")
+        if _sd in (None, ""):
+            continue
+        if isinstance(_sd, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", _sd[:10]):
+            _rerep[_sd[:7]] = _rerep.get(_sd[:7], 0) + 1
+        else:
+            _bad_pairs += 1
+    # The by-site tally: repeats it counts while every logged month reads 0
+    # is the same contradiction seen from the other side.
+    _bs = [b.get("repeats") for b in _fac_list(k2.get("by_site")) if isinstance(b, dict)]
+    _by_site = sum(_fac_num(x) or 0 for x in _bs)
+    _bs_bad = sum(1 for x in _bs if x is not None and _fac_num(x) is None)
+    _logged_reps = sum(_fac_num(m.get("repeats")) or 0 for m in months
+                       if m["month"] >= fault_log_start)
+    # the months list reaches back to the log's start, so every repeat the
+    # app could count is in some listed month: a by-site tally above their
+    # total puts repeats in a month the counts call 0 (round 2, 15/10/2026)
+    _reaches_start = bool(months) and min(m["month"] for m in months) <= fault_log_start
+    # A month's count is final only once the app was read AFTER the month
+    # ended - by the copy's OWN as_of, never its pull date. A copy up to
+    # FACILITIES_STALE_DAYS old is still quoted, so on 02/11 the newest copy
+    # can be 30/10's, whose October misses the 31st - a short month, never
+    # scored. The month this bake is in is the open month and goes through
+    # the count rule instead (MTD).
+    try:
+        _read = datetime.date.fromisoformat(as_of[:10]).isoformat() \
+            if isinstance(as_of, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", as_of[:10]) else None
+    except ValueError:   # looks like a date, is not one ('2026-13-01')
+        _read = None
+    _bake_m = today.isoformat()[:7]
+
+    variants = []
+    for m in months:
+        ym = m["month"]
+        if ym < fault_log_start or ym <= FACILITIES_KR2_BASELINE[-1]:
+            continue
+        reps = _fac_num(m.get("repeats"))
+        sites = _fac_num(m.get("sites"))
+        ps_raw = m.get("per_site")
+        if ym in dup:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) lists {_fac_ym(ym)} {dup[ym]} times "
+                "with different counts, so it is not quoted until the app's months agree")})
+        elif ym < _bake_m and not (_read and _read[:7] > ym):
+            variants.append({"m": ym, "not_measured": (
+                (f"{_fac_ym(ym)} has ended, but this copy of the Facilities feed is as of "
+                 f"{_fac_dmy(_read)}, before its end, so its count ({_counts(m) or 'none'}) "
+                 "is not final - a month is scored from a reading taken after it ended")
+                if _read else
+                (f"{_fac_ym(ym)} has ended, but this copy of the Facilities feed's as_of "
+                 f"({str(as_of)[:20]!r}) is not a date, so it cannot be shown to be read "
+                 "after the month ended - not quoted"))})
+        elif reps is None or not _counts(m):
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) has no repeat/site counts for "
+                f"{_fac_ym(ym)}. Rule {rule_s}; {ch_s}")})
+        elif not (sites > 0 and float(sites).is_integer()) or reps < 0 or not float(reps).is_integer():
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} {reps:g} repeat(s) "
+                f"over {sites:g} sites - not a whole number of repeats over at least one "
+                "site, so nothing was measured and it is not quoted")})
+        elif reps == 0 and ps_raw is not None and _fac_num(ps_raw) != 0:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats "
+                + (f"but {_fac_num(ps_raw):g} per site" if _fac_num(ps_raw) is not None
+                   else "but a per-site figure that is not a number")
+                + " - the two disagree, so the month is not quoted until the app's counts "
+                "agree")})
+        elif reps == 0 and _rerep.get(ym):
+            _n = _rerep[ym]
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats "
+                f"but its pairs list has {_n} repeat{'s' if _n != 1 else ''} re-reported "
+                f"in {_fac_ym(ym)} - the two disagree, so the month is not "
+                "quoted until the app's counts agree")})
+        elif reps == 0 and _bad_pairs:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, but "
+                f"{_bad_pairs} entr{'y' if _bad_pairs == 1 else 'ies'} in its pairs list "
+                "carr" + ("ies" if _bad_pairs == 1 else "y") + " a re-report date that is "
+                "not a date, so the 0 cannot be checked against them - not quoted")})
+        elif reps == 0 and _bs_bad:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, but "
+                f"{_bs_bad} entr{'y' if _bs_bad == 1 else 'ies'} of its by-site tally carr"
+                + ("ies" if _bs_bad == 1 else "y") + " a repeat count that is not a number, "
+                "so the 0 cannot be checked against it - not quoted")})
+        elif reps == 0 and _by_site > 0 and _logged_reps == 0:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, as it "
+                f"does every logged month, but its by-site tally counts {_by_site:g} "
+                "repeat(s) - the two disagree, so the month is not quoted until the app's "
+                "counts agree")})
+        elif reps == 0 and _reaches_start and _by_site > _logged_reps:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, but its "
+                f"by-site tally counts {_by_site:g} repeat(s) against {_logged_reps:g} in the "
+                "logged months it lists from the log's start - some of the difference may be "
+                "this month's, so it is not quoted until the app's counts agree")})
+        elif reps == 0:
+            variants.append(_k2_zero(m))
+        elif base is None:
+            variants.append({"m": ym, "not_measured": (
+                f"{_counts(m)} in {_fac_ym(ym)}: a month WITH repeats is "
+                f"scored against the Jun–Aug baseline - {base_why}")})
+        elif _fac_num(ps_raw) is None:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) has no per_site figure for "
+                f"{_fac_ym(ym)}. Rule {rule_s}; {ch_s}")})
+        else:
+            variants.append(_k2(m))
+    head = (next((v for v in variants if v["m"] == cur2["month"]), None)
+            if cur2 is not None else None)
+    if head is None or head.get("value") is None:
+        row = {"not_measured": (head or {}).get("not_measured") or base_why or (
+                   f"the Facilities feed (as of {as_of}) has no per_site figure, or no "
+                   f"repeat/site counts behind it, for its latest month. Rule {rule_s}; "
+                   f"{ch_s}"),
+               "months": variants or None}
+        if variants:
+            # its months are the app's counts, whatever the newest one says
+            # (review, 15/10/2026: it read "computed" here)
+            row["source_kind"] = "facilities_app"
+        return row
+    return {"value": head["value"], "display": head["display"],
+            "basis": head["basis"], "source_kind": "facilities_app",
+            "months": variants or None}
+
+
+def facilities_kr2_months(row, readings, today, fault_log_start=FACILITIES_FAULT_LOG_START,
+                          live_as_of=None, pull_month=None):
+    """OO2 KR2's row with each closed month taken from the NEWEST reading of it.
+
+    row         fac_kr2_row() on the copy this bake quotes - or the grey row of
+                a copy that cannot be used (stale, unreadable, after a
+                back-bake's date)
+    readings    load_facilities_readings()'s readings by as_of day (none after
+                the bake's date)
+    today       the bake's own date (a datetime.date)
+    live_as_of  the quoted copy's as_of ('YYYY-MM-DD'), or None when the row
+                is grey - the copy is one reading among the stored ones
+    pull_month  the scorecard's month, for the open month's placeholder
+
+    The app sends a rolling six months, and a stale or back-dated copy is not
+    quoted at all - either would make a published closed month disappear
+    (review, 15/10/2026: OO2's September roll-up went from 100% to "-"). So
+    each closed month comes from the reading - the quoted copy or a stored
+    one - with the latest as_of that lists it, judged by the same
+    fac_kr2_row() as of that reading's own as_of (round 2: a back-bake's
+    older quoted copy used to outrank a newer stored reading). The open month
+    is never taken from the history; when the row is grey it keeps the row's
+    own blocker, so the scorecard does not invent an empty month-to-date line
+    in its place (round 2). A stored line that cannot be judged is skipped and
+    named, never fatal.
+    """
+    have = {v.get("m"): v for v in (row.get("months") or [])}
+    bake_m = today.isoformat()[:7]
+    live = str(live_as_of or "")[:10]
+    best, skipped = {}, []
+    for day in sorted(readings, reverse=True):
+        r = readings[day]
+        k2 = r.get("kr2")
+        if not isinstance(k2, dict):
+            continue
+        try:
+            pulled = datetime.date.fromisoformat(str(r.get("pulled_at") or "")[:10])
+            hr = fac_kr2_row(k2, str(r.get("as_of") or ""), pulled, today,
+                             fault_log_start=fault_log_start,
+                             label=f"the stored reading of {_fac_dmy(day)}")
+        except Exception:  # noqa: BLE001 - one bad line must not cost the rest
+            skipped.append(day)
+            continue
+        for v in hr.get("months") or []:
+            ym = v.get("m")
+            if not ym or ym >= bake_m or ym in best:
+                continue
+            if ym in have and not (live and day > live):
+                continue    # the quoted copy is at least as new: it answers
+            note = (f" (from the reading of the Facilities app stored on {_fac_dmy(day)} in "
+                    f"{FACILITIES_READINGS_FILE} - the newest that lists this month)")
+            v = dict(v)
+            for k in ("basis", "not_measured"):
+                if v.get(k):
+                    v[k] = v[k] + note
+            best[ym] = v
+    if not best and not skipped:
+        return row
+    out = dict(row)
+    merged = {**have, **best}
+    pm = pull_month or bake_m
+    if out.get("value") is None and out.get("not_measured") and pm not in merged and merged:
+        # a grey row keeps its blocker on the open month
+        merged[pm] = {"m": pm, "not_measured": out["not_measured"]}
+    out["months"] = sorted(merged.values(), key=lambda v: v.get("m") or "") or None
+    if skipped:
+        _sk = (f" {len(skipped)} stored reading(s) of {FACILITIES_READINGS_FILE} could not be "
+               f"judged and were skipped ({', '.join(_fac_dmy(d) for d in skipped[:3])}"
+               + (f" and {len(skipped) - 3} more" if len(skipped) > 3 else "") + ").")
+        key = "basis" if out.get("basis") else "not_measured"
+        out[key] = (out.get(key) or "").rstrip(".") + "." + _sk
+    if out["months"] and out.get("source_kind") in (None, "not_measured"):
+        out["source_kind"] = "facilities_app"
     return out
 
 
@@ -2725,83 +3171,16 @@ def facilities_block(feed, err, today,
                 "a month's jobs alone - the app sends no per-month counts")}
 
     # ---- OO2 KR2: repeat issues against the Jun-Aug baseline --------------
-    by_m = {m["month"]: m for m in months}
-    rule_s = (f"'{rule}'" if rule else "(the feed states no rule)")
-    ch_s = (f"{chasers:g} chaser report{'' if chasers == 1 else 's'} merged into "
-            "the fault they chase and not counted as repeats"
-            if chasers is not None else "chaser count not given")
-    base_ok = []
-    for ym in FACILITIES_KR2_BASELINE:
-        m = by_m.get(ym)
-        ps = _fac_num((m or {}).get("per_site"))
-        if m is not None and ps is not None and ym >= fault_log_start:
-            base_ok.append(ps)
-    cur2 = months[-1] if months else None
-    cur2_ps = _fac_num((cur2 or {}).get("per_site"))
-
-    def _counts(m):
-        """'N repeat(s) across S sites', or None when the feed omits either."""
-        r_, s_ = _fac_num(m.get("repeats")), _fac_num(m.get("sites"))
-        return (f"{r_:g} repeat(s) across {s_:g} sites"
-                if r_ is not None and s_ is not None else None)
-    now_s = ""
-    if cur2 is not None and _counts(cur2):
-        now_s = (f" So far: {_fac_ym(cur2['month'])} has {_counts(cur2)}"
-                 + (f" ({cur2_ps:g} per site)" if cur2_ps is not None else "") + ".")
-    elif cur2 is not None and cur2_ps is not None:
-        now_s = (f" So far: {_fac_ym(cur2['month'])} is {cur2_ps:g} repeats per "
-                 "site (the feed gives no repeat or site count for it).")
-    if not isinstance(k2.get("months"), list):
+    # One copy's KR2 block -> the row and its months: fac_kr2_row(), which
+    # facilities_kr2_months() also runs on every stored reading, so a closed
+    # month keeps its figure after the app's rolling six months pass it.
+    try:
+        rows["KR2 repeat issues vs baseline"] = fac_kr2_row(
+            k2, as_of, pulled, today, fault_log_start=fault_log_start, label=label)
+    except Exception as e:  # noqa: BLE001 - one KR's surprise must not grey KR1, KR4 and the tab
         rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            f"{label} carries no kr2_repeat_issues.months list, so there is no "
-            f"month to score and no baseline. Rule {rule_s}; {ch_s}")}
-    elif len(base_ok) < len(FACILITIES_KR2_BASELINE):
-        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            "baseline needs Jun–Aug; the app's fault log starts "
-            f"{_fac_ym(fault_log_start)}, and nothing else supplies one: the "
-            "sheet-based KR2 baseline planned on 17 Sep was never built, so KR2 stays "
-            "grey until a baseline is agreed (the plan was a January re-baseline). The "
-            f"app is already counting under its rule {rule_s}, with {ch_s}.{now_s} "
-            f"Its months before {_fac_ym(fault_log_start)} are zero-filled, not "
-            "measured, and are never used as a baseline. Pairs and per-site counts "
-            "on the Maintenance tab")}
-    elif not sum(base_ok):
-        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            "the Jun–Aug baseline from the app's fault log is 0 repeats per site, "
-            "and a percentage change against zero is undefined - this needs a "
-            f"re-agreed baseline, not a number. Rule {rule_s}; {ch_s}.{now_s}")}
-    elif cur2 is None or cur2_ps is None or not _counts(cur2):
-        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            f"the Facilities feed (as of {as_of}) has no per_site figure, or no "
-            f"repeat/site counts behind it, for its latest month. Rule {rule_s}; "
-            f"{ch_s}")}
-    else:
-        base = sum(base_ok) / len(base_ok)
-        base_s = ", ".join(f"{_fac_ym(ym)} {by_m[ym]['per_site']:g}"
-                           for ym in FACILITIES_KR2_BASELINE)
-
-        def _k2(m):
-            ps = _fac_num(m.get("per_site"))
-            chg = round(100.0 * (ps - base) / base, 1)
-            mtd = m["month"] == str(as_of)[:7]
-            return {"m": m["month"], "value": chg,
-                    "display": f"{chg:+g}% ({ps:g}/site vs {base:.2f})",
-                    "basis": (
-                        f"{_counts(m)} in {_fac_ym(m['month'])}"
-                        f" = {ps:g} per site, against a Jun–Aug 2026 baseline mean "
-                        f"of {base:.2f} per site ({base_s}): {chg:+g}%. Rule "
-                        f"{rule_s}; {ch_s}. The baseline is from the app's own "
-                        "fault log, not Lincoln's sheet"
-                        + (". MONTH TO DATE - still moving" if mtd else ""))}
-        variants = [_k2(m) for m in months
-                    if m["month"] > FACILITIES_KR2_BASELINE[-1]
-                    and m["month"] >= fault_log_start
-                    and _fac_num(m.get("per_site")) is not None and _counts(m)]
-        head = _k2(cur2)
-        rows["KR2 repeat issues vs baseline"] = {
-            "value": head["value"], "display": head["display"],
-            "basis": head["basis"], "source_kind": "facilities_app",
-            "months": variants or None}
+            f"{label}'s kr2_repeat_issues block could not be read ({type(e).__name__}), so "
+            "KR2 is not quoted; KR1, KR4 and the Maintenance tab are unaffected")}
     return {"rows": rows, "tab": tab, "gap": None}
 def update_snapshot_index(out_dir, pull, generated_at):
     """Record `pull` in snapshot_index.json and point `latest` at the NEWEST date.
@@ -5642,6 +6021,13 @@ def main():
                 # a back-bake whose copy on disk was pulled after its date
                 # takes the month so far from the history (review, 13/10/2026)
                 history_open=bool(dated) and fac["tab"].get("status") == "not_as_of")}
+        # OO2 KR2: closed months the copy lacks (the app's rolling six months
+        # moved on, or the copy is stale / after a back-bake's date) come from
+        # the newest stored reading that lists them (review, 15/10/2026)
+        fac["rows"]["KR2 repeat issues vs baseline"] = facilities_kr2_months(
+            fac["rows"]["KR2 repeat issues vs baseline"], _fac_hist, _fac_today,
+            live_as_of=(_fac_asof if fac["tab"].get("status") == "ok" else None),
+            pull_month=(pull or "")[:7])
     except Exception as e:  # noqa: BLE001 - the months are extra; today's rows stand
         print(f"[bake] facilities months not built: {type(e).__name__}: {e}")
     _fac_g = (fac["tab"].get("group") or {})
@@ -6476,7 +6862,10 @@ def main():
         out = []
         for v_ in (src.get("months") or []):
             _v = (value_of(v_) if value_of else v_.get("value"))
-            _s = okr_score(band, _v)
+            # a variant scored by a rule of Ross's own rather than the band
+            # (OO2 KR2: 0 repeat issues is 100, Ross 15/10/2026) keeps it
+            _s = (v_["score_fixed"] if v_.get("score_fixed") is not None and _v is not None
+                  else okr_score(band, _v))
             out.append({**v_, "score": _s, "rag": _rag_of(_s)})
         return out
 
@@ -6893,8 +7282,8 @@ def main():
     # --- Phase 4.2 (12/10/2026): OO4 KR3, supplier orders tracked to receipt --
     # Ross chose Kobas: the order emails against the deliveries report's
     # goods-ins. The rule lives in builders/delivery_tracking.py, including
-    # why the pairing window is PROPOSED and no month is scored until Ross
-    # agrees it. Every copy of any report named "... Ops Deliveries" is read,
+    # the pairing window (due + 2 days, agreed by Ross on 15/10/2026). Every
+    # copy of any report named "... Ops Deliveries" is read,
     # so a scheduled daily send lands with no code change.
     try:
         cur.execute("SELECT DISTINCT feed FROM etl_feed_rows")
@@ -7074,8 +7463,11 @@ def main():
         # the weekly price report: up to the date Kobas emailed the newest one
         ("OO3", "KR2"): (_rep_dates[-1] if _rep_dates else ""),
         # Facilities repeat issues: the app counts its fault log up to its
-        # own as_of date (only quoted at all when the feed is fresh)
-        ("OO2", "KR2"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
+        # own as_of date - and only a copy that is quoted counts (a stale or
+        # back-dated copy is not today's data, round-2 review 15/10/2026)
+        ("OO2", "KR2"): (str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10]
+                         if ((snap.get("maintenance") or {}).get("facilities") or {}).get("status") == "ok"
+                         else ""),
         # (OO2 KR1/KR4 carry coverage_days on each variant - facilities_months)
     }
 
@@ -7284,6 +7676,7 @@ def main():
       "monthly":sum(1 for r_ in okr if r_.get("months")),
       "bands":{k:{"direction":v[0],"table":[list(t) for t in v[1]],
                   "status":OKR_BAND_STATUS.get(k)} for k,v in OKR_BANDS.items()},
+      "band_rules":{k:[dict(x) for x in v] for k,v in OKR_BAND_RULES.items()},
       "mtd_min_days":OKR_MTD_MIN_DAYS,
       "month_basis":("the month picker moves the rows whose KR is a per-month measure. "
         f"A month still in progress is SCORED only once it holds {OKR_MTD_MIN_DAYS} or more days of "
@@ -7301,7 +7694,9 @@ def main():
         "not have."),
       "basis":("one row per KR on the 2026 Operations Input sheet - six objectives, thirty "
         "KRs, in the sheet's own order and wording. Every KR scores 100, 80, 50 or 0 from "
-        "the band table in the builder (scorecard.bands), and RAG follows the score: 100 "
+        "the band table in the builder (scorecard.bands) - or, for OO2 KR2 alone, by the one "
+        "fixed rule beside it (scorecard.band_rules: a month with 0 repeat issues scores 100, "
+        "Ross 15/10/2026) - and RAG follows the score: 100 "
         "green, 80 or 50 amber, 0 red. A band still marked PROPOSED scores exactly like an "
         "agreed one and says so on the row until Matthew confirms it. A KR with no target "
         "gets no score, and a KR with no source is grey with its blocker named - that list "
