@@ -1,6 +1,6 @@
 {
  "basis": "From the factory's Weekly Report workbook ('AA FACTORY'), two tabs only. stocktake: each row of 'STOCK TAKE VARIANCE - WEEKLY' that has a variance, as the sheet writes it. site_orders: per day of 'CLOSING INVENTORY', per site, how many product lines it ordered from the factory and how many units. No product, money or person is kept - this repository is public.",
- "pulled_at": "2026-10-14T14:24:16Z",
+ "pulled_at": "2026-10-15T12:44:44Z",
  "site_orders": {
   "days": [
    {
@@ -10462,15 +10462,27 @@
     },
     "total_checked": 28,
     "total_mismatches": 0
+   },
+   {
+    "date": "2026-10-14",
+    "rows": 28,
+    "sites": {
+     "Maki & Ramen - Maki Bath Street": {
+      "lines": 2,
+      "units": 4.0
+     }
+    },
+    "total_checked": 28,
+    "total_mismatches": 0
    }
   ],
   "problems": [],
-  "read_at": "2026-10-14T14:24:16Z",
+  "read_at": "2026-10-15T12:44:44Z",
   "tab": "CLOSING INVENTORY"
  },
  "stocktake": {
   "blank_rows": 137,
-  "read_at": "2026-10-14T14:24:16Z",
+  "read_at": "2026-10-15T12:44:44Z",
   "rows": [
    {
     "row": 2,
