@@ -1,174 +1,153 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-10-15T12:48:21Z",
+ "generated_at": "2026-10-15T14:03:25Z",
  "verified_date": "2026-10-15",
  "mode": "recheck",
- "overall": "red",
+ "overall": "amber",
  "postgres_latest": "2026-10-15",
- "snapshot_latest": "2026-10-14",
+ "snapshot_latest": "2026-10-15",
  "sizes": {
-  "maintenance_pulled_at": "2026-10-15T12:44:38Z",
+  "maintenance_pulled_at": "2026-10-15T14:00:34Z",
   "maintenance_source_as_of": "2026-10-15",
-  "facilities_pulled_at": "2026-10-15T12:44:46Z",
+  "facilities_pulled_at": "2026-10-15T14:00:49Z",
   "facilities_as_of": "2026-10-15",
   "facilities_copy": "facilities_ppm.json",
-  "archive_mb": 312
+  "archive_mb": 315
  },
  "counts": {
   "expected_feeds": 31,
   "known_broken": 10,
   "best_effort": 22,
-  "criticals": 2,
+  "criticals": 0,
   "warnings": 21,
   "deferred": 0
  },
- "criticals": [
-  {
-   "check": "0-receipts",
-   "level": "critical",
-   "feed": "daily-export",
-   "class": "0-receipts-missing",
-   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything"
-  },
-  {
-   "check": "4a-snapshot",
-   "level": "critical",
-   "class": "4a-snapshot",
-   "detail": "dashboard says latest data is 2026-10-14 but the pull archive says 2026-10-15 - the bake failed, baked stale, or the commit never landed"
-  }
- ],
+ "criticals": [],
  "warnings": [
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Central Areas",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Central Form Tasks",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Deviations (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Forms",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Local Procedures",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Modules",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedure Details",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedures",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedures Refactor",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Processes",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Waste Module Settings",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-09-01 (44d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Pack Prices",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-09-07 (38d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
-   "feed": "JFC Factory POs",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-10-14 (1d old) - expected today"
-  },
-  {
-   "check": "1-landed",
-   "level": "warning",
    "feed": "GC Locations Changelog",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
@@ -179,9 +158,14 @@
    "detail": "newest Order Placed is 2026-08-17 (59d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
-   "check": "aggregates",
+   "check": "4c-attribution",
    "level": "warning",
-   "detail": "no recomputed snapshot available - aggregates archive not updated this run"
+   "detail": "only 73.5% of price-report rows could be tied to a named supplier (floor 90.0%), so the per-supplier spike counts stay a drill-down rather than a scored row (OO3 KR2 counts estate-wide and is unaffected). 447 were proved from the pack-price export of 2026-09-07 and 776 matched by ingredient and pack. A fresher export in Drive is what lifts it - the export is manual and the price report is weekly"
+  },
+  {
+   "check": "4d-okr",
+   "level": "warning",
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-10-15T14:00) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   }
  ],
  "deferred": [],
@@ -254,10 +238,9 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "critical",
+   "level": "ok",
    "feed": "daily-export",
-   "class": "0-receipts-missing",
-   "detail": "no receipt from the 08:17 daily export today - the run either never started or died before writing anything"
+   "detail": "08:17 daily export: exit 0, 57160 rows written, finished 2026-10-15 13:58:10"
   },
   {
    "check": "0-receipts",
@@ -497,14 +480,14 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Central Areas",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Central Form Tasks",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -523,7 +506,7 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Deviations (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -542,14 +525,14 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Form Task Answers (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Forms",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -568,7 +551,7 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Local Procedures",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -599,35 +582,35 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Modules",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedure Details",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedures",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedures Refactor",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Processes",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -646,7 +629,7 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -665,7 +648,7 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Waste Module Settings",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-10-14 (1d old) - expected today"
   },
   {
@@ -678,7 +661,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "884 rows (median 913)"
+   "detail": "899 rows (median 913)"
   },
   {
    "check": "1-landed",
@@ -708,7 +691,7 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-09-01 (44d old) - expected today"
   },
   {
@@ -739,15 +722,20 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Pack Prices",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "last pull 2026-09-07 (38d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "JFC Factory POs",
-   "class": "1-landed-inflight",
-   "detail": "last pull 2026-10-14 (1d old) - expected today"
+   "detail": "landed 2026-10-15"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "JFC Factory POs",
+   "detail": "66 rows (no median available)"
   },
   {
    "check": "1-landed",
@@ -837,21 +825,21 @@
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Locations Changelog",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC DAP Logged Data (prev day)",
-   "class": "1-landed-inflight",
+   "class": "1-landed",
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
@@ -893,9 +881,13 @@
   },
   {
    "check": "4a-snapshot",
-   "level": "critical",
-   "class": "4a-snapshot",
-   "detail": "dashboard says latest data is 2026-10-14 but the pull archive says 2026-10-15 - the bake failed, baked stale, or the commit never landed"
+   "level": "ok",
+   "detail": "dashboard snapshot 2026-10-15 matches the pull archive 2026-10-15"
+  },
+  {
+   "check": "4a-snapshot",
+   "level": "info",
+   "detail": "Pages CDN still serving 2026-10-14 (propagation lag - normal for up to ~an hour)"
   },
   {
    "check": "6-side",
@@ -911,17 +903,42 @@
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 312 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 315 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
-   "level": "info",
-   "detail": "skipped - check 4a already failing, nothing meaningful to compare until the snapshot is fresh"
+   "level": "ok",
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=37534, tasks_missed=1583, week_spend_gbp=184184.89, broth_cells=2673, factory_broth_readings=1768, supplier_issues=175, training_outstanding=1665"
+  },
+  {
+   "check": "4c-attribution",
+   "level": "warning",
+   "detail": "only 73.5% of price-report rows could be tied to a named supplier (floor 90.0%), so the per-supplier spike counts stay a drill-down rather than a scored row (OO3 KR2 counts estate-wide and is unaffected). 447 were proved from the pack-price export of 2026-09-07 and 776 matched by ingredient and pack. A fresher export in Drive is what lifts it - the export is manual and the price report is weekly"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "scorecard carries 30 KRs in 6 objectives, five each"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "every objective percentage equals the mean of its scored rows, in every month offered"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "OO1 is scores only (5 row(s), none carrying a value or a display) and no Finance percentage column name appears anywhere in the snapshot"
+  },
+  {
+   "check": "4d-okr",
+   "level": "warning",
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-10-15T14:00) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "aggregates",
-   "level": "warning",
-   "detail": "no recomputed snapshot available - aggregates archive not updated this run"
+   "level": "ok",
+   "detail": "3036 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (4014 total)"
   },
   {
    "check": "4e-oo1-public",
