@@ -73,10 +73,13 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      # duckdb only: the builder reads the committed pull archive through it,
-      # which is how the fixture test runs with no warehouse and no psycopg2.
+      # duckdb: the builder reads the committed pull archive through it, which
+      # is how the fixture test runs with no warehouse and no psycopg2.
+      # openpyxl (15/10/2026): tests/oo1_ma_test.py builds a synthetic copy of
+      # Finance's management-account workbook and reads it back, as the pull
+      # does - pinned, as the ETL bake step pins it.
       - name: Install Python deps
-        run: pip install "duckdb>=1.5"
+        run: pip install "duckdb>=1.5" "openpyxl==3.1.5"
 
       - name: Run the dashboard suite
         run: npm test

@@ -71,6 +71,7 @@ import supplier_statements  # noqa: E402 - Phase 2, OO3 KR5
 import okr_pack  # noqa: E402 - Phase 2, the monthly OKR pack
 import factory_kpis  # noqa: E402 - Phase 3, OO5 KR3 and KR5
 import delivery_tracking  # noqa: E402 - Phase 4.2, OO4 KR3
+import oo1_ma  # noqa: E402 - OO1 from Finance's management account (15/10/2026)
 # psycopg2 is imported lazily in main(): with OPS_WAREHOUSE_SOURCE=archive the
 # bake needs no Postgres driver at all, and requiring one would defeat the point.
 # OPS_OUT_DIR lets a test bake into a temp directory (16/09/2026). Without it
@@ -485,6 +486,8 @@ OKR_BANDS = {
     "pct95":       ("ge", [(95, 100), (90, 80), (85, 50)]),
     # OO2 KR2, repeat maintenance issues: the value is the PERCENTAGE CHANGE
     # against the baseline, so -20 is a 20% reduction and lower is better.
+    # A month with 0 repeats is NOT read off this table: it scores by the rule
+    # in OKR_BAND_RULES (Ross, 15/10/2026), and its value is the count, 0.
     "repeat":      ("le", [(-20, 100), (-10, 80), (0, 50)]),
     # Count-to-zero KRs. OO2 KR3 (closures), OO4 KR1 (logistics disruptions).
     "zero":        ("le", [(0, 100), (1, 80), (3, 50)]),
@@ -507,6 +510,17 @@ OKR_BANDS = {
     "stock":       ("le", [(5, 100), (7.5, 80), (10, 50)]),
     "comp":        ("ge", [(95, 100), (94, 80), (92.5, 50)]),  # OO5 KR4
     "prod":        ("ge", [(98, 100), (97, 80), (95, 50)]),    # OO5 KR5
+    # OO1, from Finance's management-account summary (builders/oo1_ma.py).
+    # PASS/FAIL ON EACH KR'S OWN TARGET - Ross, 15/10/2026: 100 met, 0 missed.
+    # The value is the share of sales in percent, computed on the runner from
+    # Finance's lines and never published: these are applied there, and only
+    # the score reaches this repository.
+    "oo1_wr":      ("le", [(20, 100)]),    # KR1 wages, 20% of sales or less
+    "oo1_fr":      ("le", [(35, 100)]),    # KR2 food costs, 35% or less
+    "oo1_vr":      ("le", [(13, 100)]),    # KR3 variable costs, 13% or less
+    "oo1_np":      ("ge", [(4, 100)]),     # KR4 net profit, 4% or more
+    # KR5: 1 = the month's account was complete by the 7th of the next month.
+    "oo1_ma":      ("ge", [(1, 100)]),
 }
 
 #: Which bands Ross has actually agreed, and which are still PROPOSED. A
@@ -519,6 +533,20 @@ OKR_BAND_STATUS = {
     "spikes": "agreed", "comp": "agreed", "prod": "agreed",
     "repeat": "proposed", "audit": "proposed", "damaged": "proposed",
     "density": "proposed", "stock": "proposed",
+    "oo1_wr": "agreed", "oo1_fr": "agreed", "oo1_vr": "agreed", "oo1_np": "agreed",
+    "oo1_ma": "agreed",
+}
+
+#: A FIXED RULE BESIDE A BAND - the only one, and written down here for the
+#: same reason the bands are: a score must be checkable against a published
+#: table, not against a sentence in a basis. Published as scorecard.band_rules.
+#: OO2 KR2: Ross, 15/10/2026, verbatim "if there is 0 repeat maintenance issues
+#: then it flags as green 100%" - a logged month with 0 repeats scores 100
+#: whatever the baseline (fac_kr2_row's _k2_zero, which takes the score from
+#: here). A month WITH repeats is still read off the 'repeat' band.
+OKR_BAND_RULES = {
+    "repeat": [{"when": "a logged month with 0 repeat issues (its value is the count, 0)",
+                "score": 100, "status": "agreed", "by": "Ross, 15/10/2026"}],
 }
 
 #: A KR with no source yet names the PHASE that will give it one. Rule 4 has
@@ -526,11 +554,11 @@ OKR_BAND_STATUS = {
 #: schedule, so the grey rows read as the build's remaining work rather than as
 #: something nobody noticed.
 OKR_PENDING = {
-    ("OO1", "KR1"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
-    ("OO1", "KR2"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
-    ("OO1", "KR3"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
-    ("OO1", "KR4"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
-    ("OO1", "KR5"): "Finance's score on the Operations Input sheet's '2026 Summary' tab, read as a score only by builders/refresh_okr_sources.py",
+    ("OO1", "KR1"): "Finance's management-account summary ('AA MA Summary.xlsx', 2026 tab), read on the 7th of each month by builders/oo1_ma.py - scores only",
+    ("OO1", "KR2"): "Finance's management-account summary ('AA MA Summary.xlsx', 2026 tab), read on the 7th of each month by builders/oo1_ma.py - scores only",
+    ("OO1", "KR3"): "Finance's management-account summary ('AA MA Summary.xlsx', 2026 tab), read on the 7th of each month by builders/oo1_ma.py - scores only",
+    ("OO1", "KR4"): "Finance's management-account summary ('AA MA Summary.xlsx', 2026 tab), read on the 7th of each month by builders/oo1_ma.py - scores only",
+    ("OO1", "KR5"): "Finance's management-account summary ('AA MA Summary.xlsx', 2026 tab), read on the 7th of each month by builders/oo1_ma.py - scores only",
     ("OO4", "KR1"): "the 'KR1: Zero service disruptions...' log tab on the Operations Input sheet, read by builders/refresh_okr_sources.py",
     ("OO4", "KR2"): "damage to the factory's broth and sauce lines in the GetCompliant issue forms (filed against the factory or Lynas, which carries them) - needs the 'GC Form Task Answers' feed, which is absent from this bake",
     ("OO4", "KR3"): "Ross chose Kobas (12/10/2026): supplier orders from the Kobas order emails, each paired with a goods-in on Kobas's deliveries report. The row is built every bake in builders/delivery_tracking.py and names its own blockers, so this placeholder is not shown",
@@ -609,9 +637,17 @@ def okr_mtd_variant(v, band, pull_month, n_days):
     Closed months, and months with no value, pass untouched. See
     OKR_MTD_MIN_DAYS and OKR_COUNT_BANDS for the two rules.
     """
+    # a variant may carry its own month-to-date reason (OO2 KR2's zero month,
+    # which a first repeat greys rather than breaches); it is never published
+    _mw = v.get("mtd_why")
+    if "mtd_why" in v:
+        v = {k: x for k, x in v.items() if k != "mtd_why"}
     if v.get("m", "") < pull_month or v.get("value") is None:
         return v
-    if band in OKR_COUNT_BANDS:
+    # A variant that is a COUNT whatever its band says (OO2 KR2's "0 repeat
+    # issues" month, Ross 15/10/2026) takes the count rule too: 0 so far can
+    # still become 1, so it is never green before the month closes.
+    if band in OKR_COUNT_BANDS or v.get("count_can_only_rise"):
         if v.get("score") == 0:
             _lim = OKR_BANDS[band][1][-1][0]
             return {**v, "mtd": False, "coverage_days": n_days,
@@ -620,7 +656,7 @@ def okr_mtd_variant(v, band, pull_month, n_days):
                               f"finish above 0" + (f" ({n_days} day{'' if n_days == 1 else 's'} "
                                                    "of data)" if n_days is not None else "")
                               + (f" - {v['basis']}" if v.get("basis") else ""))}
-        _why = "a count can only rise, so it is scored when the month closes unless it breaches first"
+        _why = _mw or "a count can only rise, so it is scored when the month closes unless it breaches first"
     else:
         if n_days is not None and n_days >= OKR_MTD_MIN_DAYS:
             return {**v, "coverage_days": n_days, "mtd": False}
@@ -713,15 +749,17 @@ OKR_OPERATIONS_OBJECTIVES = ("OO2", "OO3", "OO4", "OO5", "OO6")
 #: disagree about in a meeting.
 #:
 #: (objective, kr, text, owner, target, band)
-#: band None means the KR carries no band - OO1, which is read from the sheet
-#: already scored, and the OO6 rows nobody has defined a measure for yet.
+#: band None means the KR carries no band - the OO6 rows nobody has defined a
+#: measure for yet. (OO1 had none until 15/10/2026, when it was read already
+#: scored from the Operations Input sheet; it is now pass/fail on Finance's
+#: management account - see builders/oo1_ma.py.)
 OKR_SPEC = [
-    ("OO1", "KR1", "KR1: Actual W/R% (20%)", "Finance", "per sheet", None),
-    ("OO1", "KR2", "KR2: Actual FR% (35%)", "Finance", "per sheet", None),
-    ("OO1", "KR3", "KR3: Actual V/R% (13%)", "Finance", "per sheet", None),
-    ("OO1", "KR4", "KR4: Actual NP% (4-10%)", "Finance", "per sheet", None),
+    ("OO1", "KR1", "KR1: Actual W/R% (20%)", "Finance", "≤20% of sales", "oo1_wr"),
+    ("OO1", "KR2", "KR2: Actual FR% (35%)", "Finance", "≤35% of sales", "oo1_fr"),
+    ("OO1", "KR3", "KR3: Actual V/R% (13%)", "Finance", "≤13% of sales", "oo1_vr"),
+    ("OO1", "KR4", "KR4: Actual NP% (4-10%)", "Finance", "≥4% of sales", "oo1_np"),
     ("OO1", "KR5", "KR5: MA Completion by 7th of every month", "Finance",
-     "per sheet", None),
+     "complete by the 7th", "oo1_ma"),
 
     ("OO2", "KR1", "KR1: Complete ≥95% of planned preventative maintenance "
      "(PPM) tasks on time", "Operations", "≥95%", "pct95"),
@@ -781,16 +819,15 @@ OKR_SPEC = [
 # ---------------------------------------------------------------------------
 # THE OPERATIONS INPUT SHEET (Phase 1, 10/10/2026)
 # ---------------------------------------------------------------------------
-# Nine KRs are typed into Matthew's 2026 Operations Input sheet and exist
-# nowhere else. builders/refresh_okr_sources.py reads them into
+# Four KRs are typed into Matthew's 2026 Operations Input sheet and exist
+# nowhere else (OO1 was read from it too until Ross moved it to Finance's
+# management account, 15/10/2026 - see OO1_MA_FILE below). builders/refresh_okr_sources.py reads them into
 # data/ops_command/okr_sheet.json before every bake and records each attempt in
 # okr_sheet_status.json; okr_sheet_extra() below turns that file into month
 # variants. The rules, each of which is a house rule and not a preference:
 #   * A MONTH NOT ENTERED IS NOT SCORED - never a 0, which would score 100.
 #   * The month in progress is never scored on a typed figure unless a count
 #     is already past its last tolerance (the MTD rule, okr_mtd_variant).
-#   * OO1 is Finance's SCORES ONLY: no value and no display, ever, on any OO1
-#     row or month - MakiManc/ops is public and OO1 is Net Profit.
 #   * A copy read after a back-bake's date is not shown in it (no time
 #     travel): the file is current state only.
 #   * A failed pull keeps the last good copy, and every row it feeds says so.
@@ -798,9 +835,17 @@ OKR_SHEET_FILE = "okr_sheet.json"
 OKR_SHEET_STATUS_FILE = "okr_sheet_status.json"
 #: The sheet is the 2026 sheet: no month before this is one of its months.
 OKR_SHEET_FIRST_MONTH = "2026-01"
-#: The only values an OO1 cell may carry. Anything else is not a score.
+#: The scores the old Operations Input sheet's OO1 block could carry - only
+#: to recognise an old score-only series left in okr_sheet.json.
 OO1_SCORE_SET = frozenset({0, 50, 80, 100})
-#: Column headings that exist ONLY on the "2026 OKRs" tab's Finance blocks.
+#: The only scores an OO1 row or month may carry since 15/10/2026: pass/fail
+#: on Finance's management account (100 met, 0 missed).
+OO1_MA_SCORES = frozenset({0, 100})
+#: Column headings that exist ONLY on the "2026 OKRs" tab's Finance blocks,
+#: and (15/10/2026) the figure rows of Finance's management-account summary
+#: - its money and percentage lines, exactly as labelled there. The six input
+#: line names (Wages, Food costs, ...) are NOT here: the OO1 rows name a line
+#: that is not entered yet, and a name is not a figure.
 #: KEEP IDENTICAL to verify_ops_data.OO1_FORBIDDEN (tests/okr_sheet_test.py
 #: asserts it). The bake refuses to write a snapshot carrying one of these,
 #: because the verifier only runs after the push.
@@ -809,18 +854,15 @@ OO1_FORBIDDEN = ("Predicted W/R", "Predicted F/R", "Predicted VAR",
                  "KR 3- Predicted", "KR4 - Predicted",
                  "KR1 Variance", "KR2 Variance", "KR3 Variance",
                  "KR4 Variance", "KR1 Efficiency", "KR2 Efficiency",
-                 "KR3 Efficiency", "KR4 Efficiency")
+                 "KR3 Efficiency", "KR4 Efficiency",
+                 "Money In (£)", "Money Out (£)", "Net Profit (£)",
+                 "Net Profit (%)", "Balance (£)", "Wages %", "Rent %",
+                 "Food costs %", "Variable costs %", "Tax %")
 #: (objective, kr) -> (series key in okr_sheet.json, kind, what one unit is)
 #: kind: 'log' - a monthly count typed on its own log tab, banded in OKR_SPEC;
 #:       'pct' - OO4 KR4's Finance-entered % actioned, banded 'full' (Ross,
 #:               10/10/2026: "Raw % + band full");
-#:       'score' - an OO1 KR: Finance's own 0/50/80/100 score, carried as is.
 OKR_SHEET_KRS = {
-    ("OO1", "KR1"): ("oo1", "score", None),
-    ("OO1", "KR2"): ("oo1", "score", None),
-    ("OO1", "KR3"): ("oo1", "score", None),
-    ("OO1", "KR4"): ("oo1", "score", None),
-    ("OO1", "KR5"): ("oo1", "score", None),
     ("OO2", "KR3"): ("oo2_kr3", "log", "unplanned restaurant closure(s) due to maintenance failures"),
     ("OO3", "KR3"): ("oo3_kr3", "log", "menu item(s) unavailable due to supply failure"),
     ("OO4", "KR1"): ("oo4_kr1", "log", "service disruption(s) caused by logistics delays"),
@@ -828,19 +870,19 @@ OKR_SHEET_KRS = {
 }
 #: Where each series is read from, in the words a reader can find on the sheet.
 OKR_SHEET_WHERE = {
-    "oo1": "the '2026 Summary' tab",
     "oo2_kr3": "the 'Unplanned Restarant Closures' log tab",
     "oo3_kr3": "the 'KR3: Zero menu items unavailable...' log tab",
     "oo4_kr1": "the 'KR1: Zero service disruptions...' log tab",
     "oo4_kr4": "the Actual column of the credit-notes block on the '2026 OKRs' tab",
 }
 #: An objective whose percentage is never published, and why. OO1's KRs carry
-#: Finance's scores as chips; a mean of them printed as "n%" beside the label
+#: pass/fail scores as chips; a mean of them printed as "n%" beside the label
 #: "7% Net Profit" reads as a profit figure, so OO1 shows "n of 5 scored" only.
 OKR_PCT_WITHHELD = {
-    "OO1": ("no objective percentage is published for OO1: its KRs show Finance's "
-            "own 0-100 scores as chips only, so nothing beside '7% Net Profit' can be "
-            "read as a Finance figure. OO1 is excluded from the Operations % either way"),
+    "OO1": ("no objective percentage is published for OO1: its KRs show pass/fail "
+            "scores (100 met, 0 missed) from Finance's management account as chips only, "
+            "so nothing beside '7% Net Profit' can be read as a Finance figure. OO1 is "
+            "excluded from the Operations % either way"),
 }
 _OKR_MONTHS = ("January", "February", "March", "April", "May", "June", "July",
                "August", "September", "October", "November", "December")
@@ -911,22 +953,12 @@ def _okr_sheet_clean(doc):
             continue
         clean = {k: s.get(k) for k in ("tab", "pulled_at", "as_of", "carried_forward")}
         if key == "oo1":
-            krs = {}
-            _krs = s.get("krs")
-            for kr, ms in (_krs.items() if isinstance(_krs, dict) else []):
-                if kr not in ("KR1", "KR2", "KR3", "KR4", "KR5") or not isinstance(ms, dict):
-                    problems.append("oo1: an entry that is not KR1-KR5 with months - ignored")
-                    continue
-                krs[kr] = {}
-                for m, v in ms.items():
-                    if (_okr_is_month(m) and _fac_num(v) is not None
-                            and float(v).is_integer() and int(v) in OO1_SCORE_SET):
-                        krs[kr][m] = int(v)
-                    else:
-                        problems.append(f"OO1 {kr} {m if _okr_is_month(m) else '(bad month)'}: "
-                                        "not a 0/50/80/100 score - left unscored")
-            clean["krs"] = krs
-        elif key in ("oo2_kr3", "oo3_kr3", "oo4_kr1", "oo4_kr4"):
+            # left by the refresher before 15/10/2026; okr_sheet_leaks() has
+            # already refused any shape but the old score-only one
+            problems.append("oo1: an OO1 series from before 15/10/2026 - ignored (OO1 is "
+                            "read from Finance's management account now)")
+            continue
+        if key in ("oo2_kr3", "oo3_kr3", "oo4_kr1", "oo4_kr4"):
             ms_ = {}
             _ms = s.get("months")
             for m, v in (_ms.items() if isinstance(_ms, dict) else []):
@@ -945,59 +977,71 @@ def _okr_sheet_clean(doc):
     return {"pulled_at": doc.get("pulled_at"), "series": series}, None, problems
 
 
+def _oo1_forbidden_in(raw):
+    """The OO1_FORBIDDEN names in a JSON text, read as written AND decoded:
+    json.dumps escapes '£' as \\u00a3, so the raw text alone never matches
+    'Money In (£)' (review, 15/10/2026)."""
+    texts = [raw]
+    try:
+        texts.append(json.dumps(json.loads(raw, parse_constant=_fac_reject_constant),
+                                ensure_ascii=False))
+    except (ValueError, TypeError, RecursionError):
+        pass
+    return [n for n in OO1_FORBIDDEN if any(n in t for t in texts)]
+
+
+def _okr_old_oo1_ok(s):
+    """Whether an okr_sheet.json 'oo1' series is exactly the shape the
+    refresher wrote before 15/10/2026: KR1-KR5 -> month -> a 0/50/80/100
+    score, with its tab, gid, rows and stamps. That was publishable then and
+    is ignored now; any other shape could carry a Finance figure."""
+    if not isinstance(s, dict) or not set(s) <= {"tab", "gid", "pulled_at", "rows", "krs",
+                                                 "as_of", "carried_forward"}:
+        return False
+    for k in ("tab", "pulled_at", "as_of"):
+        v = s.get(k)
+        if v is not None and not (isinstance(v, str) and len(v) <= 40
+                                  and not oo1_ma.figure_in(v)):
+            return False
+    if not (s.get("gid") is None or (type(s["gid"]) is int and s["gid"] >= 0)):
+        return False
+    rows = s.get("rows")
+    if not (rows is None or (isinstance(rows, list) and len(rows) <= 2
+                             and all(type(x) is int and x > 0 for x in rows))):
+        return False
+    if s.get("carried_forward") not in (None, True, False):
+        return False
+    krs = s.get("krs")
+    if not isinstance(krs, dict) or not set(krs) <= {f"KR{i}" for i in range(1, 6)}:
+        return False
+    return all(isinstance(ms, dict) and all(
+        _okr_is_month(m) and type(v) is int and v in OO1_SCORE_SET for m, v in ms.items())
+        for ms in krs.values())
+
+
 def okr_sheet_leaks(raw):
     """Reasons the okr_sheet.json TEXT must not be published, or [].
 
     The file is committed to the PUBLIC repo on the same push as the snapshot,
     and the verifier runs only after that push - so the bake refuses to run
     (and the push never happens) when the file carries a Finance column name
-    or an OO1 entry that is not a score. Names only, never values.
+    or an OO1 series that is not the old score-only shape. Names only, never
+    values.
     """
     if not raw:
         return []
-    out = [f"Finance column name {n!r}" for n in OO1_FORBIDDEN if n in raw]
+    out = [f"Finance column name {n!r}" for n in _oo1_forbidden_in(raw)]
     try:
         doc = json.loads(raw, parse_constant=_fac_reject_constant)
     except ValueError:
         return out
     series = doc.get("series") if isinstance(doc, dict) else None
-    oo1 = series.get("oo1") if isinstance(series, dict) else None
-    if oo1 is None:
-        return out
-    # OO1 must be in the score-only shape and nothing else: any other field,
-    # or a number anywhere but a KR's month score, could be a Finance figure.
-    if not isinstance(oo1, dict):
-        return out + ["OO1 is not in the score-only shape"]
-    for k, v in oo1.items():
-        if k == "krs":
-            if not isinstance(v, dict):
-                out.append("OO1 krs is not in the score-only shape")
-                continue
-            for kr, ms in v.items():
-                krn = kr if kr in ("KR1", "KR2", "KR3", "KR4", "KR5") else "(a key that is not KR1-KR5)"
-                if not isinstance(ms, dict):
-                    out.append(f"OO1 {krn} is not in the score-only shape")
-                    continue
-                for m, x in ms.items():
-                    if not (_fac_num(x) is not None and float(x).is_integer()
-                            and int(x) in OO1_SCORE_SET):
-                        out.append(f"OO1 {krn} {m if _okr_is_month(m) else '(a key that is not a month)'}"
-                                   " is not a 0/50/80/100 score")
-        elif k in ("tab", "pulled_at", "as_of"):
-            if v is not None and (not isinstance(v, str) or "%" in v):
-                out.append(f"OO1 {k} is not plain text")
-        elif k == "carried_forward":
-            if not isinstance(v, bool):
-                out.append("OO1 carried_forward is not true/false")
-        elif k == "gid":
-            if not (isinstance(v, int) and not isinstance(v, bool)):
-                out.append("OO1 gid is not a whole number")
-        elif k == "rows":
-            if not (isinstance(v, list) and all(isinstance(r, int) and not isinstance(r, bool)
-                                                for r in v)):
-                out.append("OO1 rows is not a list of row numbers")
-        else:
-            out.append("OO1 carries a field the score-only shape does not have")
+    if isinstance(series, dict) and "oo1" in series and not _okr_old_oo1_ok(series["oo1"]):
+        # OO1 is no longer read from this sheet (Ross, 15/10/2026: Finance's
+        # management account replaces it), so an OO1 series of any new shape
+        # is a regression in refresh_okr_sources.py - and could be a figure.
+        out.append("an OO1 series that is not the old score-only shape - OO1 is no longer "
+                   "read from the Operations Input sheet (Ross, 15/10/2026)")
     return out
 
 
@@ -1031,7 +1075,7 @@ def okr_sheet_cause(status):
 
 
 def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today=None):
-    """The nine sheet-fed KRs as scorecard `_okr_extra` entries.
+    """The four sheet-fed KRs as scorecard `_okr_extra` entries.
 
     -> ({(objective, kr): entry}, [gap]). An entry is either
          {"months": [variant, ...], "source_kind": ..., "tab": "—"}
@@ -1048,7 +1092,7 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
     missing_causes = (status or {}).get("series_missing") or {}
     if not isinstance(missing_causes, dict):
         missing_causes = {}
-    all_ids = "OO1 KR1-KR5, OO2 KR3, OO3 KR3, OO4 KR1 and OO4 KR4"
+    all_ids = "OO2 KR3, OO3 KR3, OO4 KR1 and OO4 KR4"
     if doc is None:
         if err and err != "absent":
             why = (f"data/ops_command/{OKR_SHEET_FILE} is {err}, so the KRs typed into "
@@ -1080,7 +1124,7 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
     for rid, (key, kind, noun) in OKR_SHEET_KRS.items():
         s = series.get(key)
         where = OKR_SHEET_WHERE[key]
-        if not s or (kind == "score" and rid[1] not in (s.get("krs") or {})):
+        if not s:
             c = missing_causes.get(key)
             why = (f"{where} of the 2026 Operations Input sheet has not been read"
                    + (f" ({c})" if c else "") + (f" - {fail}" if fail else ""))
@@ -1109,7 +1153,7 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
         stale_note = (f" NOTE: this is the copy read on {sp} - " + (fail or
                       "this series could not be read on the latest pull")
                       + ".") if stale else ""
-        vals = (s.get("krs") or {}).get(rid[1], {}) if kind == "score" else (s.get("months") or {})
+        vals = s.get("months") or {}
         band = next(b for o, k, _t, _w, _tg, b in OKR_SPEC if (o, k) == rid)
         # WHEN THE COPY WAS READ decides what it can say about a month (review,
         # 10/10/2026). A month that began after the read is simply not in it.
@@ -1144,10 +1188,8 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
                 elif m == pull_month:
                     months.append({**base, "mtd": True, "coverage_days": None, "basis": (
                         f"month-to-date, not yet scored - nothing is entered for {lbl} in {where} "
-                        "of the 2026 Operations Input sheet yet"
-                        + (". Finance scores a month after it closes" if kind == "score"
-                           else ". It is typed in by hand, usually after the month closes")
-                        + "." + stale_note)})
+                        "of the 2026 Operations Input sheet yet. It is typed in by hand, usually "
+                        "after the month closes." + stale_note)})
                     continue
                 else:
                     why = (f"not entered for {lbl} in {where} of the 2026 Operations Input "
@@ -1155,25 +1197,6 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
                            "read as a zero")
                     not_entered.setdefault(rid, []).append(m)
                 months.append({**base, "not_measured": why})
-                continue
-            if kind == "score" and part:
-                months.append({**base, "not_measured": (
-                    f"Finance's score for {lbl} is not counted: " + part_why % lbl
-                    + " - a short month is not scored")})
-                continue
-            if kind == "score":
-                if m >= pull_month:
-                    months.append({**base, "mtd": True, "coverage_days": None, "basis": (
-                        f"month in progress - Finance's score for {lbl} is counted once the "
-                        "month closes; a short month is not scored. Score only: the figure "
-                        "behind it is Finance's and is not published here (public "
-                        "repository)." + stale_note)})
-                    continue
-                months.append({**base, "score": v, "rag": OKR_RAG.get(v), "basis": (
-                    f"Finance's score for {lbl}: {v} of 100, from {where} of the 2026 "
-                    f"Operations Input sheet (read {sp}). Score only - the figure Finance "
-                    "scores is not published here, because this repository is public."
-                    + stale_note)})
                 continue
             sc_ = okr_score(band, v)
             if kind == "pct":
@@ -1218,18 +1241,22 @@ def okr_oo1_guard(snap):
     """The bake's own OO1 check, run on the finished snapshot before it is written.
 
     -> (nulled, leaked). `nulled` names every OO1 row or month that carried a
-    value, a display, or a score outside OO1_SCORE_SET - those fields are set
-    to None in place. `leaked` names any OO1_FORBIDDEN column name found
-    anywhere in the snapshot; the caller refuses to write it. Names only.
+    value, a display, or a score other than 0 or 100 - those fields are set to
+    None in place. `leaked` names any OO1_FORBIDDEN name found anywhere in the
+    snapshot (read decoded, so a '£' counts), and any OO1 row, month or gap
+    whose text carries a figure (oo1_ma.figure_in); the caller refuses to
+    write it. Names only, never the text.
     """
-    nulled = []
+    nulled, figures = [], []
     for r in ((snap.get("scorecard") or {}).get("rows") or []):
         if r.get("objective") != "OO1":
             continue
         for x, tag in [(r, r.get("kr"))] + [(v, f"{r.get('kr')} {v.get('m')}")
-                                             for v in (r.get("months") or [])]:
+                                             for v in (r.get("months") or [])
+                                             if isinstance(v, dict)]:
             bad = x.get("value") is not None or x.get("display") is not None
-            if x.get("score") is not None and x.get("score") not in OO1_SCORE_SET:
+            if x.get("score") is not None and not (type(x["score"]) is int
+                                                   and x["score"] in OO1_MA_SCORES):
                 bad = True
                 x["score"] = None
                 x["rag"] = None
@@ -1237,8 +1264,352 @@ def okr_oo1_guard(snap):
                 x["value"] = None
                 x["display"] = None
                 nulled.append(f"OO1 {tag}")
-    blob = json.dumps(snap)
-    return nulled, [n for n in OO1_FORBIDDEN if n in blob]
+            if any(oo1_ma.figure_in(x.get(k)) for k in ("basis", "not_measured", "target")):
+                figures.append(f"a figure in the text of OO1 {tag}")
+    for i, g in enumerate(snap.get("gaps") or []):
+        if str(g).startswith("OO1") and oo1_ma.figure_in(g):
+            figures.append(f"a figure in OO1 gap #{i + 1}")
+    blob = json.dumps(snap, ensure_ascii=False)
+    return nulled, [n for n in OO1_FORBIDDEN if n in blob] + figures
+
+
+# ---------------------------------------------------------------------------
+# OO1 FROM FINANCE'S MANAGEMENT ACCOUNT (Ross, 15/10/2026)
+# ---------------------------------------------------------------------------
+# builders/oo1_ma.py reads Finance's 'AA MA Summary.xlsx' on the 7th of each
+# month (inside the private repo's bake) and writes data/ops_command/oo1_ma.json:
+# per ended month and KR, met/missed and the score - pass/fail on the KR's own
+# target (OKR_BANDS oo1_*) - and per month whether Finance's six lines were all
+# entered, which is KR5. NEVER A FIGURE: oo1_ma.doc_problems() refuses any
+# other shape, here as in the pull and the verifier. The rows stay score-only
+# (no value, no display), OO1 shows no objective percentage, and it is
+# excluded from the Operations % - all exactly as before the source changed.
+OO1_MA_FILE = oo1_ma.MA_FILE
+OO1_MA_STATUS_FILE = oo1_ma.MA_STATUS_FILE
+#: What each KR's verdict says, met and missed: the target, never the figure.
+OO1_MA_WORDS = {
+    "KR1": ("wages were 20% of sales or less", "wages were more than 20% of sales"),
+    "KR2": ("food costs were 35% of sales or less", "food costs were more than 35% of sales"),
+    "KR3": ("variable costs were 13% of sales or less",
+            "variable costs were more than 13% of sales"),
+    "KR4": ("net profit was 4% of sales or more", "net profit was less than 4% of sales"),
+}
+_OO1_SCORE_ONLY = ("Score only: the figure is Finance's and is not published here, "
+                   "because this repository is public")
+#: A month the reader can never judge: it reads only the MA_YEAR tab (review,
+#: 15/10/2026 - the bake runs into the next year to decide December's KR5).
+_OO1_OTHER_YEAR = ("{lbl} is not on the " + oo1_ma.MA_YEAR + " tab of Finance's "
+                   "management-account summary, the only tab OO1 is read from - not scored")
+
+
+def load_oo1_ma(out_dir):
+    """(doc, err, problems) for oo1_ma.json. Never raises.
+
+    err 'absent' when no pull has written the file. A file that fails
+    oo1_ma.doc_problems(), or carries an OO1_FORBIDDEN name, is NOT used and
+    its problems are returned - by field, never by value - for the caller to
+    refuse the bake on (the push that follows would publish it).
+    """
+    path = os.path.join(out_dir, OO1_MA_FILE)
+    try:
+        with open(path, encoding="utf-8") as fh_:
+            raw = fh_.read()
+    except FileNotFoundError:
+        return None, "absent", []
+    except OSError as e:
+        return None, f"unreadable ({type(e).__name__})", []
+    leaked = [f"Finance figure name {n!r}" for n in _oo1_forbidden_in(raw)]
+    try:
+        doc = json.loads(raw, parse_constant=_fac_reject_constant)
+    except ValueError as e:
+        return None, f"unreadable ({type(e).__name__})", leaked
+    probs = oo1_ma.doc_problems(doc) + leaked
+    return (None, "refused", probs) if probs else (doc, None, [])
+
+
+def load_oo1_ma_status(out_dir):
+    """oo1_ma.py's record of its last attempt, or None."""
+    try:
+        with open(os.path.join(out_dir, OO1_MA_STATUS_FILE), encoding="utf-8") as fh_:
+            st = json.load(fh_)
+        return st if isinstance(st, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def _oo1_when(stamp):
+    """'2026-11-07T15:02+00:00' -> '07/11/2026 15:02' (UK time, as pulled)."""
+    s_ = str(stamp or "")
+    return f"{s_[8:10]}/{s_[5:7]}/{s_[:4]}" + (f" {s_[11:16]}" if len(s_) >= 16 else "")
+
+
+def oo1_ma_cause(status):
+    """One clause naming why the latest read failed, or None. Fixed texts only."""
+    if not status or status.get("ok") is not False:
+        return None
+    c = str(status.get("cause") or "")
+    det = oo1_ma.CAUSE_TEXT.get(c) or "cause not recorded"
+    since = str(status.get("failing_since") or "")
+    at = str(status.get("attempted_at") or "")
+    return (f"the latest read of Finance's management account ({_oo1_when(at)} UK) "
+            f"failed: {det}" + (f" (failing since {_oo1_when(since)[:10]})"
+                                if since and since[:10] != at[:10] else ""))
+
+
+def _oo1_status_at(pulls):
+    """oo1_ma_status.json as it stood after the last of `pulls`: None when that
+    read succeeded (or there is none), else its cause, stamp and the first of
+    the failures since the last good read. Fixed codes and stamps only."""
+    ps = sorted((p for p in pulls if isinstance(p, dict) and oo1_ma._stamp(p.get("pulled_at"))),
+                key=lambda p: p["pulled_at"])
+    if not ps or ps[-1].get("ok"):
+        return None
+    since = ps[-1]["pulled_at"]
+    for p in reversed(ps):
+        if p.get("ok"):
+            break
+        since = p["pulled_at"]
+    return {"ok": False, "cause": ps[-1].get("cause"), "attempted_at": ps[-1]["pulled_at"],
+            "failing_since": since}
+
+
+def oo1_ma_extra(doc, err, status, pull_month, today, dated=None):
+    """OO1 KR1-KR5 as scorecard `_okr_extra` entries, and gaps.
+
+    today   'YYYY-MM-DD', the bake's own date (KR5's deadline is a date)
+    dated   a back-bake's date: a month or verdict read after it is withheld
+            (no time travel - the file is the latest state, not a history)
+    Every variant is score-only (value and display None) and pre-scored; a
+    month not read, not entered or not yet due is an explicit not_measured
+    variant, never a 0. With no good read at all, the rows are grey with the
+    blocker and carry no months (so the picker offers none for them).
+    """
+    gaps, extra = [], {}
+    rids = [("OO1", f"KR{i}") for i in range(1, 6)]
+    t = datetime.date.fromisoformat(str(today)[:10])
+    pulls = [p for p in ((doc or {}).get("pulls") or [])
+             if not dated or str(p.get("pull_date") or "") <= dated]
+    if dated:
+        # the status file is the latest attempt only; a back-bake takes the
+        # state of the reads as of its date from the stored pulls (review,
+        # 15/10/2026), so a failing run is named there too
+        status = _oo1_status_at(pulls)
+    fail = oo1_ma_cause(status)
+    oks = sorted(str(p["pull_date"]) for p in pulls if p.get("ok"))
+    # the read due: the latest 7th on or before today - after a missed or
+    # failed one, even once the month has turned (review, 15/10/2026)
+    last7 = oo1_ma.last_seventh(t)
+    due_now = not any(d_ >= last7.isoformat() for d_ in oks)
+    kr5_all = (doc or {}).get("kr5") or {}
+
+    def _seen(stamp):
+        return bool(stamp) and (not dated or str(stamp)[:10] <= dated)
+
+    def _kr5_visible(m):
+        """(verdict as this bake may show it, withheld?). A back-bake sees a
+        verdict only if it was reached by its date; a final verdict reached
+        later shows as the deadline-day state it came from, if that was."""
+        v = kr5_all.get(m)
+        if not isinstance(v, dict):
+            return None, False
+        if _seen(v.get("judged_at")):
+            return v, False
+        if v.get("provisional_at") and _seen(v["provisional_at"]):
+            return {"score": 0, "final": False, "judged_at": v["provisional_at"],
+                    "missing": v["provisional_missing"]}, False
+        return v, True
+
+    # a deadline-day blank waits for the read that decides it, and oo1_ma.due()
+    # reads on every bake until then (review, 15/10/2026)
+    awaiting = sorted(m for m in kr5_all
+                      if isinstance(m, str) and oo1_ma._MONTH_RE.fullmatch(m)
+                      and not _kr5_visible(m)[1]
+                      and oo1_ma.kr5_awaiting(_kr5_visible(m)[0], m, t))
+    # when the next read is - never a date already past
+    if due_now or awaiting:
+        nxt_s = ("the next bake" + (f" (the read due {_fac_dmy(last7.isoformat())} has not "
+                                    "happened)" if due_now else ""))
+    else:
+        nxt_s = _fac_dmy((last7.replace(day=1) + datetime.timedelta(days=32)).replace(
+            day=oo1_ma.MA_DEADLINE_DAY).isoformat())
+    rule = ("pass/fail on the KR's own target (Ross, 15/10/2026: 100 met, 0 missed), "
+            f"from {oo1_ma.MA_SOURCE}, read on the 7th of each month")
+    first_ok = oks[0] if oks else None
+    if doc is None or first_ok is None:
+        if doc is None and err and err not in ("absent",):
+            why = (f"data/ops_command/{OO1_MA_FILE} is {err}, so OO1 cannot be shown")
+        else:
+            why = ("Finance's management account has not been read yet - OO1 is " + rule
+                   + "; " + (fail or f"the first read is {nxt_s}"))
+        for rid in rids:
+            extra[rid] = {"months": None, "source_kind": "not_measured",
+                          "not_measured": why, "tab": "—"}
+        gaps.append(f"OO1 KR1-KR5 are grey: {why}")
+        return extra, gaps
+    months_doc = doc.get("months") or {}
+
+    def _unread(m, lbl, e):
+        dl = oo1_ma.deadline(m)
+        if e and e.get("pulled_at") and not _seen(e.get("pulled_at")):
+            # a later read replaced this month's record (only the latest is
+            # kept), so a back-bake cannot show it (review, 15/10/2026)
+            return (f"{lbl} was last read on {_oo1_when(e['pulled_at'])}, after this "
+                    "snapshot's date; only the latest read is kept, so it is withheld here")
+        if t < dl and first_ok < dl.isoformat():
+            return (f"{lbl}'s account is read on {_fac_dmy(dl.isoformat())}, the 7th after "
+                    "the month ends")
+        return (f"{lbl} has not been read since it ended (due {_fac_dmy(dl.isoformat())})"
+                + (f" - {fail}" if fail else f" - the next read is {nxt_s}"))
+
+    for i in range(1, 5):
+        kr = f"KR{i}"
+        months = []
+        for m in _okr_month_range(OKR_SHEET_FIRST_MONTH, pull_month):
+            lbl = _okr_mlabel(m)
+            base = {"m": m, "label": lbl, "value": None, "display": None, "score": None,
+                    "rag": None, "basis": None, "trend": None, "trend_unit": None,
+                    "trend_note": None, "not_measured": None}
+            if m[:4] != oo1_ma.MA_YEAR:
+                months.append({**base, "not_measured": _OO1_OTHER_YEAR.format(lbl=lbl)})
+                continue
+            if m >= pull_month:
+                months.append({**base, "mtd": True, "coverage_days": None, "basis": (
+                    f"month in progress - Finance's management account for {lbl} is read on "
+                    f"{_fac_dmy(oo1_ma.deadline(m).isoformat())}, after the month closes. "
+                    + _OO1_SCORE_ONLY + ".")})
+                continue
+            e = months_doc.get(m) or {}
+            v = e.get(kr) if _seen(e.get("pulled_at")) else None
+            if v is None:
+                months.append({**base, "not_measured": _unread(m, lbl, e)})
+                continue
+            when = _oo1_when(e["pulled_at"])
+            if "score" in v:
+                sc_ = v["score"]
+                months.append({**base, "score": sc_, "rag": OKR_RAG.get(sc_), "basis": (
+                    f"{OO1_MA_WORDS[kr][0 if v['met'] else 1]} in {lbl}, in {oo1_ma.MA_SOURCE} "
+                    f"as read on {when} - {rule}. {_OO1_SCORE_ONLY}"
+                    + ("" if v.get("checked") else
+                       ". Finance's own percentage cell for the month could not be read, so "
+                       "the cross-check against it was skipped") + ".")})
+            elif "not_entered" in v:
+                months.append({**base, "not_measured": (
+                    f"{', '.join(v['not_entered'])} not entered for {lbl} in "
+                    f"{oo1_ma.MA_SOURCE} when it was read on {when} - a line left blank is "
+                    "not scored, never read as 0")})
+            elif "unreadable" in v:
+                months.append({**base, "not_measured": (
+                    f"{', '.join(v['unreadable'])} for {lbl} cannot be read as a typed figure "
+                    f"in {oo1_ma.MA_SOURCE} (read {when}): it holds text, an error, or a "
+                    "formula showing 0 or nothing - so it is not scored")})
+            else:
+                months.append({**base, "not_measured": (
+                    f"{v['not_measured']} ({lbl}, read {when})")})
+        extra[("OO1", kr)] = {"months": months, "tab": "—", "source_kind": "ma_summary"}
+
+    months = []
+    for m in _okr_month_range(OKR_SHEET_FIRST_MONTH, pull_month):
+        lbl = _okr_mlabel(m)
+        dl = oo1_ma.deadline(m)
+        dl_s = _fac_dmy(dl.isoformat())
+        base = {"m": m, "label": lbl, "value": None, "display": None, "score": None,
+                "rag": None, "basis": None, "trend": None, "trend_unit": None,
+                "trend_note": None, "not_measured": None}
+        if m[:4] != oo1_ma.MA_YEAR:
+            months.append({**base, "not_measured": _OO1_OTHER_YEAR.format(lbl=lbl)})
+            continue
+        if m >= pull_month:
+            months.append({**base, "mtd": True, "coverage_days": None, "basis": (
+                f"month in progress - KR5 asks for {lbl}'s management account to be complete "
+                f"by {dl_s}; it is judged when the account is read that day.")})
+            continue
+        v, withheld = _kr5_visible(m)
+        e = months_doc.get(m) or {}
+        e_seen = bool(e) and _seen(e.get("pulled_at"))
+        if withheld:
+            months.append({**base, "not_measured": (
+                f"judged on {_oo1_when(v['judged_at'])}, after this snapshot's date, so it is "
+                "withheld here")})
+        elif v and "not_judged" in v:
+            # decided for good by the first read after the deadline (merge)
+            if v["not_judged"] == "late":
+                lb = v["last_before"]
+                why_ = (f"not judged: {lbl} was not complete when read on {_oo1_when(lb)}"
+                        + (" (the deadline day)" if lb[:10] == dl.isoformat() else "")
+                        + f", and the first read after its deadline, on {_oo1_when(v['judged_at'])}, "
+                        "found no line that had been blank in every read - Finance may have "
+                        "finished it in between, so whether it was complete by the 7th is not "
+                        "known, and it is not scored")
+            else:
+                why_ = (f"not judged: the first read of {lbl} after it ended was on "
+                        f"{_oo1_when(v['judged_at'])}, after its deadline ({dl_s}), and no line "
+                        "was blank then - whether it was complete by the 7th is not known, so "
+                        "it is not scored")
+            months.append({**base, "not_measured": why_})
+        elif v and v["score"] == 100:
+            months.append({**base, "score": 100, "rag": OKR_RAG.get(100), "basis": (
+                f"complete by the 7th: all six of Finance's lines for {lbl} were entered in "
+                f"{oo1_ma.MA_SOURCE} when it was read on {_oo1_when(v['judged_at'])} "
+                f"(deadline {dl_s}) - {rule}.")})
+        elif v and v["final"]:
+            # earlier reads of this month (after it ended) - else it was the first
+            earlier = v.get("provisional_at") or any(
+                p.get("ok") and str(p.get("pull_date") or "")[:7] > m
+                and str(p.get("pulled_at") or "") < v["judged_at"] for p in pulls)
+            months.append({**base, "score": 0, "rag": OKR_RAG.get(0), "basis": (
+                f"not complete by the 7th: {', '.join(v['missing'])} still not entered for "
+                f"{lbl} when {oo1_ma.MA_SOURCE} was read on {_oo1_when(v['judged_at'])} "
+                f"(deadline {dl_s}), "
+                + ("and blank in every read of it before" if earlier
+                   else "the first read of it since it ended")
+                + (f", as on the deadline day ({_oo1_when(v['provisional_at'])})"
+                   if v.get("provisional_at") else "") + f" - {rule}.")})
+        elif v:
+            # a closed month not decided yet: grey with what it waits for,
+            # never an MTD month (review, 15/10/2026)
+            months.append({**base, "not_measured": (
+                f"not judged yet: {', '.join(v['missing']) or 'a line'} not entered for {lbl} "
+                f"when read on {_oo1_when(v['judged_at'])}, the deadline day - "
+                + ("the first read after the 7th decides it: a line blank in every read until "
+                   "then is a 0; otherwise it proves nothing either way (Finance may have "
+                   "finished on the 7th itself) - " + (fail if fail else "the next bake reads")
+                   if t > dl else "a later read today can still find it complete"))})
+        elif t < dl:
+            months.append({**base, "not_measured": (
+                f"due by {dl_s} - KR5 is judged when Finance's management account is read "
+                "that day")})
+        elif t == dl:
+            today_read = e_seen and str(e.get("pulled_at"))[:10] == dl.isoformat()
+            if today_read and e.get("unreadable"):
+                why_ = (f"not complete when read today ({_oo1_when(e['pulled_at'])}): "
+                        f"{', '.join(e['unreadable'])} cannot be read as a typed figure (text, "
+                        "an error, or a formula showing 0 or nothing) - a later read today can "
+                        "still find it complete")
+            else:
+                why_ = (f"due today ({dl_s}) - KR5 is judged when Finance's management account "
+                        "is read today" + (f"; {fail}" if fail else ""))
+            months.append({**base, "not_measured": why_})
+        else:
+            # past the deadline and not decided: no read after it has succeeded
+            months.append({**base, "not_measured": (
+                "not judged yet: "
+                + (f"{lbl} was not complete when last read ({_oo1_when(e['pulled_at'])})"
+                   if e_seen else f"{lbl} has not been read since it ended")
+                + f"; the first read after its deadline ({dl_s}) decides it - "
+                + (fail if fail else f"the next read is {nxt_s}"))})
+    extra[("OO1", "KR5")] = {"months": months, "tab": "—", "source_kind": "ma_summary"}
+
+    # one gap, only while it matters: a read is due and has not happened (a
+    # failed retry after a good read on the 7th is not news)
+    if due_now and t > last7 or (due_now and fail):
+        gaps.append(f"OO1: the read of Finance's management account due "
+                    f"{_fac_dmy(last7.isoformat())} has not happened; the last good read was "
+                    f"{_fac_dmy(oks[-1])}" + (f" - {fail}" if fail else " - the next bake reads"))
+    elif awaiting:
+        gaps.append("OO1 KR5: " + ", ".join(_okr_mlabel(m) for m in awaiting)
+                    + " waits for a read after its deadline to decide it"
+                    + (f" - {fail}" if fail else " - the next bake reads"))
+    return extra, gaps
 
 
 # ---------------------------------------------------------------------------
@@ -1785,6 +2156,10 @@ def deep_pull_due(today, last_clean):
 FACILITIES_FAULT_LOG_START = "2026-09"
 #: The KR2 baseline Ross set on 17/09/2026: the mean of these three months.
 FACILITIES_KR2_BASELINE = ("2026-06", "2026-07", "2026-08")
+#: Ross, 15/10/2026, verbatim: "if there is 0 repeat maintenance issues then
+#: it flags as green 100%" - see facilities_block's _k2_zero.
+FACILITIES_KR2_ZERO_RULE = ("a month with 0 repeat issues scores 100, green "
+                            "(Ross, 15/10/2026)")
 #: The app started logging PPM completions against a due date on this day;
 #: everything earlier is a backfilled certificate with no on-time flag.
 FACILITIES_KR1_START = "25 Sep 2026"
@@ -2162,11 +2537,30 @@ def facilities_reading(feed, copy_name):
     if any(grp[k] is None for k in ("tasks", "current", "due30")):
         return None
     gt = g.get(FACILITIES_GREASE_KEY)
+    # OO2 KR2's counts (review, 15/10/2026): the app sends a rolling six months,
+    # so a closed month's 0 is kept here to be judged again when the feed no
+    # longer lists it. Counts and re-report dates only - no site, asset or
+    # contractor name (the pairs keep only their 'second' date).
+    k2 = feed.get("kr2_repeat_issues")
+    kr2 = None
+    if isinstance(k2, dict) and isinstance(k2.get("months"), list):
+        kr2 = {"rule": k2.get("rule") if isinstance(k2.get("rule"), str) else None,
+               "chasers": _fac_num(k2.get("chasers")),
+               "months": [{"month": m["month"],
+                           **{k: _fac_kr2_scalar(m.get(k)) for k in ("repeats", "sites", "per_site")}}
+                          for m in k2["months"]
+                          if isinstance(m, dict) and isinstance(m.get("month"), str)
+                          and _FAC_YM.fullmatch(m["month"])],
+               "pairs": [{"second": _fac_kr2_date(p.get("second"))}
+                         for p in _fac_list(k2.get("pairs")) if isinstance(p, dict)],
+               "by_site": [{"repeats": _fac_kr2_scalar(b.get("repeats"))}
+                           for b in _fac_list(k2.get("by_site")) if isinstance(b, dict)]}
     return {"as_of": as_of, "pulled_at": pulled, "pulled_by": feed.get("pulled_by"),
             "copy": copy_name, "generated_at": feed.get("generated_at"), "group": grp,
             FACILITIES_GREASE_KEY: ({k: gt.get(k) for k in FACILITIES_GROUP_COUNTS}
                                     if isinstance(gt, dict)
-                                    else None if gt is None else "not an object")}
+                                    else None if gt is None else "not an object"),
+            "kr2": kr2}
 
 
 def _fac_read_lines(path):
@@ -2390,6 +2784,407 @@ def facilities_months(kr, open_variant, readings, fails, pull_month, today,
         else:
             out.append({"m": m, **ov})
         m = _fac_next_month(m)
+    return out
+
+
+#: The app's repeat rule looks back this many days ("second fault report on the
+#: same asset at the same site within 60 days"); taken from the rule's own text
+#: when it names a number of days.
+FACILITIES_KR2_LOOKBACK_DAYS = 60
+
+
+def _fac_kr2_scalar(x):
+    """A count as stored in the readings history: the number, None when the
+    app sent none, else 'invalid' - so a malformed count still fails the guards
+    when read back, and no free text the app put there is stored (the history
+    is public)."""
+    if x is None:
+        return None
+    n = _fac_num(x)
+    return n if n is not None else "invalid"
+
+
+def _fac_kr2_date(x):
+    """A pair's re-report date as stored: None/'' as sent, an ISO date (its
+    first 10 characters), else 'invalid' - the same verdict as the live copy."""
+    if x in (None, ""):
+        return x
+    if isinstance(x, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", x[:10]):
+        return x[:10]
+    return "invalid"
+
+
+_FAC_YM = re.compile(r"20\d\d-(0[1-9]|1[0-2])")
+
+
+def fac_kr2_row(k2, as_of, pulled, today, fault_log_start=FACILITIES_FAULT_LOG_START,
+                label="data/ops_command/" + FACILITIES_FILE):
+    """OO2 KR2's row - its head and month variants - from ONE copy's
+    kr2_repeat_issues block.
+
+    k2       the block: the live feed's, or a stored reading's 'kr2'
+    as_of    that copy's own as_of - the app's reading date. A closed month is
+             FINAL only when this is after it ended; it is never the pull date
+             (event dates, not pull dates - review, 15/10/2026)
+    pulled   that copy's pull date (a datetime.date) or None - unused for
+             finality, kept for the caller's wording
+    today    the bake's own date (a datetime.date): the month it is in is the
+             open month
+
+    A logged month with 0 repeats scores 100 by Ross's rule (OKR_BAND_RULES,
+    15/10/2026) - but only when nothing in the copy says otherwise: every one
+    of the guards below greys the month and names why, because a 0 the app's
+    own lists contradict is a blank, not a result.
+    """
+    _listed = [m for m in _fac_list(k2.get("months"))
+               if isinstance(m, dict) and isinstance(m.get("month"), str)]
+    # only a YYYY-MM month is a month; any other key is named, never parsed
+    # (round-2 review, 15/10/2026: '2026-10 ' raised and greyed the whole tab)
+    months_all = [m for m in _listed if _FAC_YM.fullmatch(m["month"])]
+    _odd = [m["month"] for m in _listed if not _FAC_YM.fullmatch(m["month"])]
+    odd_s = (f" The feed also lists {len(_odd)} month key(s) that are not YYYY-MM "
+             f"({', '.join(repr(x[:12]) for x in _odd[:3])}"
+             + (f" and {len(_odd) - 3} more" if len(_odd) > 3 else "")
+             + "), not read." if _odd else "")
+    rule = k2.get("rule") if isinstance(k2.get("rule"), str) else None
+    chasers = _fac_num(k2.get("chasers"))
+    # A month listed twice: copies with the same counts are one month; copies
+    # whose counts differ are a contradiction, not quoted (review, 15/10/2026 -
+    # the first copy used to win the roll-up while the second said otherwise).
+    # Compared on the counts only, as the history stores them, so the live copy
+    # and a stored reading judge the same data the same way (round 2).
+    copies = collections.defaultdict(list)
+    for m in months_all:
+        copies[m["month"]].append(json.dumps(
+            {k: _fac_kr2_scalar(m.get(k)) for k in ("repeats", "sites", "per_site")},
+            sort_keys=True))
+    dup = {ym: len(c) for ym, c in copies.items() if len(set(c)) > 1}
+    months, _seen = [], set()
+    for m in months_all:
+        if m["month"] not in _seen:
+            _seen.add(m["month"])
+            months.append(m)
+    by_m = {m["month"]: m for m in months}
+    rule_s = (f"'{rule}'" if rule else "(the feed states no rule)")
+    ch_s = (f"{chasers:g} chaser report{'' if chasers == 1 else 's'} merged into "
+            "the fault they chase and not counted as repeats"
+            if chasers is not None else "chaser count not given") + odd_s
+    base_ok = []
+    for ym in FACILITIES_KR2_BASELINE:
+        m = by_m.get(ym)
+        ps = _fac_num((m or {}).get("per_site"))
+        if m is not None and ps is not None and ym >= fault_log_start and ym not in dup:
+            base_ok.append(ps)
+    cur2 = months[-1] if months else None
+    cur2_ps = _fac_num((cur2 or {}).get("per_site"))
+
+    def _counts(m):
+        """'N repeat(s) across S sites', or None when the feed omits either."""
+        r_, s_ = _fac_num(m.get("repeats")), _fac_num(m.get("sites"))
+        return (f"{r_:g} repeat(s) across {s_:g} sites"
+                if r_ is not None and s_ is not None else None)
+    now_s = ""
+    if cur2 is not None and _counts(cur2):
+        now_s = (f" So far: {_fac_ym(cur2['month'])} has {_counts(cur2)}"
+                 + (f" ({cur2_ps:g} per site)" if cur2_ps is not None else "") + ".")
+    elif cur2 is not None and cur2_ps is not None:
+        now_s = (f" So far: {_fac_ym(cur2['month'])} is {cur2_ps:g} repeats per "
+                 "site (the feed gives no repeat or site count for it).")
+    if not isinstance(k2.get("months"), list):
+        return {"not_measured": (
+            f"{label} carries no kr2_repeat_issues.months list, so there is no "
+            f"month to score and no baseline. Rule {rule_s}; {ch_s}")}
+    # Why a month WITH repeats cannot be scored yet (it is measured against
+    # the Jun-Aug baseline), or None when the baseline exists.
+    base = base_s = None
+    if len(base_ok) < len(FACILITIES_KR2_BASELINE):
+        base_why = (
+            "baseline needs Jun–Aug; the app's fault log starts "
+            f"{_fac_ym(fault_log_start)}, and nothing else supplies one: the "
+            "sheet-based KR2 baseline planned on 17 Sep was never built, so KR2 stays "
+            "grey until a baseline is agreed (the plan was a January re-baseline). The "
+            f"app is already counting under its rule {rule_s}, with {ch_s}.{now_s} "
+            f"Its months before {_fac_ym(fault_log_start)} are zero-filled, not "
+            "measured, and are never used as a baseline. Pairs and per-site counts "
+            "on the Maintenance tab")
+    elif not sum(base_ok):
+        base_why = (
+            "the Jun–Aug baseline from the app's fault log is 0 repeats per site, "
+            "and a percentage change against zero is undefined - this needs a "
+            f"re-agreed baseline, not a number. Rule {rule_s}; {ch_s}.{now_s}")
+    else:
+        base_why = None
+        base = sum(base_ok) / len(base_ok)
+        base_s = ", ".join(f"{_fac_ym(ym)} {by_m[ym]['per_site']:g}"
+                           for ym in FACILITIES_KR2_BASELINE)
+    _lb = re.search(r"(\d+)\s*days?", rule or "")
+    # clamped: a rule naming a vast number of days must not overflow a date
+    lookback = min(int(_lb.group(1)), 3660) if _lb else FACILITIES_KR2_LOOKBACK_DAYS
+    log_first = datetime.date.fromisoformat(fault_log_start + "-01")
+
+    def _short_lookback(ym):
+        """The month's first day is less than the rule's look-back after the
+        fault log began: a re-report of a fault from before the log cannot be
+        seen as a repeat."""
+        return datetime.date.fromisoformat(ym + "-01") - datetime.timedelta(days=lookback) < log_first
+
+    def _k2(m):
+        ps = _fac_num(m.get("per_site"))
+        chg = round(100.0 * (ps - base) / base, 1)
+        mtd = m["month"] == today.isoformat()[:7]
+        # a per-site repeat count only rises as the month goes on, so the
+        # month still open is never green before it closes (unless it has
+        # already breached) - the count rule, as for the zero month
+        return {"m": m["month"], "value": chg, "count_can_only_rise": True,
+                "display": f"{chg:+g}% ({ps:g}/site vs {base:.2f})",
+                "basis": (
+                    f"{_counts(m)} in {_fac_ym(m['month'])}"
+                    f" = {ps:g} per site, against a Jun–Aug 2026 baseline mean "
+                    f"of {base:.2f} per site ({base_s}): {chg:+g}%. Rule "
+                    f"{rule_s}; {ch_s}. The baseline is from the app's own "
+                    "fault log, not Lincoln's sheet"
+                    + (". MONTH TO DATE - still moving" if mtd else ""))}
+
+    # ZERO REPEATS IS GREEN (Ross, 15/10/2026, verbatim: "if there is 0 repeat
+    # maintenance issues then it flags as green 100%"). The score is the rule
+    # in OKR_BAND_RULES, not read off the 'repeat' band (whose 0% change is 50),
+    # and it is a COUNT: 0 so far can still become 1, so the month still open
+    # is never green before it closes (the 09/10/2026 rule for counts).
+    _zr = OKR_BAND_RULES["repeat"][0]
+
+    def _k2_zero(m):
+        s_ = _fac_num(m.get("sites"))
+        short = _short_lookback(m["month"])
+        return {"m": m["month"], "value": 0, "score_fixed": _zr["score"],
+                "score_rule": "repeat.0", "band_status": _zr["status"],
+                "count_can_only_rise": True,
+                "mtd_why": ("0 so far can still become 1, so it is scored only when the "
+                            "month closes; a repeat before then moves the month to the "
+                            "baseline rule"),
+                "display": f"0 repeats ({s_:g} sites)",
+                "basis": (
+                    f"0 repeat maintenance issues in {_fac_ym(m['month'])} across {s_:g} "
+                    f"sites in the Facilities app's fault log - {FACILITIES_KR2_ZERO_RULE}, "
+                    f"with no baseline needed. Rule {rule_s}; {ch_s}. The app does not say "
+                    "how many faults were logged in the month, so a month in which nothing "
+                    "was logged in the app also reads 0"
+                    + (f". The fault log starts in {_fac_ym(fault_log_start)} and the rule "
+                       f"looks back {lookback} days, so in {_fac_ym(m['month'])} a re-report "
+                       "of a fault first reported before the log began cannot count as a "
+                       "repeat - this 0 cannot include those" if short else ""))}
+
+    # The app's own pairs list, by the month each repeat was re-reported in. A
+    # month the counts call 0 while a pair was re-reported in it is a
+    # contradiction, never a green; a re-report date this cannot read makes
+    # every 0 uncheckable, so it fails closed (review, 15/10/2026). (The list
+    # may not reach back over every month, so a month with no pair proves
+    # nothing either way.)
+    _rerep, _bad_pairs = {}, 0
+    for p in _fac_list(k2.get("pairs")):
+        if not isinstance(p, dict):
+            continue
+        _sd = p.get("second")
+        if _sd in (None, ""):
+            continue
+        if isinstance(_sd, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", _sd[:10]):
+            _rerep[_sd[:7]] = _rerep.get(_sd[:7], 0) + 1
+        else:
+            _bad_pairs += 1
+    # The by-site tally: repeats it counts while every logged month reads 0
+    # is the same contradiction seen from the other side.
+    _bs = [b.get("repeats") for b in _fac_list(k2.get("by_site")) if isinstance(b, dict)]
+    _by_site = sum(_fac_num(x) or 0 for x in _bs)
+    _bs_bad = sum(1 for x in _bs if x is not None and _fac_num(x) is None)
+    _logged_reps = sum(_fac_num(m.get("repeats")) or 0 for m in months
+                       if m["month"] >= fault_log_start)
+    # the months list reaches back to the log's start, so every repeat the
+    # app could count is in some listed month: a by-site tally above their
+    # total puts repeats in a month the counts call 0 (round 2, 15/10/2026)
+    _reaches_start = bool(months) and min(m["month"] for m in months) <= fault_log_start
+    # A month's count is final only once the app was read AFTER the month
+    # ended - by the copy's OWN as_of, never its pull date. A copy up to
+    # FACILITIES_STALE_DAYS old is still quoted, so on 02/11 the newest copy
+    # can be 30/10's, whose October misses the 31st - a short month, never
+    # scored. The month this bake is in is the open month and goes through
+    # the count rule instead (MTD).
+    try:
+        _read = datetime.date.fromisoformat(as_of[:10]).isoformat() \
+            if isinstance(as_of, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", as_of[:10]) else None
+    except ValueError:   # looks like a date, is not one ('2026-13-01')
+        _read = None
+    _bake_m = today.isoformat()[:7]
+
+    variants = []
+    for m in months:
+        ym = m["month"]
+        if ym < fault_log_start or ym <= FACILITIES_KR2_BASELINE[-1]:
+            continue
+        reps = _fac_num(m.get("repeats"))
+        sites = _fac_num(m.get("sites"))
+        ps_raw = m.get("per_site")
+        if ym in dup:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) lists {_fac_ym(ym)} {dup[ym]} times "
+                "with different counts, so it is not quoted until the app's months agree")})
+        elif ym < _bake_m and not (_read and _read[:7] > ym):
+            variants.append({"m": ym, "not_measured": (
+                (f"{_fac_ym(ym)} has ended, but this copy of the Facilities feed is as of "
+                 f"{_fac_dmy(_read)}, before its end, so its count ({_counts(m) or 'none'}) "
+                 "is not final - a month is scored from a reading taken after it ended")
+                if _read else
+                (f"{_fac_ym(ym)} has ended, but this copy of the Facilities feed's as_of "
+                 f"({str(as_of)[:20]!r}) is not a date, so it cannot be shown to be read "
+                 "after the month ended - not quoted"))})
+        elif reps is None or not _counts(m):
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) has no repeat/site counts for "
+                f"{_fac_ym(ym)}. Rule {rule_s}; {ch_s}")})
+        elif not (sites > 0 and float(sites).is_integer()) or reps < 0 or not float(reps).is_integer():
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} {reps:g} repeat(s) "
+                f"over {sites:g} sites - not a whole number of repeats over at least one "
+                "site, so nothing was measured and it is not quoted")})
+        elif reps == 0 and ps_raw is not None and _fac_num(ps_raw) != 0:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats "
+                + (f"but {_fac_num(ps_raw):g} per site" if _fac_num(ps_raw) is not None
+                   else "but a per-site figure that is not a number")
+                + " - the two disagree, so the month is not quoted until the app's counts "
+                "agree")})
+        elif reps == 0 and _rerep.get(ym):
+            _n = _rerep[ym]
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats "
+                f"but its pairs list has {_n} repeat{'s' if _n != 1 else ''} re-reported "
+                f"in {_fac_ym(ym)} - the two disagree, so the month is not "
+                "quoted until the app's counts agree")})
+        elif reps == 0 and _bad_pairs:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, but "
+                f"{_bad_pairs} entr{'y' if _bad_pairs == 1 else 'ies'} in its pairs list "
+                "carr" + ("ies" if _bad_pairs == 1 else "y") + " a re-report date that is "
+                "not a date, so the 0 cannot be checked against them - not quoted")})
+        elif reps == 0 and _bs_bad:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, but "
+                f"{_bs_bad} entr{'y' if _bs_bad == 1 else 'ies'} of its by-site tally carr"
+                + ("ies" if _bs_bad == 1 else "y") + " a repeat count that is not a number, "
+                "so the 0 cannot be checked against it - not quoted")})
+        elif reps == 0 and _by_site > 0 and _logged_reps == 0:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, as it "
+                f"does every logged month, but its by-site tally counts {_by_site:g} "
+                "repeat(s) - the two disagree, so the month is not quoted until the app's "
+                "counts agree")})
+        elif reps == 0 and _reaches_start and _by_site > _logged_reps:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) gives {_fac_ym(ym)} 0 repeats, but its "
+                f"by-site tally counts {_by_site:g} repeat(s) against {_logged_reps:g} in the "
+                "logged months it lists from the log's start - some of the difference may be "
+                "this month's, so it is not quoted until the app's counts agree")})
+        elif reps == 0:
+            variants.append(_k2_zero(m))
+        elif base is None:
+            variants.append({"m": ym, "not_measured": (
+                f"{_counts(m)} in {_fac_ym(ym)}: a month WITH repeats is "
+                f"scored against the Jun–Aug baseline - {base_why}")})
+        elif _fac_num(ps_raw) is None:
+            variants.append({"m": ym, "not_measured": (
+                f"the Facilities feed (as of {as_of}) has no per_site figure for "
+                f"{_fac_ym(ym)}. Rule {rule_s}; {ch_s}")})
+        else:
+            variants.append(_k2(m))
+    head = (next((v for v in variants if v["m"] == cur2["month"]), None)
+            if cur2 is not None else None)
+    if head is None or head.get("value") is None:
+        row = {"not_measured": (head or {}).get("not_measured") or base_why or (
+                   f"the Facilities feed (as of {as_of}) has no per_site figure, or no "
+                   f"repeat/site counts behind it, for its latest month. Rule {rule_s}; "
+                   f"{ch_s}"),
+               "months": variants or None}
+        if variants:
+            # its months are the app's counts, whatever the newest one says
+            # (review, 15/10/2026: it read "computed" here)
+            row["source_kind"] = "facilities_app"
+        return row
+    return {"value": head["value"], "display": head["display"],
+            "basis": head["basis"], "source_kind": "facilities_app",
+            "months": variants or None}
+
+
+def facilities_kr2_months(row, readings, today, fault_log_start=FACILITIES_FAULT_LOG_START,
+                          live_as_of=None, pull_month=None):
+    """OO2 KR2's row with each closed month taken from the NEWEST reading of it.
+
+    row         fac_kr2_row() on the copy this bake quotes - or the grey row of
+                a copy that cannot be used (stale, unreadable, after a
+                back-bake's date)
+    readings    load_facilities_readings()'s readings by as_of day (none after
+                the bake's date)
+    today       the bake's own date (a datetime.date)
+    live_as_of  the quoted copy's as_of ('YYYY-MM-DD'), or None when the row
+                is grey - the copy is one reading among the stored ones
+    pull_month  the scorecard's month, for the open month's placeholder
+
+    The app sends a rolling six months, and a stale or back-dated copy is not
+    quoted at all - either would make a published closed month disappear
+    (review, 15/10/2026: OO2's September roll-up went from 100% to "-"). So
+    each closed month comes from the reading - the quoted copy or a stored
+    one - with the latest as_of that lists it, judged by the same
+    fac_kr2_row() as of that reading's own as_of (round 2: a back-bake's
+    older quoted copy used to outrank a newer stored reading). The open month
+    is never taken from the history; when the row is grey it keeps the row's
+    own blocker, so the scorecard does not invent an empty month-to-date line
+    in its place (round 2). A stored line that cannot be judged is skipped and
+    named, never fatal.
+    """
+    have = {v.get("m"): v for v in (row.get("months") or [])}
+    bake_m = today.isoformat()[:7]
+    live = str(live_as_of or "")[:10]
+    best, skipped = {}, []
+    for day in sorted(readings, reverse=True):
+        r = readings[day]
+        k2 = r.get("kr2")
+        if not isinstance(k2, dict):
+            continue
+        try:
+            pulled = datetime.date.fromisoformat(str(r.get("pulled_at") or "")[:10])
+            hr = fac_kr2_row(k2, str(r.get("as_of") or ""), pulled, today,
+                             fault_log_start=fault_log_start,
+                             label=f"the stored reading of {_fac_dmy(day)}")
+        except Exception:  # noqa: BLE001 - one bad line must not cost the rest
+            skipped.append(day)
+            continue
+        for v in hr.get("months") or []:
+            ym = v.get("m")
+            if not ym or ym >= bake_m or ym in best:
+                continue
+            if ym in have and not (live and day > live):
+                continue    # the quoted copy is at least as new: it answers
+            note = (f" (from the reading of the Facilities app stored on {_fac_dmy(day)} in "
+                    f"{FACILITIES_READINGS_FILE} - the newest that lists this month)")
+            v = dict(v)
+            for k in ("basis", "not_measured"):
+                if v.get(k):
+                    v[k] = v[k] + note
+            best[ym] = v
+    if not best and not skipped:
+        return row
+    out = dict(row)
+    merged = {**have, **best}
+    pm = pull_month or bake_m
+    if out.get("value") is None and out.get("not_measured") and pm not in merged and merged:
+        # a grey row keeps its blocker on the open month
+        merged[pm] = {"m": pm, "not_measured": out["not_measured"]}
+    out["months"] = sorted(merged.values(), key=lambda v: v.get("m") or "") or None
+    if skipped:
+        _sk = (f" {len(skipped)} stored reading(s) of {FACILITIES_READINGS_FILE} could not be "
+               f"judged and were skipped ({', '.join(_fac_dmy(d) for d in skipped[:3])}"
+               + (f" and {len(skipped) - 3} more" if len(skipped) > 3 else "") + ").")
+        key = "basis" if out.get("basis") else "not_measured"
+        out[key] = (out.get(key) or "").rstrip(".") + "." + _sk
+    if out["months"] and out.get("source_kind") in (None, "not_measured"):
+        out["source_kind"] = "facilities_app"
     return out
 
 
@@ -2725,83 +3520,16 @@ def facilities_block(feed, err, today,
                 "a month's jobs alone - the app sends no per-month counts")}
 
     # ---- OO2 KR2: repeat issues against the Jun-Aug baseline --------------
-    by_m = {m["month"]: m for m in months}
-    rule_s = (f"'{rule}'" if rule else "(the feed states no rule)")
-    ch_s = (f"{chasers:g} chaser report{'' if chasers == 1 else 's'} merged into "
-            "the fault they chase and not counted as repeats"
-            if chasers is not None else "chaser count not given")
-    base_ok = []
-    for ym in FACILITIES_KR2_BASELINE:
-        m = by_m.get(ym)
-        ps = _fac_num((m or {}).get("per_site"))
-        if m is not None and ps is not None and ym >= fault_log_start:
-            base_ok.append(ps)
-    cur2 = months[-1] if months else None
-    cur2_ps = _fac_num((cur2 or {}).get("per_site"))
-
-    def _counts(m):
-        """'N repeat(s) across S sites', or None when the feed omits either."""
-        r_, s_ = _fac_num(m.get("repeats")), _fac_num(m.get("sites"))
-        return (f"{r_:g} repeat(s) across {s_:g} sites"
-                if r_ is not None and s_ is not None else None)
-    now_s = ""
-    if cur2 is not None and _counts(cur2):
-        now_s = (f" So far: {_fac_ym(cur2['month'])} has {_counts(cur2)}"
-                 + (f" ({cur2_ps:g} per site)" if cur2_ps is not None else "") + ".")
-    elif cur2 is not None and cur2_ps is not None:
-        now_s = (f" So far: {_fac_ym(cur2['month'])} is {cur2_ps:g} repeats per "
-                 "site (the feed gives no repeat or site count for it).")
-    if not isinstance(k2.get("months"), list):
+    # One copy's KR2 block -> the row and its months: fac_kr2_row(), which
+    # facilities_kr2_months() also runs on every stored reading, so a closed
+    # month keeps its figure after the app's rolling six months pass it.
+    try:
+        rows["KR2 repeat issues vs baseline"] = fac_kr2_row(
+            k2, as_of, pulled, today, fault_log_start=fault_log_start, label=label)
+    except Exception as e:  # noqa: BLE001 - one KR's surprise must not grey KR1, KR4 and the tab
         rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            f"{label} carries no kr2_repeat_issues.months list, so there is no "
-            f"month to score and no baseline. Rule {rule_s}; {ch_s}")}
-    elif len(base_ok) < len(FACILITIES_KR2_BASELINE):
-        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            "baseline needs Jun–Aug; the app's fault log starts "
-            f"{_fac_ym(fault_log_start)}, and nothing else supplies one: the "
-            "sheet-based KR2 baseline planned on 17 Sep was never built, so KR2 stays "
-            "grey until a baseline is agreed (the plan was a January re-baseline). The "
-            f"app is already counting under its rule {rule_s}, with {ch_s}.{now_s} "
-            f"Its months before {_fac_ym(fault_log_start)} are zero-filled, not "
-            "measured, and are never used as a baseline. Pairs and per-site counts "
-            "on the Maintenance tab")}
-    elif not sum(base_ok):
-        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            "the Jun–Aug baseline from the app's fault log is 0 repeats per site, "
-            "and a percentage change against zero is undefined - this needs a "
-            f"re-agreed baseline, not a number. Rule {rule_s}; {ch_s}.{now_s}")}
-    elif cur2 is None or cur2_ps is None or not _counts(cur2):
-        rows["KR2 repeat issues vs baseline"] = {"not_measured": (
-            f"the Facilities feed (as of {as_of}) has no per_site figure, or no "
-            f"repeat/site counts behind it, for its latest month. Rule {rule_s}; "
-            f"{ch_s}")}
-    else:
-        base = sum(base_ok) / len(base_ok)
-        base_s = ", ".join(f"{_fac_ym(ym)} {by_m[ym]['per_site']:g}"
-                           for ym in FACILITIES_KR2_BASELINE)
-
-        def _k2(m):
-            ps = _fac_num(m.get("per_site"))
-            chg = round(100.0 * (ps - base) / base, 1)
-            mtd = m["month"] == str(as_of)[:7]
-            return {"m": m["month"], "value": chg,
-                    "display": f"{chg:+g}% ({ps:g}/site vs {base:.2f})",
-                    "basis": (
-                        f"{_counts(m)} in {_fac_ym(m['month'])}"
-                        f" = {ps:g} per site, against a Jun–Aug 2026 baseline mean "
-                        f"of {base:.2f} per site ({base_s}): {chg:+g}%. Rule "
-                        f"{rule_s}; {ch_s}. The baseline is from the app's own "
-                        "fault log, not Lincoln's sheet"
-                        + (". MONTH TO DATE - still moving" if mtd else ""))}
-        variants = [_k2(m) for m in months
-                    if m["month"] > FACILITIES_KR2_BASELINE[-1]
-                    and m["month"] >= fault_log_start
-                    and _fac_num(m.get("per_site")) is not None and _counts(m)]
-        head = _k2(cur2)
-        rows["KR2 repeat issues vs baseline"] = {
-            "value": head["value"], "display": head["display"],
-            "basis": head["basis"], "source_kind": "facilities_app",
-            "months": variants or None}
+            f"{label}'s kr2_repeat_issues block could not be read ({type(e).__name__}), so "
+            "KR2 is not quoted; KR1, KR4 and the Maintenance tab are unaffected")}
     return {"rows": rows, "tab": tab, "gap": None}
 def update_snapshot_index(out_dir, pull, generated_at):
     """Record `pull` in snapshot_index.json and point `latest` at the NEWEST date.
@@ -5642,6 +6370,13 @@ def main():
                 # a back-bake whose copy on disk was pulled after its date
                 # takes the month so far from the history (review, 13/10/2026)
                 history_open=bool(dated) and fac["tab"].get("status") == "not_as_of")}
+        # OO2 KR2: closed months the copy lacks (the app's rolling six months
+        # moved on, or the copy is stale / after a back-bake's date) come from
+        # the newest stored reading that lists them (review, 15/10/2026)
+        fac["rows"]["KR2 repeat issues vs baseline"] = facilities_kr2_months(
+            fac["rows"]["KR2 repeat issues vs baseline"], _fac_hist, _fac_today,
+            live_as_of=(_fac_asof if fac["tab"].get("status") == "ok" else None),
+            pull_month=(pull or "")[:7])
     except Exception as e:  # noqa: BLE001 - the months are extra; today's rows stand
         print(f"[bake] facilities months not built: {type(e).__name__}: {e}")
     _fac_g = (fac["tab"].get("group") or {})
@@ -5673,6 +6408,22 @@ def main():
     _okr_status = load_okr_sheet_status(OUT_DIR)
     if dated and _okr_status and str(_okr_status.get("attempted_at") or "")[:10] > dated:
         _okr_status = None
+    # OO1 from Finance's management account (15/10/2026): the same refusal. A
+    # file that is not exactly the score-only shape stops the bake, so the
+    # push that would publish it never runs.
+    _ma_doc, _ma_err, _ma_probs = load_oo1_ma(OUT_DIR)
+    if _ma_probs:
+        print("[bake] REFUSING TO BAKE: data/ops_command/" + OO1_MA_FILE + " fails the OO1 "
+              "publication check (" + str(len(_ma_probs)) + " problem(s), e.g. "
+              + "; ".join(_ma_probs[:3]) + "). MakiManc/ops is public and OO1 is Finance's. "
+              "Restore the last good copy from git history (git log -- data/ops_command/"
+              + OO1_MA_FILE + ") and fix builders/oo1_ma.py; do NOT delete the file - it "
+              "holds KR5's deadline-day proofs, which no later read can recreate. The next "
+              "read is the next bake on or after the 7th.", file=sys.stderr)
+        raise SystemExit(1)
+    _ma_status = load_oo1_ma_status(OUT_DIR)
+    if dated and _ma_status and str(_ma_status.get("attempted_at") or "")[:10] > dated:
+        _ma_status = None
     try:
         with open(os.path.join(OUT_DIR, MAINT_CONTACTS_FILE), encoding="utf-8") as fh_:
             _mc_leaks = maint_contacts_leaks(fh_.read())
@@ -6476,7 +7227,10 @@ def main():
         out = []
         for v_ in (src.get("months") or []):
             _v = (value_of(v_) if value_of else v_.get("value"))
-            _s = okr_score(band, _v)
+            # a variant scored by a rule of Ross's own rather than the band
+            # (OO2 KR2: 0 repeat issues is 100, Ross 15/10/2026) keeps it
+            _s = (v_["score_fixed"] if v_.get("score_fixed") is not None and _v is not None
+                  else okr_score(band, _v))
             out.append({**v_, "score": _s, "rag": _rag_of(_s)})
         return out
 
@@ -6893,8 +7647,8 @@ def main():
     # --- Phase 4.2 (12/10/2026): OO4 KR3, supplier orders tracked to receipt --
     # Ross chose Kobas: the order emails against the deliveries report's
     # goods-ins. The rule lives in builders/delivery_tracking.py, including
-    # why the pairing window is PROPOSED and no month is scored until Ross
-    # agrees it. Every copy of any report named "... Ops Deliveries" is read,
+    # the pairing window (due + 2 days, agreed by Ross on 15/10/2026). Every
+    # copy of any report named "... Ops Deliveries" is read,
     # so a scheduled daily send lands with no code change.
     try:
         cur.execute("SELECT DISTINCT feed FROM etl_feed_rows")
@@ -7028,19 +7782,32 @@ def main():
     # than scored on trust.
     _pm = (pull or "")[:7]
 
-    # --- the nine KRs typed into the Operations Input sheet (Phase 1) ------
-    # OO1 KR1-5, OO2 KR3, OO3 KR3, OO4 KR1, OO4 KR4. See okr_sheet_extra at
-    # module level: a month not entered is an explicit not-measured variant,
-    # never 0, and OO1 carries Finance's scores and nothing else.
+    # --- the four KRs typed into the Operations Input sheet (Phase 1) ------
+    # OO2 KR3, OO3 KR3, OO4 KR1, OO4 KR4. See okr_sheet_extra at module
+    # level: a month not entered is an explicit not-measured variant, never 0.
     try:
         _sheet_extra, _sheet_gaps = okr_sheet_extra(_okr_doc, _okr_err, _okr_status, _pm,
                                                     dated=dated, problems=_okr_probs,
                                                     today=_sheet_today)
-    except Exception as e:  # noqa: BLE001 - a malformed copy greys nine rows, never fails the bake
+    except Exception as e:  # noqa: BLE001 - a malformed copy greys four rows, never fails the bake
         _sheet_extra, _sheet_gaps = okr_sheet_extra(
             None, f"unreadable (unexpected shape: {type(e).__name__})", None, _pm)
     _okr_extra.update(_sheet_extra)
     gaps.extend(_sheet_gaps)
+    # --- OO1 KR1-5, from Finance's management account (15/10/2026) --------
+    # See oo1_ma_extra: score-only variants, pass/fail on each KR's target.
+    # KR5's 7th is a UK date and oo1_ma.py reads on the UK clock, so OO1 is
+    # judged against the UK date too (review, 15/10/2026).
+    from zoneinfo import ZoneInfo
+    _ma_today = dated or datetime.datetime.now(ZoneInfo("Europe/London")).date().isoformat()
+    try:
+        _ma_extra, _ma_gaps = oo1_ma_extra(_ma_doc, _ma_err, _ma_status, _pm, _ma_today,
+                                           dated=dated)
+    except Exception as e:  # noqa: BLE001 - a malformed file greys OO1, never fails the bake
+        _ma_extra, _ma_gaps = oo1_ma_extra(
+            None, f"unreadable (unexpected shape: {type(e).__name__})", None, _pm, _ma_today)
+    _okr_extra.update(_ma_extra)
+    gaps.extend(_ma_gaps)
 
     def _last_day(m_):
         y_, mo_ = int(m_[:4]), int(m_[5:7])
@@ -7074,8 +7841,11 @@ def main():
         # the weekly price report: up to the date Kobas emailed the newest one
         ("OO3", "KR2"): (_rep_dates[-1] if _rep_dates else ""),
         # Facilities repeat issues: the app counts its fault log up to its
-        # own as_of date (only quoted at all when the feed is fresh)
-        ("OO2", "KR2"): str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10],
+        # own as_of date - and only a copy that is quoted counts (a stale or
+        # back-dated copy is not today's data, round-2 review 15/10/2026)
+        ("OO2", "KR2"): (str((snap.get("maintenance") or {}).get("facilities", {}).get("as_of") or "")[:10]
+                         if ((snap.get("maintenance") or {}).get("facilities") or {}).get("status") == "ok"
+                         else ""),
         # (OO2 KR1/KR4 carry coverage_days on each variant - facilities_months)
     }
 
@@ -7284,6 +8054,7 @@ def main():
       "monthly":sum(1 for r_ in okr if r_.get("months")),
       "bands":{k:{"direction":v[0],"table":[list(t) for t in v[1]],
                   "status":OKR_BAND_STATUS.get(k)} for k,v in OKR_BANDS.items()},
+      "band_rules":{k:[dict(x) for x in v] for k,v in OKR_BAND_RULES.items()},
       "mtd_min_days":OKR_MTD_MIN_DAYS,
       "month_basis":("the month picker moves the rows whose KR is a per-month measure. "
         f"A month still in progress is SCORED only once it holds {OKR_MTD_MIN_DAYS} or more days of "
@@ -7301,7 +8072,9 @@ def main():
         "not have."),
       "basis":("one row per KR on the 2026 Operations Input sheet - six objectives, thirty "
         "KRs, in the sheet's own order and wording. Every KR scores 100, 80, 50 or 0 from "
-        "the band table in the builder (scorecard.bands), and RAG follows the score: 100 "
+        "the band table in the builder (scorecard.bands) - or, for OO2 KR2 alone, by the one "
+        "fixed rule beside it (scorecard.band_rules: a month with 0 repeat issues scores 100, "
+        "Ross 15/10/2026) - and RAG follows the score: 100 "
         "green, 80 or 50 amber, 0 red. A band still marked PROPOSED scores exactly like an "
         "agreed one and says so on the row until Matthew confirms it. A KR with no target "
         "gets no score, and a KR with no source is grey with its blocker named - that list "
@@ -7309,10 +8082,12 @@ def main():
         "HAVE a score that month; an unscored KR is left out of the mean and never counted "
         "as a zero, which is why each objective also says how many of its five scored. The "
         "Operations percentage is the mean of OO2-OO6; OO1 is Finance's and is excluded. "
-        "Nine KRs are typed into the sheet itself and read from it: OO2 KR3, OO3 KR3 and OO4 "
-        "KR1 from their log tabs, OO4 KR4 from Finance's % actioned, and OO1 KR1-KR5 as "
-        "Finance's own 0-100 scores ONLY - no figure behind an OO1 score is published, and "
-        "OO1 shows no objective percentage. A month left blank on the sheet is not scored. "
+        "Four KRs are typed into the sheet itself and read from it: OO2 KR3, OO3 KR3 and OO4 "
+        "KR1 from their log tabs, and OO4 KR4 from Finance's % actioned. A month left blank on "
+        "the sheet is not scored. OO1 KR1-KR5 are read from Finance's management-account "
+        "summary on the 7th of each month and scored PASS/FAIL on each KR's own target (Ross, "
+        "15/10/2026) - SCORES ONLY: no figure behind an OO1 score is published, and OO1 shows "
+        "no objective percentage. "
         "OO2 KR5 is read from the Maintenance Contact List 2026. "
         "The Operating KPIs below the scorecard are measurements that are not on Matthew's "
         "sheet - they are real and Ross uses them, they are simply not what he is scored "
@@ -7367,9 +8142,9 @@ def main():
     # but only after this snapshot has been pushed to a public repo.
     _oo1_nulled, _oo1_leaked = okr_oo1_guard(snap)
     if _oo1_leaked:
-        print("[bake] REFUSING TO WRITE: the snapshot carries Finance column name(s) "
-              + ", ".join(repr(n) for n in _oo1_leaked) + " - MakiManc/ops is public.",
-              file=sys.stderr)
+        print("[bake] REFUSING TO WRITE: the snapshot carries Finance's name(s) or "
+              "figure(s): " + ", ".join(repr(n) for n in _oo1_leaked)
+              + " - MakiManc/ops is public.", file=sys.stderr)
         raise SystemExit(1)
     if _oo1_nulled:
         gaps.append("OO1 carried a figure where only a score belongs, and it was removed "

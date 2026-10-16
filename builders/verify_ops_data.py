@@ -111,6 +111,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -135,8 +136,22 @@ CONTACTS_STATUS_PATH = os.path.join(OUT_DIR, "maintenance_contacts_status.json")
 # Phase 3: the factory's Weekly Report workbook (OO5 KR3 and KR5's site orders)
 FACTORY_WB_PATH = os.path.join(OUT_DIR, "factory_workbook.json")
 FACTORY_WB_STATUS_PATH = os.path.join(OUT_DIR, "factory_workbook_status.json")
-#: The only values an OO1 score may take (Finance scores in these four steps).
+# 15/10/2026: OO1 from Finance's management account (builders/oo1_ma.py) -
+# scores only, read on the 7th of each month. The publication check is the
+# module's own doc_problems(), the same one the pull and the bake run.
+sys.path.insert(0, HERE)
+import oo1_ma  # noqa: E402
+OO1_MA_PATH = os.path.join(OUT_DIR, oo1_ma.MA_FILE)
+OO1_MA_STATUS_PATH = os.path.join(OUT_DIR, oo1_ma.MA_STATUS_FILE)
+#: The only percentages an OO1 basis may name: the KRs' own targets (W/R 20%,
+#: FR 35%, V/R 13%, NP 4%). Any other percentage, or money, on an OO1 row is a
+#: figure - the module's own test, shared with the bake (review, 15/10/2026).
+OO1_TARGET_PCTS = oo1_ma.TARGET_PCTS
+#: The scores the old Operations Input sheet's OO1 block could carry - kept
+#: only for an older snapshot or an old score-only okr_sheet.json series.
 OO1_SCORE_SET = (0, 50, 80, 100)
+#: Since 15/10/2026 OO1 is pass/fail on Finance's management account.
+OO1_MA_SCORES = (0, 100)
 #: How stale the hand-entered sheet may get before the page is lying by
 #: omission. 35 days rather than a week: these are MONTHLY figures typed by
 #: Matthew after a month closes, so a gap of four weeks is a normal cadence and
@@ -153,12 +168,44 @@ OKR_SHEET_AGE_WARN_DAYS = 35
 #: no figure. Listing them made this check fire on its own row labels. The
 #: strings below are the PREDICTED / VARIANCE / EFFICIENCY columns, which are
 #: never legitimate here under any layout.
+#:
+#: 15/10/2026: and the figure rows of Finance's management-account summary,
+#: exactly as labelled there (its money and percentage lines). Its six INPUT
+#: line names (Wages, Food costs, ...) are not here: an OO1 row names a line
+#: not entered yet, and a name is not a figure.
 OO1_FORBIDDEN = ("Predicted W/R", "Predicted F/R", "Predicted VAR",
                  "Predicted NP", "KR 1 - Predicted", "KR 2 - Predicted",
                  "KR 3- Predicted", "KR4 - Predicted",
                  "KR1 Variance", "KR2 Variance", "KR3 Variance",
                  "KR4 Variance", "KR1 Efficiency", "KR2 Efficiency",
-                 "KR3 Efficiency", "KR4 Efficiency")
+                 "KR3 Efficiency", "KR4 Efficiency",
+                 "Money In (£)", "Money Out (£)", "Net Profit (£)",
+                 "Net Profit (%)", "Balance (£)", "Wages %", "Rent %",
+                 "Food costs %", "Variable costs %", "Tax %")
+
+
+#: Whether an OO1 text carries a figure: money, a decimal, a thousands
+#: amount, or a percentage that is not a KR target. ONE test, oo1_ma's, so the
+#: bake's guard and this check cannot drift apart.
+oo1_figure_in = oo1_ma.figure_in
+
+
+def _decoded(raw: str) -> str:
+    """A JSON text as written AND decoded: json.dumps escapes '£' as \\u00a3,
+    so a sweep of the raw text alone never matches 'Money In (£)'."""
+    try:
+        return raw + "\n" + json.dumps(json.loads(raw), ensure_ascii=False)
+    except (ValueError, TypeError, RecursionError):
+        return raw
+
+
+def _capped(items, n=6) -> str:
+    """The first n items, and how many more - never a silent cap."""
+    return ", ".join(items[:n]) + (f" (and {len(items) - n} more)" if len(items) > n else "")
+
+
+def _score_ok(v, ok_set) -> bool:
+    return type(v) is int and v in ok_set
 
 RAW_BASE = ("https://raw.githubusercontent.com/MakiManc/ops/main/"
             "data/ops_command/")
@@ -715,7 +762,10 @@ RECOMPUTE_MODULES = ("supplier_statements.py", "okr_pack.py",
                      # Phase 3: OO5 KR3/KR5
                      "factory_kpis.py",
                      # Phase 4.2: OO4 KR3
-                     "delivery_tracking.py")
+                     "delivery_tracking.py",
+                     # 15/10/2026: OO1 from Finance's management account - the
+                     # bake imports it for the publication check and the dates
+                     "oo1_ma.py")
 RECOMPUTE_DIRS = ("supplier_statements", "okr_pack")
 
 
@@ -778,7 +828,8 @@ def check_consistency(pg_latest: str, snap_latest: str):
         # Phase 3 adds the factory workbook copy, or the recompute greys OO5
         # KR3 and counts KR5 without its site orders.
         for _sp in (OKR_SHEET_PATH, OKR_SHEET_STATUS_PATH, CONTACTS_PATH,
-                    CONTACTS_STATUS_PATH, FACTORY_WB_PATH, FACTORY_WB_STATUS_PATH):
+                    CONTACTS_STATUS_PATH, FACTORY_WB_PATH, FACTORY_WB_STATUS_PATH,
+                    OO1_MA_PATH, OO1_MA_STATUS_PATH):
             if os.path.exists(_sp):
                 shutil.copy(_sp, os.path.join(tmp, "data", "ops_command",
                                               os.path.basename(_sp)))
@@ -1022,7 +1073,7 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
     # serialised snapshot for the sheet's own column names, so it catches a
     # field somebody ADDS, not just the ones we know to look for. A stale
     # dashboard is recoverable; a published profit figure is not.
-    blob = json.dumps(snap)
+    blob = json.dumps(snap, ensure_ascii=False)
     leaked = sorted({n for n in OO1_FORBIDDEN if n in blob})
     # The structural half, and the stronger of the two: an OO1 row may carry a
     # SCORE and nothing else. A value or a display on one of those rows is a
@@ -1037,30 +1088,40 @@ def check_okr_scorecard(snap: dict | None, today: str) -> None:
                   if r.get("value") is not None or r.get("display") is not None]
     not_score, bad_kind = [], []
     for r in oo1_rows:
-        if r.get("score") is not None and r.get("score") not in OO1_SCORE_SET:
+        # 15/10/2026: OO1 is pass/fail from Finance's management account
+        # ('ma_summary'), so 100 or 0; 'sheet_finance' stays accepted for an
+        # older snapshot
+        ok_set = OO1_MA_SCORES if r.get("source_kind") == "ma_summary" else OO1_SCORE_SET
+        if r.get("score") is not None and not _score_ok(r.get("score"), ok_set):
             not_score.append(str(r.get("kr")))
-        if r.get("source_kind") not in ("not_measured", "sheet_finance"):
+        if r.get("source_kind") not in ("not_measured", "sheet_finance", "ma_summary"):
             bad_kind.append(str(r.get("kr")))
+        if oo1_figure_in(r.get("basis")) or oo1_figure_in(r.get("not_measured")):
+            with_value.append(f"{r.get('kr')} (a figure in its basis)")
         for mv in (r.get("months") or []):
             if mv.get("value") is not None or mv.get("display") is not None:
                 with_value.append(f"{r.get('kr')} {mv.get('m')}")
-            if mv.get("score") is not None and mv.get("score") not in OO1_SCORE_SET:
+            if oo1_figure_in(mv.get("basis")) or oo1_figure_in(mv.get("not_measured")):
+                with_value.append(f"{r.get('kr')} {mv.get('m')} (a figure in its basis)")
+            if mv.get("score") is not None and not _score_ok(mv.get("score"), ok_set):
                 not_score.append(f"{r.get('kr')} {mv.get('m')}")
+    for i, g in enumerate(snap.get("gaps") or []):
+        if str(g).startswith("OO1") and oo1_figure_in(g):
+            with_value.append(f"OO1 gap #{i + 1} (a figure in its text)")
     if not_score or bad_kind:
         add("4d-okr", "critical",
             "OO1 row(s) carrying something other than Finance's score"
-            + (f" - a score outside 0/50/80/100: {', '.join(not_score[:6])}"
-               if not_score else "")
-            + (f" - a source other than the sheet: {', '.join(bad_kind[:6])}"
-               if bad_kind else "")
-            + ". An OO1 score is read from the sheet as one of 0, 50, 80 or 100; "
-              "anything else may be a misread Finance percentage")
+            + (f" - a score outside its set (0/100 pass/fail, or 0/50/80/100 from the "
+               f"old sheet): {_capped(not_score)}" if not_score else "")
+            + (f" - a source other than Finance's management account: "
+               f"{_capped(bad_kind)}" if bad_kind else "")
+            + ". Anything else may be a misread Finance percentage")
     if leaked or with_value:
         add("4d-okr", "critical",
             "OO1 FINANCE FIGURES IN A PUBLIC SNAPSHOT"
             + (f" - forbidden field name(s) {leaked}" if leaked else "")
             + (f" - OO1 row(s) carrying a value or display: "
-               f"{', '.join(with_value[:6])}" if with_value else "")
+               f"{_capped(with_value)}" if with_value else "")
             + ". This repository is public and OO1 is Net Profit. Those rows "
               "carry a 0-100 SCORE and nothing else - no percentage, no "
               "variance, no efficiency. Remove it before this is pushed; do "
@@ -1141,17 +1202,43 @@ def check_oo1_public(snapshot_path: str | None = None) -> None:
     except OSError:
         raw = ""
     if raw:
-        found += [f"okr_sheet.json carries {n!r}" for n in OO1_FORBIDDEN if n in raw]
+        dec = _decoded(raw)
+        found += [f"okr_sheet.json carries {n!r}" for n in OO1_FORBIDDEN if n in dec]
         try:
             ks = json.loads(raw)
         except ValueError:
             ks = {}
         oo1 = ((ks.get("series") or {}).get("oo1") or {}) if isinstance(ks, dict) else {}
+        # since 15/10/2026 only an old score-only series can be left here
+        if not isinstance(oo1, dict) or set(oo1) - {"tab", "gid", "pulled_at", "rows", "krs",
+                                                     "as_of", "carried_forward"}:
+            found.append("okr_sheet.json has an OO1 series of an unknown shape")
+            oo1 = {}
+        for k in ("tab", "pulled_at", "as_of"):
+            if oo1_figure_in(oo1.get(k)):
+                found.append(f"okr_sheet.json OO1 {k} carries a figure")
         for kr, ms in ((oo1.get("krs") or {}) if isinstance(oo1, dict) else {}).items():
             for m, v in (ms.items() if isinstance(ms, dict) else []):
-                if not (isinstance(v, (int, float)) and not isinstance(v, bool)
-                        and v in OO1_SCORE_SET):
+                if not _score_ok(v, OO1_SCORE_SET):
                     found.append(f"okr_sheet.json OO1 {kr} {m} is not a score")
+    # 15/10/2026: OO1's own file, by the module's own shape check - every
+    # field known, every score 0/100, every reason a fixed text
+    try:
+        with open(OO1_MA_PATH, encoding="utf-8") as fh:
+            mraw = fh.read()
+    except OSError:
+        mraw = ""
+    if mraw:
+        mdec = _decoded(mraw)
+        found += [f"{oo1_ma.MA_FILE} carries {n!r}" for n in OO1_FORBIDDEN if n in mdec]
+        try:
+            mdoc = json.loads(mraw)
+        except ValueError:
+            mdoc = None
+        probs = oo1_ma.doc_problems(mdoc) if mdoc is not None else ["not JSON"]
+        found += [f"{oo1_ma.MA_FILE}: {p_}" for p_ in probs[:4]]
+        if len(probs) > 4:
+            found.append(f"{oo1_ma.MA_FILE}: ...and {len(probs) - 4} more problem(s)")
     if snapshot_path is None:
         try:
             with open(os.path.join(OUT_DIR, "snapshot_index.json"), encoding="utf-8") as fh:
@@ -1162,8 +1249,9 @@ def check_oo1_public(snapshot_path: str | None = None) -> None:
     if snapshot_path and os.path.exists(snapshot_path):
         with open(snapshot_path, encoding="utf-8") as fh:
             sraw = fh.read()
+        sdec = _decoded(sraw)
         found += [f"{os.path.basename(snapshot_path)} carries {n!r}"
-                  for n in OO1_FORBIDDEN if n in sraw]
+                  for n in OO1_FORBIDDEN if n in sdec]
         try:
             snap = json.loads(sraw)
         except ValueError:
@@ -1171,12 +1259,19 @@ def check_oo1_public(snapshot_path: str | None = None) -> None:
         for r in ((snap.get("scorecard") or {}).get("rows") or []):
             if r.get("objective") != "OO1":
                 continue
+            ok_set = OO1_MA_SCORES if r.get("source_kind") == "ma_summary" else OO1_SCORE_SET
             for x, tag in [(r, str(r.get("kr")))] + [
-                    (v, f"{r.get('kr')} {v.get('m')}") for v in (r.get("months") or [])]:
-                if x.get("value") is not None or x.get("display") is not None:
+                    (v, f"{r.get('kr')} {v.get('m')}") for v in (r.get("months") or [])
+                    if isinstance(v, dict)]:
+                if (x.get("value") is not None or x.get("display") is not None
+                        or oo1_figure_in(x.get("basis")) or oo1_figure_in(x.get("not_measured"))):
                     found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} has a figure")
-                if x.get("score") is not None and x.get("score") not in OO1_SCORE_SET:
-                    found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} score is not 0/50/80/100")
+                if x.get("score") is not None and not _score_ok(x.get("score"), ok_set):
+                    found.append(f"{os.path.basename(snapshot_path)} OO1 {tag} score is not "
+                                 + ("0/100" if ok_set == OO1_MA_SCORES else "0/50/80/100"))
+        for i, g in enumerate(snap.get("gaps") or []):
+            if str(g).startswith("OO1") and oo1_figure_in(g):
+                found.append(f"{os.path.basename(snapshot_path)} OO1 gap #{i + 1} has a figure")
     # Phase 2: the supplier statements and the monthly OKR pack are published
     # beside the snapshot, and the pack carries every OKR row in prose - sweep
     # them for the same Finance column names (the bake refuses to write one,
@@ -1192,16 +1287,81 @@ def check_oo1_public(snapshot_path: str | None = None) -> None:
                 except OSError:
                     continue
                 rel = os.path.relpath(os.path.join(root, name), OUT_DIR)
+                if name.endswith(".json"):
+                    txt = _decoded(txt)
                 found += [f"{rel} carries {n!r}" for n in OO1_FORBIDDEN if n in txt]
     if found:
         add("4e-oo1-public", "critical",
             "OO1 FINANCE DATA IN A PUBLISHED FILE: " + "; ".join(found[:8])
+            + (f"; ...and {len(found) - 8} more" if len(found) > 8 else "")
             + ". MakiManc/ops is public and OO1 is Net Profit - remove it from the "
               "repo (and its history) and fix the refresher or the bake")
     else:
         add("4e-oo1-public", "ok",
-            "no OO1 figure, non-score or Finance column name in okr_sheet.json, "
-            "the newest committed snapshot, the supplier statements or the OKR packs")
+            f"no OO1 figure, non-score or Finance column name in okr_sheet.json, "
+            f"{oo1_ma.MA_FILE}, the newest committed snapshot, the supplier statements "
+            "or the OKR packs")
+
+
+def check_oo1_ma(today: str) -> None:
+    """4f: was Finance's management account read this month? (15/10/2026)
+
+    It is read on the 7th (and by the first bake after a missed 7th). No good
+    read since the latest 7th that has fully passed is a warning naming the
+    latest attempt's cause - from the 8th for this month's read, and still on
+    the 1st-7th of the next month if it never succeeded (review, 15/10/2026).
+    The dashboard keeps the last good read, and says so on the OO1 rows.
+    Names and dates only.
+    """
+    try:
+        with open(OO1_MA_PATH, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    except FileNotFoundError:
+        doc = None
+    except (OSError, ValueError):
+        add("4f-oo1-ma", "warning", f"{oo1_ma.MA_FILE} is unreadable")
+        return
+    try:
+        with open(OO1_MA_STATUS_PATH, encoding="utf-8") as fh:
+            st = json.load(fh)
+    except (OSError, ValueError):
+        st = None
+    # FIXED TEXTS ONLY (health_latest.json is public): an unknown cause code
+    # or a stamp that is not one is never echoed (review, 15/10/2026)
+    cause = ""
+    if isinstance(st, dict) and st.get("ok") is False:
+        at = st.get("attempted_at")
+        at_s = (f" ({at[:16].replace('T', ' ')} UK)" if oo1_ma._stamp(at) else "")
+        cause = (f"the latest attempt{at_s} failed: "
+                 f"{oo1_ma.CAUSE_TEXT.get(st.get('cause')) or 'cause not recorded'}")
+    t = date.fromisoformat(today)
+    # the read that should have happened by now: the latest 7th that has
+    # fully passed (on the 7th itself a later bake that day can still read)
+    due7 = oo1_ma.last_seventh(t - timedelta(days=1)).isoformat()
+    pulls = (doc or {}).get("pulls") if isinstance(doc, dict) else None
+    oks = sorted(str(p.get("pull_date")) for p in (pulls if isinstance(pulls, list) else [])
+                 if isinstance(p, dict) and p.get("ok") is True
+                 and oo1_ma._DATE_RE.fullmatch(str(p.get("pull_date"))))
+    if not oks:
+        add("4f-oo1-ma", "warning",
+            f"{oo1_ma.MA_FILE}: Finance's management account has not been read yet, "
+            "so OO1 is grey - " + (cause or "no attempt is recorded"))
+    elif oks[-1] < due7:
+        add("4f-oo1-ma", "warning",
+            f"{oo1_ma.MA_FILE}: Finance's management account has not been read since "
+            f"{oks[-1]} - the read due {due7} has not happened; " + (cause or "no attempt recorded"))
+    elif cause and any(isinstance(m, str) and oo1_ma._MONTH_RE.fullmatch(m) and isinstance(v, dict)
+                       and oo1_ma.kr5_awaiting(v, m, t)
+                       for m, v in (((doc or {}).get("kr5") or {}) if isinstance(doc, dict)
+                                    else {}).items()):
+        # a deadline-day blank waits for the read that decides it, and that
+        # read is failing (review, 15/10/2026)
+        add("4f-oo1-ma", "warning",
+            f"{oo1_ma.MA_FILE}: a KR5 month waits for a read after its deadline to decide it, "
+            f"and the read is failing (last good read {oks[-1]}) - " + cause)
+    else:
+        add("4f-oo1-ma", "ok", f"{oo1_ma.MA_FILE}: last read {oks[-1]}"
+            + (f"; {cause}" if cause else ""))
 
 
 # --------------------------------------------------------------- check 6
@@ -1635,6 +1795,11 @@ def main() -> None:
             conn.close()
     # what is actually published - runs even when the recompute is skipped
     check_oo1_public()
+    # OO1's 7th is a UK date, and the read runs on the UK clock (review,
+    # 15/10/2026): a run between 23:00 and 24:00 UTC in BST is already the
+    # next UK day
+    from zoneinfo import ZoneInfo
+    check_oo1_ma(datetime.now(ZoneInfo("Europe/London")).date().isoformat())
 
     # ---- deferral: morning run parks timing-class criticals ----------
     deferred = []

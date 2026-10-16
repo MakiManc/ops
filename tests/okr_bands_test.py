@@ -202,9 +202,16 @@ eq(bake.OKR_OPERATIONS_OBJECTIVES, ("OO2", "OO3", "OO4", "OO5", "OO6"),
 # Every band a KR names must exist, or a row would carry a score from nowhere.
 _unknown = sorted({b for *_r, b in bake.OKR_SPEC if b and b not in bake.OKR_BANDS})
 eq(_unknown, [], "every band named by a KR exists in OKR_BANDS")
-# OO1 carries no band: it is read from the sheet already scored, never computed.
-eq([b for o, _k, _t, _o, _tg, b in bake.OKR_SPEC if o == "OO1"], [None] * 5,
-   "OO1 KRs carry no band")
+# OO1 (Ross, 15/10/2026): pass/fail on each KR's own target, from Finance's
+# management account - a one-step band each, agreed (it carried none while it
+# was read from the sheet already scored).
+eq([b for o, _k, _t, _o, _tg, b in bake.OKR_SPEC if o == "OO1"],
+   ["oo1_wr", "oo1_fr", "oo1_vr", "oo1_np", "oo1_ma"], "OO1 KRs carry their pass/fail bands")
+eq([bake.OKR_BANDS[b] for b in ("oo1_wr", "oo1_fr", "oo1_vr", "oo1_np", "oo1_ma")],
+   [("le", [(20, 100)]), ("le", [(35, 100)]), ("le", [(13, 100)]), ("ge", [(4, 100)]), ("ge", [(1, 100)])],
+   "OO1's bands are one step each: the KR's target, 100 met and 0 missed")
+eq([bake.OKR_BAND_STATUS[b] for b in ("oo1_wr", "oo1_fr", "oo1_vr", "oo1_np", "oo1_ma")], ["agreed"] * 5,
+   "OO1's pass/fail bands are agreed")
 eq([o for _ob, _k, _t, o, _tg, _b in bake.OKR_SPEC if _ob == "OO1"],
    ["Finance"] * 5, "OO1 is Finance-owned")
 # The sheet's own wording, kept verbatim - including its inconsistent prefixes.

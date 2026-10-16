@@ -186,6 +186,43 @@ const rowsOf = page => page.locator('#scorecard tbody tr').evaluateAll(trs => tr
   await page.close();
 }
 
+// ---- OO1 from Finance's management account (Ross, 15/10/2026) -------------
+// The same score-only row, now pass/fail from the account: the shells label
+// the source and show the score, and still no figure.
+function maFixture() {
+  const s = fixture();
+  const r = s.scorecard.rows.find(x => x.objective === 'OO1' && x.kr === 'KR1');
+  Object.assign(r, { source_kind: 'ma_summary', band: 'oo1_wr', band_status: 'agreed', target: '≤20% of sales' });
+  r.months[0] = v('2026-09', { score: 0, rag: 'red',
+    basis: "wages were more than 20% of sales in September 2026, in Finance's management-account summary ('AA MA Summary.xlsx', 2026 tab) as read on 07/10/2026 09:30 - pass/fail on the KR's own target (Ross, 15/10/2026: 100 met, 0 missed). Score only: the figure is Finance's and is not published here, because this repository is public." });
+  return s;
+}
+{
+  const page = await boot(indexUrl, maFixture());
+  await page.selectOption('#sc-month', '2026-09');
+  await page.waitForTimeout(300);
+  const rows = await rowsOf(page);
+  const k1 = rows.find(r => /Actual W\/R%/.test(r.text));
+  assert(k1 && k1.cells[2] === 'score only' && k1.cells[3] === '0' && /Off target/.test(k1.cells[4])
+    && /Finance's management account, pass\/fail/.test(k1.text) && !/PROPOSED BAND/.test(k1.text),
+    `Overview: OO1 KR1 from the account - score only, 0, Off target, labelled with its source (got ${k1 && JSON.stringify(k1.cells.slice(1))})`);
+  assert(k1 && k1.cells[1] === '≤20% of sales', 'its target column shows the KR\'s own target');
+  assert(page._errors.length === 0, 'no page errors (OO1 from the account, index.html)');
+  await page.close();
+}
+{
+  const page = await boot(okrUrl + '?m=2026-09', maFixture());
+  const cards = await page.locator('.kr').evaluateAll(ds => ds.map(d => ({
+    cls: d.className, chip: d.querySelector('.chip')?.innerText, t: d.querySelector('.t')?.innerText,
+    v: d.querySelector('.v')?.innerText || '' })));
+  const k1 = cards.find(c => /Actual W\/R%/.test(c.t || ''));
+  assert(k1 && k1.chip === '0' && /score only/.test(k1.v) && /pass\/fail on Finance's account/.test(k1.v)
+    && !/%/.test(k1.v.replace("Finance's", '')),
+    `okr.html: the OO1 KR1 card shows 0, 'score only · pass/fail on Finance's account', no figure (got ${k1 && JSON.stringify([k1.chip, k1.v])})`);
+  assert(page._errors.length === 0, 'no page errors (OO1 from the account, okr.html)');
+  await page.close();
+}
+
 await browser.close();
 console.log(failures ? `\n${failures} FAILURE(S)` : '\nall passed');
 process.exit(failures ? 1 : 0);

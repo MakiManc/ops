@@ -49,6 +49,11 @@ const overlay = {
   faults: { open: 3, open_over_14d: 1, assets_down: 2 },
   kr2_repeat_issues: {
     ...fixture.kr2_repeat_issues,
+    // September gets the 3 repeats the by-site tally adds up to, so the counts
+    // and the pair re-reported on 20/09 agree (a month the app counts as 0
+    // while a pair was re-reported in it is greyed as a contradiction).
+    months: fixture.kr2_repeat_issues.months.map(m => m.month === '2026-09'
+      ? { ...m, repeats: 3, per_site: 0.16 } : m),
     by_site: [{ site: 'Maki 9', repeats: 1 }, { site: 'Maki 3', repeats: 2 }],
     pairs: [{ site: 'Maki 3', asset: 'Fryer 2', first: '2026-09-02', fix_date: '2026-09-04',
               second: '2026-09-20', days: 18, note: 'x' }],
@@ -58,19 +63,19 @@ const overlay = {
     ontime_pct_12m: null, avg_days_late: null, last_cert: null }))],
 };
 const tmp = mkdtempSync(path.join(os.tmpdir(), 'facmjs-'));
-function bakeWith(daysAgo, patch = f => f, tag = '') {
+function bakeWith(daysAgo, patch = f => f, tag = '', date = '2026-09-25') {
   const out = path.join(tmp, 'd' + daysAgo + tag);
-  const arch = path.join(out, 'arch', '2026-09-25');
+  const arch = path.join(out, 'arch', date);
   mkdirSync(arch, { recursive: true });
   writeFileSync(path.join(arch, 'Dummy.jsonl.gz'),
     gzipSync(JSON.stringify({ row_num: 0, data: { x: 1 } }) + '\n'));
   copyFileSync(path.join(snapDir, 'feeds_manifest.json'), path.join(out, 'feeds_manifest.json'));
   // Relative to the bake date, not the wall clock: a --date bake judges age as of
   // that date (as-of semantics for back-bakes, 09/10/2026).
-  const pulled = new Date(Date.parse('2026-09-25T07:00:00Z') - daysAgo * 86400e3).toISOString().slice(0, 19) + 'Z';
+  const pulled = new Date(Date.parse(date + 'T07:00:00Z') - daysAgo * 86400e3).toISOString().slice(0, 19) + 'Z';
   writeFileSync(path.join(out, 'facilities_ppm.json'),
     JSON.stringify(patch(JSON.parse(JSON.stringify({ ...fixture, ...overlay, pulled_at: pulled })))));
-  const p = spawnSync('python3', [path.join(repoRoot, 'builders', 'bake_ops_command.py'), '--date', '2026-09-25'], {
+  const p = spawnSync('python3', [path.join(repoRoot, 'builders', 'bake_ops_command.py'), '--date', date], {
     env: { ...process.env, OPS_WAREHOUSE_SOURCE: 'archive', OPS_ARCHIVE_DIR: path.join(out, 'arch'), OPS_OUT_DIR: out },
     encoding: 'utf-8',
   });
@@ -78,7 +83,7 @@ function bakeWith(daysAgo, patch = f => f, tag = '') {
     console.error('builder failed:', (p.stdout || '').slice(-1500), (p.stderr || '').slice(-1500));
     process.exit(1);
   }
-  const baked = JSON.parse(readFileSync(path.join(out, 'snapshot_2026-09-25.json'), 'utf-8'));
+  const baked = JSON.parse(readFileSync(path.join(out, `snapshot_${date}.json`), 'utf-8'));
   return { ...baseSnap, scorecard: baked.scorecard, maintenance: baked.maintenance };
 }
 const fresh = bakeWith(0);
@@ -91,6 +96,19 @@ const greased = bakeWith(0, f => {
   f.sites[0].grease_traps = { tasks: 2, current: 1, due30: 0, overdue: 1, no_evidence: 0 };
   return f;
 }, 'g');
+/* OO2 KR2's zero rule (Ross, 15/10/2026: "if there is 0 repeat maintenance
+   issues then it flags as green 100%"). `zero` is the fixture's own KR2 block -
+   every month 0, no pairs - on 25/09, so September is the month still open.
+   `closed` is the same on 02/10 with October logged at 0 too, so September has
+   closed. */
+const realK2 = f => { f.kr2_repeat_issues = JSON.parse(JSON.stringify(fixture.kr2_repeat_issues)); return f; };
+const zero = bakeWith(0, realK2, 'z');
+const closed = bakeWith(0, f => {
+  realK2(f);
+  f.as_of = '2026-10-02';   // read after September ended, so its 0 is final
+  f.kr2_repeat_issues.months.push({ label: 'Oct 2026', month: '2026-10', per_site: 0.0, repeats: 0, sites: 19 });
+  return f;
+}, 'c', '2026-10-02');
 
 const pinnedChromium = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const browser = await chromium.launch(existsSync(pinnedChromium) ? { executablePath: pinnedChromium } : {});
@@ -121,9 +139,37 @@ const okrRow = kr => page.locator('#scorecard table tbody tr', { hasText: kr }).
   assert(/Not measured/.test(k1[4]) && /Needs: no PPM completion has been logged with a due date yet/.test(k1[0])
     && /25 Sep 2026 onwards/.test(k1[0]), 'OO2 KR1 grey with its reason');
   const k2 = await okrRow('KR2: Reduce repeat maintenance issues').locator('td').allInnerTexts();
-  assert(/Not measured/.test(k2[4]) && /baseline needs Jun–Aug; the app's fault log starts Sep 2026/.test(k2[0])
-    && /January re-baseline/.test(k2[0]), 'OO2 KR2 grey with its reason');
+  assert(/Not measured/.test(k2[4]) && k2[2] === '—' && /a month WITH repeats is scored against the Jun–Aug baseline/.test(k2[0])
+    && /baseline needs Jun–Aug; the app's fault log starts Sep 2026/.test(k2[0])
+    && /January re-baseline/.test(k2[0]), 'OO2 KR2: a month with repeats is grey with the baseline reason');
   assert(/PROPOSED BAND/.test(k2[0]), 'OO2 KR2 still shows its PROPOSED band chip');
+}
+
+// ---- OO2 KR2 zero rule (Ross, 15/10/2026) -----------------------------------
+{
+  await page.evaluate(s => window.render(s), zero);
+  const k2 = await okrRow('KR2: Reduce repeat maintenance issues').locator('td').allInnerTexts();
+  assert(k2[2] === '0 repeats (19 sites) MTD' && /MTD · not yet scored/.test(k2[4]) && k2[3].trim() === '—',
+    `0 repeats in the open month: shown, MTD, not scored (got ${JSON.stringify(k2.slice(2))})`);
+  assert(/0 so far can still become 1/.test(k2[0]) && /a month with 0 repeat issues scores 100, green \(Ross, 15\/10\/2026\)/.test(k2[0])
+    && /a month in which nothing was logged in the app also reads 0/.test(k2[0]),
+    'the open month says why it waits, the rule, and that the app cannot tell 0 from nothing logged');
+  assert(!/PROPOSED BAND/.test(k2[0]),
+    "a 0-repeat month is scored by Ross's agreed rule, not the proposed band: no PROPOSED BAND chip");
+
+  await page.evaluate(s => window.render(s), closed);
+  const pick = async m => page.evaluate(m => { const el = document.getElementById('sc-month');
+    if (el && el.value !== m) { el.value = m; el.dispatchEvent(new Event('change')); } return el ? el.value : null; }, m);
+  assert(await pick('2026-09') === '2026-09', 'the scorecard picker offers September on 02/10');
+  const c2 = await okrRow('KR2: Reduce repeat maintenance issues').locator('td').allInnerTexts();
+  assert(c2[2] === '0 repeats (19 sites)' && c2[3].trim() === '100' && /On target/.test(c2[4]),
+    `a CLOSED month with 0 repeats scores 100, On target (got ${JSON.stringify(c2.slice(2))})`);
+  assert(/0 repeat maintenance issues in Sep 2026 across 19 sites/.test(c2[0]) && /with no baseline needed/.test(c2[0])
+    && !/PROPOSED BAND/.test(c2[0]), 'the closed month carries its basis, and no PROPOSED BAND chip');
+  assert(await pick('2026-10') === '2026-10', 'the scorecard picker offers October on 02/10');
+  const o2 = await okrRow('KR2: Reduce repeat maintenance issues').locator('td').allInnerTexts();
+  assert(o2[2] === '0 repeats (19 sites) MTD' && /MTD · not yet scored/.test(o2[4]),
+    `October, still open, waits (got ${JSON.stringify(o2.slice(2))})`);
 }
 
 // ---- fresh: the Maintenance tab --------------------------------------------
@@ -153,7 +199,7 @@ const okrRow = kr => page.locator('#scorecard table tbody tr', { hasText: kr }).
 
   const months = await page.locator('#fac-kr2-m tbody tr').evaluateAll(trs =>
     trs.map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim())));
-  assert(months[0][0] === 'Sep 2026' && months[0][1] === '0', 'KR2: September is a logged month');
+  assert(months[0][0] === 'Sep 2026' && months[0][1] === '3' && months[0][3] === '0.16', 'KR2: September is a logged month');
   const aug = months.find(r => r[0] === 'Aug 2026');
   assert(aug && aug[1] === 'no log' && /baseline/.test(aug[4]), 'KR2: August reads "no log", never 0, and is marked baseline');
   const cells = sel => page.locator(sel + ' tbody tr').evaluateAll(trs =>
