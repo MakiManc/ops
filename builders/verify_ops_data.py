@@ -1795,7 +1795,11 @@ def main() -> None:
             conn.close()
     # what is actually published - runs even when the recompute is skipped
     check_oo1_public()
-    check_oo1_ma(today)
+    # OO1's 7th is a UK date, and the read runs on the UK clock (review,
+    # 15/10/2026): a run between 23:00 and 24:00 UTC in BST is already the
+    # next UK day
+    from zoneinfo import ZoneInfo
+    check_oo1_ma(datetime.now(ZoneInfo("Europe/London")).date().isoformat())
 
     # ---- deferral: morning run parks timing-class criticals ----------
     deferred = []

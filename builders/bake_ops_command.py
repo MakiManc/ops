@@ -1296,6 +1296,10 @@ OO1_MA_WORDS = {
 }
 _OO1_SCORE_ONLY = ("Score only: the figure is Finance's and is not published here, "
                    "because this repository is public")
+#: A month the reader can never judge: it reads only the MA_YEAR tab (review,
+#: 15/10/2026 - the bake runs into the next year to decide December's KR5).
+_OO1_OTHER_YEAR = ("{lbl} is not on the " + oo1_ma.MA_YEAR + " tab of Finance's "
+                   "management-account summary, the only tab OO1 is read from - not scored")
 
 
 def load_oo1_ma(out_dir):
@@ -1352,6 +1356,23 @@ def oo1_ma_cause(status):
                                 if since and since[:10] != at[:10] else ""))
 
 
+def _oo1_status_at(pulls):
+    """oo1_ma_status.json as it stood after the last of `pulls`: None when that
+    read succeeded (or there is none), else its cause, stamp and the first of
+    the failures since the last good read. Fixed codes and stamps only."""
+    ps = sorted((p for p in pulls if isinstance(p, dict) and oo1_ma._stamp(p.get("pulled_at"))),
+                key=lambda p: p["pulled_at"])
+    if not ps or ps[-1].get("ok"):
+        return None
+    since = ps[-1]["pulled_at"]
+    for p in reversed(ps):
+        if p.get("ok"):
+            break
+        since = p["pulled_at"]
+    return {"ok": False, "cause": ps[-1].get("cause"), "attempted_at": ps[-1]["pulled_at"],
+            "failing_since": since}
+
+
 def oo1_ma_extra(doc, err, status, pull_month, today, dated=None):
     """OO1 KR1-KR5 as scorecard `_okr_extra` entries, and gaps.
 
@@ -1365,11 +1386,15 @@ def oo1_ma_extra(doc, err, status, pull_month, today, dated=None):
     """
     gaps, extra = [], {}
     rids = [("OO1", f"KR{i}") for i in range(1, 6)]
-    fail = oo1_ma_cause(status)
     t = datetime.date.fromisoformat(str(today)[:10])
-    seven = t.replace(day=oo1_ma.MA_DEADLINE_DAY)
     pulls = [p for p in ((doc or {}).get("pulls") or [])
              if not dated or str(p.get("pull_date") or "") <= dated]
+    if dated:
+        # the status file is the latest attempt only; a back-bake takes the
+        # state of the reads as of its date from the stored pulls (review,
+        # 15/10/2026), so a failing run is named there too
+        status = _oo1_status_at(pulls)
+    fail = oo1_ma_cause(status)
     oks = sorted(str(p["pull_date"]) for p in pulls if p.get("ok"))
     # the read due: the latest 7th on or before today - after a missed or
     # failed one, even once the month has turned (review, 15/10/2026)
@@ -1444,6 +1469,9 @@ def oo1_ma_extra(doc, err, status, pull_month, today, dated=None):
             base = {"m": m, "label": lbl, "value": None, "display": None, "score": None,
                     "rag": None, "basis": None, "trend": None, "trend_unit": None,
                     "trend_note": None, "not_measured": None}
+            if m[:4] != oo1_ma.MA_YEAR:
+                months.append({**base, "not_measured": _OO1_OTHER_YEAR.format(lbl=lbl)})
+                continue
             if m >= pull_month:
                 months.append({**base, "mtd": True, "coverage_days": None, "basis": (
                     f"month in progress - Finance's management account for {lbl} is read on "
@@ -1487,6 +1515,9 @@ def oo1_ma_extra(doc, err, status, pull_month, today, dated=None):
         base = {"m": m, "label": lbl, "value": None, "display": None, "score": None,
                 "rag": None, "basis": None, "trend": None, "trend_unit": None,
                 "trend_note": None, "not_measured": None}
+        if m[:4] != oo1_ma.MA_YEAR:
+            months.append({**base, "not_measured": _OO1_OTHER_YEAR.format(lbl=lbl)})
+            continue
         if m >= pull_month:
             months.append({**base, "mtd": True, "coverage_days": None, "basis": (
                 f"month in progress - KR5 asks for {lbl}'s management account to be complete "
@@ -1521,10 +1552,16 @@ def oo1_ma_extra(doc, err, status, pull_month, today, dated=None):
                 f"{oo1_ma.MA_SOURCE} when it was read on {_oo1_when(v['judged_at'])} "
                 f"(deadline {dl_s}) - {rule}.")})
         elif v and v["final"]:
+            # earlier reads of this month (after it ended) - else it was the first
+            earlier = v.get("provisional_at") or any(
+                p.get("ok") and str(p.get("pull_date") or "")[:7] > m
+                and str(p.get("pulled_at") or "") < v["judged_at"] for p in pulls)
             months.append({**base, "score": 0, "rag": OKR_RAG.get(0), "basis": (
                 f"not complete by the 7th: {', '.join(v['missing'])} still not entered for "
                 f"{lbl} when {oo1_ma.MA_SOURCE} was read on {_oo1_when(v['judged_at'])} "
-                f"(deadline {dl_s}), and blank in every read before it"
+                f"(deadline {dl_s}), "
+                + ("and blank in every read of it before" if earlier
+                   else "the first read of it since it ended")
                 + (f", as on the deadline day ({_oo1_when(v['provisional_at'])})"
                    if v.get("provisional_at") else "") + f" - {rule}.")})
         elif v:
@@ -7759,12 +7796,16 @@ def main():
     gaps.extend(_sheet_gaps)
     # --- OO1 KR1-5, from Finance's management account (15/10/2026) --------
     # See oo1_ma_extra: score-only variants, pass/fail on each KR's target.
+    # KR5's 7th is a UK date and oo1_ma.py reads on the UK clock, so OO1 is
+    # judged against the UK date too (review, 15/10/2026).
+    from zoneinfo import ZoneInfo
+    _ma_today = dated or datetime.datetime.now(ZoneInfo("Europe/London")).date().isoformat()
     try:
-        _ma_extra, _ma_gaps = oo1_ma_extra(_ma_doc, _ma_err, _ma_status, _pm, _sheet_today,
+        _ma_extra, _ma_gaps = oo1_ma_extra(_ma_doc, _ma_err, _ma_status, _pm, _ma_today,
                                            dated=dated)
     except Exception as e:  # noqa: BLE001 - a malformed file greys OO1, never fails the bake
         _ma_extra, _ma_gaps = oo1_ma_extra(
-            None, f"unreadable (unexpected shape: {type(e).__name__})", None, _pm, _sheet_today)
+            None, f"unreadable (unexpected shape: {type(e).__name__})", None, _pm, _ma_today)
     _okr_extra.update(_ma_extra)
     gaps.extend(_ma_gaps)
 

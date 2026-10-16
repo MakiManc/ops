@@ -839,6 +839,41 @@ _k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
 check(_G9["kr5"]["2026-09"]["final"] and _k5["score"] is None
       and any(g_.startswith("OO1 KR5: September 2026 waits") for g_ in gp),
       "BACK-BAKE to the 8th: the 9th's final 0 is not shown, and the wait is in the gaps as it was live")
+# round 4 (16/10/2026): a back-bake names a failing run from the stored reads
+_R = oo1_ma.merge(None, oo1_ma.judge_pull(_MA, _dt.datetime(2026, 11, 9, 9, 0), bake.okr_score))
+for _d in range(7, 15):
+    _R = oo1_ma.merge(_R, {"pulled_at": f"2026-12-{_d:02d}T09:00+00:00", "pull_date": f"2026-12-{_d:02d}",
+                           "ok": False, "cause": "not_shared", "tab": None})
+ex, gp = bake.oo1_ma_extra(_R, None, None, "2026-12", "2026-12-15", dated="2026-12-15")
+_k1 = next(v for v in ex[("OO1", "KR1")]["months"] if v["m"] == "2026-11")
+check(len(gp) == 1 and oo1_ma.CAUSE_TEXT["not_shared"] in gp[0] and "failing since 07/12/2026" in gp[0]
+      and oo1_ma.CAUSE_TEXT["not_shared"] in _k1["not_measured"],
+      "BACK-BAKE during a failing run: the gap and the rows name the failure from the stored reads, "
+      "not 'the next bake reads'")
+ex, gp = bake.oo1_ma_extra(_R, None, None, "2026-12", "2026-11-20", dated="2026-11-20")
+check(gp == [], "...and a back-bake to before the failures shows none")
+# months the 2026 tab can never hold
+ex, gp = bake.oo1_ma_extra(_R, None, None, "2027-02", "2027-02-10")
+_j1 = next(v for v in ex[("OO1", "KR1")]["months"] if v["m"] == "2027-01")
+_j5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2027-01")
+check(all(x["score"] is None and "is not on the 2026 tab" in x["not_measured"] for x in (_j1, _j5)),
+      "2027 months: grey, saying the 2026 tab is the only one read - never a promised read")
+# a 0 from the first read of the month says so (not 'blank in every read before it')
+_g_or = ma_grid({**{m: (100000, 18000, 2000, 30000, 14000, 8100) for m in range(1, 10)},
+                 10: (100000, 18000, None, 30000, 14000, 8100)})
+_FR = oo1_ma.merge(_D107, oo1_ma.judge_pull(_g_or, _dt.datetime(2026, 11, 9, 14, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_FR, None, None, "2026-11", "2026-11-10")
+_o5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-10")
+check(_o5["score"] == 0 and "the first read of it since it ended" in _o5["basis"]
+      and "every read of it before" not in _o5["basis"],
+      "a KR5 0 from the month's first read says so, never 'blank in every read before it'")
+_FR2 = oo1_ma.merge(oo1_ma.merge(_D107, oo1_ma.judge_pull(_g_or, _dt.datetime(2026, 11, 7, 9, 0),
+                                                         bake.okr_score)),
+                    oo1_ma.judge_pull(_g_or, _dt.datetime(2026, 11, 8, 9, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_FR2, None, None, "2026-11", "2026-11-10")
+_o5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-10")
+check(_o5["score"] == 0 and "and blank in every read of it before" in _o5["basis"],
+      "...while one with an earlier read says it was blank in every read before")
 # the deadline day itself, after a failed read
 _fail7 = oo1_ma.merge(oo1_ma.merge(None, oo1_ma.judge_pull(_g_tax, _dt.datetime(2026, 10, 3, 9, 0),
                                                           bake.okr_score)),

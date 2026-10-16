@@ -58,27 +58,28 @@ moves nothing.
   * COMPLETE (KR5) means all six input lines entered.
 
 KR5, AND WHY THE PULL TIME MATTERS. KR5's deadline for a month is the 7th of
-the next month (UK date). Every verdict keeps the pull that decided it:
+the next month (UK date). Every verdict keeps the pull that decided it (see
+merge(), the one place the rule is written):
   * a pull on or before the deadline that finds the month complete -> 100;
-  * a pull AFTER the deadline that finds a line blank -> 0 (an entry is not
-    un-typed) - unless an earlier pull saw the month complete, when a line was
-    cleared since and the blank proves nothing;
   * a pull ON the deadline day that finds a line blank -> provisional: not
-    scored, because Finance may still finish that day. Only the FIRST pull
-    after the deadline day decides it: a line blank in both is a final 0
-    (naming only those lines); none blank in both proves nothing, and the
-    verdict is dropped. The calendar never finalises it (review, 15/10/2026);
-  * a pull after the deadline that finds it complete proves nothing about the
-    7th, so the month stays unscored for KR5;
+    scored, because Finance may still finish that day (the day's latest pull
+    stands; a later one with no blank line drops it);
+  * the FIRST successful pull after the deadline decides the month for good:
+    a 0 naming only the lines no pull of it ever saw entered (an entry is not
+    un-typed; a line seen entered once and blank later was cleared, and
+    proves nothing), or a recorded "not judged" - complete then, or nothing
+    blank that had been blank all along. A decided month never changes;
   * an UNREADABLE line proves nothing either way.
 
 WHEN IT PULLS (due()). The bake runs after each daily export, at no fixed
 hour, and some days not at all. So:
   * a bake on the 7th (UK) always pulls - a second bake that day re-reads;
-  * after the 7th, a bake pulls while no pull on or after this month's 7th has
-    succeeded (the catch-up: a day with no bake or a failed read loses nothing);
-  * on ANY day, a bake pulls while a deadline-day blank waits for the pull
-    that decides it.
+  * any bake pulls while no pull since the latest 7th on or before today has
+    succeeded (the catch-up: a day with no bake or a failed read loses
+    nothing, even once the month has turned; a workbook never read is read
+    at once);
+  * any bake pulls while a deadline-day blank waits for the pull that
+    decides it.
 Any other day it does nothing. `--force` (the bake's dispatch input) pulls
 whatever the day.
 
