@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """The Operations Input sheet and the Maintenance Contact List (Phase 1, 10/10/2026).
 
-Pins, end to end, the rules the nine sheet-fed KRs and OO2 KR5 live by:
+Pins, end to end, the rules the four sheet-fed KRs and OO2 KR5 live by:
 
   * A MONTH NOT ENTERED IS NOT SCORED - an explicit not-measured month, never 0.
-  * OO1 is Finance's SCORES ONLY - no value, no display, no objective %, and a
-    cell that is not 0/50/80/100 (or carries a '%') is never written anywhere.
+  * OO1 IS NOT READ FROM THIS SHEET ANY MORE (Ross, 15/10/2026: Finance's
+    management account, builders/oo1_ma.py - tests/oo1_ma_test.py). Its
+    '2026 Summary' tab is never asked for, and an okr_sheet.json carrying an
+    OO1 series is refused. OO1 is still SCORES ONLY - no value, no display, no
+    objective % - and the real bake below checks that with the new source.
   * The refreshers fail soft, write a status file with FIXED text (never an
     exception message - the file is public), write atomically, and carry a
     series forward rather than drop it when one tab cannot be read.
@@ -40,6 +43,7 @@ REPO = os.path.dirname(HERE)
 BUILDERS = os.path.join(REPO, "builders")
 sys.path.insert(0, BUILDERS)
 import bake_ops_command as bake  # noqa: E402
+import oo1_ma  # noqa: E402
 import refresh_maintenance_contacts as rmc  # noqa: E402
 import refresh_okr_sources as ros  # noqa: E402
 import verify_ops_data as vod  # noqa: E402
@@ -61,20 +65,20 @@ MON = ["Jan-26", "Feb-26", "Mar-26", "Apr-26", "May-26", "Jun-26", "Jul-26",
        "Aug-26", "Sep-26", "Oct-26", "Nov-26", "Dec-26"]
 
 
+OO1_KRS = ("KR1", "KR2", "KR3", "KR4", "KR5")
+
+
 def summary(oo1=None, label="OO1 :  <target> Net Profit", lead_rows=0):
-    """'2026 Summary': header row 1, OO1 label row 2, KR1-KR5 on rows 3-7, a
-    blank legacy 'OO1:Maintenance' block further down (the latch trap)."""
+    """'2026 Summary' as it is on the sheet - which is NO LONGER READ (OO1 moved
+    to Finance's management account, 15/10/2026). Kept so the tests can show
+    that its cells, a Finance percentage included, reach nothing."""
     oo1 = oo1 or {k: ["100.00", "80.00", "50", "0", "", "", "", "", "", "", "", ""]
-                  for k in ros.OO1_KRS}
+                  for k in OO1_KRS}
     rows = [["", ""] + [""] * 12 for _ in range(lead_rows)]
     rows.append(["Objective ", ""] + MON)
     rows.append([label, "Function "] + [""] * 12)
-    for kr in ros.OO1_KRS:
+    for kr in OO1_KRS:
         rows.append([f"{kr}: <synthetic label>", "Finance"] + oo1[kr])
-    rows += [[""] * 14] * 3
-    rows.append(["OO1:Maintenance", ""] + [""] * 12)
-    for kr in ros.OO1_KRS:
-        rows.append([f"{kr}: legacy", ""] + ["0"] * 12)
     return rows
 
 
@@ -144,29 +148,9 @@ check(sorted(lg) == ["2026-01", "2026-02", "2026-03"],
 check(ros.build_log([["Month", "Log"], ["Total", "3"]], "2026-12") == (None, "layout_changed"),
       "a log tab with no month rows is layout_changed, not 'nothing entered'")
 
-oo1, cause, diag = ros.build_oo1(summary(), "2026-12")
-check(cause is None and oo1["KR1"] == {"2026-01": 100, "2026-02": 80, "2026-03": 50, "2026-04": 0}
-      and diag["oo1_rows"] == [3, 7], "OO1 reads the five score rows at 3-7, blanks absent")
-oo1, cause, _ = ros.build_oo1(summary(label="OObjective 1 :  <target> Net Profit"), "2026-12")
-check(oo1 is None and cause == "layout_changed",
-      "THE LATCH TRAP: with row 2 relabelled, OO1 is NOT read from the legacy 'OO1:Maintenance' block")
-oo1, cause, _ = ros.build_oo1(summary(lead_rows=1), "2026-12")
-check(oo1 is None and cause == "layout_changed",
-      "an OO1 block that has moved off rows 2-7 is an error, not a warning")
-bad = {k: ["100", "", "", "", "", "", "", "", "", "", "", ""] for k in ros.OO1_KRS}
-bad["KR3"] = ["100", "31.5%", "", "", "", "", "", "", "", "", "", ""]
-buf = io.StringIO()
-h = logging.StreamHandler(buf)
-logging.getLogger().addHandler(h)
-oo1, cause, _ = ros.build_oo1(summary(oo1=bad), "2026-12")
-logging.getLogger().removeHandler(h)
-check(oo1 is None and cause == "oo1_not_scores",
-      "a '%' in ONE OO1 cell drops ALL of OO1 for the pull (oo1_not_scores)")
-check("31.5" not in buf.getvalue() and "D5" in buf.getvalue(),
-      "...and the log names the cell (D5), never its value")
-bad["KR3"] = ["100", "75", "", "", "", "", "", "", "", "", "", ""]
-check(ros.build_oo1(summary(oo1=bad), "2026-12")[1] == "oo1_not_scores",
-      "an OO1 value outside 0/50/80/100 (75) is not a score either")
+check(not hasattr(ros, "build_oo1") and "summary" not in ros.TAB_TITLES and "oo1" not in ros.SERIES
+      and "oo1_not_scores" not in ros.CAUSE_TEXT,
+      "OO1 is not read from the Operations Input sheet any more (Ross, 15/10/2026): no reader, tab, series or cause")
 
 o4, cause = ros.build_oo4_kr4(okrs(["", "100", "99%", "abc"]), "2026-12")
 check(cause is None and o4 == {"2026-02": 100, "2026-03": 99},
@@ -212,10 +196,11 @@ wss = [FakeWS("Approval", 1, [["secret approval"]]),
        FakeWS(ros.TAB_TITLES["oo4_kr1"][0], 5, d0["oo4_kr1"]),
        FakeWS("Unplanned Restarant Closures ", 6, d0["oo2_kr3"])]
 got, missing = ros.fetch("x", spreadsheet=FakeSheet(wss))
-check(not missing and set(got) == {"summary", "okrs", "oo2_kr3", "oo3_kr3", "oo4_kr1"},
-      "fetch finds every tab by exact title (trailing space and misspelling included)")
-check(wss[2].calls == [ros.OO4_KR4_RANGES] and wss[0].calls == [],
-      f"'2026 OKRs' is asked ONLY for {ros.OO4_KR4_RANGES} (never get_all_values); 'Approval' is never read")
+check(not missing and set(got) == {"okrs", "oo2_kr3", "oo3_kr3", "oo4_kr1"},
+      "fetch finds every tab it reads by exact title (trailing space and misspelling included)")
+check(wss[2].calls == [ros.OO4_KR4_RANGES] and wss[0].calls == [] and wss[1].calls == [],
+      f"'2026 OKRs' is asked ONLY for {ros.OO4_KR4_RANGES} (never get_all_values); 'Approval' and "
+      "'2026 Summary' are never read")
 check(got["okrs"][2][2][:3] == ["Feb-26", "100", "100"],
       "the two ranges are joined row by row into [Month, Limit, Actual]")
 wss[5].title = "Unplanned Restaurant Closures"
@@ -256,8 +241,9 @@ try:
     doc, st = read(tmp, "okr_sheet.json"), read(tmp, "okr_sheet_status.json")
     check(rc == 0 and st["ok"] is True and st["cause"] == "ok" and st["failing_since"] is None
           and st["series_read"] == sorted(ros.SERIES), "a full read writes the file and an ok status")
-    check("worksheets" not in doc and set(doc["series"]) == set(ros.SERIES),
-          "the public file carries the five series and NOT the worksheet inventory")
+    check("worksheets" not in doc and set(doc["series"]) == set(ros.SERIES) and len(ros.SERIES) == 4
+          and "oo1" not in doc["series"],
+          "the public file carries the four series - no OO1 - and NOT the worksheet inventory")
     check(doc["series"]["oo2_kr3"]["months"] == {"2026-01": 0, "2026-02": 1, "2026-04": 4}
           and doc["series"]["oo2_kr3"]["as_of"] == "2026-04",
           "each series carries its own as_of (newest entered month)")
@@ -276,16 +262,14 @@ try:
     st = read(tmp, "okr_sheet_status.json")
     check(st["failing_since"] == "2026-04-20T10:00:00Z", "failing_since holds while the failure lasts")
 
-    # an OO1 cell that is a percentage: nothing of it written, OO1 carried forward
-    bad = {k: ["100", "", "", "", "", "", "", "", "", "", "", ""] for k in ros.OO1_KRS}
+    # a Finance percentage typed on '2026 Summary' reaches nothing: the tab
+    # is no longer read at all (OO1 moved to Finance's management account)
+    bad = {k: ["100", "", "", "", "", "", "", "", "", "", "", ""] for k in OO1_KRS}
     bad["KR2"] = ["12.34%", "", "", "", "", "", "", "", "", "", "", ""]
     rc, out = run_refresher(tmp, dump(summary=summary(oo1=bad)), pulled="2026-04-22T10:00:00Z")
     raw = open(os.path.join(tmp, "okr_sheet.json")).read()
-    st = read(tmp, "okr_sheet_status.json")
-    check("12.34" not in raw and "12.34" not in out and st["cause"] == "oo1_not_scores",
-          "a Finance percentage in an OO1 cell reaches neither the file nor the log")
-    check(json.loads(raw)["series"]["oo1"]["krs"]["KR1"] == {"2026-01": 100, "2026-02": 80, "2026-03": 50, "2026-04": 0},
-          "...and OO1 is carried forward from the last good pull")
+    check("12.34" not in raw and "12.34" not in out and "oo1" not in json.loads(raw)["series"],
+          "a Finance percentage on '2026 Summary' reaches neither the file nor the log - and no OO1 series is written")
 
     # the sheet unreadable: file untouched, status names the cause in fixed text
     before = open(os.path.join(tmp, "okr_sheet.json")).read()
@@ -320,9 +304,6 @@ finally:
 # ---------------------------------------------------------------------------
 def sheet_doc(pulled="2026-10-05T09:00:00Z", **series_over):
     s = {
-        "oo1": {"tab": "2026 Summary", "pulled_at": pulled, "as_of": "2026-10",
-                "krs": {k: {"2026-01": 100, "2026-08": 80, "2026-09": 0, "2026-10": 50}
-                        for k in ros.OO1_KRS}},
         "oo2_kr3": {"tab": "c", "pulled_at": pulled, "months": {"2026-01": 0, "2026-02": 1, "2026-10": 0}},
         "oo3_kr3": {"tab": "m", "pulled_at": pulled, "months": {"2026-01": 0, "2026-10": 2}},
         "oo4_kr1": {"tab": "l", "pulled_at": pulled, "months": {"2026-03": 4}},
@@ -357,15 +338,7 @@ _exs = json.dumps(list(ex.values()))
 check("Efficiency" not in _exs and not any(n in _exs for n in bake.OO1_FORBIDDEN),
       "no Finance column name appears anywhere in the sheet rows")
 
-o1 = by_m(ex[("OO1", "KR1")])
-check(all(v["value"] is None and v["display"] is None for v in o1.values()),
-      "OO1 months carry NO value and NO display - ever")
-check(o1["2026-08"]["score"] == 80 and o1["2026-08"]["rag"] == "amber" and o1["2026-09"]["score"] == 0,
-      "OO1 closed months carry Finance's score and its RAG")
-check(o1["2026-10"]["score"] is None and o1["2026-10"]["mtd"] is True,
-      "OO1's month in progress is NOT scored even when Finance has typed one (a short month)")
-check(o1["2026-02"]["score"] is None and "not entered" in o1["2026-02"]["not_measured"],
-      "an OO1 month Finance has not scored is not measured")
+check(not any(k[0] == "OO1" for k in ex), "the sheet feeds no OO1 row any more")
 
 # the MTD gate a la the assembly: an open count already breached scores 0
 m3 = by_m(ex[("OO3", "KR3")])["2026-10"]
@@ -380,9 +353,10 @@ check(g["score"] is None and g["mtd"] is True, "an open month's % stays MTD")
 ex, gp = bake.okr_sheet_extra(None, "absent", {"ok": False, "cause": "not_shared",
                                                "detail": ros.CAUSE_TEXT["not_shared"],
                                                "attempted_at": "2026-10-10T15:00:00Z"}, "2026-10")
-check(len(ex) == 9 and all(e["months"] is None and "HTTP 403" in e["not_measured"] for e in ex.values()),
-      "no file: all nine rows grey, each naming the 403")
-check(len(gp) == 1 and "OO1 KR1-KR5" in gp[0], "...and one gap names them")
+check(len(ex) == 4 and all(e["months"] is None and "HTTP 403" in e["not_measured"] for e in ex.values()),
+      "no file: all four rows grey, each naming the 403")
+check(len(gp) == 1 and "OO2 KR3, OO3 KR3, OO4 KR1 and OO4 KR4" in gp[0] and "OO1" not in gp[0],
+      "...and one gap names them")
 ex, gp = bake.okr_sheet_extra(sheet_doc(pulled="2026-10-10T09:00:00Z"), None, None, "2026-10",
                               dated="2026-10-03")
 check(all(e["months"] is None and "after this snapshot's date (2026-10-03)" in e["not_measured"]
@@ -401,8 +375,6 @@ check("began after the copy" in l1["2026-09"]["not_measured"]
 # REVIEW (10/10/2026): a copy read while a month was in progress must not score
 # that month once it has closed - a part-month figure is a short month.
 mid = {"pulled_at": "2026-09-20T09:00:00Z", "series": {
-    "oo1": {"tab": "s", "pulled_at": "2026-09-20T09:00:00Z",
-            "krs": {k: {"2026-08": 80, "2026-09": 100} for k in ros.OO1_KRS}},
     "oo2_kr3": {"tab": "c", "pulled_at": "2026-09-20T09:00:00Z", "months": {"2026-08": 0, "2026-09": 0}},
     "oo3_kr3": {"tab": "m", "pulled_at": "2026-09-20T09:00:00Z", "months": {"2026-09": 3}},
     "oo4_kr1": {"tab": "l", "pulled_at": "2026-09-20T09:00:00Z", "months": {}},
@@ -411,13 +383,13 @@ for _st, _dated, _lab in ((None, "2026-10-05", "back-bake, status dropped"),
                           ({"ok": False, "cause": "not_shared", "detail": "HTTP 403 - x",
                             "attempted_at": "2026-10-05T09:00:00Z", "series_read": []}, None, "failing pull")):
     ex, _ = bake.okr_sheet_extra(mid, None, _st, "2026-10", dated=_dated)
-    s3, s4, o1 = (by_m(ex[("OO2", "KR3")]), by_m(ex[("OO4", "KR4")]), by_m(ex[("OO1", "KR1")]))
+    s3, s4 = by_m(ex[("OO2", "KR3")]), by_m(ex[("OO4", "KR4")])
     m3 = by_m(ex[("OO3", "KR3")])
-    check(s3["2026-08"]["score"] == 100 and o1["2026-08"]["score"] == 80,
+    check(s3["2026-08"]["score"] == 100,
           f"[{_lab}] a month that closed BEFORE the copy was read still scores")
     check(s3["2026-09"]["score"] is None and s3["2026-09"].get("incomplete") and s4["2026-09"]["score"] is None
-          and o1["2026-09"]["score"] is None and "still in progress" in (o1["2026-09"]["not_measured"] or ""),
-          f"[{_lab}] September, read on 20/09 while in progress, is NOT scored - count, % or Finance score")
+          and "still in progress" in (s4["2026-09"]["basis"] or ""),
+          f"[{_lab}] September, read on 20/09 while in progress, is NOT scored - count or %")
     check(m3["2026-09"]["score"] == 0, f"[{_lab}] ...unless a count was already past its last tolerance (3 on zero_strict)")
     check("began after the copy" in (s3["2026-10"]["not_measured"] or ""),
           f"[{_lab}] October began after the copy was read - unknown, not 'not entered'")
@@ -425,7 +397,7 @@ for _st, _dated, _lab in ((None, "2026-10-05", "back-bake, status dropped"),
 # REVIEW: staleness comes from what the pull READ, not from a timestamp a second apart
 fresh = sheet_doc(pulled="2026-10-10T06:00:00Z")
 for att in ("2026-10-10T06:00:00Z", "2026-10-10T06:00:01Z"):
-    ex, _ = bake.okr_sheet_extra(fresh, None, {"ok": False, "cause": "oo1_not_scores", "detail": "x",
+    ex, _ = bake.okr_sheet_extra(fresh, None, {"ok": False, "cause": "layout_changed", "detail": "x",
                                                "attempted_at": att, "series_read": ["oo2_kr3", "oo3_kr3",
                                                "oo4_kr1", "oo4_kr4"]}, "2026-10")
     k3 = by_m(ex[("OO4", "KR1")])   # October blank on this fixture
@@ -441,18 +413,42 @@ check(ex[("OO4", "KR1")]["months"] is None and "(tab_missing)" in ex[("OO4", "KR
 tmp = tempfile.mkdtemp(prefix="okr_sheet_test_")
 try:
     d = sheet_doc()
-    d["series"]["oo1"]["krs"]["KR2"]["2026-05"] = 37.5
+    d["series"]["oo1"] = {"tab": "2026 Summary", "pulled_at": "2026-10-05T09:00:00Z",
+                          "krs": {"KR2": {"2026-05": 37.5}}}
     d["series"]["oo2_kr3"]["months"]["2026-05"] = -1
     with open(os.path.join(tmp, "okr_sheet.json"), "w") as fh:
         json.dump(d, fh)
     d_, err_, probs_, raw_ = bake.load_okr_sheet(tmp)
-    check("2026-05" not in d_["series"]["oo1"]["krs"]["KR2"] and "2026-05" not in d_["series"]["oo2_kr3"]["months"]
+    check("oo1" not in d_["series"] and "2026-05" not in d_["series"]["oo2_kr3"]["months"]
           and len(probs_) == 2 and not any("37.5" in p_ for p_ in probs_),
-          "the bake drops (never coerces) a non-score OO1 entry and a negative count, naming month not value")
-    check(bake.okr_sheet_leaks(raw_) == ["OO1 KR2 2026-05 is not a 0/50/80/100 score"],
-          "...and REFUSES to publish a file carrying a non-score OO1 entry")
+          "the bake ignores an OO1 series and drops (never coerces) a negative count, naming month not value")
+    check(bake.okr_sheet_leaks(raw_) == ["an OO1 series that is not the old score-only shape - OO1 is no "
+                                         "longer read from the Operations Input sheet (Ross, 15/10/2026)"],
+          "...and REFUSES to publish a file carrying an OO1 series that is not a score (maybe a Finance figure)")
     check(bake.okr_sheet_leaks('{"x": "KR2 Variance"}') == ["Finance column name 'KR2 Variance'"],
           "...or a Finance column name")
+    # REVIEW (15/10/2026): json.dumps writes '£' as \u00a3 - the check reads it decoded
+    check(bake.okr_sheet_leaks(json.dumps({"x": "Money In (£)"})) == ["Finance column name 'Money In (£)'"]
+          and "\\u00a3" in json.dumps({"x": "Money In (£)"}),
+          "...including a '£' name written escaped, as json.dumps writes it")
+    # an old score-only series (what the refresher wrote before 15/10/2026) is
+    # ignored with a gap, never a refusal - it was publishable then
+    d = sheet_doc()
+    d["series"]["oo1"] = {"tab": "2026 Summary", "gid": 0, "pulled_at": "2026-10-05T09:00:00Z",
+                          "rows": [3, 7], "as_of": "2026-09", "carried_forward": True,
+                          "krs": {"KR1": {"2026-08": 80, "2026-09": 100}, "KR5": {"2026-09": 0}}}
+    with open(os.path.join(tmp, "okr_sheet.json"), "w") as fh:
+        json.dump(d, fh)
+    d_, err_, probs_, raw_ = bake.load_okr_sheet(tmp)
+    ex_, gp_ = bake.okr_sheet_extra(d_, err_, None, "2026-10", problems=probs_)
+    check(bake.okr_sheet_leaks(raw_) == [] and "oo1" not in d_["series"]
+          and any("an OO1 series from before 15/10/2026 - ignored" in g_ for g_ in gp_)
+          and not any(k[0] == "OO1" for k in ex_),
+          "an OLD score-only OO1 series is ignored with a gap - not refused, and never shown")
+    for k_, v_ in (("tab", "Wages 18.4%"), ("gid", "x"), ("pct", 1), ("rows", [1, 2, 3])):
+        d["series"]["oo1"] = {"pulled_at": "2026-10-05T09:00:00Z", "krs": {"KR1": {"2026-09": 100}}, k_: v_}
+        check(len(bake.okr_sheet_leaks(json.dumps(d))) == 1,
+              f"...but one with {k_} {'a figure' if k_ == 'tab' else 'of another shape'} is refused")
 finally:
     shutil.rmtree(tmp)
 check(bake.OO1_FORBIDDEN == vod.OO1_FORBIDDEN, "the bake's OO1_FORBIDDEN is identical to the verifier's")
@@ -475,17 +471,14 @@ try:
             ok_, lk = False, [repr(e)]
         check(ok_, f"malformed okr_sheet.json ({lab}) does not crash the loader, the leak check or the rows")
         if "krs" in lab or "KR a list" in lab:
-            check(any("score-only shape" in x for x in lk),
-                  f"...and an OO1 not in the score-only shape ({lab}) is refused, not ignored")
+            check(any("an OO1 series" in x for x in lk),
+                  f"...and an OO1 series of any shape ({lab}) is refused, not ignored")
 finally:
     shutil.rmtree(tmp)
-check(bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"pulled_at": "x", "krs": {}, "pct": 12.5}}}))
-      == ["OO1 carries a field the score-only shape does not have"],
-      "an OO1 field outside the score-only shape (e.g. a 'pct') is refused, by name only")
-check(bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"krs": {"KR1": {"12.5%": 100}}}}}))
-      == ["OO1 KR1 (a key that is not a month) is not a 0/50/80/100 score"]
-      or bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"krs": {"KR1": {"12.5%": 100}}}}})) == [],
-      "a stray key is never echoed into the refusal message")
+_lk = bake.okr_sheet_leaks(json.dumps({"series": {"oo1": {"pulled_at": "x", "krs": {"KR1": {"12.5%": 100}},
+                                                           "pct": 12.5}}}))
+check(len(_lk) == 1 and "12.5" not in _lk[0],
+      "an OO1 series with a 'pct' or a stray key is refused - and nothing of it is echoed into the message")
 ex, gp = bake.okr_sheet_extra(sheet_doc(pulled="2026-10-06T09:00:00Z"), None, None, "2026-10", today="2026-10-10")
 check(any("read on 2026-10-06, 4 days before this bake, and no failed pull is recorded" in g_ for g_ in gp),
       "an old sheet copy with no recorded failure is named by its age (the refresh step stopped)")
@@ -500,6 +493,24 @@ check(nulled == ["OO1 KR1", "OO1 KR1 2026-09"] and r0["value"] is None and r0["d
       "the bake's pre-write guard nulls an OO1 figure and a non-score, naming only KR and month")
 check(bake.okr_oo1_guard({"note": "KR1 Efficiency"})[1] == ["KR1 Efficiency"],
       "...and reports a Finance column name so the bake refuses to write")
+# REVIEW (15/10/2026): the guard read json.dumps' escaped text, so a '£' name
+# never matched; and a figure in an OO1 text or gap was not checked at all
+check(bake.okr_oo1_guard({"note": "Money Out (£)"})[1] == ["Money Out (£)"],
+      "...including a '£' name (the guard reads the snapshot decoded)")
+snap = {"scorecard": {"rows": [{"objective": "OO1", "kr": "KR1", "value": None, "display": None,
+                                "score": None, "basis": "≤20% of sales",
+                                "months": [{"m": "2026-09", "score": 100, "basis": "wages were 18.4% of sales"},
+                                           {"m": "2026-08", "score": 0, "not_measured": "Wages £18,000"}]},
+                               {"objective": "OO2", "kr": "KR1", "basis": "93.5% of tasks"}]},
+        "gaps": ["OO1: the last good read showed net profit of 6%", "OO2: 12.5% of sites"]}
+nulled, leaked = bake.okr_oo1_guard(snap)
+check(nulled == [] and leaked == ["a figure in the text of OO1 KR1 2026-09",
+                                  "a figure in the text of OO1 KR1 2026-08", "a figure in OO1 gap #1"]
+      and not any(x in " ".join(leaked) for x in ("18.4", "18,000", "6%")),
+      "...and a figure in an OO1 month's basis or reason, or in an OO1 gap, makes it refuse - "
+      "naming where, never the figure; OO2's own percentages are not OO1's")
+check(bake.okr_oo1_guard({"scorecard": {"rows": [{"objective": "OO1", "kr": "KR5", "score": True}]}})[0]
+      == ["OO1 KR5"], "...and a score that is a bool, not 0 or 100, is nulled")
 
 # ---------------------------------------------------------------------------
 # 5. The contact list: structure only, and OO2 KR5's rule
@@ -679,6 +690,286 @@ def real_bake(archive, out, date=None):
     return subprocess.run(args, env=env, capture_output=True, text=True)
 
 
+def ma_grid(months):
+    """A synthetic '2026' tab of Finance's management account, as a grid: every
+    number is INVENTED. months = {m: (sales, wages, rent, food, variable, tax)}."""
+    names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    lines = {k: [] for k in ("sales", "wages", "rent", "food", "variable", "tax")}
+    calc = {k: [] for k in ("money_in", "money_out", "np", "wages_pct", "food_pct", "variable_pct", "np_pct")}
+    for m in range(1, 13):
+        v = months.get(m)
+        for i, k in enumerate(lines):
+            lines[k].append(v[i] if v else None)
+        if v:
+            s_, w, r, f, va, t = v
+            # a blank (or text) line sums as 0, as Excel's SUM does
+            out_ = sum(x for x in (w, r, f, va, t) if isinstance(x, (int, float)))
+            for k, x in (("money_in", s_), ("money_out", out_), ("np", s_ - out_), ("wages_pct", w / s_),
+                         ("food_pct", f / s_), ("variable_pct", va / s_), ("np_pct", (s_ - out_) / s_)):
+                calc[k].append(x)
+        else:
+            for k in calc:
+                calc[k].append(0 if k in ("money_in", "money_out", "np") else "#DIV/0!")
+    lab = [("Restaurant Sales", lines["sales"]), ("Money In (£)", calc["money_in"]), ("Wages", lines["wages"]),
+           ("Wages %", calc["wages_pct"]), ("Rent", lines["rent"]), ("Food costs", lines["food"]),
+           ("Food costs %", calc["food_pct"]), ("Variable costs", lines["variable"]),
+           ("Variable costs %", calc["variable_pct"]), ("TAX", lines["tax"]),
+           ("Money Out (£)", calc["money_out"]), ("Net Profit (£)", calc["np"]), ("Net Profit (%)", calc["np_pct"])]
+    return {"2026 ": [["2026 "] + [None] * 12, ["Month"] + names] + [[a] + b for a, b in lab]}
+
+
+import datetime as _dt  # noqa: E402
+# every month Jan-Sep complete: wages 18% (met), food 30% (met), variable 14%
+# (missed), net profit 27.9% (met) - read on 03/10, before September's deadline
+_MA = ma_grid({m: (100000, 18000, 2000, 30000, 14000, 8100) for m in range(1, 10)})
+MA_DOC = oo1_ma.merge(None, oo1_ma.judge_pull(_MA, _dt.datetime(2026, 10, 3, 10, 0), bake.okr_score))
+check(oo1_ma.doc_problems(MA_DOC) == [], "the synthetic OO1 document is in the score-only shape")
+
+# OO1's rows from oo1_ma.json, unit level (review, 15/10/2026)
+FAILED = {"attempted_at": "2026-10-15T09:00+01:00", "ok": False, "cause": "drive_api_disabled",
+          "failing_since": "2026-10-07T09:00+01:00"}
+_api = oo1_ma.CAUSE_TEXT["drive_api_disabled"]
+ex, gp = bake.oo1_ma_extra(MA_DOC, None, FAILED, "2026-10", "2026-10-15")
+_s9 = next(v for v in ex[("OO1", "KR1")]["months"] if v["m"] == "2026-09")
+check(gp == [f"OO1: the read of Finance's management account due 07/10/2026 has not happened; the "
+             f"last good read was 03/10/2026 - the latest read of Finance's management account "
+             f"(15/10/2026 09:00 UK) failed: {_api} (failing since 07/10/2026)"]
+      and _s9["score"] == 100,
+      "a failed read after a missed 7th: ONE gap naming the due date, the last good read and the "
+      "fixed cause - and the last good read's scores stay")
+ex, gp = bake.oo1_ma_extra(MA_DOC, None, None, "2026-10", "2026-10-15")
+check(gp and gp[0].endswith("the next bake reads"), "...with no attempt recorded, it says the next bake reads")
+ex, gp = bake.oo1_ma_extra(MA_DOC, None, None, "2026-10", "2026-10-05")
+check(gp == [], "...and before the 7th there is no gap: nothing is due yet")
+_odd = dict(FAILED, cause="Traceback: https://example.invalid/?key=SECRET")
+ex, gp = bake.oo1_ma_extra(MA_DOC, None, _odd, "2026-10", "2026-10-15")
+check("cause not recorded" in gp[0] and "SECRET" not in json.dumps([list(ex.values()), gp], default=str),
+      "an unknown cause code is never echoed - 'cause not recorded'")
+_only_failed = oo1_ma.merge(None, {"pulled_at": "2026-10-07T09:00+01:00", "pull_date": "2026-10-07",
+                                   "ok": False, "cause": "drive_api_disabled", "tab": None})
+ex, gp = bake.oo1_ma_extra(_only_failed, None, FAILED, "2026-10", "2026-10-15")
+check(all(ex[("OO1", k)]["months"] is None and ex[("OO1", k)]["source_kind"] == "not_measured"
+          and "has not been read yet" in ex[("OO1", k)]["not_measured"]
+          and _api in ex[("OO1", k)]["not_measured"] for k in OO1_KRS) and len(gp) == 1,
+      "only failed reads: every OO1 row grey with the cause and NO months (nothing to pick)")
+ex, gp = bake.oo1_ma_extra(None, "absent", None, "2026-10", "2026-10-15")
+check("the first read is the next bake (the read due 07/10/2026 has not happened)"
+      in ex[("OO1", "KR1")]["not_measured"],
+      "no file after a missed 7th: the first read is the next bake, never a date already past")
+ex, gp = bake.oo1_ma_extra(None, "absent", None, "2026-10", "2026-10-05")
+check("the first read is the next bake (the read due 07/09/2026 has not happened)"
+      in ex[("OO1", "KR1")]["not_measured"],
+      "...and a workbook never read is read at once, even before the 7th (review, 15/10/2026)")
+_D107 = oo1_ma.merge(MA_DOC, oo1_ma.judge_pull(_MA, _dt.datetime(2026, 10, 7, 10, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_D107, None, None, "2026-11", "2026-11-03")
+_s10 = next(v for v in ex[("OO1", "KR1")]["months"] if v["m"] == "2026-10")
+check("read on 07/11/2026" in _s10["not_measured"] and gp == [],
+      "...while after a good read, the next read is the 7th")
+# a later read replaced September's record: a back-bake before it withholds it
+_DOC2 = oo1_ma.merge(MA_DOC, oo1_ma.judge_pull(_MA, _dt.datetime(2026, 10, 9, 10, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_DOC2, None, None, "2026-10", "2026-10-05", dated="2026-10-05")
+_s9 = next(v for v in ex[("OO1", "KR1")]["months"] if v["m"] == "2026-09")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_s9["score"] is None and "September 2026 was last read on 09/10/2026 10:00, after this snapshot's "
+      "date; only the latest read is kept, so it is withheld here" in _s9["not_measured"]
+      and _k5["score"] == 100,
+      "BACK-BAKE: a month whose record a later read replaced is withheld, saying why; KR5's proof "
+      "from the read before the date still shows")
+# KR5: a blank on the deadline day, confirmed by the next day's read
+_g_tax = ma_grid({m: (100000, 18000, 2000, 30000, 14000, None if m == 9 else 8100) for m in range(1, 10)})
+_D7 = oo1_ma.merge(None, oo1_ma.judge_pull(_g_tax, _dt.datetime(2026, 10, 7, 9, 0), bake.okr_score))
+_D8 = oo1_ma.merge(_D7, oo1_ma.judge_pull(_g_tax, _dt.datetime(2026, 10, 8, 9, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_D8, None, None, "2026-10", "2026-10-09")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_k5["score"] == 0 and "TAX still not entered for September 2026" in _k5["basis"]
+      and "as on the deadline day (07/10/2026 09:00)" in _k5["basis"],
+      "KR5: blank on the 7th and still blank on the 8th is a final 0, citing both reads")
+ex, gp = bake.oo1_ma_extra(_D8, None, None, "2026-10", "2026-10-07", dated="2026-10-07")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_k5["score"] is None and not _k5.get("mtd") and "the deadline day" in _k5["not_measured"]
+      and "a later read today can still find it complete" in _k5["not_measured"],
+      "BACK-BAKE to the 7th: only the deadline-day read is visible - grey, not judged yet, never the "
+      "later 0, and never an 'MTD' month (September has closed)")
+ex, gp = bake.oo1_ma_extra(_D7, None, None, "2026-10", "2026-10-09")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_k5["score"] is None and not _k5.get("mtd")
+      and "the first read after the 7th decides it" in _k5["not_measured"]
+      and "the next bake reads" in _k5["not_measured"]
+      and gp == ["OO1 KR5: September 2026 waits for a read after its deadline to decide it - the next bake reads"],
+      "KR5: a deadline-day blank with no later read waits for one - grey, never a 0 by the calendar, "
+      "with a gap while it waits")
+ex, gp = bake.oo1_ma_extra(_D7, None, FAILED, "2026-10", "2026-10-15")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_api in _k5["not_measured"] and len(gp) == 1 and gp[0].startswith("OO1 KR5: September 2026 waits")
+      and _api in gp[0],
+      "...and while the deciding read FAILS, the month and the gap name the failure")
+# review, 15/10/2026: the deadline-day list differs from the deciding read's
+_g_rt = ma_grid({m: (100000, 18000, None if m == 9 else 2000, 30000, 14000, None if m == 9 else 8100)
+                 for m in range(1, 10)})
+_E7 = oo1_ma.merge(None, oo1_ma.judge_pull(_g_rt, _dt.datetime(2026, 10, 7, 9, 0), bake.okr_score))
+_E8 = oo1_ma.merge(_E7, oo1_ma.judge_pull(_g_tax, _dt.datetime(2026, 10, 8, 9, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_E8, None, None, "2026-10", "2026-10-07", dated="2026-10-07")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check("Rent, TAX not entered for September 2026" in _k5["not_measured"],
+      "BACK-BAKE to the 7th names the 7th's own blank lines (Rent and TAX), not the 8th's")
+ex, gp = bake.oo1_ma_extra(_E8, None, None, "2026-10", "2026-10-09")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_k5["score"] == 0 and "TAX still not entered" in _k5["basis"] and "Rent" not in _k5["basis"],
+      "...and the final 0 names only the line blank in both reads")
+# review, 15/10/2026: blank on the 7th, complete on the 8th - NOT JUDGED, decided for good,
+# and its text names what happened (never "no read on its deadline is recorded")
+_F8 = oo1_ma.merge(_D7, oo1_ma.judge_pull(_MA, _dt.datetime(2026, 10, 8, 9, 0), bake.okr_score))
+_g_rent = ma_grid({m: (100000, 18000, None if m == 9 else 2000, 30000, 14000, 8100) for m in range(1, 10)})
+_F9 = oo1_ma.merge(_F8, oo1_ma.judge_pull(_g_rent, _dt.datetime(2026, 10, 9, 9, 0), bake.okr_score))
+for _doc_, _lab in ((_F8, "on the 9th"), (_F9, "after Rent is cleared on the 9th")):
+    ex, gp = bake.oo1_ma_extra(_doc_, None, None, "2026-10", "2026-10-10")
+    _k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+    check(_k5["score"] is None
+          and "not judged: September 2026 was not complete when read on 07/10/2026 09:00 (the deadline day)"
+          in _k5["not_measured"] and "first read after its deadline, on 08/10/2026 09:00" in _k5["not_measured"]
+          and "no read" not in _k5["not_measured"] and gp == [],
+          f"KR5: blank on the 7th, complete on the 8th - not judged, saying so ({_lab}: never turned "
+          "into a 0 by a later read)")
+# a back-bake to a day KR5 was waiting shows the wait in its gaps too
+_G9 = oo1_ma.merge(oo1_ma.merge(_D7, {"pulled_at": "2026-10-08T09:00+01:00", "pull_date": "2026-10-08",
+                                      "ok": False, "cause": "not_shared", "tab": None}),
+                   oo1_ma.judge_pull(_g_tax, _dt.datetime(2026, 10, 9, 9, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_G9, None, None, "2026-10", "2026-10-08", dated="2026-10-08")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_G9["kr5"]["2026-09"]["final"] and _k5["score"] is None
+      and any(g_.startswith("OO1 KR5: September 2026 waits") for g_ in gp),
+      "BACK-BAKE to the 8th: the 9th's final 0 is not shown, and the wait is in the gaps as it was live")
+# the deadline day itself, after a failed read
+_fail7 = oo1_ma.merge(oo1_ma.merge(None, oo1_ma.judge_pull(_g_tax, _dt.datetime(2026, 10, 3, 9, 0),
+                                                          bake.okr_score)),
+                      {"pulled_at": "2026-10-07T09:00+01:00", "pull_date": "2026-10-07",
+                       "ok": False, "cause": "drive_api_disabled", "tab": None})
+ex, gp = bake.oo1_ma_extra(_fail7, None, dict(FAILED, attempted_at="2026-10-07T09:00+01:00"),
+                           "2026-10", "2026-10-07")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+check(_k5["score"] is None and "due today (07/10/2026)" in _k5["not_measured"] and _api in _k5["not_measured"]
+      and len(gp) == 1,
+      "KR5 on the deadline day after a failed read: grey, naming the failure; one gap")
+
+# an entered-but-unreadable line, through the bake (review, 15/10/2026)
+_g_dash = ma_grid({m: (100000, 18000, 2000, 30000, 14000, "-" if m == 9 else 8100) for m in range(1, 10)})
+_U = oo1_ma.merge(None, oo1_ma.judge_pull(_g_dash, _dt.datetime(2026, 10, 9, 9, 0), bake.okr_score))
+ex, gp = bake.oo1_ma_extra(_U, None, None, "2026-10", "2026-10-09")
+_k4 = next(v for v in ex[("OO1", "KR4")]["months"] if v["m"] == "2026-09")
+_k5 = next(v for v in ex[("OO1", "KR5")]["months"] if v["m"] == "2026-09")
+_k1 = next(v for v in ex[("OO1", "KR1")]["months"] if v["m"] == "2026-09")
+check(_U["months"]["2026-09"]["unreadable"] == ["TAX"] and _k4["score"] is None
+      and "TAX for September 2026 cannot be read as a typed figure" in _k4["not_measured"]
+      and _k5["score"] is None
+      and "not judged: the first read of September 2026 after it ended was on 09/10/2026 09:00"
+      in _k5["not_measured"]
+      and _k1["score"] == 100 and not oo1_ma.figure_in(json.dumps([_k4, _k5], ensure_ascii=False)),
+      "TAX typed '-': KR4 grey naming it, KR5 not judged, KR1 still scores - through the bake")
+ex, gp = bake.oo1_ma_extra(_DOC2, None, FAILED, "2026-10", "2026-10-15")
+check(gp == [], "a good read since the 7th, then a failed retry: no gap (not news)")
+
+# 4f: the verifier's warning when this month's read has not happened
+_t4f = tempfile.mkdtemp(prefix="oo1_4f_")
+_orig4f = vod.OO1_MA_PATH, vod.OO1_MA_STATUS_PATH
+try:
+    vod.OO1_MA_PATH = os.path.join(_t4f, oo1_ma.MA_FILE)
+    vod.OO1_MA_STATUS_PATH = os.path.join(_t4f, oo1_ma.MA_STATUS_FILE)
+
+    def _4f(today, doc=None, st=None):
+        for pth, obj in ((vod.OO1_MA_PATH, doc), (vod.OO1_MA_STATUS_PATH, st)):
+            if obj is None:
+                if os.path.exists(pth):
+                    os.remove(pth)
+            else:
+                with open(pth, "w") as fh:
+                    json.dump(obj, fh)
+        vod.RESULTS.clear()
+        vod.check_oo1_ma(today)
+        r_ = [r for r in vod.RESULTS if r["check"] == "4f-oo1-ma"]
+        return (r_[0]["level"], r_[0]["detail"]) if len(r_) == 1 else (None, repr(r_))
+    lv, dt_ = _4f("2026-10-05", MA_DOC)
+    check(lv == "ok" and "last read 2026-10-03" in dt_, "4f: before the 7th, the last read is fine")
+    lv, dt_ = _4f("2026-10-07", MA_DOC)
+    check(lv == "ok", "4f: ON the 7th it does not warn yet (a later bake that day can still read)")
+    lv, dt_ = _4f("2026-10-08", MA_DOC)
+    check(lv == "warning" and "not been read since 2026-10-03 - the read due 2026-10-07 has not happened" in dt_
+          and "no attempt recorded" in dt_, "4f: from the 8th, no read since the 7th is a warning")
+    _oct_failed = oo1_ma.merge(MA_DOC, {"pulled_at": "2026-10-07T09:00+01:00", "pull_date": "2026-10-07",
+                                        "ok": False, "cause": "not_shared", "tab": None})
+    for _d in ("2026-11-01", "2026-11-06", "2026-11-07"):
+        lv, dt_ = _4f(_d, _oct_failed, dict(FAILED, attempted_at="2026-10-31T09:00+00:00"))
+        check(lv == "warning" and "the read due 2026-10-07 has not happened" in dt_,
+              f"4f on {_d}: October's read never succeeded - still a warning after the month turns "
+              "(review, 15/10/2026)")
+    ex, gp = bake.oo1_ma_extra(_oct_failed, None, FAILED, "2026-11", "2026-11-03")
+    check(len(gp) == 1 and "the read of Finance's management account due 07/10/2026 has not happened" in gp[0],
+          "...and the bake keeps its gap on 03/11 too")
+    lv, dt_ = _4f("2026-10-15", MA_DOC, FAILED)
+    check(lv == "warning" and _api in dt_ and "(2026-10-15 09:00 UK)" in dt_,
+          "4f: ...naming the latest attempt's fixed cause and time")
+    lv, dt_ = _4f("2026-10-15", MA_DOC, dict(_odd, attempted_at="soon <script>"))
+    check(lv == "warning" and "cause not recorded" in dt_ and "SECRET" not in dt_ and "script" not in dt_,
+          "4f: an unknown cause or a stamp that is not one is never echoed (health_latest.json is public)")
+    lv, dt_ = _4f("2026-10-15", _DOC2, FAILED)
+    check(lv == "ok" and "last read 2026-10-09" in dt_, "4f: read on the 9th - fine, even if a retry failed since")
+    lv, dt_ = _4f("2026-10-15", None, FAILED)
+    check(lv == "warning" and "has not been read yet" in dt_ and _api in dt_, "4f: never read: a warning with the cause")
+    lv, dt_ = _4f("2026-10-15", _D7, FAILED)
+    check(lv == "warning" and "waits for a read after its deadline" in dt_ and _api in dt_,
+          "4f: a deadline-day blank waiting for a read that keeps failing is a warning")
+    lv, dt_ = _4f("2026-10-15", _D7)
+    check(lv == "ok", "4f: ...but waiting with no failure recorded is fine (the next bake reads)")
+    lv, dt_ = _4f("2026-10-15", dict(MA_DOC, pulls=[{"ok": True, "pull_date": "NOT-A-DATE"}]))
+    check(lv == "warning" and "NOT-A-DATE" not in dt_, "4f: a pull date that is not a date is not echoed")
+finally:
+    vod.OO1_MA_PATH, vod.OO1_MA_STATUS_PATH = _orig4f
+    shutil.rmtree(_t4f)
+
+# 4e reads the files decoded, and accepts only an OLD score-only OO1 series (review, 15/10/2026)
+_t4e = tempfile.mkdtemp(prefix="oo1_4e_")
+_orig4e = vod.OKR_SHEET_PATH, vod.OO1_MA_PATH
+try:
+    vod.OKR_SHEET_PATH = os.path.join(_t4e, "okr_sheet.json")
+    vod.OO1_MA_PATH = os.path.join(_t4e, oo1_ma.MA_FILE)
+    _snap4e = os.path.join(_t4e, "snap.json")
+
+    def _4e(sheet, snapshot):
+        with open(vod.OKR_SHEET_PATH, "w") as fh:
+            json.dump(sheet, fh)              # ensure_ascii: '£' is written \u00a3
+        with open(_snap4e, "w") as fh:
+            json.dump(snapshot, fh)
+        vod.RESULTS.clear()
+        vod.check_oo1_public(_snap4e)
+        return " ".join(r["detail"] for r in vod.RESULTS if r["level"] == "critical")
+    _old = sheet_doc()
+    _old["series"]["oo1"] = {"tab": "2026 Summary", "gid": 0, "pulled_at": "2026-10-05T09:00:00Z",
+                             "krs": {"KR1": {"2026-09": 80}}}
+    _rows = {"scorecard": {"rows": [{"objective": "OO1", "kr": "KR1", "source_kind": "ma_summary",
+                                     "score": 100, "months": [{"m": "2026-09", "score": 0}]}]},
+             "gaps": []}
+    check(_4e(_old, _rows) == "", "4e: an old score-only OO1 series and a clean pass/fail snapshot pass")
+    _bad = json.loads(json.dumps(_old))
+    _bad["series"]["oo1"]["tab"] = "Wages 18.4%"
+    c_ = _4e(_bad, {"note": "Money In (£)", **_rows})
+    check("okr_sheet.json OO1 tab carries a figure" in c_ and "'Money In (£)'" in c_ and "18.4" not in c_,
+          "4e: a figure in an old series' text, and a '£' name written escaped, are both caught")
+    _r80 = json.loads(json.dumps(_rows))
+    _r80["scorecard"]["rows"][0]["months"][0]["score"] = 80
+    _r80["gaps"] = ["OO1: wages were 18.4% of sales"]
+    c_ = _4e(_old, _r80)
+    check("score is not 0/100" in c_ and "OO1 gap #1 has a figure" in c_ and "18.4" not in c_,
+          "4e: an 80 on a pass/fail row and a figure in an OO1 gap are caught, never quoted")
+    # a refused oo1_ma.json with more than four problems says how many (no silent cap)
+    _many = {"version": 2, "months": [], "kr5": [], "pulls": {}, "a": 1, "b": 2}
+    with open(vod.OO1_MA_PATH, "w") as fh:
+        json.dump(_many, fh)
+    c_ = _4e(_old, _rows)
+    check("...and " in c_ and "more problem(s)" in c_,
+          "4e: more than four problems in oo1_ma.json are counted, not silently dropped")
+finally:
+    vod.OKR_SHEET_PATH, vod.OO1_MA_PATH = _orig4e
+    shutil.rmtree(_t4e)
+
 tmp = tempfile.mkdtemp(prefix="okr_sheet_bake_")
 try:
     arc, out = os.path.join(tmp, "arc"), os.path.join(tmp, "out")
@@ -689,19 +980,32 @@ try:
         json.dump(sheet_doc(), fh)
     with open(os.path.join(out, "maintenance_contacts.json"), "w") as fh:
         json.dump(cdoc(allt), fh)
+    with open(os.path.join(out, oo1_ma.MA_FILE), "w") as fh:
+        json.dump(MA_DOC, fh)
     p = real_bake(arc, out)
-    check(p.returncode == 0, "the real bake runs with both files present" + ("" if p.returncode == 0 else p.stderr[-800:]))
+    check(p.returncode == 0, "the real bake runs with all three files present" + ("" if p.returncode == 0 else p.stderr[-800:]))
     sn = json.load(open(os.path.join(out, "snapshot_2026-10-05.json")))
     sc = sn["scorecard"]
     rows = {(r["objective"], r["kr"]): r for r in sc["rows"]}
-    oo1 = [rows[("OO1", k)] for k in ros.OO1_KRS]
-    check(all(r["source_kind"] == "sheet_finance" and r["value"] is None and r["display"] is None
+    oo1 = [rows[("OO1", k)] for k in OO1_KRS]
+    check(all(r["source_kind"] == "ma_summary" and r["value"] is None and r["display"] is None
               and all(v["value"] is None and v["display"] is None for v in r["months"]) for r in oo1),
-          "BAKED: OO1 rows are sheet_finance with no value or display, row or month")
+          "BAKED: OO1 rows are from Finance's management account with no value or display, row or month")
+    sep1 = {r["kr"]: next(v for v in r["months"] if v["m"] == "2026-09") for r in oo1}
+    check([sep1[k]["score"] for k in OO1_KRS] == [100, 100, 0, 100, 100]
+          and sep1["KR3"]["rag"] == "red" and "variable costs were more than 13% of sales" in sep1["KR3"]["basis"]
+          and "complete by the 7th" in sep1["KR5"]["basis"],
+          "BAKED: September pass/fail - wages, food, net profit met; variable missed; complete by the 7th")
+    check(all(r["band"] and r["band_status"] == "agreed" for r in oo1),
+          "BAKED: each OO1 row carries its agreed pass/fail band")
     ob = {o["objective"]: o for o in sc["objectives"]}
     sep = next(x for x in ob["OO1"]["months"] if x["m"] == "2026-09")
     check(sep["pct"] is None and sep["scored"] == 5 and ob["OO1"]["pct"] is None and ob["OO1"].get("pct_note"),
           "BAKED: OO1 shows '5 scored' for September and NO objective percentage")
+    _oo1_text = json.dumps(oo1)
+    check(not re.search(r"(?<![\d(-])(18|30|14|27\.9)(\.0+)?%", _oo1_text) and "£" not in _oo1_text
+          and "27.9" not in _oo1_text,
+          "BAKED: no Finance figure (18%, 30%, 14%, 27.9%, £) anywhere on the OO1 rows - only the targets")
     jan2 = next(x for x in ob["OO2"]["months"] if x["m"] == "2026-01")
     check(jan2["pct"] == 100.0 and jan2["scored"] == 1, "BAKED: OO2 January scores from the closures log")
     r5 = rows[("OO2", "KR5")]
@@ -725,23 +1029,45 @@ try:
     vod.RESULTS.clear()
     vod.check_okr_scorecard(bad, "2026-10-05")
     crit = " ".join(r["detail"] for r in vod.RESULTS if r["level"] == "critical")
-    check("FINANCE FIGURES" in crit and "KR4" in crit and "6.25" not in crit and "outside 0/50/80/100" in crit,
+    check("FINANCE FIGURES" in crit and "KR4" in crit and "6.25" not in crit and "a score outside its set" in crit,
           "the verifier flags an OO1 figure and a non-score, naming the KR and NOT the figure")
+    # ...and a figure slipped into an OO1 BASIS
+    bad2 = json.loads(json.dumps(sn))
+    for r in bad2["scorecard"]["rows"]:
+        if r["objective"] == "OO1" and r["kr"] == "KR1":
+            r["months"][-2]["basis"] = "wages were 18.4% of sales"
+    vod.RESULTS.clear()
+    vod.check_okr_scorecard(bad2, "2026-10-05")
+    crit = " ".join(r["detail"] for r in vod.RESULTS if r["level"] == "critical")
+    check("FINANCE FIGURES" in crit and "a figure in its basis" in crit and "18.4" not in crit,
+          "the verifier flags a Finance percentage in an OO1 basis - and does not repeat it")
     with open(os.path.join(tmp, "bad_snap.json"), "w") as fh:
         json.dump(bad, fh)
     vod.RESULTS.clear()
-    _orig = vod.OKR_SHEET_PATH
+    _orig = vod.OKR_SHEET_PATH, vod.OO1_MA_PATH
     vod.OKR_SHEET_PATH = os.path.join(out, "okr_sheet.json")
+    vod.OO1_MA_PATH = os.path.join(out, oo1_ma.MA_FILE)
     try:
         vod.check_oo1_public(os.path.join(tmp, "bad_snap.json"))
         c1 = [r for r in vod.RESULTS if r["level"] == "critical"]
         vod.RESULTS.clear()
         vod.check_oo1_public(os.path.join(out, "snapshot_2026-10-05.json"))
         c2 = [r for r in vod.RESULTS if r["level"] == "critical"]
+        # a figure in oo1_ma.json itself
+        leak = json.loads(json.dumps(MA_DOC))
+        leak["months"]["2026-09"]["wages_pct"] = 0.184
+        with open(os.path.join(tmp, "leak_ma.json"), "w") as fh:
+            json.dump(leak, fh)
+        vod.OO1_MA_PATH = os.path.join(tmp, "leak_ma.json")
+        vod.RESULTS.clear()
+        vod.check_oo1_public(os.path.join(out, "snapshot_2026-10-05.json"))
+        c3 = [r for r in vod.RESULTS if r["level"] == "critical"]
     finally:
-        vod.OKR_SHEET_PATH = _orig
+        vod.OKR_SHEET_PATH, vod.OO1_MA_PATH = _orig
     check(len(c1) == 1 and "6.25" not in c1[0]["detail"] and not c2,
-          "4e sweeps the COMMITTED snapshot and okr_sheet.json: flags the leak, passes the clean one")
+          "4e sweeps the COMMITTED snapshot and the OO1 files: flags the leak, passes the clean one")
+    check(len(c3) == 1 and "oo1_ma.json" in c3[0]["detail"] and "0.184" not in c3[0]["detail"],
+          "4e flags a figure in oo1_ma.json by its field, never its value")
 
     # a dated back-bake withholds both copies (read on 10-05 09:00 > 10-04)
     p = real_bake(arc, out, date="2026-10-04")
@@ -751,15 +1077,42 @@ try:
           and rows[("OO2", "KR5")]["value"] is None,
           "BAKED --date: the sheet rows and KR5 are withheld, not time-travelled")
 
-    # the bake refuses to run when okr_sheet.json would publish a non-score
+    o1b = {r["kr"]: r for r in sn["scorecard"]["rows"] if r["objective"] == "OO1"}
+    check(o1b["KR1"]["months"] and next(v for v in o1b["KR1"]["months"] if v["m"] == "2026-09")["score"] == 100,
+          "BAKED --date 04/10: OO1 read on 03/10 is shown (read before the snapshot's date)")
+    # a back-bake dated before the read withholds it (no time travel)
+    write_archive(arc, "2026-10-02")
+    p = real_bake(arc, out, date="2026-10-02")
+    sn = json.load(open(os.path.join(out, "snapshot_2026-10-02.json")))
+    o1b = {r["kr"]: r for r in sn["scorecard"]["rows"] if r["objective"] == "OO1"}
+    check(p.returncode == 0 and all(o1b[k]["months"] is None and o1b[k]["score"] is None
+                                    and "has not been read yet" in (o1b[k]["not_measured"] or "")
+                                    for k in OO1_KRS),
+          "BAKED --date 02/10: OO1 read on 03/10 is withheld - grey, not read yet as of that date, no months")
+
+    # the bake refuses to run when okr_sheet.json carries an OO1 series at all
     d = sheet_doc()
-    d["series"]["oo1"]["krs"]["KR1"]["2026-03"] = 12.5
+    d["series"]["oo1"] = {"tab": "2026 Summary", "pulled_at": "2026-10-05T09:00:00Z",
+                          "krs": {"KR1": {"2026-03": 12.5}}}
     with open(os.path.join(out, "okr_sheet.json"), "w") as fh:
         json.dump(d, fh)
     before = sorted(os.listdir(out))
     p = real_bake(arc, out)
     check(p.returncode == 1 and "REFUSING TO BAKE" in p.stderr and "12.5" not in p.stderr + p.stdout,
-          "the bake REFUSES (exit 1, so nothing is pushed) when okr_sheet.json carries a non-score OO1 entry")
+          "the bake REFUSES (exit 1, so nothing is pushed) when okr_sheet.json carries an OO1 series")
+    check(sorted(os.listdir(out)) == before, "...and writes nothing")
+    # ...and when oo1_ma.json is not exactly the score-only shape
+    with open(os.path.join(out, "okr_sheet.json"), "w") as fh:
+        json.dump(sheet_doc(), fh)
+    leak = json.loads(json.dumps(MA_DOC))
+    leak["months"]["2026-09"]["KR1"]["pct"] = 18.4
+    with open(os.path.join(out, oo1_ma.MA_FILE), "w") as fh:
+        json.dump(leak, fh)
+    before = sorted(os.listdir(out))
+    p = real_bake(arc, out)
+    check(p.returncode == 1 and "REFUSING TO BAKE" in p.stderr and "oo1_ma.json" in p.stderr
+          and "18.4" not in p.stderr + p.stdout,
+          "the bake REFUSES when oo1_ma.json carries a figure - naming the file, never the figure")
     check(sorted(os.listdir(out)) == before, "...and writes nothing")
 finally:
     shutil.rmtree(tmp)

@@ -192,15 +192,16 @@ function render(){
     const krs=rows.filter(r=>r.objective===o.objective);
     return `<div class="col">`+krs.map(r=>{
       const x=monthRow(r,m);
-      // a score-only row (OO1: Finance's own score, its figure never
-      // published) is not grey - it has a score and shows it
+      // a score-only row (OO1: a pass/fail score from Finance's management
+      // account, its figure never published) is not grey - it has a score and
+      // shows it
       const grey=r.source_kind==='not_measured'||(x.value==null&&x.score==null);
       const cls=grey?'n':ragCls(x.rag);
       const chip=x.mtd?'MTD':grey?'NOT MEASURED':(x.score!=null?x.score:'—');
       const text=r.text.replace(/^KR\s?\d\s*:?\s*/i,'');
       const why=(grey&&!x.mtd)?(x.not_measured||r.not_measured||x.basis||''):(x.basis||'');
       const val=grey?'':x.value==null
-        ? `<div class="v"><b>score only</b> <span class="tg">· Finance's own score</span></div>`
+        ? `<div class="v"><b>score only</b> <span class="tg">· ${r.source_kind==='ma_summary'?"pass/fail on Finance's account":"Finance's own score"}</span></div>`
         : `<div class="v"><b>${esc(x.display??x.value)}</b> <span class="tg">· target ${esc(r.target||'not set')}</span></div>`;
       // the builder names the document; the wall only links it (https only)
       const lk=(x.link&&/^https:\/\//.test(x.link.href||''))

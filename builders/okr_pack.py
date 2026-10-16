@@ -7,7 +7,8 @@ writes one):
   * the FIRST edition, by the first bake on or after the 1st, as soon as the
     month has closed;
   * the 8TH edition, by the first bake on or after the 8th, because Finance's
-    rows on the Operations Input sheet land by the 7th. It replaces the first.
+    management account is read on the 7th (OO1, builders/oo1_ma.py - and the
+    Operations Input sheet's rows land by then too). It replaces the first.
 okr_pack/<YYYY-MM>.json records both editions and when each was made. Nothing
 here sends the pack anywhere: a Cowork scheduled task does that, and Ross
 decides who receives it.
@@ -40,7 +41,7 @@ from supplier_statements import md_cell, mlabel, prev_month
 PACK_DIR = "okr_pack"
 #: The longest text one PDF table cell carries before it is cut (and says so).
 PDF_CELL_MAX = 2500
-#: Finance's rows on the Operations Input sheet land by the 7th.
+#: Finance's management account is read on the 7th (builders/oo1_ma.py).
 SECOND_EDITION_DAY = 8
 
 
@@ -151,7 +152,7 @@ def _pct(p):
 
 def to_md(doc: dict) -> str:
     ed = ("first edition, made as the month closed" if doc["edition"] == "first" else
-          "8th-of-the-month edition, after Finance's rows land on the 7th"
+          "8th-of-the-month edition, after Finance's account is read on the 7th"
           + (" - it replaces the first" if doc.get("replaces_first") else
              " - no first edition was made for this month"))
     L = [f"# Ops OKR pack - {md_cell(doc['label'])}", "",

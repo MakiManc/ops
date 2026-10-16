@@ -10,7 +10,12 @@ system: they are TYPED INTO THE SHEET and nowhere else. Those are:
   * OO3 KR3  menu items unavailable due to supply failure    (a log tab)
   * OO4 KR1  service disruptions caused by logistics delays  (a log tab)
   * OO4 KR4  % of delivery credit notes and refunds actioned (Finance-entered)
-  * OO1 KR1-KR5                                              (Finance scores)
+
+OO1 IS NOT READ HERE ANY MORE (Ross, 15/10/2026). It used to be read from the
+'2026 Summary' tab as Finance's 0/50/80/100 scores; Ross moved it to Finance's
+management-account summary, read on the 7th of each month by
+builders/oo1_ma.py. The '2026 Summary' tab is no longer asked for, and the
+bake refuses an okr_sheet.json that carries an OO1 series.
 
 This script is the only path those numbers have into the dashboard. Everything
 else on the scorecard is computed from the warehouse and must NOT come from
@@ -30,8 +35,8 @@ PUBLIC ops repo and a Google error body can quote anything. The exception
 type and message go to the bake log only (maki-hospitality-etl is private).
 The bake reads the status and names the cause on the grey rows.
 
-A PARTIAL READ NEVER LOSES DATA. If one tab is renamed, or the OO1 block has
-moved, that series is CARRIED FORWARD from the previous okr_sheet.json with its
+A PARTIAL READ NEVER LOSES DATA. If one tab is renamed or has changed shape,
+that series is CARRIED FORWARD from the previous okr_sheet.json with its
 own older pulled_at, and named in series_missing. Before 10/10/2026 a renamed
 tab rewrote the file without that series and flipped every scored month of it
 to "not entered" with nothing recording why.
@@ -64,23 +69,11 @@ to "not entered" with nothing recording why.
   ---------------------------------------------------------------------------
 
   ---------------------------------------------------------------------------
-  OO1 IS SCORES ONLY. THIS IS A PUBLICATION RULE, NOT A PREFERENCE.
+  FINANCE'S FIGURES NEVER REACH THIS REPOSITORY. THIS IS A PUBLICATION RULE.
   ---------------------------------------------------------------------------
-  MakiManc/ops is a PUBLIC repository. OO1 is Net Profit, and the "2026 OKRs"
-  tab carries its underlying percentages. Those must never reach this repo,
-  this JSON, a log line, or a snapshot. So:
-    * OO1 is read ONLY from the five score rows on "2026 Summary", found under
-      the row whose label starts "OO1" AND says "Net Profit" - the tab also
-      carries a blank legacy block labelled 'OO1:Maintenance' (row 102) that
-      the old label search latched onto (proven 10/10/2026).
-    * The block must sit at rows 2-7, where it has always been. Anywhere else
-      is an ERROR and OO1 is carried forward, not re-read.
-    * Every OO1 cell must be one of 0, 50, 80, 100 with no '%' in it. A single
-      cell that is not drops ALL of OO1 for this pull (cause oo1_not_scores):
-      it means a percentage, or the wrong row, has arrived where a score
-      should be. The log names the cell's row and column, never its value.
-    * Log lines name a row by number and at most its first four characters -
-      the OO1 labels carry Finance's target percentages.
+  MakiManc/ops is a PUBLIC repository, and the "2026 OKRs" tab carries OO1's
+  underlying percentages (Net Profit). They must never reach this repo, this
+  JSON, a log line, or a snapshot.
   "2026 OKRs" IS read, but by one fixed, narrow range only - the OO4 credit
   notes block (OO4_KR4_RANGE) - and that range is checked against its own
   header and month labels before a single value is used. No other cell of
@@ -124,7 +117,6 @@ SHEET_ID = os.environ.get("OKR_SHEET_ID", "").strip() or \
 #: tidy them, they are what the match is against. Each maps to the env var
 #: that pins its gid once somebody reads it out of the first run's log.
 TAB_TITLES = {
-    "summary":  ("2026 Summary", "OKR_GID_SUMMARY"),
     "okrs":     ("2026 OKRs", "OKR_GID_OKRS"),
     "oo3_kr3":  ("KR3: Zero menu items unavailable due to supply failure",
                  "OKR_GID_MENU"),
@@ -135,19 +127,9 @@ TAB_TITLES = {
 
 #: The series this file carries, and the tab each one comes from.
 LOG_SERIES = ("oo2_kr3", "oo3_kr3", "oo4_kr1")
-SERIES = LOG_SERIES + ("oo1", "oo4_kr4")
+SERIES = LOG_SERIES + ("oo4_kr4",)
 SERIES_TAB = {"oo2_kr3": "oo2_kr3", "oo3_kr3": "oo3_kr3", "oo4_kr1": "oo4_kr1",
-              "oo1": "summary", "oo4_kr4": "okrs"}
-
-#: The five OO1 KR labels, in sheet order, as they appear in column A of
-#: "2026 Summary" rows 3-7. Matched on the "KR<n>:" prefix only - the rest of
-#: each label names a Finance percentage and is never logged.
-OO1_KRS = ("KR1", "KR2", "KR3", "KR4", "KR5")
-#: Where the OO1 objective label has always been (row 2, so KRs on 3-7).
-OO1_LABEL_ROW = 2
-#: The only values an OO1 cell may hold. Finance scores in these four steps;
-#: anything else is not a score and is never published.
-OO1_SCORES = (0.0, 50.0, 80.0, 100.0)
+              "oo4_kr4": "okrs"}
 
 #: OO4 KR4 - % of delivery credit notes and refunds actioned. Ross, 10/10/2026:
 #: "Raw % + band full" - read the Finance-entered Actual % and band it with
@@ -191,9 +173,6 @@ CAUSE_TEXT = {
     "layout_changed": "a tab was read but no longer has the layout this script "
                       "checks for - the series named in series_missing were "
                       "carried forward from the last good pull",
-    "oo1_not_scores": "an OO1 cell on '2026 Summary' was not a 0/50/80/100 "
-                      "score - OO1 was carried forward from the last good pull "
-                      "and nothing from that cell was written",
     "nothing_parsed": "the sheet opened but no series parsed - every tab is "
                       "missing or has changed shape; the last file was left "
                       "untouched",
@@ -203,7 +182,7 @@ CAUSE_TEXT = {
 }
 #: Worst first: when several series fail for different reasons, the status
 #: names the most serious one (all are listed in series_missing).
-CAUSE_RANK = ("oo1_not_scores", "layout_changed", "tab_missing")
+CAUSE_RANK = ("layout_changed", "tab_missing")
 
 _MONTHS = ("january", "february", "march", "april", "may", "june", "july",
            "august", "september", "october", "november", "december")
@@ -239,7 +218,7 @@ def parse_month(cell: str) -> str | None:
 
     Two renderings, because the tabs disagree with each other:
       * the log tabs spell it out - 'January 2026'
-      * '2026 Summary' abbreviates and hyphenates - 'Jan-26'
+      * the '2026 OKRs' credit-notes block abbreviates and hyphenates - 'Jan-26'
     Anything else (a blank, a stray total row) returns None and is skipped
     rather than guessed at.
     """
@@ -382,7 +361,7 @@ def pick_worksheets(sheets) -> tuple[dict, dict]:
 def fetch(sheet_id: str, spreadsheet=None) -> tuple[dict, dict]:
     """-> ({key: (title, gid, rows)}, {key: cause}) for the tabs we need.
 
-    Whole-tab reads for the three log tabs and '2026 Summary'; ONE fixed range
+    Whole-tab reads for the three log tabs; ONE fixed range
     of '2026 OKRs' (OO4_KR4_RANGE) and nothing else of that tab.
     """
     sh = spreadsheet if spreadsheet is not None else open_sheet(sheet_id)
@@ -442,75 +421,6 @@ def build_log(rows, through: str) -> tuple[dict | None, str | None]:
     if month_rows == 0:
         return None, "layout_changed"
     return out, None
-
-
-def build_oo1(rows, through: str) -> tuple[dict | None, str | None, dict]:
-    """'2026 Summary' -> ({KRn: {'YYYY-MM': score}}, cause, diagnostics).
-
-    OO1 ONLY. Found by its label (starts 'OO1', says 'Net Profit'), required at
-    row OO1_LABEL_ROW, its five KR rows checked by 'KR<n>:' prefix, and every
-    non-blank cell under a month header required to be exactly one of
-    OO1_SCORES. Any failure returns (None, cause) - the caller carries the
-    previous OO1 forward. Logs name rows/columns only, never a value or label.
-    """
-    diag = {}
-    months, header_row = {}, None
-    for i, r in enumerate(rows[:6]):
-        cand = {j: parse_month(c) for j, c in enumerate(r)}
-        cand = {j: m for j, m in cand.items() if m}
-        if len(cand) >= 2:
-            months, header_row = cand, i
-            break
-    if not months:
-        log.error("no month header found in the first rows of the summary tab - "
-                  "OO1 carried forward.")
-        return None, "layout_changed", {"header_row": None}
-    diag["header_row"] = header_row + 1
-
-    start = None
-    for i, r in enumerate(rows):
-        a = (r[0] if r else "").strip()
-        if re.match(r"^OO\s*1\b", a, re.I) and "net profit" in a.lower():
-            start = i
-            break
-    if start is None:
-        log.error("no 'OO1 ... Net Profit' label on the summary tab - OO1 "
-                  "carried forward (the legacy 'OO1:Maintenance' block further "
-                  "down is never read).")
-        return None, "layout_changed", diag
-    if start + 1 != OO1_LABEL_ROW:
-        log.error("the OO1 label is on row %d, not row %d - the tab has changed "
-                  "shape. OO1 carried forward; nothing re-read.",
-                  start + 1, OO1_LABEL_ROW)
-        return None, "layout_changed", diag
-
-    oo1 = {}
-    for n, kr in enumerate(OO1_KRS):
-        i = start + 1 + n
-        label = (rows[i][0] if i < len(rows) and rows[i] else "").strip()
-        if not label.upper().startswith(kr.upper() + ":"):
-            log.error("summary row %d starts %r, expected %r - OO1 carried "
-                      "forward.", i + 1, label[:4], kr + ":")
-            return None, "layout_changed", diag
-        series = {}
-        for j, m in months.items():
-            raw = (rows[i][j] if len(rows[i]) > j else "").strip()
-            if not raw:
-                continue
-            v = parse_num(raw)
-            if v is None or v not in OO1_SCORES:
-                log.error("summary cell %s%d (OO1 %s, %s) is not a 0/50/80/100 "
-                          "score - ALL of OO1 is carried forward and nothing "
-                          "from this pull is written.", _col(j), i + 1, kr, m)
-                return None, "oo1_not_scores", diag
-            if m > through:
-                log.warning("summary cell %s%d (OO1 %s) holds a score for %s, "
-                            "after the pull month - dropped.", _col(j), i + 1, kr, m)
-                continue
-            series[m] = int(v)
-        oo1[kr] = series
-    diag["oo1_rows"] = [start + 2, start + 6]
-    return oo1, None, diag
 
 
 def build_oo4_kr4(rows, through: str) -> tuple[dict | None, str | None]:
@@ -586,12 +496,8 @@ def build(fetched: dict, missing: dict, previous: dict | None, pulled_at: str):
     def put(key, tab_key, data, extra=None):
         title, gid, _rows = fetched[tab_key]
         rec = {"tab": title, "gid": gid, "pulled_at": pulled_at, **(extra or {})}
-        if key == "oo1":
-            rec["krs"] = data
-            rec["as_of"] = _as_of([m for s in data.values() for m in s])
-        else:
-            rec["months"] = data
-            rec["as_of"] = _as_of(list(data))
+        rec["months"] = data
+        rec["as_of"] = _as_of(list(data))
         series[key] = rec
 
     for key in SERIES:
@@ -604,10 +510,6 @@ def build(fetched: dict, missing: dict, previous: dict | None, pulled_at: str):
             data, cause = build_log(rows, through)
             if cause is None:
                 put(key, tab, data)
-        elif key == "oo1":
-            data, cause, diag = build_oo1(rows, through)
-            if cause is None:
-                put(key, tab, data, {"rows": diag.get("oo1_rows")})
         else:
             data, cause = build_oo4_kr4(rows, through)
             if cause is None:
@@ -633,9 +535,9 @@ def build(fetched: dict, missing: dict, previous: dict | None, pulled_at: str):
             "Typed into Matthew's 2026 Operations Input sheet and read here "
             "because these KRs have no feed anywhere else. A month absent from "
             "a series was NOT ENTERED on the sheet and carries no score - it is "
-            "never read as a zero. OO1 is carried as Finance's 0/50/80/100 "
-            "scores only; its underlying percentages are never read into this "
-            "repository. Each series carries its own pulled_at: a series that "
+            "never read as a zero. OO1 is not read from this sheet (Ross, "
+            "15/10/2026: Finance's management account). Each series carries its "
+            "own pulled_at: a series that "
             "could not be read on the latest pull is carried forward from an "
             "earlier one and says so."),
     }, failed
@@ -750,17 +652,14 @@ def main(argv=None) -> int:
         s = built["series"].get(key)
         if not s:
             continue
-        if key == "oo1":
-            log.info("oo1: %s", ", ".join(f"{k} {len(v)} month(s)"
-                                          for k, v in sorted(s["krs"].items())))
-        elif key == "oo4_kr4":
+        if key == "oo4_kr4":
             log.info("oo4_kr4: %d month(s) entered", len(s["months"]))
         else:
             log.info("%s: %s", key, ", ".join(f"{m}={v}" for m, v in
                                               sorted(s["months"].items())) or "none")
         # SAY WHEN THE SHEET HAS STOPPED BEING FILLED IN, per series - a single
         # file-wide "newest month" hid that all three log tabs stop at July 2026
-        # while OO1 runs to September.
+        # while another series ran to September.
         if s.get("as_of") and s["as_of"] < pulled_at[:7] and not s.get("carried_forward"):
             log.warning("%s: newest entered month is %s and it is %s - nobody has "
                         "filled it in since. Not a broken pull; the months after "
