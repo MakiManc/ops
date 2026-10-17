@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-10-16",
+ "source_as_of": "2026-10-17",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-10-16T13:59:28Z",
+ "pulled_at": "2026-10-17T12:46:06Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,54 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Leicester Ltd",
+   "raw_site": "Maki 11 - Highcross Centre, Leicester",
+   "d": "2026-10-17",
+   "issue": "Service lift(broken since last 3 months,its stuck in the middle, manually pulled it down and took everything out , still it doesn't work)",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Ash"
+  },
+  {
+   "site": "Maki Newcastle Ltd",
+   "raw_site": "Maki 12 - Eldon Square, Newcastle",
+   "d": "2026-10-16",
+   "issue": "basement fridge ceilling leak water",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "erin"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-10-16",
+   "issue": "Water oozing from the floor again",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Kaitlin Docherty"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-10-16",
+   "issue": "Toilet seat",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Kaitlin Docherty"
+  },
   {
    "site": "Fountain Good Food Ltd",
    "raw_site": "Maki 3 - Fountainbridge, Edinburgh",
@@ -39,6 +87,54 @@
    "completed_on": null,
    "cost": null,
    "raised_by": "Krzysztof Jozefowicz"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-10-16",
+   "issue": "Leak - leaking green water",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Kaitlin Docherty"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-10-16",
+   "issue": "Ice crusher blade stopped turning",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Kaitlin Docherty"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-10-16",
+   "issue": "Blocked pipe causing water everywhere - hazardous",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Kaitlin Docherty"
+  },
+  {
+   "site": "Maki Nottingham Ltd",
+   "raw_site": "Maki 16 - Nottingham",
+   "d": "2026-10-16",
+   "issue": "1 card machines doesn’t print receipts",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Amy Tang"
   },
   {
    "site": "Maki Soho",
