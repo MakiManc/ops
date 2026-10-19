@@ -1,0 +1,140 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W42",
+ "from": "2026-10-12",
+ "to": "2026-10-18",
+ "generated_on": "2026-10-19",
+ "updated_on": "2026-10-19",
+ "final": true,
+ "issue_feed_through": "2026-10-18",
+ "forms": 8,
+ "deliveries": 68,
+ "deliveries_counted": 68,
+ "rate": 88.2,
+ "not_measured": null,
+ "credit_flagged": 1,
+ "by_site": [
+  {
+   "site": "AA Factory1 Limited",
+   "forms": 2
+  },
+  {
+   "site": "Maki NE1 Ltd",
+   "forms": 2
+  },
+  {
+   "site": "M1TOO Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki Aberdeen Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Renfield Good Food Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 5
+  },
+  {
+   "category": "other",
+   "forms": 2
+  },
+  {
+   "category": "invoice_credit",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-10-12",
+   "site": "Maki SJQ Ltd",
+   "category": "invoice_credit",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Lynas delivered 5packs of powdered M size vinyl gloves to us but we cannot use, so please credit. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-12",
+   "site": "Renfield Good Food Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "missing item - one roll heavy duty black bin bag",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-13",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Missing 1 case of chicken feet.",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-14",
+   "site": "Maki NE1 Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing 5 bin bags",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-15",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing 1* tonkotsu broth\n# 009373763",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-16",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Missing 1 case of rapeseed oil.",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-16",
+   "site": "Maki NE1 Ltd",
+   "category": "other",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "lavk veg mayo1",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-17",
+   "site": "M1TOO Ltd",
+   "category": "other",
+   "open": false,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "beef oos",
+   "credit_flag": false
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-10-19"
+}
