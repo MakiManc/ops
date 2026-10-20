@@ -61,9 +61,10 @@ UK = ZoneInfo("Europe/London")
 ETL = "MakiManc/maki-hospitality-etl"
 EXPORT_WF = "daily-export.yml"
 DEEP_WF = "deep-pull.yml"
-#: October 2026 Actions-minutes budget (Ross, 11/10/2026): the deep pull runs
-#: on Mondays only until this date. Same date as verify_ops_data and the bake.
-DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
+#: The deep pull runs on Mondays only from this date (Ross, 11/10/2026, for the
+#: October budget; kept for good on 20/10/2026, "Weekly deep pull yes"). Same
+#: date as verify_ops_data, the bake and deep-pull.yml.
+DEEP_PULL_WEEKLY_FROM = "2026-10-11"
 BAKE_WF = "ops_command_bake.yml"
 INDEX_URL = ("https://raw.githubusercontent.com/MakiManc/ops/main/"
              "data/ops_command/snapshot_index.json")
@@ -167,12 +168,11 @@ def main(api=None, now=lambda: dt.datetime.now(UK), sleep=time.sleep) -> int:
         deep = api.runs(DEEP_WF)
         if ran_today(deep, today):
             log("Flow deep pull already ran today")
-        elif today < DEEP_PULL_WEEKLY_UNTIL and now().weekday() != 0:
-            # The October 2026 minutes budget: the deep pull is Mondays only
-            # until DEEP_PULL_WEEKLY_UNTIL, and its own cron catches up a failed
-            # Monday - a dispatch here would only bill a minute to be skipped.
-            log(f"no Flow deep pull dispatched - Mondays only until {DEEP_PULL_WEEKLY_UNTIL} "
-                "(October Actions minutes)")
+        elif today >= DEEP_PULL_WEEKLY_FROM and now().weekday() != 0:
+            # The deep pull is Mondays only, and its own cron catches up a
+            # failed Monday - a dispatch here would only bill a minute to be
+            # skipped.
+            log("no Flow deep pull dispatched - Mondays only (2,000 Actions minutes a month)")
         else:
             st = api.dispatch(DEEP_WF)
             log(f"no Flow deep pull today yet - dispatched {DEEP_WF} (HTTP {st})")

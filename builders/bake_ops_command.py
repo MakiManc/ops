@@ -2135,18 +2135,19 @@ FACILITIES_CAUSE_TEXT = {
 FACILITIES_STALE_DAYS = 3
 FACILITIES_APP_URL = "https://rossmward.eu.pythonanywhere.com"
 FACILITIES_API_PATH = "/api/ppm_summary"
-#: OCTOBER 2026 ACTIONS-MINUTES BUDGET (Ross, 11/10/2026): the Flow deep pull
-#: runs on Mondays only from FROM until UNTIL, then daily again by itself. Keep
-#: UNTIL identical to verify_ops_data.DEEP_PULL_WEEKLY_UNTIL and deep-pull.yml,
-#: and deep_pull_due() identical to the verifier's.
+#: THE FLOW DEEP PULL RUNS ON MONDAYS ONLY, from FROM onwards. It began as the
+#: October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov); with
+#: 2,000 minutes a month as the hard limit (Ross, 20/10/2026: "2,000 is the
+#: limit") it stays weekly for good (Ross, 20/10/2026: "Weekly deep pull yes").
+#: Keep FROM identical to verify_ops_data, morning_kick and deep-pull.yml, and
+#: deep_pull_due() identical to the verifier's.
 DEEP_PULL_WEEKLY_FROM = "2026-10-11"
-DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
 
 
 def deep_pull_due(today, last_clean):
     """A copy of verify_ops_data.deep_pull_due: is a deep pull due on `today`
-    ('YYYY-MM-DD') given the newest clean one? Always, outside the budget."""
-    if not (DEEP_PULL_WEEKLY_FROM <= today < DEEP_PULL_WEEKLY_UNTIL):
+    ('YYYY-MM-DD') given the newest clean one? Always, before FROM."""
+    if today < DEEP_PULL_WEEKLY_FROM:
         return True
     t = datetime.date.fromisoformat(today)
     if t.weekday() == 0 or not last_clean:
@@ -3655,10 +3656,10 @@ def main():
         " (CAST(%s AS DATE) - max(pull_date)) FROM etl_feed_rows e GROUP BY feed",
         (asof.isoformat(),))
     fh, seen = [], set()
-    # The October 2026 budget: the deep-pull feeds are weekly until
-    # DEEP_PULL_WEEKLY_UNTIL, so they are OK for a week and WATCH on the day
-    # the next pull is due - the verifier applies the same 7-day cadence.
-    _weekly = DEEP_PULL_WEEKLY_FROM <= asof.isoformat() < DEEP_PULL_WEEKLY_UNTIL
+    # The deep-pull feeds are weekly from DEEP_PULL_WEEKLY_FROM, so they are
+    # OK for a week and WATCH on the day the next pull is due - the verifier
+    # applies the same 7-day cadence.
+    _weekly = DEEP_PULL_WEEKLY_FROM <= asof.isoformat()
     try:
         with open(os.path.join(OUT_DIR, "feeds_manifest.json")) as fh_:
             _deep_wf = {f_["name"] for f_ in json.load(fh_)["feeds"]
@@ -3677,23 +3678,22 @@ def main():
     order={"MISSING":0,"STALE":1,"EMPTY":2,"WATCH":3,"OK":4}
     fh.sort(key=lambda r:(order.get(r["verdict"],9),r["feed"]))
     snap["feed_health"]=fh
-    # The October 2026 minutes budget (see DEEP_PULL_WEEKLY_UNTIL): the deep
-    # pull runs on Mondays only, so the per-module training figures are from
-    # its last pull, not this one - say so rather than let them pass as today's.
+    # The deep pull runs on Mondays only (see DEEP_PULL_WEEKLY_FROM), so the
+    # per-module training figures are from its last pull, not this one - say
+    # so rather than let them pass as today's.
     _dfm = next((r_ for r_ in fh if r_["feed"] == "Deep Flow Modules"), None)
     _dlp = (_dfm or {}).get("latest_pull")
-    if pull and _dlp and _dlp < pull and DEEP_PULL_WEEKLY_FROM <= pull < DEEP_PULL_WEEKLY_UNTIL:
+    if pull and _dlp and _dlp < pull and DEEP_PULL_WEEKLY_FROM <= pull:
         if not deep_pull_due(pull, _dlp):
             gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
-                        f"pull of {_dlp}, not this pull: until {DEEP_PULL_WEEKLY_UNTIL} that "
-                        "pull runs on Mondays only, to keep October inside the private repo's "
-                        "Actions minutes (Ross, 11/10/2026). It goes back to daily by itself "
-                        "on that date")
+                        f"pull of {_dlp}, not this pull: that pull runs on Mondays only, to "
+                        "keep the private repo inside its 2,000 Actions minutes a month "
+                        "(Ross, 20/10/2026), so these figures can be up to 6 days old")
         else:
             gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
                         f"pull of {_dlp}: a deep pull is DUE (Monday, or this week's Monday "
                         "pull has not landed) and has not landed yet - this is not the "
-                        "October Mondays-only budget, check the Flow Deep Pull runs")
+                        "Mondays-only cadence, check the Flow Deep Pull runs")
     # ---- training by site (Deep feed preferred; branch id -> name join) ----
     deep, base = "Deep Flow Modules", "Flow Modules"
     feed = deep if has_feed(cur, deep) else base
