@@ -16,7 +16,9 @@ It runs from THIS public repo, whose own cron is 1-53 minutes late (median
 27, measured by scheduler_probe), early enough that the lateness does not
 matter, and then keeps time itself:
 
-  1. if the Flow deep pull has not run today (UK), dispatch it now;
+  1. if the Flow deep pull has not run today (UK) and is due - a Monday, or a
+     later day of a week whose Monday pull has not succeeded (it runs on
+     Mondays only) - dispatch it now;
   2. wait until 08:12 UK - the Kobas report emails land 08:0x UK, and the
      export's own gate 3 (kobas_ready.py) refuses to parse them before they
      exist, exiting green having written nothing;
@@ -61,9 +63,10 @@ UK = ZoneInfo("Europe/London")
 ETL = "MakiManc/maki-hospitality-etl"
 EXPORT_WF = "daily-export.yml"
 DEEP_WF = "deep-pull.yml"
-#: October 2026 Actions-minutes budget (Ross, 11/10/2026): the deep pull runs
-#: on Mondays only until this date. Same date as verify_ops_data and the bake.
-DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
+#: The deep pull runs on Mondays only from this date (Ross, 11/10/2026, for the
+#: October budget; kept for good on 20/10/2026, "Weekly deep pull yes"). Same
+#: date as verify_ops_data, the bake and deep-pull.yml.
+DEEP_PULL_WEEKLY_FROM = "2026-10-11"
 BAKE_WF = "ops_command_bake.yml"
 INDEX_URL = ("https://raw.githubusercontent.com/MakiManc/ops/main/"
              "data/ops_command/snapshot_index.json")
@@ -124,6 +127,19 @@ def ran_today(runs: list[dict], today: str) -> bool:
     return any(uk_date_of(r.get("created_at", "1970-01-01T00:00:00Z")) == today for r in runs)
 
 
+def clean_since_monday(runs: list[dict], now_uk: dt.datetime) -> bool:
+    """A deep-pull run created on or after this week's Monday (UK) succeeded.
+
+    deep-pull.yml exits green on a day off only when this week's Monday pull
+    is clean, and red when a pull fails, so a success since Monday means there
+    is nothing to catch up.
+    """
+    monday = (now_uk.date() - dt.timedelta(days=now_uk.weekday())).isoformat()
+    return any(r.get("conclusion") == "success"
+               and uk_date_of(r.get("created_at", "1970-01-01T00:00:00Z")) >= monday
+               for r in runs)
+
+
 def active(runs: list[dict]) -> bool:
     return any(r.get("status") in ACTIVE for r in runs)
 
@@ -167,12 +183,15 @@ def main(api=None, now=lambda: dt.datetime.now(UK), sleep=time.sleep) -> int:
         deep = api.runs(DEEP_WF)
         if ran_today(deep, today):
             log("Flow deep pull already ran today")
-        elif today < DEEP_PULL_WEEKLY_UNTIL and now().weekday() != 0:
-            # The October 2026 minutes budget: the deep pull is Mondays only
-            # until DEEP_PULL_WEEKLY_UNTIL, and its own cron catches up a failed
-            # Monday - a dispatch here would only bill a minute to be skipped.
-            log(f"no Flow deep pull dispatched - Mondays only until {DEEP_PULL_WEEKLY_UNTIL} "
-                "(October Actions minutes)")
+        elif (today >= DEEP_PULL_WEEKLY_FROM and now().weekday() != 0
+              and clean_since_monday(deep, now())):
+            # The deep pull is Mondays only and this week's has landed - a
+            # dispatch here would only bill a minute to be skipped. After a
+            # failed Monday it falls through and dispatches: the workflow's
+            # budget step then runs the catch-up, hours before its own cron
+            # (3-12h late in that repo) would.
+            log("no Flow deep pull dispatched - Mondays only (2,000 Actions minutes a month), "
+                "and this week's Monday pull succeeded")
         else:
             st = api.dispatch(DEEP_WF)
             log(f"no Flow deep pull today yet - dispatched {DEEP_WF} (HTTP {st})")

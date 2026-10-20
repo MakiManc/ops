@@ -13,7 +13,9 @@ system's expectations.
 
 CHECKS (v2, Phase 2 complete)
   check 0  RUN RECEIPTS    etl_run_log has a receipt for today's
-                           daily-export and deep-pull runs. Exit 0 is not
+                           daily-export run, and for the deep-pull run
+                           whenever one is due (a Monday, or a catch-up
+                           after a failed Monday). Exit 0 is not
                            enough on its own: exit 0 with ZERO rows
                            written, or exit 0 with failed feeds, is a
                            critical. (25 Aug 2026: the receipt row said
@@ -241,30 +243,32 @@ DB_SIZE_CRIT_MB = 450
 # for the refresh dying while the export carries on working.
 MAINT_AGE_WARN_DAYS = 3
 
-#: OCTOBER 2026 ACTIONS-MINUTES BUDGET (Ross, 11/10/2026). The private repo's
-#: 2,000 included minutes run out around 26/10 at the daily rate, so until this
-#: date the Flow deep pull (21 of the ~73 minutes a day) runs on MONDAYS ONLY,
-#: and goes back to daily by itself on the date - deep-pull.yml in
-#: maki-hospitality-etl carries the same date, and so does the bake. A Monday
-#: that fails is retried by every later run until a clean pull lands, so a
-#: deep-pull receipt is DUE on a Monday, or on any day when this week's Monday
-#: pull has not landed cleanly (the newest clean receipt predates the most
-#: recent Monday) - and only then is a missing one an alarm. The Deep Flow
-#: feeds get a DEEP_PULL_WEEKLY_DAYS cadence meanwhile.
-DEEP_PULL_WEEKLY_UNTIL = "2026-11-01"
+#: THE FLOW DEEP PULL RUNS ON MONDAYS ONLY, from this date onwards. It began as
+#: the October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov);
+#: with 2,000 minutes a month as the hard limit (Ross, 20/10/2026: "2,000 is
+#: the limit") it stays weekly for good (Ross, 20/10/2026: "Weekly deep pull
+#: yes"). The bake and morning_kick carry the same date; deep-pull.yml in
+#: maki-hospitality-etl applies the same Monday/catch-up rule with no date of
+#: its own. A Monday that fails is retried by every later run until
+#: a clean pull lands, so a deep-pull receipt is DUE on a Monday, or on any day
+#: when this week's Monday pull has not landed cleanly (the newest clean
+#: receipt predates the most recent Monday) - and only then is a missing one an
+#: alarm. The Deep Flow feeds get a DEEP_PULL_WEEKLY_DAYS cadence.
+DEEP_PULL_WEEKLY_FROM = "2026-10-11"
 DEEP_PULL_WEEKLY_DAYS = 7
-#: ...and the same budget turns the 12:03 UTC scheduled recheck off until the
-#: same date (ops_verify.yml), so a morning deferral is not rechecked that day.
-RECHECK_OFF_UNTIL = DEEP_PULL_WEEKLY_UNTIL
+#: The October budget also turned the 12:03 UTC scheduled recheck off until
+#: this date (ops_verify.yml), so a morning deferral is not rechecked that day.
+#: Ross kept only the deep pull weekly, so the recheck still comes back on it.
+RECHECK_OFF_UNTIL = "2026-11-01"
 
 
 def deep_pull_weekly(today: str) -> bool:
-    """True while the October minutes budget has the deep pull on Mondays."""
-    return today < DEEP_PULL_WEEKLY_UNTIL
+    """True once the deep pull is on Mondays only (DEEP_PULL_WEEKLY_FROM)."""
+    return today >= DEEP_PULL_WEEKLY_FROM
 
 
 def deep_pull_due(today: str, last_clean: str | None) -> bool:
-    """Is a deep-pull receipt expected today? Always, outside the budget.
+    """Is a deep-pull receipt expected today? Always, before the weekly cadence.
 
     Inside it: on a Monday, or when the newest clean pull predates the most
     recent Monday - a failed Monday is due again the very next day, not a
@@ -419,7 +423,7 @@ def check_receipts(cur, today: str) -> dict:
             "ORDER BY finished_at DESC LIMIT 1", (kind, today))
         row = cur.fetchone()
         if row is None and kind == "deep-pull" and deep_pull_weekly(today):
-            # The October budget: no receipt is due on a day off, so its
+            # Mondays only: no receipt is due on a day off, so its
             # absence is not "the run never started" - unless the last clean
             # one is a week old, when the catch-up run is overdue.
             cur.execute(
@@ -429,9 +433,8 @@ def check_receipts(cur, today: str) -> dict:
             if not deep_pull_due(today, last_clean):
                 states[kind] = 0
                 add("0-receipts", "ok",
-                    f"no {label} due today - it runs on Mondays only until "
-                    f"{DEEP_PULL_WEEKLY_UNTIL} (October Actions minutes); newest clean "
-                    f"receipt {str(last_clean)[:10]}", kind)
+                    f"no {label} due today - it runs on Mondays only (2,000 Actions "
+                    f"minutes a month); newest clean receipt {str(last_clean)[:10]}", kind)
                 continue
         if row is None:
             states[kind] = None
@@ -528,7 +531,7 @@ def check_feeds(cur, manifest: dict, today: str, receipt_states: dict):
         age = (date.fromisoformat(today) - date.fromisoformat(lp)).days
         cadence = f.get("cadence_days", 1)
         if wf == "deep-pull" and deep_pull_weekly(today):
-            # the October budget (see DEEP_PULL_WEEKLY_UNTIL)
+            # Mondays only (see DEEP_PULL_WEEKLY_FROM)
             cadence = max(cadence, DEEP_PULL_WEEKLY_DAYS)
         if age > cadence - 1:
             add("1-landed", sev,
