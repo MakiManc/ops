@@ -50,7 +50,9 @@ class FakeGH:
     says the Kobas reports were not there yet for the first attempts."""
 
     def __init__(self, clock, today, latest_start, deep_today=False, export_min=30,
-                 ready_after_attempt=1, reject=None, never=False):
+                 ready_after_attempt=1, reject=None, never=False, deep_runs=()):
+        self.deep_runs = [{"created_at": t, "status": "completed", "conclusion": c}
+                          for t, c in deep_runs]
         self.c, self.today, self.latest_v = clock, today, latest_start
         self.deep_today, self.export_min = deep_today, export_min
         self.ready_after_attempt, self.reject, self.never = ready_after_attempt, reject, never
@@ -73,7 +75,8 @@ class FakeGH:
         if self.reject:
             self._err()
         if wf == K.DEEP_WF:
-            return [{"created_at": f"{self.today}T05:50:00Z", "status": "completed"}] if self.deep_today else []
+            return (([{"created_at": f"{self.today}T05:50:00Z", "status": "completed",
+                       "conclusion": "success"}] if self.deep_today else []) + self.deep_runs)
         if wf == K.EXPORT_WF and self.export_started:
             end = self.export_started + dt.timedelta(minutes=self.export_min)
             running = self.c.now() < end
@@ -114,13 +117,14 @@ check(c.now().time() < dt.time(10, 0), f"and the dashboard is ready before 10:00
 
 print("\n-- Mondays only: no deep-pull dispatch on a day off --")
 c = Clock(dt.datetime(2026, 10, 14, 7, 31, tzinfo=UK))      # a Wednesday
-gh = FakeGH(c, "2026-10-14", "2026-10-13")
+gh = FakeGH(c, "2026-10-14", "2026-10-13", deep_runs=[("2026-10-12T06:20:00Z", "success")])
 rc, out = run(gh, c)
 check(rc == 0 and K.DEEP_WF not in [w for w, _ in gh.dispatches] and "Mondays only" in out,
       "Wednesday 14/10: the deep pull is NOT dispatched (Mondays only), and it says so")
 check([t for w, t in gh.dispatches if w == K.EXPORT_WF] == ["08:12"], "...and the export still goes at 08:12")
 c = Clock(dt.datetime(2026, 11, 4, 7, 31, tzinfo=UK))       # a Wednesday after 1 Nov
-gh = FakeGH(c, "2026-11-04", "2026-11-03")
+gh = FakeGH(c, "2026-11-04", "2026-11-03",
+            deep_runs=[("2026-11-03T06:00:00Z", "success"), ("2026-11-02T06:20:00Z", "success")])
 rc, out = run(gh, c)
 check(K.DEEP_WF not in [w for w, _ in gh.dispatches] and "Mondays only" in out,
       "Wednesday 04/11: still weekly (Ross, 20/10) - the deep pull is NOT dispatched")
@@ -128,6 +132,16 @@ c = Clock(dt.datetime(2026, 11, 9, 7, 31, tzinfo=UK))       # a Monday
 gh = FakeGH(c, "2026-11-09", "2026-11-08")
 rc, out = run(gh, c)
 check((K.DEEP_WF, "07:31") in gh.dispatches, "Monday 09/11: the deep pull is dispatched")
+c = Clock(dt.datetime(2026, 11, 10, 7, 31, tzinfo=UK))      # Tuesday after a FAILED Monday
+gh = FakeGH(c, "2026-11-10", "2026-11-09", deep_runs=[("2026-11-09T06:20:00Z", "failure")])
+rc, out = run(gh, c)
+check((K.DEEP_WF, "07:31") in gh.dispatches,
+      "REVIEW: Tuesday 10/11 after a failed Monday: the catch-up is dispatched at once, not left to the late cron")
+c = Clock(dt.datetime(2026, 11, 11, 7, 31, tzinfo=UK))      # Wednesday, no run at all this week
+gh = FakeGH(c, "2026-11-11", "2026-11-10", deep_runs=[("2026-11-06T06:00:00Z", "success")])
+rc, out = run(gh, c)
+check((K.DEEP_WF, "07:31") in gh.dispatches,
+      "...and so is a week whose only success predates its Monday")
 
 print("\n-- winter: the same UK times --")
 c = Clock(dt.datetime(2026, 11, 10, 6, 40, tzinfo=UK))

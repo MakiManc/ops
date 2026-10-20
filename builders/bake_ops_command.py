@@ -2139,8 +2139,9 @@ FACILITIES_API_PATH = "/api/ppm_summary"
 #: October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov); with
 #: 2,000 minutes a month as the hard limit (Ross, 20/10/2026: "2,000 is the
 #: limit") it stays weekly for good (Ross, 20/10/2026: "Weekly deep pull yes").
-#: Keep FROM identical to verify_ops_data, morning_kick and deep-pull.yml, and
-#: deep_pull_due() identical to the verifier's.
+#: Keep FROM identical to verify_ops_data and morning_kick (deep-pull.yml applies
+#: the same Monday/catch-up rule with no date of its own), and deep_pull_due()
+#: identical to the verifier's.
 DEEP_PULL_WEEKLY_FROM = "2026-10-11"
 
 

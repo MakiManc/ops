@@ -13,7 +13,9 @@ system's expectations.
 
 CHECKS (v2, Phase 2 complete)
   check 0  RUN RECEIPTS    etl_run_log has a receipt for today's
-                           daily-export and deep-pull runs. Exit 0 is not
+                           daily-export run, and for the deep-pull run
+                           whenever one is due (a Monday, or a catch-up
+                           after a failed Monday). Exit 0 is not
                            enough on its own: exit 0 with ZERO rows
                            written, or exit 0 with failed feeds, is a
                            critical. (25 Aug 2026: the receipt row said
@@ -245,8 +247,9 @@ MAINT_AGE_WARN_DAYS = 3
 #: the October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov);
 #: with 2,000 minutes a month as the hard limit (Ross, 20/10/2026: "2,000 is
 #: the limit") it stays weekly for good (Ross, 20/10/2026: "Weekly deep pull
-#: yes"). deep-pull.yml in maki-hospitality-etl, the bake and morning_kick
-#: carry the same date. A Monday that fails is retried by every later run until
+#: yes"). The bake and morning_kick carry the same date; deep-pull.yml in
+#: maki-hospitality-etl applies the same Monday/catch-up rule with no date of
+#: its own. A Monday that fails is retried by every later run until
 #: a clean pull lands, so a deep-pull receipt is DUE on a Monday, or on any day
 #: when this week's Monday pull has not landed cleanly (the newest clean
 #: receipt predates the most recent Monday) - and only then is a missing one an
