@@ -1237,7 +1237,7 @@ function renderScorecard(snap){
     /* score too: the base row's score belongs to the default month, and
        leaving it would put a scored chip beside "Not measured". */
     return {...r,value:null,display:null,rag:null,score:null,basis:null,trend:null,
-      trend_unit:null,trend_note:null,mtd:null,coverage_days:null,
+      trend_unit:null,trend_note:null,mtd:null,coverage_days:null,reference:null,
       not_measured:'this KR has no figure for '+monthLabel(sel)+
         ' - its source is scored '+monthLabel(first.m)+
         (last.m!==first.m?' to '+monthLabel(last.m):'')+' only'};
@@ -1267,6 +1267,8 @@ function renderScorecard(snap){
   };
   const KIND={computed:'computed',sheet_log:'from sheet log',
               sheet_finance:'Finance, from sheet',
+              sheet_input:'typed on the sheet by Matthew',
+              stock_report:"from Ross's weekly stock count report",
               ma_summary:"Finance's management account, pass/fail",
               sheet_contacts:'from the Maintenance Contact List',
               facilities_app:'from the Facilities app'};
@@ -1316,6 +1318,12 @@ function renderScorecard(snap){
     const detail=(measured||(r.mtd&&r.basis))
       ? `<div class="dt">${esc(r.basis||'')}</div>`
       : `<div class="dt"><b>Needs:</b> ${esc(r.not_measured||'no source')}</div>`;
+    /* A figure the builder shows BESIDE the KR and never scores (OO6 KR1's
+       frozen-ramen issue forms). Shown whatever the row's state - the KR can
+       be grey while its reference is known - and never in the Now column. */
+    const ref=r.reference
+      ? `<div class="dt" style="opacity:.8"><b>${esc(r.reference.label||'Reference')}:</b> ${esc(r.reference.display??'—')}`+
+        (r.reference.basis?` — ${esc(r.reference.basis)}`:'')+`</div>` : '';
     const offMonth=(!isDefault&&!follows)
       ? `<div class="dt" style="opacity:.75"><b>Not ${esc(monthLabel(sel))}</b> — this KR has no monthly form, so it is current state and does not follow the month picker.</div>`
       : '';
@@ -1340,7 +1348,7 @@ function renderScorecard(snap){
     const owner=r0.owner&&r0.owner!=='Operations'
       ? ` <span class="tag t-n" style="font-size:10.5px">${esc(r0.owner)}</span>` : '';
     return head+`<tr${measured?'':' style="opacity:.72"'}>`+
-      `<td><div>${esc(r0.kr)} <span style="opacity:.85">${esc(r0.text||'')}</span>${owner}${prop}</div>${kind}${detail}${offMonth}</td>`+
+      `<td><div>${esc(r0.kr)} <span style="opacity:.85">${esc(r0.text||'')}</span>${owner}${prop}</div>${kind}${detail}${ref}${offMonth}</td>`+
       /* A long target or figure WRAPS (review, 12/10/2026): OO5 KR1's month
          split at a band change reads "6.7 avg from 12/10 · 7.8 to 11/10 - ...",
          and one nowrap cell that long pushed Score, Status and Trend out of

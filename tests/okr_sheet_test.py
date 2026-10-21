@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The Operations Input sheet and the Maintenance Contact List (Phase 1, 10/10/2026).
 
-Pins, end to end, the rules the four sheet-fed KRs and OO2 KR5 live by:
+Pins, end to end, the rules the five sheet-fed KRs and OO2 KR5 live by (OO6
+KR1 and OO6 KR2's 'all POs invoiced' cell are pinned in tests/oo6_test.py):
 
   * A MONTH NOT ENTERED IS NOT SCORED - an explicit not-measured month, never 0.
   * OO1 IS NOT READ FROM THIS SHEET ANY MORE (Ross, 15/10/2026: Finance's
@@ -12,7 +13,8 @@ Pins, end to end, the rules the four sheet-fed KRs and OO2 KR5 live by:
   * The refreshers fail soft, write a status file with FIXED text (never an
     exception message - the file is public), write atomically, and carry a
     series forward rather than drop it when one tab cannot be read.
-  * Only the OO4 credit-notes ranges of '2026 OKRs' are ever requested.
+  * Only the OO4 credit-notes ranges of '2026 OKRs' are ever requested - and
+    the OO6 cells only once they are pinned (none are, here).
   * The contact list leaves the refresher as structure only.
   * OO2 KR5 is the exact fraction of the 20 corporate restaurants whose city tab
     holds any contact (Ross, 10/10/2026), never rounded into a better band, and
@@ -39,6 +41,9 @@ import re
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# the OO6 cells are pinned only in the private workflow: never from a developer's shell here
+for _k in ("OKR_CELLS_OO6_KR1", "OKR_CELLS_OO6_KR2_INVOICED"):
+    os.environ.pop(_k, None)
 REPO = os.path.dirname(HERE)
 BUILDERS = os.path.join(REPO, "builders")
 sys.path.insert(0, BUILDERS)
@@ -195,8 +200,10 @@ wss = [FakeWS("Approval", 1, [["secret approval"]]),
        FakeWS(ros.TAB_TITLES["oo3_kr3"][0], 4, d0["oo3_kr3"]),
        FakeWS(ros.TAB_TITLES["oo4_kr1"][0], 5, d0["oo4_kr1"]),
        FakeWS("Unplanned Restarant Closures ", 6, d0["oo2_kr3"])]
+# OO6's two cells are not pinned in this file's environment: named, never requested
+NL = {"oo6_kr1": "not_located", "oo6_kr2_invoiced": "not_located"}
 got, missing = ros.fetch("x", spreadsheet=FakeSheet(wss))
-check(not missing and set(got) == {"okrs", "oo2_kr3", "oo3_kr3", "oo4_kr1"},
+check(missing == NL and set(got) == {"okrs", "oo2_kr3", "oo3_kr3", "oo4_kr1"},
       "fetch finds every tab it reads by exact title (trailing space and misspelling included)")
 check(wss[2].calls == [ros.OO4_KR4_RANGES] and wss[0].calls == [] and wss[1].calls == [],
       f"'2026 OKRs' is asked ONLY for {ros.OO4_KR4_RANGES} (never get_all_values); 'Approval' and "
@@ -205,11 +212,11 @@ check(got["okrs"][2][2][:3] == ["Feb-26", "100", "100"],
       "the two ranges are joined row by row into [Month, Limit, Actual]")
 wss[5].title = "Unplanned Restaurant Closures"
 got, missing = ros.fetch("x", spreadsheet=FakeSheet(wss))
-check(missing == {"oo2_kr3": "tab_missing"}, "a renamed tab is named as tab_missing, not guessed")
+check(missing == {"oo2_kr3": "tab_missing", **NL}, "a renamed tab is named as tab_missing, not guessed")
 os.environ["OKR_GID_CLOSURES"] = "6"
 got, missing = ros.fetch("x", spreadsheet=FakeSheet(wss))
 os.environ.pop("OKR_GID_CLOSURES")
-check("oo2_kr3" in got and not missing, "a pinned gid survives the rename")
+check("oo2_kr3" in got and missing == NL, "a pinned gid survives the rename")
 
 
 class APIError(Exception):
@@ -239,11 +246,14 @@ tmp = tempfile.mkdtemp(prefix="okr_sheet_test_")
 try:
     rc, out = run_refresher(tmp, dump())
     doc, st = read(tmp, "okr_sheet.json"), read(tmp, "okr_sheet_status.json")
+    _read4 = sorted(set(ros.SERIES) - set(ros.OO6_SERIES))
     check(rc == 0 and st["ok"] is True and st["cause"] == "ok" and st["failing_since"] is None
-          and st["series_read"] == sorted(ros.SERIES), "a full read writes the file and an ok status")
-    check("worksheets" not in doc and set(doc["series"]) == set(ros.SERIES) and len(ros.SERIES) == 4
+          and st["series_read"] == _read4 and st["series_missing"] == NL,
+          "a full read writes the file and an ok status - OO6's unpinned cells are named, "
+          "and are not a failed pull")
+    check("worksheets" not in doc and set(doc["series"]) == set(_read4) and len(ros.SERIES) == 6
           and "oo1" not in doc["series"],
-          "the public file carries the four series - no OO1 - and NOT the worksheet inventory")
+          "the public file carries the four series read - no OO1 - and NOT the worksheet inventory")
     check(doc["series"]["oo2_kr3"]["months"] == {"2026-01": 0, "2026-02": 1, "2026-04": 4}
           and doc["series"]["oo2_kr3"]["as_of"] == "2026-04",
           "each series carries its own as_of (newest entered month)")
@@ -256,7 +266,8 @@ try:
     check(s1.get("carried_forward") is True and s1["pulled_at"] == "2026-04-15T10:00:00Z"
           and s1["months"] == {"2026-01": 1, "2026-02": 0, "2026-03": 3},
           "a tab not read this run is CARRIED FORWARD with its own older pulled_at - not dropped")
-    check(st["ok"] is False and st["cause"] == "tab_missing" and st["series_missing"] == {"oo4_kr1": "tab_missing"}
+    check(st["ok"] is False and st["cause"] == "tab_missing"
+          and st["series_missing"] == {"oo4_kr1": "tab_missing", **NL}
           and st["failing_since"] == "2026-04-20T10:00:00Z", "...and the status says which, and since when")
     rc, out = run_refresher(tmp, dump(oo4_kr1=None), pulled="2026-04-21T10:00:00Z")
     st = read(tmp, "okr_sheet_status.json")
@@ -309,6 +320,7 @@ def sheet_doc(pulled="2026-10-05T09:00:00Z", **series_over):
         "oo4_kr1": {"tab": "l", "pulled_at": pulled, "months": {"2026-03": 4}},
         "oo4_kr4": {"tab": "2026 OKRs", "pulled_at": pulled,
                     "months": {"2026-02": 100, "2026-03": 99, "2026-04": 98, "2026-05": 97.5, "2026-10": 100}},
+        "oo6_kr1": {"tab": "2026 OKRs", "pulled_at": pulled, "months": {"2026-10": 100}},
     }
     s.update(series_over)
     return {"pulled_at": pulled, "series": s}
@@ -353,9 +365,9 @@ check(g["score"] is None and g["mtd"] is True, "an open month's % stays MTD")
 ex, gp = bake.okr_sheet_extra(None, "absent", {"ok": False, "cause": "not_shared",
                                                "detail": ros.CAUSE_TEXT["not_shared"],
                                                "attempted_at": "2026-10-10T15:00:00Z"}, "2026-10")
-check(len(ex) == 4 and all(e["months"] is None and "HTTP 403" in e["not_measured"] for e in ex.values()),
-      "no file: all four rows grey, each naming the 403")
-check(len(gp) == 1 and "OO2 KR3, OO3 KR3, OO4 KR1 and OO4 KR4" in gp[0] and "OO1" not in gp[0],
+check(len(ex) == 5 and all(e["months"] is None and "HTTP 403" in e["not_measured"] for e in ex.values()),
+      "no file: all five rows grey, each naming the 403")
+check(len(gp) == 1 and "OO2 KR3, OO3 KR3, OO4 KR1, OO4 KR4 and OO6 KR1" in gp[0] and "OO1" not in gp[0],
       "...and one gap names them")
 ex, gp = bake.okr_sheet_extra(sheet_doc(pulled="2026-10-10T09:00:00Z"), None, None, "2026-10",
                               dated="2026-10-03")
