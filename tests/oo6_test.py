@@ -101,6 +101,9 @@ check(r["display"] == "3+" and "lower bound" in r["basis"] and "21/10" in r["bas
 r = fr.forms_reference(ISS, "2026-10", None, False)
 check(r["value"] is None and r["display"] == "—" and "absent" in r["basis"],
       "no issue feed: unknown, never 0")
+r = fr.forms_reference(ISS, "2026-11", (0, [], "2026-11-30"), True)
+check(r["value"] is None and r["display"] == "—" and "does not reach November 2026" in r["basis"],
+      "the feed not reaching the month yet: unknown, never '0 so far'")
 r = fr.forms_reference(ISS, "2026-09", (30, [], "2026-09-30"), False)
 check(r["value"] == 0 and r["display"] == "0", "September: a measured 0 (bare 'ramen' is not frozen ramen)")
 
@@ -117,7 +120,7 @@ def week(wk, locs, read="2026-11-03T19:00:00Z", **kw):
             "report_modified_at": read, "read_at": read, "kind": "csv",
             "columns": {"location": "Venue", "item": "Item", "count": "Count"},
             "rows_read": 50, "frozen_lines": sum(v["lines"] for v in locs.values()),
-            "items_matched": ["Frozen Ramen - Hell Ramen"], "locations": locs,
+            "items_matched": [fr.CANON_ITEMS[0]], "locations": locs,
             "unrecognised_locations": 0, "problems": []}
 
 
@@ -321,8 +324,8 @@ check(list(w) == ["2026-10-26"] and w["2026-10-26"]["week_from"] == "file_name",
       "no date column: the week comes from a date in the file name")
 w = rfs.parse_report(b"Site,Product,Stock Count\nMaki Soho,Frozen Ramen - Hell Ramen,3\n",
                      "stock.csv", "2026-10-18T23:30:00Z", MATCH)
-check(list(w) == ["2026-10-19"] and w["2026-10-19"]["week_from"] == "modified_time",
-      "...else from Drive's modifiedTime on the UK clock (23:30 UTC on Sunday 18/10 is Monday 19/10 in BST)")
+check(list(w) == ["2026-10-19"] and w["2026-10-19"]["week_from"] == "created_time",
+      "...else from Drive's createdTime on the UK clock (23:30 UTC on Sunday 18/10 is Monday 19/10 in BST)")
 for data, want in ((b"Venue,Item,Count\nMaki Soho,RAMEN NOODLES,4\n", "no_frozen_lines"),
                    (b"just,some,cells\n1,2,3\n", "header_missing"),
                    (b"%PDF-1.4 ...", "not_a_table"),
@@ -358,9 +361,22 @@ wide += ",,,,,,,,,Maki Soho,Frozen Ramen - Hell Ramen,1\n\n"
 wide += ",,,,,,,,,Maki Leeds,Frozen Ramen - Hell Ramen 1234567,2\n"
 w = rfs.parse_report(wide.encode(), "x 20-10-2026.csv", "2026-10-21T09:00:00Z", MATCH)
 _w = w["2026-10-19"]
-check(sorted(_w["locations"]) == ["Maki Leeds", "Maki Soho"] and _w["items_matched"] == ["Frozen Ramen - Hell Ramen"]
-      and any("product name was not kept" in p_ for p_ in _w["problems"]),
-      "a wide report with a blank row reads (no IndexError); a product name that looks like a code is not kept, its line still counts")
+check(sorted(_w["locations"]) == ["Maki Leeds", "Maki Soho"] and _w["items_matched"] == ["Frozen ramen - Hell"],
+      "a wide report with a blank row reads (no IndexError); a product with a code in its cell is kept as its canonical name only")
+# free text in an item cell or a header never reaches the copy (review, round 3)
+w = rfs.parse_report(b"Site,Description,Counted (Jane Smith),Date\n"
+                     b"Maki Soho,Frozen Ramen - Hell (Jane Smith counted),1,13/10/2026\n"
+                     b"Maki Soho,Frozen ramen - truffle chicken 12.50 each,1,13/10/2026\n"
+                     b"Maki Leeds,M&R Laksa Ramen 3 boxes left - Bob Jones to reorder,0,13/10/2026\n",
+                     "x.csv", "2026-10-21T09:00:00Z", MATCH)
+_wt = json.dumps(w)
+check(w["2026-10-12"]["items_matched"] == ["Frozen ramen - Hell", "Frozen ramen - Truffle Chicken", "Frozen ramen - Laksa"]
+      and w["2026-10-12"]["columns"] == {"location": "Site", "item": "Description", "count": "(column 3)"}
+      and not any(x in _wt for x in ("Jane", "Bob", "12.50", "boxes")),
+      "an annotated item cell is published only as its canonical product, and a header naming a person only as its position")
+check(fr.stock_leaks(json.dumps({"weeks": {"2026-10-12": {**w["2026-10-12"], "items_matched": ["Hell (Jane counted)"]}}}))
+      and fr.stock_leaks(json.dumps({"weeks": {"2026-10-12": {**w["2026-10-12"], "columns": {"count": "Counted (Jane)"}}}})),
+      "...and the bake refuses a copy carrying either - its own check, not only the refresher's")
 
 
 def rcsv(path, body):
@@ -406,7 +422,7 @@ try:
     p2 = os.path.join(tmp, "b.csv")
     open(p2, "wb").write(b"Venue,Item,Count\nMaki Soho,RAMEN NOODLES,4\n")
     rc, st, doc, _out = run(tmp, [p1, p2], ["2026-10-21T09:00:00.123Z", "2026-10-22T09:00:00Z"], "2026-10-22T14:00:00Z")
-    check(rc == 0 and st["ok"] is False and st["cause"] == "no_frozen_lines"
+    check(rc == 0 and st["ok"] is True and st["unread_causes"] == ["no_frozen_lines"]
           and doc["unread_reports"] == [{"modified_at": "2026-10-22T09:00:00.000Z", "cause": "no_frozen_lines",
                                          "detail": rfs.CAUSE_TEXT["no_frozen_lines"]}]
           and doc["weeks"]["2026-10-12"]["read_at"] == "2026-10-21T13:00:00Z",
@@ -418,7 +434,7 @@ try:
     p3 = os.path.join(tmp, "c.csv")
     open(p3, "w").write('Venue,Item,Count\nMaki Soho,"' + "x" * 200000 + "\n")
     rc, st, doc, _out = run(tmp, [p3, p1], ["2026-10-20T09:00:00Z", "2026-10-21T09:00:00.123Z"], "2026-10-23T14:00:00Z")
-    check(st["cause"] == "report_unreadable" and doc["unread_reports"][0]["cause"] == "report_unreadable"
+    check(st["unread_causes"] == ["report_unreadable"] and doc["unread_reports"][0]["cause"] == "report_unreadable"
           and "2026-10-12" in doc["weeks"],
           "a report the parser cannot read (an over-long field) is that report's fault - listed, and the rest still read")
     # thirteen unreadable reports never starve the good one
@@ -472,26 +488,54 @@ try:
         check(rc == 0 and st["ok"] and sorted(doc["weeks"]) == ["2026-10-12", "2026-10-19"]
               and fr.stock_leaks(json.dumps(doc)) == [],
               f"a stored copy {bad_prev[:30]!r}... is never trusted: rebuilt from the folder, exit 0")
-    # the cap: weeks only the reports beyond it held are carried from the last copy, and said so
+    # the window, the ceiling and the deadline: never a copy built from part of the folder
     for f_ in os.listdir(tmp):
         os.remove(os.path.join(tmp, f_))
     s1 = rcsv(os.path.join(tmp, "s1.csv"), "Maki Soho,Frozen Ramen - Hell Ramen,04/10/2026,2\n")
     s2 = rcsv(os.path.join(tmp, "s2.csv"), "Maki Soho,Frozen Ramen - Hell Ramen,11/10/2026,2\n")
-    old_r = rcsv(os.path.join(tmp, "old.csv"), "Maki Soho,Frozen Ramen - Hell Ramen,07/09/2026,1\n")
-    rc, st, doc, _out = run(tmp, [old_r, s1, s2], ["2026-09-08T09:00:00Z", "2026-10-06T09:00:00Z", "2026-10-13T09:00:00Z"],
+    old_r = rcsv(os.path.join(tmp, "old.csv"), "Maki Soho,Frozen Ramen - Hell Ramen,03/08/2026,1\n")
+    rc, st, doc, _out = run(tmp, [old_r, s1, s2], ["2026-08-04T09:00:00Z", "2026-10-06T09:00:00Z", "2026-10-13T09:00:00Z"],
                             "2026-10-13T12:00:00Z")
-    _cap, rfs.MAX_REPORTS = rfs.MAX_REPORTS, 2
+    check(st["reports_before_window"] == 1 and "2026-08-03" not in doc["weeks"] and st["reports_read"] == 2,
+          "a report saved before the window (it can only hold weeks before October) is not read, and is counted")
+    before = open(os.path.join(tmp, fr.STOCK_FILE)).read()
+    _cap, rfs.MAX_REPORTS = rfs.MAX_REPORTS, 1
     try:
-        rc, st, doc, _out = run(tmp, [old_r, s1, s2], ["2026-09-08T09:00:00Z", "2026-10-06T09:00:00Z", "2026-10-13T09:00:00Z"],
-                                "2026-10-14T12:00:00Z")
+        rc, st, doc, _out = run(tmp, [s1, s2], ["2026-10-06T09:00:00Z", "2026-10-13T09:00:00Z"], "2026-10-14T12:00:00Z")
     finally:
         rfs.MAX_REPORTS = _cap
-    check("2026-09-07" in doc["weeks"] and doc["reports_not_read"] == 1 and st["reports_not_read"] == 1
-          and doc["weeks"]["2026-09-07"]["read_at"] == "2026-10-13T12:00:00Z",
-          "past the cap, the older report's week is carried from the last copy and the copy says one report was not read")
-    d_, e_ = fr.load_stock(tmp)
-    _ex, _gp = fr.kr3_months(d_, e_, None, SITES, "2026-10", "2026-10", mvar, score("full"), rag, asof="2026-10-21")
-    check(any("1 older report(s)" in g for g in _gp), "...and the bake names it")
+    check(rc == 0 and st["cause"] == "too_many_reports" and open(os.path.join(tmp, fr.STOCK_FILE)).read() == before,
+          "more reports than the ceiling: NOTHING written (never a copy from part of the folder), and said so")
+    _dl, rfs.RUN_DEADLINE_S = rfs.RUN_DEADLINE_S, -1
+    try:
+        rc, st, doc, _out = run(tmp, [s1, s2], ["2026-10-06T09:00:00Z", "2026-10-13T09:00:00Z"], "2026-10-14T13:00:00Z")
+    finally:
+        rfs.RUN_DEADLINE_S = _dl
+    check(rc == 0 and st["cause"] == "timeout" and open(os.path.join(tmp, fr.STOCK_FILE)).read() == before,
+          "a run past its time limit writes nothing - the last copy stands")
+    # read_at follows the COUNTS, not the file: an identical re-save keeps it
+    rc, st, doc, _out = run(tmp, [s1, s2], ["2026-10-06T09:00:00Z", "2026-10-15T09:00:00Z"], "2026-10-15T12:00:00Z")
+    check(doc["weeks"]["2026-10-05"]["read_at"] == "2026-10-13T12:00:00Z"
+          and doc["weeks"]["2026-10-05"]["report_modified_at"] == "2026-10-15T09:00:00.000Z",
+          "a report re-saved with the same counts keeps its weeks' first read_at - a back-bake still sees them")
+    # a report with no date anywhere stays in its own week when it is re-saved
+    nd = os.path.join(tmp, "nodate.csv")
+    open(nd, "w").write("Venue,Item,Count\nMaki Soho,Frozen Ramen - Hell Ramen,1\n")
+    rc, st, doc, _out = run(tmp, [nd], ["2026-10-20T09:00:00Z"], "2026-10-20T12:00:00Z")
+    _rc = rfs.main(["--from-file", nd, "--modified-at", "2026-10-27T09:00:00Z", "--created-at",
+                    "2026-10-06T09:00:00Z", "--out-dir", tmp])
+    doc = json.load(open(os.path.join(tmp, fr.STOCK_FILE)))
+    check(list(doc["weeks"]) == ["2026-10-05"],
+          "a report with no date column, re-saved on 27/10, stays in the week it was CREATED in (w/c 05/10)")
+    # an older report with NO placed location is never 'superseded'
+    rz = rcsv(os.path.join(tmp, "rz.csv"), ",Frozen Ramen - Hell Ramen,19/10/2026,1\n"
+                                           "Maki Soho,Frozen Ramen - Hell Ramen,26/10/2026,1\n")
+    ry = rcsv(os.path.join(tmp, "ry.csv"), "Maki Leeds,Frozen Ramen - Hell Ramen,19/10/2026,1\n"
+                                           "Maki Soho,Frozen Ramen - Hell Ramen,19/10/2026,1\n")
+    w_ = rfs.build_weeks([("a", "csv", rfs.parse_report(open(rz, "rb").read(), "x", "2026-10-27T09:00:00Z", MATCH)),
+                          ("b", "csv", rfs.parse_report(open(ry, "rb").read(), "y", "2026-10-28T09:00:00Z", MATCH))])
+    check(w_["2026-10-19"]["unrecognised_locations"] == 1,
+          "an older report whose only line had no location is not 'superseded' by a newer one - its line still counts")
     for f_ in os.listdir(tmp):
         os.remove(os.path.join(tmp, f_))
     os.environ.pop("STOCK_COUNT_FOLDER_ID", None)
@@ -615,7 +659,8 @@ try:
             return route_ok(u, p)
         _drive["route"] = route_block
         rc, st, doc, out_ = drive_run()
-        check(st["cause"] == "download_blocked" and [u["cause"] for u in doc["unread_reports"]] == ["download_blocked"]
+        check(st["ok"] and st["unread_causes"] == ["download_blocked"]
+              and [u["cause"] for u in doc["unread_reports"]] == ["download_blocked"]
               and "2026-10-19" in doc["weeks"],
               f"HTTP {code} on ONE file after the folder listed: that report is download_blocked (never 'share the "
               "folder'), and the rest is still read")

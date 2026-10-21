@@ -41,6 +41,9 @@ import re
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# the OO6 cells are pinned only in the private workflow: never from a developer's shell here
+for _k in ("OKR_CELLS_OO6_KR1", "OKR_CELLS_OO6_KR2_INVOICED"):
+    os.environ.pop(_k, None)
 REPO = os.path.dirname(HERE)
 BUILDERS = os.path.join(REPO, "builders")
 sys.path.insert(0, BUILDERS)

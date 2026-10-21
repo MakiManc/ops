@@ -52,6 +52,45 @@ def is_frozen_ramen(text) -> bool:
     return bool(text) and FROZEN_RAMEN_RE.search(str(text)) is not None
 
 
+#: The ONLY product names the stock count copy may carry: a report's item
+#: cell is free text (a counter can write 'Hell Ramen - Jane counted, 12.50
+#: each'), so it is mapped to one of these and never copied (review, 21/10/2026).
+CANON_ITEMS = ("Frozen ramen - Hell", "Frozen ramen - Truffle Chicken",
+               "Frozen ramen - Chicken", "Frozen ramen - Black Garlic Tonkotsu",
+               "Frozen ramen - Laksa", "Frozen ramen - variety not named")
+
+
+def canonical_item(text) -> str:
+    """A frozen-ramen line's item cell -> one of CANON_ITEMS."""
+    t = str(text or "").lower()
+    if "hell" in t:
+        return CANON_ITEMS[0]
+    if "truffle" in t:
+        return CANON_ITEMS[1]
+    if "laksa" in t:
+        return CANON_ITEMS[4]
+    if re.search(r"black|garlic|tonk", t):
+        return CANON_ITEMS[3]
+    if "chicken" in t:
+        return CANON_ITEMS[2]
+    return CANON_ITEMS[5]
+
+
+#: Header names a stock count report's role columns may carry, lower case. The
+#: copy publishes a header only when it is one of these - anything else is
+#: written as '(column N)' (a header can name a person: 'Counted (Jane)').
+HEADER_EXACT = {
+    "location": {"venue", "location", "site", "restaurant", "branch", "store",
+                 "venue name", "location name", "site name", "restaurant name", "store name"},
+    "item": {"ingredient", "item", "product", "stock batch name", "description",
+             "stock item", "item name", "product name", "ingredient name"},
+    "count": {"count", "counted", "quantity", "qty", "on hand", "closing stock",
+              "stock count", "counted quantity", "count quantity"},
+    "date": {"date", "count date", "stock count date", "counted on", "week commencing", "w/c"},
+}
+_HEADERS_OK = set().union(*HEADER_EXACT.values())
+
+
 # ---------------------------------------------------------------------------
 # OO6 KR3 - the weekly stock count
 # ---------------------------------------------------------------------------
@@ -72,7 +111,7 @@ _WEEK_KEYS = {"week_commencing", "week_from", "report_modified_at", "read_at", "
               "columns", "rows_read", "frozen_lines", "items_matched", "locations",
               "unrecognised_locations", "lines_unplaced", "problems"}
 _LOC_KEYS = {"lines", "counted"}
-_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports", "reports_not_read"}
+_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports"}
 _UNREAD_KEYS = {"modified_at", "cause", "detail"}
 
 
@@ -170,6 +209,15 @@ def stock_leaks(raw: str) -> list[str]:
             if not isinstance(rec, dict) or not set(rec) <= _LOC_KEYS:
                 bad.append(f"weeks.{wk_}.locations (unexpected fields)")
                 break
+        # free text never: a product is one of CANON_ITEMS, a header a known one
+        if any(it not in CANON_ITEMS for it in (w.get("items_matched") or [])):
+            bad.append(f"weeks.{wk_}.items_matched (a name that is not a canonical product)")
+        cols = w.get("columns") or {}
+        if not isinstance(cols, dict) or any(
+                not isinstance(v, str) or not (v.lower() in _HEADERS_OK
+                                               or re.fullmatch(r"\(column \d{1,3}\)", v))
+                for v in cols.values()):
+            bad.append(f"weeks.{wk_}.columns (a header that is not a known one)")
     return bad
 
 
@@ -224,9 +272,7 @@ def load_stock(out_dir: str):
                            "detail": u["detail"]})
         else:
             probs.append("an unread-report record is not the shape this reads - ignored")
-    nr = raw.get("reports_not_read")
     return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "unread": unread,
-            "reports_not_read": nr if type(nr) is int and nr > 0 else 0,
             "_problems": probs}, None
 
 
@@ -317,10 +363,6 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         gaps.append(f"OO6 KR3: a stock count report in the folder, saved "
                     f"{dm(u['modified_at'][:10])}/{u['modified_at'][:4]}, could not be read - "
                     f"{u['detail']} - so any week only it holds is not counted")
-    if doc.get("reports_not_read"):
-        gaps.append(f"OO6 KR3: {doc['reports_not_read']} older report(s) in the folder are "
-                    "beyond the newest the refresher reads each bake; the weeks only they hold "
-                    "are carried from the last copy")
     match = site_matcher(sites)
     labels = [d for d, _ in sites]
 
@@ -388,8 +430,8 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                             + (f"; listed with no number: {', '.join(sorted(blank))}" if blank else "")
                             + ")" if not_c else "")
                          + f" - report {w.get('kind') or 'file'} read {str(w.get('read_at'))[:10]}"
-                         + (", week from the file's date" if w.get("week_from") == "modified_time"
-                            else ""))
+                         + (", week from the file's date" if w.get("week_from") in
+                            ("modified_time", "created_time") else ""))
         due_n = n_sites * len(have)
         val = _floor1(Decimal(100 * got) / Decimal(due_n))
         disp = (f"{val}% ({got} of {n_sites})" if len(have) == 1 else
@@ -452,6 +494,11 @@ def forms_reference(issues, m, cover, open_):
                    and is_frozen_ramen(i.get("issue_text"))),
                   key=lambda i: (i.get("d") or "", i.get("site") or ""))
     ncov, holes, me = cover
+    if ncov == 0:
+        # the feed has not reached the month: unknown, never 0
+        return {"label": label, "value": None, "display": "—",
+                "basis": f"the GetCompliant answer feed does not reach {mlabel(m)} yet, so the "
+                         "issue forms cannot be counted"}
     short = bool(holes) or ncov < int(me[8:10])
     n = len(hits)
     disp = f"{n}" + (" so far" if open_ else "+" if short else "")
