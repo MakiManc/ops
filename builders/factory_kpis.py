@@ -634,6 +634,28 @@ def _plus(iso: str, n: int) -> str:
     return (datetime.date.fromisoformat(iso) + datetime.timedelta(days=n)).isoformat()
 
 
+def jfc_known(pos, jfc_pull, asof):
+    """(known, awaiting, seen_to): which of jfc_pos()'s POs have an outcome.
+
+    A PO collected after `asof` is neither (not an order completed yet). A
+    reported failure is known at once; otherwise a PO is known once JFC has
+    had JFC_REPORT_DAYS after its collection (its email day when no collection
+    day is stated) in the replies read up to `seen_to`, and awaiting until
+    then. OO5 KR5 and OO6 KR2 both judge POs by this, so it lives once.
+    """
+    seen_to = min(jfc_pull or "", asof) if pos is not None else ""
+    known, awaiting = [], []
+    for p in (pos or []):
+        d0 = p["collection"] or p["emailed"]
+        if d0 > asof:
+            continue                     # not collected yet: not an order completed
+        if p["failed"] or (seen_to and _plus(d0, JFC_REPORT_DAYS) <= seen_to):
+            known.append(p)              # a reported failure is known at once
+        else:
+            awaiting.append(p)
+    return known, awaiting, seen_to
+
+
 def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
                gc_answers_through, gc_feed_first, pull_month, first_month, mvar,
                score_fn, rag_fn, asof, dated=None):
@@ -689,16 +711,7 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
                     f"({asof}) - a short reported since is not counted yet")
 
     # (a) which POs are known: collected, and JFC has had its week to report
-    seen_to = min(jfc_pull or "", asof) if pos is not None else ""
-    known, awaiting = [], []
-    for p in (pos or []):
-        d0 = p["collection"] or p["emailed"]
-        if d0 > asof:
-            continue                     # not collected yet: not an order completed
-        if p["failed"] or (seen_to and _plus(d0, JFC_REPORT_DAYS) <= seen_to):
-            known.append(p)              # a reported failure is known at once
-        else:
-            awaiting.append(p)
+    known, awaiting, seen_to = jfc_known(pos, jfc_pull, asof)
 
     # (c) failures: an issue form naming the factory, charged to that site's
     # latest order on or before the form's date.
@@ -856,6 +869,152 @@ def kr5_months(*, pos, jfc_pull, doc, err, status, issues, site_alias, gc_cover,
     return {"months": out, "source_kind": "computed", "tab": "—"}, gaps
 
 
+# ---------------------------------------------------------------------------
+# OO6 KR2 - on time demand creation (Ross, 21/10/2026)
+# ---------------------------------------------------------------------------
+def oo6_kr2_months(*, pos, jfc_pull, invoiced, pull_month, first_month, mvar, score_fn,
+                   rag_fn, asof):
+    """OO6 KR2 as an `_okr_extra` entry, plus gaps.
+
+    Ross, 21/10/2026: "PO Raised and no issues with fullfilling the PO all
+    items invoiced" - over JFC's weekly PO to the factory. A PO PASSES when
+    (1) JFC's replies in its PO thread report no short or damaged line - OO5
+    KR5's test, judged by jfc_known() exactly as KR5 judges it - and (2) every
+    PO of its collection month was invoiced, which is typed monthly on the
+    '2026 OKRs' tab as one yes/no.
+
+    pos       jfc_pos() of the newest 'JFC Factory POs' pull, or None
+    invoiced  {'YYYY-MM': (True | False | None, why)} - bake.okr_sheet_flags()
+
+    It scores only when BOTH halves are known. A month whose invoicing is not
+    known is shown, not scored, with the reason. A "no" says only that SOME
+    PO was not fully invoiced, never which: so a "no" month passes at most
+    n-1 of its n POs, and is scored only when even that upper bound scores 0
+    on the band - otherwise it is shown as an upper bound, unscored. The month
+    in progress is never scored: its invoicing is a typed figure, and a typed
+    figure for a month still in progress is not a result (the sheet's rule).
+    """
+    gaps = []
+    if pos is None:
+        why = (f"JFC's POs are not read in this bake - the '{JFC_PO_FEED}' feed is absent")
+        gaps.append(f"OO6 KR2 is grey: {why}")
+        return {"months": None, "source_kind": "not_measured", "not_measured": why,
+                "tab": "—"}, gaps
+    known, awaiting, seen_to = jfc_known(pos, jfc_pull, asof)
+    if jfc_pull and jfc_pull < asof:
+        gaps.append(f"OO6 KR2: JFC's PO threads were last read {jfc_pull}, before this bake "
+                    f"({asof}) - a short reported since is not counted yet")
+    rule = ("A JFC PO passes when JFC's replies in its PO thread report no short or damaged "
+            "line naming a product or quantity (OO5 KR5's test: extra cartons are not a "
+            f"failure; counted once JFC has had {JFC_REPORT_DAYS} days to report) AND every PO "
+            "collected in the month was invoiced - typed monthly as 'all POs invoiced' yes/no "
+            "on the '2026 OKRs' tab. A month is its POs' collection month. A shortfall JFC "
+            "reports in a LATER PO's thread ('last week') is not charged to the earlier PO - "
+            "OO5 KR5's rule. Lynas's POs are not counted: they go to the factory's own "
+            "mailbox, not the one this system reads")
+    out = []
+    m = first_month
+    while m <= pull_month:
+        def _in(p):
+            return (p["collection"] or p["emailed"])[:7] == m
+        a_pos = [p for p in known if _in(p)]
+        a_wait = [p for p in awaiting if _in(p)]
+        a_unclear = [p for p in a_pos if p.get("unclear")]
+        a_bad = [p for p in a_pos if p["failed"]]
+        open_ = m == pull_month
+        inv, inv_why = (invoiced or {}).get(m, (None, "the month is not on the sheet's range"))
+        n_all = len(a_pos) + len(a_wait)
+        good = len(a_pos) - len(a_bad)
+        lst = "; ".join(
+            f"PO {p['po']} ({'collected ' + dmy(p['collection'])[:5] if p['collection'] else 'emailed ' + dmy(p['emailed'])[:5] + ', collection day not stated'})"
+            + (" NOT IN FULL - " + ", ".join(p["lines"]) if p["failed"] else "")
+            for p in a_pos)
+        a_txt = (f"{len(a_pos)} JFC PO(s) collected in {mlabel(m)} with an outcome, {good} in "
+                 "full" + (f": {lst}" if lst else "")
+                 + ("; AWAITING JFC'S REPORT, not counted: " + "; ".join(
+                     f"PO {p['po']} ({'collected ' + dmy(p['collection'])[:5] if p['collection'] else 'emailed ' + dmy(p['emailed'])[:5]})"
+                     for p in a_wait) if a_wait else "")
+                 + (f" - JFC's replies as read on {jfc_pull}" if jfc_pull else ""))
+        inv_txt = f"Invoicing: {inv_why}"
+        cov = _cov(m, [seen_to], [])
+        if n_all == 0:
+            if open_:
+                out.append(mvar(m, mtd=True, score=None, coverage_days=cov, basis=(
+                    f"month-to-date, not yet scored - no JFC PO collected in {mlabel(m)} yet. "
+                    f"{inv_txt}. {rule}")))
+            else:
+                out.append(mvar(m, not_measured=f"no JFC PO collected in {mlabel(m)}"))
+            m = next_month(m)
+            continue
+        if open_:
+            out.append(mvar(m, mtd=True, score=None, coverage_days=cov, basis=(
+                f"month-to-date, not yet scored - the month is in progress, and its invoicing "
+                f"is typed after it closes. So far: {a_txt}. {inv_txt}. {rule}")))
+            m = next_month(m)
+            continue
+        why = []
+        if a_wait:
+            why.append(f"{len(a_wait)} JFC PO(s) collected in {mlabel(m)} have not had "
+                       f"{JFC_REPORT_DAYS} days for JFC to report in the replies read "
+                       f"({seen_to or 'none'})")
+        if a_unclear:
+            why.append(f"JFC's replies on {', '.join('PO ' + p['po'] for p in a_unclear)} mention "
+                       "a shortage or damage without naming a product or quantity")
+        if inv is None:
+            # not known whether the POs were invoiced: shown, never scored
+            out.append(mvar(m, not_measured=(
+                f"not scored - whether every JFC PO collected in {mlabel(m)} was invoiced is "
+                f"not known: {inv_why}. So far: {a_txt}"
+                + (f"; and {'; '.join(why)}" if why else ""))))
+            m = next_month(m)
+            continue
+        if inv:
+            val = _floor1(Decimal(100 * good) / Decimal(len(a_pos))) if a_pos else None
+            if val is None:
+                out.append(mvar(m, not_measured=(
+                    f"no JFC PO collected in {mlabel(m)} has an outcome yet - "
+                    + "; ".join(why))))
+                m = next_month(m)
+                continue
+            disp = f"{val}% ({good} of {len(a_pos)})"
+            basis = (f"{good} of {len(a_pos)} JFC PO(s) collected in {mlabel(m)} passed. "
+                     f"{a_txt}. {inv_txt}. {rule}")
+            if why:
+                out.append(mvar(m, value=float(val), display=disp, score=None, rag=None,
+                                incomplete=True, basis=(
+                                    f"not scored - an INCOMPLETE month: {'; '.join(why)}, so "
+                                    f"{val}% is partial - " + basis)))
+            else:
+                s_ = score_fn(float(val))
+                out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
+                                basis=basis))
+            m = next_month(m)
+            continue
+        # "no": at least one PO of the month was not fully invoiced, so at most
+        # n-1 of the n POs passed (fewer if one also failed on fulfilment -
+        # the uninvoiced PO may be that one, which is why it is the larger
+        # loss of the two that bounds it). An awaiting or unclear PO can at
+        # best pass, so it is counted as a pass for the bound.
+        best = min(good + len(a_wait) + len(a_unclear), n_all - 1)
+        ub = _floor1(Decimal(100 * best) / Decimal(n_all))
+        s_ub = score_fn(float(ub))
+        disp = f"at most {ub}% ({best} of {n_all})"
+        basis = (f"not every JFC PO collected in {mlabel(m)} was invoiced, so at most {best} of "
+                 f"{n_all} passed - {ub}% at best. {a_txt}. {inv_txt}. {rule}")
+        if s_ub == 0:
+            out.append(mvar(m, value=float(ub), display=disp, score=0, rag=rag_fn(0), basis=(
+                f"scored 0 - even the best case, {ub}%, is below the band's last step, so no "
+                f"outcome of the PO(s) still open can lift it. " + basis)))
+        else:
+            out.append(mvar(m, value=float(ub), display=disp, score=None, rag=None,
+                            incomplete=True, basis=(
+                                f"not scored - {ub}% is an upper bound: which PO was not "
+                                "invoiced is not recorded, so the rate itself is not known - "
+                                + basis)))
+        m = next_month(m)
+    return {"months": out, "source_kind": "computed", "tab": "—"}, gaps
+
+
 def parse_iso(s) -> str | None:
     try:
         return datetime.date.fromisoformat(str(s)[:10]).isoformat() if s else None
@@ -875,8 +1034,8 @@ def _cov(m: str, throughs, holes) -> int:
 
 
 def published_leaks(variants) -> list[str]:
-    """Any '@' or long digit run in KR5's published text - a name or a number
-    from a reply must never reach the public snapshot."""
+    """Any '@' or long digit run in KR5's (or OO6 KR2's) published text - a name
+    or a number from a reply must never reach the public snapshot."""
     bad = []
     for v in variants or []:
         for k in ("basis", "display", "not_measured"):

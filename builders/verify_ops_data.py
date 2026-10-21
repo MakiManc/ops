@@ -145,6 +145,9 @@ sys.path.insert(0, HERE)
 import oo1_ma  # noqa: E402
 OO1_MA_PATH = os.path.join(OUT_DIR, oo1_ma.MA_FILE)
 OO1_MA_STATUS_PATH = os.path.join(OUT_DIR, oo1_ma.MA_STATUS_FILE)
+# 21/10/2026: OO6 KR3's weekly stock count copy (builders/refresh_frozen_stock.py)
+FROZEN_STOCK_PATH = os.path.join(OUT_DIR, "frozen_stock_count.json")
+FROZEN_STOCK_STATUS_PATH = os.path.join(OUT_DIR, "frozen_stock_count_status.json")
 #: The only percentages an OO1 basis may name: the KRs' own targets (W/R 20%,
 #: FR 35%, V/R 13%, NP 4%). Any other percentage, or money, on an OO1 row is a
 #: figure - the module's own test, shared with the bake (review, 15/10/2026).
@@ -768,7 +771,9 @@ RECOMPUTE_MODULES = ("supplier_statements.py", "okr_pack.py",
                      "delivery_tracking.py",
                      # 15/10/2026: OO1 from Finance's management account - the
                      # bake imports it for the publication check and the dates
-                     "oo1_ma.py")
+                     "oo1_ma.py",
+                     # 21/10/2026: OO6 - frozen ramen by name, KR3's stock count
+                     "frozen_ramen.py")
 RECOMPUTE_DIRS = ("supplier_statements", "okr_pack")
 
 
@@ -829,10 +834,12 @@ def check_consistency(pg_latest: str, snap_latest: str):
         # or the recompute greys ten KRs the live bake scored - and the OO1
         # check below would pass on rows that never carried a score at all.
         # Phase 3 adds the factory workbook copy, or the recompute greys OO5
-        # KR3 and counts KR5 without its site orders.
+        # KR3 and counts KR5 without its site orders; OO6 (21/10/2026) the
+        # stock count copy, or it greys OO6 KR3.
         for _sp in (OKR_SHEET_PATH, OKR_SHEET_STATUS_PATH, CONTACTS_PATH,
                     CONTACTS_STATUS_PATH, FACTORY_WB_PATH, FACTORY_WB_STATUS_PATH,
-                    OO1_MA_PATH, OO1_MA_STATUS_PATH):
+                    OO1_MA_PATH, OO1_MA_STATUS_PATH, FROZEN_STOCK_PATH,
+                    FROZEN_STOCK_STATUS_PATH):
             if os.path.exists(_sp):
                 shutil.copy(_sp, os.path.join(tmp, "data", "ops_command",
                                               os.path.basename(_sp)))
