@@ -993,9 +993,10 @@ def oo6_kr2_months(*, pos, jfc_pull, invoiced, pull_month, first_month, mvar, sc
         # "no": at least one PO of the month was not fully invoiced, so at most
         # n-1 of the n POs passed (fewer if one also failed on fulfilment -
         # the uninvoiced PO may be that one, which is why it is the larger
-        # loss of the two that bounds it). An awaiting or unclear PO can at
-        # best pass, so it is counted as a pass for the bound.
-        best = min(good + len(a_wait) + len(a_unclear), n_all - 1)
+        # loss of the two that bounds it). An awaiting PO can at best pass, so
+        # it counts as a pass for the bound; an unclear PO is already in
+        # `good` (jfc_pos never marks a failed PO unclear).
+        best = min(good + len(a_wait), n_all - 1)
         ub = _floor1(Decimal(100 * best) / Decimal(n_all))
         s_ub = score_fn(float(ub))
         disp = f"at most {ub}% ({best} of {n_all})"

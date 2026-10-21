@@ -1143,8 +1143,10 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
     missing_causes = (status or {}).get("series_missing") or {}
     if not isinstance(missing_causes, dict):
         missing_causes = {}
-    _ids = [f"{o} {k}" for o, k in OKR_SHEET_KRS]
-    all_ids = ", ".join(_ids[:-1]) + " and " + _ids[-1]
+    # only the KRs measured by this month: OO6 KR1 starts in October 2026
+    _ids = [f"{o} {k}" for (o, k), (key, _kd, _n) in OKR_SHEET_KRS.items()
+            if OKR_SHEET_SERIES_FIRST.get(key, OKR_SHEET_FIRST_MONTH) <= (pull_month or "9999")]
+    all_ids = ", ".join(_ids[:-1]) + " and " + _ids[-1] if len(_ids) > 1 else "".join(_ids)
     if doc is None:
         if err and err != "absent":
             why = (f"data/ops_command/{OKR_SHEET_FILE} is {err}, so the KRs typed into "
@@ -1296,6 +1298,10 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
     for p in problems:
         gaps.append(f"okr_sheet.json: {p}")
     return extra, gaps
+
+
+class _OO6NotYet(Exception):
+    """A bake for a month before OO6 is measured: its KRs are not built."""
 
 
 def okr_sheet_flags(doc, err, status, key, pull_month, dated=None):
@@ -7978,8 +7984,12 @@ def main():
                         "basis": f"the issue forms could not be counted ({type(e).__name__})"}
             _k61m.append({**v_, "reference": _ref})
         _okr_extra[("OO6", "KR1")] = {**_k61, "months": _k61m}
-    # KR2: JFC's weekly PO, in full (OO5 KR5's test) AND invoiced (the sheet)
+    # KR2: JFC's weekly PO, in full (OO5 KR5's test) AND invoiced (the sheet).
+    # Before October (a back-bake) neither KR2 nor KR3 is built at all - the
+    # override below names the real reason, and no gap names another one.
     try:
+        if not _oo6_months:
+            raise _OO6NotYet
         _k62, _k62g = factory_kpis.oo6_kr2_months(
             pos=(factory_kpis.jfc_pos(jfc_rows) if jfc_rows is not None else None),
             jfc_pull=jfc_pull,
@@ -7994,6 +8004,8 @@ def main():
                     "not_measured": "withheld - the computed text failed the publication check "
                                     "(" + ", ".join(_k62_leaks[:5]) + ")"}
             _k62g.append(f"OO6 KR2 is grey: {_k62['not_measured']}")
+    except _OO6NotYet:
+        _k62, _k62g = None, []
     except Exception as e:  # noqa: BLE001 - one KR greys, the bake goes on
         _k62 = {"months": None, "source_kind": "not_measured",
                 "not_measured": f"JFC's POs could not be judged ({type(e).__name__})"}
@@ -8010,9 +8022,13 @@ def main():
         _k63_sites.append((SITE_ALIASES[_ak][2], [SITE_ALIASES[_ak][0], SITE_ALIASES[_ak][1]]
                            + [n_ for n_, k_ in SITE_GC_EXTRA_NAMES.items() if k_ == _ak]))
     try:
+        if not _oo6_months:
+            raise _OO6NotYet
         _k63, _k63g = frozen_ramen.kr3_months(
             _fs_doc, _fs_err, _fs_status, _k63_sites, _oo6_first, _pm, _mvar,
             lambda v: okr_score("full", v), _rag_of, asof=asof.isoformat(), dated=dated)
+    except _OO6NotYet:
+        _k63, _k63g = None, []
     except Exception as e:  # noqa: BLE001 - a malformed copy greys the KR, never the bake
         _k63 = {"months": None, "source_kind": "not_measured",
                 "not_measured": f"the stock count copy could not be read ({type(e).__name__})"}

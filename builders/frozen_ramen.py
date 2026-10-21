@@ -66,12 +66,14 @@ _MONTHS = ["January", "February", "March", "April", "May", "June", "July",
 #: long number or a Drive id: the bake refuses the file outright.
 _SUSPECT = re.compile(r"@|£|\+\s*\d|\d{6,}|(?:\d[\s().-]?){9,}")
 _ID_LIKE = re.compile(r"[-\w]{25,}")
-_STAMP = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d)?Z")
+_STAMP = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d{1,3})?)?Z")
 #: The keys a week may carry, and a location record's.
 _WEEK_KEYS = {"week_commencing", "week_from", "report_modified_at", "read_at", "kind",
               "columns", "rows_read", "frozen_lines", "items_matched", "locations",
-              "unrecognised_locations", "problems"}
+              "unrecognised_locations", "lines_unplaced", "problems"}
 _LOC_KEYS = {"lines", "counted"}
+_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports"}
+_UNREAD_KEYS = {"modified_at", "cause", "detail"}
 
 
 def mlabel(ym: str) -> str:
@@ -109,8 +111,9 @@ def _floor1(x: Decimal) -> Decimal:
 def _bad(s: str, path: str = "") -> bool:
     if _SUSPECT.search(s) or _ID_LIKE.search(s):
         return True
-    # the file's own basis is fixed prose; every other string is a label
-    return len(s) > (1000 if path == "basis" else 120)
+    # the file's own basis and the refresher's fixed cause texts are prose;
+    # every other string is a label
+    return len(s) > (1000 if path == "basis" else 400 if path.endswith(".detail") else 120)
 
 
 def _walk(o, path=""):
@@ -149,6 +152,12 @@ def stock_leaks(raw: str) -> list[str]:
             continue
         if _bad(s, path):
             bad.append(path)
+    if isinstance(doc, dict) and not set(doc) <= _TOP_KEYS:
+        bad.append("(unexpected top-level fields)")
+    ur = doc.get("unread_reports") if isinstance(doc, dict) else None
+    if ur is not None and not (isinstance(ur, list) and all(
+            isinstance(u, dict) and set(u) <= _UNREAD_KEYS for u in ur)):
+        bad.append("unread_reports (unexpected shape)")
     weeks = doc.get("weeks") if isinstance(doc, dict) else None
     for wk, w in (weeks.items() if isinstance(weeks, dict) else []):
         wk_ = str(wk) if not _bad(str(wk)) else "[a week key]"
@@ -203,8 +212,19 @@ def load_stock(out_dir: str):
                 probs.append(f"week {wk}: a location record is not two whole counts - ignored")
                 continue
             locs[lab] = {"lines": ln, "counted": ct}
-        weeks[wk] = {**{k: w.get(k) for k in _WEEK_KEYS}, "locations": locs}
-    return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "_problems": probs}, None
+        weeks[wk] = {**{k: w.get(k) for k in _WEEK_KEYS}, "locations": locs,
+                     "unrecognised_locations": _count(w.get("unrecognised_locations")) or 0,
+                     "lines_unplaced": _count(w.get("lines_unplaced")) or 0}
+    unread = []
+    for u in raw.get("unread_reports") or []:
+        if (isinstance(u, dict) and isinstance(u.get("modified_at"), str)
+                and _STAMP.fullmatch(u["modified_at"]) and isinstance(u.get("detail"), str)):
+            unread.append({"modified_at": u["modified_at"], "cause": str(u.get("cause") or ""),
+                           "detail": u["detail"]})
+        else:
+            probs.append("an unread-report record is not the shape this reads - ignored")
+    return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "unread": unread,
+            "_problems": probs}, None
 
 
 def load_status(out_dir: str):
@@ -286,6 +306,14 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         gaps.append(f"OO6 KR3: {fail} - the weeks shown are those read before it")
     for p in doc.get("_problems") or []:
         gaps.append(f"{STOCK_FILE}: {p}")
+    unread = [u for u in doc.get("unread") or []
+              if not dated or u["modified_at"][:10] <= dated]
+    for u in unread:
+        # a report the refresher could not read, now passed for good: whatever
+        # weeks it held are not counted, and that is said, never dropped
+        gaps.append(f"OO6 KR3: a stock count report saved {dm(u['modified_at'][:10])}/"
+                    f"{u['modified_at'][:4]} could not be read - {u['detail']} - so the "
+                    "week(s) it holds are not counted")
     match = site_matcher(sites)
     labels = [d for d, _ in sites]
 
@@ -328,11 +356,18 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                     + (f" - {fail}" if fail else ""))))
             m = next_month(m)
             continue
-        got, parts, outside_all = 0, [], set()
+        got, parts, outside_all, unplaced = 0, [], set(), []
         for wk in have:
             counted, blank, outside, w = week_facts(wk)
             got += len(counted)
             outside_all |= outside
+            # lines the report gave no usable location or no readable date:
+            # which locations they belong to is unknown, so the week's count
+            # is a lower bound and the month is not scored on it
+            n_up = (w.get("unrecognised_locations") or 0) + (w.get("lines_unplaced") or 0)
+            if n_up:
+                unplaced.append(f"{n_up} frozen-ramen line(s) in the w/c {dm(wk)} report have "
+                                "no usable location or no readable date")
             not_c = [lb for lb in labels if lb not in counted]
             parts.append(f"w/c {dm(wk)}: {len(counted)} of {n_sites}"
                          + (f" (not counted: {', '.join(not_c)}"
@@ -352,18 +387,32 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         cov = sum(1 for wk in have for i in range(7)
                   if (datetime.date.fromisoformat(wk) + datetime.timedelta(days=i)).isoformat()
                   <= min(today, month_end(m)))
-        if missing:
-            why = (f"no stock count report read for the week(s) commencing "
-                   f"{', '.join(dm(w) for w in missing)}")
+        # the month in progress: a week already over with no report is named
+        # (the month-to-date rule still decides the score, as for OO5 KR3)
+        this_mon = (datetime.date.fromisoformat(today)
+                    - datetime.timedelta(days=datetime.date.fromisoformat(today).weekday())).isoformat()
+        overdue = [w for w in due if open_ and w not in weeks and w not in missing and w < this_mon]
+        if overdue:
+            basis += (f" No report read yet for the week(s) commencing "
+                      f"{', '.join(dm(w) for w in overdue)}.")
+        if missing or unplaced:
+            why = "; ".join(
+                ([f"no stock count report read for the week(s) commencing "
+                  f"{', '.join(dm(w) for w in missing)}"
+                  + (" (a report that could not be read may hold it - see the gaps)"
+                     if unread else "")] if missing else [])
+                + unplaced)
             if open_:
                 out.append(mvar(m, mtd=True, score=None, coverage_days=cov, basis=(
-                    f"month-to-date, not yet scored - {why}, so the month cannot be complete. "
-                    f"So far: {disp} - " + basis)))
+                    f"month-to-date, not yet scored - {why}, so the month "
+                    + ("cannot be complete" if missing else "is a lower bound so far")
+                    + f". So far: {disp} - " + basis)))
             else:
                 out.append(mvar(m, value=float(val), display=disp, score=None, rag=None,
                                 incomplete=True, basis=(
-                                    f"not scored - an INCOMPLETE month: {why}, so {val}% covers "
-                                    f"{len(have)} of {len(due)} weeks - " + basis)))
+                                    f"not scored - an INCOMPLETE month: {why}, so {val}% "
+                                    + (f"covers {len(have)} of {len(due)} weeks" if missing
+                                       else "is a lower bound") + " - " + basis)))
         else:
             out.append(mvar(m, value=float(val), display=disp, score=s_, rag=rag_fn(s_),
                             coverage_days=cov, basis=basis))

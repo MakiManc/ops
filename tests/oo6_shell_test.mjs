@@ -54,7 +54,7 @@ function fixture() {
     score: null, rag: null, basis: null, not_measured: BLOCK, reference: nov,
     months: [
       v('2026-10', { not_measured: BLOCK, reference: REF(4, '4',
-        '4 delivery/supplier issue form(s) answered in October 2026 mention frozen ramen: 08/10 Fountain Good Food Ltd (Lynas); 09/10 Maki NE1 Ltd (Lynas)') }),
+        '4 delivery/supplier issue form(s) answered in October 2026 mention frozen ramen: 08/10 Fountain Good Food Ltd (Lynas); 09/10 Maki NE1 Ltd (Lynas); 12/10 <b>Bold</b> & "Quoted" Ltd') }),
       v('2026-11', { not_measured: BLOCK, reference: nov }),
     ],
   });
@@ -131,6 +131,9 @@ const kr = (rows, re) => rows.find(r => re.test(r.text));
   k1 = kr(rows, /Supply Chain availibility/);
   assert(k1 && /reference, not scored\):\s*4\b/.test(k1.text) && /Maki NE1 Ltd/.test(k1.text),
     'October: the reference moves with the picker - 4 forms, listed');
+  assert(k1 && /<b>Bold<\/b> & "Quoted" Ltd/.test(k1.text)
+    && await page.locator('#scorecard td b:text-is("Bold")').count() === 0,
+    'the reference text is escaped - a site name with markup is shown as text, never rendered');
   await page.selectOption('#sc-month', '2026-09');
   await page.waitForTimeout(300);
   rows = await rowsOf(page);
@@ -172,10 +175,16 @@ const kr = (rows, re) => rows.find(r => re.test(r.text));
 // ---- okr.html (the wall) ---------------------------------------------------------
 {
   const page = await boot(okrUrl, fixture());
-  const card = async () => page.locator('.kr').evaluateAll(ks => ks.map(k => ({
-    text: k.innerText, grey: k.classList.contains('grey'),
-    ref: (k.querySelector('.ref') || {}).innerText || null,
-    chip: (k.querySelector('.chip') || {}).innerText || null })));
+  // `ref` only when the reference is actually RENDERED: innerText of a hidden
+  // element falls back to its text, which would pass a hidden reference
+  const card = async () => page.locator('.kr').evaluateAll(ks => ks.map(k => {
+    const r = k.querySelector('.ref');
+    const shown = r && getComputedStyle(r).display !== 'none' && r.getClientRects().length > 0;
+    return { text: k.innerText, grey: k.classList.contains('grey'),
+      ref: shown ? r.innerText : null,
+      value: (k.querySelector('.v') || {}).innerText || '',
+      chip: (k.querySelector('.chip') || {}).innerText || null };
+  }));
   let ks = await card();
   let k1 = ks.find(k => /Supply Chain availibility/.test(k.text));
   assert(k1 && k1.grey && k1.chip === 'NOT MEASURED' && /1 so far/.test(k1.ref || ''),
@@ -185,6 +194,8 @@ const kr = (rows, re) => rows.find(r => re.test(r.text));
   ks = await card();
   k1 = ks.find(k => /Supply Chain availibility/.test(k.text));
   assert(k1 && /reference, not scored\): 4$/.test((k1.ref || '').trim()), 'the wall, October: the reference reads 4');
+  assert(k1 && !/reference/i.test(k1.value) && k1.chip === 'NOT MEASURED',
+    'the wall: the reference is never the value line or the chip');
   await page.selectOption('#msel', '2026-09');
   await page.waitForTimeout(300);
   ks = await card();

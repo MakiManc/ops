@@ -238,7 +238,8 @@ CAUSE_TEXT = {
 }
 #: Worst first: when several series fail for different reasons, the status
 #: names the most serious one (all are listed in series_missing).
-CAUSE_RANK = ("layout_changed", "tab_missing", "bad_cells")
+CAUSE_RANK = ("layout_changed", "tab_missing", "bad_cells", "quota", "google_down",
+              "auth_failed", "unexpected")
 #: Causes that are not a failed pull: the series is named in series_missing,
 #: and the status stays ok when nothing else failed.
 NOT_A_FAILURE = ("not_located",)
@@ -453,7 +454,16 @@ def fetch(sheet_id: str, spreadsheet=None) -> tuple[dict, dict]:
                 if not cells:
                     missing[skey] = "not_located" if cells is None else "bad_cells"
                     continue
-                mo, fig = ws.batch_get([cells[0], cells[1]])
+                try:
+                    mo, fig = ws.batch_get([cells[0], cells[1]])
+                except Exception as exc:  # noqa: BLE001 - this series only, never the pull
+                    # a pin outside the tab's grid is a 400: a bad pin, not a
+                    # failed pull - every other series still reads
+                    cause, http = classify(exc)
+                    missing[skey] = "bad_cells" if http == 400 else cause
+                    log.error("%s: the pinned cells could not be read (%s: %s)", skey,
+                              type(exc).__name__, exc)
+                    continue
                 k = max(len(mo), len(fig))
                 out[skey] = (ws.title, ws.id, [
                     [str(c) for c in ((list(mo[i]) if i < len(mo) else []) + [""])[:1]
@@ -664,6 +674,9 @@ def build(fetched: dict, missing: dict, previous: dict | None, pulled_at: str):
     if not series:
         return None, failed
     for key, cause in failed.items():
+        if cause in NOT_A_FAILURE and key not in prev_series:
+            log.info("%s: %s - nothing to carry forward, and nothing failed", key, cause)
+            continue
         if key in prev_series:
             series[key] = dict(prev_series[key], carried_forward=True)
             log.warning("%s not read this run (%s) - carried forward from the "
@@ -834,7 +847,7 @@ def main(argv=None) -> int:
         if c in NOT_A_FAILURE:
             log.warning("%s: %s - %s", k, c, CAUSE_TEXT[c])
     if hard:
-        cause = next((c for c in CAUSE_RANK if c in hard.values()), "tab_missing")
+        cause = next((c for c in CAUSE_RANK if c in hard.values()), next(iter(hard.values())))
         status(False, cause, series_read=read_now, series_missing=failed)
     else:
         status(True, "ok", 200 if not a.from_json else None, series_read=read_now,
