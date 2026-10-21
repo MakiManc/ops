@@ -89,6 +89,38 @@ const MERGED_INTO: Record<string, { product: string; zeroed?: string; stem?: str
   'M&R Hoodie (Black)- XL': { product: 'M&R Hoodie (Black)- XL - MRK010', zeroed: 'MRK010 - Hoodie (Black) - XL' },
   'M&R Hoodie (Black)- XXL': { product: 'M&R Hoodie (Black)- XXL - MRK010', zeroed: 'MRK010 - Hoodie (Black) - XXL' },
 
+  // The second wave, 14-21 October. These four need the table because the consolidated
+  // name does not normalise onto the product name -- a space, a spelling, or an extra word.
+  'CERAMIC TEACUPS - MRK': {
+    product: 'Ceramic teacups',
+    zeroed: 'MRK005/008/010/011/013-CTC',
+    note: 'The name reads "CERAMIC TEA CUPS", three words, against a product spelled '
+      + '"teacups". Not to be confused with "Tea cups", which is its own product on the TCT '
+      + 'stem and got its own consolidated line.',
+  },
+  'MENU COVERS A4 - MRK': {
+    product: 'MENU COVERS - MRK001',
+    zeroed: 'MRK008-MCM, MRK013-MCM',
+    note: 'A4 is the plain menu cover on the MCM stem. The A5 is "DRINKS MENU COVERS", a '
+      + 'separate product on DMD-C -- not DMD, which is the Daikon Machine and holds 73 '
+      + 'units of its own.',
+  },
+  'WODDEN TABLE TOP WITH COPPER EDGES BIRCH WOOD (SQUARE) -MRK': {
+    product: 'Wooden tabletop with copper edges Birch wood (Square)',
+    zeroed: 'MRK002/004/007/013-WTW-S',
+    note: 'WTW-S is the square top. Mercium spell it "WODDEN"; we spell it "Wooden", which '
+      + 'is the only reason the name match misses.',
+  },
+  'ROUND TABLE TOP (COPPER) - MRK': {
+    product: 'Round Table Top (Copper)',
+    zeroed: 'MRK001-RTR, MRK013-RTR',
+    note: 'ROUND, not RECTANGLE. The whole table family was zeroed in one go on 14 October '
+      + 'and the consolidated lines came a week later, so nothing can be paired by timing '
+      + 'here -- and the nearest-looking stem, RTR-C, belongs to "RECTANGLE TABLETOP '
+      + '(COPPER)", a different shape that is still waiting for its own line. The SKU says '
+      + 'ROUND and that is what decides it.',
+  },
+
   // The MRK014 shipment, which is not a merge at all -- just the next delivery, still using
   // the old per-shipment naming. These match their product's existing stem exactly.
   'MRK014-MHM': { product: 'MENU HOLDERS - MRK001', stem: 'MHM' },
@@ -106,6 +138,20 @@ const MERGED_INTO: Record<string, { product: string; zeroed?: string; stem?: str
       + '"Round Table Top (Copper)" -- so a bare RTR line must never be matched automatically.',
   },
   'MRK014-CHR': { product: 'Chairs', stem: 'CHR' },
+}
+
+/**
+ * Lines that are not stock a site can order, whatever they look like.
+ *
+ * Mercium use the product catalogue for warehouse bookkeeping as well as for goods.
+ * "Reverse Collections" is returns coming back from sites, not something anybody should
+ * be able to order; mapping it to a product would offer 36 units of it to every
+ * restaurant in the group. Recorded here rather than left unmatched, so it stops being
+ * reported as a decision somebody still has to make.
+ */
+const NOT_A_PRODUCT: Record<string, string> = {
+  'MRK009 - Reverse Collections':
+    'Returns coming back from sites, not orderable stock. No Maki product corresponds to it.',
 }
 
 const sql = (statement: string): unknown => {
@@ -153,7 +199,7 @@ console.log(`\n${lines.length} Mintsoft line(s) carry stock and are mapped to no
   + `${APPLY ? '' : dim('  (dry run — nothing will be written)')}\n`)
 
 const statements: string[] = []
-let mapped = 0, needsAHuman = 0, noStock = 0
+let mapped = 0, needsAHuman = 0, noStock = 0, deliberatelyLeft = 0
 
 for (const line of lines) {
   const qty = line.available ?? 0
@@ -164,6 +210,13 @@ for (const line of lines) {
     // between has stock here before it has a name. Nothing is wrong; it is just early.
     console.log(`${warn('?')} ${label}  ${dim('not in the product mirror yet — re-run after the next product sync')}`)
     needsAHuman++
+    continue
+  }
+
+  const notAProduct = NOT_A_PRODUCT[line.sku]
+  if (notAProduct) {
+    console.log(`${dim('\u2013')} ${label}  ${dim(notAProduct)}`)
+    deliberatelyLeft++
     continue
   }
 
@@ -202,7 +255,8 @@ for (const line of lines) {
   if (reviewed?.note) console.log(`    ${dim(reviewed.note)}`)
 }
 
-console.log(`\n${mapped} line(s) to map, ${needsAHuman} needing a human.`
+console.log(`\n${mapped} line(s) to map, ${needsAHuman} needing a human`
+  + (deliberatelyLeft ? `, ${deliberatelyLeft} deliberately left alone` : '') + '.'
   + (noStock ? `  ${dim(`${noStock} of them hold nothing today.`)}` : ''))
 
 if (!APPLY) {
