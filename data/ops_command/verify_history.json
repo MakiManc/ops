@@ -2,15 +2,6 @@
  "runs": [
   {
    "date": "2026-08-19",
-   "mode": "morning",
-   "overall": "amber",
-   "criticals": 0,
-   "warnings": 1,
-   "deferred": 0,
-   "at": "2026-08-19T09:58:46Z"
-  },
-  {
-   "date": "2026-08-19",
    "mode": "recheck",
    "overall": "red",
    "criticals": 1,
@@ -539,6 +530,15 @@
    "warnings": 13,
    "deferred": 0,
    "at": "2026-10-20T14:00:11Z"
+  },
+  {
+   "date": "2026-10-21",
+   "mode": "recheck",
+   "overall": "red",
+   "criticals": 10,
+   "warnings": 38,
+   "deferred": 0,
+   "at": "2026-10-21T12:37:48Z"
   }
  ]
 }
