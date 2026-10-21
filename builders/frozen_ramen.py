@@ -72,7 +72,7 @@ _WEEK_KEYS = {"week_commencing", "week_from", "report_modified_at", "read_at", "
               "columns", "rows_read", "frozen_lines", "items_matched", "locations",
               "unrecognised_locations", "lines_unplaced", "problems"}
 _LOC_KEYS = {"lines", "counted"}
-_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports"}
+_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports", "reports_not_read"}
 _UNREAD_KEYS = {"modified_at", "cause", "detail"}
 
 
@@ -113,7 +113,8 @@ def _bad(s: str, path: str = "") -> bool:
         return True
     # the file's own basis and the refresher's fixed cause texts are prose;
     # every other string is a label
-    return len(s) > (1000 if path == "basis" else 400 if path.endswith(".detail") else 120)
+    return len(s) > (1000 if path == "basis"
+                     else 400 if re.fullmatch(r"unread_reports\[\d+\]\.detail", path) else 120)
 
 
 def _walk(o, path=""):
@@ -223,7 +224,9 @@ def load_stock(out_dir: str):
                            "detail": u["detail"]})
         else:
             probs.append("an unread-report record is not the shape this reads - ignored")
+    nr = raw.get("reports_not_read")
     return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "unread": unread,
+            "reports_not_read": nr if type(nr) is int and nr > 0 else 0,
             "_problems": probs}, None
 
 
@@ -309,11 +312,15 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
     unread = [u for u in doc.get("unread") or []
               if not dated or u["modified_at"][:10] <= dated]
     for u in unread:
-        # a report the refresher could not read, now passed for good: whatever
-        # weeks it held are not counted, and that is said, never dropped
-        gaps.append(f"OO6 KR3: a stock count report saved {dm(u['modified_at'][:10])}/"
-                    f"{u['modified_at'][:4]} could not be read - {u['detail']} - so the "
-                    "week(s) it holds are not counted")
+        # a report in the folder the refresher could not read (current state:
+        # it is listed for as long as it sits there unread)
+        gaps.append(f"OO6 KR3: a stock count report in the folder, saved "
+                    f"{dm(u['modified_at'][:10])}/{u['modified_at'][:4]}, could not be read - "
+                    f"{u['detail']} - so any week only it holds is not counted")
+    if doc.get("reports_not_read"):
+        gaps.append(f"OO6 KR3: {doc['reports_not_read']} older report(s) in the folder are "
+                    "beyond the newest the refresher reads each bake; the weeks only they hold "
+                    "are carried from the last copy")
     match = site_matcher(sites)
     labels = [d for d, _ in sites]
 
@@ -345,11 +352,18 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         due = [w for w in mondays(m) if w <= today]
         have = [w for w in due if w in weeks]
         missing = [w for w in due if w not in weeks and (not open_ or (have and w < have[-1]))]
+        this_mon = (datetime.date.fromisoformat(today)
+                    - datetime.timedelta(days=datetime.date.fromisoformat(today).weekday())).isoformat()
+        # the month in progress: a week already over with no report is named
+        # (the month-to-date rule still decides the score, as for OO5 KR3)
+        overdue = [w for w in due if open_ and w not in weeks and w not in missing and w < this_mon]
+        overdue_txt = (f"No report read yet for the week(s) commencing "
+                       f"{', '.join(dm(w) for w in overdue)}. " if overdue else "")
         if not have:
             if open_:
                 out.append(mvar(m, mtd=True, score=None, coverage_days=0, basis=(
                     f"month-to-date, not yet scored (0 days of data) - no stock count report "
-                    f"read for a week commencing in {mlabel(m)} yet. {rule}")))
+                    f"read for a week commencing in {mlabel(m)} yet. {overdue_txt}{rule}")))
             else:
                 out.append(mvar(m, not_measured=(
                     f"no stock count report read for any week commencing in {mlabel(m)}"
@@ -382,19 +396,17 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                 f"{val}% ({got} of {due_n} location-weeks, {len(have)} weeks)")
         basis = (f"{got} of {due_n} location-weeks counted in {mlabel(m)}: " + "; ".join(parts)
                  + (f". Not on the location list, so not counted: {', '.join(sorted(outside_all))}"
-                    if outside_all else "") + f". {rule}")
+                    if outside_all else "") + f". {overdue_txt}{rule}")
         s_ = score_fn(float(val))
         cov = sum(1 for wk in have for i in range(7)
                   if (datetime.date.fromisoformat(wk) + datetime.timedelta(days=i)).isoformat()
                   <= min(today, month_end(m)))
-        # the month in progress: a week already over with no report is named
-        # (the month-to-date rule still decides the score, as for OO5 KR3)
-        this_mon = (datetime.date.fromisoformat(today)
-                    - datetime.timedelta(days=datetime.date.fromisoformat(today).weekday())).isoformat()
-        overdue = [w for w in due if open_ and w not in weeks and w not in missing and w < this_mon]
-        if overdue:
-            basis += (f" No report read yet for the week(s) commencing "
-                      f"{', '.join(dm(w) for w in overdue)}.")
+        if unplaced and got == due_n:
+            # every location already counted every week: lines no location or
+            # date could be given to cannot raise it, so 100% is exact
+            basis = (f"{'; '.join(unplaced)} - they cannot change a month in which every "
+                     f"location is already counted. " + basis)
+            unplaced = []
         if missing or unplaced:
             why = "; ".join(
                 ([f"no stock count report read for the week(s) commencing "

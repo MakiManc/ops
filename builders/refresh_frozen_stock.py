@@ -3,8 +3,8 @@
 
 OO6 KR3 (Ross, 21/10/2026): "% of locations with a frozen ramen count that
 week". Ross drops the weekly stock count report into a Drive folder; each bake
-reads the newest report(s) from it, keeps only the frozen-ramen lines, and
-records per location how many lines it listed and how many carry a number.
+reads the folder's reports, keeps only the frozen-ramen lines, and records per
+week and location how many lines it listed and how many carry a number.
 builders/frozen_ramen.py (kr3_months) turns that into the scorecard row.
 
 WHERE THE FOLDER IS. The folder id comes from the STOCK_COUNT_FOLDER_ID secret
@@ -14,30 +14,36 @@ folder must be shared with the service account (client_email in
 GOOGLE_SA_JSON) as Viewer, or the service account added to its shared drive:
 "anyone with the link" does not put a file into a listing.
 
-WHAT IS READ. CSV, .xlsx and Google Sheets in the folder (not in subfolders),
-by Drive's modifiedTime. Every report modified since the newest one already
-read is read, oldest first, up to MAX_FILES a run - so two reports dropped
-between bakes are both kept. More than that wait for the next run, and the
-status says how many. When two reports touch the same week, the week is
-MERGED BY LOCATION: the newer report wins a location both list, and a location
-only the older one lists is kept (a count that runs Sunday into Monday, or a
-report split by region, loses nothing).
-
-A report that cannot be read is never silently passed over:
-  * the runner's or Google's fault (network, rate limit, no xlsx reader...)
-    stops the run there, so no newer report moves the read mark past it and
-    the next run tries it again;
-  * the report's own fault (no header, no frozen-ramen line, not a table...)
-    is recorded in the copy's unread_reports - its date and fixed cause - once
-    a newer report has been read, and the bake names it on OO6 KR3.
+THE FOLDER IS THE TRUTH (review, 21/10/2026). Every run re-reads the folder's
+CSV, .xlsx and Google Sheet reports (not subfolders) - the newest MAX_REPORTS
+of them, more than a year of weekly reports - and REBUILDS the copy from them.
+There is no read mark to fall behind, skip or stall on:
+  * a report fixed and re-saved replaces what it said, and one deleted stops
+    counting;
+  * a week two reports share is MERGED BY LOCATION, the newer report winning a
+    location both list - a count that runs Sunday into Monday, or a report
+    split by region, loses nothing. An older report whose every location a
+    newer one re-lists (a re-issue) no longer counts its unplaced lines;
+  * a report that cannot be read for its OWN reason (no header, not a table,
+    no frozen-ramen line...) is listed in the copy's unread_reports, by its
+    date and fixed cause, for as long as it sits in the folder - and the bake
+    names it on OO6 KR3;
+  * a failure that is the RUNNER'S or Google's (network, rate limit, no xlsx
+    reader...) writes nothing: the last good copy stands and the status says
+    why, and the next run reads the folder again.
+A week whose content is unchanged keeps the read_at it was first read with,
+so a back-bake still shows what was known on its date.
 
 WHAT IS WRITTEN - AND WHAT IS NOT. The copy is committed to the PUBLIC ops
-repo, so it carries location labels as the report writes them, the frozen-
-ramen product names that matched, line counts, header names and dates. Never
-a quantity, a money value, a person, the file's name or id, or any other cell:
-the download is held in memory and parsed there, and nothing of it is written
-to disk. self_check() refuses the result outright before it is written, and
-the bake refuses it again (frozen_ramen.stock_leaks).
+repo. A location is written ONLY when it is a venue on the bake's own site
+map (bake_ops_command.stock_venues), as that venue's label; anything else in
+the location column - a person's name, a typo - is counted, never written,
+and a report whose location column names no venue for most of its lines is
+refused as not being the location at all. Also written: the frozen-ramen
+product names that matched, line counts, header names and dates. Never a
+quantity, a money value, a person, the file's name or id: the download is held
+in memory and parsed there. self_check() refuses the result before it is
+written, and the bake refuses it again (frozen_ramen.stock_leaks).
 
 THE WEEK a count belongs to is the Monday of a date column when the report has
 one, else of a date in the file's name, else of the day Drive says the file
@@ -74,11 +80,10 @@ DRIVE_FILES = "https://www.googleapis.com/drive/v3/files"
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 #: A stock count report this large is not one.
 MAX_BYTES = 10 * 1024 * 1024
-#: Reports READ per run, oldest first; the rest wait for the next run (named
-#: in the status). A report that fails for its own cause does not count, but
-#: at most MAX_ATTEMPTS are opened a run.
-MAX_FILES = 4
-MAX_ATTEMPTS = 12
+#: Reports read per run, the newest first: more than a year of weekly ones. A
+#: folder holding more says how many were not read, and the weeks only those
+#: older reports held are carried from the last copy.
+MAX_REPORTS = 60
 #: Rows read from one sheet; a longer sheet is refused, never cut short.
 MAX_ROWS = 50000
 MIME_CSV = "text/csv"
@@ -89,8 +94,8 @@ MIME_FOLDER = "application/vnd.google-apps.folder"
 #: Fixed, public text per cause. NEVER interpolate an exception message, a
 #: file name or an id here.
 CAUSE_TEXT = {
-    "ok": "read the newest stock count report(s)",
-    "no_new_report": "no report has been added or changed in the folder since the last read",
+    "ok": "read the folder's stock count reports (reports_not_read says how many older ones "
+          "are beyond the newest it reads)",
     "no_folder_id": "STOCK_COUNT_FOLDER_ID is not set in the bake workflow (Ross adds it as "
                     "a repository secret of maki-hospitality-etl)",
     "bad_folder_id": "STOCK_COUNT_FOLDER_ID is not a Drive folder id or folder link",
@@ -107,25 +112,35 @@ CAUSE_TEXT = {
     "rate_limited": "Drive asked the bake to slow down (HTTP 403/429) - the next bake retries",
     "http_error": "Drive returned an error",
     "network": "the read failed (network or timeout)",
-    "download_blocked": "a report's owner has turned off downloading for viewers (HTTP 403), so "
-                        "the service account can see it but not read it",
+    "download_blocked": "Drive would not let the service account download this report (HTTP "
+                        "403/404) although the folder lists it - its own sharing, or 'viewers "
+                        "can download' turned off; read again every bake",
     "no_report": "the folder holds no CSV, .xlsx or Google Sheet",
     "too_large": "a report is far larger than a stock count",
     "not_a_table": "a report is not a CSV or .xlsx table (a legacy .xls or a PDF cannot be read)",
+    "report_unreadable": "a report could not be parsed (damaged, or a format this does not "
+                         "know) - the bake log names the error's type",
     "no_reader": "the bake could not load openpyxl, the .xlsx reader - the runner's fault, not "
                  "the report's",
     "header_missing": "a report has no header row naming a location, an item and a count "
-                      "column - the status names the missing role",
+                      "column",
     "header_ambiguous": "a report has two columns that could each be the location, the item or "
                         "the count",
+    "locations_unknown": "a report's location column names no restaurant on the site map for "
+                         "most of its frozen-ramen lines, so it is not read as the location",
     "no_date": "a report's frozen-ramen lines have no readable date in its date column",
     "no_frozen_lines": "a report was read but no line in it is frozen ramen by name - if the "
                        "products were renamed, builders/frozen_ramen.py needs the new name",
+    "no_venues": "the bake's site map could not be loaded, so no location could be checked",
     "refused": "the result failed the publication check, so nothing was written",
     "write_failed": "frozen_stock_count.json could not be written; the last file was left in "
                     "place",
     "unexpected": "an unexpected error - the bake log names its type",
 }
+#: The runner's or Google's fault: nothing is written, the last copy stands.
+#: Every other cause is the report's own, listed in unread_reports.
+TRANSIENT = frozenset({"network", "rate_limited", "http_error", "drive_api_disabled",
+                       "no_reader"})
 
 _FOLDER_RE = re.compile(r"(?:.*?/folders/)?([-\w]{15,})(?:[/?#].*)?")
 
@@ -197,7 +212,7 @@ def _refusal(r):
         body = ""
     if re.search(r"accessNotConfigured|SERVICE_DISABLED|has not been used in project", body):
         return "drive_api_disabled"
-    if r.status_code == 429 or re.search(r"[rR]ateLimitExceeded|quotaExceeded", body):
+    if r.status_code == 429 or re.search(r"[rR]ateLimitExceeded|[qQ]uotaExceeded", body):
         return "rate_limited"
     # one file's own refusal, after the folder listed fine - not the folder's sharing
     if re.search(r"cannotDownloadFile|cannotExportFile|fileNotDownloadable", body):
@@ -262,7 +277,14 @@ def download(sess, f):
         size = 0
     if size > MAX_BYTES:
         raise DriveError("too_large")
-    r = _get(sess, url, params=params, stream=True)
+    try:
+        r = _get(sess, url, params=params, stream=True)
+    except DriveError as e:
+        # the folder listed it, so a refusal or a 404 now is THIS file's own -
+        # never "share the folder"
+        if e.cause in ("not_shared", "not_found"):
+            raise DriveError("download_blocked", e.http) from None
+        raise
     try:
         buf = io.BytesIO()
         for chunk in r.iter_content(1 << 16):
@@ -330,9 +352,10 @@ def _h(v) -> str:
 #: Header roles. A header is a candidate when it matches the role and none of
 #: that role's exclusions; an EXACT match outranks a partial one. A person
 #: column ('User performing edit', 'Counted by', 'Store Manager') and a money
-#: column are never a role, so they are never read - the location column's
-#: cells are PUBLISHED, as the copy's location labels.
-_PERSON = r"manager|contact|owner|lead\b|user|staff|person|employee|email|e-mail|phone|by\b|name of"
+#: column are never a role. (A location is published only when it is a venue
+#: on the site map anyway - see parse_report.)
+_PERSON = (r"manager|supervisor|contact|owner|lead\b|user|staff|person|employee|email|"
+           r"e-mail|phone|by\b|\bgm\b|keeper|chef\b|director")
 _ROLES = {
     "location": (re.compile(r"\b(venue|location|site|restaurant|branch|store)\b"),
                  re.compile(r"storage|area|bin\b|shelf|\bid\b|code|" + _PERSON)),
@@ -433,12 +456,14 @@ def _clip(s, n=40):
     return s if len(s) <= n else s[:n - 1] + "…"
 
 
-def parse_report(data: bytes, name: str, modified_at: str):
+def parse_report(data: bytes, name: str, modified_at: str, match):
     """One report -> {week Monday: week record}. Raises DriveError.
 
-    name and modified_at decide the week only when the report has no date
-    column; neither is written."""
+    `match(label)` -> the venue's display label, or None (stock_venues). name
+    and modified_at decide the week only when the report has no date column;
+    neither is written."""
     by_week, header_err, headed, frozen_undated = {}, None, False, 0
+    labelled, unknown = 0, 0
     for sheet_no, rows in grids(data):
         if not rows:
             continue
@@ -448,8 +473,8 @@ def parse_report(data: bytes, name: str, modified_at: str):
             header_err = header_err or e
             continue
         headed = True
-        head = list(rows[hi]) + [None] * (max(cols.values()) + 1)
         width = max(cols.values()) + 1
+        head = list(rows[hi]) + [None] * width
         # a header is published as written, unless it could be a code or a number
         colnames = {r: (_clip(head[j]) if _clip(head[j]) and not _suspect(_clip(head[j]))
                         else f"(column {j + 1})") for r, j in cols.items() if r != "date"}
@@ -484,12 +509,20 @@ def parse_report(data: bytes, name: str, modified_at: str):
                 _problem(w, f"sheet {sheet_no} row {k}: a product name was not kept")
             elif nm not in w["items_matched"] and len(w["items_matched"]) < 20:
                 w["items_matched"].append(nm)
-            loc = _clip(r[cols["location"]], 60)
-            if not loc or _suspect(loc):
+            raw = r[cols["location"]]
+            venue = match(raw) if str(raw if raw is not None else "").strip() else None
+            if str(raw if raw is not None else "").strip():
+                labelled += 1
+                if venue is None:
+                    unknown += 1
+            if venue is None:
+                # a blank, or a label on no site map: counted, never written
                 w["unrecognised_locations"] += 1
-                _problem(w, f"sheet {sheet_no} row {k}: no usable location")
+                _problem(w, f"sheet {sheet_no} row {k}: the location is "
+                            + ("blank" if not str(raw if raw is not None else "").strip()
+                               else "not a restaurant on the site map"))
                 continue
-            rec = w["locations"].setdefault(loc, {"lines": 0, "counted": 0})
+            rec = w["locations"].setdefault(venue, {"lines": 0, "counted": 0})
             rec["lines"] += 1
             cell = r[cols["count"]]
             v = _num(cell)
@@ -499,11 +532,14 @@ def parse_report(data: bytes, name: str, modified_at: str):
                 _problem(w, f"sheet {sheet_no} row {k}: count is not a number")
     if not headed:
         raise header_err or DriveError("header_missing")
+    if labelled and unknown * 2 > labelled:
+        # most labels name no venue: this column is not the location (a person
+        # column, a region code...) - refused, and nothing of it is written
+        raise DriveError("locations_unknown")
     if frozen_undated:
         for w in by_week.values():
             # which week they belong to is unknown, so EVERY week of the report
-            # carries them: its location counts are a lower bound (the bake
-            # does not score such a week's month)
+            # carries them: its location counts are a lower bound
             w["lines_unplaced"] += frozen_undated
             _problem(w, f"{frozen_undated} frozen-ramen line(s) of this report have no "
                         "readable date and are in no week")
@@ -518,7 +554,7 @@ def _suspect(s) -> bool:
 
 
 def _problem(w, text):
-    """At most 10 problems a week, and the 11th says how many more."""
+    """At most 10 problems a week, and the 11th says there are more."""
     if len(w["problems"]) < 10:
         w["problems"].append(text)
     elif len(w["problems"]) == 10:
@@ -537,14 +573,30 @@ def uk_day(stamp):
     return t.astimezone(ZoneInfo("Europe/London")).date().isoformat()
 
 
+def venue_matcher():
+    """label -> venue display label or None, from the bake's own site map
+    (house rule: the site map lives in the builder). Raises DriveError."""
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "bake_ops_command", os.path.join(here, "bake_ops_command.py"))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return frozen_ramen.site_matcher(mod.stock_venues())
+    except Exception as e:  # noqa: BLE001
+        print(f"[frozen_stock] the site map could not be loaded ({type(e).__name__})")
+        raise DriveError("no_venues") from None
+
+
 # ---------------------------------------------------------------------------
 # The copy
 # ---------------------------------------------------------------------------
-BASIS = ("OO6 KR3's source: the frozen-ramen lines of Ross's weekly stock count report, "
-         "read from a Drive folder. Per week (the Monday of the count's date), per location "
-         "as the report names it: how many frozen-ramen lines it lists and how many of them "
-         "carry a number - 0 included; a blank is not a count. No quantity, money value, "
-         "person or file name is kept. Frozen ramen is matched by name "
+BASIS = ("OO6 KR3's source: the frozen-ramen lines of Ross's weekly stock count reports, "
+         "re-read from a Drive folder every bake. Per week (the Monday of the count's date), "
+         "per restaurant on the site map: how many frozen-ramen lines the reports list and how "
+         "many of them carry a number - 0 included; a blank is not a count. A week two reports "
+         "share is merged by restaurant, the newer report winning one both list. No quantity, "
+         "money value, person or file name is kept. Frozen ramen is matched by name "
          "(builders/frozen_ramen.py).")
 
 
@@ -575,55 +627,70 @@ def write_status(path, ok, cause, http=None, roles=None, extra=None):
         print(f"[frozen_stock] could not write the status ({type(e).__name__})")
 
 
-def merge_week(old, new):
-    """Two reports' records of one week -> one. BY LOCATION: the newer report
-    (`new`) wins a location both list; a location only the older one lists is
-    kept. Lines no location or date could be given to are a floor, not a sum -
-    a re-issued report would otherwise count them twice."""
-    if not old:
-        return new
-    locs = {**(old.get("locations") or {}), **(new.get("locations") or {})}
-    unrec = max(old.get("unrecognised_locations") or 0, new.get("unrecognised_locations") or 0)
-    items = list(new.get("items_matched") or [])
-    for it in old.get("items_matched") or []:
-        if it not in items and len(items) < 20:
-            items.append(it)
-    probs = []
-    for p_ in ["counts merged from more than one report - the newer wins a location both list"] \
-            + list(new.get("problems") or []) + list(old.get("problems") or []):
-        if p_ not in probs and len(probs) < 11:
-            probs.append(p_)
-    return {**new, "locations": locs, "items_matched": items, "problems": probs,
-            "unrecognised_locations": unrec,
-            "lines_unplaced": max(old.get("lines_unplaced") or 0, new.get("lines_unplaced") or 0),
-            "rows_read": max(old.get("rows_read") or 0, new.get("rows_read") or 0),
-            "frozen_lines": sum(v["lines"] for v in locs.values()) + unrec}
+def _supersedes(new, old) -> bool:
+    """A newer report's week re-lists every location an older one listed, with
+    at least as many lines: a re-issue, so the older one's unplaced lines no
+    longer count."""
+    return (set(old["locations"]) <= set(new["locations"])
+            and new["frozen_lines"] >= old["frozen_lines"])
 
 
-def merge(previous, new_weeks, pulled_at, unread=()):
-    weeks = dict((previous or {}).get("weeks") or {})
-    for wk, w in new_weeks.items():
-        weeks[wk] = merge_week(weeks.get(wk), w)
-    ur = {u["modified_at"]: u for u in ((previous or {}).get("unread_reports") or [])
-          if isinstance(u, dict) and u.get("modified_at")}
-    for u in unread:
-        ur[u["modified_at"]] = u
-    doc = {"pulled_at": pulled_at, "basis": BASIS, "weeks": dict(sorted(weeks.items()))}
-    if ur:
-        doc["unread_reports"] = [ur[k] for k in sorted(ur)]
-    return doc
+def build_weeks(reports):
+    """[(stamp, kind, {week: record})], OLDEST first -> {week: merged record}."""
+    contrib = {}
+    for stamp, kind, weeks in reports:
+        for wk, w in weeks.items():
+            contrib.setdefault(wk, []).append((stamp, kind, w))
+    out = {}
+    for wk, cs in contrib.items():
+        locs = {}
+        for _s, _k, w in cs:
+            for lab, rec in w["locations"].items():
+                locs[lab] = dict(rec)                  # the newer report wins a location
+        live = [c for i, c in enumerate(cs)
+                if not any(_supersedes(n[2], c[2]) for n in cs[i + 1:])]
+        unrec = sum(c[2]["unrecognised_locations"] for c in live)
+        items, probs = [], []
+        for _s, _k, w in reversed(cs):
+            for it in w["items_matched"]:
+                if it not in items and len(items) < 20:
+                    items.append(it)
+        for p_ in ((["counts merged from more than one report - the newer wins a location "
+                     "both list"] if len(cs) > 1 else [])
+                   + [p_ for c in reversed(live) for p_ in c[2]["problems"]]):
+            if p_ not in probs and len(probs) < 11:
+                probs.append(p_)
+        stamp, kind, newest = cs[-1]
+        out[wk] = {**newest, "locations": dict(sorted(locs.items())), "items_matched": items,
+                   "problems": probs, "unrecognised_locations": unrec,
+                   "lines_unplaced": sum(c[2]["lines_unplaced"] for c in live),
+                   "rows_read": max(c[2]["rows_read"] for c in cs),
+                   "frozen_lines": sum(v["lines"] for v in locs.values()) + unrec,
+                   "report_modified_at": stamp, "kind": kind}
+    return dict(sorted(out.items()))
 
 
-#: Causes that are the RUNNER'S or Google's, not the report's: the run stops
-#: at the first, so no newer report can move the read mark past it.
-TRANSIENT = frozenset({"network", "rate_limited", "http_error", "no_reader", "unexpected",
-                       "not_shared", "not_found", "drive_api_disabled"})
+def _prev_weeks(prev):
+    """The last copy's weeks, if it is exactly the shape this writes; else {}.
+    It is used only to keep each unchanged week's read_at and the weeks of
+    reports beyond MAX_REPORTS - never trusted beyond that."""
+    try:
+        if not isinstance(prev, dict) or frozen_ramen.stock_leaks(json.dumps(prev)):
+            return {}
+        out = {}
+        for wk, w in (prev.get("weeks") or {}).items():
+            locs = w["locations"]
+            assert isinstance(locs, dict) and all(
+                type(r["lines"]) is int and type(r["counted"]) is int for r in locs.values())
+            assert isinstance(w["read_at"], str) and isinstance(w.get("problems", []), list)
+            out[wk] = w
+        return out
+    except Exception:  # noqa: BLE001 - a copy of another shape is rebuilt, not trusted
+        return {}
 
 
 def _stamp(v):
-    """A Drive modifiedTime -> 'YYYY-MM-DDTHH:MM:SS.mmmZ', milliseconds kept, so
-    two reports saved in the same second are still two, and stored and listed
-    stamps compare as equals."""
+    """A Drive modifiedTime -> 'YYYY-MM-DDTHH:MM:SS.mmmZ' (milliseconds kept)."""
     m_ = re.match(r"(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d{1,9}))?", str(v or ""))
     return f"{m_.group(1)}.{(m_.group(2) or '').ljust(3, '0')[:3]}Z" if m_ else ""
 
@@ -631,7 +698,7 @@ def _stamp(v):
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--from-file", action="append", default=[],
-                    help="read this local report instead of Drive (tests); repeatable")
+                    help="read this local file as the folder's contents (tests); repeatable")
     ap.add_argument("--modified-at", action="append", default=[],
                     help="the modifiedTime to give each --from-file, in order (tests); "
                          "one value is given to them all")
@@ -639,35 +706,23 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     out_path = os.path.join(a.out_dir, frozen_ramen.STOCK_FILE)
     spath = os.path.join(a.out_dir, frozen_ramen.STOCK_STATUS_FILE)
-    os.makedirs(a.out_dir, exist_ok=True)
+    try:
+        os.makedirs(a.out_dir, exist_ok=True)
+        return _run(a, out_path, spath)
+    except Exception as e:  # noqa: BLE001 - every path exits 0; the type only
+        print(f"[frozen_stock] unexpected error ({type(e).__name__}) - nothing written")
+        write_status(spath, False, "unexpected")
+        return 0
+
+
+def _run(a, out_path, spath) -> int:
     pulled_at = _now()
-    previous = None
     try:
         with open(out_path, encoding="utf-8") as fh:
             previous = json.load(fh)
-    except FileNotFoundError:
-        pass
     except (OSError, ValueError):
-        previous = False
-    if previous is False or (previous is not None and (
-            not isinstance(previous, dict)
-            or not isinstance(previous.get("weeks", {}), dict)
-            or not isinstance(previous.get("unread_reports", []), list)
-            or not all(isinstance(w, dict) for w in previous.get("weeks", {}).values())
-            or frozen_ramen.stock_leaks(json.dumps(previous)))):
-        # never build on a copy this cannot read or would not publish: its weeks
-        # cannot be carried, and rewriting it would drop them without saying so
-        print(f"[frozen_stock] {frozen_ramen.STOCK_FILE} is unreadable or fails the "
-              "publication check - left untouched, nothing read. Restore it from git "
-              "history or delete it (the next read starts a new one)")
-        write_status(spath, False, "refused")
-        return 0
-    # THE READ MARK: the newest report already read or recorded as unreadable
-    newest_read = max([_stamp(w.get("report_modified_at"))
-                       for w in ((previous or {}).get("weeks") or {}).values()]
-                      + [_stamp(u.get("modified_at"))
-                         for u in ((previous or {}).get("unread_reports") or [])
-                         if isinstance(u, dict)], default="")
+        previous = None
+    prev_weeks = _prev_weeks(previous)
     sess = None
     try:
         if a.from_file:
@@ -686,98 +741,93 @@ def main(argv=None) -> int:
             files = list_reports(sess, fid)
             if not files:
                 raise DriveError("no_report")
+        match = venue_matcher()
     except DriveError as e:
         print(f"[frozen_stock] not read: {e.cause} - {CAUSE_TEXT.get(e.cause, '')}")
         write_status(spath, False, e.cause, e.http)
         return 0
-    except Exception as e:  # noqa: BLE001 - the type only: the text can carry an id
-        print(f"[frozen_stock] unexpected error ({type(e).__name__}) - nothing read")
-        write_status(spath, False, "unexpected")
-        return 0
-    # OLDEST FIRST: a week two reports share is merged by location with the
-    # newer winning, and the read mark only ever moves forward past reports
-    # that were read or recorded as unreadable.
-    fresh = sorted((f for f in files if _stamp(f.get("modifiedTime")) > newest_read),
-                   key=lambda f: _stamp(f.get("modifiedTime")))
-    if not fresh:
-        print("[frozen_stock] no report added or changed since the last read - "
-              f"{frozen_ramen.STOCK_FILE} left as it is")
-        write_status(spath, True, "no_new_report", 200 if sess else None)
-        return 0
-    new_weeks, own, stopped, read_n, tried, last_ok = {}, [], None, 0, 0, None
-    for f in fresh:
-        st_ = _stamp(f.get("modifiedTime"))
-        # stop at MAX_FILES reports read - but never inside a group of reports
-        # saved in the same millisecond, which one read mark cannot split
-        if (read_n >= MAX_FILES and st_ != last_ok) or tried >= MAX_ATTEMPTS:
-            break
-        tried += 1
+    files = sorted(files, key=lambda f: _stamp(f.get("modifiedTime")), reverse=True)
+    beyond = max(0, len(files) - MAX_REPORTS)
+    reports, unread = [], []
+    for f in reversed(files[:MAX_REPORTS]):            # oldest first: the newer wins
+        st_ = _stamp(f.get("modifiedTime")) or _stamp(pulled_at)
         try:
             if sess is None:
                 with open(f["_path"], "rb") as fh:
                     data, kind = fh.read(), ("xlsx" if f["mimeType"] == MIME_XLSX else "csv")
             else:
                 data, kind = download(sess, f)
-            weeks = parse_report(data, str(f.get("name") or ""), str(f.get("modifiedTime")))
-        except Exception as e:  # noqa: BLE001 - the type only: the text can carry an id
-            if not isinstance(e, DriveError):
-                print(f"[frozen_stock] a report was not read ({type(e).__name__})")
-                e = DriveError("unexpected")
+            try:
+                weeks = parse_report(data, str(f.get("name") or ""),
+                                     str(f.get("modifiedTime")), match)
+            except DriveError:
+                raise
+            except Exception as e:  # noqa: BLE001 - a parse error is the REPORT'S, never transient
+                print(f"[frozen_stock] a report could not be parsed ({type(e).__name__})")
+                raise DriveError("report_unreadable") from None
+        except DriveError as e:
             print(f"[frozen_stock] a report was not read: {e.cause} - "
                   f"{CAUSE_TEXT.get(e.cause, '')}")
             if e.cause in TRANSIENT:
-                # not the report's fault: stop here, so no newer report moves
-                # the read mark past it - the next run tries it again
-                stopped = e
-                break
-            own.append((st_, e))
+                # not the report's fault: write nothing, keep the last copy
+                write_status(spath, False, e.cause, e.http,
+                             extra={"reports_in_folder": len(files)})
+                return 0
+            unread.append({"modified_at": st_, "cause": e.cause,
+                           "detail": CAUSE_TEXT.get(e.cause, CAUSE_TEXT["unexpected"])
+                           + (f" (missing: {', '.join(e.roles)})"
+                              if getattr(e, "roles", None) else "")})
             continue
-        for wk, w in weeks.items():
-            w.update({"report_modified_at": st_ or _stamp(pulled_at), "read_at": pulled_at,
-                      "kind": kind})
-            new_weeks[wk] = merge_week(new_weeks.get(wk), w)
-        read_n, last_ok = read_n + 1, st_
+        reports.append((st_, kind, weeks))
         print(f"[frozen_stock] read a {kind} report: " + ", ".join(
             f"w/c {wk} {sum(1 for r in w['locations'].values() if r['counted'])} of "
-            f"{len(w['locations'])} location(s) with a count" for wk, w in sorted(weeks.items())))
-    waiting = len(fresh) - tried
-    # a report that failed for its OWN cause, older than one read now, is
-    # passed by the read mark for good - so it is recorded, never dropped
-    unread = [{"modified_at": st_, "cause": e.cause,
-               "detail": CAUSE_TEXT.get(e.cause, CAUSE_TEXT["unexpected"])
-               + (f" (missing: {', '.join(e.roles)})" if getattr(e, "roles", None) else "")}
-              for st_, e in own if last_ok and st_ < last_ok]
-    still = [(st_, e) for st_, e in own if not (last_ok and st_ < last_ok)]
-    extra = {"reports_read": read_n, "reports_unreadable": len(own),
-             "reports_waiting": waiting + (1 if stopped else 0)}
-    if waiting:
-        print(f"[frozen_stock] {waiting} newer report(s) wait for the next run "
-              f"(at most {MAX_FILES} read and {MAX_ATTEMPTS} opened a run)")
-    # the run's status names the first report it could not read - recorded
-    # ones too (the copy keeps those for the bake; the status is this run's)
-    first_bad = stopped or (still[0][1] if still else own[0][1] if own else None)
-    if not new_weeks:
-        e = first_bad or (own[0][1] if own else DriveError("unexpected"))
-        write_status(spath, False, e.cause, e.http, roles=getattr(e, "roles", None), extra=extra)
-        return 0
-    doc = merge(previous, new_weeks, pulled_at, unread)
+            f"{len(w['locations'])} restaurant(s) with a count" for wk, w in sorted(weeks.items())))
+    weeks = build_weeks(reports)
+    if beyond and weeks:
+        # reports past the cap are not read: the weeks only they held are
+        # carried from the last copy, and the copy says how many were not read
+        first = min(weeks)
+        for wk, w in prev_weeks.items():
+            if wk < first and wk not in weeks:
+                weeks[wk] = w
+    for wk, w in weeks.items():
+        # unchanged since the last copy: keep the read_at it was first read with
+        old = prev_weeks.get(wk)
+        same = old is not None and ({k: v for k, v in old.items() if k != "read_at"}
+                                    == {k: v for k, v in w.items() if k != "read_at"})
+        weeks[wk] = {**w, "read_at": old["read_at"] if same else pulled_at}
+    doc = {"pulled_at": pulled_at, "basis": BASIS, "weeks": dict(sorted(weeks.items()))}
+    if unread:
+        doc["unread_reports"] = sorted(unread, key=lambda u: u["modified_at"])
+    if beyond:
+        doc["reports_not_read"] = beyond
+    extra = {"reports_in_folder": len(files), "reports_read": len(reports),
+             "reports_unreadable": len(unread), "reports_not_read": beyond}
     bad = self_check(doc)
     if bad:
         print(f"[frozen_stock] REFUSED: the result holds something that may not be published "
               f"at {', '.join(bad[:5])} - {frozen_ramen.STOCK_FILE} left untouched")
         write_status(spath, False, "refused", extra=extra)
         return 0
-    try:
-        _atomic_write(out_path, json.dumps(doc, indent=1, sort_keys=True, allow_nan=False) + "\n")
-    except Exception as e:  # noqa: BLE001
-        print(f"[frozen_stock] could not write the copy ({type(e).__name__})")
-        write_status(spath, False, "write_failed", extra=extra)
-        return 0
-    if first_bad:
-        write_status(spath, False, first_bad.cause, first_bad.http,
-                     roles=getattr(first_bad, "roles", None), extra=extra)
+    same_doc = isinstance(previous, dict) and {k: v for k, v in previous.items()
+                                               if k != "pulled_at"} == \
+        {k: v for k, v in doc.items() if k != "pulled_at"}
+    if not same_doc:
+        try:
+            _atomic_write(out_path, json.dumps(doc, indent=1, sort_keys=True,
+                                               allow_nan=False) + "\n")
+        except Exception as e:  # noqa: BLE001
+            print(f"[frozen_stock] could not write the copy ({type(e).__name__})")
+            write_status(spath, False, "write_failed", extra=extra)
+            return 0
+    if unread:
+        u = unread[-1]
+        write_status(spath, False, u["cause"], extra=extra)
     else:
         write_status(spath, True, "ok", 200 if sess else None, extra=extra)
+    if beyond:
+        print(f"[frozen_stock] {beyond} older report(s) beyond the newest {MAX_REPORTS} were "
+              "not read - their weeks are carried from the last copy")
     return 0
 
 

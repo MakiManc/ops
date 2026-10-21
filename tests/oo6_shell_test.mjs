@@ -196,11 +196,45 @@ const kr = (rows, re) => rows.find(r => re.test(r.text));
   assert(k1 && /reference, not scored\): 4$/.test((k1.ref || '').trim()), 'the wall, October: the reference reads 4');
   assert(k1 && !/reference/i.test(k1.value) && k1.chip === 'NOT MEASURED',
     'the wall: the reference is never the value line or the chip');
+  const refAttr = await page.locator('.kr .ref').evaluateAll(rs => rs.map(r => ({
+    title: r.getAttribute('title'), bolds: r.querySelectorAll('b').length, text: r.innerText })));
+  const oct = refAttr.find(r => /: 4$/.test(r.text.trim()));
+  assert(oct && oct.title.endsWith('12/10 <b>Bold</b> & "Quoted" Ltd') && oct.bolds === 1,
+    'the wall escapes the reference: a quote in a site name stays inside the title, and markup is text');
   await page.selectOption('#msel', '2026-09');
   await page.waitForTimeout(300);
   ks = await card();
   k1 = ks.find(k => /Supply Chain availibility/.test(k.text));
   assert(k1 && k1.ref === null, 'the wall, September: no reference (no OO6 month)');
+  await page.close();
+}
+{
+  // a SCORED KR1 on the wall: the reference is beside the value line, never in it
+  const s = fixture();
+  const r = s.scorecard.rows.find(x => x.objective === 'OO6' && x.kr === 'KR1');
+  Object.assign(r, { source_kind: 'sheet_input', not_measured: null });
+  r.months[0] = { ...r.months[0], not_measured: null, value: 99, display: '99%', score: 80, rag: 'amber',
+    basis: '99% supply chain availability in October 2026, as typed by Matthew' };
+  const page = await boot(okrUrl, s);
+  await page.selectOption('#msel', '2026-10');
+  await page.waitForTimeout(300);
+  const k = (await page.locator('.kr').evaluateAll(ks => ks.map(k => ({
+    text: k.innerText, chip: (k.querySelector('.chip') || {}).innerText,
+    value: (k.querySelector('.v') || {}).innerText || '', ref: (k.querySelector('.ref') || {}).innerText || '' }))))
+    .find(x => /Supply Chain availibility/.test(x.text));
+  assert(k && k.chip === '80' && /^99%/.test(k.value) && !/4|reference/i.test(k.value.replace('99%', ''))
+    && /reference, not scored\): 4$/.test(k.ref.trim()),
+    'the wall, a scored KR1: chip 80, value 99% - and the reference only on its own line');
+  await page.close();
+}
+{
+  const page = await boot(okrUrl, fixture());
+  const card = async () => page.locator('.kr').evaluateAll(ks => ks.map(k => {
+    const r = k.querySelector('.ref');
+    const shown = r && getComputedStyle(r).display !== 'none' && r.getClientRects().length > 0;
+    return { text: k.innerText, ref: shown ? r.innerText : null };
+  }));
+  let ks, k1;
   await page.goto(okrUrl + '?tv=1');
   await page.waitForTimeout(1200);
   ks = await card();

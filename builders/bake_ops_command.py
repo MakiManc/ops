@@ -262,6 +262,21 @@ SITE_ALIASES = {
 # cross-reference, OO5 KR5's site orders); display tables still show the label
 # each feed wrote.
 SITE_GC_EXTRA_NAMES = {"Maki NE1 Ltd": "newcastle"}
+#: Kobas venues with no GetCompliant location (see the note below). Not in
+#: SITE_ALIASES, but real restaurants: a stock count report can name them.
+KOBAS_ONLY_VENUES = ("Maki Leith", "Maki Manchester NQ", "Maki West End")
+
+
+def stock_venues():
+    """[(display label, [every name it goes by])] for every venue a stock count
+    report may name: each SITE_ALIASES site (GC name, Kobas name, label, and
+    any extra GC label) and the Kobas-only venues. refresh_frozen_stock.py
+    PUBLISHES a location only when it is one of these, as its display label -
+    anything else in a report's location column (a person, a typo) is counted,
+    never written."""
+    out = [(lab, [gc, kob, lab] + [n for n, k2 in SITE_GC_EXTRA_NAMES.items() if k2 == k])
+           for k, (gc, kob, lab) in SITE_ALIASES.items()]
+    return out + [(v, [v]) for v in KOBAS_ONLY_VENUES]
 # STILL UNMATCHED, AND DELIBERATELY SO - this is the honest remainder, not an
 # oversight, and it is shorter than it was:
 #   Kobas-side with no GetCompliant location and no Flow branch in ANY pull:
@@ -1146,7 +1161,8 @@ def okr_sheet_extra(doc, err, status, pull_month, dated=None, problems=(), today
     # only the KRs measured by this month: OO6 KR1 starts in October 2026
     _ids = [f"{o} {k}" for (o, k), (key, _kd, _n) in OKR_SHEET_KRS.items()
             if OKR_SHEET_SERIES_FIRST.get(key, OKR_SHEET_FIRST_MONTH) <= (pull_month or "9999")]
-    all_ids = ", ".join(_ids[:-1]) + " and " + _ids[-1] if len(_ids) > 1 else "".join(_ids)
+    all_ids = (", ".join(_ids[:-1]) + " and " + _ids[-1] if len(_ids) > 1
+               else "".join(_ids) or "the sheet-fed KRs")
     if doc is None:
         if err and err != "absent":
             why = (f"data/ops_command/{OKR_SHEET_FILE} is {err}, so the KRs typed into "
