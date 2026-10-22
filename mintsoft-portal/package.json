@@ -25,7 +25,8 @@
     "testers": "node --experimental-strip-types --no-warnings scripts/google-test-users.ts",
     "backfill:orders": "node --experimental-strip-types --no-warnings scripts/backfill-orders.ts",
     "prices": "node --experimental-strip-types --no-warnings scripts/load-prices.ts",
-    "remap": "node --experimental-strip-types --no-warnings scripts/remap-merged.ts"
+    "remap": "node --experimental-strip-types --no-warnings scripts/remap-merged.ts",
+    "recharge": "node --experimental-strip-types --no-warnings scripts/set-recharge-prices.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260921.1",
