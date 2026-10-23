@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-10-22",
+ "source_as_of": "2026-10-23",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-10-22T14:15:08Z",
+ "pulled_at": "2026-10-23T13:49:26Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -17,6 +17,30 @@
  ],
  "tasks": [
   {
+   "site": "Maki Newcastle Ltd",
+   "raw_site": "Maki 12 - Eldon Square, Newcastle",
+   "d": "2026-10-23",
+   "issue": "One off Ladies toilet cistern valve no close.Need to be replaced.",
+   "comment": "Type of valve needed hard to find.Will be sorted ASAP",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Krzysztof Jozefowicz"
+  },
+  {
+   "site": "Factory - Renfield St, Glasgow",
+   "raw_site": "Factory - Renfield St, Glasgow",
+   "d": "2026-10-23",
+   "issue": "Electrical issue in prep room",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Dean"
+  },
+  {
    "site": "M1TOO Ltd",
    "raw_site": "Maki 1 - Nicolson St, Edinburgh",
    "d": "2026-10-22",
@@ -27,6 +51,18 @@
    "completed_on": null,
    "cost": null,
    "raised_by": "Derrick"
+  },
+  {
+   "site": "Maki Nori",
+   "raw_site": "Maki Nori - London",
+   "d": "2026-10-22",
+   "issue": "Water softner to be connected at the bar glasswasher",
+   "comment": "c/o Ross 26/10",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Ginger Zerbetto"
   },
   {
    "site": "Factory - Dalkeith Road, Edinburgh",
@@ -65,6 +101,18 @@
    "raised_by": "Krzysztof Jozefowicz"
   },
   {
+   "site": "Maki Meadowhall",
+   "raw_site": "Maki 14 - Meadowhall, Sheffield",
+   "d": "2026-10-22",
+   "issue": "Broken display light (was fixed this morning but has already been broken by pedestrian footfal)",
+   "comment": "fixed again",
+   "status": "done",
+   "urgency": "Low Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Stewart Tibby"
+  },
+  {
    "site": "Factory - Dalkeith Road, Edinburgh",
    "raw_site": "Factory - Dalkeith Road, Edinburgh",
    "d": "2026-10-21",
@@ -94,7 +142,7 @@
    "d": "2026-10-21",
    "issue": "The glass washer shows zero litre water soften, and coming out lots of bubbles foam",
    "comment": "It works now, Lesley will send video when foaming happen again",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
