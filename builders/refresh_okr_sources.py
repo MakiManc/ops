@@ -10,6 +10,10 @@ system: they are TYPED INTO THE SHEET and nowhere else. Those are:
   * OO3 KR3  menu items unavailable due to supply failure    (a log tab)
   * OO4 KR1  service disruptions caused by logistics delays  (a log tab)
   * OO4 KR4  % of delivery credit notes and refunds actioned (Finance-entered)
+  * OO6 KR1  supply chain availability %, typed monthly by Matthew (Ross,
+             21/10/2026), on the '2026 OKRs' tab
+  * OO6 KR2's "all POs invoiced: yes/no" for the month, typed beside it -
+             not a KR on its own: half of KR2's test, read by the bake
 
 OO1 IS NOT READ HERE ANY MORE (Ross, 15/10/2026). It used to be read from the
 '2026 Summary' tab as Finance's 0/50/80/100 scores; Ross moved it to Finance's
@@ -74,10 +78,11 @@ to "not entered" with nothing recording why.
   MakiManc/ops is a PUBLIC repository, and the "2026 OKRs" tab carries OO1's
   underlying percentages (Net Profit). They must never reach this repo, this
   JSON, a log line, or a snapshot.
-  "2026 OKRs" IS read, but by one fixed, narrow range only - the OO4 credit
-  notes block (OO4_KR4_RANGE) - and that range is checked against its own
-  header and month labels before a single value is used. No other cell of
-  that tab is requested from Google.
+  "2026 OKRs" IS read, but by fixed, narrow ranges only - the OO4 credit
+  notes block (OO4_KR4_RANGE), and the two OO6 cells' columns once they are
+  pinned (OO6_BLOCKS) - and each is checked against its own header and month
+  labels before a single value is used. No other cell of that tab is
+  requested from Google.
   ---------------------------------------------------------------------------
 
 THE SHEET IS NOT A FALLBACK. Ross, 21/09/2026: "dashboard only". For any KR this
@@ -127,9 +132,12 @@ TAB_TITLES = {
 
 #: The series this file carries, and the tab each one comes from.
 LOG_SERIES = ("oo2_kr3", "oo3_kr3", "oo4_kr1")
-SERIES = LOG_SERIES + ("oo4_kr4",)
+#: OO6's two cells (Ross, 21/10/2026) - see OO6_BLOCKS.
+OO6_SERIES = ("oo6_kr1", "oo6_kr2_invoiced")
+SERIES = LOG_SERIES + ("oo4_kr4",) + OO6_SERIES
 SERIES_TAB = {"oo2_kr3": "oo2_kr3", "oo3_kr3": "oo3_kr3", "oo4_kr1": "oo4_kr1",
-              "oo4_kr4": "okrs"}
+              "oo4_kr4": "okrs", "oo6_kr1": "oo6_kr1",
+              "oo6_kr2_invoiced": "oo6_kr2_invoiced"}
 
 #: OO4 KR4 - % of delivery credit notes and refunds actioned. Ross, 10/10/2026:
 #: "Raw % + band full" - read the Finance-entered Actual % and band it with
@@ -143,6 +151,48 @@ OO4_KR4_RANGES = ("A144:A156", "G144:H156")
 OO4_KR4_RANGE = "A144:A156 + G144:H156"
 OO4_KR4_FIRST_ROW = 144
 OO4_KR4_NEEDLE = "credit notes and refunds actioned"
+
+#: OO6 (Ross, 21/10/2026). Matthew types two figures a month on '2026 OKRs':
+#: KR1's supply chain availability % (banded 'full' in the bake) and, for
+#: KR2, whether every JFC PO of the month was invoiced (yes/no). WHERE they
+#: sit is not known - the sheet has never been readable from here - so their
+#: cells are PINNED, not guessed: each is an env var set in the private bake
+#: workflow (an Actions variable, not a secret), holding two single-column
+#: ranges over the same rows, the month labels and the figure:
+#:     OKR_CELLS_OO6_KR1="A160:A172,C160:C172"
+#: Row one of each range is the header: 'Month' over the labels, and over the
+#: figure a header containing the series' needle - so a pin that lands on any
+#: other block (Finance's OO1 blocks are on this tab) is refused as
+#: layout_changed before a value is read, and nothing of it is written.
+#: Unset: the series is 'not_located' - named on its row, and not a failed
+#: pull (every other series still reads, and the status stays ok).
+OO6_BLOCKS = {
+    "oo6_kr1": ("OKR_CELLS_OO6_KR1", "availab", "pct"),
+    "oo6_kr2_invoiced": ("OKR_CELLS_OO6_KR2_INVOICED", "invoic", "yes_no"),
+}
+_A1_COL = re.compile(r"([A-Z]{1,3})([1-9]\d{0,3}):([A-Z]{1,3})([1-9]\d{0,3})")
+
+
+def oo6_cells(key: str):
+    """(months range, figure range, first row, label) for an OO6 series; None
+    when its env var is unset; False when it is not two single-column ranges
+    over the same 2-13 rows."""
+    raw = (os.environ.get(OO6_BLOCKS[key][0]) or "").strip().upper().replace(" ", "")
+    if not raw:
+        return None
+    parts = raw.split(",")
+    if len(parts) != 2:
+        return False
+    got = [_A1_COL.fullmatch(p_) for p_ in parts]
+    if not all(got):
+        return False
+    (c1, r1, c2, r2), (c3, r3, c4, r4) = (g.groups() for g in got)
+    if c1 != c2 or c3 != c4 or c1 == c3 or (r1, r2) != (r3, r4):
+        return False
+    first, last = int(r1), int(r2)
+    if not (2 <= last - first + 1 <= 13):
+        return False
+    return parts[0], parts[1], first, f"{parts[0]} + {parts[1]}"
 
 OUT_DIR = os.environ.get("OPS_COMMAND_OUT_DIR", "").strip() or \
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "ops_command")
@@ -173,6 +223,12 @@ CAUSE_TEXT = {
     "layout_changed": "a tab was read but no longer has the layout this script "
                       "checks for - the series named in series_missing were "
                       "carried forward from the last good pull",
+    "not_located": "where this figure sits on the '2026 OKRs' tab is not pinned yet - the "
+                   "sheet has never been readable, so its cells are not known; they are "
+                   "set as OKR_CELLS_OO6_* in the bake workflow once it is. Not a failed "
+                   "pull",
+    "bad_cells": "the cells pinned for an OO6 figure (OKR_CELLS_OO6_*) are not two "
+                 "single-column ranges over the same rows, e.g. A160:A172,C160:C172",
     "nothing_parsed": "the sheet opened but no series parsed - every tab is "
                       "missing or has changed shape; the last file was left "
                       "untouched",
@@ -182,7 +238,11 @@ CAUSE_TEXT = {
 }
 #: Worst first: when several series fail for different reasons, the status
 #: names the most serious one (all are listed in series_missing).
-CAUSE_RANK = ("layout_changed", "tab_missing")
+CAUSE_RANK = ("layout_changed", "tab_missing", "bad_cells", "quota", "google_down",
+              "auth_failed", "unexpected")
+#: Causes that are not a failed pull: the series is named in series_missing,
+#: and the status stays ok when nothing else failed.
+NOT_A_FAILURE = ("not_located",)
 
 _MONTHS = ("january", "february", "march", "april", "may", "june", "july",
            "august", "september", "october", "november", "december")
@@ -269,6 +329,19 @@ def parse_pct(cell: str):
     if v is None or not (0 <= v <= 100):
         return None
     return v
+
+
+def parse_yes_no(cell: str):
+    """A yes/no cell -> True / False, or None. A BLANK IS NOT A 'NO'.
+
+    'yes' / 'y' / 'TRUE' (a ticked checkbox) -> True; 'no' / 'n' / 'FALSE'
+    -> False; anything else, including a blank, -> None (not entered)."""
+    s = (cell or "").strip().lower().rstrip(".!")
+    if s in ("yes", "y", "true", "✓", "✔"):
+        return True
+    if s in ("no", "n", "false", "✗", "✘"):
+        return False
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -361,8 +434,8 @@ def pick_worksheets(sheets) -> tuple[dict, dict]:
 def fetch(sheet_id: str, spreadsheet=None) -> tuple[dict, dict]:
     """-> ({key: (title, gid, rows)}, {key: cause}) for the tabs we need.
 
-    Whole-tab reads for the three log tabs; ONE fixed range
-    of '2026 OKRs' (OO4_KR4_RANGE) and nothing else of that tab.
+    Whole-tab reads for the three log tabs; of '2026 OKRs', ONE fixed range
+    (OO4_KR4_RANGE) and each OO6 figure's two pinned columns, and nothing else.
     """
     sh = spreadsheet if spreadsheet is not None else open_sheet(sheet_id)
     picked, missing = pick_worksheets(sh.worksheets())
@@ -374,9 +447,33 @@ def fetch(sheet_id: str, spreadsheet=None) -> tuple[dict, dict]:
             rows = [((list(months[i]) if i < len(months) else []) + [""])[:1]
                     + ((list(gh[i]) if i < len(gh) else []) + ["", ""])[:2]
                     for i in range(n)]
+            # OO6's pinned columns, each its own request - and nothing at all
+            # of this tab for a figure whose cells are not pinned
+            for skey in OO6_SERIES:
+                cells = oo6_cells(skey)
+                if not cells:
+                    missing[skey] = "not_located" if cells is None else "bad_cells"
+                    continue
+                try:
+                    mo, fig = ws.batch_get([cells[0], cells[1]])
+                except Exception as exc:  # noqa: BLE001 - this series only, never the pull
+                    # a pin outside the tab's grid is a 400: a bad pin, not a
+                    # failed pull - every other series still reads
+                    cause, http = classify(exc)
+                    missing[skey] = "bad_cells" if http == 400 else cause
+                    log.error("%s: the pinned cells could not be read (%s: %s)", skey,
+                              type(exc).__name__, exc)
+                    continue
+                k = max(len(mo), len(fig))
+                out[skey] = (ws.title, ws.id, [
+                    [str(c) for c in ((list(mo[i]) if i < len(mo) else []) + [""])[:1]
+                     + ((list(fig[i]) if i < len(fig) else []) + [""])[:1]] for i in range(k)])
         else:
             rows = ws.get_all_values()
         out[key] = (ws.title, ws.id, [[str(c) for c in r] for r in (rows or [])])
+    for skey in OO6_SERIES:
+        if skey not in out and skey not in missing:
+            missing[skey] = missing.get("okrs", "tab_missing")
     return out, missing
 
 
@@ -477,6 +574,57 @@ def build_oo4_kr4(rows, through: str) -> tuple[dict | None, str | None]:
     return out, None
 
 
+def build_oo6_block(key: str, rows, through: str) -> tuple[dict | None, str | None]:
+    """An OO6 figure's pinned columns -> ({'YYYY-MM': value}, cause).
+
+    `rows` are [month label, figure] for the pinned rows. Row one must read
+    'Month' over the labels and carry the series' needle over the figure (see
+    OO6_BLOCKS); every other row is a month label or blank. A value is a 0-100
+    % for oo6_kr1 and a JSON true/false for oo6_kr2_invoiced. A blank is not
+    entered - never a 0, never a 'no'. Errors name the cell, never its text.
+    """
+    _env, needle, kind = OO6_BLOCKS[key]
+    cells = oo6_cells(key)
+    first = cells[2] if cells else 0
+    if not rows:
+        log.error("%s: the pinned cells came back empty - carried forward.", key)
+        return None, "layout_changed"
+    head = [c.strip().lower() for c in rows[0]] + ["", ""]
+    if not (head[0].startswith("month") and needle in head[1]):
+        log.error("%s: row %d of the pinned cells does not read 'Month' over the labels "
+                  "and a header naming the figure - the pin is wrong or the block moved. "
+                  "Carried forward.", key, first)
+        return None, "layout_changed"
+    out, seen = {}, 0
+    for k, r in enumerate(rows[1:], start=1):
+        r = list(r) + ["", ""]
+        m = parse_month(r[0])
+        if m is None:
+            if any(c.strip() for c in r[:2]):
+                log.error("%s: row %d of the pinned cells is not a month - carried "
+                          "forward.", key, first + k)
+                return None, "layout_changed"
+            continue
+        seen += 1
+        raw = r[1].strip()
+        if not raw:
+            continue
+        v = parse_pct(raw) if kind == "pct" else parse_yes_no(raw)
+        if v is None:
+            log.error("%s: row %d (%s) is not %s - that month left as not entered.", key,
+                      first + k, m, "a 0-100 percentage" if kind == "pct" else "yes or no")
+            continue
+        if m > through:
+            log.warning("%s: row %d holds a figure for %s, after the pull month - "
+                        "dropped.", key, first + k, m)
+            continue
+        out[m] = v if kind != "pct" else (int(v) if float(v).is_integer() else round(v, 2))
+    if seen == 0:
+        log.error("%s: no month labels in the pinned cells - carried forward.", key)
+        return None, "layout_changed"
+    return out, None
+
+
 def _as_of(months) -> str | None:
     return max(months) if months else None
 
@@ -510,16 +658,25 @@ def build(fetched: dict, missing: dict, previous: dict | None, pulled_at: str):
             data, cause = build_log(rows, through)
             if cause is None:
                 put(key, tab, data)
-        else:
+        elif key == "oo4_kr4":
             data, cause = build_oo4_kr4(rows, through)
             if cause is None:
                 put(key, tab, data, {"range": OO4_KR4_RANGE})
+        elif key in OO6_SERIES:
+            data, cause = build_oo6_block(key, rows, through)
+            if cause is None:
+                put(key, tab, data, {"range": (oo6_cells(key) or (None,) * 4)[3]})
+        else:
+            raise ValueError(f"no parser for series {key}")
         if cause is not None:
             failed[key] = cause
 
     if not series:
         return None, failed
     for key, cause in failed.items():
+        if cause in NOT_A_FAILURE and key not in prev_series:
+            log.info("%s: %s - nothing to carry forward, and nothing failed", key, cause)
+            continue
         if key in prev_series:
             series[key] = dict(prev_series[key], carried_forward=True)
             log.warning("%s not read this run (%s) - carried forward from the "
@@ -606,9 +763,16 @@ def main(argv=None) -> int:
         if a.from_json:
             with open(a.from_json, encoding="utf-8") as fh:
                 raw = json.load(fh)
-            fetched = {k: (TAB_TITLES[k][0], -1, v) for k, v in raw.items()
-                       if k in TAB_TITLES}
+            # the OO6 figures are dumped under their series keys ('oo6_kr1'),
+            # as [month label, figure] rows - they live on the '2026 OKRs' tab
+            fetched = {k: (TAB_TITLES["okrs" if k in OO6_SERIES else k][0], -1, v)
+                       for k, v in raw.items() if k in TAB_TITLES or k in OO6_SERIES}
             missing = {k: "tab_missing" for k in TAB_TITLES if k not in fetched}
+            for k in OO6_SERIES:
+                if k not in fetched:
+                    c_ = oo6_cells(k)
+                    missing[k] = ("not_located" if c_ is None else "bad_cells" if c_ is False
+                                  else missing.get("okrs", "tab_missing"))
         else:
             fetched, missing = fetch(SHEET_ID)
     except Exception as exc:  # noqa: BLE001 - fail soft by design
@@ -652,8 +816,8 @@ def main(argv=None) -> int:
         s = built["series"].get(key)
         if not s:
             continue
-        if key == "oo4_kr4":
-            log.info("oo4_kr4: %d month(s) entered", len(s["months"]))
+        if key in ("oo4_kr4",) + OO6_SERIES:
+            log.info("%s: %d month(s) entered", key, len(s["months"]))
         else:
             log.info("%s: %s", key, ", ".join(f"{m}={v}" for m, v in
                                               sorted(s["months"].items())) or "none")
@@ -678,11 +842,16 @@ def main(argv=None) -> int:
         status(False, "write_failed", series_read=read_now, series_missing=failed)
         return 0
     log.info("wrote %s", out_path)
-    if failed:
-        cause = next((c for c in CAUSE_RANK if c in failed.values()), "tab_missing")
+    hard = {k: c for k, c in failed.items() if c not in NOT_A_FAILURE}
+    for k, c in sorted(failed.items()):
+        if c in NOT_A_FAILURE:
+            log.warning("%s: %s - %s", k, c, CAUSE_TEXT[c])
+    if hard:
+        cause = next((c for c in CAUSE_RANK if c in hard.values()), next(iter(hard.values())))
         status(False, cause, series_read=read_now, series_missing=failed)
     else:
-        status(True, "ok", 200 if not a.from_json else None, series_read=read_now)
+        status(True, "ok", 200 if not a.from_json else None, series_read=read_now,
+               series_missing=failed)
     return 0
 
 

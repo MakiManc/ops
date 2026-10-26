@@ -64,6 +64,7 @@ h1 b{color:var(--maki-orange)}
 .kr .why{margin-top:3px;color:var(--faint);font-size:.78em;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .kr.grey .t{color:var(--muted)}
 /* a document the row is about (OO3 KR5: the month's supplier statement) */
+.kr .ref{margin-top:3px;font-size:.78em;color:var(--muted)}
 .kr .lk{margin-top:3px;font-size:.78em}
 .kr .lk a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
 body.tv .kr .lk{display:none}
@@ -135,7 +136,9 @@ function monthRow(row,m){
   // the builder scores every month in the picker; a KR with no monthly form only has its default value
   // mtd: the builder's month-to-date flag (09/10/2026) - a month in progress
   // with too few days of data shows its value but carries no score
-  if(!m || m===SNAP.scorecard.month) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd,not_measured:row.not_measured,link:row.link||null};
+  // reference: a figure the builder shows BESIDE the KR and never scores
+  // (OO6 KR1's frozen-ramen issue forms) - shown whatever the row's state
+  if(!m || m===SNAP.scorecard.month) return {value:row.value,display:row.display,rag:row.rag,score:row.score,basis:row.basis,mtd:!!row.mtd,not_measured:row.not_measured,link:row.link||null,reference:row.reference||null};
   // A CURRENT-STATE row (no monthly form - e.g. OO2 KR5 from the contact
   // list) is today's reading, not an earlier month's event: grey under any
   // other month, as its objective tile already leaves it out.
@@ -143,7 +146,7 @@ function monthRow(row,m){
     basis:null,not_measured:'current state only - this KR has no monthly form, so it is not shown for '+mLabel(m)};
   const x=row.months.find(z=>z.m===m);
   if(!x) return {value:null,display:null,rag:null,score:null,basis:'no value for '+mLabel(m),mtd:false,not_measured:null};
-  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:!!x.mtd,not_measured:x.not_measured,link:x.link||null};
+  return {value:x.value,display:x.display,rag:x.rag,score:x.score,basis:x.basis||row.basis,mtd:!!x.mtd,not_measured:x.not_measured,link:x.link||null,reference:x.reference||null};
 }
 function render(){
   const sc=SNAP.scorecard;
@@ -206,9 +209,12 @@ function render(){
       // the builder names the document; the wall only links it (https only)
       const lk=(x.link&&/^https:\/\//.test(x.link.href||''))
         ? `<div class="lk"><a href="${esc(x.link.href)}" target="_blank" rel="noopener">${esc(x.link.label||'open')} →</a></div>` : '';
+      // never scored, so never the chip and never the value line
+      const rf=x.reference
+        ? `<div class="ref" title="${esc(x.reference.basis||'')}">${esc(x.reference.label||'reference')}: <b>${esc(x.reference.display??'—')}</b></div>` : '';
       return `<div class="kr ${grey?'grey':''}" title="${esc(why)}">
         <div class="chip c-${cls}">${chip}</div>
-        <div><div class="t"><span class="id">${esc(r.kr)}</span>${esc(text)}</div>${val}<div class="why">${esc(why)}</div>${lk}</div>
+        <div><div class="t"><span class="id">${esc(r.kr)}</span>${esc(text)}</div>${val}<div class="why">${esc(why)}</div>${rf}${lk}</div>
       </div>`;
     }).join('')+`</div>`;
   }).join('');

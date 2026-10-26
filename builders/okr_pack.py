@@ -127,7 +127,9 @@ def build(snap: dict, month: str, edition: str, today: str) -> dict:
                 "note": (v.get("not_measured") or r.get("not_measured") or v.get("basis")
                          if grey else v.get("basis")),
                 "blocked": grey, "incomplete": bool(v.get("incomplete")),
-                "link": v.get("link")})
+                "link": v.get("link"),
+                # shown beside the KR, never scored (OO6 KR1's issue forms)
+                "reference": v.get("reference")})
         objectives.append({"objective": o.get("objective"), "label": o.get("label"),
                            "pct": om.get("pct"), "scored": om.get("scored"),
                            "total": om.get("total"), "pct_note": o.get("pct_note"),
@@ -148,6 +150,16 @@ def build(snap: dict, month: str, edition: str, today: str) -> dict:
 
 def _pct(p):
     return "—" if p is None else f"{p:g}%"
+
+
+def _ref_txt(k):
+    """A reference figure, after the basis - never in the Value or Score column."""
+    r = k.get("reference")
+    if not isinstance(r, dict):
+        return ""
+    return (f" REFERENCE, NOT SCORED - {r.get('label') or 'reference'}: "
+            f"{r.get('display') if r.get('display') is not None else '—'}"
+            + (f" ({r['basis']})" if r.get("basis") else ""))
 
 
 def to_md(doc: dict) -> str:
@@ -176,7 +188,8 @@ def to_md(doc: dict) -> str:
             hist = ", ".join(f"{mlabel(m)[:3]} {_score_txt(s)}" for m, s in k["history"])
             val = ("score only" if o["objective"] == "OO1" and k["score"] is not None
                    else ("—" if k["value"] is None else k["value"]))
-            note = md_cell(("NOT MEASURED: " if k.get("blocked") else "") + (k.get("note") or ""))
+            note = md_cell(("NOT MEASURED: " if k.get("blocked") else "") + (k.get("note") or "")
+                           + _ref_txt(k))
             lk = k.get("link") or {}
             if str(lk.get("href") or "").startswith("https://"):
                 note += f" [{md_cell(lk.get('label') or 'document')}]({lk['href']})"
@@ -244,7 +257,7 @@ def to_pdf(doc: dict, path: str) -> str | None:
             hist = ", ".join(f"{mlabel(m)[:3]} {_score_txt(s)}" for m, s in k["history"])
             val = ("score only" if o["objective"] == "OO1" and k["score"] is not None
                    else ("—" if k["value"] is None else k["value"]))
-            note = ("NOT MEASURED: " if k.get("blocked") else "") + (k.get("note") or "")
+            note = ("NOT MEASURED: " if k.get("blocked") else "") + (k.get("note") or "") + _ref_txt(k)
             if k.get("link"):
                 note += f" ({k['link'].get('href')})"
             data.append([P(f"{k['kr']} {k['text']}"), P(k["target"]), P(val),
