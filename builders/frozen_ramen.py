@@ -124,8 +124,13 @@ _WEEK_KEYS = {"week_commencing", "week_from", "report_modified_at", "read_at", "
               "unrecognised_locations", "lines_unplaced", "problems"}
 _LOC_KEYS = {"lines", "counted"}
 _TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports", "reader", "closed_months"}
-_UNREAD_KEYS = {"modified_at", "cause", "detail", "week"}
-_CLOSED_KEYS = {"month", "read_through_at"}
+_UNREAD_KEYS = {"modified_at", "cause", "detail", "week", "month"}
+_CLOSED_KEYS = {"month", "read_through_at", "reports"}
+_MONTH = re.compile(r"20\d\d-(?:0[1-9]|1[0-2])")
+_DAY = re.compile(r"20\d\d-\d\d-\d\d")
+#: The causes of a report that WAS read (or deliberately not), whose closed
+#: month's count is not used - never "could not be read".
+CLOSED_CAUSES = ("month_closed", "closed_month_added")
 #: A role column the copy names by position, or - for a per-restaurant Kobas
 #: export - the file name the restaurant came from (never the name itself).
 _COL_MARK = re.compile(r"\((?:column \d{1,3}|file name)\)")
@@ -217,12 +222,17 @@ def stock_leaks(raw: str) -> list[str]:
         bad.append("(unexpected top-level fields)")
     ur = doc.get("unread_reports") if isinstance(doc, dict) else None
     if ur is not None and not (isinstance(ur, list) and all(
-            isinstance(u, dict) and set(u) <= _UNREAD_KEYS for u in ur)):
+            isinstance(u, dict) and set(u) <= _UNREAD_KEYS
+            and ("week" not in u or _is_monday(u["week"]))
+            and ("month" not in u or (isinstance(u["month"], str) and _MONTH.fullmatch(u["month"])))
+            for u in ur)):
         bad.append("unread_reports (unexpected shape)")
     cm = doc.get("closed_months") if isinstance(doc, dict) else None
     if cm is not None and not (isinstance(cm, list) and all(
             isinstance(c, dict) and set(c) == _CLOSED_KEYS
-            and re.fullmatch(r"\d{4}-\d\d", str(c["month"])) for c in cm)):
+            and isinstance(c["month"], str) and _MONTH.fullmatch(c["month"])
+            and isinstance(c["read_through_at"], str) and _STAMP.fullmatch(c["read_through_at"])
+            and type(c["reports"]) is int and c["reports"] >= 0 for c in cm)):
         bad.append("closed_months (unexpected shape)")
     rd = doc.get("reader") if isinstance(doc, dict) else None
     if rd is not None and type(rd) is not int:
@@ -248,6 +258,14 @@ def stock_leaks(raw: str) -> list[str]:
                 for v in cols.values()):
             bad.append(f"weeks.{wk_}.columns (a header that is not a known one)")
     return bad
+
+
+def _is_monday(v) -> bool:
+    try:
+        return (isinstance(v, str) and _DAY.fullmatch(v) is not None
+                and datetime.date.fromisoformat(v).weekday() == 0)
+    except ValueError:
+        return False
 
 
 def _reject_constant(c):
@@ -297,13 +315,11 @@ def load_stock(out_dir: str):
     for u in raw.get("unread_reports") or []:
         if (isinstance(u, dict) and isinstance(u.get("modified_at"), str)
                 and _STAMP.fullmatch(u["modified_at"]) and isinstance(u.get("detail"), str)):
-            wk_ = u.get("week")
-            try:
-                wk_ = wk_ if datetime.date.fromisoformat(wk_).weekday() == 0 else None
-            except (TypeError, ValueError):
-                wk_ = None
+            wk_ = u.get("week") if _is_monday(u.get("week")) else None
+            mo_ = u.get("month") if isinstance(u.get("month"), str) and _MONTH.fullmatch(
+                u["month"]) else None
             unread.append({"modified_at": u["modified_at"], "cause": str(u.get("cause") or ""),
-                           "detail": u["detail"], "week": wk_})
+                           "detail": u["detail"], "week": wk_, "month": mo_})
         else:
             probs.append("an unread-report record is not the shape this reads - ignored")
     return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "unread": unread,
@@ -412,13 +428,23 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
     unread = [u for u in doc.get("unread") or []
               if not dated or u["modified_at"][:10] <= dated]
     for u in unread:
-        # a report in the folder the refresher could not read (current state:
-        # it is listed for as long as it sits there unread)
-        gaps.append(f"OO6 KR3: a stock count report in the folder, saved "
-                    f"{dm(u['modified_at'][:10])}/{u['modified_at'][:4]}"
-                    + (f" (for the w/c {dm(u['week'])}, by its file name)" if u.get("week") else "")
-                    + f", could not be read - {u['detail']} - so any week only it holds is not "
-                    "counted")
+        saved = f"saved {dm(u['modified_at'][:10])}/{u['modified_at'][:4]}"
+        if u["cause"] == "month_closed":
+            # it WAS read: only its count for a month already closed is not used
+            gaps.append(f"OO6 KR3: a stock count report in the folder, {saved}, was read, but "
+                        f"not for a month it holds that had already closed - {u['detail']}")
+        elif u["cause"] == "closed_month_added":
+            gaps.append(f"OO6 KR3: {u['detail']}"
+                        + (f" ({mlabel(u['month'])}; the newest {saved})" if u.get("month") else ""))
+        else:
+            # a report in the folder the refresher could not read (current
+            # state: listed for as long as it sits there, its month closed or not)
+            gaps.append(f"OO6 KR3: a stock count report in the folder, {saved}"
+                        + (f" (for the w/c {dm(u['week'])}, by its file name)" if u.get("week")
+                           else "")
+                        + f", could not be read - {u['detail']} - so any week only it holds is "
+                        "not counted")
+    unreadable = [u for u in unread if u["cause"] not in CLOSED_CAUSES]
     match = site_matcher(sites)
     labels = [d for d, _ in sites]
 
@@ -437,14 +463,15 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         return counted, blank, outside, w
 
     rule = ("A location is counted in a week when Ross's weekly stock count report gives at "
-            "least one of its frozen-ramen lines a number (0 is a count - Ross, 27/10/2026; a "
-            "blank is not). Kobas's Stock Usage Comparison, exported per restaurant, counts for "
+            "least one of its frozen-ramen lines a count: a number, 0 included (Ross, 27/10/2026)"
+            " - a blank, text or a negative is not. Kobas's Stock Usage Comparison, exported per "
+            "restaurant, counts for "
             "the restaurant its file name names, in the week of its closing stock take (the "
             "period's end date), on Closing Stock Units. "
             f"Over EVERY location on the builder's list ({n_sites}: {', '.join(labels)}), so "
             "a location the report leaves out is not counted. A month is the weeks commencing "
-            "in it, pooled; a closed month is scored only when every one of its weeks has a "
-            f"report. A month's reports are re-read every bake until day {CLOSE_DAY} of the next "
+            "in it, pooled; a month that has ended is scored only when every one of its weeks "
+            f"has a report. A month's reports are re-read every bake until day {CLOSE_DAY} of the next "
             "month; after that its weeks stand as they were last read, and a report saved later "
             "is named as not read. Frozen ramen is matched by name (builders/frozen_ramen.py)")
     out = []
@@ -488,7 +515,7 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
             not_c = [lb for lb in labels if lb not in counted]
             parts.append(f"w/c {dm(wk)}: {len(counted)} of {n_sites}"
                          + (f" (not counted: {', '.join(not_c)}"
-                            + (f"; listed with no number: {', '.join(sorted(blank))}" if blank else "")
+                            + (f"; listed with no count: {', '.join(sorted(blank))}" if blank else "")
                             + ")" if not_c else "")
                          + f" - report {w.get('kind') or 'file'} read {str(w.get('read_at'))[:10]}"
                          + (", week from the file's date" if w.get("week_from") in
@@ -517,7 +544,7 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                 ([f"no stock count report read for the week(s) commencing "
                   f"{', '.join(dm(w) for w in missing)}"
                   + (" (a report that could not be read may hold it - see the gaps)"
-                     if unread else "")] if missing else [])
+                     if unreadable else "")] if missing else [])
                 + unplaced)
             if open_:
                 out.append(mvar(m, mtd=True, score=None, coverage_days=cov, basis=(
