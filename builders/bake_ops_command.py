@@ -6631,8 +6631,11 @@ def main():
     if _fs_leaks:
         print("[bake] REFUSING TO BAKE: data/ops_command/" + frozen_ramen.STOCK_FILE
               + " holds something that may not be published at " + ", ".join(_fs_leaks[:10])
-              + ". MakiManc/ops is public. Delete the file (the next read starts a new one) "
-              "and fix builders/refresh_frozen_stock.py before re-running.", file=sys.stderr)
+              + ". MakiManc/ops is public. Fix builders/refresh_frozen_stock.py, then restore "
+              "the last copy the bake accepted from git history (or delete the file: the next "
+              "read rebuilds it from the whole folder, which past its report ceiling it will "
+              "refuse - and it can no longer see a closed month's reports deleted since).",
+              file=sys.stderr)
         raise SystemExit(1)
     _fs_doc, _fs_err = frozen_ramen.load_stock(OUT_DIR)
     _fs_status = frozen_ramen.load_status(OUT_DIR)
