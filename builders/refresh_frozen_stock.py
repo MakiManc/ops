@@ -46,22 +46,24 @@ reports are re-read every bake until frozen_ramen.CLOSE_DAY of the NEXT
 month. The first bake on or after that day reads the month ONE LAST TIME and
 closes it - so a report saved before then counts, whenever the last bake ran -
 recording in the copy's closed_months when it listed the folder
-(read_through_at) and the saved stamp of every report it closed with (saved:
+(read_through_at), the saved stamp of every report it closed with (saved:
 each Kobas per-restaurant export of the month, and each other report that held
-one of its weeks). From then on the month's weeks are carried from the last
-copy exactly as they were read then.
+one of its weeks), and every report that could not be read then but could
+hold one of its counts (unknown: its saved stamp, and for a Kobas export its
+week and restaurant) - the month's lower bound, frozen with it, whatever
+later happens to the file. From then on the month's weeks are carried from
+the last copy exactly as they were read then.
   * Kobas's per-restaurant exports are the only reports NOT re-read: one holds
     exactly one week (its period's end), so its month is known from its name.
     One the month closed with is skipped; one it did not is never read and is
     named - month_closed when saved after read_through_at, closed_month_added
-    when its stamp is older (moved or restored into the folder). An export
-    that could not be read when its month closed stays named while it is in
-    the folder.
+    when its stamp is older (moved or restored into the folder).
   * every other report is re-read every bake (they are few). Its weeks of a
     closed month are never used: silently when it is a report the month
-    closed with; named month_closed when saved later AND it gives that month
-    another count (a sheet re-saved with old rows unchanged is no news);
-    named closed_month_added when older but not one the month closed with.
+    closed with; named month_closed when saved later AND it would give that
+    month another count (a sheet re-saved with its old rows unchanged is no
+    news, unless a newer report had won those rows); named closed_month_added
+    when older but not one the month closed with. One notice per month.
   * a report fixed or deleted after its month closed changes nothing in it.
 A copy written under other reading rules (READER), or none at all, is never
 built on: that run reads every report in the window, and closes every month
@@ -86,12 +88,16 @@ report with that name and no location column is read for the restaurant the
 name spells (matched letters-and-digits only against the site map, so
 'Maki-12-Nicolson-St' is Maki 1/2 Nicolson St), in the week of the period's
 END - the closing stock take - and its count column is Closing Stock Units.
-The name itself is never written. A report with no location column and no
-such name is refused (venue_not_named), and one naming a restaurant not on
-the site map too (venue_unknown).
+Kobas's name is found anywhere in the file's name ('Copy of ...', '... -
+Copy', '...-1' still are). The name itself is never written. A Kobas-like
+report (named KOBAS, or with a Closing Stock Units column) with no location
+column and no such name is refused (venue_not_named); one naming a restaurant
+not on the site map too (venue_unknown). Any other report with no location
+column is header_missing.
 
-THE WEEK a count belongs to is the Monday of a date column when the report has
-one, else - Kobas's per-restaurant name - of the period's end date, else of a
+THE WEEK a count belongs to is, for a report with Kobas's per-restaurant name,
+the Monday of its period's end date (one week per report, whatever else it
+holds); else the Monday of a date column when the report has one, else of a
 date in the file's name, else of the day Drive says the file was created (UK
 time) - and each week records which (week_from).
 
@@ -187,8 +193,8 @@ CAUSE_TEXT = {
     "network": "the read failed (network or timeout)",
     "download_blocked": "Drive would not let the service account download this report (HTTP "
                         "403/404) although the folder lists it - its own sharing, or 'viewers "
-                        "can download' turned off; read again every bake until its month "
-                        "closes",
+                        "can download' turned off; read again every bake (a Kobas export: "
+                        "until its month closes)",
     "no_report": "the folder holds no CSV, .xlsx or Google Sheet",
     "too_large": "a report is far larger than a stock count",
     "not_a_table": "a report is not a CSV or .xlsx table (a legacy .xls or a PDF cannot be read)",
@@ -535,17 +541,18 @@ def _date(v):
 
 #: Kobas's own name for a report exported for ONE restaurant (26/10/2026:
 #: 'KOBAS_Stock_Usage_Comparison_Report_Maki-12-Nicolson-St_2026-10-17_2026-
-#: 10-24.csv'): the restaurant as a file name spells it, and the period - a
-#: browser's ' (1)' and a Google Sheet's missing extension allowed.
+#: 10-24.csv'): the restaurant as a file name spells it, and the period. Found
+#: anywhere in the name: Drive's 'Copy of ', Windows' ' - Copy', a browser's
+#: ' (1)', a '-1', a Google Sheet's missing extension.
 _KOBAS_NAME = re.compile(
-    r"KOBAS_\w*?Report_(?P<venue>.+?)_(?P<frm>20\d\d-\d\d-\d\d)_(?P<to>20\d\d-\d\d-\d\d)"
-    r"(?:\s*\(\d{1,3}\))?(?:\.(?:csv|xlsx))?", re.I)
+    r"KOBAS_\w*?Report_(?P<venue>.+?)_(?P<frm>20\d\d-\d\d-\d\d)_"
+    r"(?P<to>20\d\d-\d\d-\d\d)(?!\d)", re.I)
 
 
 def kobas_name(name):
     """(the restaurant as the name spells it, the period's end date ISO) from
     Kobas's per-restaurant file name, or None. Neither is ever written."""
-    m_ = _KOBAS_NAME.fullmatch(str(name or "").strip())
+    m_ = _KOBAS_NAME.search(str(name or ""))
     if not m_:
         return None
     try:
@@ -840,10 +847,9 @@ def _prev_weeks(prev):
 
 def _base(previous):
     """What this run may build on - (the last copy's weeks, {closed month:
-    {"read_through_at", "saved"}}, its unread entries for a Kobas export's
-    week) - or None, and then every report in the window is read. Built on
-    only when the copy is this reader's own (READER) and every closed month is
-    the shape this writes."""
+    {"read_through_at", "saved", "unknown"}}) - or None, and then every report
+    in the window is read. Built on only when the copy is this reader's own
+    (READER) and every closed month is the shape this writes."""
     if not isinstance(previous, dict) or previous.get("reader") != READER:
         return None
     weeks = _prev_weeks(previous)
@@ -855,13 +861,15 @@ def _base(previous):
                 and isinstance(c.get("read_through_at"), str)
                 and frozen_ramen._STAMP.fullmatch(c["read_through_at"])
                 and isinstance(c.get("saved"), list)
-                and all(isinstance(x, str) and frozen_ramen._STAMP.fullmatch(x) for x in c["saved"])):
+                and all(isinstance(x, str) and frozen_ramen._STAMP.fullmatch(x) for x in c["saved"])
+                and isinstance(c.get("unknown"), list)
+                and all(isinstance(x, dict) and isinstance(x.get("modified_at"), str)
+                        for x in c["unknown"])):
             return None
         closed[c["month"]] = {"read_through_at": _stamp(c["read_through_at"]),
-                              "saved": {_stamp(x) for x in c["saved"]}}
-    unread = [u for u in previous.get("unread_reports") or []
-              if isinstance(u, dict) and isinstance(u.get("week"), str)]
-    return weeks, closed, unread
+                              "saved": {_stamp(x) for x in c["saved"]},
+                              "unknown": [dict(x) for x in c["unknown"]]}
+    return weeks, closed
 
 
 def _saved(f):
@@ -1035,20 +1043,20 @@ def _run(a, out_path, spath) -> int:
             continue
         # a frozen month's weeks come from the last copy only (only a report
         # that is not Kobas's per-restaurant export can reach here holding one)
-        notice = None
+        notice = {}                          # closed month -> cause: one notice per month
         for wk in sorted(wk for wk in weeks if wk[:7] in frozen):
             nw, fz = weeks.pop(wk), frozen[wk[:7]]
             if sv in fz["saved"]:
                 continue                     # one the month closed with
             if sv < fz["read_through_at"]:
-                notice = notice or ("closed_month_added", wk[:7])
+                notice.setdefault(wk[:7], "closed_month_added")
             elif _differs(nw, base[0].get(wk)):
-                notice = notice or ("month_closed", wk[:7])
-        if notice:
+                notice.setdefault(wk[:7], "month_closed")
+        for m_, cause in sorted(notice.items()):
             print(f"[frozen_stock] a report holds a count for a closed month it was not read "
-                  f"with - not used ({notice[0]})")
-            unread.append({"modified_at": sv, "cause": notice[0],
-                           "detail": CAUSE_TEXT[notice[0]], "month": notice[1]})
+                  f"with - not used ({cause})")
+            unread.append({"modified_at": sv, "cause": cause, "detail": CAUSE_TEXT[cause],
+                           "month": m_})
         for wk in weeks:
             if wk[:7] in closing:
                 closing[wk[:7]].add(sv)
@@ -1069,15 +1077,20 @@ def _run(a, out_path, spath) -> int:
         for wk, w in base[0].items():
             if wk[:7] in frozen:
                 weeks[wk] = w            # exactly as the month closed with
-        # an export that could not be read when its month closed is not read
-        # again: it stays named for as long as it is in the folder
-        unread += [u for u in base[2] if u["week"][:7] in frozen
-                   and u.get("cause") not in frozen_ramen.CLOSED_CAUSES
-                   and u.get("modified_at") in skipped.get(u["week"][:7], ()) and u not in unread]
-    closed = {m: {"read_through_at": c["read_through_at"], "saved": sorted(c["saved"])}
-              for m, c in frozen.items()}
+    closed = {m: {"read_through_at": c["read_through_at"], "saved": sorted(c["saved"]),
+                  "unknown": c["unknown"]} for m, c in frozen.items()}
     for m, svs in closing.items():
-        closed[m] = {"read_through_at": _stamp(pulled_at), "saved": sorted(svs)}
+        # the reports that could not be read now and could hold one of the
+        # month's counts (a count is dated no later than its report is saved):
+        # the month's lower bound, frozen with it
+        first_mon = (frozen_ramen.mondays(m) or [m + "-01"])[0]
+        unknown = [{k: u[k] for k in ("modified_at", "week", "location") if k in u}
+                   for u in unread if u["cause"] not in frozen_ramen.CLOSED_CAUSES
+                   + frozen_ramen.READ_CAUSES
+                   and ((u.get("week") or "")[:7] == m
+                        or (not u.get("week") and u["modified_at"][:10] >= first_mon))]
+        closed[m] = {"read_through_at": _stamp(pulled_at), "saved": sorted(svs),
+                     "unknown": sorted(unknown, key=lambda u: (u["modified_at"], u.get("week", "")))}
     doc = {"pulled_at": pulled_at, "basis": BASIS, "reader": READER,
            "weeks": dict(sorted(weeks.items()))}
     if closed:

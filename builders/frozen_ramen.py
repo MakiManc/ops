@@ -125,7 +125,12 @@ _WEEK_KEYS = {"week_commencing", "week_from", "report_modified_at", "read_at", "
 _LOC_KEYS = {"lines", "counted"}
 _TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports", "reader", "closed_months"}
 _UNREAD_KEYS = {"modified_at", "cause", "detail", "week", "month", "location"}
-_CLOSED_KEYS = {"month", "read_through_at", "saved"}
+_CLOSED_KEYS = {"month", "read_through_at", "saved", "unknown"}
+_UNKNOWN_KEYS = {"modified_at", "week", "location"}
+#: How a FILE NAME spells a restaurant ('Maki-12-Nicolson-St'): never a site-map
+#: label (they have spaces), so never a location in the copy.
+_SLUG = re.compile(r"[A-Za-z0-9]+(?:[-_][A-Za-z0-9]+){2,}")
+_CAUSE = re.compile(r"[a-z_]{1,40}")
 _MONTH = re.compile(r"20\d\d-(?:0[1-9]|1[0-2])")
 _DAY = re.compile(r"20\d\d-\d\d-\d\d")
 #: Not "could not be read": a report whose count for a month already closed
@@ -226,9 +231,10 @@ def stock_leaks(raw: str) -> list[str]:
     ur = doc.get("unread_reports") if isinstance(doc, dict) else None
     if ur is not None and not (isinstance(ur, list) and all(
             isinstance(u, dict) and set(u) <= _UNREAD_KEYS
+            and isinstance(u.get("cause"), str) and _CAUSE.fullmatch(u["cause"])
             and ("week" not in u or _is_monday(u["week"]))
             and ("month" not in u or (isinstance(u["month"], str) and _MONTH.fullmatch(u["month"])))
-            and ("location" not in u or isinstance(u["location"], str))
+            and ("location" not in u or _is_label(u["location"]))
             for u in ur)):
         bad.append("unread_reports (unexpected shape)")
     cm = doc.get("closed_months") if isinstance(doc, dict) else None
@@ -237,7 +243,13 @@ def stock_leaks(raw: str) -> list[str]:
             and isinstance(c["month"], str) and _MONTH.fullmatch(c["month"])
             and isinstance(c["read_through_at"], str) and _STAMP.fullmatch(c["read_through_at"])
             and isinstance(c["saved"], list)
-            and all(isinstance(x, str) and _STAMP.fullmatch(x) for x in c["saved"]) for c in cm)):
+            and all(isinstance(x, str) and _STAMP.fullmatch(x) for x in c["saved"])
+            and isinstance(c["unknown"], list) and all(
+                isinstance(x, dict) and set(x) <= _UNKNOWN_KEYS
+                and isinstance(x.get("modified_at"), str) and _STAMP.fullmatch(x["modified_at"])
+                and ("week" not in x or _is_monday(x["week"]))
+                and ("location" not in x or _is_label(x["location"])) for x in c["unknown"])
+            for c in cm)):
         bad.append("closed_months (unexpected shape)")
     rd = doc.get("reader") if isinstance(doc, dict) else None
     if rd is not None and type(rd) is not int:
@@ -253,6 +265,8 @@ def stock_leaks(raw: str) -> list[str]:
             if not isinstance(rec, dict) or not set(rec) <= _LOC_KEYS:
                 bad.append(f"weeks.{wk_}.locations (unexpected fields)")
                 break
+        if isinstance(locs, dict) and not all(_is_label(lab) for lab in locs):
+            bad.append(f"weeks.{wk_}.locations (a key spelled as a file name spells it)")
         # free text never: a product is one of CANON_ITEMS, a header a known one
         if any(it not in CANON_ITEMS for it in (w.get("items_matched") or [])):
             bad.append(f"weeks.{wk_}.items_matched (a name that is not a canonical product)")
@@ -263,6 +277,11 @@ def stock_leaks(raw: str) -> list[str]:
                 for v in cols.values()):
             bad.append(f"weeks.{wk_}.columns (a header that is not a known one)")
     return bad
+
+
+def _is_label(v) -> bool:
+    """A restaurant as the site map labels it - never a file name's spelling."""
+    return isinstance(v, str) and not _SLUG.fullmatch(v.strip())
 
 
 def _is_monday(v) -> bool:
@@ -331,8 +350,17 @@ def load_stock(out_dir: str):
     closed = {}
     for c in raw.get("closed_months") or []:
         if (isinstance(c, dict) and isinstance(c.get("month"), str) and _MONTH.fullmatch(c["month"])
-                and isinstance(c.get("read_through_at"), str)):
-            closed[c["month"]] = c["read_through_at"]
+                and isinstance(c.get("read_through_at"), str)
+                and _STAMP.fullmatch(c["read_through_at"])):
+            closed[c["month"]] = {"read_through_at": c["read_through_at"], "unknown": [
+                {"modified_at": x["modified_at"],
+                 "week": x.get("week") if _is_monday(x.get("week")) else None,
+                 "location": x.get("location") if isinstance(x.get("location"), str) else None}
+                for x in c.get("unknown") or []
+                if isinstance(x, dict) and isinstance(x.get("modified_at"), str)
+                and _STAMP.fullmatch(x["modified_at"])]}
+        else:
+            probs.append("a closed month is not the shape this reads - ignored")
     return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "unread": unread,
             "closed": closed, "_problems": probs}, None
 
@@ -436,7 +464,11 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         gaps.append(f"OO6 KR3: {fail} - the weeks shown are those read before it")
     for p in doc.get("_problems") or []:
         gaps.append(f"{STOCK_FILE}: {p}")
-    closed = doc.get("closed") or {}
+    # a month closed for re-reading stands as it closed - its weeks AND the
+    # reports it could not read then (its lower bound). A back-bake dated
+    # before a month closed sees it open.
+    closed = {m: c for m, c in (doc.get("closed") or {}).items()
+              if not dated or c["read_through_at"][:10] <= dated}
     # a back-bake shows what was known on its date: no report saved after it,
     # and no month closed after it
     unread = [u for u in doc.get("unread") or []
@@ -465,20 +497,34 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                         "builders/frozen_ramen.py needs the new name")
         else:
             # a report in the folder the refresher could not read (current
-            # state: listed for as long as it sits there, its month closed or not)
-            late = u.get("week") and u["week"][:7] in closed
-            gaps.append(f"OO6 KR3: {what}, could not be read"
-                        + (" when its month closed (it is not read again)" if late else "")
-                        + f" - {u['detail']} - so its count is not known")
+            # state: listed for as long as it sits there)
+            gaps.append(f"OO6 KR3: {what}, could not be read - {u['detail']} - so its count is "
+                        "not known")
+    for m_, c in sorted(closed.items()):
+        for u in c["unknown"] if m_ >= first_month else []:
+            gaps.append(f"OO6 KR3: {mlabel(m_)} closed for re-reading with a report it could not "
+                        f"read, saved {dm(u['modified_at'][:10])}/{u['modified_at'][:4]}"
+                        + (f" (for the w/c {dm(u['week'])}"
+                           + (f", {u['location']}" if u.get("location") else "") + ")"
+                           if u.get("week") else "")
+                        + " - its count is not known, so the month is a lower bound unless every "
+                        "location was counted anyway")
     # an unreadable report could hold a count: by its file name, a Kobas
-    # export says which week (and whose); any other could hold any week up to
-    # the day it was saved
+    # export says which week (and whose); any other could hold any week from
+    # the first Monday of the month up to the day it was saved
     unreadable = [u for u in unread if u["cause"] not in CLOSED_CAUSES + READ_CAUSES]
     arrived_late = [u for u in unread if u["cause"] in CLOSED_CAUSES and u.get("week")]
 
+    def unknowns(m_):
+        # a report with no week holds none dated after it was saved (each use
+        # below checks that per week)
+        if m_ in closed:
+            return closed[m_]["unknown"]
+        return [u for u in unreadable if not u.get("week") or u["week"][:7] == m_]
+
     def may_hold(wk):
         return any(u["week"] == wk if u.get("week") else wk <= u["modified_at"][:10]
-                   for u in unreadable)
+                   for u in unknowns(wk[:7]))
     match = site_matcher(sites)
     labels = [d for d, _ in sites]
 
@@ -536,6 +582,8 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
             m = next_month(m)
             continue
         got, parts, outside_all, unplaced = 0, [], set(), []
+        unk, when = unknowns(m), (" when the month closed" if m in closed else "")
+        maybe = {}                    # an unreadable report with no week -> weeks it may hold
         for wk in have:
             counted, blank, outside, w = week_facts(wk)
             got += len(counted)
@@ -547,14 +595,19 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
             if n_up:
                 unplaced.append(f"{n_up} frozen-ramen line(s) in the w/c {dm(wk)} report have "
                                 "no usable location or no readable date")
-            for u in unreadable:
-                # one restaurant's export for this week could not be read: its
-                # count is unknown, so the week is a lower bound
-                if u.get("week") == wk and match(u.get("location") or "") not in counted:
+            for u in unk if len(counted) < n_sites else []:
+                # a report that could not be read could hold a count for this
+                # week: the week is a lower bound
+                if u.get("week"):
+                    loc = u.get("location")
+                    site = match(loc) if loc else None
+                    if u["week"] != wk or (loc and (site is None or site in counted)):
+                        continue          # another week, a restaurant off the list, or counted
                     unplaced.append(f"the w/c {dm(wk)} export of "
-                                    + (u["location"] if u.get("location")
-                                       else "a restaurant not on the site map")
-                                    + " could not be read")
+                                    + (loc or "a restaurant not on the site map")
+                                    + f" could not be read{when}")
+                elif u["modified_at"][:10] >= wk:
+                    maybe.setdefault(u["modified_at"], []).append(wk)
             not_c = [lb for lb in labels if lb not in counted]
             parts.append(f"w/c {dm(wk)}: {len(counted)} of {n_sites}"
                          + (f" (not counted: {', '.join(not_c)}"
@@ -565,6 +618,9 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                             ("modified_time", "created_time") else
                             ", week from the report period's end date"
                             if w.get("week_from") == "period_end" else ""))
+        for sv_, wks in sorted(maybe.items()):
+            unplaced.append(f"a report saved {dm(sv_[:10])}/{sv_[:4]} that could not be read{when} "
+                            f"may hold a count for the w/c {', '.join(dm(w) for w in wks)}")
         due_n = n_sites * len(have)
         val = _floor1(Decimal(100 * got) / Decimal(due_n))
         disp = (f"{val}% ({got} of {n_sites})" if len(have) == 1 else
