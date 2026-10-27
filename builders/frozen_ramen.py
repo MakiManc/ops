@@ -7,7 +7,9 @@ Two OO6 KRs read the same definition of "frozen ramen", so it lives here once:
     availability % - for reference only, never scored.
   * OO6 KR3 (Ross, 21/10/2026): the % of locations with a frozen-ramen count in
     the week, from the weekly stock count report Ross drops into a Drive
-    folder. builders/refresh_frozen_stock.py reads the newest report(s) into
+    folder - one report naming every location, or Kobas's Stock Usage
+    Comparison exported per restaurant (Ross, 27/10/2026).
+    builders/refresh_frozen_stock.py reads the folder into
     data/ops_command/frozen_stock_count.json; kr3_months() below scores it.
 
 STDLIB ONLY. The bake - and the verifier's recompute, which installs nothing
@@ -85,7 +87,10 @@ HEADER_EXACT = {
     "item": {"ingredient", "item", "product", "stock batch name", "description",
              "stock item", "item name", "product name", "ingredient name"},
     "count": {"count", "counted", "quantity", "qty", "on hand", "closing stock",
-              "stock count", "counted quantity", "count quantity"},
+              "stock count", "counted quantity", "count quantity",
+              # Kobas's Stock Usage Comparison: the closing stock take, in the
+              # product's own units (Ross, 27/10/2026: 0 is a count)
+              "closing stock units"},
     "date": {"date", "count date", "stock count date", "counted on", "week commencing", "w/c"},
 }
 _HEADERS_OK = set().union(*HEADER_EXACT.values())
@@ -98,6 +103,13 @@ STOCK_FILE = "frozen_stock_count.json"
 STOCK_STATUS_FILE = "frozen_stock_count_status.json"
 #: OO6 is scored from October 2026 (Ross, 21/10/2026: "Yes, from October").
 OO6_FIRST_MONTH = "2026-10"
+#: A month's stock count reports are re-read every bake until this day of the
+#: NEXT month; from then on the month is CLOSED: its weeks stand as they were
+#: last read, and a report saved later is named as not read (27/10/2026 - with
+#: Kobas's reports exported one per restaurant, ~20 a week, re-reading the
+#: whole folder every bake would outgrow refresh_frozen_stock.MAX_REPORTS by
+#: March 2027). Two weeks after a month ends is the grace for a late report.
+CLOSE_DAY = 15
 
 _MONTHS = ["January", "February", "March", "April", "May", "June", "July",
            "August", "September", "October", "November", "December"]
@@ -111,8 +123,12 @@ _WEEK_KEYS = {"week_commencing", "week_from", "report_modified_at", "read_at", "
               "columns", "rows_read", "frozen_lines", "items_matched", "locations",
               "unrecognised_locations", "lines_unplaced", "problems"}
 _LOC_KEYS = {"lines", "counted"}
-_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports"}
-_UNREAD_KEYS = {"modified_at", "cause", "detail"}
+_TOP_KEYS = {"pulled_at", "basis", "weeks", "unread_reports", "reader", "closed_months"}
+_UNREAD_KEYS = {"modified_at", "cause", "detail", "week"}
+_CLOSED_KEYS = {"month", "read_through_at"}
+#: A role column the copy names by position, or - for a per-restaurant Kobas
+#: export - the file name the restaurant came from (never the name itself).
+_COL_MARK = re.compile(r"\((?:column \d{1,3}|file name)\)")
 
 
 def mlabel(ym: str) -> str:
@@ -137,6 +153,11 @@ def mondays(ym: str) -> list[str]:
         out.append(d.isoformat())
         d += datetime.timedelta(days=7)
     return out
+
+
+def month_closes(ym: str) -> str:
+    """The UK date from which month ym is closed for re-reading (CLOSE_DAY)."""
+    return f"{next_month(ym)}-{CLOSE_DAY:02d}"
 
 
 def dm(iso: str) -> str:
@@ -198,6 +219,14 @@ def stock_leaks(raw: str) -> list[str]:
     if ur is not None and not (isinstance(ur, list) and all(
             isinstance(u, dict) and set(u) <= _UNREAD_KEYS for u in ur)):
         bad.append("unread_reports (unexpected shape)")
+    cm = doc.get("closed_months") if isinstance(doc, dict) else None
+    if cm is not None and not (isinstance(cm, list) and all(
+            isinstance(c, dict) and set(c) == _CLOSED_KEYS
+            and re.fullmatch(r"\d{4}-\d\d", str(c["month"])) for c in cm)):
+        bad.append("closed_months (unexpected shape)")
+    rd = doc.get("reader") if isinstance(doc, dict) else None
+    if rd is not None and type(rd) is not int:
+        bad.append("reader (not a whole number)")
     weeks = doc.get("weeks") if isinstance(doc, dict) else None
     for wk, w in (weeks.items() if isinstance(weeks, dict) else []):
         wk_ = str(wk) if not _bad(str(wk)) else "[a week key]"
@@ -215,7 +244,7 @@ def stock_leaks(raw: str) -> list[str]:
         cols = w.get("columns") or {}
         if not isinstance(cols, dict) or any(
                 not isinstance(v, str) or not (v.lower() in _HEADERS_OK
-                                               or re.fullmatch(r"\(column \d{1,3}\)", v))
+                                               or _COL_MARK.fullmatch(v))
                 for v in cols.values()):
             bad.append(f"weeks.{wk_}.columns (a header that is not a known one)")
     return bad
@@ -268,8 +297,13 @@ def load_stock(out_dir: str):
     for u in raw.get("unread_reports") or []:
         if (isinstance(u, dict) and isinstance(u.get("modified_at"), str)
                 and _STAMP.fullmatch(u["modified_at"]) and isinstance(u.get("detail"), str)):
+            wk_ = u.get("week")
+            try:
+                wk_ = wk_ if datetime.date.fromisoformat(wk_).weekday() == 0 else None
+            except (TypeError, ValueError):
+                wk_ = None
             unread.append({"modified_at": u["modified_at"], "cause": str(u.get("cause") or ""),
-                           "detail": u["detail"]})
+                           "detail": u["detail"], "week": wk_})
         else:
             probs.append("an unread-report record is not the shape this reads - ignored")
     return {"pulled_at": raw.get("pulled_at"), "weeks": weeks, "unread": unread,
@@ -305,14 +339,34 @@ def _norm(label: str) -> str:
     return re.sub(r"[^a-z0-9/&]+", " ", s.lower()).strip()
 
 
+def _compact(label: str) -> str:
+    """Letters and digits only: how Kobas spells a restaurant in a file name
+    ('Maki 1/2 (Nicolson St)' -> 'Maki-12-Nicolson-St' -> 'maki12nicolsonst')."""
+    s = re.sub(r"^\s*maki\s*&\s*ramen\s*-\s*", "", str(label or ""), flags=re.I)
+    return re.sub(r"[^a-z0-9]+", "", s.lower())
+
+
 def site_matcher(sites):
-    """sites: [(display label, [names it goes by])] -> label -> display or None."""
-    idx = {}
+    """sites: [(display label, [names it goes by])] -> label -> display or None.
+
+    A label matches a name word for word; failing that, letters and digits
+    only (a Kobas file name drops spaces and punctuation) - but never when two
+    venues share that spelling."""
+    idx, comp = {}, {}
     for disp, names in sites:
         for n in list(names) + [disp]:
             if n:
                 idx.setdefault(_norm(n), disp)
-    return lambda lab: idx.get(_norm(lab))
+                comp.setdefault(_compact(n), set()).add(disp)
+    comp = {k: next(iter(v)) for k, v in comp.items() if k and len(v) == 1}
+
+    def match(lab):
+        hit = idx.get(_norm(lab))
+        if hit is None:
+            c = _compact(lab)
+            hit = comp.get(c) or (comp.get(c[9:]) if c.startswith("makiramen") else None)
+        return hit
+    return match
 
 
 def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn, rag_fn,
@@ -361,8 +415,10 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         # a report in the folder the refresher could not read (current state:
         # it is listed for as long as it sits there unread)
         gaps.append(f"OO6 KR3: a stock count report in the folder, saved "
-                    f"{dm(u['modified_at'][:10])}/{u['modified_at'][:4]}, could not be read - "
-                    f"{u['detail']} - so any week only it holds is not counted")
+                    f"{dm(u['modified_at'][:10])}/{u['modified_at'][:4]}"
+                    + (f" (for the w/c {dm(u['week'])}, by its file name)" if u.get("week") else "")
+                    + f", could not be read - {u['detail']} - so any week only it holds is not "
+                    "counted")
     match = site_matcher(sites)
     labels = [d for d, _ in sites]
 
@@ -381,11 +437,16 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
         return counted, blank, outside, w
 
     rule = ("A location is counted in a week when Ross's weekly stock count report gives at "
-            "least one of its frozen-ramen lines a number (0 is a count; a blank is not). "
+            "least one of its frozen-ramen lines a number (0 is a count - Ross, 27/10/2026; a "
+            "blank is not). Kobas's Stock Usage Comparison, exported per restaurant, counts for "
+            "the restaurant its file name names, in the week of its closing stock take (the "
+            "period's end date), on Closing Stock Units. "
             f"Over EVERY location on the builder's list ({n_sites}: {', '.join(labels)}), so "
             "a location the report leaves out is not counted. A month is the weeks commencing "
             "in it, pooled; a closed month is scored only when every one of its weeks has a "
-            "report. Frozen ramen is matched by name (builders/frozen_ramen.py)")
+            f"report. A month's reports are re-read every bake until day {CLOSE_DAY} of the next "
+            "month; after that its weeks stand as they were last read, and a report saved later "
+            "is named as not read. Frozen ramen is matched by name (builders/frozen_ramen.py)")
     out = []
     m = first_month
     today = min(asof, dated) if dated else asof
@@ -431,7 +492,9 @@ def kr3_months(doc, err, status, sites, first_month, pull_month, mvar, score_fn,
                             + ")" if not_c else "")
                          + f" - report {w.get('kind') or 'file'} read {str(w.get('read_at'))[:10]}"
                          + (", week from the file's date" if w.get("week_from") in
-                            ("modified_time", "created_time") else ""))
+                            ("modified_time", "created_time") else
+                            ", week from the report period's end date"
+                            if w.get("week_from") == "period_end" else ""))
         due_n = n_sites * len(have)
         val = _floor1(Decimal(100 * got) / Decimal(due_n))
         disp = (f"{val}% ({got} of {n_sites})" if len(have) == 1 else
