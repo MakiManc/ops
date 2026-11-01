@@ -1,0 +1,16 @@
+{
+ "attempted_at": "2026-11-01T15:31:39Z",
+ "cause": "ok",
+ "detail": "read every stock count report in the folder (any it could not read are listed in the copy's unread_reports)",
+ "failing_since": null,
+ "http_status": 200,
+ "last_ok_at": "2026-11-01T15:31:39Z",
+ "ok": true,
+ "reports_before_window": 0,
+ "reports_in_folder": 1,
+ "reports_read": 0,
+ "reports_unreadable": 1,
+ "unread_causes": [
+  "header_missing"
+ ]
+}

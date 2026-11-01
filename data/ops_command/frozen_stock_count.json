@@ -1,0 +1,12 @@
+{
+ "basis": "OO6 KR3's source: the frozen-ramen lines of Ross's weekly stock count reports, re-read from a Drive folder every bake. Per week (the Monday of the count's date), per restaurant on the site map: how many frozen-ramen lines the reports list and how many of them carry a number - 0 included; a blank is not a count. A week two reports share is merged by restaurant, the newer report winning one both list. No quantity, money value, person or file name is kept. Frozen ramen is matched by name (builders/frozen_ramen.py).",
+ "pulled_at": "2026-11-01T15:31:37Z",
+ "unread_reports": [
+  {
+   "cause": "header_missing",
+   "detail": "a report has no header row naming a location, an item and a count column (missing: location, count)",
+   "modified_at": "2026-10-26T17:57:32.432Z"
+  }
+ ],
+ "weeks": {}
+}

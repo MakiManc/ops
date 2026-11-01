@@ -1,0 +1,174 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W43",
+ "from": "2026-10-19",
+ "to": "2026-10-25",
+ "generated_on": "2026-11-01",
+ "updated_on": "2026-11-01",
+ "final": true,
+ "issue_feed_through": "2026-10-31",
+ "forms": 11,
+ "deliveries": 66,
+ "deliveries_counted": 52,
+ "rate": null,
+ "not_measured": "no pull of the issue feed covers 2026-10-23",
+ "credit_flagged": 4,
+ "by_site": [
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 3
+  },
+  {
+   "site": "AA Factory1 Limited",
+   "forms": 2
+  },
+  {
+   "site": "Maki Aberdeen Ltd",
+   "forms": 2
+  },
+  {
+   "site": "M1TOO Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki NE1 Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Renfield Good Food Ltd",
+   "forms": 1
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 8
+  },
+  {
+   "category": "other",
+   "forms": 2
+  },
+  {
+   "category": "invoice_credit",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-10-19",
+   "site": "AA Factory1 Limited",
+   "category": "other",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Ordered 1 case of Cracked Black Pepper but only received 1 bottle of Black Pepper.",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-19",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Missing 1 case of Garlic Peeled. Also ordered 1 case of Cracked Black Pepper but only received 1 bottle of Black Pepper.",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-19",
+   "site": "M1TOO Ltd",
+   "category": "invoice_credit",
+   "open": true,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "Fillet sliced 6mm oos not delivered but on invoice",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-19",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing 8 boxes of noodles\ndriver agreed to bring tomorrow morning (20/10)\n\n#009391536",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-19",
+   "site": "Maki NE1 Ltd",
+   "category": "other",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "lack 5yellow cloth",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-19",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing One pc of reload 01. Please credit. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-19",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "Missing 1case 6mm chicken fillet, but not in the invoice.\nMissing one case of coconut milk and one case of vegan katsu. please credit. thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-19",
+   "site": "Renfield Good Food Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "Missing item one box 6mm Chicken Fillet and one box egg white",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-20",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing additional 2 tonkotsu broth , 2 pack of sous vide chicken and 12 tins coconut milk from yesterday's delivery.\n\nramen noodles, tonkotsu broth, coconut milk redilvered.\n009391536",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-22",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing one case of 6mm chicken fillet but not in the invoice. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-24",
+   "site": "South Ikigai Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing item",
+   "credit_flag": false
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-11-01"
+}
