@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-10-30",
+ "source_as_of": "2026-11-02",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-11-01T15:31:30Z",
+ "pulled_at": "2026-11-02T18:52:45Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,90 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Leicester Ltd",
+   "raw_site": "Maki 11 - Highcross Centre, Leicester",
+   "d": "2026-11-02",
+   "issue": "Kitchen grease trap is blocked and overflowing",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Ash"
+  },
+  {
+   "site": "Maki Leicester Ltd",
+   "raw_site": "Maki 11 - Highcross Centre, Leicester",
+   "d": "2026-11-02",
+   "issue": "Door is not closing properly, its letting all the cold air in and we can't seat anyone in f1 to f12 tables",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Ash"
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "raw_site": "Ikigai 2 - Southbridge, Edinburgh",
+   "d": "2026-11-01",
+   "issue": "Please seal all the wall skitring and small door under stairs as mouse is roaming freely",
+   "comment": "KRIS",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Abhi"
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "raw_site": "Ikigai 2 - Southbridge, Edinburgh",
+   "d": "2026-11-01",
+   "issue": "Please hang this bkue roll holder in downstairs kitchen near hand wash sink",
+   "comment": "KRIS",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Abhi"
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "raw_site": "Ikigai 2 - Southbridge, Edinburgh",
+   "d": "2026-11-01",
+   "issue": "Please hang heaters on the wall will need electician to draw a plugs there are 4 heaters 2 for downstairs and 2 for upstairs",
+   "comment": "JOE",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Abhi"
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "raw_site": "Ikigai 2 - Southbridge, Edinburgh",
+   "d": "2026-11-01",
+   "issue": "Please fill this hole in small room downstairs",
+   "comment": "KRIS",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Abhi"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-11-01",
+   "issue": "Flooring at the restaurant floor entrance damaged, high hazard risk",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Eryk Dobrzynski"
+  },
   {
    "site": "Maki Aberdeen Ltd",
    "raw_site": "Maki 13 - Union Square, Aberdeen",

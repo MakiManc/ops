@@ -1,0 +1,102 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W44",
+ "from": "2026-10-26",
+ "to": "2026-11-01",
+ "generated_on": "2026-11-02",
+ "updated_on": "2026-11-02",
+ "final": true,
+ "issue_feed_through": "2026-11-01",
+ "forms": 5,
+ "deliveries": 50,
+ "deliveries_counted": 50,
+ "rate": 90.0,
+ "not_measured": null,
+ "credit_flagged": 1,
+ "by_site": [
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 2
+  },
+  {
+   "site": "Maki Aberdeen Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki NE1 Ltd",
+   "forms": 1
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 3
+  },
+  {
+   "category": "(none recorded)",
+   "forms": 1
+  },
+  {
+   "category": "other",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-10-26",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing one pc of egg white but not in the invoice. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-10-28",
+   "site": "Maki NE1 Ltd",
+   "category": "other",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "lack one box of vegan bacon\nlack one box of grab  bags ",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-29",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing 1* box chilli oil \n#009405409",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-31",
+   "site": "Maki SJQ Ltd",
+   "category": null,
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": null,
+   "credit_flag": false
+  },
+  {
+   "d": "2026-10-31",
+   "site": "South Ikigai Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing and rotten item",
+   "credit_flag": false
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-11-02"
+}
