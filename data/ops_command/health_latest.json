@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-11-03T16:43:23Z",
+ "generated_at": "2026-11-03T19:22:30Z",
  "verified_date": "2026-11-03",
  "mode": "recheck",
  "overall": "amber",
@@ -12,7 +12,7 @@
   "facilities_pulled_at": "2026-11-03T16:39:43Z",
   "facilities_as_of": "2026-11-03",
   "facilities_copy": "facilities_ppm.json",
-  "archive_mb": 402
+  "archive_mb": 406
  },
  "counts": {
   "expected_feeds": 31,
@@ -882,7 +882,7 @@
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 402 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 406 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
