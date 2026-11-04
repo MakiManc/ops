@@ -1,12 +1,50 @@
 {
- "basis": "OO6 KR3's source: the frozen-ramen lines of Ross's weekly stock count reports, re-read from a Drive folder every bake. Per week (the Monday of the count's date), per restaurant on the site map: how many frozen-ramen lines the reports list and how many of them carry a number - 0 included; a blank is not a count. A week two reports share is merged by restaurant, the newer report winning one both list. No quantity, money value, person or file name is kept. Frozen ramen is matched by name (builders/frozen_ramen.py).",
- "pulled_at": "2026-11-01T15:31:37Z",
- "unread_reports": [
+ "basis": "OO6 KR3's source: the frozen-ramen lines of Ross's weekly stock count reports, re-read from a Drive folder every bake. Per week (the Monday of the count's date), per restaurant on the site map: how many frozen-ramen lines the reports list and how many of them carry a count: a number, 0 included - a blank, text or negative is not. Kobas's Stock Usage Comparison exported for one restaurant counts for the restaurant its file name names, in the week of its closing stock take (the period's end), on Closing Stock Units (Ross, 27/10/2026). A week two reports share is merged by restaurant, the newer report winning one both list. A month's reports are re-read until day 15 of the next month, when the month closes (closed_months); after that its weeks stand as they were read then. No quantity, money value, person or file name is kept. Frozen ramen is matched by name (builders/frozen_ramen.py).",
+ "closed_months": [
   {
-   "cause": "header_missing",
-   "detail": "a report has no header row naming a location, an item and a count column (missing: location, count)",
-   "modified_at": "2026-10-26T17:57:32.432Z"
+   "month": "2026-08",
+   "read_through_at": "2026-11-04T16:41:49.000Z",
+   "saved": [],
+   "unknown": []
+  },
+  {
+   "month": "2026-09",
+   "read_through_at": "2026-11-04T16:41:49.000Z",
+   "saved": [],
+   "unknown": []
   }
  ],
- "weeks": {}
+ "pulled_at": "2026-11-04T16:41:49Z",
+ "reader": 2,
+ "weeks": {
+  "2026-10-19": {
+   "columns": {
+    "count": "Closing Stock Units",
+    "item": "Ingredient Name",
+    "location": "(file name)"
+   },
+   "frozen_lines": 4,
+   "items_matched": [
+    "Frozen ramen - Black Garlic Tonkotsu",
+    "Frozen ramen - Chicken",
+    "Frozen ramen - Hell",
+    "Frozen ramen - Laksa"
+   ],
+   "kind": "csv",
+   "lines_unplaced": 0,
+   "locations": {
+    "Maki 1/2 Nicolson St": {
+     "counted": 4,
+     "lines": 4
+    }
+   },
+   "problems": [],
+   "read_at": "2026-11-04T16:41:49Z",
+   "report_modified_at": "2026-10-26T17:57:32.432Z",
+   "rows_read": 297,
+   "unrecognised_locations": 0,
+   "week_commencing": "2026-10-19",
+   "week_from": "period_end"
+  }
+ }
 }
