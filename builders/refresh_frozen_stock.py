@@ -17,9 +17,10 @@ GOOGLE_SA_JSON) as Viewer, or the service account added to its shared drive:
 THE FOLDER IS THE TRUTH (review, 21/10/2026). Every run re-reads the folder's
 CSV, .xlsx and Google Sheet reports (not subfolders) - every one saved since
 WINDOW_FROM; an older one can only hold weeks before October 2026, which OO6
-never scores - and REBUILDS the copy from them. Nothing is carried from the
-last copy but each unchanged week's read_at. There is no read mark to fall
-behind, skip or stall on:
+never scores - and REBUILDS the copy from them, for every month not yet
+CLOSED (below). Nothing else is carried from the last copy but each unchanged
+week's read_at. There is no per-report read mark to fall behind, skip or
+stall on:
   * a report fixed and re-saved replaces what it said, and one deleted stops
     counting;
   * a week two reports share is MERGED BY LOCATION, the newer report winning a
@@ -28,15 +29,45 @@ behind, skip or stall on:
     newer one re-lists (a re-issue) no longer counts its unplaced lines;
   * a report that cannot be read for its OWN reason (no header, not a table,
     no frozen-ramen line...) is listed in the copy's unread_reports, by its
-    date and fixed cause, for as long as it sits in the folder - and the bake
-    names it on OO6 KR3;
+    date and fixed cause, for as long as it sits in the folder (after its
+    month closes too) - and the bake names it on OO6 KR3;
   * a failure that is the RUNNER'S or Google's (network, rate limit, no xlsx
     reader...) writes nothing: the last good copy stands and the status says
     why, and the next run reads the folder again.
 A week whose counts are unchanged keeps the read_at it was first read with,
 so a back-bake still shows what was known on its date. A folder holding more
-than MAX_REPORTS reports in the window, or a run past RUN_DEADLINE_S, writes
+than MAX_REPORTS reports to read, or a run past RUN_DEADLINE_S, writes
 nothing and says so - never a copy built from part of the folder.
+
+CLOSED MONTHS (27/10/2026). Kobas's reports come one per restaurant, ~20 a
+week, so re-reading the whole folder every bake would pass MAX_REPORTS by
+March 2027 (and spend Actions minutes on months long scored). A month's
+reports are re-read every bake until frozen_ramen.CLOSE_DAY of the NEXT
+month. The first bake on or after that day reads the month ONE LAST TIME and
+closes it - so a report saved before then counts, whenever the last bake ran -
+recording in the copy's closed_months when it listed the folder
+(read_through_at), the saved stamp of every report it closed with (saved:
+each Kobas per-restaurant export of the month, and each other report that held
+one of its weeks), and every report that could not be read then but could
+hold one of its counts (unknown: its saved stamp, and for a Kobas export its
+week and restaurant) - the month's lower bound, frozen with it, whatever
+later happens to the file. From then on the month's weeks are carried from
+the last copy exactly as they were read then.
+  * Kobas's per-restaurant exports are the only reports NOT re-read: one holds
+    exactly one week (its period's end), so its month is known from its name.
+    One the month closed with is skipped; one it did not is never read and is
+    named - month_closed when saved after read_through_at, closed_month_added
+    when its stamp is older (moved or restored into the folder).
+  * every other report is re-read every bake (they are few). Its weeks of a
+    closed month are never used: silently when it is a report the month
+    closed with; named month_closed when saved later AND it would give that
+    month another count (a sheet re-saved with its old rows unchanged is no
+    news, unless a newer report had won those rows); named closed_month_added
+    when older but not one the month closed with. One notice per month.
+  * a report fixed or deleted after its month closed changes nothing in it.
+A copy written under other reading rules (READER), or none at all, is never
+built on: that run reads every report in the window, and closes every month
+due.
 
 WHAT IS WRITTEN - AND WHAT IS NOT. The copy is committed to the PUBLIC ops
 repo. A location is written ONLY when it is a venue on the bake's own site
@@ -50,12 +81,29 @@ one (else '(column N)'). Never a quantity, a money value, a person, the file's
 name or id: the download is held in memory and parsed there. self_check() refuses the result before it is
 written, and the bake refuses it again (frozen_ramen.stock_leaks).
 
-THE WEEK a count belongs to is the Monday of a date column when the report has
-one, else of a date in the file's name, else of the day Drive says the file
-was modified (UK time) - and each week records which (week_from).
+KOBAS, ONE RESTAURANT PER FILE (Ross, 27/10/2026). Kobas's Stock Usage
+Comparison, exported for one restaurant, has no location or date column: Kobas
+puts both in its file name, 'KOBAS_<report>_<Restaurant-Name>_<from>_<to>'. A
+report with that name and no location column is read for the restaurant the
+name spells (matched letters-and-digits only against the site map, so
+'Maki-12-Nicolson-St' is Maki 1/2 Nicolson St), in the week of the period's
+END - the closing stock take - and its count column is Closing Stock Units.
+Kobas's name is found anywhere in the file's name ('Copy of ...', '... -
+Copy', '...-1' still are). The name itself is never written. A Kobas-like
+report (named KOBAS, or with a Closing Stock Units column) with no location
+column and no such name is refused (venue_not_named); one naming a restaurant
+not on the site map too (venue_unknown). Any other report with no location
+column is header_missing.
 
-A BLANK IS NOT A ZERO. A count cell that is empty, or text, is not a count; a
-0 is. A frozen-ramen line with no number is recorded as listed but not counted.
+THE WEEK a count belongs to is, for a report with Kobas's per-restaurant name,
+the Monday of its period's end date (one week per report, whatever else it
+holds); else the Monday of a date column when the report has one, else of a
+date in the file's name, else of the day Drive says the file was created (UK
+time) - and each week records which (week_from).
+
+A BLANK IS NOT A ZERO. A count cell that is empty, text or negative is not a
+count; a 0 is (Ross, 27/10/2026, for Kobas's Closing Stock Units too). A
+frozen-ramen line with no number is recorded as listed but not counted.
 
 FAIL SOFT, ALWAYS, AND SAY WHY: every path exits 0, and the status file
 (frozen_stock_count_status.json) carries only the fixed CAUSE_TEXT for its
@@ -88,12 +136,21 @@ MAX_BYTES = 10 * 1024 * 1024
 #: Reports saved before this hold only weeks before OO6's first month (October
 #: 2026), which are never scored: they are not read.
 WINDOW_FROM = "2026-08-27"
-#: More reports than this in the window is not a stock count folder any more
-#: (years of weekly reports): the run writes nothing and says so, rather than
-#: build the copy from part of the folder.
+#: More reports than this for one run to READ (the months not yet closed -
+#: about 140 of Kobas's per-restaurant exports at most - and every other
+#: report; on a full read, the whole window) and the run writes nothing and
+#: says so, rather than build the copy from part of the folder.
 MAX_REPORTS = 400
 #: A run that has not finished reading the folder by now writes nothing.
 RUN_DEADLINE_S = 420
+#: The reading rules the copy was written under. A copy with another number is
+#: never built on: the next run reads every report in the window, closed months
+#: too. Bump it when a change lets this read a report it could not before - and
+#: when the window then holds more than MAX_REPORTS reports, raise MAX_REPORTS
+#: for that one run: the run says too_many_to_rebuild, and moving reports out of
+#: the folder would lose the months they hold.
+#: 2 (27/10/2026): Kobas's per-restaurant export; closed months.
+READER = 2
 #: Rows read from one sheet; a longer sheet is refused, never cut short.
 MAX_ROWS = 50000
 MIME_CSV = "text/csv"
@@ -104,10 +161,18 @@ MIME_FOLDER = "application/vnd.google-apps.folder"
 #: Fixed, public text per cause. NEVER interpolate an exception message, a
 #: file name or an id here.
 CAUSE_TEXT = {
-    "ok": "read every stock count report in the folder (any it could not read are listed in "
-          "the copy's unread_reports)",
-    "too_many_reports": "the folder holds more reports than a stock count folder should, so "
-                        "none were used - move old reports out of it",
+    "ok": "read every stock count report in the folder for a month not yet closed (a closed "
+          "month stands as it was last read; any report it could not read is listed in the "
+          "copy's unread_reports)",
+    "too_many_reports": "the folder holds more reports for the months still being re-read than "
+                        "a stock count folder should, so none were used - move stray or "
+                        "duplicate reports out of it",
+    "too_many_to_rebuild": "there is no copy to build on and re-reading the whole folder means "
+                           f"more than {MAX_REPORTS} reports, so none were used - if the copy is "
+                           "missing or damaged, restore data/ops_command/frozen_stock_count.json "
+                           "from the ops repo's history; if it was written under other reading "
+                           "rules, raise MAX_REPORTS in builders/refresh_frozen_stock.py for one "
+                           "run. Moving reports out of the folder would lose the months they hold",
     "timeout": "the folder could not be read within the run's time limit - the next bake "
                "retries; the last copy stands",
     "no_folder_id": "STOCK_COUNT_FOLDER_ID is not set in the bake workflow (Ross adds it as "
@@ -128,7 +193,8 @@ CAUSE_TEXT = {
     "network": "the read failed (network or timeout)",
     "download_blocked": "Drive would not let the service account download this report (HTTP "
                         "403/404) although the folder lists it - its own sharing, or 'viewers "
-                        "can download' turned off; read again every bake",
+                        "can download' turned off; read again every bake (a Kobas export: "
+                        "until its month closes)",
     "no_report": "the folder holds no CSV, .xlsx or Google Sheet",
     "too_large": "a report is far larger than a stock count",
     "not_a_table": "a report is not a CSV or .xlsx table (a legacy .xls or a PDF cannot be read)",
@@ -146,6 +212,18 @@ CAUSE_TEXT = {
     "no_frozen_lines": "a report was read but no line in it is frozen ramen by name - if the "
                        "products were renamed, builders/frozen_ramen.py needs the new name",
     "no_venues": "the bake's site map could not be loaded, so no location could be checked",
+    "venue_not_named": "a Kobas report has no location column, and its file name is not the one "
+                       "Kobas gives a report exported for one restaurant ('KOBAS_..._Report_"
+                       "<restaurant>_<from>_<to>'), so its restaurant is unknown - keep Kobas's "
+                       "file name",
+    "venue_unknown": "a report exported for one restaurant names, in its file name, a restaurant "
+                     "that is not on the site map",
+    "month_closed": "saved after its month was closed for re-reading (day "
+                    f"{frozen_ramen.CLOSE_DAY} of the next month), so its count for that month is "
+                    "not used - the month stands as it was read when it closed",
+    "closed_month_added": "not read when its month closed (it was not in the folder then, or "
+                          "could not be read), so its count for that month is not used - the "
+                          "month stands as it was read when it closed",
     "refused": "the result failed the publication check, so nothing was written",
     "write_failed": "frozen_stock_count.json could not be written; the last file was left in "
                     "place",
@@ -386,16 +464,20 @@ _ROLES = {
 _EXACT = frozen_ramen.HEADER_EXACT
 
 
-def find_header(rows):
+def find_header(rows, location_optional=False):
     """-> (row index, {role: column}) or raises DriveError(header_*), with the
-    missing roles named in .roles."""
+    missing roles named in .roles. location_optional: the file name gives the
+    restaurant (Kobas's per-restaurant export), so a header with no location
+    column is complete - one that has one still uses it."""
     best_missing = None
     for i, r in enumerate(rows[:10]):
         heads = [_h(c) for c in r]
         cols, ambiguous = {}, False
         for role, (want, nope) in _ROLES.items():
+            # a known header is its role whatever else it holds: 'closing stock
+            # units' has the 'unit' that keeps 'Unit Description' out
             cand = [(0 if h in _EXACT[role] else 1, j) for j, h in enumerate(heads)
-                    if h and want.search(h) and not nope.search(h)]
+                    if h and (h in _EXACT[role] or (want.search(h) and not nope.search(h)))]
             if not cand:
                 continue
             top = min(c[0] for c in cand)
@@ -405,8 +487,10 @@ def find_header(rows):
                 if role == "date":
                     continue
             cols[role] = pick[0]
-        need = [x for x in ("location", "item", "count") if x not in cols]
-        if not need and len({cols["location"], cols["item"], cols["count"]}) == 3:
+        roles = (("item", "count") if location_optional and "location" not in cols
+                 else ("location", "item", "count"))
+        need = [x for x in roles if x not in cols]
+        if not need and len({cols[x] for x in roles}) == len(roles):
             if ambiguous:
                 raise DriveError("header_ambiguous")
             return i, cols
@@ -455,6 +539,30 @@ def _date(v):
     return None
 
 
+#: Kobas's own name for a report exported for ONE restaurant (26/10/2026:
+#: 'KOBAS_Stock_Usage_Comparison_Report_Maki-12-Nicolson-St_2026-10-17_2026-
+#: 10-24.csv'): the restaurant as a file name spells it, and the period. Found
+#: anywhere in the name: Drive's 'Copy of ', Windows' ' - Copy', a browser's
+#: ' (1)', a '-1', a Google Sheet's missing extension.
+_KOBAS_NAME = re.compile(
+    r"KOBAS_\w*?Report_(?P<venue>.+?)_(?P<frm>20\d\d-\d\d-\d\d)_"
+    r"(?P<to>20\d\d-\d\d-\d\d)(?!\d)", re.I)
+
+
+def kobas_name(name):
+    """(the restaurant as the name spells it, the period's end date ISO) from
+    Kobas's per-restaurant file name, or None. Neither is ever written."""
+    m_ = _KOBAS_NAME.search(str(name or ""))
+    if not m_:
+        return None
+    try:
+        frm = datetime.date.fromisoformat(m_["frm"])
+        to = datetime.date.fromisoformat(m_["to"])
+    except ValueError:
+        return None
+    return (m_["venue"], to.isoformat()) if frm <= to else None
+
+
 def monday(iso):
     d = datetime.date.fromisoformat(iso)
     return (d - datetime.timedelta(days=d.weekday())).isoformat()
@@ -471,25 +579,43 @@ def parse_report(data: bytes, name: str, created_at: str, match):
     `match(label)` -> the venue's display label, or None (stock_venues). name
     and created_at decide the week only when the report has no date column;
     neither is written. created_at is Drive's createdTime - an edit does not
-    move it, so a report re-saved later stays in its own week."""
+    move it, so a report re-saved later stays in its own week. Kobas's
+    per-restaurant name (kobas_name) gives the restaurant when there is no
+    location column, and the week from the period's end."""
+    kob = kobas_name(name)
     by_week, header_err, headed, frozen_undated = {}, None, False, 0
     labelled, unknown = 0, 0
+    kobas_like = "kobas" in str(name or "").lower()
     for sheet_no, rows in grids(data):
         if not rows:
             continue
+        kobas_like = kobas_like or any(_h(c) == "closing stock units" for r in rows[:10] for c in r)
         try:
-            hi, cols = find_header(rows)
+            hi, cols = find_header(rows, location_optional=kob is not None)
         except DriveError as e:
             header_err = header_err or e
             continue
         headed = True
+        fixed = None
+        if "location" not in cols:
+            # one restaurant's export: the restaurant is the one its name spells
+            fixed = match(kob[0])
+            if fixed is None:
+                raise DriveError("venue_unknown")
         width = max(cols.values()) + 1
         head = list(rows[hi]) + [None] * width
         # a header is published only when it is a known one - any other (it can
         # name a person: 'Counted (Jane)') is written as its position
         colnames = {r: (_clip(head[j]) if _h(head[j]) in frozen_ramen.HEADER_EXACT[r]
                         else f"(column {j + 1})") for r, j in cols.items() if r != "date"}
-        if "date" in cols:
+        if fixed is not None:
+            colnames["location"] = "(file name)"
+        if kob is not None:
+            # the closing stock take is the count: the week it was taken in -
+            # ONE week per Kobas-named report, whatever else it holds, so its
+            # month is known before it is read (closed months)
+            fallback_day, week_from = kob[1], "period_end"
+        elif "date" in cols:
             fallback_day, week_from = None, "column"
         else:
             fallback_day = _date(name)
@@ -502,7 +628,7 @@ def parse_report(data: bytes, name: str, created_at: str, match):
             item = r[cols["item"]]
             if not frozen_ramen.is_frozen_ramen(item):
                 continue
-            day = _date(r[cols["date"]]) if "date" in cols else fallback_day
+            day = _date(r[cols["date"]]) if week_from == "column" else fallback_day
             if not day:
                 frozen_undated += 1      # cannot be put in a week: every week of this report says so
                 continue
@@ -517,12 +643,15 @@ def parse_report(data: bytes, name: str, created_at: str, match):
             nm = frozen_ramen.canonical_item(item)
             if nm not in w["items_matched"]:
                 w["items_matched"].append(nm)
-            raw = r[cols["location"]]
-            venue = match(raw) if str(raw if raw is not None else "").strip() else None
-            if str(raw if raw is not None else "").strip():
-                labelled += 1
-                if venue is None:
-                    unknown += 1
+            if fixed is not None:
+                raw, venue = None, fixed
+            else:
+                raw = r[cols["location"]]
+                venue = match(raw) if str(raw if raw is not None else "").strip() else None
+                if str(raw if raw is not None else "").strip():
+                    labelled += 1
+                    if venue is None:
+                        unknown += 1
             if venue is None:
                 # a blank, or a label on no site map: counted, never written
                 w["unrecognised_locations"] += 1
@@ -536,10 +665,17 @@ def parse_report(data: bytes, name: str, created_at: str, match):
             v = _num(cell)
             if v is not None and v >= 0:
                 rec["counted"] += 1
+            elif v is not None:
+                _problem(w, f"sheet {sheet_no} row {k}: count is negative, so not a count")
             elif str(cell if cell is not None else "").strip():
                 _problem(w, f"sheet {sheet_no} row {k}: count is not a number")
     if not headed:
-        raise header_err or DriveError("header_missing")
+        e = header_err or DriveError("header_missing")
+        if e.cause == "header_missing" and getattr(e, "roles", None) == ["location"] and kobas_like:
+            # Kobas's export with an item and a count but no restaurant anywhere:
+            # its file name is not Kobas's own any more
+            raise DriveError("venue_not_named") from None
+        raise e
     if labelled and unknown * 2 > labelled:
         # most labels name no venue: this column is not the location (a person
         # column, a region code...) - refused, and nothing of it is written
@@ -597,10 +733,16 @@ def venue_matcher():
 BASIS = ("OO6 KR3's source: the frozen-ramen lines of Ross's weekly stock count reports, "
          "re-read from a Drive folder every bake. Per week (the Monday of the count's date), "
          "per restaurant on the site map: how many frozen-ramen lines the reports list and how "
-         "many of them carry a number - 0 included; a blank is not a count. A week two reports "
-         "share is merged by restaurant, the newer report winning one both list. No quantity, "
-         "money value, person or file name is kept. Frozen ramen is matched by name "
-         "(builders/frozen_ramen.py).")
+         "many of them carry a count: a number, 0 included - a blank, text or negative is not. "
+         "Kobas's Stock Usage "
+         "Comparison exported for one restaurant counts for the restaurant its file name names, "
+         "in the week of its closing stock take (the period's end), on Closing Stock Units "
+         "(Ross, 27/10/2026). A week two reports share is merged by restaurant, the newer "
+         "report winning one both list. A month's reports are re-read until day "
+         f"{frozen_ramen.CLOSE_DAY} of the next month, when the month closes (closed_months); "
+         "after that its weeks stand as they were read then. No quantity, money value, person or "
+         "file name is kept. "
+         "Frozen ramen is matched by name (builders/frozen_ramen.py).")
 
 
 def self_check(doc) -> list[str]:
@@ -658,8 +800,10 @@ def build_weeks(reports):
             for it in w["items_matched"]:
                 if it not in items:
                     items.append(it)
-        allp = ((["counts merged from more than one report - the newer wins a location "
-                  "both list"] if len(cs) > 1 else [])
+        shared = any(sum(lab in c[2]["locations"] for c in cs) > 1 for lab in locs)
+        allp = ((["counts merged from more than one report"
+                  + (" - the newer wins a location both list" if shared else "")]
+                 if len(cs) > 1 else [])
                 + [p_ for c in reversed(live) for p_ in c[2]["problems"]])
         for p_ in allp:
             if p_ not in probs and len(probs) < 10:
@@ -683,12 +827,12 @@ _SCORED = ("week_commencing", "week_from", "locations", "unrecognised_locations"
 
 
 def _prev_weeks(prev):
-    """The last copy's weeks, if it is exactly the shape this writes; else {}.
-    It is used only to keep each unchanged week's read_at - never trusted
-    beyond that."""
+    """The last copy's weeks, if it is exactly the shape this writes; else None.
+    Used to keep each unchanged week's read_at, and - only when the copy is
+    this reader's own (_base) - a closed month's weeks."""
     try:
         if not isinstance(prev, dict) or frozen_ramen.stock_leaks(json.dumps(prev)):
-            return {}
+            return None
         out = {}
         for wk, w in (prev.get("weeks") or {}).items():
             locs = w["locations"]
@@ -698,7 +842,50 @@ def _prev_weeks(prev):
             out[wk] = w
         return out
     except Exception:  # noqa: BLE001 - a copy of another shape is rebuilt, not trusted
-        return {}
+        return None
+
+
+def _base(previous):
+    """What this run may build on - (the last copy's weeks, {closed month:
+    {"read_through_at", "saved", "unknown"}}) - or None, and then every report
+    in the window is read. Built on only when the copy is this reader's own
+    (READER) and every closed month is the shape this writes."""
+    if not isinstance(previous, dict) or previous.get("reader") != READER:
+        return None
+    weeks = _prev_weeks(previous)
+    if weeks is None:
+        return None
+    closed = {}
+    for c in previous.get("closed_months") or []:
+        if not (isinstance(c, dict) and isinstance(c.get("month"), str)
+                and isinstance(c.get("read_through_at"), str)
+                and frozen_ramen._STAMP.fullmatch(c["read_through_at"])
+                and isinstance(c.get("saved"), list)
+                and all(isinstance(x, str) and frozen_ramen._STAMP.fullmatch(x) for x in c["saved"])
+                and isinstance(c.get("unknown"), list)
+                and all(isinstance(x, dict) and isinstance(x.get("modified_at"), str)
+                        for x in c["unknown"])):
+            return None
+        closed[c["month"]] = {"read_through_at": _stamp(c["read_through_at"]),
+                              "saved": {_stamp(x) for x in c["saved"]},
+                              "unknown": [dict(x) for x in c["unknown"]]}
+    return weeks, closed
+
+
+def _saved(f):
+    """When the report was last saved: Drive's modifiedTime, or its createdTime
+    when that is later (an upload can keep the file's own older modified time)."""
+    return max(_stamp(f.get("modifiedTime")), _stamp(f.get("createdTime")))
+
+
+def _differs(new, old) -> bool:
+    """A closed month's week as a late report gives it says something other
+    than the week the month closed with (old, None when it closed with none).
+    Report-wide undated lines (lines_unplaced) are no part of one week."""
+    if old is None:
+        return True
+    return (any(old["locations"].get(lab) != rec for lab, rec in new["locations"].items())
+            or (bool(new["unrecognised_locations"]) and not old.get("unrecognised_locations")))
 
 
 def _stamp(v):
@@ -731,13 +918,14 @@ def main(argv=None) -> int:
 
 
 def _run(a, out_path, spath) -> int:
-    pulled_at = _now()
+    pulled_at = _now()       # taken BEFORE the folder is listed: a closing month's read_through_at
     try:
         with open(out_path, encoding="utf-8") as fh:
             previous = json.load(fh)
     except (OSError, ValueError):
         previous = None
-    prev_weeks = _prev_weeks(previous)
+    prev_weeks = _prev_weeks(previous) or {}
+    base = _base(previous)
     sess = None
     try:
         if a.from_file:
@@ -769,20 +957,61 @@ def _run(a, out_path, spath) -> int:
     old_n = sum(1 for f in files if _stamp(f.get("modifiedTime")) < WINDOW_FROM)
     files = sorted((f for f in files if _stamp(f.get("modifiedTime")) >= WINDOW_FROM),
                    key=lambda f: _stamp(f.get("modifiedTime")))       # oldest first: the newer wins
-    extra = {"reports_in_folder": len(files) + old_n, "reports_before_window": old_n}
-    if len(files) > MAX_REPORTS:
-        # never a copy built from part of the folder
-        print(f"[frozen_stock] {len(files)} reports in the window - more than {MAX_REPORTS}; "
-              "nothing written")
-        write_status(spath, False, "too_many_reports", extra=extra)
-        return 0
-    reports, unread = [], []
+    today = uk_day(pulled_at) or pulled_at[:10]
+    first_m = WINDOW_FROM[:7]
+    due, m_ = [], first_m
+    while frozen_ramen.month_closes(m_) <= today:
+        due.append(m_)
+        m_ = frozen_ramen.next_month(m_)
+    # FROZEN: closed by an earlier run, so carried. A month due that is not
+    # frozen yet is read one last time by THIS run, and closes with it.
+    frozen = {m: base[1][m] for m in due if base and m in base[1]}
+    closing = {m: set() for m in due if m not in frozen}
+
+    def loc_of(kob):
+        lab = match(kob[0])
+        return {"location": lab} if lab else {}
+
+    to_read, skipped, notices, early = [], {}, [], 0
     for f in files:
+        kob, sv = kobas_name(f.get("name")), _saved(f)
+        if kob:
+            wk = monday(kob[1])
+            if wk[:7] < first_m:
+                early += 1                  # a week before the window: never scored
+                continue
+            if wk[:7] in frozen:
+                fz = frozen[wk[:7]]
+                if sv in fz["saved"]:
+                    skipped.setdefault(wk[:7], set()).add(sv)    # read when its month closed
+                    continue
+                # never read: its month closed without it
+                cause = "month_closed" if sv >= fz["read_through_at"] else "closed_month_added"
+                notices.append({"modified_at": sv, "cause": cause, "detail": CAUSE_TEXT[cause],
+                                "week": wk, "month": wk[:7], **loc_of(kob)})
+                continue
+            if wk[:7] in closing:
+                closing[wk[:7]].add(sv)
+        to_read.append(f)
+    extra = {"reports_in_folder": len(files) + old_n, "reports_before_window": old_n + early,
+             "reports_in_closed_months": sum(len(v) for v in skipped.values()),
+             "full_read": base is None}
+    if len(to_read) > MAX_REPORTS:
+        # never a copy built from part of the folder
+        cause = "too_many_reports" if base else "too_many_to_rebuild"
+        print(f"[frozen_stock] {len(to_read)} reports to read - more than {MAX_REPORTS}; "
+              f"nothing written ({cause})")
+        write_status(spath, False, cause, extra=extra)
+        return 0
+    reports, unread = [], list(notices)
+    for f in to_read:
         if time.monotonic() - t0 > RUN_DEADLINE_S:
             print("[frozen_stock] the run's time limit passed - nothing written")
             write_status(spath, False, "timeout", extra=extra)
             return 0
         st_ = _stamp(f.get("modifiedTime")) or _stamp(pulled_at)
+        sv = _saved(f) or st_
+        kob = kobas_name(f.get("name"))
         try:
             if sess is None:
                 with open(f["_path"], "rb") as fh:
@@ -804,10 +1033,34 @@ def _run(a, out_path, spath) -> int:
                 # not the report's fault: write nothing, keep the last copy
                 write_status(spath, False, e.cause, e.http, extra=extra)
                 return 0
-            unread.append({"modified_at": st_, "cause": e.cause,
+            unread.append({"modified_at": sv, "cause": e.cause,
                            "detail": CAUSE_TEXT.get(e.cause, CAUSE_TEXT["unexpected"])
                            + (f" (missing: {', '.join(e.roles)})"
-                              if getattr(e, "roles", None) else "")})
+                              if getattr(e, "roles", None) else ""),
+                           # Kobas's per-restaurant name says which week, and
+                           # whose: the week is a lower bound until it is read
+                           **({"week": monday(kob[1]), **loc_of(kob)} if kob else {})})
+            continue
+        # a frozen month's weeks come from the last copy only (only a report
+        # that is not Kobas's per-restaurant export can reach here holding one)
+        notice = {}                          # closed month -> cause: one notice per month
+        for wk in sorted(wk for wk in weeks if wk[:7] in frozen):
+            nw, fz = weeks.pop(wk), frozen[wk[:7]]
+            if sv in fz["saved"]:
+                continue                     # one the month closed with
+            if sv < fz["read_through_at"]:
+                notice.setdefault(wk[:7], "closed_month_added")
+            elif _differs(nw, base[0].get(wk)):
+                notice.setdefault(wk[:7], "month_closed")
+        for m_, cause in sorted(notice.items()):
+            print(f"[frozen_stock] a report holds a count for a closed month it was not read "
+                  f"with - not used ({cause})")
+            unread.append({"modified_at": sv, "cause": cause, "detail": CAUSE_TEXT[cause],
+                           "month": m_})
+        for wk in weeks:
+            if wk[:7] in closing:
+                closing[wk[:7]].add(sv)
+        if not weeks:
             continue
         reports.append((st_, kind, weeks))
         print(f"[frozen_stock] read a {kind} report: " + ", ".join(
@@ -820,10 +1073,35 @@ def _run(a, out_path, spath) -> int:
         old = prev_weeks.get(wk)
         same = old is not None and all(old.get(k) == w.get(k) for k in _SCORED)
         weeks[wk] = {**w, "read_at": old["read_at"] if same else pulled_at}
-    doc = {"pulled_at": pulled_at, "basis": BASIS, "weeks": dict(sorted(weeks.items()))}
+    if base:
+        for wk, w in base[0].items():
+            if wk[:7] in frozen:
+                weeks[wk] = w            # exactly as the month closed with
+    closed = {m: {"read_through_at": c["read_through_at"], "saved": sorted(c["saved"]),
+                  "unknown": c["unknown"]} for m, c in frozen.items()}
+    for m, svs in closing.items():
+        # the reports that could not be read now and could hold one of the
+        # month's counts (a count is dated no later than its report is saved):
+        # the month's lower bound, frozen with it
+        first_mon = (frozen_ramen.mondays(m) or [m + "-01"])[0]
+        unknown = [{k: u[k] for k in ("modified_at", "week", "location") if k in u}
+                   for u in unread if u["cause"] not in frozen_ramen.CLOSED_CAUSES
+                   + frozen_ramen.READ_CAUSES
+                   and ((u.get("week") or "")[:7] == m
+                        or (not u.get("week") and u["modified_at"][:10] >= first_mon))]
+        closed[m] = {"read_through_at": _stamp(pulled_at), "saved": sorted(svs),
+                     "unknown": sorted(unknown, key=lambda u: (u["modified_at"], u.get("week", "")))}
+    doc = {"pulled_at": pulled_at, "basis": BASIS, "reader": READER,
+           "weeks": dict(sorted(weeks.items()))}
+    if closed:
+        doc["closed_months"] = [{"month": m, **c} for m, c in sorted(closed.items())]
     if unread:
-        doc["unread_reports"] = sorted(unread, key=lambda u: u["modified_at"])
-    extra.update({"reports_read": len(reports), "reports_unreadable": len(unread),
+        doc["unread_reports"] = sorted(unread, key=lambda u: (u["modified_at"], u["cause"]))
+    extra.update({"reports_read": len(reports),
+                  "reports_unreadable": sum(u["cause"] not in frozen_ramen.CLOSED_CAUSES
+                                            for u in unread),
+                  "closed_month_notices": sum(u["cause"] in frozen_ramen.CLOSED_CAUSES
+                                              for u in unread),
                   "unread_causes": sorted({u["cause"] for u in unread})})
     bad = self_check(doc)
     if bad:
@@ -847,7 +1125,6 @@ def _run(a, out_path, spath) -> int:
     # not a failed read - so it never makes the weeks look stale.
     write_status(spath, True, "ok", 200 if sess else None, extra=extra)
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

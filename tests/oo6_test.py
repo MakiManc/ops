@@ -16,12 +16,17 @@ Part 4  the sheet: OO6 KR1's pinned cells and the invoiced yes/no - never
 Part 5  OO6 KR2: JFC's PO in full AND invoiced; a 'no' month is an upper bound.
 Part 6  the real builder on a synthetic archive: OO6 scores, joins Operations,
         the verifier agrees, the NE1 label is Newcastle, a leak refuses the bake.
+Part 7  Kobas's Stock Usage Comparison exported per restaurant (Ross,
+        27/10/2026): the restaurant and the closing stock take's week from the
+        file name, Closing Stock Units the count (0 counted), and closed months.
 """
+import csv
 import datetime as dt
 import gzip
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -144,7 +149,8 @@ ex, gp = fr.kr3_months(stock({w: week(w, ALL4) for w in OCT}), None, None, SITES
 o = by_m(ex)["2026-10"]
 check(o["value"] == 100.0 and o["score"] == 100 and o["display"] == "100.0% (16 of 16 location-weeks, 4 weeks)",
       f"October: every location counted every week -> 100% -> 100 (got {o['display']})")
-check("EVERY location" in o["basis"] and "Maki Soho" in o["basis"] and "0 is a count" in o["basis"],
+check("EVERY location" in o["basis"] and "Maki Soho" in o["basis"] and "0 included" in o["basis"]
+      and "a negative is not" in o["basis"],
       "...and the basis names the rule and the location list")
 n = by_m(ex)["2026-11"]
 check(n.get("mtd") and n.get("score") is None and n.get("coverage_days") == 0,
@@ -160,7 +166,7 @@ blank = {w: week(w, ALL4) for w in OCT}
 blank["2026-10-12"] = week("2026-10-12", {**ALL4, "maki leeds": {"lines": 2, "counted": 0}})
 o = by_m(fr.kr3_months(stock(blank), None, None, SITES, "2026-10", "2026-10", mvar, score("full"),
                        rag, asof="2026-10-31")[0])["2026-10"]
-check(o["score"] == 0 and "listed with no number: Maki Leeds" in o["basis"],
+check(o["score"] == 0 and "listed with no count: Maki Leeds" in o["basis"],
       "a location listed with every frozen line blank is not counted - and is named as blank")
 miss = {w: week(w, ALL4) for w in OCT if w != "2026-10-12"}
 o = by_m(fr.kr3_months(stock(miss), None, None, SITES, "2026-10", "2026-11", mvar, score("full"),
@@ -439,7 +445,7 @@ try:
           "a report the parser cannot read (an over-long field) is that report's fault - listed, and the rest still read")
     # thirteen unreadable reports never starve the good one
     bads = [rcsv(os.path.join(tmp, f"bad{i}.csv"), "Maki Soho,RAMEN NOODLES,1,1\n") for i in range(13)]
-    rc, st, doc, _out = run(tmp, bads + [p1], [f"2026-10-0{1 + i % 9}T0{i % 10}:00:00Z" for i in range(13)]
+    rc, st, doc, _out = run(tmp, bads + [p1], [f"2026-10-1{i % 9}T0{i % 10}:00:00Z" for i in range(13)]
                             + ["2026-10-21T09:00:00.123Z"], "2026-10-23T15:00:00Z")
     check(st["reports_read"] == 1 and st["reports_unreadable"] == 13 and "2026-10-12" in doc["weeks"],
           "thirteen unreadable reports and one good one: the good one is read the same run")
@@ -519,11 +525,15 @@ try:
           and doc["weeks"]["2026-10-05"]["report_modified_at"] == "2026-10-15T09:00:00.000Z",
           "a report re-saved with the same counts keeps its weeks' first read_at - a back-bake still sees them")
     # a report with no date anywhere stays in its own week when it is re-saved
+    for f_ in (fr.STOCK_FILE, fr.STOCK_STATUS_FILE):
+        os.remove(os.path.join(tmp, f_))       # (September, closed by now, would be carried)
     nd = os.path.join(tmp, "nodate.csv")
     open(nd, "w").write("Venue,Item,Count\nMaki Soho,Frozen Ramen - Hell Ramen,1\n")
     rc, st, doc, _out = run(tmp, [nd], ["2026-10-20T09:00:00Z"], "2026-10-20T12:00:00Z")
+    os.environ["PULLED_AT"] = "2026-10-27T10:00:00Z"   # never the real clock: months close
     _rc = rfs.main(["--from-file", nd, "--modified-at", "2026-10-27T09:00:00Z", "--created-at",
                     "2026-10-06T09:00:00Z", "--out-dir", tmp])
+    os.environ.pop("PULLED_AT", None)
     doc = json.load(open(os.path.join(tmp, fr.STOCK_FILE)))
     check(list(doc["weeks"]) == ["2026-10-05"],
           "a report with no date column, re-saved on 27/10, stays in the week it was CREATED in (w/c 05/10)")
@@ -614,10 +624,12 @@ _env = {k: os.environ.get(k) for k in ("GOOGLE_SA_JSON", "STOCK_COUNT_FOLDER_ID"
 def drive_run():
     buf = io.StringIO()
     _o, sys.stdout = sys.stdout, buf
+    os.environ["PULLED_AT"] = "2026-10-22T10:00:00Z"    # never the real clock: months close
     try:
         rc = rfs.main(["--out-dir", tmp])
     finally:
         sys.stdout = _o
+        os.environ.pop("PULLED_AT", None)
     st = json.load(open(os.path.join(tmp, fr.STOCK_STATUS_FILE)))
     try:
         doc = json.load(open(os.path.join(tmp, fr.STOCK_FILE)))
@@ -1009,9 +1021,15 @@ _labels = []
 for gc_ in bake.OO6_KR3_SITES:
     k_ = next(k for k, v in bake.SITE_ALIASES.items() if v[0] == gc_)
     _labels.append("Maki NE1 Ltd" if k_ == "newcastle" else "Maki & Ramen - " + bake.SITE_ALIASES[k_][1])
-json.dump({"pulled_at": "2026-11-03T19:00:00Z", "basis": rfs.BASIS,
+json.dump({"pulled_at": "2026-11-03T19:00:00Z", "basis": rfs.BASIS, "reader": rfs.READER,
            "weeks": {w_: week(w_, {lb: {"lines": 4, "counted": 4} for lb in _labels})
-                     for w_ in OCT + ["2026-11-02"]}},
+                     for w_ in OCT + ["2026-11-02"]},
+           # the shape the reader writes since 27/10/2026: closed months, and an
+           # unreadable per-restaurant export carrying the week its name gives
+           "closed_months": [{"month": "2026-09", "read_through_at": "2026-10-15T19:00:00.000Z",
+                              "saved": ["2026-10-05T09:00:00.000Z"], "unknown": []}],
+           "unread_reports": [{"modified_at": "2026-11-02T09:00:00.000Z", "cause": "venue_unknown",
+                               "detail": rfs.CAUSE_TEXT["venue_unknown"], "week": "2026-11-02"}]},
           open(os.path.join(out, fr.STOCK_FILE), "w"))
 NCL = "Maki & Ramen - Maki Newcastle"
 json.dump({"pulled_at": "2026-11-03T19:00:00Z", "site_orders": {
@@ -1049,6 +1067,8 @@ if p.returncode == 0:
           f"OO6 KR3 October: all 20 restaurants counted in all 4 weeks -> 100 (got {k3.get('display')})")
     k3n = var(("OO6", "KR3"), "2026-11")
     check(k3n.get("mtd") and k3n.get("score") is None, "OO6 KR3 November: 3 days of data -> month to date, unscored")
+    check(any("(for the w/c 02/11, by its file name), could not be read" in g_ for g_ in snap["gaps"]),
+          "a copy with closed months and an unreadable export bakes - the gap names the export's week")
     check(rows[("OO6", "KR3")]["source_kind"] == "stock_report" and rows[("OO6", "KR1")]["source_kind"] == "sheet_input",
           "the rows say where they come from")
     ob = {o_["objective"]: o_ for o_ in sc["objectives"]}
@@ -1131,6 +1151,662 @@ if p.returncode == 0:
     check(p3.returncode == 1 and "REFUSING TO BAKE" in p3.stderr and "someone@" not in p3.stderr,
           "the bake refuses to publish it, naming where - never the value")
 shutil.rmtree(btmp)
+
+
+# ===========================================================================
+print("\n== Part 7: Kobas's Stock Usage Comparison, one restaurant per file (Ross, 27/10/2026) ==")
+# The header of the real export (26/10/2026); every value below is MADE UP -
+# the real file carries revenue and GP, which never enter this public repo.
+KOBAS_HEADER = [
+    "Ingredient ID", "Ingredient Category", "Ingredient Name", "Unit Description", "Net Revenue",
+    "Actual GP %", "Actual Units", "Actual Value", "Theory GP %", "Theory Units", "Theory Value",
+    "Usage Variance Units", "Usage Variance Value", "Usage Variance %", "Control Gap", "Sales Units",
+    "Sales Value", "Sales GP %", "Waste Units", "Waste Value", "Waste % of Theory", "Comp Units",
+    "Comp Value", "Comp % of Theory", "Directors Units", "Directors Value", "Directors % of Theory",
+    "Opening Stock Units", "Opening Stock Value", "Opening Stock Ingredient Units",
+    "Opening Stock Ingredient Value", "Opening Stock Batch Units", "Opening Stock Batch Value",
+    "Delivered Units", "Delivered Value", "Credit Notes Units", "Credit Notes Value",
+    "Transferred In Units", "Transferred In Value", "Transferred Out Units", "Transferred Out Value",
+    "Closing Stock Units", "Closing Stock Value", "Closing Stock Ingredient Units",
+    "Closing Stock Ingredient Value", "Closing Stock Batch Units", "Closing Stock Batch Value"]
+FROZEN4 = ["M&R Black Garlic Tonkotsu", "M&R Chicken Ramen", "M&R Hell Ramen", "M&R Laksa Ramen"]
+
+
+def kobas_rows(lines):
+    """[(ingredient, closing stock units)] -> rows under the real header, every
+    other cell a made-up figure the copy must never carry."""
+    out = [KOBAS_HEADER]
+    for i, (name, closing) in enumerate(lines):
+        row = []
+        for h in KOBAS_HEADER:
+            row.append({"Ingredient ID": str(7000 + i), "Ingredient Name": name,
+                        "Ingredient Category": "FROZEN STORE" if fr.is_frozen_ramen(name) else "DRINKS",
+                        "Unit Description": "750 grams", "Closing Stock Units": closing}.get(h, "4321.09"))
+        out.append(row)
+    return out
+
+
+def kobas_csv(lines):
+    buf = io.StringIO()
+    csv.writer(buf).writerows(kobas_rows(lines))
+    return buf.getvalue().encode("utf-8")
+
+
+def kname(venue, frm, to, ext=".csv"):
+    return f"KOBAS_Stock_Usage_Comparison_Report_{venue}_{frm}_{to}{ext}"
+
+
+def kslug(kobas_venue):
+    """How Kobas spells a restaurant in a file name ('Maki 1/2 (Nicolson St)' ->
+    'Maki-12-Nicolson-St', as in the real export's name)."""
+    return re.sub(r"[^A-Za-z0-9 -]", "", kobas_venue).strip().replace(" ", "-")
+
+
+ALLZERO = [(n, "0") for n in FROZEN4] + [("Asahi Super Dry", "64"), ("RAMEN NOODLES", "40")]
+check(kslug("Maki 1/2 (Nicolson St)") == "Maki-12-Nicolson-St", "(the test spells names as Kobas does)")
+check(rfs.kobas_name(kname("Maki-12-Nicolson-St", "2026-10-17", "2026-10-24"))
+      == ("Maki-12-Nicolson-St", "2026-10-24")
+      and rfs.kobas_name(kname("Maki-12-Nicolson-St", "2026-10-17", "2026-10-24", " (1).csv"))
+      == ("Maki-12-Nicolson-St", "2026-10-24")
+      and rfs.kobas_name(kname("Maki-Leeds", "2026-10-17", "2026-10-24", "")) == ("Maki-Leeds", "2026-10-24")
+      and rfs.kobas_name(kname("Maki-Leeds", "2026-10-17", "2026-10-24", ".xlsx")) == ("Maki-Leeds", "2026-10-24"),
+      "Kobas's per-restaurant name: the restaurant and the period's END - a browser's ' (1)', an .xlsx "
+      "and a Google Sheet's missing extension too")
+check(rfs.kobas_name(kname("Maki-Leeds", "2026-10-24", "2026-10-17")) is None
+      and rfs.kobas_name(kname("Maki-Leeds", "2026-10-17", "2026-13-24")) is None
+      and rfs.kobas_name("Stock count Maki Leeds 2026-10-24.csv") is None
+      and rfs.kobas_name("KOBAS_Stock_Usage_Comparison_Report_2026-10-17_2026-10-24.csv") is None,
+      "...never a period that ends before it starts, an impossible date, another name, or no restaurant")
+hi, cols = rfs.find_header(kobas_rows(ALLZERO), location_optional=True)
+check(hi == 0 and cols == {"item": 2, "count": 41},
+      "the real header: the item is 'Ingredient Name' and the count 'Closing Stock Units' - never the "
+      "ID, the category, 'Unit Description', a value or the ingredient/batch split")
+try:
+    rfs.find_header(kobas_rows(ALLZERO))
+    check(False, "without a restaurant from the name, the header has no location")
+except rfs.DriveError as e:
+    check(e.cause == "header_missing" and e.roles == ["location"], "...without the name, location is what is missing")
+_hd = [h for h in KOBAS_HEADER if h != "Closing Stock Units"]
+try:
+    rfs.find_header([_hd], location_optional=True)
+    check(False, "a Kobas export without Closing Stock Units has no count")
+except rfs.DriveError as e:
+    check(e.cause == "header_missing" and e.roles == ["count"],
+          "an export without Closing Stock Units: missing the count (not the location the name gives)")
+
+# the restaurant: spelled as a file name spells it, matched to the site map
+for k_, (gc_, kob_, lab_) in bake.SITE_ALIASES.items():
+    check(MATCH(kslug(kob_)) == lab_, f"Kobas's file-name spelling {kslug(kob_)!r} is {lab_}")
+for v_ in bake.KOBAS_ONLY_VENUES:
+    check(MATCH(kslug(v_)) == v_, f"...and the Kobas-only {v_}")
+check(MATCH("Maki-Atlantis") is None and MATCH("OLD-Maki-Bath-Street") is None and MATCH("") is None,
+      "a restaurant on no site map is not guessed - an 'OLD:' venue neither")
+_amb = fr.site_matcher([("A", ["Maki Bath St"]), ("B", ["Maki BathSt"])])
+check(_amb("Maki Bath St") == "A" and _amb("Maki BathSt") == "B" and _amb("MakiBath-St") is None
+      and _amb("MAKIBATHST") is None,
+      "two venues with one letters-only spelling: only an exact name matches, never a guess between them")
+
+REAL = kname("Maki-12-Nicolson-St", "2026-10-17", "2026-10-24")
+w = rfs.parse_report(kobas_csv(ALLZERO), REAL, "2026-10-26T17:57:52Z", MATCH)
+w19 = w.get("2026-10-19") or {}
+check(list(w) == ["2026-10-19"] and w19.get("week_from") == "period_end",
+      "the week is the one the CLOSING stock take (24/10, the period's end) falls in - w/c 19/10, "
+      "not the start date's 12/10")
+check(w19.get("locations") == {"Maki 1/2 Nicolson St": {"lines": 4, "counted": 4}}
+      and w19.get("frozen_lines") == 4 and w19.get("unrecognised_locations") == 0,
+      "Ross, 27/10/2026: four frozen-ramen lines at 0 Closing Stock Units are FOUR COUNTS - Nicolson St is counted")
+check(w19.get("columns") == {"item": "Ingredient Name", "count": "Closing Stock Units", "location": "(file name)"}
+      and sorted(w19.get("items_matched") or []) == sorted(fr.CANON_ITEMS[i] for i in (0, 2, 3, 4)),
+      "the copy says the restaurant came from the file name, and the products by their canonical names")
+_wt = json.dumps(w)
+check(not any(x in _wt for x in ("4321.09", "Nicolson-St", "KOBAS", "Asahi", "NOODLES", "7000", "750 grams",
+                                 "2026-10-17")),
+      "no figure, no file name or spelling of it, no other product, no ID or unit is kept")
+check(fr.stock_leaks(json.dumps({"weeks": {"2026-10-19": {**w19, "read_at": "2026-10-27T10:00:00Z"}}})) == [],
+      "...and the bake's own publication check accepts it")
+check(fr.stock_leaks(json.dumps({"weeks": {"2026-10-19": {**w19, "columns": {"location": "Maki-12-Nicolson-St"}}}}))
+      != [], "...but refuses a copy carrying the file name's spelling as a column")
+w = rfs.parse_report(kobas_csv([(FROZEN4[0], ""), (FROZEN4[1], "-2"), (FROZEN4[2], "n/a"), (FROZEN4[3], "")]),
+                     REAL, "2026-10-26T17:57:52Z", MATCH)
+w19 = w["2026-10-19"]
+check(w19["locations"] == {"Maki 1/2 Nicolson St": {"lines": 4, "counted": 0}}
+      and any("negative" in p_ for p_ in w19["problems"]) and any("not a number" in p_ for p_ in w19["problems"]),
+      "a blank, a negative or a text Closing Stock Units is NOT a count - listed, not counted, and named")
+w = rfs.parse_report(kobas_csv([(FROZEN4[0], "2.5")]), kname("Maki-12-Nicolson-St", "2026-10-17", "2026-10-24", ""),
+                     "2026-10-26T17:57:52Z", MATCH)
+check(w["2026-10-19"]["locations"]["Maki 1/2 Nicolson St"]["counted"] == 1,
+      "a Google Sheet (no extension) reads the same; part of a box is a count")
+_wb = openpyxl.Workbook()
+for r_ in kobas_rows(ALLZERO):
+    _wb.active.append([float(c) if c not in ("", "750 grams") and re.fullmatch(r"-?[\d.]+", c) else c for c in r_])
+_buf = io.BytesIO()
+_wb.save(_buf)
+w = rfs.parse_report(_buf.getvalue(), kname("Maki-Yorkshire", "2026-10-17", "2026-10-24", ".xlsx"),
+                     "2026-10-26T17:57:52Z", MATCH)
+check(w["2026-10-19"]["locations"] == {"Maki Meadowhall": {"lines": 4, "counted": 4}},
+      "an .xlsx export reads the same, numbers as numbers (Kobas's 'Maki Yorkshire' is Meadowhall)")
+_withloc = [["Venue"] + KOBAS_HEADER] + [["Maki Leeds"] + r_ for r_ in kobas_rows(ALLZERO)[1:]]
+_cbuf = io.StringIO()
+csv.writer(_cbuf).writerows(_withloc)
+w = rfs.parse_report(_cbuf.getvalue().encode(), REAL, "2026-10-26T17:57:52Z", MATCH)
+check(list(w["2026-10-19"]["locations"]) == ["Maki Leeds"] and w["2026-10-19"]["columns"]["location"] == "Venue",
+      "a Kobas-named report that DOES have a location column is read by the column, not the name")
+_withdate = [KOBAS_HEADER + ["Count Date"]] + [r_ + ["15/10/2026"] for r_ in kobas_rows(ALLZERO)[1:]]
+_dbuf = io.StringIO()
+csv.writer(_dbuf).writerows(_withdate)
+w = rfs.parse_report(_dbuf.getvalue().encode(), REAL, "2026-10-26T17:57:52Z", MATCH)
+check(list(w) == ["2026-10-19"] and w["2026-10-19"]["week_from"] == "period_end",
+      "a Kobas-named report is ONE week, its period's end, even with a date column (15/10 would be w/c 12/10) - "
+      "so its month is known from its name before it is read")
+try:
+    rfs.parse_report(b"Outlet,Item,Count\nMaki Soho,Frozen Ramen - Hell Ramen,3\n", "stock.csv",
+                     "2026-10-26T17:57:52Z", MATCH)
+    check(False, "an all-restaurant report with an unknown location header is refused")
+except rfs.DriveError as e:
+    check(e.cause == "header_missing" and e.roles == ["location"],
+          "an all-restaurant report whose location header is not known keeps header_missing (missing: location) - "
+          "never Kobas's 'keep the file name'")
+for nm_, data_, want in (
+        ("stock usage nicolson.csv", kobas_csv(ALLZERO), "venue_not_named"),
+        (kname("Maki-Atlantis", "2026-10-17", "2026-10-24"), kobas_csv(ALLZERO), "venue_unknown"),
+        (kname("Maki-12-Nicolson-St", "2026-10-17", "2026-10-24"), kobas_csv([("Asahi", "3")]), "no_frozen_lines")):
+    try:
+        rfs.parse_report(data_, nm_, "2026-10-26T17:57:52Z", MATCH)
+        check(False, f"{want} raises")
+    except rfs.DriveError as e:
+        check(e.cause == want and want in rfs.CAUSE_TEXT and "Atlantis" not in rfs.CAUSE_TEXT[want],
+              f"{want}: a fixed cause that never repeats the name")
+
+
+def krun(tmp_, files, pulled, mods, created=None):
+    os.environ["PULLED_AT"] = pulled
+    buf = io.StringIO()
+    _o, sys.stdout = sys.stdout, buf
+    try:
+        rc_ = rfs.main(sum((["--from-file", f_] for f_ in files), [])
+                       + sum((["--modified-at", m_] for m_ in mods), [])
+                       + sum((["--created-at", c_] for c_ in (created or [])), []) + ["--out-dir", tmp_])
+    finally:
+        sys.stdout = _o
+        os.environ.pop("PULLED_AT", None)
+    st_ = json.load(open(os.path.join(tmp_, fr.STOCK_STATUS_FILE)))
+    try:
+        doc_ = json.load(open(os.path.join(tmp_, fr.STOCK_FILE)))
+    except (OSError, ValueError):
+        doc_ = None
+    return rc_, st_, doc_, buf.getvalue()
+
+
+ktmp = tempfile.mkdtemp(prefix="oo6-kobas-")
+kdir = os.path.join(ktmp, "folder")
+os.makedirs(kdir)
+kout = os.path.join(ktmp, "out")
+try:
+    # twenty restaurants, one file each, the same week
+    files, mods = [], []
+    for gc_ in bake.OO6_KR3_SITES:
+        k_ = next(k for k, v in bake.SITE_ALIASES.items() if v[0] == gc_)
+        p_ = os.path.join(kdir, kname(kslug(bake.SITE_ALIASES[k_][1]), "2026-10-17", "2026-10-24"))
+        open(p_, "wb").write(kobas_csv(ALLZERO))
+        files.append(p_)
+        mods.append(f"2026-10-26T{10 + len(files) // 4:02d}:{len(files):02d}:00Z")
+    os.makedirs(kout)
+    rc, st, doc, _o = krun(kout, files, "2026-10-27T10:00:00Z", mods)
+    w19 = doc["weeks"]["2026-10-19"]
+    check(rc == 0 and st["ok"] and st["reports_read"] == 20 and len(w19["locations"]) == 20
+          and all(r_ == {"lines": 4, "counted": 4} for r_ in w19["locations"].values()),
+          "twenty per-restaurant exports for one week merge into one week of twenty restaurants")
+    check("counts merged from more than one report" in w19["problems"]
+          and not any("newer wins" in p_ for p_ in w19["problems"]),
+          "...said to come from several reports - and NOT that one replaced another, as none share a restaurant")
+    _sites = [(bake.SITE_ALIASES[next(k for k, v in bake.SITE_ALIASES.items() if v[0] == g)][2],
+               [g, bake.SITE_ALIASES[next(k for k, v in bake.SITE_ALIASES.items() if v[0] == g)][1]])
+              for g in bake.OO6_KR3_SITES]
+    sd, se = fr.load_stock(kout)
+    ex, gp = fr.kr3_months(sd, se, fr.load_status(kout), _sites, "2026-10", "2026-10", mvar, score("full"), rag,
+                           asof="2026-10-27")
+    o = by_m(ex)["2026-10"]
+    check("w/c 19/10: 20 of 20" in o["basis"] and "week from the report period's end date" in o["basis"]
+          and "0 included (Ross, 27/10/2026)" in o["basis"] and "Closing Stock Units" in o["basis"],
+          "OO6 KR3: w/c 19/10 is 20 of 20 - the basis says the week is the period's end and 0 is a count (Ross)")
+    # a second download of one restaurant (' (1)') replaces the first
+    p_ = files[0].replace(".csv", " (1).csv")
+    open(p_, "wb").write(kobas_csv([(n, "") for n in FROZEN4]))
+    rc, st, doc, _o = krun(kout, files + [p_], "2026-10-27T11:00:00Z", mods + ["2026-10-27T10:30:00Z"])
+    _w = doc["weeks"]["2026-10-19"]
+    check(len(_w["locations"]) == 20 and sum(r_["counted"] == 0 for r_ in _w["locations"].values()) == 1
+          and any("newer wins" in p_ for p_ in _w["problems"]),
+          "a newer export for the same restaurant and week replaces the older one, and says so")
+finally:
+    shutil.rmtree(ktmp)
+
+# CLOSED MONTHS - per-restaurant exports would outgrow MAX_REPORTS. A month is
+# re-read until day 15 of the next; the first bake on or after it reads the
+# month one last time and closes it; then it stands as read then. Only Kobas's
+# per-restaurant exports (one week each, known from the name) are not re-read.
+ktmp = tempfile.mkdtemp(prefix="oo6-closed-")
+kdir = os.path.join(ktmp, "folder")
+os.makedirs(kdir)
+kout = os.path.join(ktmp, "out")
+os.makedirs(kout)
+try:
+    folder = {}          # path -> (modifiedTime, createdTime)
+
+    def kput(fname, data, mod, created=None):
+        p_ = os.path.join(kdir, fname)
+        open(p_, "wb").write(data)
+        folder[p_] = (mod, created or mod)
+        return p_
+
+    def kdel(*ps):
+        for p_ in ps:
+            os.remove(p_)
+            del folder[p_]
+
+    def kgo(pulled):
+        fs_ = sorted(folder)
+        return krun(kout, fs_, pulled, [folder[f_][0] for f_ in fs_], [folder[f_][1] for f_ in fs_])
+
+    def gen(rows):
+        return ("Venue,Item,Count Date,Count\n" + "".join(
+            f"{v},Frozen Ramen - Hell Ramen,{d},{c}\n" for v, d, c in rows)).encode()
+
+    def ucauses(d_):
+        return sorted((u["cause"], u["modified_at"][:16]) for u in d_.get("unread_reports", []))
+
+    def kr3_gaps(asof, dated=None):
+        sd_, se_ = fr.load_stock(kout)
+        return fr.kr3_months(sd_, se_, None, SITES + [("Maki 1/2 Nicolson St", ["M1TOO Ltd"])], "2026-10",
+                             "2026-11", mvar, score("full"), rag, asof=asof, dated=dated)
+
+    K_SEPT = kput(kname("Maki-Soho", "2026-09-26", "2026-10-03"), kobas_csv(ALLZERO), "2026-10-05T09:00:00Z")
+    K_JULY = kput(kname("Maki-Soho", "2026-07-04", "2026-07-11"), kobas_csv(ALLZERO), "2026-10-05T09:30:00Z")
+    K_OCT = kput(kname("Maki-12-Nicolson-St", "2026-10-17", "2026-10-24"), kobas_csv(ALLZERO), "2026-10-26T18:00:00Z")
+    # uploaded 10/11 keeping its file's own modified time: createdTime is when it was saved here
+    K_BAD = kput(kname("Maki-Atlantis", "2026-10-24", "2026-10-31"), kobas_csv(ALLZERO), "2026-11-02T09:00:00Z",
+                 "2026-11-10T08:00:00Z")
+    K_NOV = kput(kname("Maki-Leeds", "2026-10-31", "2026-11-07"), kobas_csv(ALLZERO), "2026-11-09T09:00:00Z")
+    G_BAD = kput("stock count leeds.csv", b"Outlet,Item,Count Date,Count\nMaki Leeds,Frozen Ramen - Hell Ramen,"
+                 b"20/10/2026,1\n", "2026-10-21T09:00:00Z")
+    SPAN = kput("renfield.csv", gen([("Maki Renfield", "30/10/2026", 1), ("Maki Renfield", "03/11/2026", 1)]),
+                "2026-11-03T09:00:00Z")
+    SUN = kput("aberdeen sunday.csv", b"Venue,Item,Week Commencing,Count\nMaki Aberdeen,Frozen Ramen - Hell Ramen,"
+               b"02/11/2026,1\n", "2026-11-01T21:00:00Z")
+    rc, st, d1, _o = kgo("2026-11-10T10:00:00Z")
+    check(st["ok"] and st["full_read"] is True and d1["reader"] == rfs.READER
+          and sorted(d1["weeks"]) == ["2026-09-28", "2026-10-19", "2026-10-26", "2026-11-02"]
+          and d1["closed_months"] == [{"month": "2026-08", "read_through_at": "2026-11-10T10:00:00.000Z", "saved": [],
+                                       "unknown": [{"modified_at": "2026-10-21T09:00:00.000Z"}]},
+                                      {"month": "2026-09", "read_through_at": "2026-11-10T10:00:00.000Z",
+                                       "saved": ["2026-10-05T09:00:00.000Z"],
+                                       "unknown": [{"modified_at": "2026-10-21T09:00:00.000Z"}]}]
+          and st["reports_before_window"] == 1,
+          "first read (no copy): every report is read; August and September close (September with the one "
+          "export it holds); October not until 15/11; a July export is never read")
+    ur1 = {u["cause"]: u for u in d1["unread_reports"]}
+    check(ur1["venue_unknown"] == {"modified_at": "2026-11-10T08:00:00.000Z", "cause": "venue_unknown",
+                                   "detail": rfs.CAUSE_TEXT["venue_unknown"], "week": "2026-10-26"}
+          and "week" not in ur1["header_missing"] and "month" not in ur1["header_missing"],
+          "an unreadable Kobas export is listed when it ARRIVED (createdTime) with its week; any other with neither")
+    kgo("2026-11-14T10:00:00Z")
+    K_BATH = kput(kname("Maki-Bath-Street", "2026-10-24", "2026-10-31"), kobas_csv(ALLZERO), "2026-11-14T15:00:00Z")
+    rc, st, d2, _o = kgo("2026-11-14T23:00:00Z")
+    check(not any(c["month"] == "2026-10" for c in d2["closed_months"])
+          and "Maki Bath Street" in d2["weeks"]["2026-10-26"]["locations"],
+          "23:00 UTC on 14/11 is still the 14th in the UK (GMT): October is open, and today's report is read")
+    kdel(K_BATH)
+    kgo("2026-11-14T23:30:00Z")
+    K_BATH = kput(kname("Maki-Bath-Street", "2026-10-24", "2026-10-31"), kobas_csv(ALLZERO), "2026-11-14T15:00:00Z")
+    rc, st, d3, _o = kgo("2026-11-15T00:30:00Z")
+    oct3 = next((c for c in d3["closed_months"] if c["month"] == "2026-10"), {})
+    check(oct3 == {"month": "2026-10", "read_through_at": "2026-11-15T00:30:00.000Z",
+                   "saved": ["2026-10-26T18:00:00.000Z", "2026-11-03T09:00:00.000Z", "2026-11-10T08:00:00.000Z",
+                             "2026-11-14T15:00:00.000Z"],
+                   "unknown": [{"modified_at": "2026-10-21T09:00:00.000Z"},
+                               {"modified_at": "2026-11-10T08:00:00.000Z", "week": "2026-10-26"}]}
+          and "Maki Bath Street" in d3["weeks"]["2026-10-26"]["locations"]
+          and not any(u["cause"] in fr.CLOSED_CAUSES for u in d3.get("unread_reports", [])),
+          "the first bake of 15/11 reads October ONE LAST TIME and closes it - a report saved on the 14th after "
+          "that day's bake counts - recording the reports it closed with (its three exports, the unreadable one "
+          "too, and the two-month sheet) and the two it could not read, as its frozen lower bound "
+          f"(got {oct3})")
+    check("Maki Renfield" in d3["weeks"]["2026-10-26"]["locations"]
+          and "Maki Aberdeen" in d3["weeks"]["2026-11-02"]["locations"],
+          "...October's w/c 26/10 has the two-month sheet; November's w/c 02/11 the Sunday-night one")
+    # October is closed: its exports are not read again - damage one to prove it
+    open(K_OCT, "w").write("this is not the report any more\n")
+    K_LATE = kput(kname("Maki-Soho", "2026-10-24", "2026-10-31"), kobas_csv(ALLZERO), "2026-11-16T09:00:00Z")
+    G = kput("stock count.csv", gen([("Maki Soho", "27/10/2026", 1), ("Maki Soho", "17/11/2026", 1)]),
+             "2026-11-16T09:30:00Z")
+    K_BADNOV = kput(kname("Maki-Atlantis", "2026-11-07", "2026-11-14"), kobas_csv(ALLZERO), "2026-11-16T09:40:00Z")
+    MOVEG = kput("soho catch-up.csv", gen([("Maki Lakeside", "27/10/2026", 1), ("Maki Lakeside", "10/11/2026", 1)]),
+                 "2026-11-14T09:00:00Z")
+    rc, st, d4, _o = kgo("2026-11-16T10:00:00Z")
+    check(st["ok"] and st["full_read"] is False and st["reports_in_closed_months"] == 4
+          and d4["weeks"]["2026-10-19"] == d3["weeks"]["2026-10-19"]
+          and d4["weeks"]["2026-10-26"] == d3["weeks"]["2026-10-26"] and "2026-09-28" in d4["weeks"],
+          "16/11: September's and October's weeks stand EXACTLY as they closed (read_at too); the four exports "
+          "they closed with are not downloaded - one is now damaged and nothing changes")
+    check(ucauses(d4) == [("closed_month_added", "2026-11-14T09:00"), ("header_missing", "2026-10-21T09:00"),
+                          ("month_closed", "2026-11-16T09:00"), ("month_closed", "2026-11-16T09:30"),
+                          ("venue_unknown", "2026-11-16T09:40")],
+          f"named in the folder's current state: the unreadable sheet (re-read every bake), the sheet moved in "
+          f"with an old date, the late export and the late sheet, and November's unreadable export - the "
+          f"October export that could not be read is October's frozen lower bound instead (got {ucauses(d4)})")
+    late4 = {u["modified_at"][:16]: u for u in d4["unread_reports"] if u["cause"] == "month_closed"}
+    check(late4["2026-11-16T09:00"].get("week") == "2026-10-26" and late4["2026-11-16T09:00"].get("location") == "Maki Soho"
+          and "week" not in late4["2026-11-16T09:30"] and late4["2026-11-16T09:30"]["month"] == "2026-10",
+          "...the late export with its week and restaurant (never read); the late sheet with the month")
+    check("Maki Soho" not in d4["weeks"]["2026-10-26"]["locations"]
+          and "Maki Lakeside" not in d4["weeks"]["2026-10-26"]["locations"]
+          and d4["weeks"]["2026-11-16"]["locations"] == {"Maki Soho": {"lines": 1, "counted": 1}}
+          and "Maki Lakeside" in d4["weeks"]["2026-11-09"]["locations"]
+          and "Maki Renfield" in d4["weeks"]["2026-11-02"]["locations"]
+          and "Maki Aberdeen" in d4["weeks"]["2026-11-02"]["locations"],
+          "no late or moved-in count reaches October; their November counts are used, as are the two-month and "
+          "Sunday-night sheets' November weeks")
+    check(fr.stock_leaks(open(os.path.join(kout, fr.STOCK_FILE)).read()) == [],
+          "the copy with closed months passes the bake's publication check")
+    ex, gp = kr3_gaps("2026-11-16")
+    gl = " | ".join(gp)
+    check("(for the w/c 26/10, Maki Soho, by its file name), was not read - it was saved after October 2026 closed" in gl
+          and "saved 16/11/2026, was read - it was saved after October 2026 closed" in gl
+          and "saved 14/11/2026, was not read when October 2026 closed for re-reading (it was not in the folder then" in gl
+          and "October 2026 closed for re-reading with a report it could not read, saved 10/11/2026 (for the w/c "
+              "26/10)" in gl
+          and "saved 21/10/2026, could not be read" in gl,
+          "the gaps say exactly what happened to each: not read (late export), read but not used (late sheet), "
+          "not read when the month closed (moved in), and what October closed without being able to read")
+    # a sheet re-saved in place: unchanged October rows are no news, even with an undated row added
+    LIVE = kput("living.csv", gen([("Maki Renfield", "30/10/2026", 1), ("Maki Lakeside", "18/11/2026", 1),
+                                   ("Maki Soho", "", 1)]), "2026-11-17T09:00:00Z")
+    rc, st, d5, _o = kgo("2026-11-17T10:00:00Z")
+    check(("month_closed", "2026-11-17T09:00") not in ucauses(d5)
+          and "Maki Lakeside" in d5["weeks"]["2026-11-16"]["locations"],
+          "a sheet saved after the close whose October count is what October closed with is NOT named (an "
+          "undated row elsewhere in it does not make October's week differ); its November count is used")
+    kdel(LIVE)
+    G2 = kput("renfield redo.csv", gen([("Maki Renfield", "30/10/2026", "")]), "2026-11-17T09:10:00Z")
+    kput(kname("Maki-Shoreditch", "2026-10-24", "2026-10-31"), kobas_csv(ALLZERO), "2026-11-02T09:00:00Z",
+         "2026-11-17T11:00:00Z")
+    kput(kname("Maki-Soho", "2026-10-03", "2026-10-10"), kobas_csv(ALLZERO), "2026-11-17T11:30:00Z")
+    MOVEK = kput(kname("Maki-Lakeside", "2026-10-17", "2026-10-24"), kobas_csv(ALLZERO), "2026-11-02T09:00:00Z")
+    rc, st, d6, _o = kgo("2026-11-17T12:00:00Z")
+    u6 = ucauses(d6)
+    check(("month_closed", "2026-11-17T09:10") in u6 and ("month_closed", "2026-11-17T11:00") in u6
+          and ("month_closed", "2026-11-17T11:30") in u6 and ("closed_month_added", "2026-11-02T09:00") in u6
+          and d6["weeks"]["2026-10-26"]["locations"]["Maki Renfield"] == {"lines": 1, "counted": 1}
+          and "Maki Shoreditch" not in d6["weeks"]["2026-10-26"]["locations"]
+          and "2026-10-05" not in d6["weeks"] and "Maki Lakeside" not in d6["weeks"]["2026-10-19"]["locations"],
+          "after the close: a sheet changing a closed restaurant-week, an export uploaded late (createdTime 17/11 "
+          "though modified 02/11), one for a week October closed WITHOUT, and one moved in with its old date are "
+          f"all named and none moves October (got {u6})")
+    # an open-month export that could not be read, read later with the SAME stamps, is no longer named
+    open(K_BADNOV, "wb").write(b"Venue,Item,Count\nMaki Soho,RAMEN NOODLES,1\n")
+    kdel(K_BADNOV)
+    K_NOVX = kput(kname("Maki-Leicester", "2026-11-07", "2026-11-14"), b"not a stock report\n", "2026-11-16T11:00:00Z")
+    rc, st, d7, _o = kgo("2026-11-18T10:00:00Z")
+    check(("header_missing", "2026-11-16T11:00") in ucauses(d7) and "2026-11-09" in d7["weeks"],
+          "an open month's damaged export is named")
+    open(K_NOVX, "wb").write(kobas_csv(ALLZERO))
+    rc, st, d8, _o = kgo("2026-11-18T11:00:00Z")
+    check(("header_missing", "2026-11-16T11:00") not in ucauses(d8)
+          and "Maki Leicester" in d8["weeks"]["2026-11-09"]["locations"],
+          "...and once it reads (same stamps), it is counted and no longer named")
+    # deleting reports after the close: the month stands; the unreadable export goes from the list
+    kdel(K_BATH, K_BAD, MOVEK, MOVEG, G2)
+    rc, st, d9, _o = kgo("2026-11-19T10:00:00Z")
+    c9 = [c for c, _t in ucauses(d9)]
+    oct9 = next(c for c in d9["closed_months"] if c["month"] == "2026-10")
+    check("Maki Bath Street" in d9["weeks"]["2026-10-26"]["locations"] and "venue_unknown" not in c9
+          and "closed_month_added" not in c9 and "header_missing" in c9
+          and {"modified_at": "2026-11-10T08:00:00.000Z", "week": "2026-10-26"} in oct9["unknown"],
+          f"a report deleted after its month closed changes nothing in it: its weeks, and the export it could "
+          f"not read, which stays its lower bound though the file is gone (got {c9})")
+    _cap, rfs.MAX_REPORTS = rfs.MAX_REPORTS, 9
+    try:
+        rc, st, d10, _o = kgo("2026-11-19T11:00:00Z")
+        check(st["ok"] and st["reports_in_closed_months"] == 2 and st["reports_before_window"] == 1
+              and st["reports_in_folder"] == 12 and st["reports_read"] == 5,
+              "MAX_REPORTS (9 here) counts only the reports a run has to READ - twelve in the folder: two exports "
+              "a closed month closed with, a July one, and three late ones are never downloaded; six are read "
+              f"(got {st['cause']}, {st.get('reports_in_folder')}, {st.get('reports_in_closed_months')})")
+        check(st["reports_unreadable"] == 1 and st["closed_month_notices"] == 4,
+              "...and the status counts unreadable reports apart from closed-month notices")
+        dd = json.load(open(os.path.join(kout, fr.STOCK_FILE)))
+        dd["reader"] = 1
+        json.dump(dd, open(os.path.join(kout, fr.STOCK_FILE), "w"))
+        rfs.MAX_REPORTS = 5
+        rc, st, d11, _o = kgo("2026-11-19T12:00:00Z")
+        check(st["cause"] == "too_many_to_rebuild" and st["full_read"] is True
+              and "raise MAX_REPORTS" in st["detail"] and "restore data/ops_command/frozen_stock_count.json" in st["detail"]
+              and "would lose the months they hold" in st["detail"],
+              "a copy written under OTHER rules is never built on - over the ceiling nothing is written, and the advice "
+              "is to raise the ceiling for one run (or restore a lost copy), never to move reports out")
+    finally:
+        rfs.MAX_REPORTS = _cap
+    rc, st, d12, _o = kgo("2026-11-19T13:00:00Z")
+    check(st["ok"] and st["full_read"] is True and "2026-10-19" not in d12["weeks"]
+          and any(u["cause"] == "header_missing" and u.get("week") == "2026-10-19" for u in d12["unread_reports"])
+          and "Maki Soho" in d12["weeks"]["2026-10-26"]["locations"]
+          and all(c["read_through_at"] == "2026-11-19T13:00:00.000Z" for c in d12["closed_months"]),
+          "...a full read re-reads October too - the damaged export is named and its week goes, the late Soho "
+          "export now counts - and closes every month due with itself")
+    # the publication check knows the new fields exactly
+    good = json.load(open(os.path.join(kout, fr.STOCK_FILE)))
+    _u = {"modified_at": "2026-11-18T12:00:00.000Z", "cause": "x", "detail": "y"}
+    _c = {"month": "2026-10", "read_through_at": "2026-11-18T12:00:00.000Z", "saved": [], "unknown": []}
+    check(fr.stock_leaks(json.dumps(dict(good, closed_months=[_c]))) == [],
+          "(the closed month the refusals below vary is itself accepted)")
+    for bad_, why in ((dict(good, closed_months=[dict(_c, month="Oct")]), "a closed month that is not a month"),
+                      (dict(good, closed_months=[dict(_c, month="2026-10 Maki-12-Nicolson-St")]),
+                       "a closed month with a name after it"),
+                      (dict(good, closed_months=[dict(_c, month="2026-13")]), "month 13"),
+                      (dict(good, closed_months=[dict(_c, read_through_at="18/11/2026")]),
+                       "a read-through that is not a stamp"),
+                      (dict(good, closed_months=[dict(_c, read_through_at=["Maki-12-Nicolson-St"])]),
+                       "a read-through that is not even a string"),
+                      (dict(good, closed_months=[dict(_c, saved=["Maki-12-Nicolson-St"])]), "a saved entry that is a name"),
+                      (dict(good, closed_months=[dict(_c, saved="2026-11-18T12:00:00.000Z")]), "saved as a bare string"),
+                      (dict(good, closed_months=[{k: v for k, v in _c.items() if k != "saved"}]), "a closed month without saved"),
+                      (dict(good, closed_months=[dict(_c, unknown=[{"modified_at": "02/11/2026"}])]),
+                       "an unknown report whose stamp is not a stamp"),
+                      (dict(good, closed_months=[dict(_c, unknown=[{"modified_at": "2026-11-02T09:00:00.000Z",
+                                                                    "file": "x"}])]), "an unknown report with another field"),
+                      (dict(good, closed_months=[dict(_c, unknown=[{"modified_at": "2026-11-02T09:00:00.000Z",
+                                                                    "week": "2026-10-27"}])]), "an unknown week not a Monday"),
+                      (dict(good, closed_months=[dict(_c, file="x")]), "a closed month with another field"),
+                      (dict(good, closed_months="Maki-12-Nicolson-St"), "closed_months as a bare string"),
+                      (dict(good, unread_reports="Maki-12-Nicolson-St"), "unread_reports as a bare string"),
+                      (dict(good, reader="2"), "a reader that is not a whole number"),
+                      (dict(good, reader=True), "a reader that is true"),
+                      (dict(good, unread_reports=[dict(_u, week="Maki-12-Nicolson-St")]), "an unread week that is a name"),
+                      (dict(good, unread_reports=[dict(_u, week="2026-10-27")]), "an unread week that is not a Monday"),
+                      (dict(good, unread_reports=[dict(_u, month="KOBAS")]), "an unread month that is not a month"),
+                      (dict(good, unread_reports=[dict(_u, month="2026-10 Maki-12-Nicolson-St")]),
+                       "an unread month with a name after it"),
+                      (dict(good, unread_reports=[dict(_u, location=["Maki Soho"])]), "a location that is not a string"),
+                      (dict(good, unread_reports=[dict(_u, location="someone@maki.co.uk")]), "a location that is contact data")):
+        check(fr.stock_leaks(json.dumps(bad_)) != [], f"the bake refuses {why}")
+    check(fr.stock_leaks(json.dumps(dict(good, unread_reports=[dict(_u, week="2026-10-26", month="2026-10",
+                                                                     location="Maki Soho")]))) == [],
+          "...and accepts a real week, month and restaurant")
+finally:
+    os.environ.pop("PULLED_AT", None)
+    shutil.rmtree(ktmp)
+
+# round 3: names Drive and Windows make of an export are still Kobas's
+for nm_ in ("Copy of KOBAS_Stock_Usage_Comparison_Report_Maki-Soho_2026-10-17_2026-10-24.csv",
+            "KOBAS_Stock_Usage_Comparison_Report_Maki-Soho_2026-10-17_2026-10-24 - Copy.csv",
+            "KOBAS_Stock_Usage_Comparison_Report_Maki-Soho_2026-10-17_2026-10-24 copy.csv",
+            "KOBAS_Stock_Usage_Comparison_Report_Maki-Soho_2026-10-17_2026-10-24-1.csv"):
+    check(rfs.kobas_name(nm_) == ("Maki-Soho", "2026-10-24"), f"{nm_!r} is still Kobas's per-restaurant name")
+check(rfs.kobas_name("KOBAS_Stock_Usage_Comparison_Report_Maki-Soho_2026-10-17_2026-10-245.csv") is None,
+      "...but never a date with a digit run on")
+# round 3: a report moved in holding two closed months is named for each
+ktmp = tempfile.mkdtemp(prefix="oo6-two-")
+try:
+    _o3 = os.path.join(ktmp, "o")
+    os.makedirs(_o3)
+    _a = os.path.join(ktmp, "a.csv")
+    open(_a, "w").write("Venue,Item,Count Date,Count\nMaki Soho,Frozen Ramen - Hell Ramen,13/10/2026,1\n")
+    krun(_o3, [_a], "2026-11-16T10:00:00Z", ["2026-10-14T09:00:00Z"])
+    _b = os.path.join(ktmp, "b.csv")
+    open(_b, "w").write("Venue,Item,Count Date,Count\nMaki Leeds,Frozen Ramen - Hell Ramen,15/09/2026,1\n"
+                        "Maki Leeds,Frozen Ramen - Hell Ramen,13/10/2026,1\n")
+    rc, st, dt2, _o = krun(_o3, [_a, _b], "2026-11-17T10:00:00Z", ["2026-10-14T09:00:00Z", "2026-10-30T09:00:00Z"])
+    check(sorted((u["cause"], u.get("month")) for u in dt2["unread_reports"])
+          == [("closed_month_added", "2026-09"), ("closed_month_added", "2026-10")]
+          and "Maki Leeds" not in dt2["weeks"]["2026-10-12"]["locations"],
+          "a sheet moved in after September and October closed is named for EACH month it holds")
+finally:
+    shutil.rmtree(ktmp)
+
+# a report saved before a month began cannot hold one of its counts: never its lower bound
+ktmp = tempfile.mkdtemp(prefix="oo6-first-")
+try:
+    _o4 = os.path.join(ktmp, "o")
+    os.makedirs(_o4)
+    _g_old = os.path.join(ktmp, "old.csv")
+    open(_g_old, "w").write("Outlet,Item,Count\nMaki Soho,Frozen Ramen - Hell Ramen,1\n")
+    _k = os.path.join(ktmp, kname("Maki-Soho", "2026-10-17", "2026-10-24"))
+    open(_k, "wb").write(kobas_csv(ALLZERO))
+    rc, st, d_f, _o = krun(_o4, [_g_old, _k], "2026-11-16T10:00:00Z", ["2026-10-01T09:00:00Z", "2026-10-26T09:00:00Z"])
+    _cm = {c["month"]: c["unknown"] for c in d_f["closed_months"]}
+    check(_cm["2026-09"] == [{"modified_at": "2026-10-01T09:00:00.000Z"}] and _cm["2026-10"] == [],
+          "an unreadable report saved 01/10 is September's lower bound when it closes, never October's "
+          "(no October week began before it was saved)")
+finally:
+    shutil.rmtree(ktmp)
+_d_nov = {"pulled_at": "2026-11-16T10:00:00Z", "_problems": [], "closed": {},
+          "weeks": {"2026-11-02": week("2026-11-02", {"Maki Leeds": {"lines": 1, "counted": 1}})},
+          "unread": [{"modified_at": "2026-10-20T09:00:00.000Z", "cause": "header_missing", "detail": "x",
+                      "week": None, "month": None, "location": None}]}
+_exn, _ = fr.kr3_months(_d_nov, None, None, [("Maki Leeds", ["Maki Leeds"]), ("Maki Soho", ["Maki Soho"])],
+                        "2026-11", "2026-11", mvar, score("full"), rag, asof="2026-11-16")
+check("20/10/2026" not in by_m(_exn)["2026-11"]["basis"],
+      "...and in an open month, a report saved before its first Monday is never named as one that may hold a count")
+
+# kr3_months: an export that could not be read makes its week a lower bound,
+# and the 'may hold it' hint is given only where it can be true
+_s2 = [("Maki Leeds", ["Maki Leeds"]), ("Maki Soho", ["Maki Soho"])]
+_wk = {w: week(w, {"Maki Leeds": {"lines": 4, "counted": 4}, "Maki Soho": {"lines": 4, "counted": 4}}) for w in OCT}
+_wk["2026-10-19"] = week("2026-10-19", {"Maki Leeds": {"lines": 4, "counted": 4}})
+
+
+def _kr(unread_, weeks_=None, dated=None, asof="2026-11-16", closed=None):
+    d_ = {"pulled_at": "2026-11-16T10:00:00Z", "weeks": dict(weeks_ or _wk), "_problems": [],
+          "unread": [{"week": None, "month": None, "location": None, **u_} for u_ in unread_],
+          "closed": closed or {}}
+    ex_, gp_ = fr.kr3_months(d_, None, None, _s2, "2026-10", "2026-11", mvar, score("full"), rag, asof=asof, dated=dated)
+    return by_m(ex_)["2026-10"], gp_
+
+
+_bad = {"modified_at": "2026-10-26T18:00:00.000Z", "cause": "header_missing", "detail": "no header", "week": "2026-10-19"}
+o, _g = _kr([dict(_bad, location="Maki Soho")])
+check(o.get("score") is None and "lower bound" in o["basis"] and "the w/c 19/10 export of Maki Soho could not be read" in o["basis"],
+      "a finished month whose only gap is Soho's unreadable w/c 19/10 export is a LOWER BOUND, not scored (87.5% "
+      "would have read as a final red)")
+o, _g = _kr([dict(_bad, cause="venue_unknown")])
+check(o.get("score") is None and "export of a restaurant not on the site map could not be read" in o["basis"],
+      "...an export naming a restaurant not on the site map too (it may be one of the twenty, renamed in Kobas)")
+o, _g = _kr([dict(_bad, location="Maki Leeds")])
+check(o.get("score") == 0 and "lower bound" not in o["basis"],
+      "...but not when the restaurant it names was counted that week anyway")
+o, _g = _kr([dict(_bad, location="Maki Braehead")])
+check(o.get("score") == 0 and "lower bound" not in o["basis"],
+      "...nor when it names a restaurant on the site map but not one of the KR's (Braehead)")
+_frozen = {"2026-10": {"read_through_at": "2026-11-15T10:00:00.000Z",
+                       "unknown": [{"modified_at": "2026-10-26T18:00:00.000Z", "week": "2026-10-19",
+                                    "location": "Maki Soho"}]}}
+o, _g = _kr([], closed=_frozen)
+check(o.get("score") is None and "the w/c 19/10 export of Maki Soho could not be read when the month closed" in o["basis"]
+      and any("October 2026 closed for re-reading with a report it could not read" in g_ for g_ in _g),
+      "a CLOSED month's lower bound is frozen with it: with the export gone from the folder (and from unread), "
+      "October still is not scored final")
+o, _g = _kr([dict(_bad, week=None, modified_at="2026-10-20T09:00:00.000Z")])
+check(o.get("score") is None and "a report saved 20/10/2026 that could not be read may hold a count for the w/c "
+                                 "19/10, so" in o["basis"],
+      "an unreadable report with no week may hold a count for a week up to the day it was saved - named only where "
+      "a location is uncounted (w/c 19/10; 05/10 and 12/10 are already complete)")
+o, _g = _kr([dict(_bad, week=None, modified_at="2026-10-20T09:00:00.000Z")], closed={
+    "2026-10": {"read_through_at": "2026-11-15T10:00:00.000Z", "unknown": []}})
+check(o.get("score") == 0,
+      "...but a closed month's lower bound is only what it closed with")
+o, _g = _kr([dict(_bad, cause="no_frozen_lines", location="Maki Soho")])
+check(o.get("score") == 0 and any("was read, but no line in it is frozen ramen by name" in g_ and "could not be read" not in g_
+                                  for g_ in _g),
+      "an export that was read and holds no frozen-ramen line is a definite 'not counted', and says it was read")
+_miss = {w: v for w, v in _wk.items() if w != "2026-10-12"}
+for unread_, hint, why in (
+        ([dict(_bad, cause="month_closed", week=None, month="2026-10", modified_at="2026-11-16T09:00:00.000Z")], None,
+         "only a late sheet's notice"),
+        ([dict(_bad, week="2026-11-09")], None, "an unreadable export for another week"),
+        ([dict(_bad, week="2026-10-12")], "could not be read may hold it", "an unreadable export for that week"),
+        ([dict(_bad, week=None, modified_at="2026-10-10T09:00:00.000Z")], None,
+         "an unreadable sheet saved before that week began"),
+        ([dict(_bad, week=None, modified_at="2026-10-20T09:00:00.000Z")], "could not be read may hold it",
+         "an unreadable sheet saved after it"),
+        ([dict(_bad, cause="month_closed", week="2026-10-12", month="2026-10")], "arrived after the month closed",
+         "a late export for that week")):
+    o, _g = _kr(unread_, _miss)
+    got = [h for h in ("could not be read may hold it", "arrived after the month closed") if h in o["basis"]]
+    check(got == ([hint] if hint else []), f"a month missing w/c 12/10, with {why}: hint {hint!r} (got {got})")
+o, _g = _kr([dict(_bad, modified_at="2026-11-20T09:00:00.000Z"),
+             dict(_bad, cause="closed_month_added", week=None, month="2026-11", modified_at="2026-11-02T09:00:00.000Z")],
+            dated="2026-11-16")
+check(not any("saved 20/11" in g_ or "closed_month" in g_ or "was not read when" in g_ for g_ in _g),
+      "a back-bake names no report saved after its date, and no month closed after it")
+_cl = {"2026-10": {"read_through_at": "2026-11-15T10:00:00.000Z",
+                   "unknown": [{"modified_at": "2026-10-26T18:00:00.000Z", "week": "2026-10-19", "location": "Maki Soho"}]}}
+o, _g = _kr([dict(_bad, location="Maki Soho")], closed=_cl, dated="2026-11-10", asof="2026-11-10")
+check(not any("closed for re-reading with" in g_ for g_ in _g) and "when the month closed" not in o["basis"]
+      and "the w/c 19/10 export of Maki Soho could not be read" in o["basis"],
+      "a back-bake dated before October closed sees October OPEN - never 'when the month closed'")
+_miss2 = {w: v for w, v in _wk.items() if w != "2026-10-12"}
+o, _g = _kr([dict(_bad, week=None, modified_at="2026-11-20T09:00:00.000Z")], _miss2,
+            closed={"2026-10": {"read_through_at": "2026-11-15T10:00:00.000Z", "unknown": []}})
+check("may hold it" not in o["basis"],
+      "a report saved after October closed is never 'may hold it' for October's missing week")
+# a file name's spelling of a restaurant is never a location in the copy
+for bad_, why in (({"weeks": {}, "unread_reports": [{"modified_at": "2026-11-18T12:00:00.000Z", "cause": "x",
+                                                      "detail": "y", "location": "Maki-12-Nicolson-St"}]},
+                   "an unread location"),
+                  ({"weeks": {}, "closed_months": [{"month": "2026-10", "read_through_at": "2026-11-18T12:00:00.000Z",
+                                                    "saved": [], "unknown": [{"modified_at": "2026-11-18T12:00:00.000Z",
+                                                                              "location": "Maki-12-Nicolson-St"}]}]},
+                   "a closed month's unknown location"),
+                  ({"weeks": {"2026-10-19": week("2026-10-19", {"Maki-12-Nicolson-St": {"lines": 1, "counted": 1}})}},
+                   "a week's location key"),
+                  ({"weeks": {}, "unread_reports": [{"modified_at": "2026-11-18T12:00:00.000Z", "cause": "Maki Soho said",
+                                                      "detail": "y"}]}, "a cause that is not a fixed cause")):
+    check(fr.stock_leaks(json.dumps(bad_)) != [], f"the bake refuses a file name's spelling or free text as {why}")
+
+# venue_not_named only for a Kobas report
+for nm_, data_, want in (
+        ("KOBAS_Stock_Count_Report.csv", b"Ingredient Name,Counted Quantity\nM&R Hell Ramen,1\n", "venue_not_named"),
+        ("stock.csv", b"Outlet,Item,Closing Stock\nMaki Soho,Frozen Ramen - Hell Ramen,1\n", "header_missing"),
+        ("renamed export.csv", b"Stock usage, Nicolson St\n" + kobas_csv(ALLZERO), "venue_not_named"),
+        ("kobas stock usage nicolson.csv", b"Ingredient Name,Waste Units\nM&R Hell Ramen,1\n", "header_missing")):
+    try:
+        rfs.parse_report(data_, nm_, "2026-10-26T17:57:52Z", MATCH)
+        check(False, f"{nm_}: refused")
+    except rfs.DriveError as e:
+        check(e.cause == want, f"{nm_}: {want} (got {e.cause} {getattr(e, 'roles', '')})")
+# the UK day decides: 23:30 UTC on 14/10 is already 15/10 in BST, so September closes
+ktmp = tempfile.mkdtemp(prefix="oo6-bst-")
+try:
+    _p = os.path.join(ktmp, "s.csv")
+    open(_p, "w").write("Venue,Item,Count Date,Count\nMaki Soho,Frozen Ramen - Hell Ramen,13/10/2026,1\n")
+    for pulled, closes in (("2026-10-14T22:30:00Z", False), ("2026-10-14T23:30:00Z", True)):
+        _o2 = os.path.join(ktmp, pulled[11:13])
+        os.makedirs(_o2)
+        rc, st, dz, _o = krun(_o2, [_p], pulled, ["2026-10-14T09:00:00Z"])
+        check(("2026-09" in [c["month"] for c in dz.get("closed_months", [])]) == closes,
+              f"{pulled}: September {'closes' if closes else 'is still open'} - the UK date "
+              f"({'15' if closes else '14'}/10 in BST) decides, not UTC's")
+finally:
+    shutil.rmtree(ktmp)
 
 print(f"\n{'FAILED' if failures else 'passed'}: {failures} failure(s)")
 sys.exit(1 if failures else 0)
