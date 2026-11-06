@@ -1,6 +1,6 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-11-06T16:18:45Z",
+ "generated_at": "2026-11-06T19:09:12Z",
  "verified_date": "2026-11-06",
  "mode": "recheck",
  "overall": "red",
@@ -904,11 +904,6 @@
    "check": "4a-snapshot",
    "level": "ok",
    "detail": "dashboard snapshot 2026-11-06 matches the pull archive 2026-11-06"
-  },
-  {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-11-05 (propagation lag - normal for up to ~an hour)"
   },
   {
    "check": "6-side",
