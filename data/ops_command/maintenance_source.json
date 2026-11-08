@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-11-06",
+ "source_as_of": "2026-11-08",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-11-07T15:11:34Z",
+ "pulled_at": "2026-11-08T15:42:24Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,42 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Fountain Good Food Ltd",
+   "raw_site": "Maki 3 - Fountainbridge, Edinburgh",
+   "d": "2026-11-08",
+   "issue": "White extension/extension fuse seems to have blown, all the appliances plugged in are not working",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Haru"
+  },
+  {
+   "site": "Maki Shoreditch",
+   "raw_site": "Maki 19 - Shoreditch, London",
+   "d": "2026-11-07",
+   "issue": "Women & man toilet water leaking every week, can’t find the reason",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Lesley"
+  },
+  {
+   "site": "Maki Birmingham Ltd",
+   "raw_site": "Maki 21 - Birmingham",
+   "d": "2026-11-07",
+   "issue": "Wire of ramen fridge got broken during deep cleaning",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Srawut Chairipu"
+  },
   {
    "site": "Maki Newcastle Ltd",
    "raw_site": "Maki 12 - Eldon Square, Newcastle",
@@ -285,7 +321,7 @@
    "raw_site": "Ikigai 2 - Southbridge, Edinburgh",
    "d": "2026-11-01",
    "issue": "Please seal all the wall skitring and small door under stairs as mouse is roaming freely",
-   "comment": "KRIS",
+   "comment": "KRIS -Monday",
    "status": "ongoing",
    "urgency": "High Priority",
    "completed_on": null,
