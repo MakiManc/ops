@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-11-08",
+ "source_as_of": "2026-11-09",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-11-08T15:42:24Z",
+ "pulled_at": "2026-11-09T13:18:45Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,18 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Leeds Ltd",
+   "raw_site": "Maki 10 - Bond St - Leeds",
+   "d": "2026-11-09",
+   "issue": "Bain marie",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Samu"
+  },
   {
    "site": "Fountain Good Food Ltd",
    "raw_site": "Maki 3 - Fountainbridge, Edinburgh",
@@ -29,16 +41,16 @@
    "raised_by": "Haru"
   },
   {
-   "site": "Maki Shoreditch",
-   "raw_site": "Maki 19 - Shoreditch, London",
-   "d": "2026-11-07",
-   "issue": "Women & man toilet water leaking every week, can’t find the reason",
+   "site": "Maki Birmingham Ltd",
+   "raw_site": "Maki 21 - Birmingham",
+   "d": "2026-11-08",
+   "issue": "Floor splitting",
    "comment": "",
    "status": "ongoing",
-   "urgency": "High Priority",
+   "urgency": "Medium Priority",
    "completed_on": null,
    "cost": null,
-   "raised_by": "Lesley"
+   "raised_by": "Mia"
   },
   {
    "site": "Maki Birmingham Ltd",
@@ -154,7 +166,7 @@
    "d": "2026-11-05",
    "issue": "Pipe leaking",
    "comment": "Please find someone local to fix a problem-KRIS",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,

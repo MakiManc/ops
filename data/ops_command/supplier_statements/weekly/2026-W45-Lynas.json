@@ -1,0 +1,144 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W45",
+ "from": "2026-11-02",
+ "to": "2026-11-08",
+ "generated_on": "2026-11-09",
+ "updated_on": "2026-11-09",
+ "final": true,
+ "issue_feed_through": "2026-11-08",
+ "forms": 8,
+ "deliveries": 67,
+ "deliveries_counted": 67,
+ "rate": 88.1,
+ "not_measured": null,
+ "credit_flagged": 4,
+ "by_site": [
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 3
+  },
+  {
+   "site": "Maki METRO",
+   "forms": 2
+  },
+  {
+   "site": "AA Factory1 Limited",
+   "forms": 1
+  },
+  {
+   "site": "Maki Aberdeen Ltd",
+   "forms": 1
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 4
+  },
+  {
+   "category": "(none recorded)",
+   "forms": 1
+  },
+  {
+   "category": "damage_quality",
+   "forms": 1
+  },
+  {
+   "category": "invoice_credit",
+   "forms": 1
+  },
+  {
+   "category": "other",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-11-02",
+   "site": "Maki METRO",
+   "category": "damage_quality",
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "soba sauce came in damaged",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-02",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing 1pc egg white and 3pcs of reload 10, I can find these items in the invoice, please ask for credit note.\nMissing 3case of ramen, but not in the invoice.\nThanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-11-02",
+   "site": "South Ikigai Ltd",
+   "category": null,
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": null,
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-03",
+   "site": "Maki Aberdeen Ltd",
+   "category": "other",
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "no ",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-03",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "Missing 3pcs of reload 10, please ask for the credit note. Thanks.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-11-05",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": false,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "We got the invoice but no items. Missing 5 cases of CHICKEN WINGS.",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-11-05",
+   "site": "Maki SJQ Ltd",
+   "category": "invoice_credit",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "1 case confit duck duck legs is no coming by Lynas on 5/11 ,we need to credit it",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-11-06",
+   "site": "Maki METRO",
+   "category": "shortage",
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "missing one day roll Monday ",
+   "credit_flag": false
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-11-09"
+}
