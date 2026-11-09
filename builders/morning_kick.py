@@ -15,8 +15,9 @@ the same second) and still needs a PAT Ross must mint". This is that clock.
 It runs from THIS public repo, whose own cron was measured 1-53 minutes late
 (median 27, by the since-deleted scheduler_probe, 07-10/09/2026), and then
 keeps time itself. That premise failed: on 10-14/10 this cron was created
-5h18m-8h36m late, after the 09:55 UK deadline, so it never dispatched an
-export, and no schedule event has fired in this repo since 14/10/2026. What
+5h18m-8h36m late. On 11-14/10, with the token set, it started after the
+09:55 UK deadline, so it never dispatched an export (on 10/10 the token was
+not yet set). No schedule event has fired in this repo since 14/10/2026. What
 it does when it runs:
 
   1. if the Flow deep pull has not run today (UK) and is due - a Monday, or a

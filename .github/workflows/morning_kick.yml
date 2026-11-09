@@ -14,9 +14,10 @@ name: Morning kick (dashboard ready by 10:00 UK)
 # the full account.
 #
 # IT HAS NEVER MET THAT GOAL (09/11/2026). On 10-14/10 GitHub created this
-# 06:05 cron 5h18m-8h36m late (11:23-14:41Z) - after its own 09:55 UK
-# deadline - so it dispatched no export and sent the "not ready" push each
-# day (the token was set from 11/10; lateness alone stopped it). No schedule
+# 06:05 cron 5h18m-8h36m late (11:23-14:41Z). It dispatched no export: on
+# 10/10 because ETL_DISPATCH_TOKEN was not yet set (exit 2), and on 11-14/10,
+# with the token set, because it started after its own 09:55 UK deadline,
+# sending the "not ready" push each of those days. No schedule
 # event has fired in this repo since 14/10/2026. On GitHub's scheduler it is
 # not an external clock; do not switch schedules back on expecting 10:00.
 #
