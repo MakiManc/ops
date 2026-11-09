@@ -312,7 +312,7 @@ def build(values: list[list], pulled_at: str, tab: str) -> dict | None:
                          if canon_site(t["raw_site"]) is None and t["raw_site"]})
     dates = [t["d"] for t in tasks if t["d"]]
     return {
-        "source": (f"Google Sheet '{SHEET_NAME}' (owned by lincoln@makiramen.com), "
+        "source": (f"Google Sheet '{SHEET_NAME}' (owned by Lincoln, Maintenance), "
                    f"worksheet '{tab}' (gid {FORM_GID}) - the Google Form "
                    f"responses themselves, one row per submission"),
         "source_url": (f"https://docs.google.com/spreadsheets/d/{SHEET_ID}"

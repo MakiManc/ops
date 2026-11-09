@@ -7,11 +7,18 @@ name: Morning kick (dashboard ready by 10:00 UK)
 # so the 08:17 export cron fires 12:30-17:00 UTC and the dashboard lands in
 # the afternoon. Dispatched runs start within seconds. This job is the
 # external clock that daily-export.yml asks for: it runs HERE (public repo,
-# cron 1-53 min late, free minutes), waits until 08:12 UK - just after the
+# free minutes), waits until 08:12 UK - just after the
 # Kobas report emails - and dispatches the export; the bake and the verifier
 # chain off it as always. It retries if today's snapshot has not landed and
 # fails loudly at 09:55 UK if it still has not. builders/morning_kick.py has
 # the full account.
+#
+# IT HAS NEVER MET THAT GOAL (09/11/2026). On 10-14/10 GitHub created this
+# 06:05 cron 5h18m-8h36m late (11:23-14:41Z) - after its own 09:55 UK
+# deadline - so it dispatched no export and sent the "not ready" push each
+# day (the token was set from 11/10; lateness alone stopped it). No schedule
+# event has fired in this repo since 14/10/2026. On GitHub's scheduler it is
+# not an external clock; do not switch schedules back on expecting 10:00.
 #
 # REQUIRED SECRET (Ross adds it - nothing here can create or read it):
 #   ETL_DISPATCH_TOKEN - fine-grained PAT, Resource owner MakiManc, Only
@@ -20,11 +27,12 @@ name: Morning kick (dashboard ready by 10:00 UK)
 #   date in a calendar. Without it this job fails at once, naming the secret.
 # OPTIONAL: NTFY_TOPIC on this repo, for the 09:55 "not ready" push.
 #
-# 06:05 UTC = 07:05 UK in summer, 06:05 UK in winter; with this repo's worst
-# measured lateness (53 min) it still starts before 08:12 UK in both. One slot
-# a day, off the :00 rush: GitHub drops scheduled runs in proportion to how
-# many slots a workflow asks for (daily-export.yml header), and one slot a
-# day has fired 100% of the time in every measurement so far.
+# 06:05 UTC = 07:05 UK in summer, 06:05 UK in winter; the 07-10/09 probe's
+# 1-53 min lateness would have started it before 08:12 UK in both, but
+# October's 5-8.6 h did not (above). One slot a day, off the :00 rush: GitHub
+# drops scheduled runs in proportion to how many slots a workflow asks for
+# (daily-export.yml header), and one slot a day fired every day it was
+# measured, through 14/10 - late, but it fired.
 
 on:
   schedule:

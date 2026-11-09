@@ -3,8 +3,8 @@
 
 Ross, 11/10/2026: the private repo's 2,000 Actions minutes ran out around
 26/10 at the daily rate, so the deep pull went to Mondays only until 1 Nov.
-Ross, 20/10/2026, verbatim: "2,000 is the limit" and "Weekly deep pull yes" -
-so it stays weekly, with no end date. This pins that the verifier neither
+Ross, 20/10/2026, verbatim: "Weekly deep pull yes" - so it stays weekly, with
+no end date, as a standing decision (the pool is 3,000 from November 2026). This pins that the verifier neither
 cries wolf on the days off nor goes quiet when a pull is genuinely due, and
 that the bake says the training figures are older:
 
@@ -12,8 +12,8 @@ that the bake says the training figures are older:
   * a failed Monday is due again from the next day until a clean pull lands
   * the Deep Flow feeds carry a 7-day cadence from DEEP_PULL_WEEKLY_FROM, 1 day before
   * November is still weekly - nothing goes back to daily on 1 Nov
-  * the 12:03 recheck, which the October budget also switched off, still
-    comes back on 1 Nov: Ross kept only the deep pull weekly
+  * the October budget's 12:03-recheck gate (RECHECK_OFF_UNTIL) is gone -
+    it expired on 1 Nov and was removed 09/11/2026
   * the bake names the deep pull's date in a gap while it lags the pull
 
 Runs the real check functions against a tiny synthetic archive.
@@ -129,8 +129,8 @@ check(bake.DEEP_PULL_WEEKLY_FROM == vod.DEEP_PULL_WEEKLY_FROM == kick.DEEP_PULL_
       "the bake, the verifier and the morning kick carry the same start date")
 check(not any(hasattr(m, "DEEP_PULL_WEEKLY_UNTIL") for m in (bake, vod, kick)),
       "...and none of them carries an end date any more")
-check(vod.RECHECK_OFF_UNTIL == "2026-11-01",
-      "the 12:03 recheck still comes back on 1 Nov - decoupled from the deep pull")
+check(not hasattr(vod, "RECHECK_OFF_UNTIL"),
+      "the expired October 12:03-recheck gate is gone - the recheck runs every day")
 
 # ---- the verifier on a synthetic archive -----------------------------------
 for label, today, deep_days, receipts, want_rc, want_land in (
@@ -203,8 +203,10 @@ try:
         sn = json.load(open(os.path.join(out, "snapshot_2026-11-04.json")))
         g = [x for x in sn["gaps"] if "Deep Flow feeds" in x]
         check(len(g) == 1 and "deep pull of 2026-11-02" in g[0] and "Mondays only" in g[0]
-              and "2,000" in g[0] and "back to daily" not in g[0],
-              "BAKED 04/11: the gap says Mondays only, for the 2,000-minute limit, with no 'back to daily'")
+              and "standing decision" in g[0] and "2,000" not in g[0]
+              and "back to daily" not in g[0],
+              "BAKED 04/11: the gap says Mondays only, as Ross's standing decision, with no "
+              "minutes figure and no 'back to daily'")
         fhd = next((r for r in sn["feed_health"] if r["feed"] == DEEP), {})
         check(fhd.get("verdict") == "OK" and fhd.get("age_days") == 2,
               f"BAKED 04/11: the 2-day-old weekly deep feed is OK, not WATCH (got {fhd.get('verdict')})")

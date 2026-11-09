@@ -12,9 +12,12 @@ runs, by contrast, start within seconds. daily-export.yml says it outright:
 "an external clock is still the better answer (dispatch creates the run in
 the same second) and still needs a PAT Ross must mint". This is that clock.
 
-It runs from THIS public repo, whose own cron is 1-53 minutes late (median
-27, measured by scheduler_probe), early enough that the lateness does not
-matter, and then keeps time itself:
+It runs from THIS public repo, whose own cron was measured 1-53 minutes late
+(median 27, by the since-deleted scheduler_probe, 07-10/09/2026), and then
+keeps time itself. That premise failed: on 10-14/10 this cron was created
+5h18m-8h36m late, after the 09:55 UK deadline, so it never dispatched an
+export, and no schedule event has fired in this repo since 14/10/2026. What
+it does when it runs:
 
   1. if the Flow deep pull has not run today (UK) and is due - a Monday, or a
      later day of a week whose Monday pull has not succeeded (it runs on
@@ -190,7 +193,7 @@ def main(api=None, now=lambda: dt.datetime.now(UK), sleep=time.sleep) -> int:
             # failed Monday it falls through and dispatches: the workflow's
             # budget step then runs the catch-up, hours before its own cron
             # (3-12h late in that repo) would.
-            log("no Flow deep pull dispatched - Mondays only (2,000 Actions minutes a month), "
+            log("no Flow deep pull dispatched - Mondays only (Ross's standing decision), "
                 "and this week's Monday pull succeeded")
         else:
             st = api.dispatch(DEEP_WF)

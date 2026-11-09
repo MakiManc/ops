@@ -2289,9 +2289,10 @@ FACILITIES_STALE_DAYS = 3
 FACILITIES_APP_URL = "https://rossmward.eu.pythonanywhere.com"
 FACILITIES_API_PATH = "/api/ppm_summary"
 #: THE FLOW DEEP PULL RUNS ON MONDAYS ONLY, from FROM onwards. It began as the
-#: October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov); with
-#: 2,000 minutes a month as the hard limit (Ross, 20/10/2026: "2,000 is the
-#: limit") it stays weekly for good (Ross, 20/10/2026: "Weekly deep pull yes").
+#: October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov) and stays
+#: weekly for good as Ross's standing decision (20/10/2026: "Weekly deep pull
+#: yes"). The pool was 2,000 minutes a month when that was decided and is 3,000
+#: from November 2026; the larger pool did not change the decision.
 #: Keep FROM identical to verify_ops_data and morning_kick (deep-pull.yml applies
 #: the same Monday/catch-up rule with no date of its own), and deep_pull_due()
 #: identical to the verifier's.
@@ -3840,9 +3841,9 @@ def main():
     if pull and _dlp and _dlp < pull and DEEP_PULL_WEEKLY_FROM <= pull:
         if not deep_pull_due(pull, _dlp):
             gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
-                        f"pull of {_dlp}, not this pull: that pull runs on Mondays only, to "
-                        "keep the private repo inside its 2,000 Actions minutes a month "
-                        "(Ross, 20/10/2026), so these figures can be up to 6 days old")
+                        f"pull of {_dlp}, not this pull: that pull runs on Mondays only, by "
+                        "Ross's standing decision (20/10/2026: \"Weekly deep pull yes\"), "
+                        "so these figures can be up to 6 days old")
         else:
             gaps.append(f"Training per-module figures (Deep Flow feeds) are from the Flow deep "
                         f"pull of {_dlp}: a deep pull is DUE (Monday, or this week's Monday "

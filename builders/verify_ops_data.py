@@ -247,10 +247,11 @@ DB_SIZE_CRIT_MB = 450
 MAINT_AGE_WARN_DAYS = 3
 
 #: THE FLOW DEEP PULL RUNS ON MONDAYS ONLY, from this date onwards. It began as
-#: the October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov);
-#: with 2,000 minutes a month as the hard limit (Ross, 20/10/2026: "2,000 is
-#: the limit") it stays weekly for good (Ross, 20/10/2026: "Weekly deep pull
-#: yes"). The bake and morning_kick carry the same date; deep-pull.yml in
+#: the October 2026 Actions-minutes budget (Ross, 11/10/2026: until 1 Nov) and
+#: stays weekly for good as Ross's standing decision (20/10/2026: "Weekly deep
+#: pull yes"). The pool was 2,000 minutes a month when that was decided and is
+#: 3,000 from November 2026; the larger pool did not change the decision.
+#: The bake and morning_kick carry the same date; deep-pull.yml in
 #: maki-hospitality-etl applies the same Monday/catch-up rule with no date of
 #: its own. A Monday that fails is retried by every later run until
 #: a clean pull lands, so a deep-pull receipt is DUE on a Monday, or on any day
@@ -259,10 +260,9 @@ MAINT_AGE_WARN_DAYS = 3
 #: alarm. The Deep Flow feeds get a DEEP_PULL_WEEKLY_DAYS cadence.
 DEEP_PULL_WEEKLY_FROM = "2026-10-11"
 DEEP_PULL_WEEKLY_DAYS = 7
-#: The October budget also turned the 12:03 UTC scheduled recheck off until
-#: this date (ops_verify.yml), so a morning deferral is not rechecked that day.
-#: Ross kept only the deep pull weekly, so the recheck still comes back on it.
-RECHECK_OFF_UNTIL = "2026-11-01"
+#: (The October budget's RECHECK_OFF_UNTIL = "2026-11-01", which turned the
+#: 12:03 UTC recheck off for October, expired and was removed 09/11/2026 along
+#: with its ops_verify.yml step. The recheck runs every day.)
 
 
 def deep_pull_weekly(today: str) -> bool:
@@ -436,8 +436,8 @@ def check_receipts(cur, today: str) -> dict:
             if not deep_pull_due(today, last_clean):
                 states[kind] = 0
                 add("0-receipts", "ok",
-                    f"no {label} due today - it runs on Mondays only (2,000 Actions "
-                    f"minutes a month); newest clean receipt {str(last_clean)[:10]}", kind)
+                    f"no {label} due today - it runs on Mondays only (Ross's standing "
+                    f"decision, 20/10/2026); newest clean receipt {str(last_clean)[:10]}", kind)
                 continue
         if row is None:
             states[kind] = None
@@ -1817,11 +1817,7 @@ def main() -> None:
         for r in RESULTS:
             if r["level"] == "critical" and r.get("class") in DEFERRABLE:
                 r["level"] = "deferred"
-                r["detail"] += (
-                    "  [deferred - rechecked at 12:00 UTC]" if today >= RECHECK_OFF_UNTIL else
-                    f"  [deferred - the 12:00 UTC recheck is off until {RECHECK_OFF_UNTIL} "
-                    "(October Actions minutes), so this is NOT rechecked today; the next "
-                    "verify follows the next bake]")
+                r["detail"] += "  [deferred - rechecked at 12:00 UTC]"
                 deferred.append(r)
 
     criticals = [r for r in RESULTS if r["level"] == "critical"]
