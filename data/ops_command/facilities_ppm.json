@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-09",
+ "as_of": "2026-11-10",
  "contractors": [
   {
    "avg_days_late": null,
@@ -16,8 +16,8 @@
    "name": "IDES",
    "no_evidence": 9,
    "ontime_pct_12m": 0,
-   "overdue": 7,
-   "tasks": 71
+   "overdue": 6,
+   "tasks": 70
   },
   {
    "avg_days_late": 42,
@@ -29,13 +29,13 @@
    "tasks": 26
   },
   {
-   "avg_days_late": null,
-   "last_cert": "2026-10-01",
+   "avg_days_late": 6,
+   "last_cert": "2026-10-12",
    "name": "Pestokill / Anticimex",
    "no_evidence": 1,
-   "ontime_pct_12m": null,
-   "overdue": 5,
-   "tasks": 13
+   "ontime_pct_12m": 0,
+   "overdue": 4,
+   "tasks": 11
   },
   {
    "avg_days_late": null,
@@ -54,15 +54,6 @@
    "ontime_pct_12m": null,
    "overdue": 2,
    "tasks": 6
-  },
-  {
-   "avg_days_late": null,
-   "last_cert": "2026-06-26",
-   "name": "Rentokil Initial (PestConnect)",
-   "no_evidence": 0,
-   "ontime_pct_12m": null,
-   "overdue": 2,
-   "tasks": 2
   },
   {
    "avg_days_late": null,
@@ -93,8 +84,8 @@
   },
   {
    "avg_days_late": null,
-   "last_cert": "2026-03-24",
-   "name": "Nucore Group",
+   "last_cert": "2026-06-26",
+   "name": "Rentokil Initial (PestConnect)",
    "no_evidence": 0,
    "ontime_pct_12m": null,
    "overdue": 1,
@@ -129,15 +120,6 @@
   },
   {
    "avg_days_late": null,
-   "last_cert": "2026-08-31",
-   "name": "Reaper Pest Control",
-   "no_evidence": 0,
-   "ontime_pct_12m": null,
-   "overdue": 0,
-   "tasks": 4
-  },
-  {
-   "avg_days_late": null,
    "last_cert": "2026-06-03",
    "name": "Jonathan Knott (ACRIB 4770001)",
    "no_evidence": 0,
@@ -165,21 +147,21 @@
   },
   {
    "avg_days_late": null,
+   "last_cert": "2026-08-31",
+   "name": "Reaper Pest Control",
+   "no_evidence": 0,
+   "ontime_pct_12m": null,
+   "overdue": 0,
+   "tasks": 3
+  },
+  {
+   "avg_days_late": null,
    "last_cert": "2026-07-27",
    "name": "Direct365 / Bison Assist",
    "no_evidence": 0,
    "ontime_pct_12m": null,
    "overdue": 0,
    "tasks": 2
-  },
-  {
-   "avg_days_late": null,
-   "last_cert": null,
-   "name": "AJR FM",
-   "no_evidence": 0,
-   "ontime_pct_12m": null,
-   "overdue": 0,
-   "tasks": 1
   },
   {
    "avg_days_late": null,
@@ -273,6 +255,15 @@
   },
   {
    "avg_days_late": null,
+   "last_cert": "2026-03-24",
+   "name": "Nucore Group",
+   "no_evidence": 0,
+   "ontime_pct_12m": null,
+   "overdue": 0,
+   "tasks": 0
+  },
+  {
+   "avg_days_late": null,
    "last_cert": "2025-11-20",
    "name": "Patman Company",
    "no_evidence": 0,
@@ -332,16 +323,16 @@
   "open_over_14d": 0
  },
  "feed_url": "https://rossmward.eu.pythonanywhere.com/api/ppm_summary",
- "generated_at": "2026-11-09T13:18:56.472378Z",
+ "generated_at": "2026-11-10T08:28:35.037587Z",
  "group": {
-  "current": 144,
-  "due30": 21,
-  "kr1_n": 17,
+  "current": 145,
+  "due30": 22,
+  "kr1_n": 18,
   "kr1_ok": 8,
-  "kr1_pct": 47,
-  "kr4_pct": 79,
+  "kr1_pct": 44,
+  "kr4_pct": 80,
   "no_evidence": 17,
-  "overdue": 26,
+  "overdue": 24,
   "tasks": 208
  },
  "kr2_repeat_issues": {
@@ -394,7 +385,7 @@
   "pairs": [],
   "rule": "second fault report on the same asset at the same site within 60 days (reported→reported); re-report while first still open = chaser, not repeat"
  },
- "pulled_at": "2026-11-09T13:18:56Z",
+ "pulled_at": "2026-11-10T08:28:35Z",
  "pulled_by": "bake",
  "sites": [
   {
@@ -405,7 +396,7 @@
    "kr1_pct": null,
    "kr4_pct": 78,
    "no_evidence": 1,
-   "oldest_overdue_days": 2,
+   "oldest_overdue_days": 3,
    "overdue": 1,
    "site": "Ikigai SB",
    "tasks": 9,
@@ -435,7 +426,7 @@
    "kr1_pct": 100,
    "kr4_pct": 60,
    "no_evidence": 3,
-   "oldest_overdue_days": 708,
+   "oldest_overdue_days": 709,
    "overdue": 1,
    "site": "Maki 10",
    "tasks": 10,
@@ -449,7 +440,7 @@
    "kr1_pct": null,
    "kr4_pct": 82,
    "no_evidence": 1,
-   "oldest_overdue_days": 178,
+   "oldest_overdue_days": 179,
    "overdue": 1,
    "site": "Maki 11",
    "tasks": 11,
@@ -465,7 +456,7 @@
    "kr1_pct": 0,
    "kr4_pct": 92,
    "no_evidence": 0,
-   "oldest_overdue_days": 158,
+   "oldest_overdue_days": 159,
    "overdue": 1,
    "site": "Maki 12",
    "tasks": 13,
@@ -481,7 +472,7 @@
    "kr1_pct": 100,
    "kr4_pct": 70,
    "no_evidence": 1,
-   "oldest_overdue_days": 103,
+   "oldest_overdue_days": 104,
    "overdue": 2,
    "site": "Maki 13",
    "tasks": 10,
@@ -497,7 +488,7 @@
    "kr1_pct": 67,
    "kr4_pct": 60,
    "no_evidence": 1,
-   "oldest_overdue_days": 252,
+   "oldest_overdue_days": 253,
    "overdue": 3,
    "site": "Maki 14",
    "tasks": 10,
@@ -506,15 +497,15 @@
   {
    "code": "M15",
    "company": "Maki Metro Ltd",
-   "current": 8,
+   "current": 9,
    "due30": 5,
-   "kr1_n": 2,
+   "kr1_n": 3,
    "kr1_ok": 0,
    "kr1_pct": 0,
-   "kr4_pct": 93,
+   "kr4_pct": 100,
    "no_evidence": 0,
-   "oldest_overdue_days": 34,
-   "overdue": 1,
+   "oldest_overdue_days": 0,
+   "overdue": 0,
    "site": "Maki 15",
    "tasks": 14,
    "trading_name": "Maki Ramen Metrocentre"
@@ -529,7 +520,7 @@
    "kr1_pct": 100,
    "kr4_pct": 83,
    "no_evidence": 0,
-   "oldest_overdue_days": 9,
+   "oldest_overdue_days": 10,
    "overdue": 2,
    "site": "Maki 16",
    "tasks": 12,
@@ -545,7 +536,7 @@
    "kr1_pct": 0,
    "kr4_pct": 73,
    "no_evidence": 1,
-   "oldest_overdue_days": 68,
+   "oldest_overdue_days": 69,
    "overdue": 2,
    "site": "Maki 17",
    "tasks": 11,
@@ -561,7 +552,7 @@
    "kr1_pct": 0,
    "kr4_pct": 69,
    "no_evidence": 2,
-   "oldest_overdue_days": 74,
+   "oldest_overdue_days": 75,
    "overdue": 2,
    "site": "Maki 18",
    "tasks": 13,
@@ -577,7 +568,7 @@
    "kr1_pct": 0,
    "kr4_pct": 80,
    "no_evidence": 1,
-   "oldest_overdue_days": 6,
+   "oldest_overdue_days": 7,
    "overdue": 2,
    "site": "Maki 19",
    "tasks": 15,
@@ -607,7 +598,7 @@
    "kr1_pct": null,
    "kr4_pct": 60,
    "no_evidence": 2,
-   "oldest_overdue_days": 39,
+   "oldest_overdue_days": 40,
    "overdue": 2,
    "site": "Maki 21",
    "tasks": 10,
@@ -635,7 +626,7 @@
    "kr1_pct": null,
    "kr4_pct": 44,
    "no_evidence": 2,
-   "oldest_overdue_days": 768,
+   "oldest_overdue_days": 769,
    "overdue": 3,
    "site": "Maki 6",
    "tasks": 9,
@@ -649,7 +640,7 @@
    "kr1_pct": null,
    "kr4_pct": 90,
    "no_evidence": 0,
-   "oldest_overdue_days": 1215,
+   "oldest_overdue_days": 1216,
    "overdue": 1,
    "site": "Maki 7",
    "tasks": 10,
@@ -659,12 +650,12 @@
    "code": "M8",
    "company": "Renfield Delight Ltd",
    "current": 6,
-   "due30": 0,
+   "due30": 1,
    "kr1_pct": null,
-   "kr4_pct": 67,
+   "kr4_pct": 78,
    "no_evidence": 1,
-   "oldest_overdue_days": 768,
-   "overdue": 2,
+   "oldest_overdue_days": 769,
+   "overdue": 1,
    "site": "Maki 8",
    "tasks": 9,
    "trading_name": "Maki Ramen Renfield St"
