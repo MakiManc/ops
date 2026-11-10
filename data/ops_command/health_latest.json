@@ -1,8 +1,8 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-11-10T08:32:14Z",
+ "generated_at": "2026-11-10T19:31:59Z",
  "verified_date": "2026-11-10",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "amber",
  "postgres_latest": "2026-11-10",
  "snapshot_latest": "2026-11-10",
@@ -941,5 +941,5 @@
    "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-10 08:28 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
