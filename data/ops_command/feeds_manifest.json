@@ -441,6 +441,16 @@
    "status": "expected"
   },
   {
+   "name": "Kobas Report - Weekly Revenue and Cost of Sales by Category Report",
+   "workflow": "daily-export",
+   "cadence_days": 8,
+   "pulls_weekends": true,
+   "min_rows": 246,
+   "median_rows_at_calibration": 616,
+   "status": "expected",
+   "note": "Added 11/11/2026. Kobas scheduled email, Mondays ~08:05 UK, CSV attachment: gross sales, net sales and cost of sales by EPoS item category per venue, with lead type food / wet / controllables. Arrived weekly since at least 02/11/2026 but was dropped by the ETL until maki-hospitality-etl accepted CSV attachments (PR kobas-csv-reports). Calibrated on ONE file (09/11/2026: 616 rows, 25 venues, 429 food / 182 wet / 5 controllables); min_rows is 40% of that per the usual rule - recheck after four weekly pulls. Intended consumer: the food-cost % tile (Cost of Sales / Net Sales by lead type), replacing keyword classification of invoice lines."
+  },
+  {
    "name": "Kobas Pack Prices",
    "workflow": "daily-export",
    "cadence_days": 30,
