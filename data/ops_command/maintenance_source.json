@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-11-10",
+ "source_as_of": "2026-11-11",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-11-11T09:01:39Z",
+ "pulled_at": "2026-11-12T11:42:31Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,78 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki Nori",
+   "raw_site": "Maki Nori - London",
+   "d": "2026-11-11",
+   "issue": "sushi prep area, under the sink there is a leakage",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "Medium Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Ginger Zerbetto"
+  },
+  {
+   "site": "Maki Birmingham Ltd",
+   "raw_site": "Maki 21 - Birmingham",
+   "d": "2026-11-11",
+   "issue": "Walk in fridge leaking from bottom",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Mia"
+  },
+  {
+   "site": "Maki Soho",
+   "raw_site": "Maki 18 - Soho, London",
+   "d": "2026-11-11",
+   "issue": "Projector in zen stopped working",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Trushank"
+  },
+  {
+   "site": "Maki Shoreditch",
+   "raw_site": "Maki 19 - Shoreditch, London",
+   "d": "2026-11-11",
+   "issue": "Pipe going into Grease trap broken. And flex pipe under kitchen sink broken.",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Zhihua"
+  },
+  {
+   "site": "Factory - Dalkeith Road, Edinburgh",
+   "raw_site": "Factory - Dalkeith Road, Edinburgh",
+   "d": "2026-11-11",
+   "issue": "Main kitchen floor redone",
+   "comment": "KRIS",
+   "status": "done",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Krzysztof Jozefowicz"
+  },
+  {
+   "site": "Maki Shoreditch",
+   "raw_site": "Maki 19 - Shoreditch, London",
+   "d": "2026-11-11",
+   "issue": "Changed the bulb at least three times, still not working",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Lesley"
+  },
   {
    "site": "Factory - Renfield St, Glasgow",
    "raw_site": "Factory - Renfield St, Glasgow",
