@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-11-11",
+ "source_as_of": "2026-11-13",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-11-12T11:42:31Z",
+ "pulled_at": "2026-11-13T16:51:20Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,18 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Maki SJQ Ltd",
+   "raw_site": "Maki 7 - SJQ, Edinburgh",
+   "d": "2026-11-13",
+   "issue": "Pipe above KP station has disconnected. SJQ have asked that we get it fixed ASAP",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Rory"
+  },
   {
    "site": "Maki Nori",
    "raw_site": "Maki Nori - London",
@@ -250,7 +262,7 @@
    "d": "2026-11-06",
    "issue": "Leakage on bar celling",
    "comment": "Tuesday Repair",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
