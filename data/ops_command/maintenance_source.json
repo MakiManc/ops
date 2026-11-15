@@ -2,9 +2,9 @@
  "source": "Google Sheet 'Required Maintenance/Repair (Responses)' (owned by lincoln@makiramen.com), worksheet 'Form responses 1' (gid 1754461106) - the Google Form responses themselves, one row per submission",
  "source_url": "https://docs.google.com/spreadsheets/d/1_ssmA8xOdmdb8tKspL4qVvQ5DWYM1lVvI83iwrEyClA/edit#gid=1754461106",
  "source_kind": "form_responses",
- "source_as_of": "2026-11-13",
+ "source_as_of": "2026-11-15",
  "first_submission": "2024-01-13",
- "pulled_at": "2026-11-14T15:24:49Z",
+ "pulled_at": "2026-11-15T15:58:43Z",
  "pulled_by": "builders/refresh_maintenance.py (service account, headless)",
  "unresolved_site_labels": [
   "Factory - Dalkeith Road, Edinburgh",
@@ -16,6 +16,30 @@
   "RHQ"
  ],
  "tasks": [
+  {
+   "site": "Factory - Renfield St, Glasgow",
+   "raw_site": "Factory - Renfield St, Glasgow",
+   "d": "2026-11-15",
+   "issue": "Commercial blender plug needs to be replaced for UK one",
+   "comment": "KRIS",
+   "status": "done",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Krzysztof Jozefowicz"
+  },
+  {
+   "site": "Maki Shoreditch",
+   "raw_site": "Maki 19 - Shoreditch, London",
+   "d": "2026-11-14",
+   "issue": "Both male toilet were flooding",
+   "comment": "",
+   "status": "ongoing",
+   "urgency": "High Priority",
+   "completed_on": null,
+   "cost": null,
+   "raised_by": "Lesley"
+  },
   {
    "site": "Maki SJQ Ltd",
    "raw_site": "Maki 7 - SJQ, Edinburgh",
@@ -190,7 +214,7 @@
    "d": "2026-11-08",
    "issue": "White extension/extension fuse seems to have blown, all the appliances plugged in are not working",
    "comment": "KRIS",
-   "status": "ongoing",
+   "status": "done",
    "urgency": "High Priority",
    "completed_on": null,
    "cost": null,
