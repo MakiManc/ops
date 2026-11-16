@@ -1,15 +1,15 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-11-16T12:38:05Z",
+ "generated_at": "2026-11-16T13:34:15Z",
  "verified_date": "2026-11-16",
  "mode": "recheck",
  "overall": "red",
  "postgres_latest": "2026-11-16",
  "snapshot_latest": "2026-11-16",
  "sizes": {
-  "maintenance_pulled_at": "2026-11-16T12:33:59Z",
+  "maintenance_pulled_at": "2026-11-16T13:29:47Z",
   "maintenance_source_as_of": "2026-11-16",
-  "facilities_pulled_at": "2026-11-16T12:34:11Z",
+  "facilities_pulled_at": "2026-11-16T13:30:08Z",
   "facilities_as_of": "2026-11-16",
   "facilities_copy": "facilities_ppm.json",
   "archive_mb": 517
@@ -18,8 +18,8 @@
   "expected_feeds": 32,
   "known_broken": 10,
   "best_effort": 22,
-  "criticals": 2,
-  "warnings": 11,
+  "criticals": 1,
+  "warnings": 12,
   "deferred": 0
  },
  "criticals": [
@@ -27,14 +27,7 @@
    "check": "0-receipts",
    "level": "critical",
    "feed": "daily-export",
-   "detail": "08:17 daily export receipt says exit 1 with 1 failed feed(s) - see its run log"
-  },
-  {
-   "check": "1-landed",
-   "level": "critical",
-   "feed": "Kobas Report - Weekly Revenue and Cost of Sales by Category Report",
-   "class": "1-landed",
-   "detail": "feed has NEVER landed in the pull archive"
+   "detail": "08:17 daily export receipt says exit 1 with 2 failed feed(s) - see its run log"
   }
  ],
  "warnings": [
@@ -87,6 +80,12 @@
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
+   "check": "5-unmanifested",
+   "level": "warning",
+   "feed": "Slerp Order Events",
+   "detail": "feed landed 8 rows today but is NOT in the manifest - add it (expected, best_effort, or known_broken) so it stops flying blind"
+  },
+  {
    "check": "3-events",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
@@ -101,12 +100,12 @@
   {
    "check": "4d-okr",
    "level": "warning",
-   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-16T12:34) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-16T13:29) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "4f-oo1-ma",
    "level": "warning",
-   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-16 12:34 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
+   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-16 13:30 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
  "deferred": [],
@@ -181,7 +180,7 @@
    "check": "0-receipts",
    "level": "critical",
    "feed": "daily-export",
-   "detail": "08:17 daily export receipt says exit 1 with 1 failed feed(s) - see its run log"
+   "detail": "08:17 daily export receipt says exit 1 with 2 failed feed(s) - see its run log"
   },
   {
    "check": "0-receipts",
@@ -433,13 +432,13 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Central Form Tasks",
-   "detail": "landed 2026-11-15"
+   "detail": "landed 2026-11-16"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Central Form Tasks",
-   "detail": "no pull today - last landed 2026-11-15, inside its 4-day cadence, so there are no rows to weigh"
+   "detail": "12660 rows (median 12660)"
   },
   {
    "check": "1-landed",
@@ -512,13 +511,13 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Local Procedures",
-   "detail": "landed 2026-11-15"
+   "detail": "landed 2026-11-16"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Local Procedures",
-   "detail": "no pull today - last landed 2026-11-15, inside its 4-day cadence, so there are no rows to weigh"
+   "detail": "625 rows (median 625)"
   },
   {
    "check": "1-landed",
@@ -572,25 +571,25 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Procedures",
-   "detail": "landed 2026-11-15"
+   "detail": "landed 2026-11-16"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Procedures",
-   "detail": "no pull today - last landed 2026-11-15, inside its 4-day cadence, so there are no rows to weigh"
+   "detail": "25 rows (median 25)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Procedures Refactor",
-   "detail": "landed 2026-11-15"
+   "detail": "landed 2026-11-16"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Procedures Refactor",
-   "detail": "no pull today - last landed 2026-11-15, inside its 4-day cadence, so there are no rows to weigh"
+   "detail": "25 rows (median 25)"
   },
   {
    "check": "1-landed",
@@ -662,7 +661,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "854 rows (median 882)"
+   "detail": "869 rows (median 882)"
   },
   {
    "check": "1-landed",
@@ -721,10 +720,15 @@
   },
   {
    "check": "1-landed",
-   "level": "critical",
+   "level": "ok",
    "feed": "Kobas Report - Weekly Revenue and Cost of Sales by Category Report",
-   "class": "1-landed",
-   "detail": "feed has NEVER landed in the pull archive"
+   "detail": "landed 2026-11-16"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "Kobas Report - Weekly Revenue and Cost of Sales by Category Report",
+   "detail": "617 rows (median 616)"
   },
   {
    "check": "1-landed",
@@ -851,6 +855,12 @@
    "detail": "feed has NEVER landed in the pull archive"
   },
   {
+   "check": "5-unmanifested",
+   "level": "warning",
+   "feed": "Slerp Order Events",
+   "detail": "feed landed 8 rows today but is NOT in the manifest - add it (expected, best_effort, or known_broken) so it stops flying blind"
+  },
+  {
    "check": "3-events",
    "level": "ok",
    "feed": "Deep Flow Modules",
@@ -911,7 +921,7 @@
   {
    "check": "4b-consistency",
    "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=39624, tasks_missed=1165, week_spend_gbp=85665.36, broth_cells=3918, factory_broth_readings=2000, supplier_issues=253, training_outstanding=2005"
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=39624, tasks_missed=1165, week_spend_gbp=94653.52, broth_cells=3918, factory_broth_readings=2000, supplier_issues=253, training_outstanding=2005"
   },
   {
    "check": "4c-attribution",
@@ -936,7 +946,7 @@
   {
    "check": "4d-okr",
    "level": "warning",
-   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-16T12:34) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-16T13:29) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "aggregates",
@@ -951,7 +961,7 @@
   {
    "check": "4f-oo1-ma",
    "level": "warning",
-   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-16 12:34 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
+   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-16 13:30 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
  "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
