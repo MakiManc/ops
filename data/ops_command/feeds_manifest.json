@@ -180,7 +180,8 @@
   {
    "name": "GC Central Areas",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 12,
    "median_rows_at_calibration": 33,
@@ -190,7 +191,8 @@
   {
    "name": "GC Central Form Tasks",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 5018,
    "median_rows_at_calibration": 12576,
@@ -209,7 +211,8 @@
   {
    "name": "GC Deviations (prev day)",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 1,
    "median_rows_at_calibration": 6,
@@ -230,7 +233,8 @@
   {
    "name": "GC Form Task Answers (prev day)",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 58,
    "median_rows_at_calibration": 196,
@@ -240,7 +244,8 @@
   {
    "name": "GC Forms",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 29,
    "median_rows_at_calibration": 74,
@@ -259,7 +264,8 @@
   {
    "name": "GC Local Procedures",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 230,
    "median_rows_at_calibration": 575,
@@ -269,7 +275,8 @@
   {
    "name": "GC Location Groups",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 5,
    "median_rows_at_calibration": 13,
@@ -288,7 +295,8 @@
   {
    "name": "GC Modules",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 2,
    "median_rows_at_calibration": 6,
@@ -308,7 +316,8 @@
   {
    "name": "GC Procedures",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 10,
    "median_rows_at_calibration": 25,
@@ -318,7 +327,8 @@
   {
    "name": "GC Procedures Refactor",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 10,
    "median_rows_at_calibration": 25,
@@ -328,7 +338,8 @@
   {
    "name": "GC Processes",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 14,
    "median_rows_at_calibration": 37,
@@ -349,7 +360,8 @@
   {
    "name": "GC Scheduled Task Answers (prev day)",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 1795,
    "median_rows_at_calibration": 4584,
@@ -359,7 +371,8 @@
   {
    "name": "GC Users",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 486,
    "median_rows_at_calibration": 1219,
@@ -369,7 +382,8 @@
   {
    "name": "GC Waste Module Settings",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 2,
    "median_rows_at_calibration": 5,
@@ -572,7 +586,8 @@
   {
    "name": "GC Locations Changelog",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 0,
    "median_rows_at_calibration": 0,
@@ -582,7 +597,8 @@
   {
    "name": "GC DAP Logged Data",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 0,
    "status": "best_effort",
@@ -591,7 +607,8 @@
   {
    "name": "GC DAP Logged Data (prev day)",
    "workflow": "daily-export",
-   "cadence_days": 1,
+   "cadence_days": 4,
+   "cadence_note": "11/11/2026: 4-day cadence - the ETL rotates best-effort GC feeds stalest-first, GETCOMPLIANT_BEST_EFFORT_PER_DAY=8 a day inside the ~15-call quota, so each lands at least every 3 days",
    "pulls_weekends": true,
    "min_rows": 0,
    "status": "best_effort",
