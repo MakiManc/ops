@@ -1,0 +1,70 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W46",
+ "from": "2026-11-09",
+ "to": "2026-11-15",
+ "generated_on": "2026-11-16",
+ "updated_on": "2026-11-16",
+ "final": true,
+ "issue_feed_through": "2026-11-15",
+ "forms": 3,
+ "deliveries": 55,
+ "deliveries_counted": 55,
+ "rate": 94.5,
+ "not_measured": null,
+ "credit_flagged": 1,
+ "by_site": [
+  {
+   "site": "AA Factory1 Limited",
+   "forms": 1
+  },
+  {
+   "site": "Maki NE1 Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "shortage",
+   "forms": 3
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-11-12",
+   "site": "AA Factory1 Limited",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "TWF Delivery/Supplier Issue Form ",
+   "text": "Missing 2 cases of Rapeseed Oil.",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-13",
+   "site": "Maki NE1 Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "lack of one box tonkostu broth diluted",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-13",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "2 packs micro fibre cloth are missing , wr need ti credit",
+   "credit_flag": true
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-11-16"
+}
