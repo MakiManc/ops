@@ -20,6 +20,13 @@ name: Morning kick (dashboard ready by 10:00 UK)
 #   date in a calendar. Without it this job fails at once, naming the secret.
 # OPTIONAL: NTFY_TOPIC on this repo, for the 09:55 "not ready" push.
 #
+# EXTERNAL CLOCK (16/11/2026): this repo's own cron has not created a run
+# since 14/10/2026, and the Claude scheduled task used from 09/11 to 11/11
+# stopped landing dispatches after 11/11 while still reporting success. The
+# dispatch now comes from a Google Apps Script time trigger on Ross's account
+# - builders/morning_kick_clock.gs, set-up steps in its header. The cron
+# below stays as a free second chance.
+#
 # 06:05 UTC = 07:05 UK in summer, 06:05 UK in winter; with this repo's worst
 # measured lateness (53 min) it still starts before 08:12 UK in both. One slot
 # a day, off the :00 rush: GitHub drops scheduled runs in proportion to how
