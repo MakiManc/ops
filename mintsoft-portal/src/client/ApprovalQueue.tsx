@@ -85,6 +85,18 @@ function RequestCard({ item, onChanged }: {
     ? item.lines.reduce((sum, l) => sum + (quantities[l.productId] ?? 0) * (l.rechargeUnitPrice ?? 0), 0)
     : null
 
+  /**
+   * Lines going on this invoice at nothing, recomputed as the approver edits quantities.
+   *
+   * The total above adds an unpriced line in at zero, so on its own it reads like the
+   * whole invoice when it is short. The server says the same thing after the fact; this
+   * says it before the button is pressed, which is when it is still a choice. Zeroing the
+   * quantity clears it, because nothing sent is nothing owed.
+   */
+  const unpriced = item.order.recharge
+    ? item.lines.filter((l) => l.rechargeUnitPrice === null && (quantities[l.productId] ?? 0) > 0)
+    : []
+
   return (
     <li className={card}>
       <div className="flex items-start justify-between gap-3">
@@ -165,9 +177,38 @@ function RequestCard({ item, onChanged }: {
         ))}
       </ul>
 
+      {unpriced.length > 0 && (
+        <div role="status" className="mt-3 text-amber-900 bg-amber-50 border border-amber-400 rounded p-3">
+          <p className="font-medium">
+            {unpriced.length === 1 ? 'One line has' : `${unpriced.length} lines have`} no recharge
+            price, so {unpriced.length === 1 ? 'it goes' : 'they go'} on this site&apos;s invoice at
+            nothing.
+          </p>
+          <ul className="mt-1 text-sm">
+            {unpriced.map((l) => (
+              <li key={l.productId}>
+                {l.productName} &mdash; {quantities[l.productId] ?? 0} at no charge
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-sm">
+            You can approve anyway. To charge for {unpriced.length === 1 ? 'it' : 'them'}, set a
+            price first; to send nothing, set the quantity to zero.
+          </p>
+        </div>
+      )}
+
       {rechargeTotal !== null && (
         <p className="mt-3 text-purple-900 font-medium">
           Recharge total: {money(rechargeTotal)} (before any delivery fee)
+          {/* Never the bare number when it is short: an invoice is the worst place to
+              discover a total was missing lines. */}
+          {unpriced.length > 0 && (
+            <span className="text-amber-900">
+              {' '}&mdash; short, {unpriced.length}{' '}
+              {unpriced.length === 1 ? 'line is' : 'lines are'} unpriced
+            </span>
+          )}
         </p>
       )}
 

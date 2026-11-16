@@ -134,12 +134,16 @@ describe('what each site has ordered', () => {
     await waitFor(() => expect(screen.getByText(/signed off at nothing/)).toBeDefined())
   })
 
-  it('offers the CSV', async () => {
-    serve(report())
+  it('offers the CSV for the month on screen', async () => {
+    // The month comes from the clock, so this asserted '2026-10' and began failing on
+    // 1 November for no reason anybody had changed. Derive it the same way the screen
+    // does instead of pinning a date that goes stale.
+    const month = new Date().toISOString().slice(0, 7)
+    serve(report({ month }))
     render(<OrderedBySite />)
     await waitFor(() => {
       const link = screen.getByText('Download CSV') as HTMLAnchorElement
-      expect(link.getAttribute('href')).toBe('/api/admin/ordered/2026-10/csv')
+      expect(link.getAttribute('href')).toBe(`/api/admin/ordered/${month}/csv`)
     })
   })
 

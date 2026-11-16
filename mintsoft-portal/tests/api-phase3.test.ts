@@ -201,7 +201,7 @@ describe('the approval queue', () => {
 })
 
 describe('a franchise order', () => {
-  it('blocks approval when a line has no recharge price', async () => {
+  it('approves an unpriced recharge line, and says the invoice is short', async () => {
     db.exec(`INSERT INTO user_sites (user_id, site_id) VALUES (1, 3)`)
     const cookie = await as(GM)
     // Chopsticks has no recharge price set.
@@ -213,8 +213,20 @@ describe('a franchise order', () => {
     const res = await post(`/api/approvals/${queue.requests[0]!.order.id}/approve`, await as(APPROVER), {
       lines: [{ productId: 2, qtyApproved: 10 }],
     })
-    expect(res.status).toBe(409)
-    expect((await res.json() as { problems: string[] }).problems[0]).toMatch(/no recharge price/)
+    // It used to be a 409. The first franchise site hit that on its first order, so the
+    // approver decides now -- and what the refusal protected is kept by saying it out
+    // loud and by the total admitting what it could not price.
+    expect(res.status).toBe(200)
+    const body = await res.json() as {
+      warnings: string[]
+      recharge: { total: number; unpricedLines: number; unpricedItems: number }
+    }
+    expect(body.warnings[0]).toMatch(/no recharge price, so the 10 approved go on/)
+    expect(body.recharge).toMatchObject({ unpricedLines: 1, unpricedItems: 10 })
+    // The ten chopsticks went on at nothing and there is no order fee in this fixture,
+    // so the franchisee is invoiced GBP 0.00 for an order that is on its way to them.
+    // That is exactly why the count beside it is not optional.
+    expect(body.recharge.total).toBe(0)
   })
 
   it('works out the total, with the order fee, when prices are set', async () => {

@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MyOrders } from '../src/client/MyOrders.tsx'
 import { Basket } from '../src/client/Basket.tsx'
@@ -146,9 +146,9 @@ describe('the basket', () => {
  * the default action failed: press Approve, get "12 approved but only 0 in stock".
  */
 describe('the approval queue', () => {
-  const queueItem = (lines: Record<string, unknown>[]) => ({
+  const queueItem = (lines: Record<string, unknown>[], over: Record<string, unknown> = {}) => ({
     requests: [{
-      order: order({ status: 'submitted', siteName: 'Maki & Ramen Leith Walk' }),
+      order: order({ status: 'submitted', siteName: 'Maki & Ramen Leith Walk', ...over }),
       lines, recentOrders: [], mergeCandidates: [],
     }],
     settings: { merciumOrderFee: 0, passOrderFeeToFranchise: false },
@@ -157,6 +157,47 @@ describe('the approval queue', () => {
     id: 1, productId: 1, productName: 'Chairs', qtyRequested: 12, qtyApproved: null,
     available: 0, availableBasis: '0 free to order.', rechargeUnitPrice: null,
     availableAtRequest: 0, ...over,
+  })
+
+  /**
+   * An unpriced line on a franchise order used to be refused outright. It warns now --
+   * the approver decides -- so the screen has to make the consequence plain while it is
+   * still a choice, not after the fact.
+   */
+  it('says which lines go on a franchise invoice at nothing, before Approve is pressed', async () => {
+    serve(queueItem([
+      line({ productId: 1, productName: 'Chairs', qtyRequested: 6, available: 40, rechargeUnitPrice: null }),
+      line({ id: 2, productId: 2, productName: 'Ramekin', qtyRequested: 10, available: 40, rechargeUnitPrice: 0.99 }),
+    ], { recharge: true }))
+    render(<ApprovalQueue />)
+
+    await waitFor(() => expect(screen.getByText(/One line has no recharge price/)).toBeDefined())
+    expect(screen.getByText(/Chairs — 6 at no charge/)).toBeDefined()
+    // The way out, both directions.
+    expect(screen.getByText(/set a price first; to send nothing, set the quantity to zero/)).toBeDefined()
+    // And the total does not pass itself off as the whole invoice.
+    expect(screen.getByText(/short, 1 line is unpriced/)).toBeDefined()
+  })
+
+  it('stops warning once the approver zeroes the unpriced line', async () => {
+    serve(queueItem([
+      line({ productId: 1, productName: 'Chairs', qtyRequested: 6, available: 40, rechargeUnitPrice: null }),
+    ], { recharge: true }))
+    render(<ApprovalQueue />)
+    const box = await screen.findByRole('spinbutton') as HTMLInputElement
+    await waitFor(() => expect(screen.getByText(/One line has no recharge price/)).toBeDefined())
+
+    fireEvent.change(box, { target: { value: '0' } })
+    // Nothing is being sent, so nothing is owed and the invoice is not short.
+    await waitFor(() => expect(screen.queryByText(/no recharge price/)).toBeNull())
+  })
+
+  it('says nothing about prices at a corporate site', async () => {
+    serve(queueItem([line({ qtyRequested: 6, available: 40, rechargeUnitPrice: null })]))
+    render(<ApprovalQueue />)
+    await waitFor(() => expect(screen.getByText(/of 6 asked for/)).toBeDefined())
+    expect(screen.queryByText(/no recharge price/)).toBeNull()
+    expect(screen.queryByText(/Recharge total/)).toBeNull()
   })
 
   it('offers only what is actually free, so the default action succeeds', async () => {

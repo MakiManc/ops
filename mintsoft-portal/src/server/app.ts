@@ -579,7 +579,13 @@ export const createApp = () => {
         ...mail, to: (siteUsers ?? []).map((u) => u.email),
       })
 
-      return c.json({ ok: true, splits: check.splits, recharge: totals, emailed, autoMerge })
+      // `warnings` is what the approver went ahead in spite of -- an unpriced line on a
+      // recharge order -- echoed back so the screen can repeat it after the fact rather
+      // than only before the click.
+      return c.json({
+        ok: true, splits: check.splits, warnings: check.warnings,
+        recharge: totals, emailed, autoMerge,
+      })
     } catch (err) {
       if (err instanceof OrderError) return c.json({ error: err.message }, 400)
       if (err instanceof SyntaxError) return c.json({ error: 'bad_request' }, 400)

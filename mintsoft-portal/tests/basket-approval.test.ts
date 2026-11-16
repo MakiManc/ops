@@ -279,11 +279,34 @@ describe('approving an order', () => {
     expect(result.splits[0]!.parts).toHaveLength(2)
   })
 
-  it('blocks a recharge order with an unpriced line', () => {
-    // Never recharge at zero: better to block and have someone set the price.
-    const result = checkApproval([ok({ rechargeUnitPrice: null })], franchise)
+  it('warns about an unpriced recharge line but lets the approver through', () => {
+    // It used to refuse. The first franchise site met that immediately -- 28 of 93
+    // products have no cost on record and twelve are in stock -- and a refusal meant
+    // nobody could place the order at all, however much they wanted to. Whether to send
+    // something the franchisee will not be billed for is the approver's call.
+    const result = checkApproval([ok({ rechargeUnitPrice: null, qtyApproved: 30 })], franchise)
+    expect(result.ok).toBe(true)
+    expect(result.problems).toEqual([])
+    expect(result.warnings[0]).toMatch(/no recharge price, so the 30 approved go on/)
+    // And it says what to do instead, both ways.
+    expect(result.warnings[0]).toMatch(/set a price first, or approve the line at zero/)
+  })
+
+  it('says nothing about a line the approver zeroed', () => {
+    // Nothing is being sent, so nothing is owed, and the invoice is not short.
+    const result = checkApproval([ok({ rechargeUnitPrice: null, qtyApproved: 0 })], franchise)
+    expect(result.ok).toBe(true)
+    expect(result.warnings).toEqual([])
+  })
+
+  it('still refuses what no approver can fix', () => {
+    // The line between the two: a missing price is a judgement, missing stock is not.
+    // 500 wanted against the helper's 100 on the shelf, and no price either. The
+    // shortage still refuses; the missing price only warns.
+    const result = checkApproval([ok({ rechargeUnitPrice: null, qtyApproved: 500 })], franchise)
     expect(result.ok).toBe(false)
-    expect(result.problems[0]).toMatch(/no recharge price set/)
+    expect(result.problems[0]).toMatch(/only 100 in stock/)
+    expect(result.warnings[0]).toMatch(/no recharge price/)
   })
 
   it('does not care about prices at a corporate site', () => {
@@ -302,14 +325,36 @@ describe('what a franchise is charged', () => {
     const totals = rechargeTotals([line(10, 2.5), line(4, 1.25)], {
       recharge: true, orderFee: 12, passOrderFeeToFranchise: true,
     })
-    expect(totals).toEqual({ lineTotal: 30, orderFee: 12, total: 42 })
+    expect(totals).toEqual({
+      lineTotal: 30, orderFee: 12, total: 42, unpricedLines: 0, unpricedItems: 0,
+    })
   })
 
   it('leaves the order fee off when it is not passed on', () => {
     const totals = rechargeTotals([line(10, 2.5)], {
       recharge: true, orderFee: 12, passOrderFeeToFranchise: false,
     })
-    expect(totals).toEqual({ lineTotal: 25, orderFee: 0, total: 25 })
+    expect(totals).toEqual({
+      lineTotal: 25, orderFee: 0, total: 25, unpricedLines: 0, unpricedItems: 0,
+    })
+  })
+
+  it('says how much of the invoice it could not price', () => {
+    // The total adds an unpriced line in at nothing, so on its own it reads like the
+    // whole invoice when it is short. These two are what stop it being read that way.
+    const totals = rechargeTotals(
+      [line(10, 2.5), { qtyApproved: 40, rechargeUnitPrice: null }],
+      { recharge: true, orderFee: 12, passOrderFeeToFranchise: true },
+    )
+    expect(totals).toMatchObject({ lineTotal: 25, total: 37, unpricedLines: 1, unpricedItems: 40 })
+  })
+
+  it('does not count a line approved at nothing as unpriced', () => {
+    const totals = rechargeTotals(
+      [line(10, 2.5), { qtyApproved: 0, rechargeUnitPrice: null }],
+      { recharge: true, orderFee: 0, passOrderFeeToFranchise: false },
+    )
+    expect(totals).toMatchObject({ unpricedLines: 0, unpricedItems: 0 })
   })
 
   it('returns nothing at all for a corporate site', () => {

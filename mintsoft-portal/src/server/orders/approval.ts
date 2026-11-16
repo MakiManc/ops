@@ -136,6 +136,15 @@ export interface ApprovalCheck {
   allocations: LineAllocation[]
   /** Everything standing in the way, in words an approver can act on. */
   problems: string[]
+  /**
+   * Things the approver should know but which do not stop them.
+   *
+   * The difference from `problems` is who decides. A problem is the warehouse saying no
+   * -- no stock, no mapping -- and no amount of authority makes the stock exist. A
+   * warning is us saying "this will cost the franchisee nothing", which is a judgement
+   * the approver is entitled to make and sometimes the right call.
+   */
+  warnings: string[]
   /** Lines whose quantity had to be split across more than one warehouse line. */
   splits: { productName: string; parts: { sku: string; qty: number }[] }[]
 }
@@ -151,6 +160,16 @@ export interface RechargeTotals {
   lineTotal: number
   orderFee: number
   total: number
+  /**
+   * Lines that went on without a price, and the items they cover.
+   *
+   * Above zero, `total` is a floor rather than the invoice: those lines were added in at
+   * nothing. Whatever shows the total has to show this beside it, for the same reason the
+   * catalogue says "at least 577" rather than 577 -- a number that is quietly short gets
+   * acted on, and an invoice is the worst place to find that out.
+   */
+  unpricedLines: number
+  unpricedItems: number
 }
 
 /**
@@ -165,14 +184,30 @@ export function checkApproval(lines: LineToApprove[], recharge: RechargeContext)
     .filter((a): a is Extract<LineAllocation, { kind: 'short' }> => a.kind === 'short')
     .map((a) => a.message)
 
-  // A recharge order with an unpriced line would invoice a franchisee nothing for it.
-  // Better to block and have someone set the price than to silently recharge at zero.
+  /**
+   * An unpriced line on a recharge order warns; it used to refuse.
+   *
+   * The refusal was there so a franchisee could not be invoiced nothing for a case of
+   * ramekins, and that risk is real -- rechargeTotals adds an unpriced line in at zero,
+   * so the invoice is simply short and nothing about the figure says so. But the first
+   * franchise site to use the portal met it immediately: 28 of 93 products have no cost
+   * on record and twelve of those are in stock, including the paper aprons and the
+   * disposable chopsticks a restaurant reaches for first. Refusing meant the order could
+   * not be placed at all, by anyone, however much they wanted to.
+   *
+   * So the approver decides. What the refusal was protecting is kept by making the
+   * consequence impossible to miss instead: it is said here before they approve, the
+   * order's total carries the count of lines it could not price, and the figure is never
+   * presented as the whole invoice.
+   */
+  const warnings: string[] = []
   if (recharge.recharge) {
     for (const line of lines) {
-      if (line.rechargeUnitPrice === null) {
-        problems.push(
-          `${line.productName} has no recharge price set, and this site's orders are recharged. ` +
-          'Set a price before approving, or remove the line.',
+      if (line.rechargeUnitPrice === null && line.qtyApproved > 0) {
+        warnings.push(
+          `${line.productName} has no recharge price, so the ${line.qtyApproved} approved go on `
+          + 'this site’s invoice at nothing. Approve if that is what you want; otherwise set '
+          + 'a price first, or approve the line at zero.',
         )
       }
     }
@@ -186,7 +221,7 @@ export function checkApproval(lines: LineToApprove[], recharge: RechargeContext)
       parts: a.parts,
     }))
 
-  return { ok: problems.length === 0, allocations, problems, splits }
+  return { ok: problems.length === 0, allocations, problems, warnings, splits }
 }
 
 /**
@@ -205,9 +240,17 @@ export function rechargeTotals(
 
   const lineTotal = lines.reduce((sum, l) => sum + l.qtyApproved * (l.rechargeUnitPrice ?? 0), 0)
   const orderFee = context.passOrderFeeToFranchise ? context.orderFee : 0
+
+  // A line approved at nothing is not unpriced in any sense that matters: nothing is
+  // being sent, so nothing is owed, and counting it here would nag about an invoice that
+  // is not short.
+  const unpriced = lines.filter((l) => l.rechargeUnitPrice === null && l.qtyApproved > 0)
+
   return {
     lineTotal: Math.round(lineTotal * 100) / 100,
     orderFee: Math.round(orderFee * 100) / 100,
     total: Math.round((lineTotal + orderFee) * 100) / 100,
+    unpricedLines: unpriced.length,
+    unpricedItems: unpriced.reduce((n, l) => n + l.qtyApproved, 0),
   }
 }
