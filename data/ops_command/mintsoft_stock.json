@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated_at": "2026-10-13T10:26:57Z",
+ "generated_at": "2026-11-16T10:29:12Z",
  "source": {
   "system": "Mintsoft",
   "operator": "Mercium",
@@ -13,23 +13,23 @@
  },
  "notes": "Free-to-order stock at Witham, grouped by item code. Mercium creates one Mintsoft product per shipment, so a product here may span several SKUs; `lines` carries them. `free` is OnHand, which Mintsoft reports net of allocations. null means unknown, never zero. Where lines_unknown > 0, `free` is a floor rather than a total. Read-only: written by mintsoft-portal/scripts/build-stock-feed.ts, no personal data.",
  "counts": {
-  "mintsoft_lines": 342,
-  "products": 102,
-  "lines_with_inventory": 339,
-  "products_unknown": 0,
-  "products_in_stock": 62,
+  "mintsoft_lines": 380,
+  "products": 140,
+  "lines_with_inventory": 376,
+  "products_unknown": 1,
+  "products_in_stock": 55,
   "products_partial": 3
  },
  "totals": {
-  "free_units": 27175,
-  "allocated_units": 4672
+  "free_units": 24705,
+  "allocated_units": 470
  },
  "products": [
   {
    "item_code": "BCB",
    "name": "Black Chopsticks",
    "free": 0,
-   "allocated": 200,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -78,7 +78,22 @@
      "sku": "MRK011113-BCB",
      "mintsoft_product_id": 1676,
      "free": 0,
-     "allocated": 200
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "BCB-MRK",
+   "name": "BLACK CHOPSTICKS",
+   "free": 0,
+   "allocated": 30,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "BCB-MRK",
+     "mintsoft_product_id": 1803,
+     "free": 0,
+     "allocated": 30
     }
    ]
   },
@@ -281,6 +296,21 @@
    ]
   },
   {
+   "item_code": "BOOKS",
+   "name": "MRK-BOOKS",
+   "free": 0,
+   "allocated": 62,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "MRK015 - BOOKS",
+     "mintsoft_product_id": 1838,
+     "free": 0,
+     "allocated": 62
+    }
+   ]
+  },
+  {
    "item_code": "BS",
    "name": "Blue Spoons - MRK005",
    "free": 0,
@@ -298,15 +328,15 @@
   {
    "item_code": "BSR-S",
    "name": "BLACK SPOON FOR SAUCE - MRK012",
-   "free": 1088,
-   "allocated": 100,
+   "free": 499,
+   "allocated": 28,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK012-BSR-S",
      "mintsoft_product_id": 1654,
-     "free": 1088,
-     "allocated": 100
+     "free": 499,
+     "allocated": 28
     }
    ]
   },
@@ -332,6 +362,36 @@
    ]
   },
   {
+   "item_code": "CAST IRON TEA POT (600ML) - MRK",
+   "name": "CAST IRON TEA POT (600ML) ",
+   "free": 72,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "CAST IRON TEA POT (600ML) - MRK",
+     "mintsoft_product_id": 1826,
+     "free": 72,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "CAST IRON TEA POT (900ML)-MRK",
+   "name": "CAST IRON TEA POT (900ML)",
+   "free": 123,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "CAST IRON TEA POT (900ML)-MRK",
+     "mintsoft_product_id": 1818,
+     "free": 123,
+     "allocated": 0
+    }
+   ]
+  },
+  {
    "item_code": "CBB",
    "name": "MRK011 - CHICKEN BROTH BLENDER",
    "free": 13,
@@ -347,9 +407,24 @@
    ]
   },
   {
+   "item_code": "CERAMIC TEACUPS - MRK",
+   "name": "CERAMIC TEA CUPS",
+   "free": 379,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "CERAMIC TEACUPS - MRK",
+     "mintsoft_product_id": 1825,
+     "free": 379,
+     "allocated": 0
+    }
+   ]
+  },
+  {
    "item_code": "CHR",
    "name": "Chairs",
-   "free": 20,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -386,6 +461,21 @@
     {
      "sku": "MRK014-CHR",
      "mintsoft_product_id": 1756,
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "CHR-MRK",
+   "name": "CHAIRS",
+   "free": 20,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "CHR-MRK",
+     "mintsoft_product_id": 1805,
      "free": 20,
      "allocated": 0
     }
@@ -394,20 +484,20 @@
   {
    "item_code": "CIC",
    "name": "Cast iron Tea Pot (600ml)",
-   "free": 46,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-CIC",
      "mintsoft_product_id": 1222,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK002-CIC",
      "mintsoft_product_id": 1271,
-     "free": 3,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -419,13 +509,13 @@
     {
      "sku": "MRK005-CIC",
      "mintsoft_product_id": 1504,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK008-CIC",
      "mintsoft_product_id": 1544,
-     "free": 39,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -433,8 +523,8 @@
   {
    "item_code": "CTC",
    "name": "Ceramic teacups",
-   "free": 366,
-   "allocated": 40,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -458,31 +548,31 @@
     {
      "sku": "MRK005-CTC",
      "mintsoft_product_id": 1502,
-     "free": 176,
-     "allocated": 40
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK008-CTC",
      "mintsoft_product_id": 1535,
-     "free": 50,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-CTC",
      "mintsoft_product_id": 1584,
-     "free": 36,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK011-CTC",
      "mintsoft_product_id": 1617,
-     "free": 40,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-CTC",
      "mintsoft_product_id": 1656,
-     "free": 64,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -490,7 +580,7 @@
   {
    "item_code": "CTP",
    "name": "CAST IRON TEA POT (900ML) - MRK008",
-   "free": 123,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -503,19 +593,19 @@
     {
      "sku": "MRK010-CTP",
      "mintsoft_product_id": 1594,
-     "free": 24,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK011-CTP",
      "mintsoft_product_id": 1626,
-     "free": 15,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-CTP",
      "mintsoft_product_id": 1665,
-     "free": 84,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -523,21 +613,36 @@
   {
    "item_code": "DC",
    "name": "Disposable chopsticks - MRK010",
-   "free": 3499,
-   "allocated": 4000,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - DC",
      "mintsoft_product_id": 1614,
-     "free": 1499,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK014 - DC",
      "mintsoft_product_id": 1712,
-     "free": 2000,
-     "allocated": 4000
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "DC-MRK",
+   "name": "Disposable chopsticks",
+   "free": 1300,
+   "allocated": 100,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "DC-MRK",
+     "mintsoft_product_id": 1815,
+     "free": 1300,
+     "allocated": 100
     }
    ]
   },
@@ -559,7 +664,7 @@
   {
    "item_code": "DMD",
    "name": "DAIKON MACHINE - MRK001",
-   "free": 34,
+   "free": 74,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -578,7 +683,7 @@
     {
      "sku": "MRK008-DMD",
      "mintsoft_product_id": 1576,
-     "free": 33,
+     "free": 73,
      "allocated": 0
     }
    ]
@@ -594,6 +699,21 @@
      "sku": "MRK001-DMD-C",
      "mintsoft_product_id": 1256,
      "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "DONBURI - MRK",
+   "name": "DONBURI PLATES WITH LOGO",
+   "free": 456,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "DONBURI - MRK",
+     "mintsoft_product_id": 1800,
+     "free": 456,
      "allocated": 0
     }
    ]
@@ -616,8 +736,8 @@
   {
    "item_code": "DPD",
    "name": "Donburi Plates",
-   "free": 481,
-   "allocated": 20,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -641,20 +761,20 @@
     {
      "sku": "MRK005-DPD",
      "mintsoft_product_id": 1508,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK008-DPD",
      "mintsoft_product_id": 1550,
-     "free": 15,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-DPD",
      "mintsoft_product_id": 1598,
-     "free": 265,
-     "allocated": 20
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK011-DPD",
@@ -665,7 +785,7 @@
     {
      "sku": "MRK013-DPD",
      "mintsoft_product_id": 1670,
-     "free": 200,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -673,8 +793,8 @@
   {
    "item_code": "FKF-M",
    "name": "FOH Kimono (M)No apron",
-   "free": 15,
-   "allocated": 6,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -698,25 +818,25 @@
     {
      "sku": "MRK008-FKF-M",
      "mintsoft_product_id": 1540,
-     "free": 5,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-FKF-M",
      "mintsoft_product_id": 1590,
-     "free": 1,
-     "allocated": 6
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK011-FKF-M",
      "mintsoft_product_id": 1622,
-     "free": 3,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-FKF-M",
      "mintsoft_product_id": 1661,
-     "free": 6,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -724,8 +844,8 @@
   {
    "item_code": "FKF-XL",
    "name": "FOH Kimono (XL)No apron",
-   "free": 65,
-   "allocated": 6,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -749,26 +869,56 @@
     {
      "sku": "MRK008-FKF-XL",
      "mintsoft_product_id": 1541,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-FKF-XL",
      "mintsoft_product_id": 1591,
-     "free": 4,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK011-FKF-XL",
      "mintsoft_product_id": 1623,
-     "free": 8,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-FKF-XL",
      "mintsoft_product_id": 1662,
-     "free": 52,
-     "allocated": 6
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "FOH KIMONO (M)NO APRON-MRK",
+   "name": "FOH KIMONO (M)NO APRON",
+   "free": 12,
+   "allocated": 8,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "FOH KIMONO (M)NO APRON-MRK",
+     "mintsoft_product_id": 1816,
+     "free": 12,
+     "allocated": 8
+    }
+   ]
+  },
+  {
+   "item_code": "FOH KIMONO (XL)NO APRON-MRK",
+   "name": "FOH KIMONO (XL)NO APRON ",
+   "free": 55,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "FOH KIMONO (XL)NO APRON-MRK",
+     "mintsoft_product_id": 1817,
+     "free": 55,
+     "allocated": 0
     }
    ]
   },
@@ -835,7 +985,7 @@
   {
    "item_code": "GPG",
    "name": "Gyoza plate 1",
-   "free": 324,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -860,19 +1010,19 @@
     {
      "sku": "MRK005-GPG",
      "mintsoft_product_id": 1512,
-     "free": 4,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK008-GPG",
      "mintsoft_product_id": 1559,
-     "free": 29,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-GPG",
      "mintsoft_product_id": 1603,
-     "free": 70,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -884,7 +1034,37 @@
     {
      "sku": "MRK013-GPG",
      "mintsoft_product_id": 1678,
-     "free": 221,
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "GYOZA PLATE 1 - MRK",
+   "name": "GYOZA PLATE 1",
+   "free": 340,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "GYOZA PLATE 1 - MRK",
+     "mintsoft_product_id": 1828,
+     "free": 340,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "HAND HELD BLENDER - MRK",
+   "name": "Hand Held Blender",
+   "free": 2,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "Hand held Blender - MRK",
+     "mintsoft_product_id": 1829,
+     "free": 2,
      "allocated": 0
     }
    ]
@@ -907,8 +1087,8 @@
   {
    "item_code": "HHH",
    "name": "Hand Held Blender",
-   "free": 3,
-   "allocated": 1,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -932,8 +1112,8 @@
     {
      "sku": "MRK008-HHH",
      "mintsoft_product_id": 1560,
-     "free": 1,
-     "allocated": 1
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK011-HHH",
@@ -944,7 +1124,7 @@
     {
      "sku": "MRK013-HHH",
      "mintsoft_product_id": 1679,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -952,14 +1132,14 @@
   {
    "item_code": "HOODIE - L",
    "name": "M&R Hoodie(pink)- L - MRK010",
-   "free": 140,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - Hoodie - L",
      "mintsoft_product_id": 1608,
-     "free": 140,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -967,14 +1147,14 @@
   {
    "item_code": "HOODIE - XL",
    "name": "M&R Hoodie(pink)- XL - MRK010",
-   "free": 92,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - Hoodie - XL",
      "mintsoft_product_id": 1609,
-     "free": 92,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -982,14 +1162,14 @@
   {
    "item_code": "HOODIE - XXL",
    "name": "M&R Hoodie(pink)- XXL - MRK010",
-   "free": 41,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - Hoodie - XXL",
      "mintsoft_product_id": 1610,
-     "free": 41,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -997,14 +1177,14 @@
   {
    "item_code": "HOODIE (BLACK) - XL",
    "name": "M&R Hoodie (Black)- XL - MRK010",
-   "free": 73,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - Hoodie (Black) - XL",
      "mintsoft_product_id": 1612,
-     "free": 73,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1012,14 +1192,14 @@
   {
    "item_code": "HOODIE (BLACK) - XXL",
    "name": "M&R Hoodie (Black)- XXL - MRK010",
-   "free": 26,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - Hoodie (Black) - XXL",
      "mintsoft_product_id": 1613,
-     "free": 26,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1027,14 +1207,14 @@
   {
    "item_code": "HOODIE(BLACK) - L",
    "name": "M&R Hoodie (Black)- L - MRK010",
-   "free": 130,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK010 - Hoodie(Black) - L",
      "mintsoft_product_id": 1611,
-     "free": 130,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1042,15 +1222,15 @@
   {
    "item_code": "LDL",
    "name": "150ML LADLE - MRK011",
-   "free": 3,
-   "allocated": 1,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-LDL",
      "mintsoft_product_id": 1646,
-     "free": 3,
-     "allocated": 1
+     "free": 0,
+     "allocated": 0
     }
    ]
   },
@@ -1065,6 +1245,96 @@
      "sku": "MRK002-LWL",
      "mintsoft_product_id": 1305,
      "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "M&R HOODIE (BLACK)- L",
+   "name": "M&R Hoodie (Black)- L",
+   "free": 111,
+   "allocated": 18,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "M&R Hoodie (Black)- L",
+     "mintsoft_product_id": 1812,
+     "free": 111,
+     "allocated": 18
+    }
+   ]
+  },
+  {
+   "item_code": "M&R HOODIE (BLACK)- XL",
+   "name": "M&R Hoodie (Black)- XL",
+   "free": 69,
+   "allocated": 3,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "M&R Hoodie (Black)- XL",
+     "mintsoft_product_id": 1813,
+     "free": 69,
+     "allocated": 3
+    }
+   ]
+  },
+  {
+   "item_code": "M&R HOODIE (BLACK)- XXL",
+   "name": "M&R Hoodie (Black)- XXL",
+   "free": 23,
+   "allocated": 2,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "M&R Hoodie (Black)- XXL",
+     "mintsoft_product_id": 1814,
+     "free": 23,
+     "allocated": 2
+    }
+   ]
+  },
+  {
+   "item_code": "M&R HOODIE(PINK)- L",
+   "name": "M&R Hoodie(pink)- L",
+   "free": 185,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "M&R Hoodie(pink)- L",
+     "mintsoft_product_id": 1809,
+     "free": 185,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "M&R HOODIE(PINK)- XL",
+   "name": "M&R Hoodie(pink)- XL",
+   "free": 46,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "M&R Hoodie(pink)- XL",
+     "mintsoft_product_id": 1810,
+     "free": 46,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "M&R HOODIE(PINK)- XXL",
+   "name": "M&R Hoodie(pink)- XXL",
+   "free": 40,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "M&R Hoodie(pink)- XXL",
+     "mintsoft_product_id": 1811,
+     "free": 40,
      "allocated": 0
     }
    ]
@@ -1088,21 +1358,21 @@
    "item_code": "MBM-F",
    "name": "MAKI BIRU PINT GLASSES - MRK001",
    "free": 0,
-   "allocated": 2,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-MBM-F",
      "mintsoft_product_id": 1251,
      "free": 0,
-     "allocated": 2
+     "allocated": 0
     }
    ]
   },
   {
    "item_code": "MCM",
    "name": "MENU COVERS - MRK001",
-   "free": 176,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1121,13 +1391,28 @@
     {
      "sku": "MRK008-MCM",
      "mintsoft_product_id": 1575,
-     "free": 6,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-MCM",
      "mintsoft_product_id": 1692,
-     "free": 170,
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "MENU COVERS A4 - MRK",
+   "name": "MENU COVERS A4",
+   "free": 142,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "MENU COVERS A4 - MRK",
+     "mintsoft_product_id": 1830,
+     "free": 142,
      "allocated": 0
     }
    ]
@@ -1135,7 +1420,7 @@
   {
    "item_code": "MHM",
    "name": "MENU HOLDERS - MRK001",
-   "free": 25,
+   "free": 36,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1166,7 +1451,22 @@
     {
      "sku": "MRK014-MHM",
      "mintsoft_product_id": 1760,
-     "free": 25,
+     "free": 36,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "MISO SOUP CUPS - MRK",
+   "name": "MISO SOUP CUPS",
+   "free": 226,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "MISO SOUP CUPS - MRK",
+     "mintsoft_product_id": 1824,
+     "free": 226,
      "allocated": 0
     }
    ]
@@ -1174,8 +1474,8 @@
   {
    "item_code": "MSM",
    "name": "Miso Soup Cups",
-   "free": 90,
-   "allocated": 30,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1211,7 +1511,7 @@
     {
      "sku": "MRK010-MSM",
      "mintsoft_product_id": 1583,
-     "free": 10,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -1223,8 +1523,8 @@
     {
      "sku": "MRK013-MSM",
      "mintsoft_product_id": 1655,
-     "free": 80,
-     "allocated": 30
+     "free": 0,
+     "allocated": 0
     }
    ]
   },
@@ -1239,6 +1539,21 @@
      "sku": "MRK002-MTM",
      "mintsoft_product_id": 1303,
      "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "PAPER PENDANT LIGHT - MRK",
+   "name": "PAPER PENDANT LIGHT ",
+   "free": 40,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "PAPER PENDANT LIGHT - MRK",
+     "mintsoft_product_id": 1832,
+     "free": 40,
      "allocated": 0
     }
    ]
@@ -1261,7 +1576,7 @@
   {
    "item_code": "PPP",
    "name": "Paper Pendant Light",
-   "free": 5,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1292,13 +1607,13 @@
     {
      "sku": "MRK007-PPP",
      "mintsoft_product_id": 1531,
-     "free": 3,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK008-PPP",
      "mintsoft_product_id": 1556,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -1318,7 +1633,7 @@
   {
    "item_code": "PST",
    "name": "Paper Sushi Tube - MRK006",
-   "free": 3260,
+   "free": 2380,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1331,7 +1646,7 @@
     {
      "sku": "MRK012- PST",
      "mintsoft_product_id": 1652,
-     "free": 3260,
+     "free": 2380,
      "allocated": 0
     }
    ]
@@ -1339,8 +1654,8 @@
   {
    "item_code": "R-R",
    "name": "Ramekin",
-   "free": 1829,
-   "allocated": 50,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1364,25 +1679,25 @@
     {
      "sku": "MRK008-R-R",
      "mintsoft_product_id": 1558,
-     "free": 40,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-R-R",
      "mintsoft_product_id": 1602,
-     "free": 439,
-     "allocated": 50
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK011-R-R",
      "mintsoft_product_id": 1638,
-     "free": 800,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-R-R",
      "mintsoft_product_id": 1677,
-     "free": 550,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1403,28 +1718,73 @@
    ]
   },
   {
+   "item_code": "RAM-MRK",
+   "name": "RAMEKIN",
+   "free": 1607,
+   "allocated": 64,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "RAM-MRK",
+     "mintsoft_product_id": 1804,
+     "free": 1607,
+     "allocated": 64
+    }
+   ]
+  },
+  {
+   "item_code": "RAMEN BOWL VEGAN - MRK",
+   "name": "RAMEN BOWL VEGAN",
+   "free": 132,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "RAMEN BOWL VEGAN - MRK",
+     "mintsoft_product_id": 1821,
+     "free": 132,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "RAMEN BOWL WITH LOGO ORANGE LINE - MRK",
+   "name": "RAMEN BOWL WITH LOGO ORANGE LINE",
+   "free": 428,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "RAMEN BOWL WITH LOGO ORANGE LINE - MRK",
+     "mintsoft_product_id": 1820,
+     "free": 428,
+     "allocated": 0
+    }
+   ]
+  },
+  {
    "item_code": "RBR-L",
    "name": "Ramen Bowl with logo orange line",
-   "free": 418,
-   "allocated": 13,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-RBR-L",
      "mintsoft_product_id": 1224,
      "free": 0,
-     "allocated": 13
+     "allocated": 0
     },
     {
      "sku": "MRK002-RBR-L",
      "mintsoft_product_id": 1273,
-     "free": 3,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK004-RBR-L",
      "mintsoft_product_id": 1427,
-     "free": 5,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -1442,19 +1802,19 @@
     {
      "sku": "MRK010-RBR-L",
      "mintsoft_product_id": 1596,
-     "free": 180,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK011-RBR-L",
      "mintsoft_product_id": 1628,
-     "free": 110,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-RBR-L",
      "mintsoft_product_id": 1667,
-     "free": 120,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1462,8 +1822,8 @@
   {
    "item_code": "RBR-V",
    "name": "Ramen Bowl Vegan ",
-   "free": 125,
-   "allocated": 10,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1499,19 +1859,34 @@
     {
      "sku": "MRK010-RBR-V",
      "mintsoft_product_id": 1597,
-     "free": 100,
-     "allocated": 10
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK011-RBR-V",
      "mintsoft_product_id": 1629,
-     "free": 15,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-RBR-V",
      "mintsoft_product_id": 1669,
-     "free": 10,
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "REVERSE COLLECTIONS",
+   "name": "Reverse Collections",
+   "free": 34,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "MRK009 - Reverse Collections",
+     "mintsoft_product_id": 1831,
+     "free": 34,
      "allocated": 0
     }
    ]
@@ -1532,6 +1907,36 @@
    ]
   },
   {
+   "item_code": "ROUND TABLE - GOLDEN RIM - MRK",
+   "name": "ROUND TABLE - GOLDEN RIM",
+   "free": 2,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "ROUND TABLE - GOLDEN RIM - MRK",
+     "mintsoft_product_id": 1836,
+     "free": 2,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "ROUND TABLE TOP (COPPER) - MRK",
+   "name": "ROUND TABLETOP (COPPER) ",
+   "free": 1,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "ROUND TABLE TOP (COPPER) - MRK",
+     "mintsoft_product_id": 1835,
+     "free": 1,
+     "allocated": 0
+    }
+   ]
+  },
+  {
    "item_code": "RPGC",
    "name": "Round plate with gold coating at the Edges - MRK005",
    "free": 0,
@@ -1547,10 +1952,25 @@
    ]
   },
   {
+   "item_code": "RSHP-MRK",
+   "name": "RAMEN SPOON HARD PLASTIC",
+   "free": 0,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "RSHP-MRK",
+     "mintsoft_product_id": 1806,
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
    "item_code": "RSR",
    "name": "RAMEN STRAINERS - MRK001",
-   "free": 14,
-   "allocated": 2,
+   "free": 0,
+   "allocated": 4,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1562,8 +1982,8 @@
     {
      "sku": "MRK010-RSR",
      "mintsoft_product_id": 1586,
-     "free": 14,
-     "allocated": 2
+     "free": 0,
+     "allocated": 4
     }
    ]
   },
@@ -1609,7 +2029,7 @@
   {
    "item_code": "RSR-P",
    "name": "RAMEN SPOON HARD PLASTIC - MRK002",
-   "free": 1,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1622,7 +2042,7 @@
     {
      "sku": "MRK013-RSR-P",
      "mintsoft_product_id": 1681,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1687,14 +2107,14 @@
   {
    "item_code": "RTR",
    "name": "Round Table Base",
-   "free": 4,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 1,
    "lines": [
     {
      "sku": "MRK001-RTR",
      "mintsoft_product_id": 1244,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -1718,7 +2138,7 @@
     {
      "sku": "MRK013-RTR",
      "mintsoft_product_id": 1686,
-     "free": 3,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1726,14 +2146,14 @@
   {
    "item_code": "RTR - 900",
    "name": "ROUND TABLE - 900MM - MRK014",
-   "free": 2,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK014-RTR - 900",
      "mintsoft_product_id": 1757,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1741,7 +2161,7 @@
   {
    "item_code": "RTR-1100",
    "name": "ROUND TABLE - 1100MM - MRK002",
-   "free": 1,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1754,7 +2174,7 @@
     {
      "sku": "MRK008-RTR-1100",
      "mintsoft_product_id": 1569,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1762,14 +2182,14 @@
   {
    "item_code": "RTR-900",
    "name": "Round Table",
-   "free": 1,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK002-RTR-900",
      "mintsoft_product_id": 1294,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -1840,20 +2260,20 @@
   {
    "item_code": "RTR-C",
    "name": "RECTANGLE TABLETOP (COPPER) - MRK007",
-   "free": 2,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-RTR-C",
      "mintsoft_product_id": 1240,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK007-RTR-C",
      "mintsoft_product_id": 1527,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -1922,6 +2342,36 @@
    ]
   },
   {
+   "item_code": "SAKURA FLOWER PINK - MRK",
+   "name": "SAKURA FLOWER PINK",
+   "free": 500,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "SAKURA FLOWER PINK - MRK",
+     "mintsoft_product_id": 1823,
+     "free": 500,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "SAKURA FLOWER WHITE - MRK",
+   "name": "SAKURA FLOWER WHITE",
+   "free": 1000,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "SAKURA FLOWER WHITE - MRK",
+     "mintsoft_product_id": 1822,
+     "free": 1000,
+     "allocated": 0
+    }
+   ]
+  },
+  {
    "item_code": "SBS",
    "name": "Square Table Base",
    "free": 0,
@@ -1963,7 +2413,7 @@
   {
    "item_code": "SFS-P",
    "name": "Sakura flower Pink",
-   "free": 250,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -1994,7 +2444,7 @@
     {
      "sku": "MRK007-SFS-P",
      "mintsoft_product_id": 1524,
-     "free": 250,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -2008,7 +2458,7 @@
   {
    "item_code": "SFS-W",
    "name": "Sakura flower White",
-   "free": 400,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -2033,13 +2483,13 @@
     {
      "sku": "MRK005-SFS-W",
      "mintsoft_product_id": 1498,
-     "free": 200,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK007-SFS-W",
      "mintsoft_product_id": 1525,
-     "free": 200,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -2155,15 +2605,15 @@
   {
    "item_code": "SMS",
    "name": "STAINLESS STEEL MESH PASTA STRAINER 14CM - MRK011",
-   "free": 104,
-   "allocated": 0,
+   "free": 96,
+   "allocated": 4,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-SMS",
      "mintsoft_product_id": 1644,
-     "free": 104,
-     "allocated": 0
+     "free": 96,
+     "allocated": 4
     }
    ]
   },
@@ -2185,14 +2635,14 @@
   {
    "item_code": "SPP",
    "name": "SLATE SERVING PLATE - MRK011",
-   "free": 393,
+   "free": 383,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-SPP",
      "mintsoft_product_id": 1645,
-     "free": 393,
+     "free": 383,
      "allocated": 0
     }
    ]
@@ -2245,7 +2695,7 @@
   {
    "item_code": "SPS-L",
    "name": "Sushi plate wooden with logo",
-   "free": 205,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -2276,25 +2726,55 @@
     {
      "sku": "MRK008-SPS-L",
      "mintsoft_product_id": 1552,
-     "free": 5,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-SPS-L",
      "mintsoft_product_id": 1600,
-     "free": 40,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK011-SPS-L",
      "mintsoft_product_id": 1632,
-     "free": 50,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-SPS-L",
      "mintsoft_product_id": 1672,
-     "free": 110,
+     "free": 0,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "SPWWL-MRK",
+   "name": "SUSHI PLATE WOODEN WITH LOGO",
+   "free": 164,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "SPWWL-MRK",
+     "mintsoft_product_id": 1802,
+     "free": 164,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "SRB-MRK",
+   "name": "Sushi Rice Box",
+   "free": 7,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "SRB-MRK",
+     "mintsoft_product_id": 1807,
+     "free": 7,
      "allocated": 0
     }
    ]
@@ -2302,7 +2782,7 @@
   {
    "item_code": "SRS",
    "name": "Sushi Rice Box",
-   "free": 8,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -2333,7 +2813,7 @@
     {
      "sku": "MRK010-SRS",
      "mintsoft_product_id": 1606,
-     "free": 4,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -2345,7 +2825,7 @@
     {
      "sku": "MRK013-SRS",
      "mintsoft_product_id": 1689,
-     "free": 4,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -2428,14 +2908,14 @@
   {
    "item_code": "STS",
    "name": "SAKURA TREES - MRK002",
-   "free": 2,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-STS",
      "mintsoft_product_id": 1242,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -2489,10 +2969,25 @@
    ]
   },
   {
+   "item_code": "SUSHI PLATE WOODEN WITH LOGO (BOAT) - MRK",
+   "name": "SUSHI PLATE WOODEN WITH LOGO (BOAT) - MRK",
+   "free": 0,
+   "allocated": 16,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "SUSHI PLATE WOODEN WITH LOGO (BOAT) - MRK",
+     "mintsoft_product_id": 1827,
+     "free": 0,
+     "allocated": 16
+    }
+   ]
+  },
+  {
    "item_code": "TBT",
    "name": "TORIPAITAN BOWL CERAMIC WHITE WITH LOGO(1400ML) - MRK002",
-   "free": 75,
-   "allocated": 10,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -2504,28 +2999,28 @@
     {
      "sku": "MRK008-TBT",
      "mintsoft_product_id": 1548,
-     "free": 15,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-TBT",
      "mintsoft_product_id": 1607,
-     "free": 35,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-TBT",
      "mintsoft_product_id": 1668,
-     "free": 25,
-     "allocated": 10
+     "free": 0,
+     "allocated": 0
     }
    ]
   },
   {
    "item_code": "TCT",
    "name": "Tea cups",
-   "free": 547,
-   "allocated": 130,
+   "free": 157,
+   "allocated": 0,
    "lines_unknown": 1,
    "lines": [
     {
@@ -2537,19 +3032,19 @@
     {
      "sku": "MRK002-TCT",
      "mintsoft_product_id": 1263,
-     "free": 10,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK004-TCT",
      "mintsoft_product_id": 1418,
-     "free": 56,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK005-TCT",
      "mintsoft_product_id": 1503,
-     "free": 28,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -2567,14 +3062,14 @@
     {
      "sku": "MRK011-TCT",
      "mintsoft_product_id": 1618,
-     "free": 220,
-     "allocated": 30
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK013-TCT",
      "mintsoft_product_id": 1657,
-     "free": 76,
-     "allocated": 100
+     "free": 0,
+     "allocated": 0
     }
    ]
   },
@@ -2624,16 +3119,31 @@
    ]
   },
   {
+   "item_code": "TEA CUPS - MRK",
+   "name": "TEA CUPS ",
+   "free": 969,
+   "allocated": 20,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "TEA CUPS - MRK",
+     "mintsoft_product_id": 1819,
+     "free": 969,
+     "allocated": 20
+    }
+   ]
+  },
+  {
    "item_code": "TMC",
    "name": "Tatami Cushion- MRK008",
-   "free": 9,
+   "free": 35,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK008-TMC",
      "mintsoft_product_id": 1578,
-     "free": 9,
+     "free": 35,
      "allocated": 0
     }
    ]
@@ -2641,14 +3151,29 @@
   {
    "item_code": "TMT",
    "name": "Tatami Table - MRK008",
-   "free": 6,
+   "free": 20,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK008-TMT",
      "mintsoft_product_id": 1577,
-     "free": 6,
+     "free": 20,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "TPWL-MRK",
+   "name": "TORIPAITAN BOWL CERAMIC WHITE WITH LOGO (1400ML) ",
+   "free": 74,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "TPWL-MRK",
+     "mintsoft_product_id": 1808,
+     "free": 74,
      "allocated": 0
     }
    ]
@@ -2686,14 +3211,14 @@
   {
    "item_code": "TUB 2.0",
    "name": "2.0L TUB + LID - MRK011",
-   "free": 55,
+   "free": 29,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-TUB 2.0",
      "mintsoft_product_id": 1648,
-     "free": 55,
+     "free": 29,
      "allocated": 0
     }
    ]
@@ -2701,14 +3226,14 @@
   {
    "item_code": "TUB 4.5",
    "name": "4.5L TUB + LID - MRK011",
-   "free": 2078,
+   "free": 2027,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-TUB 4.5",
      "mintsoft_product_id": 1649,
-     "free": 2078,
+     "free": 2027,
      "allocated": 0
     }
    ]
@@ -2744,24 +3269,54 @@
    ]
   },
   {
+   "item_code": "WODDEN TABLE TOP WITH COPPER EDGES BIRCH WOOD (SQUARE) -MRK",
+   "name": "WODDEN TABLE TOP WITH COPPER EDGES BIRCH WOOD (SQUARE)",
+   "free": 28,
+   "allocated": 0,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "WODDEN TABLE TOP WITH COPPER EDGES BIRCH WOOD (SQUARE) -MRK",
+     "mintsoft_product_id": 1833,
+     "free": 28,
+     "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "WODDEN TABLETOP WITH COPPER EDGES BIRCH WOOD (SQUARE) - GOLDEN RIM",
+   "name": "WODDEN TABLETOP WITH COPPER EDGES BIRCH WOOD (SQUARE) - GOLDEN RIM",
+   "free": null,
+   "allocated": null,
+   "lines_unknown": 1,
+   "lines": [
+    {
+     "sku": "WODDEN TABLETOP WITH COPPER EDGES BIRCH WOOD (SQUARE) - GOLDEN RIM",
+     "mintsoft_product_id": 1837,
+     "free": null,
+     "allocated": null
+    }
+   ]
+  },
+  {
    "item_code": "WOK",
    "name": "WOK - MRK011",
    "free": 17,
-   "allocated": 1,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-WOK",
      "mintsoft_product_id": 1647,
      "free": 17,
-     "allocated": 1
+     "allocated": 0
     }
    ]
   },
   {
    "item_code": "WPW",
    "name": "WOOD PLAQUES - MRK001",
-   "free": 100,
+   "free": 104,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -2786,16 +3341,31 @@
     {
      "sku": "MRK013-WPW",
      "mintsoft_product_id": 1690,
-     "free": 100,
+     "free": 104,
      "allocated": 0
+    }
+   ]
+  },
+  {
+   "item_code": "WSPWL-MRK",
+   "name": "WOODEN SIDE PLATE WITH LOGO",
+   "free": 704,
+   "allocated": 110,
+   "lines_unknown": 0,
+   "lines": [
+    {
+     "sku": "WSPWL-MRK",
+     "mintsoft_product_id": 1801,
+     "free": 704,
+     "allocated": 110
     }
    ]
   },
   {
    "item_code": "WSW",
    "name": "White side plate",
-   "free": 1,
-   "allocated": 0,
+   "free": 0,
+   "allocated": 1,
    "lines_unknown": 0,
    "lines": [
     {
@@ -2807,8 +3377,8 @@
     {
      "sku": "MRK002-WSW",
      "mintsoft_product_id": 1281,
-     "free": 1,
-     "allocated": 0
+     "free": 0,
+     "allocated": 1
     },
     {
      "sku": "MRK004-WSW",
@@ -2839,8 +3409,8 @@
   {
    "item_code": "WSW-L",
    "name": "Wooden side plate with logo",
-   "free": 785,
-   "allocated": 50,
+   "free": 0,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -2864,25 +3434,25 @@
     {
      "sku": "MRK008-WSW-L",
      "mintsoft_product_id": 1551,
-     "free": 10,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK010-WSW-L",
      "mintsoft_product_id": 1599,
-     "free": 405,
-     "allocated": 50
+     "free": 0,
+     "allocated": 0
     },
     {
      "sku": "MRK011-WSW-L",
      "mintsoft_product_id": 1631,
-     "free": 10,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK013-WSW-L",
      "mintsoft_product_id": 1671,
-     "free": 360,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -2890,7 +3460,7 @@
   {
    "item_code": "WTW-1200",
    "name": "Wodden table top with copper edges Birch wood (Rectangle)",
-   "free": 2,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -2909,7 +3479,7 @@
     {
      "sku": "MRK013-WTW-1200",
      "mintsoft_product_id": 1682,
-     "free": 2,
+     "free": 0,
      "allocated": 0
     }
    ]
@@ -2932,14 +3502,14 @@
   {
    "item_code": "WTW-R",
    "name": "WODDEN TABLE TOP WITH COPPER EDGES BIRCH WOOD (RECTANGLE) - GOLDEN RIM - MRK008",
-   "free": 1,
+   "free": 0,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK001-WTW-R",
      "mintsoft_product_id": 1249,
-     "free": 1,
+     "free": 0,
      "allocated": 0
     },
     {
@@ -2953,7 +3523,7 @@
   {
    "item_code": "WTW-S",
    "name": "Wooden tabletop with copper edges Birch wood (Square)",
-   "free": 80,
+   "free": 22,
    "allocated": 0,
    "lines_unknown": 0,
    "lines": [
@@ -2966,31 +3536,31 @@
     {
      "sku": "MRK002-WTW-S",
      "mintsoft_product_id": 1292,
-     "free": 24,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK004-WTW-S",
      "mintsoft_product_id": 1444,
-     "free": 19,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK007-WTW-S",
      "mintsoft_product_id": 1526,
-     "free": 3,
+     "free": 0,
      "allocated": 0
     },
     {
      "sku": "MRK008-WTW-S",
      "mintsoft_product_id": 1565,
-     "free": 23,
+     "free": 22,
      "allocated": 0
     },
     {
      "sku": "MRK013-WTW-S",
      "mintsoft_product_id": 1684,
-     "free": 11,
+     "free": 0,
      "allocated": 0
     }
    ]
