@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated_at": "2026-11-16T10:29:12Z",
+ "generated_at": "2026-11-17T11:45:48Z",
  "source": {
   "system": "Mintsoft",
   "operator": "Mercium",
@@ -21,8 +21,8 @@
   "products_partial": 3
  },
  "totals": {
-  "free_units": 24705,
-  "allocated_units": 470
+  "free_units": 24644,
+  "allocated_units": 469
  },
  "products": [
   {
@@ -299,14 +299,14 @@
    "item_code": "BOOKS",
    "name": "MRK-BOOKS",
    "free": 0,
-   "allocated": 62,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK015 - BOOKS",
      "mintsoft_product_id": 1838,
      "free": 0,
-     "allocated": 62
+     "allocated": 0
     }
    ]
   },
@@ -394,15 +394,15 @@
   {
    "item_code": "CBB",
    "name": "MRK011 - CHICKEN BROTH BLENDER",
-   "free": 13,
-   "allocated": 0,
+   "free": 12,
+   "allocated": 1,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-CBB",
      "mintsoft_product_id": 1643,
-     "free": 13,
-     "allocated": 0
+     "free": 12,
+     "allocated": 1
     }
    ]
   },
@@ -706,15 +706,15 @@
   {
    "item_code": "DONBURI - MRK",
    "name": "DONBURI PLATES WITH LOGO",
-   "free": 456,
-   "allocated": 0,
+   "free": 436,
+   "allocated": 20,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "DONBURI - MRK",
      "mintsoft_product_id": 1800,
-     "free": 456,
-     "allocated": 0
+     "free": 436,
+     "allocated": 20
     }
    ]
   },
@@ -1042,15 +1042,15 @@
   {
    "item_code": "GYOZA PLATE 1 - MRK",
    "name": "GYOZA PLATE 1",
-   "free": 340,
-   "allocated": 0,
+   "free": 320,
+   "allocated": 20,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "GYOZA PLATE 1 - MRK",
      "mintsoft_product_id": 1828,
-     "free": 340,
-     "allocated": 0
+     "free": 320,
+     "allocated": 20
     }
    ]
   },
@@ -1735,30 +1735,30 @@
   {
    "item_code": "RAMEN BOWL VEGAN - MRK",
    "name": "RAMEN BOWL VEGAN",
-   "free": 132,
-   "allocated": 0,
+   "free": 122,
+   "allocated": 10,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "RAMEN BOWL VEGAN - MRK",
      "mintsoft_product_id": 1821,
-     "free": 132,
-     "allocated": 0
+     "free": 122,
+     "allocated": 10
     }
    ]
   },
   {
    "item_code": "RAMEN BOWL WITH LOGO ORANGE LINE - MRK",
    "name": "RAMEN BOWL WITH LOGO ORANGE LINE",
-   "free": 428,
-   "allocated": 0,
+   "free": 418,
+   "allocated": 10,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "RAMEN BOWL WITH LOGO ORANGE LINE - MRK",
      "mintsoft_product_id": 1820,
-     "free": 428,
-     "allocated": 0
+     "free": 418,
+     "allocated": 10
     }
    ]
   },
