@@ -1,69 +1,63 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-11-16T21:51:23Z",
- "verified_date": "2026-11-16",
- "mode": "recheck",
- "overall": "red",
- "postgres_latest": "2026-11-16",
- "snapshot_latest": "2026-11-16",
+ "generated_at": "2026-11-17T08:38:29Z",
+ "verified_date": "2026-11-17",
+ "mode": "morning",
+ "overall": "amber",
+ "postgres_latest": "2026-11-17",
+ "snapshot_latest": "2026-11-17",
  "sizes": {
-  "maintenance_pulled_at": "2026-11-16T13:29:47Z",
+  "maintenance_pulled_at": "2026-11-17T08:31:38Z",
   "maintenance_source_as_of": "2026-11-16",
-  "facilities_pulled_at": "2026-11-16T13:30:08Z",
-  "facilities_as_of": "2026-11-16",
+  "facilities_pulled_at": "2026-11-17T08:31:51Z",
+  "facilities_as_of": "2026-11-17",
   "facilities_copy": "facilities_ppm.json",
-  "archive_mb": 517
+  "archive_mb": 522
  },
  "counts": {
   "expected_feeds": 32,
   "known_broken": 10,
   "best_effort": 22,
-  "criticals": 1,
+  "criticals": 0,
   "warnings": 12,
   "deferred": 0
  },
- "criticals": [
-  {
-   "check": "0-receipts",
-   "level": "critical",
-   "feed": "daily-export",
-   "detail": "08:17 daily export receipt says exit 1 with 2 failed feed(s) - see its run log"
-  }
- ],
+ "criticals": [],
  "warnings": [
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "GC Deviations (prev day)",
    "class": "1-landed",
-   "detail": "last pull 2026-10-14 (33d old) - expected today"
+   "detail": "last pull 2026-10-14 (34d old) - expected today"
   },
   {
-   "check": "2-rows",
+   "check": "1-landed",
    "level": "warning",
    "feed": "GC Procedure Details",
-   "detail": "9 rows today vs calibration median (Neon history thin after trim) 55 - outside the 0.5x-3x band"
+   "class": "1-landed",
+   "detail": "last pull 2026-11-16 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "1-landed",
-   "detail": "last pull 2026-09-01 (76d old) - expected today"
+   "detail": "last pull 2026-09-01 (77d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Pack Prices",
    "class": "1-landed",
-   "detail": "last pull 2026-09-07 (70d old) - expected today"
+   "detail": "last pull 2026-09-07 (71d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "warning",
-   "feed": "GC Locations Changelog",
+   "feed": "JFC Factory POs",
    "class": "1-landed",
-   "detail": "feed has NEVER landed in the pull archive"
+   "detail": "last pull 2026-11-16 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -83,14 +77,14 @@
    "check": "5-unmanifested",
    "level": "warning",
    "feed": "Slerp Order Events",
-   "detail": "feed landed 8 rows today but is NOT in the manifest - add it (expected, best_effort, or known_broken) so it stops flying blind"
+   "detail": "feed landed 256 rows today but is NOT in the manifest - add it (expected, best_effort, or known_broken) so it stops flying blind"
   },
   {
    "check": "3-events",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "3-events-stale",
-   "detail": "newest Order Placed is 2026-08-17 (91d old, window 10d) - and the last pull was 2026-09-01"
+   "detail": "newest Order Placed is 2026-08-17 (92d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
    "check": "4c-attribution",
@@ -100,12 +94,12 @@
   {
    "check": "4d-okr",
    "level": "warning",
-   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-16T13:29) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-17T08:31) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "4f-oo1-ma",
    "level": "warning",
-   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-16 13:30 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
+   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-17 08:31 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
  "deferred": [],
@@ -178,15 +172,15 @@
  "results": [
   {
    "check": "0-receipts",
-   "level": "critical",
+   "level": "ok",
    "feed": "daily-export",
-   "detail": "08:17 daily export receipt says exit 1 with 2 failed feed(s) - see its run log"
+   "detail": "08:17 daily export: exit 0, 65699 rows written, finished 2026-11-17 08:28:32"
   },
   {
    "check": "0-receipts",
    "level": "ok",
    "feed": "deep-pull",
-   "detail": "01:07 deep pull: exit 0, 24920 rows written, finished 2026-11-16 08:14:07"
+   "detail": "no 01:07 deep pull due today - it runs on Mondays only (2,000 Actions minutes a month); newest clean receipt 2026-11-16"
   },
   {
    "check": "1-landed",
@@ -198,7 +192,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Branch Resources",
-   "detail": "17496 rows (median 16834)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 7-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -210,7 +204,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Certificates",
-   "detail": "2003 rows (median 1899)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 7-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -222,7 +216,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Courses",
-   "detail": "1129 rows (median 1078)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 7-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -234,7 +228,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "4010 rows (median 3827)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 7-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -246,7 +240,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Flow Profile XT",
-   "detail": "281 rows (median 281)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 7-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -258,37 +252,37 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "Deep Run Log",
-   "detail": "1 rows (median 1)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 7-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Appraisals",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Appraisals",
-   "detail": "525 rows (median 510)"
+   "detail": "526 rows (median 512)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Branch Resources",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Branch Resources",
-   "detail": "1981 rows (median 1997)"
+   "detail": "2024 rows (median 1997)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Branches",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
@@ -300,31 +294,31 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Certificates",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Certificates",
-   "detail": "258 rows (median 202)"
+   "detail": "305 rows (median 209)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Courses",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Courses",
-   "detail": "136 rows (median 128)"
+   "detail": "160 rows (median 135)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Departments",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
@@ -336,85 +330,85 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Modules",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Modules",
-   "detail": "494 rows (median 442)"
+   "detail": "527 rows (median 445)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Profile XT",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Profile XT",
-   "detail": "19 rows (median 32)"
+   "detail": "40 rows (median 32)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Trainees",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees",
-   "detail": "524 rows (median 509)"
+   "detail": "525 rows (median 511)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Trainees Ext",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees Ext",
-   "detail": "524 rows (median 509)"
+   "detail": "525 rows (median 511)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Trainees ReadOnly",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Trainees ReadOnly",
-   "detail": "1053 rows (median 1039)"
+   "detail": "1054 rows (median 1041)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Training",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Training",
-   "detail": "1489 rows (median 1468)"
+   "detail": "1473 rows (median 1468)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Flow Workbooks",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Flow Workbooks",
-   "detail": "525 rows (median 510)"
+   "detail": "526 rows (median 512)"
   },
   {
    "check": "1-landed",
@@ -426,7 +420,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Central Areas",
-   "detail": "34 rows (median 34)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -438,13 +432,13 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Central Form Tasks",
-   "detail": "12660 rows (median 12660)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Central Module Tasks",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
@@ -457,31 +451,31 @@
    "level": "warning",
    "feed": "GC Deviations (prev day)",
    "class": "1-landed",
-   "detail": "last pull 2026-10-14 (33d old) - expected today"
+   "detail": "last pull 2026-10-14 (34d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "1792 rows (median 1864)"
+   "detail": "1798 rows (median 1809)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Form Task Answers (prev day)",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Form Task Answers (prev day)",
-   "detail": "173 rows (median 196)"
+   "detail": "196 rows (median 173)"
   },
   {
    "check": "1-landed",
@@ -493,13 +487,13 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Forms",
-   "detail": "73 rows (median 73)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Forms Overview",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
@@ -517,7 +511,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Local Procedures",
-   "detail": "625 rows (median 625)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -529,13 +523,13 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Location Groups",
-   "detail": "13 rows (median 13)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Locations",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
@@ -553,19 +547,14 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Modules",
-   "detail": "6 rows (median 6)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
-   "level": "ok",
-   "feed": "GC Procedure Details",
-   "detail": "landed 2026-11-16"
-  },
-  {
-   "check": "2-rows",
    "level": "warning",
    "feed": "GC Procedure Details",
-   "detail": "9 rows today vs calibration median (Neon history thin after trim) 55 - outside the 0.5x-3x band"
+   "class": "1-landed",
+   "detail": "last pull 2026-11-16 (1d old) - expected today"
   },
   {
    "check": "1-landed",
@@ -577,7 +566,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Procedures",
-   "detail": "25 rows (median 25)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -589,7 +578,7 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Procedures Refactor",
-   "detail": "25 rows (median 25)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
@@ -601,43 +590,43 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Processes",
-   "detail": "37 rows (median 37)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "40789 rows (median 40483)"
+   "detail": "40061 rows (median 40483)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Scheduled Task Answers (prev day)",
-   "detail": "5662 rows (median 4584)"
+   "detail": "4846 rows (median 5662)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "GC Users",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Users",
-   "detail": "1389 rows (median 1374)"
+   "detail": "1390 rows (median 1376)"
   },
   {
    "check": "1-landed",
@@ -649,80 +638,80 @@
    "check": "2-rows",
    "level": "ok",
    "feed": "GC Waste Module Settings",
-   "detail": "5 rows (median 5)"
+   "detail": "no pull today - last landed 2026-11-16, inside its 4-day cadence, so there are no rows to weigh"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "869 rows (median 882)"
+   "detail": "817 rows (median 874)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Daily EPoS Item Recipes Report",
-   "detail": "2709 rows (median 2691)"
+   "detail": "2709 rows (median 2696)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Daily Stock Batch Recipes Report",
-   "detail": "705 rows (median 705)"
+   "detail": "716 rows (median 705)"
   },
   {
    "check": "1-landed",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "1-landed",
-   "detail": "last pull 2026-09-01 (76d old) - expected today"
+   "detail": "last pull 2026-09-01 (77d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "1353 rows (median 1234)"
+   "detail": "1353 rows (median 1123)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Kobas Report - Weekly Ingredient Price Changes Report",
-   "detail": "379 rows (median 180)"
+   "detail": "379 rows (median 234)"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Kobas Report - Weekly Revenue and Cost of Sales by Category Report",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
@@ -735,31 +724,26 @@
    "level": "warning",
    "feed": "Kobas Pack Prices",
    "class": "1-landed",
-   "detail": "last pull 2026-09-07 (70d old) - expected today"
+   "detail": "last pull 2026-09-07 (71d old) - expected today"
   },
   {
    "check": "1-landed",
-   "level": "ok",
+   "level": "warning",
    "feed": "JFC Factory POs",
-   "detail": "landed 2026-11-16"
-  },
-  {
-   "check": "2-rows",
-   "level": "ok",
-   "feed": "JFC Factory POs",
-   "detail": "79 rows (median 78)"
+   "class": "1-landed",
+   "detail": "last pull 2026-11-16 (1d old) - expected today"
   },
   {
    "check": "1-landed",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Supplier Issues",
-   "detail": "7 rows (median 7)"
+   "detail": "4 rows (median 7)"
   },
   {
    "check": "1-landed",
@@ -825,20 +809,25 @@
    "check": "1-landed",
    "level": "ok",
    "feed": "Factory Broth Readings",
-   "detail": "landed 2026-11-16"
+   "detail": "landed 2026-11-17"
   },
   {
    "check": "2-rows",
    "level": "ok",
    "feed": "Factory Broth Readings",
-   "detail": "2070 rows (median 2015)"
+   "detail": "2080 rows (median 2020)"
   },
   {
    "check": "1-landed",
-   "level": "warning",
+   "level": "ok",
    "feed": "GC Locations Changelog",
-   "class": "1-landed",
-   "detail": "feed has NEVER landed in the pull archive"
+   "detail": "landed 2026-11-17"
+  },
+  {
+   "check": "2-rows",
+   "level": "ok",
+   "feed": "GC Locations Changelog",
+   "detail": "1 rows (no median available)"
   },
   {
    "check": "1-landed",
@@ -858,70 +847,70 @@
    "check": "5-unmanifested",
    "level": "warning",
    "feed": "Slerp Order Events",
-   "detail": "feed landed 8 rows today but is NOT in the manifest - add it (expected, best_effort, or known_broken) so it stops flying blind"
+   "detail": "feed landed 256 rows today but is NOT in the manifest - add it (expected, best_effort, or known_broken) so it stops flying blind"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Deep Flow Modules",
-   "detail": "newest module_completed_date 2026-11-15 (1d old)"
+   "detail": "newest module_completed_date 2026-11-15 (2d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "GC Form Task Answers",
-   "detail": "newest AnsweredDateTime 2026-11-15 (1d old)"
+   "detail": "newest AnsweredDateTime 2026-11-16 (1d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "GC Scheduled Task Answers",
-   "detail": "newest AnsweredDateTime 2026-11-16 (0d old)"
+   "detail": "newest AnsweredDateTime 2026-11-16 (1d old)"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Orders",
-   "detail": "newest Order Email Date 2026-11-16 (0d old)"
+   "detail": "newest Order Email Date 2026-11-16 (1d old)"
   },
   {
    "check": "3-events",
    "level": "warning",
    "feed": "Kobas Report - Maki Ramen - Weekly Outstanding Stock Orders Report",
    "class": "3-events-stale",
-   "detail": "newest Order Placed is 2026-08-17 (91d old, window 10d) - and the last pull was 2026-09-01"
+   "detail": "newest Order Placed is 2026-08-17 (92d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
    "check": "3-events",
    "level": "ok",
    "feed": "Kobas Report - Maki and Ramen - Weekly Stock Check Edits Report",
-   "detail": "newest Edit Date/Time 2026-11-16 (0d old)"
+   "detail": "newest Edit Date/Time 2026-11-16 (1d old)"
   },
   {
    "check": "4a-snapshot",
    "level": "ok",
-   "detail": "dashboard snapshot 2026-11-16 matches the pull archive 2026-11-16"
+   "detail": "dashboard snapshot 2026-11-17 matches the pull archive 2026-11-17"
   },
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "maintenance source pulled 2026-11-16 (0d ago), sheet content as of 2026-11-16"
+   "detail": "maintenance source pulled 2026-11-17 (0d ago), sheet content as of 2026-11-16"
   },
   {
    "check": "6-side",
    "level": "ok",
    "feed": "Facilities PPM summary",
-   "detail": "facilities feed pulled 2026-11-16 (0d ago, facilities_ppm.json), app data as of 2026-11-16"
+   "detail": "facilities feed pulled 2026-11-17 (0d ago, facilities_ppm.json), app data as of 2026-11-17"
   },
   {
    "check": "6-side",
    "level": "ok",
-   "detail": "pull archive 517 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
+   "detail": "pull archive 522 MB on disk (~1.7 GB/year growth; repo comfort bound ~5 GB)"
   },
   {
    "check": "4b-consistency",
    "level": "ok",
-   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=39624, tasks_missed=1165, week_spend_gbp=94653.52, broth_cells=3918, factory_broth_readings=2000, supplier_issues=253, training_outstanding=2005"
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=39154, tasks_missed=907, week_spend_gbp=100938.08, broth_cells=3961, factory_broth_readings=2000, supplier_issues=257, training_outstanding=2005"
   },
   {
    "check": "4c-attribution",
@@ -946,12 +935,12 @@
   {
    "check": "4d-okr",
    "level": "warning",
-   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-16T13:29) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-17T08:31) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "aggregates",
    "level": "ok",
-   "detail": "4361 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (6101 total)"
+   "detail": "4409 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (6175 total)"
   },
   {
    "check": "4e-oo1-public",
@@ -961,8 +950,8 @@
   {
    "check": "4f-oo1-ma",
    "level": "warning",
-   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-16 13:30 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
+   "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-17 08:31 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
