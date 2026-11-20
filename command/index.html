@@ -353,6 +353,20 @@ code{background:var(--n-bg);border-radius:4px;padding:1px 5px;font-size:12px}
     <div class="card-b" id="sq-forms"></div></div>
 </div>
 
+<div class="page" id="p-slerp">
+  <div id="sl-note"></div>
+  <div class="kpis" id="sl-kpis"></div>
+  <div class="card"><div class="card-h"><div class="t">Online sales by store &mdash; last 7 days</div>
+    <div class="s" id="sl-bars-sub">Slerp web and app orders (click &amp; collect, delivery, order at table) &mdash; Deliveroo is a separate feed</div></div>
+    <div class="card-b" id="sl-bars"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Orders and sales by day</div>
+    <div class="s" id="sl-days-sub">All stores, by the UTC date the order was placed</div></div>
+    <div class="card-b" id="sl-days"></div></div>
+  <div class="card"><div class="card-h"><div class="t">Store detail &mdash; last 7 days</div>
+    <div class="s">Order state is the newest Slerp event for the order; rejected and refunded are counted from that</div></div>
+    <div class="card-b" id="sl-tbl"></div></div>
+</div>
+
 <div class="page" id="p-cross">
   <div class="note">Cross-referencing quality and supply, by site and event date. <b>This is coincidence, not causation</b> — a broth deviation and a supplier issue at the same site within a few days is a place to look first, not proof of a link. Join key is site + date; site names differ across systems, so a hand-built alias map bridges GetCompliant and Kobas naming (see basis below).</div>
   <div class="card"><div class="card-h"><div class="t">Broth deviations with a nearby supplier issue</div>
@@ -417,7 +431,7 @@ const fmtN=v=>v==null?'—':Number(v).toLocaleString('en-GB');
 const PAGES=[['p-over','Overview'],['p-train','Training'],['p-comp','Compliance'],
   ['p-tasks','Task Completion'],['p-maint','Maintenance'],
   ['p-qual','Quality & Broth'],['p-supp','Supply & Fulfilment'],['p-supi','Supplier Issues'],
-  ['p-cross','Cross-Reference'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
+  ['p-slerp','Online orders'],['p-cross','Cross-Reference'],['p-sites','Sites'],['p-feeds','Feeds'],['p-day','My day']];
 $('nav').innerHTML=PAGES.map(([id,lb],i)=>`<button role="tab" aria-selected="${i===0}" data-p="${id}">${lb}</button>`).join('');
 $('nav').addEventListener('click',e=>{
   const b=e.target.closest('button[data-p]'); if(!b) return;
@@ -2753,6 +2767,42 @@ function render(snap){
     ((snap.sites&&snap.sites.directory)||[]).map(d=>[d.site,
       hcMap[(d.site||'').toLowerCase()]??'—',d.groups||'—',
       d.paused?chip('a','Paused'):d.active?chip('g','Active'):chip('n','Inactive')]));
+
+  /* online orders (Slerp) - Phase 1 of the systems plan, 20/11/2026 */
+  (function(){
+    const sl=snap.slerp; const gbp=v=>'£'+fmtN(Math.round(v||0));
+    if(!sl){
+      $('sl-note').innerHTML='<div class="empty">The Slerp Order Events feed has not landed yet - the webhook receiver and the nightly pull are described in the systems plan.</div>';
+      $('sl-kpis').innerHTML=''; $('sl-bars').innerHTML=''; $('sl-days').innerHTML=''; table('sl-tbl',[{h:'Store'}],[],'No Slerp data in this snapshot');
+      return;
+    }
+    const days=sl.days||[], stores=sl.stores||[];
+    const last=days[days.length-1]||{}, prev=days[days.length-2]||{};
+    const tOrd=stores.reduce((a,s)=>a+(s.orders||0),0), tSales=stores.reduce((a,s)=>a+(s.sales||0),0);
+    const tRej=stores.reduce((a,s)=>a+(s.rejected||0),0), tRef=stores.reduce((a,s)=>a+(s.refunded||0),0);
+    const tDel=stores.reduce((a,s)=>a+(s.delivery||0),0);
+    const badPct=tOrd?Math.round(100*(tRej+tRef)/tOrd):0;
+    $('sl-note').innerHTML=`<div class="note">Source ${esc(sl.source_feed)} · pull ${esc(sl.pull_date||'')} · ${fmtN(sl.events_read)} events read, ${fmtN(sl.orders_in_archive)} orders in the archive · ${esc(sl.note||'')}</div>`;
+    $('sl-kpis').innerHTML=
+      kpi('b','Orders '+(last.day?esc(last.day.slice(5)):'latest day'),fmtN(last.orders),prev.day?('vs '+fmtN(prev.orders)+' the day before'):'first day in the archive')+
+      kpi('b','Sales '+(last.day?esc(last.day.slice(5)):''),gbp(last.sales),last.orders?('AOV '+gbp(last.sales/last.orders)):'')+
+      kpi('b','Orders, '+days.length+' day'+(days.length===1?'':'s'),fmtN(tOrd),gbp(tSales)+' · AOV '+(tOrd?gbp(tSales/tOrd):'—'))+
+      kpi(badPct>=5?'r':badPct>=2?'a':'g','Rejected + refunded',fmtN(tRej+tRef),badPct+'% of orders · '+fmtN(tRej)+' rejected, '+fmtN(tRef)+' refunded')+
+      kpi('b','Delivery share',(tOrd?Math.round(100*tDel/tOrd):0)+'%',fmtN(tDel)+' delivery · '+fmtN(tOrd-tDel)+' collect / at table');
+    $('sl-bars-sub').textContent=stores.length+' stores · '+fmtN(tOrd)+' orders · '+gbp(tSales)+' · Slerp web and app orders (click & collect, delivery, order at table) — Deliveroo is a separate feed';
+    bars('sl-bars',stores.map(s=>({k:s.store,v:Math.round(s.sales||0),tip:`${s.store} — ${gbp(s.sales)} from ${fmtN(s.orders)} orders · ${fmtN(s.delivery)} delivery, ${fmtN(s.pickup)} collect, ${fmtN(s.table)} at table`})),i=>gbp(i.v));
+    table('sl-days',[{h:'Day'},{h:'Orders',n:1},{h:'Sales',n:1},{h:'AOV',n:1}],
+      days.slice().reverse().map(d=>[d.day,d.orders,gbp(d.sales),d.orders?gbp(d.sales/d.orders):'—']),'No complete days yet');
+    const rows=stores.map(s=>{
+      const bad=(s.rejected||0)+(s.refunded||0), pct=s.orders?Math.round(100*bad/s.orders):0;
+      return [s.store,s.orders,gbp(s.sales),s.orders?gbp(s.sales/s.orders):'—',s.items,
+        s.orders?Math.round(100*(s.delivery||0)/s.orders)+'%':'—',s.rejected||0,s.refunded||0,s.guest||0,
+        bad===0?chip('g','Clean'):pct>=5?chip('r',pct+'% lost'):chip('a',pct+'% lost')];});
+    if(rows.length>1){const t=['All stores',tOrd,gbp(tSales),tOrd?gbp(tSales/tOrd):'—',stores.reduce((a,s)=>a+(s.items||0),0),
+      tOrd?Math.round(100*tDel/tOrd)+'%':'—',tRej,tRef,stores.reduce((a,s)=>a+(s.guest||0),0),'']; t._tot=true; rows.push(t);}
+    table('sl-tbl',[{h:'Store'},{h:'Orders',n:1},{h:'Sales',n:1},{h:'AOV',n:1},{h:'Items',n:1},{h:'Delivery %',n:1},
+      {h:'Rejected',n:1},{h:'Refunded',n:1},{h:'Guest checkouts',n:1},{h:'State',raw:1}],rows,'No orders in the window');
+  })();
 
   /* feeds */
   const fh=snap.feed_health||[];

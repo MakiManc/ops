@@ -632,6 +632,19 @@
    "cadence_days": 1,
    "status": "best_effort",
    "note": "25/09/2026: the M&R Facilities app's /api/ppm_summary, pulled by builders/refresh_facilities.py in the Ops Command bake (maki-hospitality-etl, secret FACILITIES_API_KEY) into data/ops_command/facilities_ppm.json. Feeds OO2 KR1/KR2/KR4 and the Maintenance tab's Facilities cards; the bake greys those KRs itself once the file is over 3 days old. best_effort until the tab is depended on: check 6 warns past 2 days and would go critical past 7, capped at warning by this tier. Flip to expected to let it page."
+  },
+  {
+   "name": "Slerp Order Events",
+   "workflow": "daily-export",
+   "cadence_days": 1,
+   "pulls_weekends": true,
+   "min_rows": 300,
+   "median_rows_at_calibration": null,
+   "status": "best_effort",
+   "event_date_field": "received_at",
+   "event_fresh_days": 2,
+   "note": "Added 20/11/2026 (Phase 1 of the systems plan). Slerp order events buffered in Ross's 'Slerp Order Events (ETL)' sheet by the Apps Script receiver (ops/builders/slerp_webhook_receiver.gs), pulled nightly by slerp_orders.py with a 3-day lookback, so pulls overlap and the bake dedupes on event_id. ~300 events a day across 18 stores in the first four days (256 / 607 / 897 / 1194 rows per pull as the window filled). min_rows 300 is ~40% of a full 3-day window at that rate; re-floor against a fortnight. best_effort for the first fortnight: a receiver or sheet-share problem should show on the Feeds tab, not turn the whole export red while the feed is new. Promote to expected once the Online orders tab is relied on.",
+   "event_stale_hint": "No Slerp event has been received for 2+ days. Check in order: Slerp Controls -> Integrations -> the 'Ops warehouse (ETL)' webhook is still enabled (20 consecutive failures disable it); the Apps Script web app deployment is current; the sheet is still shared Viewer with the ETL service account; the SLERP_SHEET_ID secret."
   }
  ]
 }
