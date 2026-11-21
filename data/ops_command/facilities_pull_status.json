@@ -1,10 +1,10 @@
 {
- "attempted_at": "2026-11-20T08:27:17Z",
- "cause": "ok",
- "content_type": null,
- "detail": "pulled and written, as_of 2026-11-20",
+ "attempted_at": "2026-11-21T08:34:13Z",
+ "cause": "app_disabled",
+ "content_type": "text/html",
+ "detail": "HTTP 404: PythonAnywhere's placeholder page instead of the feed - the free web app has expired or been disabled",
  "feed_url": "https://rossmward.eu.pythonanywhere.com/api/ppm_summary",
- "http_status": 200,
+ "http_status": 404,
  "last_ok_at": "2026-11-20T08:27:17Z",
- "ok": true
+ "ok": false
 }
