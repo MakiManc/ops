@@ -1,0 +1,144 @@
+{
+ "kind": "lynas_weekly_cut",
+ "week": "2026-W47",
+ "from": "2026-11-16",
+ "to": "2026-11-22",
+ "generated_on": "2026-11-23",
+ "updated_on": "2026-11-23",
+ "final": true,
+ "issue_feed_through": "2026-11-22",
+ "forms": 8,
+ "deliveries": 51,
+ "deliveries_counted": 51,
+ "rate": 84.3,
+ "not_measured": null,
+ "credit_flagged": 3,
+ "by_site": [
+  {
+   "site": "Maki SJQ Ltd",
+   "forms": 4
+  },
+  {
+   "site": "Maki Aberdeen Ltd",
+   "forms": 1
+  },
+  {
+   "site": "Maki METRO",
+   "forms": 1
+  },
+  {
+   "site": "Maki NE1 Ltd",
+   "forms": 1
+  },
+  {
+   "site": "South Ikigai Ltd",
+   "forms": 1
+  }
+ ],
+ "by_category": [
+  {
+   "category": "invoice_credit",
+   "forms": 2
+  },
+  {
+   "category": "other",
+   "forms": 2
+  },
+  {
+   "category": "shortage",
+   "forms": 2
+  },
+  {
+   "category": "(none recorded)",
+   "forms": 1
+  },
+  {
+   "category": "wrong_item",
+   "forms": 1
+  }
+ ],
+ "issues": [
+  {
+   "d": "2026-11-16",
+   "site": "Maki METRO",
+   "category": "wrong_item",
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "wrong tonkatsu delivered and wrong items send and returned",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-16",
+   "site": "Maki NE1 Ltd",
+   "category": "other",
+   "open": false,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "delivered diluted tonkostu broth charge full price \n3*126.44\norder microfibres cloth yellow delivered all purpose cloth yellow *4",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-16",
+   "site": "Maki SJQ Ltd",
+   "category": null,
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": null,
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-16",
+   "site": "South Ikigai Ltd",
+   "category": "other",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "corriander is all wet and parts of them are getting black and smelly",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-17",
+   "site": "Maki SJQ Ltd",
+   "category": "invoice_credit",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "1 case M&R paper bag is no coming by Lynas but it hasn't charged on invoice on 17/11",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-11-17",
+   "site": "Maki SJQ Ltd",
+   "category": "invoice_credit",
+   "open": true,
+   "attribution": "answered",
+   "form": "Delivery/Supplier Issue Form",
+   "text": "5 packs blue microfibre cloth is no coming hy Lynas in 17/11 but it has'nt been charged on invoice",
+   "credit_flag": true
+  },
+  {
+   "d": "2026-11-18",
+   "site": "Maki Aberdeen Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "16/11 Monday, 2 cases tonkotsu broth (252£~) missing. \n\n#009435463",
+   "credit_flag": false
+  },
+  {
+   "d": "2026-11-20",
+   "site": "Maki SJQ Ltd",
+   "category": "shortage",
+   "open": true,
+   "attribution": "answered",
+   "form": "Lynas Delivery/Supplier Issue Form",
+   "text": "1 case chicken fillet is missing , it's been charged on invoice, we need to credit it.\n1 case smoothie cup and 12 packs oat milk are no coming but they haven't been charged on invoice ",
+   "credit_flag": true
+  }
+ ],
+ "basis": "Lynas issue forms whose own answer date falls in the ISO week (Monday to Sunday), the same rows as the monthly statement; deliveries are Lynas orders in the Kobas order-confirmation emails with a delivery date in the week, counted for the rate only up to the newest day the issue feed covers. Rate = max(0, deliveries - issue forms) / deliveries - an issue-free rate, NOT on-time-in-full.",
+ "final_on": "2026-11-23"
+}
