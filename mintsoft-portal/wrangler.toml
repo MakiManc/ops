@@ -31,6 +31,13 @@ migrations_dir = "migrations"
 # if anything looks wrong at Mercium.
 MINTSOFT_WRITES_ENABLED = "true"
 
+# Where the portal lives, for the links in the emails it sends. Not a secret.
+#
+# Without it every email says "the ordering portal" in place of a link, which on the
+# email fulfilment route matters more than it sounds: that email IS the order, and the
+# person picking it needs a way back to the portal to see what they are confirming.
+PORTAL_URL = "https://mintsoft-portal.pages.dev"
+
 # Scope pins, identified by discovery on 2026-09-21. Both must match wrangler.sync.toml.
 # Client 10 is Maki & Ramen; warehouse 5 is Witham, the UK site we ship from. Leaving the
 # warehouse unpinned would sum Witham with Mercium's Belgium and Germany sites.
