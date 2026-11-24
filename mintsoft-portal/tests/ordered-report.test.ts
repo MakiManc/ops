@@ -113,7 +113,7 @@ describe('which quantity it counts', () => {
     const report = await orderedBySite(db, '2026-10')
     expect(report.sites[0]?.products).toEqual([
       {
-        productId: 48, productName: 'Ramekin', qty: 80, orders: 2,
+        productId: 48, productName: 'Ramekin', supplyRoute: 'mercium', qty: 80, orders: 2,
         unitPrice: null, cost: null, gapReason: null, priceNote: null,
       },
     ])
@@ -186,11 +186,11 @@ describe('the same figures cut by product', () => {
     const report = await orderedBySite(db, '2026-10')
     expect(report.productTotals).toEqual([
       {
-        productId: 48, productName: 'Ramekin', qty: 80, orders: 2,
+        productId: 48, productName: 'Ramekin', supplyRoute: 'mercium', qty: 80, orders: 2,
         unitPrice: null, cost: null, gapReason: null, priceNote: null,
       },
       {
-        productId: 22, productName: 'FOH Kimono', qty: 6, orders: 1,
+        productId: 22, productName: 'FOH Kimono', supplyRoute: 'mercium', qty: 6, orders: 1,
         unitPrice: null, cost: null, gapReason: null, priceNote: null,
       },
     ])
@@ -206,11 +206,27 @@ describe('the CSV', () => {
     price(22, null, 'Not in the price file.')
     const csv2 = orderedCsv(await orderedBySite(db, '2026-10'))
     expect(csv2.split('\n')).toEqual([
-      'Month,Site,Site name,Type,Product,Quantity,Orders,Unit cost (GBP),Cost (GBP),Why no price',
-      '2026-10,M19,Maki M19,restaurant,FOH Kimono,6,1,,,Not in the price file.',
-      '2026-10,M19,Maki M19,restaurant,Ramekin,60,1,0.86,51.6,',
+      'Month,Site,Site name,Type,Product ID,Product,Warehouse,Quantity,Orders,Unit cost (GBP),Cost (GBP),Why no price',
+      '2026-10,M19,Maki M19,restaurant,22,FOH Kimono,Mercium,6,1,,,Not in the price file.',
+      '2026-10,M19,Maki M19,restaurant,48,Ramekin,Mercium,60,1,0.86,51.6,',
     ])
     expect(csv).toContain('Unit cost (GBP)')
+  })
+
+  it('names the warehouse, so a pivot cannot merge two warehouses under one name', async () => {
+    // A near-twin of Ramekin, in the other warehouse. These pairs exist on purpose: they
+    // are separate stock in separate buildings. Keyed on the product name alone a
+    // spreadsheet would add them together, and the blank cost on the other-store row
+    // would look like an omission rather than a warehouse the price file never covered.
+    fake.exec(`INSERT INTO products (id, name, stock_type, supply_route)
+                 VALUES (77, 'Sauce bowl', 'internal', 'email')`)
+    order(1, 1, 'MR-M19-002', '2026-10-03T11:00:00Z', [[48, 10, 10], [77, 4, 4]])
+    price(48, 0.86)
+
+    const rows = orderedCsv(await orderedBySite(db, '2026-10')).split('\n')
+
+    expect(rows.some((r) => r.includes(',48,Ramekin,Mercium,'))).toBe(true)
+    expect(rows.some((r) => r.includes(',77,Sauce bowl,Other store,'))).toBe(true)
   })
 
   it('quotes a product name with a comma in it', async () => {
@@ -221,7 +237,7 @@ describe('the CSV', () => {
 
   it('has a header and nothing else in a quiet month', async () => {
     expect(orderedCsv(await orderedBySite(db, '2026-10')))
-      .toBe('Month,Site,Site name,Type,Product,Quantity,Orders,Unit cost (GBP),Cost (GBP),Why no price')
+      .toBe('Month,Site,Site name,Type,Product ID,Product,Warehouse,Quantity,Orders,Unit cost (GBP),Cost (GBP),Why no price')
   })
 })
 
@@ -280,7 +296,8 @@ describe('the money, and the gaps in it', () => {
     expect(report.sites[0]?.products.find((p) => p.productId === 22)?.gapReason).toBeNull()
     // Both are unpriced, but only one of them is somebody's job to go and load.
     expect(report.unpricedProducts).toBe(2)
-    expect(report.warnings.join(' ')).toMatch(/1 product ordered this month is not in the price file at all/)
+    expect(report.warnings.join(' '))
+      .toMatch(/1 Mercium product ordered this month is not in the price file at all/)
     expect(report.warnings.join(' ')).toMatch(/npm run prices/)
   })
 

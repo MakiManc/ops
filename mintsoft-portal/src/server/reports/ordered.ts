@@ -49,6 +49,15 @@ import type { Database } from '../db/repo.ts'
 export interface OrderedProduct {
   productId: number
   productName: string
+  /**
+   * Which warehouse supplied it.
+   *
+   * On the report because products now exist with similar names in two warehouses, and
+   * on the CSV because a pivot keyed on the product name would otherwise merge them. It
+   * also explains a blank cost without anyone having to ask: other-store stock has no
+   * supplier price on record for a structural reason, not an oversight.
+   */
+  supplyRoute: 'mercium' | 'email'
   /** The approved quantity, summed across every order this month. */
   qty: number
   /** How many of the site's orders this product appeared on. */
@@ -108,6 +117,7 @@ interface Row {
   site_type: string
   product_id: number
   product_name: string
+  supply_route: 'mercium' | 'email' | null
   qty_approved: number | null
   unit_price: number | null
   gap_reason: string | null
@@ -152,7 +162,7 @@ export async function orderedBySite(db: Database, month: string): Promise<Ordere
     .prepare(
       `SELECT o.order_number, o.status,
               s.code AS site_code, s.name AS site_name, s.type AS site_type,
-              p.id AS product_id, p.name AS product_name,
+              p.id AS product_id, p.name AS product_name, p.supply_route,
               ol.qty_approved,
               pp.unit_price, pp.gap_reason, pp.note AS price_note,
               pp.distinct_prices, pp.lowest, pp.highest
@@ -187,6 +197,7 @@ export async function orderedBySite(db: Database, month: string): Promise<Ordere
   /** Products with no price anywhere this month, and how many had no row at all. */
   const unpriced = new Set<number>()
   let noPriceRow = 0
+  let noPriceOtherStore = 0
   const seenProduct = new Set<number>()
 
   for (const r of rows) {
@@ -209,7 +220,14 @@ export async function orderedBySite(db: Database, month: string): Promise<Ordere
       seenProduct.add(r.product_id)
       // No row at all is different from a row saying why there is no price: it means the
       // price file has not been loaded for this product, not that it cannot be priced.
-      if (r.unit_price === null && r.gap_reason === null) noPriceRow += 1
+      if (r.unit_price === null && r.gap_reason === null) {
+        // Split by warehouse, because the remedy differs. A Mercium product missing from
+        // the price file is an omission somebody can close in prices/build.py. Stock held
+        // outside Mercium is not in that file by scope and never will be, so telling the
+        // reader to add it there sends them to fix the wrong thing.
+        if (r.supply_route === 'email') noPriceOtherStore += 1
+        else noPriceRow += 1
+      }
     }
 
     if (r.qty_approved === null) {
@@ -228,7 +246,9 @@ export async function orderedBySite(db: Database, month: string): Promise<Ordere
 
     const existing = site.products.find((p) => p.productId === r.product_id)
     const product = existing ?? {
-      productId: r.product_id, productName: r.product_name, qty: 0, orders: 0,
+      productId: r.product_id, productName: r.product_name,
+      supplyRoute: r.supply_route === 'email' ? 'email' as const : 'mercium' as const,
+      qty: 0, orders: 0,
       unitPrice: r.unit_price, cost: null, gapReason: r.gap_reason, priceNote: priceNote(r),
     }
     product.qty += r.qty_approved
@@ -246,7 +266,9 @@ export async function orderedBySite(db: Database, month: string): Promise<Ordere
     bySite.set(r.site_code, site)
 
     const total = totals.get(r.product_id) ?? {
-      productId: r.product_id, productName: r.product_name, qty: 0, orders: 0,
+      productId: r.product_id, productName: r.product_name,
+      supplyRoute: r.supply_route === 'email' ? 'email' as const : 'mercium' as const,
+      qty: 0, orders: 0,
       unitPrice: r.unit_price, cost: null, gapReason: r.gap_reason, priceNote: priceNote(r),
     }
     total.qty += r.qty_approved
@@ -299,10 +321,19 @@ export async function orderedBySite(db: Database, month: string): Promise<Ordere
   }
   if (noPriceRow > 0) {
     warnings.push(
-      `${noPriceRow} product${noPriceRow === 1 ? '' : 's'} ordered this month ${noPriceRow === 1 ? 'is' : 'are'} `
-        + 'not in the price file at all, so there is not even a reason for the gap. Run '
-        + '"npm run prices" to load the file, and add the product to prices/build.py if it '
-        + 'is still missing afterwards.',
+      `${noPriceRow} Mercium product${noPriceRow === 1 ? '' : 's'} ordered this month `
+        + `${noPriceRow === 1 ? 'is' : 'are'} not in the price file at all, so there is not even `
+        + 'a reason for the gap. Run "npm run prices" to load the file, and add the product to '
+        + 'prices/build.py if it is still missing afterwards.',
+    )
+  }
+  if (noPriceOtherStore > 0) {
+    warnings.push(
+      `${noPriceOtherStore} product${noPriceOtherStore === 1 ? '' : 's'} ordered this month `
+        + `${noPriceOtherStore === 1 ? 'is' : 'are'} held outside Mercium and ${noPriceOtherStore === 1 ? 'has' : 'have'} `
+        + 'no supplier cost on record. The China Stock Price File prices Mercium imports only, '
+        + 'so these need a cost from their own supplier before a franchise can be recharged '
+        + `for ${noPriceOtherStore === 1 ? 'it' : 'them'}.`,
     )
   }
 
@@ -334,14 +365,20 @@ function csvCell(value: string | number): string {
  */
 export function orderedCsv(report: OrderedReport): string {
   const head = [
-    'Month', 'Site', 'Site name', 'Type', 'Product', 'Quantity', 'Orders',
+    // Product ID so a pivot has a real key: products deliberately exist with similar
+    // names in two warehouses, and a sheet keyed on the name alone merges them. It is
+    // also the number the other store's pick-list email prints beside each item.
+    'Month', 'Site', 'Site name', 'Type', 'Product ID', 'Product', 'Warehouse',
+    'Quantity', 'Orders',
     // Blank rather than 0 where there is no price, so a spreadsheet summing the column
     // cannot quietly treat "not known" as "nothing".
     'Unit cost (GBP)', 'Cost (GBP)', 'Why no price',
   ]
   const body = report.sites.flatMap((s) =>
     s.products.map((p) => [
-      report.month, s.siteCode, s.siteName, s.siteType, p.productName, p.qty, p.orders,
+      report.month, s.siteCode, s.siteName, s.siteType,
+      p.productId, p.productName, p.supplyRoute === 'email' ? 'Other store' : 'Mercium',
+      p.qty, p.orders,
       p.unitPrice ?? '', p.cost ?? '', p.gapReason ?? '',
     ]))
   return [head, ...body].map((r) => r.map(csvCell).join(',')).join('\n')

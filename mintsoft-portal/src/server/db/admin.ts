@@ -91,7 +91,29 @@ export async function importParLevels(db: Database, csv: string): Promise<Import
   const { results: sites } = await db.prepare(`SELECT id, code FROM sites WHERE active = 1`).all<{ id: number; code: string }>()
   const { results: products } = await db.prepare(`SELECT id, name FROM products WHERE active = 1`).all<{ id: number; name: string }>()
   const siteByCode = new Map((sites ?? []).map((s) => [s.code.toUpperCase(), s.id]))
-  const productByName = new Map((products ?? []).map((p) => [p.name.toLowerCase(), p.id]))
+
+  /**
+   * Products by name, trimmed on BOTH sides, and refusing a name two products share.
+   *
+   * Two faults lived here. The key was `p.name.toLowerCase()` with no trim while the CSV
+   * value was trimmed, so a product whose stored name has a trailing space could never be
+   * matched -- "Ramen Bowl Vegan " is one, and the export writes exactly that cell, so the
+   * sheet this screen produces could not be re-imported and one such row refuses the whole
+   * upload.
+   *
+   * The second is that a shared name resolved last-one-wins, silently writing both rows'
+   * par levels onto one product. Six names in the catalogue belong to two rows each, and
+   * products now exist with deliberately similar names across two warehouses. A clash is
+   * reported rather than guessed: the importer already fails the whole sheet on any
+   * problem, which is the right failure for a limit that decides what a site can order.
+   */
+  const productByName = new Map<string, number | 'ambiguous'>()
+  const nameOf = new Map<string, string[]>()
+  for (const p of products ?? []) {
+    const key = p.name.trim().toLowerCase()
+    nameOf.set(key, [...(nameOf.get(key) ?? []), `#${p.id}`])
+    productByName.set(key, productByName.has(key) ? 'ambiguous' : p.id)
+  }
 
   const number = (value: string, line: number, field: string): number | null | undefined => {
     if (value.trim() === '') return null   // blank clears the limit
@@ -109,8 +131,21 @@ export async function importParLevels(db: Database, csv: string): Promise<Import
     const siteId = siteByCode.get((values.site_code ?? '').toUpperCase())
     if (!siteId) { problems.push({ line, message: `No active site with code "${values.site_code}"` }); continue }
 
-    const productId = productByName.get((values.product_name ?? '').toLowerCase())
-    if (!productId) { problems.push({ line, message: `No active product called "${values.product_name}"` }); continue }
+    const named = (values.product_name ?? '').trim().toLowerCase()
+    const productId = productByName.get(named)
+    if (productId === undefined) {
+      problems.push({ line, message: `No active product called "${values.product_name}"` })
+      continue
+    }
+    if (productId === 'ambiguous') {
+      problems.push({
+        line,
+        message: `More than one active product is called "${values.product_name}" `
+          + `(${(nameOf.get(named) ?? []).join(', ')}), so this row could go to either. `
+          + 'Rename one of them, then upload again.',
+      })
+      continue
+    }
 
     const par = number(values.par_level ?? '', line, 'par_level')
     const max = number(values.max_per_order ?? '', line, 'max_per_order')
