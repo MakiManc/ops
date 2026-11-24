@@ -331,17 +331,27 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
     return counts
   }, [data])
 
-  /** The warehouse the open request has committed to, or null if it is empty or mixed. */
-  const requestRoute = useMemo(() => {
+  /**
+   * The warehouse the open request has committed to.
+   *
+   * 'mixed' is reported rather than folded into null, because null means "nothing is
+   * ruled out yet" and goes unsaid. A mixed request is the one case that most needs
+   * saying, and the first version of this went silent on exactly that: it returned null
+   * for a mixed set, so the banner disappeared at the moment it had something urgent to
+   * tell the GM.
+   *
+   * Lines whose product is not in the catalogue list (deactivated since, or filtered out
+   * of this site's list) are skipped rather than treated as Mercium, since guessing a
+   * route is what the banner exists to avoid.
+   */
+  const requestRoute = useMemo((): 'mercium' | 'email' | 'mixed' | null => {
     if (!data || requestProductIds.length === 0) return null
     const routes = new Set(
       data.products
         .filter((p) => requestProductIds.includes(p.productId))
         .map((p) => (p.supplyRoute === 'email' ? 'email' : 'mercium')),
     )
-    // ?? null rather than a non-null assertion: a Set of size 1 plainly has a first
-    // element, but saying so with ! is a claim the compiler cannot check and the next
-    // person has to re-derive.
+    if (routes.size > 1) return 'mixed'
     return routes.size === 1 ? ([...routes][0] ?? null) : null
   }, [data, requestProductIds])
 
@@ -493,7 +503,14 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
         {/* What this request has already committed to. The two warehouses ship separately
             and cannot share an order, so a GM three items into a Mercium request needs to
             know that before they tap a near-identically named item from the other store. */}
-        {requestRoute !== null && (
+        {requestRoute === 'mixed' && (
+          <p className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-900">
+            This request has stock from both warehouses on it, which cannot be sent as one
+            order. Take the odd ones out in the basket, or cancel it and start again.
+          </p>
+        )}
+
+        {(requestRoute === 'mercium' || requestRoute === 'email') && (
           <p className={`rounded-xl border px-3 py-2 text-sm ${
             requestRoute === 'email'
               ? 'bg-indigo-50 border-indigo-300 text-indigo-900'

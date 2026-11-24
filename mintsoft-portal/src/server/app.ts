@@ -34,6 +34,7 @@ import { stockOverview, unmappedLineCount } from './db/stock-overview.ts'
 import { awaitingSend, sitesWithSeveralAwaitingSend } from './db/orders.ts'
 import { MintsoftOrderClient } from './mintsoft/order-client.ts'
 import { sendApprovedOrder } from './orders/send.ts'
+import { mixedRouteMessage, splitByRoute } from './orders/route.ts'
 import { writesEnabled } from './orders/write-gate.ts'
 import { lastSuccessfulSyncs } from './sync/runner.ts'
 import { budgetState } from './sync/budget.ts'
@@ -413,6 +414,40 @@ export const createApp = () => {
       const settings = await readSettings(c.env.DB)
       const catalogue = await catalogueForSite(c.env.DB, order.siteId, settings.availableFormula, { showPrices: false })
 
+      /**
+       * The whole set is checked before a single line is written.
+       *
+       * addToBasket refuses a mixed basket per line, so re-ordering a set that spans two
+       * warehouses -- or adding one into a draft that already holds the other -- used to
+       * throw partway through the loop, leaving some lines added and the rest not. The GM
+       * saw an error, pressed Re-order again, and the lines that HAD gone through were
+       * added a second time. Refusing up front writes nothing and says why.
+       */
+      const draftLines = await c.env.DB
+        .prepare(
+          `SELECT p.name AS product_name, p.supply_route
+             FROM orders o
+             JOIN order_lines ol ON ol.order_id = o.id
+             JOIN products p ON p.id = ol.product_id
+            WHERE o.site_id = ? AND o.status = 'draft'`,
+        )
+        .bind(order.siteId)
+        .all<{ product_name: string; supply_route: 'mercium' | 'email' | null }>()
+
+      const wanted = lines.map((l) => {
+        const p = catalogue.find((c2) => c2.productId === l.productId)
+        return { productName: p?.name ?? `Product ${l.productId}`, supplyRoute: p?.supplyRoute ?? null }
+      })
+      const reorderSplit = splitByRoute([
+        ...(draftLines.results ?? []).map((r) => ({
+          productName: r.product_name, supplyRoute: r.supply_route,
+        })),
+        ...wanted,
+      ])
+      if (reorderSplit.route === null) {
+        return c.json({ error: mixedRouteMessage(reorderSplit, { inBasket: true }) }, 400)
+      }
+
       let request
       for (const line of lines) {
         request = await addToBasket(c.env.DB, {
@@ -515,6 +550,18 @@ export const createApp = () => {
 
       const skusByProduct = await availableSkusByProduct(c.env.DB)
 
+      /**
+       * Each line's route, from the order's own lines.
+       *
+       * The catalogue holds active products only, so a product deactivated after the
+       * request was submitted drops out of it -- and a line whose route came back
+       * undefined would default to Mercium, be refused as unmapped, and (worse) slip past
+       * the mixed-route guard.
+       */
+      const orderLineRoutes = new Map(
+        (await linesForOrder(c.env.DB, orderId)).map((l) => [l.productId, l.supplyRoute]),
+      )
+
       const toApprove: LineToApprove[] = body.lines.map((l) => {
         const product = catalogue.find((p) => p.productId === l.productId)
         return {
@@ -532,24 +579,41 @@ export const createApp = () => {
            * warehouse line, so it cannot be ordered" -- a true sentence about Mintsoft
            * and a wrong conclusion, since nothing is ever going to map it.
            */
-          supplyRoute: product?.supplyRoute ?? null,
+          supplyRoute: orderLineRoutes.get(l.productId) ?? product?.supplyRoute ?? null,
         }
       })
 
+      /**
+       * Mercium's per-order fee, and only Mercium's.
+       *
+       * mercium_order_fee is what Mercium charge to raise and pick an order. An
+       * other-store order never reaches them, so charging it -- to a franchise, on an
+       * invoice -- would be billing for work nobody did. The fee is the whole reason the
+       * portal consolidates orders at all, which makes it easy to forget that the
+       * consolidation and the fee both stop at the warehouse boundary.
+       *
+       * The route is taken from the order's OWN lines rather than from `toApprove`'s
+       * catalogue lookups: catalogueForSite returns active products only, so a product
+       * deactivated between submit and sign-off would read as having no route, default to
+       * Mercium, and defeat both this and the mixed-route guard.
+       */
+      const orderRoute = splitByRoute([...orderLineRoutes].map(([productId, supplyRoute]) => ({
+        productName: String(productId), supplyRoute,
+      }))).route
+      const orderFee = orderRoute === 'email' ? 0 : settings.merciumOrderFee
+
+      const rechargeContext = {
+        recharge: order.recharge,
+        orderFee,
+        passOrderFeeToFranchise: settings.passOrderFeeToFranchise,
+      }
+
       // The stock re-check the brief requires, against live figures rather than
       // whatever was on screen when the GM submitted.
-      const check = checkApproval(toApprove, {
-        recharge: order.recharge,
-        orderFee: settings.merciumOrderFee,
-        passOrderFeeToFranchise: settings.passOrderFeeToFranchise,
-      })
+      const check = checkApproval(toApprove, rechargeContext)
       if (!check.ok) return c.json({ error: 'cannot_approve', problems: check.problems }, 409)
 
-      const totals = rechargeTotals(toApprove, {
-        recharge: order.recharge,
-        orderFee: settings.merciumOrderFee,
-        passOrderFeeToFranchise: settings.passOrderFeeToFranchise,
-      })
+      const totals = rechargeTotals(toApprove, rechargeContext)
 
       await approveOrder(c.env.DB, {
         orderId, actor: user.email, actorRole: user.role,

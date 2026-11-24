@@ -125,3 +125,51 @@ describe('a basket', () => {
     expect(body.error).toMatch(/Ramen bowl \(ceramic\)/)
   })
 })
+
+/**
+ * The per-order fee, which only one of the two warehouses charges.
+ *
+ * mercium_order_fee is what Mercium charge to raise and pick an order, and it is the
+ * whole reason the portal consolidates orders at all. That makes it easy to forget that
+ * the fee stops at the warehouse boundary: an other-store order never reaches Mercium,
+ * so putting their fee on a franchise invoice for one would be billing for work nobody
+ * did.
+ */
+describe('the Mercium order fee', () => {
+  beforeEach(() => {
+    db.exec(`
+      UPDATE settings SET mercium_order_fee = 12.5, pass_order_fee_to_franchise = 1 WHERE id = 1;
+      INSERT INTO sites (id, code, name, type, recharge, address_1, town, postcode)
+        VALUES (9, 'MAF9', 'Franchise', 'franchise', 1, '9 Ln', 'London', 'SW1A 1AA');
+      INSERT INTO user_sites (user_id, site_id) VALUES (1, 9);
+      UPDATE products SET recharge_unit_price = 3.00 WHERE id IN (1, 2);
+    `)
+  })
+
+  const approveAt = async (siteId: number, productId: number) => {
+    await post(`/api/sites/${siteId}/request/lines`, await as(GM), { productId, qty: 2 })
+    await post(`/api/sites/${siteId}/request/submit`, await as(GM), { requesterName: 'Site GM' })
+    const queue = await (await call('/api/approvals/queue', await as(APPROVER))).json() as
+      { requests: { order: { id: number; siteCode: string } }[] }
+    const mine = queue.requests.find((r) => r.order.siteCode === `MAF${siteId}`)!
+    const res = await post(`/api/approvals/${mine.order.id}/approve`, await as(APPROVER), {
+      lines: [{ productId, qtyApproved: 2 }],
+    })
+    expect(res.status).toBe(200)
+    return await db.prepare(`SELECT order_fee, recharge_total FROM orders WHERE id = ?`)
+      .bind(mine.order.id).first<{ order_fee: number | null; recharge_total: number | null }>()
+  }
+
+  it('is not charged on an other-store order', async () => {
+    const row = await approveAt(9, 2)
+    // 2 x 3.00 and no fee: Mercium never saw this order.
+    expect(row!.order_fee).toBe(0)
+    expect(row!.recharge_total).toBe(6)
+  })
+
+  it('is still charged on a Mercium order', async () => {
+    const row = await approveAt(9, 1)
+    expect(row!.order_fee).toBe(12.5)
+    expect(row!.recharge_total).toBe(18.5)
+  })
+})

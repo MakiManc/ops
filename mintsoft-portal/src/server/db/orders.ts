@@ -242,13 +242,16 @@ export async function addToBasket(
    * leave an empty order behind every time a GM hit this. With no draft there is nothing
    * to conflict with anyway.
    */
-  if (draft?.id) {
-    const adding = await db
-      .prepare(`SELECT name, supply_route FROM products WHERE id = ?`)
-      .bind(productId)
-      .first<{ name: string; supply_route: SupplyRoute | null }>()
-    if (!adding) throw new OrderError('That product is no longer in the catalogue.')
+  // Read once, outside the draft check: a product that no longer exists is refused
+  // whether or not the site happens to have a draft open. Inside the check it was only
+  // validated for the second line onwards.
+  const adding = await db
+    .prepare(`SELECT name, supply_route FROM products WHERE id = ?`)
+    .bind(productId)
+    .first<{ name: string; supply_route: SupplyRoute | null }>()
+  if (!adding) throw new OrderError('That product is no longer in the catalogue.')
 
+  if (draft?.id) {
     const { results } = await db
       .prepare(
         `SELECT p.name AS product_name, p.supply_route
@@ -698,11 +701,22 @@ export async function mergeApprovedOrders(
    * reason this feature exists, and combining with an other-store order saves nothing
    * because the other store was never going to charge a Mercium fee.
    */
-  if (keep.supplyRoute !== merge.supplyRoute) {
+  /**
+   * Compared on the LINES, not on the two order summaries.
+   *
+   * supplyRoute on a summary is already derived from its lines, so two orders that each
+   * read 'mixed' would have compared equal and merged happily into a bigger mixed order.
+   * Splitting the combined set catches that and the ordinary cross-warehouse case in one
+   * test, and names the products on each side.
+   */
+  const keepRouteLines = await linesForOrder(db, keepId)
+  const mergeRouteLines = await linesForOrder(db, mergeId)
+  const approvedSplit = splitByRoute([...keepRouteLines, ...mergeRouteLines])
+  if (approvedSplit.route === null) {
     throw new OrderError(
-      `${keep.orderNumber} and ${merge.orderNumber} are for different warehouses, which ship `
-        + 'separately, so combining them would produce an order that cannot be sent at all. '
-        + 'Send them as they are.',
+      `${keep.orderNumber} and ${merge.orderNumber} cannot be combined: together they span two `
+        + 'warehouses, which ship separately, so the result could not be sent at all. '
+        + mixedRouteMessage(approvedSplit),
     )
   }
 

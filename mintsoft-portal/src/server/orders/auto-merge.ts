@@ -96,8 +96,19 @@ export async function mergeIntoWaitingOrder(
 
   // awaitingSend is already the right set -- approved or post_failed, nothing with a
   // Mintsoft id -- and already oldest first.
+  /**
+   * Same site AND same warehouse.
+   *
+   * It took the site's oldest waiting order outright, and mergeApprovedOrders now refuses
+   * a cross-warehouse pair -- so a single other-store order parked at the front of the
+   * queue would have been picked every time and refused every time, silently stopping ALL
+   * consolidation for that site. Which defeats the one thing auto-merge exists for, since
+   * Mercium charge per order. Filtering here also makes 'nothing_to_join' true rather
+   * than a refusal in disguise.
+   */
   const waiting = (await awaitingSend(db))
-    .filter((o) => o.siteId === order.siteId && o.id !== orderId)
+    .filter((o) => o.siteId === order.siteId && o.id !== orderId
+      && o.supplyRoute === order.supplyRoute)
   const keep = waiting[0]
   if (!keep) return { kind: 'nothing_to_join' }
 

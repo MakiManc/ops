@@ -411,7 +411,9 @@ function SendCard({ order, alsoWaiting = 0, onSent }: {
       {order.supplyRoute === 'mixed' && (
         <p className="mt-2 text-sm text-red-900 bg-red-50 border border-red-300 rounded p-2">
           This order mixes stock from two warehouses, which ship separately, so it cannot be
-          sent as one order. Open it and split it, or send the lines back to the site.
+          sent as one order. Nothing here can split it: cancel it and ask the site to send
+          two requests, one per warehouse. (It most likely became mixed because a product
+          moved warehouse after it was signed off.)
         </p>
       )}
 
