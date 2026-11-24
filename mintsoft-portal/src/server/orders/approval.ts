@@ -12,6 +12,7 @@
  * SKUs rather than failing — the duplicates exist precisely because stock arrived in
  * separate shipments, so a split is the normal case, not an exception.
  */
+import { routeOf, splitByRoute, mixedRouteMessage, type SupplyRoute } from './route.ts'
 
 export interface MappedSku {
   mintsoftProductId: number
@@ -28,10 +29,24 @@ export interface LineToApprove {
   skus: MappedSku[]
   /** Snapshotted onto the line at approval. Null blocks a recharge order. */
   rechargeUnitPrice: number | null
+  /**
+   * Which warehouse holds it. Absent reads as 'mercium', so every existing caller and
+   * every line written before routes existed behaves exactly as it did before.
+   */
+  supplyRoute?: SupplyRoute | null
 }
 
 export type LineAllocation =
+  /** Mercium stock, matched to the warehouse lines it will be picked from. */
   | { kind: 'allocated'; productId: number; parts: { sku: string; qty: number }[] }
+  /**
+   * Stock in the warehouse that has no WMS. There is no SKU to allocate against and no
+   * stock figure to check, so the quantity is carried through as asked and the pick list
+   * goes out by email. A distinct kind rather than an 'allocated' with no parts: an
+   * allocation with no parts already means "approved at zero", and conflating the two
+   * would let an order for 40 ramekins look like an empty one to the guard at send.
+   */
+  | { kind: 'offline'; productId: number; productName: string; qty: number }
   | { kind: 'short'; productId: number; productName: string; wanted: number; found: number | null; message: string }
 
 /**
@@ -57,6 +72,25 @@ export type LineAllocation =
  * altogether, which is a mapping problem rather than a timing one.
  */
 export function allocateLine(line: LineToApprove): LineAllocation {
+  /**
+   * Checked before everything else, because every test below asks a question about
+   * Mintsoft that does not apply.
+   *
+   * These products are in a building Mintsoft does not know about: they are mapped to no
+   * warehouse line and carry no stock figure, by design rather than by fault. Running the
+   * guards would refuse every such order forever -- first as "not mapped to any warehouse
+   * line", and if one were ever mapped, as "no stock figure". The stock guards exist
+   * because an unreadable figure might be hiding stock that exists; here there is nothing
+   * to read, so there is nothing to protect against. What is counted, instead, is whoever
+   * walks those shelves with the pick list.
+   */
+  if (routeOf(line) === 'email') {
+    return {
+      kind: 'offline', productId: line.productId, productName: line.productName,
+      qty: line.qtyApproved,
+    }
+  }
+
   if (line.skus.length === 0) {
     return {
       kind: 'short', productId: line.productId, productName: line.productName,
@@ -183,6 +217,19 @@ export function checkApproval(lines: LineToApprove[], recharge: RechargeContext)
   const problems = allocations
     .filter((a): a is Extract<LineAllocation, { kind: 'short' }> => a.kind === 'short')
     .map((a) => a.message)
+
+  /**
+   * An order spanning both warehouses cannot be placed, and this is the second of three
+   * places that says so.
+   *
+   * The basket refuses the mix when the line is added, which is where a GM can actually
+   * act on it. This check is here because a product's route can change after an order is
+   * submitted -- moving an item between warehouses is an ordinary thing to do -- and an
+   * order already in the queue would then be mixed without anyone touching it. An
+   * approver finding out at send, after the order was signed off, is worse.
+   */
+  const split = splitByRoute(lines)
+  if (split.route === null) problems.push(mixedRouteMessage(split))
 
   /**
    * An unpriced line on a recharge order warns; it used to refuse.

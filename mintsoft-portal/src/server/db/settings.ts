@@ -15,6 +15,14 @@ export interface Settings {
    * all. Sites used to be able to override it; none ever did, and the column is gone.
    */
   defaultCourierServiceId: number
+  /**
+   * Who receives the pick list for an email-route order.
+   *
+   * Parsed from a comma-separated column so it can be changed without a deploy. An empty
+   * list is a configuration error, not "send to nobody": the send refuses rather than
+   * marking an order fulfilled that no picker was ever told about.
+   */
+  emailRouteRecipients: string[]
 }
 
 export async function readSettings(db: Database): Promise<Settings> {
@@ -22,7 +30,7 @@ export async function readSettings(db: Database): Promise<Settings> {
     .prepare(
       `SELECT mercium_order_fee, default_min_days_between_orders,
               pass_order_fee_to_franchise, available_formula,
-              default_courier_service_id
+              default_courier_service_id, email_route_recipients
          FROM settings WHERE id = 1`,
     )
     .first<{
@@ -31,6 +39,7 @@ export async function readSettings(db: Database): Promise<Settings> {
       pass_order_fee_to_franchise: number
       available_formula: AvailableFormula
       default_courier_service_id: number
+      email_route_recipients: string | null
     }>()
 
   // The row is created by the migration, so its absence means something is badly wrong.
@@ -42,6 +51,10 @@ export async function readSettings(db: Database): Promise<Settings> {
     passOrderFeeToFranchise: row.pass_order_fee_to_franchise === 1,
     availableFormula: row.available_formula,
     defaultCourierServiceId: row.default_courier_service_id,
+    emailRouteRecipients: (row.email_route_recipients ?? '')
+      .split(',')
+      .map((a) => a.trim())
+      .filter((a) => a.length > 0),
   }
 }
 

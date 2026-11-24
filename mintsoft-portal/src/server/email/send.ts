@@ -1,10 +1,16 @@
 /**
  * Email, through Resend.
  *
- * Every send is best-effort and never blocks the thing it is telling people about. An
- * order that was approved has been approved whether or not the email left the building,
- * and throwing here would roll back work that genuinely happened. Failures are recorded
- * and shown on the sync health screen instead.
+ * Notifications here are best-effort and never block the thing they are telling people
+ * about. An order that was approved has been approved whether or not the email left the
+ * building, and throwing would roll back work that genuinely happened. Those failures are
+ * recorded and shown on the sync health screen instead.
+ *
+ * ONE email is not a notification: `warehouseOrder` IS how an email-route order reaches
+ * the people who pick it, the same way a Mintsoft order reaches Mercium. There,
+ * `sent: false` has to stop the order being marked fulfilled, and orders/send.ts treats
+ * it that way. Nothing in this file decides which kind a caller is making -- read the
+ * caller.
  */
 
 export interface EmailEnv {
@@ -22,16 +28,32 @@ export interface Email {
   text: string
 }
 
-export interface EmailResult { sent: boolean; detail?: string }
+export interface EmailResult {
+  sent: boolean
+  detail?: string
+  /**
+   * Whether we KNOW what happened, which only matters where the email is the order
+   * rather than a note about one.
+   *
+   * 'sent'     -- Resend accepted it.
+   * 'refused'  -- Resend answered and said no, or we never tried. Nothing went out, so a
+   *               retry cannot duplicate anything.
+   * 'unknown'  -- the request left but no answer came back. It may have been accepted.
+   *               A retry here could put a second pick list in front of a picker, which
+   *               is how a site gets twice the stock, so callers for whom this email IS
+   *               the order must not treat it as a plain failure.
+   */
+  outcome: 'sent' | 'refused' | 'unknown'
+}
 
 export async function sendEmail(env: EmailEnv, email: Email): Promise<EmailResult> {
   if (!env.RESEND_API_KEY) {
     // Not an error: in development and before the key is set, the portal simply does
     // not email. Saying so is more useful than failing.
-    return { sent: false, detail: 'No RESEND_API_KEY set, so no email was sent.' }
+    return { sent: false, outcome: 'refused', detail: 'No RESEND_API_KEY set, so no email was sent.' }
   }
   const recipients = email.to.filter((t) => t.includes('@'))
-  if (recipients.length === 0) return { sent: false, detail: 'No valid recipients.' }
+  if (recipients.length === 0) return { sent: false, outcome: 'refused', detail: 'No valid recipients.' }
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -49,11 +71,21 @@ export async function sendEmail(env: EmailEnv, email: Email): Promise<EmailResul
     })
     if (!res.ok) {
       // The body can echo recipient addresses, so only the status is recorded.
-      return { sent: false, detail: `Resend returned HTTP ${res.status}.` }
+      //
+      // A 5xx is Resend answering, so nothing was queued and a retry is safe -- the one
+      // exception is 429, where the request was understood and shed rather than refused,
+      // but Resend does not queue a rate-limited send either. Both are 'refused'.
+      return { sent: false, outcome: 'refused', detail: `Resend returned HTTP ${res.status}.` }
     }
-    return { sent: true }
+    return { sent: true, outcome: 'sent' }
   } catch (err) {
-    return { sent: false, detail: `Could not reach Resend: ${err instanceof Error ? err.message : 'unknown'}` }
+    // No answer came back. The request may well have been accepted before the connection
+    // died, so this is deliberately not reported as a failure.
+    return {
+      sent: false,
+      outcome: 'unknown',
+      detail: `Could not reach Resend: ${err instanceof Error ? err.message : 'unknown'}`,
+    }
   }
 }
 
@@ -125,6 +157,53 @@ export const postFailed = (env: EmailEnv, o: {
     `What happened:\n${o.reason}\n\n` +
     `The site has not been told. Check it at ${portalLink(env)}.`,
 })
+
+/**
+ * The pick list for an order the other warehouse fulfils.
+ *
+ * Not a notification. This email is the order: there is no WMS at that end, so if it
+ * does not arrive, nothing is picked and nothing ships, however the portal looks. That
+ * is why it states the quantities plainly, leads with what has to be picked, and carries
+ * the order number the portal will use when anyone asks about it later.
+ */
+export const warehouseOrder = (env: EmailEnv, o: {
+  orderNumber: string; siteName: string; siteCode: string
+  requiredDate: string | null
+  requesterName: string | null
+  approvedBy: string | null
+  notes: string | null
+  deliveryAddress: string[]
+  lines: { productName: string; qty: number; unit: string | null }[]
+}): Email => {
+  // null is "leave this line out"; '' is a deliberate blank line. Filtering on a plain
+  // falsy test would collapse the blanks and run the address into the item list.
+  const body: (string | null)[] = [
+    `${o.siteName} (${o.siteCode}) needs the following picked and sent.`,
+    'This stock is not held at Mercium, so there is no Mintsoft order for it — this email is the order.',
+    '',
+    'ITEMS',
+    ...o.lines.map((l) => `  ${l.qty} x ${l.productName}${l.unit ? ` (${l.unit})` : ''}`),
+    '',
+    `Order number: ${o.orderNumber}`,
+    `Needed by: ${o.requiredDate ?? 'not specified'}`,
+    o.requesterName ? `Requested by: ${o.requesterName}` : null,
+    o.approvedBy ? `Approved by: ${o.approvedBy}` : null,
+    '',
+    'DELIVER TO',
+    ...(o.deliveryAddress.length > 0
+      ? o.deliveryAddress.map((l) => `  ${l}`)
+      : ['  No address on file for this site — check the portal before sending.']),
+    o.notes ? '' : null,
+    o.notes ? `Notes from the site:\n"${o.notes}"` : null,
+    '',
+    `The order is on the portal at ${portalLink(env)}.`,
+  ]
+  return {
+    to: [],
+    subject: `Stock order for ${o.siteName} — ${o.orderNumber}`,
+    text: body.filter((l): l is string => l !== null).join('\n'),
+  }
+}
 
 /** Everyone who should hear about a request waiting for sign-off. */
 export async function approverEmails(db: {

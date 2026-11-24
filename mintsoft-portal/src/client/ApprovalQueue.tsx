@@ -284,14 +284,21 @@ interface Awaiting {
   id: number; orderNumber: string; siteCode: string; siteName: string
   status: string; requesterName: string | null; approvedAt: string | null
   postError: string | null
+  supplyRoute?: 'mercium' | 'email' | 'mixed'
 }
 
 /**
- * Sending an approved order to Mercium.
+ * Sending an approved order to the warehouse that holds it.
  *
  * The one irreversible thing the portal does, so it is its own deliberate action rather
  * than something approving does for you — and the button says which warehouse it is
  * talking to rather than just "Send".
+ *
+ * Which warehouse matters to the person pressing it, not just to the server. An order
+ * for the other store is emailed as a pick list: there will be no Mintsoft order and no
+ * tracking, so the button says "Email" and the card says what to expect. An approver who
+ * presses "Send to Mercium" and then goes looking for a tracking number that is never
+ * coming has been misled by the screen.
  *
  * Every outcome is shown in the server's own words. "Uncertain" especially must not read
  * like a failure: a failure invites pressing it again, and pressing it again is how one
@@ -351,13 +358,30 @@ function SendCard({ order, alsoWaiting = 0, onSent }: {
         </div>
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || order.supplyRoute === 'mixed'}
           onClick={() => void send()}
           className={btnSecondary}
         >
-          {busy ? 'Sending…' : 'Send to Mercium'}
+          {busy
+            ? 'Sending…'
+            : order.supplyRoute === 'email' ? 'Email the pick list' : 'Send to Mercium'}
         </button>
       </div>
+
+      {order.supplyRoute === 'email' && (
+        <p className="mt-2 text-sm text-indigo-900 bg-indigo-50 border border-indigo-300 rounded p-2">
+          This stock is not held at Mercium, so it is not going through Mintsoft. Sending it
+          emails the pick list to the team who hold it. There will be no Mintsoft order and
+          no tracking number — they confirm directly.
+        </p>
+      )}
+
+      {order.supplyRoute === 'mixed' && (
+        <p className="mt-2 text-sm text-red-900 bg-red-50 border border-red-300 rounded p-2">
+          This order mixes stock from two warehouses, which ship separately, so it cannot be
+          sent as one order. Open it and split it, or send the lines back to the site.
+        </p>
+      )}
 
       {alsoWaiting > 0 && (
         <p className="mt-2 text-sm text-gray-900 bg-amber-50 border border-amber-400 rounded p-2">

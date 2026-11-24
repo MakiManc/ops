@@ -32,7 +32,7 @@ export function timeAgo(iso: string | null | undefined, now = new Date()): strin
 export const shortDate = (iso: string | null | undefined): string =>
   !iso ? '—' : new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
-export type StockStatus = 'in_stock' | 'low' | 'out' | 'inbound' | 'unknown'
+export type StockStatus = 'in_stock' | 'low' | 'out' | 'inbound' | 'unknown' | 'not_tracked'
 
 /**
  * How each status reads and looks.
@@ -46,4 +46,7 @@ export const STATUS_CHIP: Record<StockStatus, { label: string; className: string
   out:      { label: 'Out',      className: 'bg-red-100 text-red-900 border-red-300' },
   inbound:  { label: 'Inbound',  className: 'bg-blue-100 text-blue-900 border-blue-300' },
   unknown:  { label: 'Unknown',  className: 'bg-gray-100 text-gray-800 border-gray-400' },
+  // Deliberately not a warning colour. Nothing is wrong with these items; they are
+  // simply held somewhere that reports no figures, and they can be ordered as normal.
+  not_tracked: { label: 'Other store', className: 'bg-indigo-100 text-indigo-900 border-indigo-300' },
 }

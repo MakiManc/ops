@@ -7,12 +7,15 @@
  */
 import { combineMappedLines, deriveAvailability, type AvailableFormula, type StockRow } from '../sync/availability.ts'
 import type { Database } from './repo.ts'
+import { routeOf, type SupplyRoute } from '../orders/route.ts'
 
 export interface StockOverviewItem {
   productId: number
   name: string
   category: string | null
   stockType: 'internal' | 'expansion'
+  /** Which warehouse holds it; decides whether a missing figure is a fault or normal. */
+  supplyRoute: SupplyRoute
 
   onHand: number | null
   allocated: number | null
@@ -48,10 +51,13 @@ export async function stockOverview(
 ): Promise<StockOverviewItem[]> {
   const { results: products } = await db
     .prepare(
-      `SELECT id, name, category, stock_type FROM products WHERE active = 1
+      `SELECT id, name, category, stock_type, supply_route FROM products WHERE active = 1
         ORDER BY COALESCE(category, 'zzz'), name`,
     )
-    .all<{ id: number; name: string; category: string | null; stock_type: 'internal' | 'expansion' }>()
+    .all<{
+      id: number; name: string; category: string | null
+      stock_type: 'internal' | 'expansion'; supply_route: SupplyRoute | null
+    }>()
 
   const { results: stock } = await db
     .prepare(
@@ -132,8 +138,31 @@ export async function stockOverview(
     const mappedLines = mappedCount.get(p.id) ?? 0
     const flags: string[] = []
 
+    const supplyRoute = routeOf({ supplyRoute: p.supply_route })
+
     let availability
-    if (mappedLines === 0) {
+    if (supplyRoute === 'email') {
+      /**
+       * Not a mapping gap, and it must not be flagged as one.
+       *
+       * The flag below -- "not mapped to any Mintsoft line, so it cannot be ordered" --
+       * would be false twice over for these products: nothing is going to map them,
+       * because their stock is in a building Mintsoft does not cover, and they CAN be
+       * ordered. Left as it was, an admin opening this screen sees a long list of
+       * products that look broken and goes looking for a sync fault that is not there.
+       */
+      availability = {
+        available: null,
+        basis: 'Held outside Mercium, where stock is not tracked.',
+        oversold: false,
+        rowsSeen: 0,
+        linesUnknown: 0,
+        onHand: null,
+        allocated: null,
+      }
+      flags.push('Held outside Mercium: no stock figure is reported for it, and none is expected. '
+        + 'Orders for it are emailed rather than sent to Mintsoft.')
+    } else if (mappedLines === 0) {
       availability = combineMappedLines([])
       flags.push('Not mapped to any Mintsoft line, so it cannot be ordered.')
     } else {
@@ -184,6 +213,7 @@ export async function stockOverview(
       name: p.name,
       category: p.category,
       stockType: p.stock_type,
+      supplyRoute,
       onHand: availability.onHand,
       allocated: availability.allocated,
       available: availability.available,

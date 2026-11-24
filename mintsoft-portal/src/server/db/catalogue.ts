@@ -11,6 +11,7 @@ import {
   combineMappedLines, deriveAvailability, type Availability, type AvailableFormula, type StockRow,
 } from '../sync/availability.ts'
 import type { Database } from './repo.ts'
+import { routeOf, type SupplyRoute } from '../orders/route.ts'
 
 export interface CatalogueItem {
   productId: number
@@ -41,6 +42,16 @@ export interface CatalogueItem {
 
   /** Only ever populated for franchise sites; corporate sites never see a price. */
   rechargeUnitPrice: number | null
+
+  /**
+   * Which warehouse holds it, which changes what the stock figure MEANS.
+   *
+   * On the Mercium route a null `available` is a gap -- something we should know and do
+   * not. On the email route there is no figure to have: that store runs no WMS, so
+   * nothing reports its shelves. The screen has to tell those two apart, because one is
+   * a fault to chase and the other is simply how that stock works.
+   */
+  supplyRoute: SupplyRoute
 }
 
 interface ProductRow {
@@ -54,6 +65,7 @@ interface ProductRow {
   recharge_unit_price: number | null
   par_level: number | null
   max_per_order: number | null
+  supply_route: SupplyRoute | null
 }
 
 interface StockCacheRow {
@@ -85,7 +97,7 @@ export async function catalogueForSite(
   const { results: products } = await db
     .prepare(
       `SELECT p.id, p.name, p.category, p.pack_size, p.unit, p.image_url, p.stock_type,
-              p.recharge_unit_price, sp.par_level, sp.max_per_order
+              p.recharge_unit_price, p.supply_route, sp.par_level, sp.max_per_order
          FROM products p
          LEFT JOIN site_products sp ON sp.product_id = p.id AND sp.site_id = ?
         WHERE p.active = 1
@@ -174,8 +186,30 @@ export async function catalogueForSite(
     const lines = linesByProduct.get(p.id)
     const mappedLines = mappedCount.get(p.id) ?? 0
 
+    const supplyRoute = routeOf({ supplyRoute: p.supply_route })
+
     let availability: Availability
-    if (mappedLines === 0) {
+    if (supplyRoute === 'email') {
+      /**
+       * No figure, and that is not a gap.
+       *
+       * Running this product through combineMappedLines would report "not mapped to
+       * anything in Mintsoft yet" -- true, and completely the wrong thing to tell a GM.
+       * It reads as a fault somebody will fix, so they wait; nobody is going to map it,
+       * because the stock is in a building Mintsoft does not cover. The honest answer is
+       * that we do not know the level and cannot, and the item is orderable anyway.
+       */
+      availability = {
+        available: null,
+        basis: 'Held outside Mercium, where stock is not tracked — order it and the team there will confirm.',
+        oversold: false,
+        rowsSeen: 0,
+        linesUnknown: 0,
+        // Not zero: zero would claim the shelves were read and found empty.
+        onHand: null,
+        allocated: null,
+      }
+    } else if (mappedLines === 0) {
       availability = combineMappedLines([])
     } else {
       // A mapped line can be absent from the stock feed entirely — Mintsoft simply has
@@ -196,6 +230,7 @@ export async function catalogueForSite(
       unit: p.unit,
       imageUrl: p.image_url,
       stockType: p.stock_type,
+      supplyRoute,
       available: availability.available,
       availableBasis: availability.basis,
       oversold: availability.oversold,
@@ -216,10 +251,24 @@ export async function catalogueForSite(
  * Text as well as colour, never colour alone — the brief is explicit, and a red dot
  * beside a number means nothing to someone who cannot distinguish it from the green one.
  */
-export type StockStatus = 'in_stock' | 'low' | 'out' | 'inbound' | 'unknown'
+export type StockStatus = 'in_stock' | 'low' | 'out' | 'inbound' | 'unknown' | 'not_tracked'
 
-export function stockStatus(item: Pick<CatalogueItem, 'available' | 'parLevel' | 'inboundQty'>): StockStatus {
-  // Unknown first: it outranks everything, because we cannot claim any of the others.
+export function stockStatus(
+  // supplyRoute optional, for the same reason routeOf tolerates its absence: a caller
+  // that does not mention a route gets exactly the behaviour it had before routes existed.
+  item: Pick<CatalogueItem, 'available' | 'parLevel' | 'inboundQty'> & { supplyRoute?: SupplyRoute },
+): StockStatus {
+  /**
+   * Ahead of 'unknown', because the two mean opposite things to a GM.
+   *
+   * 'Unknown' says we ought to know this and do not, which reads as a fault and makes a
+   * GM wait for it to be fixed. For stock in the store that runs no WMS there is nothing
+   * to know and nothing coming: the item is orderable now, and the chip has to say so
+   * rather than imply a problem.
+   */
+  if (item.supplyRoute === 'email') return 'not_tracked'
+
+  // Unknown next: it outranks the rest, because we cannot claim any of them.
   if (item.available === null) return 'unknown'
   if (item.available > 0) {
     // "Low" only means something against a par level; without one there is no bar to be under.

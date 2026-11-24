@@ -26,6 +26,8 @@ export interface CatalogueProduct {
   inboundExpected: string | null
   rechargeUnitPrice: number | null
   mappedLines: number
+  /** 'email' means the item is held in the store that reports no stock figures. */
+  supplyRoute?: 'mercium' | 'email'
   /** How many are already on the open request, so a second tap is never a silent double. */
   qtyInRequest?: number
 }
@@ -151,6 +153,9 @@ function ProductCard({ product, showPrices, siteId, onAdded }: {
   product: CatalogueProduct; showPrices: boolean; siteId: number; onAdded: () => void
 }) {
   const unknown = product.available === null
+  // Held in the store with no WMS. There is no figure to show and none is expected, so
+  // the card says what it IS rather than leaving an em dash that looks like a fault.
+  const notTracked = product.supplyRoute === 'email'
 
   return (
     <li className={`${card} flex gap-4 ${(product.qtyInRequest ?? 0) > 0 ? 'border-everglade' : ''}`}>
@@ -179,8 +184,14 @@ function ProductCard({ product, showPrices, siteId, onAdded }: {
         </p>
 
         <p className="mt-2 text-gray-900">
-          <span className="font-semibold text-lg">{qty(product.available)}</span>
-          <span className="text-gray-700"> available</span>
+          {notTracked ? (
+            <span className="text-gray-700">Stock level not tracked — order what you need</span>
+          ) : (
+            <>
+              <span className="font-semibold text-lg">{qty(product.available)}</span>
+              <span className="text-gray-700"> available</span>
+            </>
+          )}
           {product.parLevel != null && (
             <span className="text-gray-600 text-sm"> · par {product.parLevel}</span>
           )}
@@ -204,7 +215,11 @@ function ProductCard({ product, showPrices, siteId, onAdded }: {
         )}
 
         <p className="mt-2 text-xs text-gray-500">
-          {unknown ? 'No stock reading' : `Stock read ${timeAgo(product.stockSyncedAt)}`}
+          {notTracked
+            // "No stock reading" would be true but misleading: it implies a reading that
+            // failed, rather than a store that never reports one.
+            ? 'Comes from a different warehouse, so it arrives separately from Mercium stock'
+            : unknown ? 'No stock reading' : `Stock read ${timeAgo(product.stockSyncedAt)}`}
           {product.mappedLines > 1 && ` · combines ${product.mappedLines} warehouse lines`}
         </p>
 

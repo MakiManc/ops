@@ -1,6 +1,13 @@
 /**
  * Sending an approved order to the warehouse.
  *
+ * There are two warehouses and therefore two ways out of here. Mercium runs Mintsoft, so
+ * their orders are created through the API. The other store has no WMS at all, so its
+ * orders are fulfilled by emailing a pick list to the people who walk those shelves —
+ * and on that route the email IS the order, not a note about one, so it is held to the
+ * same standard: one sign-off, one claim, one hand-off, and nothing marked fulfilled
+ * until the hand-off is known to have happened.
+ *
  * Every path to Mintsoft's order-create endpoint goes through here, and here goes
  * through the write gate first. The gate needs both the flag and an approver's
  * sign-off; nothing in this file second-guesses it.
@@ -16,7 +23,9 @@ import type { Role } from '../db/types.ts'
 import { allocateLine } from './approval.ts'
 import { skusByProduct } from './stock.ts'
 import { type MintsoftWriteClient, postOrder, type OrderToPost } from './post.ts'
-import { mayWriteToMintsoft } from './write-gate.ts'
+import { mayWriteToMintsoft, mayEmailToWarehouse } from './write-gate.ts'
+import { splitByRoute, mixedRouteMessage, type SupplyRoute } from './route.ts'
+import { sendEmail, warehouseOrder, type EmailEnv } from '../email/send.ts'
 
 const nowIso = () => new Date().toISOString().replace(/\.\d+Z$/, 'Z')
 
@@ -91,21 +100,300 @@ async function releaseClaim(db: Database, orderId: number): Promise<void> {
 
 export interface SendResult {
   ok: boolean
+  /**
+   * 'not_configured' is kept apart from 'refused' because the two need different
+   * audiences. A refusal is about this order and the approver can act on it; a
+   * configuration fault is about the portal, no amount of retrying moves it, and someone
+   * with admin access has to change a setting before any order on that route can go.
+   */
   status: 'posted' | 'already_posted' | 'refused' | 'rejected' | 'uncertain' | 'in_flight'
+    | 'not_configured'
   message: string
   mintsoftOrderId?: number
+  /** Which warehouse dealt with it, so the caller can word things correctly. */
+  route?: SupplyRoute
+}
+
+/**
+ * Which warehouse an order is for, asked of the database directly.
+ *
+ * A COUNT DISTINCT rather than loading the lines, because this runs before the write gate
+ * and the gate differs by route -- the Mintsoft flag has no bearing on an email order. An
+ * order with no lines reports 'mercium' and meets the existing empty-order guard further
+ * down, which already has the right words for it.
+ */
+async function routeForOrder(
+  db: Database, orderId: number,
+): Promise<{ route: SupplyRoute | null; mixedMessage: string | null }> {
+  const row = await db
+    .prepare(
+      `SELECT COUNT(DISTINCT p.supply_route) AS routes, MIN(p.supply_route) AS route
+         FROM order_lines ol JOIN products p ON p.id = ol.product_id
+        WHERE ol.order_id = ?`,
+    )
+    .bind(orderId)
+    .first<{ routes: number; route: string | null }>()
+
+  if (!row || row.routes <= 1) {
+    return { route: row?.route === 'email' ? 'email' : 'mercium', mixedMessage: null }
+  }
+
+  // Mixed. Name the items on each side rather than just refusing: the catalogue gives no
+  // hint that two products on one screen live in different buildings.
+  const { results } = await db
+    .prepare(
+      `SELECT p.name AS product_name, p.supply_route
+         FROM order_lines ol JOIN products p ON p.id = ol.product_id
+        WHERE ol.order_id = ? ORDER BY p.name`,
+    )
+    .bind(orderId)
+    .all<{ product_name: string; supply_route: SupplyRoute | null }>()
+  const split = splitByRoute(
+    (results ?? []).map((r) => ({ productName: r.product_name, supplyRoute: r.supply_route })),
+  )
+  return { route: null, mixedMessage: mixedRouteMessage(split) }
+}
+
+/**
+ * Fulfils an order from the warehouse that has no WMS, by emailing the pick list.
+ *
+ * The shape deliberately mirrors the Mintsoft path, because the risks are the same ones:
+ *
+ *  - It takes the same claim, so two approvers pressing Send at the same moment cannot
+ *    both email a pick list.
+ *  - It refuses, loudly, when it cannot email. A route whose only hand-off is an email
+ *    must never mark an order fulfilled while the email silently goes nowhere -- that
+ *    reads to everyone as "sent" and the stock simply never arrives. Both reasons it
+ *    might be unable to send (no API key, no configured recipients) are configuration
+ *    faults that no amount of retrying fixes, so they are reported as such.
+ *  - It treats a lost connection as uncertain rather than failed, for the same reason
+ *    the Mintsoft path does: the request may have been accepted, and a retry would put a
+ *    second pick list in front of a picker.
+ */
+async function sendByEmail(
+  db: Database,
+  emailEnv: EmailEnv,
+  { orderId, actor }: { orderId: number; actor: string },
+): Promise<SendResult> {
+  const order = await orderById(db, orderId)
+  if (!order) return { ok: false, status: 'refused', message: 'That order no longer exists.', route: 'email' }
+
+  const approver = await db
+    .prepare(`SELECT u.role, u.name FROM orders o LEFT JOIN users u ON u.id = o.approved_by WHERE o.id = ?`)
+    .bind(orderId)
+    .first<{ role: Role | null; name: string | null }>()
+
+  const decision = mayEmailToWarehouse({
+    id: order.id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    approvedByRole: approver?.role ?? null,
+    approvedAt: order.approvedAt,
+    mintsoftOrderId: order.mintsoftOrderId,
+    postedAt: order.postedAt,
+  })
+  if (!decision.allowed) {
+    await auditStatement(db, orderId, actor, 'send_refused', { reason: decision.reason, route: 'email' }).run()
+    return {
+      ok: false,
+      status: order.postedAt ? 'already_posted' : 'refused',
+      message: decision.reason,
+      route: 'email',
+    }
+  }
+
+  const site = await db
+    .prepare(
+      `SELECT code, name, address_1, address_2, address_3, town, county, postcode, country,
+              contact_name, delivery_notes
+         FROM sites WHERE id = ?`,
+    )
+    .bind(order.siteId)
+    .first<{
+      code: string; name: string; address_1: string | null; address_2: string | null
+      address_3: string | null; town: string | null; county: string | null
+      postcode: string | null; country: string; contact_name: string | null
+      delivery_notes: string | null
+    }>()
+  if (!site) return { ok: false, status: 'refused', message: 'That order has no site.', route: 'email' }
+
+  const lines = await linesForOrder(db, orderId)
+
+  // Same rule as the Mintsoft path: a line nobody has approved means the order changed
+  // after sign-off, and inheriting the GM's requested quantity would send what was asked
+  // for rather than what was agreed.
+  const unapproved = lines.filter((l) => l.qtyApproved === null)
+  if (unapproved.length > 0) {
+    const message = `${order.orderNumber} has lines nobody has approved: `
+      + `${unapproved.map((l) => l.productName).join(', ')}. `
+      + 'It was most likely changed after it was signed off. Send it back through approval.'
+    await recordSendBlocked(db, orderId, actor, message)
+    return { ok: false, status: 'refused', message, route: 'email' }
+  }
+
+  const items = lines
+    .filter((l) => (l.qtyApproved ?? 0) > 0)
+    .map((l) => ({ productName: l.productName, qty: l.qtyApproved!, unit: l.unit ?? null }))
+
+  if (items.length === 0) {
+    const message = `${order.orderNumber} has nothing to send — every line was approved at zero. `
+      + 'Reject it instead, so the site knows, rather than emailing an empty pick list.'
+    await recordSendBlocked(db, orderId, actor, message)
+    return { ok: false, status: 'refused', message, route: 'email' }
+  }
+
+  const settings = await readSettings(db)
+  const recipients = settings.emailRouteRecipients
+
+  /**
+   * The two configuration faults, checked BEFORE the claim and before anything is marked.
+   *
+   * Neither is a transient failure, so neither should leave the order looking like it was
+   * attempted and might work next time. They are stated as what they are: the portal
+   * cannot hand this order over, and somebody has to change a setting.
+   */
+  if (recipients.length === 0) {
+    const message = `${order.orderNumber} cannot be sent: no recipients are configured for `
+      + 'stock held outside Mercium, so there is nobody to send the pick list to. '
+      + 'Set them in Admin before sending.'
+    await recordSendBlocked(db, orderId, actor, message)
+    return { ok: false, status: 'not_configured', message, route: 'email' }
+  }
+  if (!emailEnv.RESEND_API_KEY) {
+    const message = `${order.orderNumber} cannot be sent: the portal has no email key `
+      + '(RESEND_API_KEY), so it cannot email the pick list, and this stock is only ordered by email. '
+      + 'Nothing has been sent. Set the key, then send it again.'
+    await recordSendBlocked(db, orderId, actor, message)
+    return { ok: false, status: 'not_configured', message, route: 'email' }
+  }
+
+  // Taken immediately before the hand-off, exactly as the Mintsoft path takes it before
+  // the create, and for the same reason: everything above is a read.
+  if (!(await claimForSending(db, orderId))) {
+    await auditStatement(db, orderId, actor, 'send_refused', { reason: 'already being sent' }).run()
+    return {
+      ok: false,
+      status: 'in_flight',
+      message: `${order.orderNumber} is already being sent. Wait for that to finish rather than sending it again.`,
+      route: 'email',
+    }
+  }
+
+  const address = [
+    site.name, site.address_1, site.address_2, site.address_3,
+    site.town, site.county, site.postcode, site.country,
+  ].filter((l): l is string => typeof l === 'string' && l.trim().length > 0)
+
+  const result = await sendEmail(emailEnv, {
+    ...warehouseOrder(emailEnv, {
+      orderNumber: order.orderNumber,
+      siteName: site.name,
+      siteCode: site.code,
+      requiredDate: order.requiredDate,
+      requesterName: order.requesterName,
+      approvedBy: approver?.name ?? null,
+      notes: [order.notes, site.delivery_notes].filter(Boolean).join('\n') || null,
+      deliveryAddress: address,
+      lines: items,
+    }),
+    to: recipients,
+  })
+
+  if (result.outcome === 'sent') {
+    await db.batch([
+      // mintsoft_order_id stays NULL: there is no Mintsoft order, and the reconcile job
+      // selects on that column, so it correctly leaves these orders alone instead of
+      // looking for a despatch that will never be reported.
+      db.prepare(
+        `UPDATE orders SET status = 'posted', posted_at = ?, post_error = NULL,
+                send_claimed_at = NULL, updated_at = ? WHERE id = ?`,
+      ).bind(nowIso(), nowIso(), orderId),
+      auditStatement(db, orderId, actor, 'posted', {
+        route: 'email',
+        // The addresses are recorded because "who was told to pick this" is the question
+        // that gets asked when stock does not turn up, and nothing else would answer it.
+        recipients,
+        lines: items.map((i) => ({ name: i.productName, qty: i.qty })),
+      }),
+    ])
+    return {
+      ok: true,
+      status: 'posted',
+      message: `Emailed to ${recipients.join(', ')}. This stock is not at Mercium, so there is no `
+        + 'Mintsoft order and no tracking — they will confirm directly.',
+      route: 'email',
+    }
+  }
+
+  if (result.outcome === 'unknown') {
+    // Not marked failed, and the claim is deliberately held. The email may have gone, and
+    // a second pick list is a second delivery.
+    await db.batch([
+      db.prepare(`UPDATE orders SET post_error = ?, updated_at = ? WHERE id = ?`)
+        .bind(result.detail ?? 'The email may or may not have been sent.', nowIso(), orderId),
+      auditStatement(db, orderId, actor, 'post_uncertain', { route: 'email', reason: result.detail }),
+    ])
+    return {
+      ok: false,
+      status: 'uncertain',
+      message: `${order.orderNumber}: the pick list may or may not have gone out — `
+        + `${result.detail ?? 'no answer came back from the email service'}. Check with the warehouse `
+        + 'before sending it again, because sending twice means picking twice.',
+      route: 'email',
+    }
+  }
+
+  const message = `${order.orderNumber} could not be emailed: ${result.detail ?? 'unknown error'}. `
+    + 'Nothing was sent, so it is safe to try again.'
+  await recordSendBlocked(db, orderId, actor, message)
+  await releaseClaim(db, orderId)
+  return { ok: false, status: 'rejected', message, route: 'email' }
 }
 
 export async function sendApprovedOrder(
   db: Database,
-  client: MintsoftWriteClient,
-  { orderId, actor, writesEnabled, clientId, warehouseId }: {
+  // Nullable because an email-route order needs no Mintsoft client, and refusing every
+  // send for want of Mintsoft credentials would block the one warehouse that does not
+  // use Mintsoft. The Mercium path below refuses for itself if the client is absent.
+  client: MintsoftWriteClient | null,
+  { orderId, actor, writesEnabled, clientId, warehouseId, emailEnv }: {
     orderId: number; actor: string; writesEnabled: boolean
     clientId: number | null; warehouseId: number | null
+    /**
+     * Optional because the Mercium path never touches it. Omitting it on an email-route
+     * order does not fail quietly: sendByEmail refuses for want of a key and says so.
+     */
+    emailEnv?: EmailEnv
   },
 ): Promise<SendResult> {
   const order = await orderById(db, orderId)
   if (!order) return { ok: false, status: 'refused', message: 'That order no longer exists.' }
+
+  /**
+   * Which warehouse, decided before anything else.
+   *
+   * It comes first because the write gate itself differs by route: MINTSOFT_WRITES_ENABLED
+   * governs writes to Mintsoft and has nothing to say about an order Mintsoft never sees.
+   * Deciding here keeps that distinction in one place instead of threading a flag through
+   * both paths.
+   */
+  const { route, mixedMessage } = await routeForOrder(db, orderId)
+  if (route === null) {
+    // Third and last place this is caught -- after the basket and after approval -- for
+    // the case where a product moved warehouse while the order sat signed off and ready.
+    await recordSendBlocked(db, orderId, actor, mixedMessage!)
+    return { ok: false, status: 'refused', message: mixedMessage! }
+  }
+  if (route === 'email') return sendByEmail(db, emailEnv ?? {}, { orderId, actor })
+
+  if (!client) {
+    return {
+      ok: false,
+      status: 'not_configured',
+      message: 'Mintsoft credentials are not configured, so this order cannot be sent to Mercium.',
+      route: 'mercium',
+    }
+  }
 
   const settings = await readSettings(db)
 

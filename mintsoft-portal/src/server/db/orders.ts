@@ -9,6 +9,9 @@
  */
 import { buildOrderNumber } from '../orders/order-number.ts'
 import type { Database } from './repo.ts'
+import {
+  routeOf, splitByRoute, mixedRouteMessage, type SupplyRoute,
+} from '../orders/route.ts'
 import { canApprove } from './types.ts'
 import type { OrderStatus, Role } from './types.ts'
 
@@ -61,6 +64,20 @@ export interface OrderSummary {
   trackingNumber: string | null
   trackingUrl: string | null
   createdAt: string
+  /**
+   * When the order was handed to a warehouse. On the Mercium route that is the Mintsoft
+   * create; on the email route it is the only record that the pick list went, because
+   * there is no order id to point at.
+   */
+  postedAt: string | null
+  /**
+   * Which warehouse this order is for, from its lines.
+   *
+   * 'mixed' is a real state and not a fallback: a product can move between warehouses
+   * while an order sits signed off, and an order spanning both cannot be sent. Screens
+   * showing a Send button need it so they can say so before it is pressed.
+   */
+  supplyRoute: 'mercium' | 'email' | 'mixed'
 }
 
 export interface OrderLineRow {
@@ -72,16 +89,32 @@ export interface OrderLineRow {
   availableAtRequest: number | null
   availableAtApproval: number | null
   rechargeUnitPrice: number | null
+  /**
+   * Which warehouse this line's product is held in. Carried on the line because every
+   * route decision -- the stock guard, the mixed-order refusal, the choice between
+   * posting to Mintsoft and emailing a pick list -- is made from an order's lines.
+   */
+  supplyRoute: SupplyRoute
+  /** Cases, units, packs — whatever the quantity is counted in. For the pick list. */
+  unit: string | null
 }
 
 const ORDER_SELECT = `
   SELECT o.id, o.order_number, o.site_id, s.code AS site_code, s.name AS site_name,
          o.type, o.status, o.requester_name, o.required_date, o.notes, o.early_order_reason,
          o.recharge, o.recharge_total, o.order_fee, o.submitted_at, o.approved_at,
-         o.rejected_reason, o.mintsoft_order_id, o.mintsoft_order_number, o.post_error, o.despatched_at,
+         o.rejected_reason, o.mintsoft_order_id, o.mintsoft_order_number, o.post_error,
+         o.posted_at, o.despatched_at,
          (SELECT m.order_number FROM orders m WHERE m.id = o.merged_into_order_id) AS merged_into_order_number,
          o.mintsoft_status_id, o.mintsoft_status_at,
-         o.tracking_number, o.tracking_url, o.created_at
+         o.tracking_number, o.tracking_url, o.created_at,
+         -- Which warehouse the order is for, worked out from its lines. 'mixed' is
+         -- reported rather than hidden behind one of the two: an order that spans both
+         -- cannot be sent, and the screens have to be able to say why.
+         (SELECT CASE WHEN COUNT(DISTINCT p.supply_route) > 1 THEN 'mixed'
+                      ELSE COALESCE(MIN(p.supply_route), 'mercium') END
+            FROM order_lines ol JOIN products p ON p.id = ol.product_id
+           WHERE ol.order_id = o.id) AS supply_route
     FROM orders o JOIN sites s ON s.id = o.site_id`
 
 interface RawOrder {
@@ -92,9 +125,10 @@ interface RawOrder {
   submitted_at: string | null; approved_at: string | null; rejected_reason: string | null
   mintsoft_order_id: number | null; mintsoft_order_number: string | null
   merged_into_order_number: string | null
-  post_error: string | null; despatched_at: string | null
+  post_error: string | null; posted_at: string | null; despatched_at: string | null
   mintsoft_status_id: number | null; mintsoft_status_at: string | null
   tracking_number: string | null; tracking_url: string | null; created_at: string
+  supply_route: 'mercium' | 'email' | 'mixed' | null
 }
 
 const toSummary = (r: RawOrder): OrderSummary => ({
@@ -105,9 +139,10 @@ const toSummary = (r: RawOrder): OrderSummary => ({
   submittedAt: r.submitted_at, approvedAt: r.approved_at, rejectedReason: r.rejected_reason,
   mintsoftOrderId: r.mintsoft_order_id, mintsoftOrderNumber: r.mintsoft_order_number,
   mergedIntoOrderNumber: r.merged_into_order_number,
-  postError: r.post_error, despatchedAt: r.despatched_at,
+  postError: r.post_error, postedAt: r.posted_at, despatchedAt: r.despatched_at,
   mintsoftStatusId: r.mintsoft_status_id, mintsoftStatusAt: r.mintsoft_status_at,
   trackingNumber: r.tracking_number, trackingUrl: r.tracking_url, createdAt: r.created_at,
+  supplyRoute: r.supply_route ?? 'mercium',
 })
 
 /** Records something that happened to an order. Append-only, enforced by a trigger. */
@@ -141,7 +176,8 @@ export async function linesForOrder(db: Database, orderId: number): Promise<Orde
   const { results } = await db
     .prepare(
       `SELECT ol.id, ol.product_id, p.name AS product_name, ol.qty_requested, ol.qty_approved,
-              ol.available_at_request, ol.available_at_approval, ol.recharge_unit_price
+              ol.available_at_request, ol.available_at_approval, ol.recharge_unit_price,
+              p.supply_route, p.unit
          FROM order_lines ol JOIN products p ON p.id = ol.product_id
         WHERE ol.order_id = ? ORDER BY p.name`,
     )
@@ -150,12 +186,15 @@ export async function linesForOrder(db: Database, orderId: number): Promise<Orde
       id: number; product_id: number; product_name: string; qty_requested: number
       qty_approved: number | null; available_at_request: number | null
       available_at_approval: number | null; recharge_unit_price: number | null
+      supply_route: SupplyRoute | null; unit: string | null
     }>()
   return (results ?? []).map((r) => ({
     id: r.id, productId: r.product_id, productName: r.product_name,
     qtyRequested: r.qty_requested, qtyApproved: r.qty_approved,
     availableAtRequest: r.available_at_request, availableAtApproval: r.available_at_approval,
     rechargeUnitPrice: r.recharge_unit_price,
+    supplyRoute: routeOf({ supplyRoute: r.supply_route }),
+    unit: r.unit,
   }))
 }
 
@@ -190,6 +229,41 @@ export async function addToBasket(
     .prepare(`SELECT id FROM orders WHERE site_id = ? AND status = 'draft'`)
     .bind(siteId)
     .first<{ id: number }>()
+
+  /**
+   * Refused here, where the GM can do something about it.
+   *
+   * Two warehouses, two deliveries, and an order in this portal has one status, one
+   * required date and one Mintsoft id -- there is nowhere to record "half of this was
+   * posted and half was emailed". The catalogue gives no clue that two products on the
+   * same screen live in different buildings, so the refusal names the items on each side.
+   *
+   * Checked before a draft is created, not after: throwing once a draft exists would
+   * leave an empty order behind every time a GM hit this. With no draft there is nothing
+   * to conflict with anyway.
+   */
+  if (draft?.id) {
+    const adding = await db
+      .prepare(`SELECT name, supply_route FROM products WHERE id = ?`)
+      .bind(productId)
+      .first<{ name: string; supply_route: SupplyRoute | null }>()
+    if (!adding) throw new OrderError('That product is no longer in the catalogue.')
+
+    const { results } = await db
+      .prepare(
+        `SELECT p.name AS product_name, p.supply_route
+           FROM order_lines ol JOIN products p ON p.id = ol.product_id
+          WHERE ol.order_id = ?`,
+      )
+      .bind(draft.id)
+      .all<{ product_name: string; supply_route: SupplyRoute | null }>()
+
+    const split = splitByRoute([
+      ...(results ?? []).map((r) => ({ productName: r.product_name, supplyRoute: r.supply_route })),
+      { productName: adding.name, supplyRoute: adding.supply_route },
+    ])
+    if (split.route === null) throw new OrderError(mixedRouteMessage(split, { inBasket: true }))
+  }
 
   let orderId = draft?.id
   if (!orderId) {

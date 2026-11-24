@@ -643,15 +643,23 @@ export const createApp = () => {
 
   app.post('/approvals/:orderId/send', async (c) => {
     const user = currentUser(c)
-    if (!c.env.MINTSOFT_USERNAME || !c.env.MINTSOFT_PASSWORD) {
-      return c.json({ error: 'Mintsoft credentials are not configured, so nothing can be sent.' }, 503)
-    }
 
-    const client = new MintsoftOrderClient({
-      username: c.env.MINTSOFT_USERNAME,
-      password: c.env.MINTSOFT_PASSWORD,
-      throttleMs: 250,
-    })
+    /**
+     * Built when the credentials are there, null when they are not, rather than refusing
+     * the whole route.
+     *
+     * This used to answer 503 for any missing Mintsoft credential. That was right while
+     * Mercium was the only warehouse; now an order for the other store needs no Mintsoft
+     * at all, and a blanket refusal here would make it unsendable for want of a
+     * credential it never uses. sendApprovedOrder refuses by route instead.
+     */
+    const client = c.env.MINTSOFT_USERNAME && c.env.MINTSOFT_PASSWORD
+      ? new MintsoftOrderClient({
+        username: c.env.MINTSOFT_USERNAME,
+        password: c.env.MINTSOFT_PASSWORD,
+        throttleMs: 250,
+      })
+      : null
 
     const result = await sendApprovedOrder(c.env.DB, client, {
       orderId: Number(c.req.param('orderId')),
@@ -659,7 +667,12 @@ export const createApp = () => {
       writesEnabled: writesEnabled(c.env.MINTSOFT_WRITES_ENABLED),
       clientId: c.env.MINTSOFT_CLIENT_ID ? Number(c.env.MINTSOFT_CLIENT_ID) : null,
       warehouseId: c.env.MINTSOFT_WAREHOUSE_ID ? Number(c.env.MINTSOFT_WAREHOUSE_ID) : null,
+      emailEnv: c.env,
     })
+
+    // A configuration fault is the portal's problem, not this order's, so it answers 503
+    // in the shape the rest of the API uses for "the server cannot do this at all".
+    if (result.status === 'not_configured') return c.json({ error: result.message }, 503)
 
     // 'uncertain' is not a failure and must not read like one: the order may exist, and
     // the client should be told to look rather than to try again.
