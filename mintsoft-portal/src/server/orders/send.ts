@@ -233,7 +233,9 @@ async function sendByEmail(
 
   const items = lines
     .filter((l) => (l.qtyApproved ?? 0) > 0)
-    .map((l) => ({ productName: l.productName, qty: l.qtyApproved!, unit: l.unit ?? null }))
+    .map((l) => ({
+      productId: l.productId, productName: l.productName, qty: l.qtyApproved!, unit: l.unit ?? null,
+    }))
 
   if (items.length === 0) {
     const message = `${order.orderNumber} has nothing to send — every line was approved at zero. `
@@ -313,7 +315,7 @@ async function sendByEmail(
         // The addresses are recorded because "who was told to pick this" is the question
         // that gets asked when stock does not turn up, and nothing else would answer it.
         recipients,
-        lines: items.map((i) => ({ name: i.productName, qty: i.qty })),
+        lines: items.map((i) => ({ id: i.productId, name: i.productName, qty: i.qty })),
       }),
     ])
     return {

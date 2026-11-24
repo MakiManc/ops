@@ -173,7 +173,7 @@ export const warehouseOrder = (env: EmailEnv, o: {
   approvedBy: string | null
   notes: string | null
   deliveryAddress: string[]
-  lines: { productName: string; qty: number; unit: string | null }[]
+  lines: { productId: number; productName: string; qty: number; unit: string | null }[]
 }): Email => {
   // null is "leave this line out"; '' is a deliberate blank line. Filtering on a plain
   // falsy test would collapse the blanks and run the address into the item list.
@@ -182,7 +182,12 @@ export const warehouseOrder = (env: EmailEnv, o: {
     'This stock is not held at Mercium, so there is no Mintsoft order for it — this email is the order.',
     '',
     'ITEMS',
-    ...o.lines.map((l) => `  ${l.qty} x ${l.productName}${l.unit ? ` (${l.unit})` : ''}`),
+    // The product id goes on every line, because the name on its own is not always
+    // enough to pick against. Several of these products are called things like "Cup" and
+    // "Plate" -- that is what the count sheet recorded -- and the store holds more than
+    // one kind of each. The id is the only stable handle the portal and the picker share,
+    // and it is what anyone asking about this order later will be able to look up.
+    ...o.lines.map((l) => `  ${l.qty} x ${l.productName}${l.unit ? ` (${l.unit})` : ''}  [#${l.productId}]`),
     '',
     `Order number: ${o.orderNumber}`,
     `Needed by: ${o.requiredDate ?? 'not specified'}`,

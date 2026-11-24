@@ -36,7 +36,15 @@ const ACCEPTED = /\.(jpe?g|png|webp)$/i
 export const itemCode = (sku: string) =>
   sku.trim().toUpperCase().replace(/^MRK\d+[-\s]+/i, '').trim()
 
-interface Row { id: number; name: string; a_sku: string; lines: number }
+/**
+ * a_sku is NULL for a product with no Mintsoft line, which is not an error.
+ *
+ * It was typed as `string`, and itemCode's `.trim()` threw on the first such product --
+ * so the whole script died before printing anything, with a TypeError that gave no hint
+ * that an unmapped product was the cause. Stock held outside Mercium has no Mintsoft line
+ * by design, so there are 34 of them.
+ */
+interface Row { id: number; name: string; a_sku: string | null; lines: number }
 
 function photosOnDisk(): Map<string, string> {
   const found = new Map<string, string>()
@@ -63,11 +71,23 @@ function main(rows: Row[]) {
   // Linking one file to both would put the wrong picture on a product silently, which
   // is worse than no picture, so a shared code is reported and neither is linked.
   const byCode = new Map<string, Row[]>()
+  // A product with no SKU has no stem to be named after, so it is matched on P<id>.jpg
+  // alone -- the per-product override below already supports exactly that.
+  const noSku: Row[] = []
   for (const r of rows) {
+    if (r.a_sku === null || r.a_sku.trim() === '') { noSku.push(r); continue }
     const code = itemCode(r.a_sku)
     const sharing = byCode.get(code)
     if (sharing) sharing.push(r)
     else byCode.set(code, [r])
+  }
+
+  for (const r of noSku) {
+    const own = photos.get(`P${r.id}`)
+    if (own) matched.push({ id: r.id, code: `P${r.id}`, file: own, name: r.name })
+    // Reported under its own heading rather than mixed in with the stem misses: there is
+    // no stem file anyone could add for it, only P<id>.jpg.
+    else missing.push({ code: `P${r.id}`, name: r.name, lines: r.lines })
   }
 
   for (const [code, sharing] of byCode) {

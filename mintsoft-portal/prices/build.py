@@ -251,6 +251,28 @@ def main(xlsx: str, products: list[str]) -> dict:
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         raise SystemExit('usage: build.py <China_Stock_Price_File.xlsx> <portal-products.json>')
-    names = [r['name'] for r in json.load(open(sys.argv[2]))[0]['results'] if r['active']]
+    # Mercium products only.
+    #
+    # The China Stock Price File prices goods imported from China and held by Mercium.
+    # Stock in the warehouse with no WMS is not in it and never will be, so feeding those
+    # products in made the build exit on the first one -- "'Cup' is neither matched,
+    # aliased nor listed as unpriced" -- and the JSON could not be regenerated at all.
+    # Listing 34 of them under UNPRICED would have been a lie about why they have no
+    # price: they are absent from the file by scope, not by omission.
+    #
+    # supply_route is read defensively: a products dump taken before the column existed
+    # has none, and every product in it was Mercium's.
+    rows = json.load(open(sys.argv[2]))[0]['results']
+    names = [
+        r['name'] for r in rows
+        if r['active'] and r.get('supply_route', 'mercium') != 'email'
+    ]
+    skipped = sum(1 for r in rows if r['active'] and r.get('supply_route') == 'email')
+    if skipped:
+        print(
+            f'Skipped {skipped} product(s) held outside Mercium: the price file does not '
+            'cover that warehouse.',
+            file=sys.stderr,
+        )
     out = main(sys.argv[1], names)
     print(json.dumps(out, indent=2, ensure_ascii=False))

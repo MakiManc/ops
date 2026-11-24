@@ -160,8 +160,9 @@ export async function stockOverview(
         onHand: null,
         allocated: null,
       }
-      flags.push('Held outside Mercium: no stock figure is reported for it, and none is expected. '
-        + 'Orders for it are emailed rather than sent to Mintsoft.')
+      // Deliberately NOT pushed onto `flags`. The screen renders flags in amber, which it
+      // uses for things that need attention, and nothing here does. The route is shown as
+      // a badge beside the name instead, and availableBasis carries the explanation.
     } else if (mappedLines === 0) {
       availability = combineMappedLines([])
       flags.push('Not mapped to any Mintsoft line, so it cannot be ordered.')

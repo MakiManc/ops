@@ -486,8 +486,12 @@ export const createApp = () => {
         daysSinceLastOrder: lastApproved
           ? Math.floor((Date.now() - new Date(lastApproved).getTime()) / 86_400_000)
           : null,
+        // Same site AND same warehouse. mergeRequests refuses a cross-warehouse merge,
+        // but offering one and then refusing it wastes an approver's time on a button
+        // that was never going to work.
         mergeCandidates: queue
-          .filter((o) => o.siteId === order.siteId && o.id !== order.id)
+          .filter((o) => o.siteId === order.siteId && o.id !== order.id
+            && o.supplyRoute === order.supplyRoute)
           .map((o) => ({ id: o.id, orderNumber: o.orderNumber })),
       }
     }))
@@ -511,13 +515,26 @@ export const createApp = () => {
 
       const skusByProduct = await availableSkusByProduct(c.env.DB)
 
-      const toApprove: LineToApprove[] = body.lines.map((l) => ({
-        productId: l.productId,
-        productName: catalogue.find((p) => p.productId === l.productId)?.name ?? 'Unknown',
-        qtyApproved: l.qtyApproved,
-        skus: skusByProduct.get(l.productId) ?? [],
-        rechargeUnitPrice: catalogue.find((p) => p.productId === l.productId)?.rechargeUnitPrice ?? null,
-      }))
+      const toApprove: LineToApprove[] = body.lines.map((l) => {
+        const product = catalogue.find((p) => p.productId === l.productId)
+        return {
+          productId: l.productId,
+          productName: product?.name ?? 'Unknown',
+          qtyApproved: l.qtyApproved,
+          skus: skusByProduct.get(l.productId) ?? [],
+          rechargeUnitPrice: product?.rechargeUnitPrice ?? null,
+          /**
+           * Without this, no other-store order could be approved at all.
+           *
+           * allocateLine reads the route first and returns 'offline' for stock Mercium
+           * does not hold. Omitting it here made every such line default to 'mercium',
+           * fall through to the mapped-lines test, and refuse with "is not mapped to any
+           * warehouse line, so it cannot be ordered" -- a true sentence about Mintsoft
+           * and a wrong conclusion, since nothing is ever going to map it.
+           */
+          supplyRoute: product?.supplyRoute ?? null,
+        }
+      })
 
       // The stock re-check the brief requires, against live figures rather than
       // whatever was on screen when the GM submitted.

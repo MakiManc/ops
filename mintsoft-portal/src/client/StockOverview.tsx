@@ -23,6 +23,12 @@ interface OverviewProduct {
   pendingDemand: number
   inboundQty: number | null
   inboundExpected: string | null
+  /**
+   * Which warehouse holds it. Without it the other store's near-twins sit beside their
+   * Mercium counterparts — "Cup" above "Blue Cups Round" — distinguishable only by an
+   * amber flag, which is the colour this screen uses for things that need fixing.
+   */
+  supplyRoute?: 'mercium' | 'email'
   weeksOfCover: number | null
   weeksOfCoverBasis: string
   mappedLines: number
@@ -49,7 +55,14 @@ function ProductRow({ product }: { product: OverviewProduct }) {
     <li className={card}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-semibold text-gray-900">{product.name}</h3>
+          <h3 className="font-semibold text-gray-900">
+            {product.name}
+            {product.supplyRoute === 'email' && (
+              <span className="ml-2 align-middle rounded border border-indigo-300 bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-900">
+                Other store
+              </span>
+            )}
+          </h3>
           {product.category && <p className="text-sm text-gray-600">{product.category}</p>}
         </div>
         <p className="text-xs text-gray-500 whitespace-nowrap">

@@ -14,6 +14,12 @@ interface Check { code: string; severity: 'blocks' | 'needs_reason' | 'note'; me
 interface Line {
   productId: number; productName: string; qtyRequested: number
   available: number | null; rechargeUnitPrice: number | null
+  /**
+   * Which warehouse holds it. Eight of the other store's products are near-twins of
+   * Mercium ones by name, so a basket showing only a name cannot be checked: "Cup" is
+   * either store's until something says which.
+   */
+  supplyRoute?: 'mercium' | 'email'
 }
 interface RequestBody {
   /**
@@ -249,7 +255,14 @@ export function Basket({ siteId, onSubmitted, onGoToCatalogue }: {
         <ul className="grid gap-2">
           {data.lines.map((line) => (
             <li key={line.productId} className={`${card} flex items-center justify-between gap-3 py-3`}>
-              <span className="font-medium text-gray-900">{line.productName}</span>
+              <span className="font-medium text-gray-900">
+                {line.productName}
+                {line.supplyRoute === 'email' && (
+                  <span className="ml-2 rounded border border-indigo-300 bg-indigo-100 px-1.5 py-0.5 text-xs font-semibold text-indigo-900">
+                    Other store
+                  </span>
+                )}
+              </span>
               <span className="text-gray-700 whitespace-nowrap">× {line.qtyRequested}</span>
             </li>
           ))}
@@ -289,6 +302,17 @@ export function Basket({ siteId, onSubmitted, onGoToCatalogue }: {
 
   const canSubmit = blockedBecause === null && !busy
 
+  /**
+   * The warehouse this whole request is for, when it is all one.
+   *
+   * Worth stating on the basket as well as on the catalogue, because this is the screen
+   * a GM reads before committing, and the two warehouses behave differently AFTER that:
+   * an other-store request gets no Mintsoft order and no tracking number, so the
+   * expectation has to be set here rather than left to be discovered on My orders.
+   */
+  const routes = new Set(data.lines.map((l) => (l.supplyRoute === 'email' ? 'email' : 'mercium')))
+  const basketRoute = routes.size === 1 ? [...routes][0] : null
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -300,6 +324,14 @@ export function Basket({ siteId, onSubmitted, onGoToCatalogue }: {
         )}
       </div>
 
+      {basketRoute === 'email' && (
+        <p className="rounded-xl border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm text-indigo-900">
+          This stock is not held at Mercium. Once it is signed off, the list goes by email to
+          the team who hold it — so there is no tracking number for this one and they will
+          confirm the delivery directly.
+        </p>
+      )}
+
       <ul className="grid gap-3">
         {data.lines.map((line) => {
           const lineChecks = data.checks.filter((c) => c.productId === line.productId)
@@ -307,9 +339,17 @@ export function Basket({ siteId, onSubmitted, onGoToCatalogue }: {
             <li key={line.productId} className={card}>
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-semibold text-gray-900">{line.productName}</h3>
-                <p className="text-sm text-gray-700 whitespace-nowrap">
-                  {qty(line.available)} available
-                </p>
+                {line.supplyRoute === 'email' ? (
+                  // Not "— available". That reads as a figure we failed to get, and this
+                  // store reports none by design.
+                  <span className="shrink-0 rounded border border-indigo-300 bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-900">
+                    Other store
+                  </span>
+                ) : (
+                  <p className="text-sm text-gray-700 whitespace-nowrap">
+                    {qty(line.available)} available
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-wrap items-end justify-between gap-x-3">

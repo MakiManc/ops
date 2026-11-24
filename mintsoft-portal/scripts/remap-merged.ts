@@ -173,7 +173,7 @@ const norm = (s: string): string =>
     .trim()
 
 interface Line { mid: number; sku: string; name: string | null; available: number | null }
-interface Product { id: number; name: string; active: number }
+interface Product { id: number; name: string; active: number; supply_route: string | null }
 
 const lines = (sql(
   `SELECT sc.mintsoft_product_id AS mid, mp.sku, mp.name, SUM(sc.available) AS available
@@ -184,9 +184,20 @@ const lines = (sql(
     ORDER BY available DESC`,
 ) as { results: Line[] }).results
 
-const products = (sql('SELECT id, name, active FROM products') as { results: Product[] }).results
-const active = products.filter((p) => p.active === 1)
-const byName = new Map(active.map((p) => [p.name, p]))
+const products = (sql('SELECT id, name, active, supply_route FROM products') as { results: Product[] }).results
+/**
+ * Mercium products only.
+ *
+ * A Mintsoft line cannot belong to a product held in a warehouse Mintsoft does not cover,
+ * so an email-route product is never a candidate for one -- mapping it would attach a
+ * stock figure to a product whose whole point is that it has none, and allocateLine would
+ * go on ignoring that figure while the order went out by email. Excluded here rather than
+ * guarded later, so it can never be suggested in the first place.
+ */
+const active = products.filter((p) => p.active === 1 && p.supply_route !== 'email')
+/** Active products by exact name, dropping any name two products share. */
+const byName = new Map<string, Product | null>()
+for (const p of active) byName.set(p.name, byName.has(p.name) ? null : p)
 
 /** Active products by normalised name, dropping any name two products share. */
 const byNorm = new Map<string, Product | null>()

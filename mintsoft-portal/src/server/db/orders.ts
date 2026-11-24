@@ -557,6 +557,25 @@ export async function mergeRequests(
   const mergeLines = await linesForOrder(db, mergeId)
   const keepLines = await linesForOrder(db, keepId)
 
+  /**
+   * Two warehouses cannot be merged into one order, and this is the path that would have
+   * done it regardless of the basket's refusal.
+   *
+   * addToBasket stops a GM mixing the routes. Merging takes two single-route requests,
+   * moves every line onto one of them and CANCELS the other -- so an approver pressing
+   * Combine on a Mercium request and an other-store request would have produced one
+   * order that cannot be sent at all, with the second request already destroyed and its
+   * lines inside the unsendable one. The guard belongs here, before anything is written.
+   */
+  const split = splitByRoute([...keepLines, ...mergeLines])
+  if (split.route === null) {
+    throw new OrderError(
+      `${keep.orderNumber} and ${merge.orderNumber} are for different warehouses, which ship `
+      + 'separately, so they cannot be combined into one order. '
+      + mixedRouteMessage(split),
+    )
+  }
+
   const statements = mergeLines.map((line) => {
     const already = keepLines.find((k) => k.productId === line.productId)
     return already
@@ -666,6 +685,24 @@ export async function mergeApprovedOrders(
       `${keep.orderNumber} and ${merge.orderNumber} are not charged the same way — one is `
         + 'recharged to the site and one is not. They cannot be combined without deciding '
         + 'which is right.',
+    )
+  }
+
+  /**
+   * And from the same warehouse.
+   *
+   * The two ship separately and an order carries one status, one required date and one
+   * Mintsoft id, so a merged pair would be unsendable by either route — and merging
+   * cancels the absorbed order, so the mistake takes a signed-off order with it. The
+   * per-order fee is the other half of it: Mercium charge per order, which is the whole
+   * reason this feature exists, and combining with an other-store order saves nothing
+   * because the other store was never going to charge a Mercium fee.
+   */
+  if (keep.supplyRoute !== merge.supplyRoute) {
+    throw new OrderError(
+      `${keep.orderNumber} and ${merge.orderNumber} are for different warehouses, which ship `
+        + 'separately, so combining them would produce an order that cannot be sent at all. '
+        + 'Send them as they are.',
     )
   }
 
@@ -946,11 +983,22 @@ export async function sitesWithSeveralAwaitingSend(
   db: Database,
 ): Promise<{ siteId: number; siteCode: string; siteName: string; orders: OrderSummary[] }[]> {
   const waiting = await awaitingSend(db)
-  const bySite = new Map<number, OrderSummary[]>()
+  /**
+   * Grouped by site AND warehouse.
+   *
+   * The whole point of this list is the Combine card, and mergeApprovedOrders refuses a
+   * cross-warehouse merge — the two ship separately and the merged order could not be
+   * sent by either route. Grouping on the site alone would show a site with one Mercium
+   * order and one other-store order as "doubled up, combine them to save a fee", which
+   * is wrong twice: they cannot be combined, and there was no duplicated fee to save
+   * because the other store does not charge Mercium's per-order fee.
+   */
+  const bySite = new Map<string, OrderSummary[]>()
   for (const o of waiting) {
-    const list = bySite.get(o.siteId) ?? []
+    const key = `${o.siteId}:${o.supplyRoute}`
+    const list = bySite.get(key) ?? []
     list.push(o)
-    bySite.set(o.siteId, list)
+    bySite.set(key, list)
   }
   return [...bySite.values()]
     .filter((orders) => orders.length > 1)

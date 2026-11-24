@@ -73,8 +73,8 @@ const sql = (statement: string): unknown => {
 const q = (v: string | number | null) =>
   v === null ? 'NULL' : typeof v === 'number' ? String(v) : `'${v.replace(/'/g, "''")}'`
 
-interface Product { id: number; name: string; active: number }
-const products = (sql('SELECT id, name, active FROM products ORDER BY id') as { results: Product[] }).results
+interface Product { id: number; name: string; active: number; supply_route: string | null }
+const products = (sql('SELECT id, name, active, supply_route FROM products ORDER BY id') as { results: Product[] }).results
 
 /**
  * Products by name, preferring the active one.
@@ -166,14 +166,33 @@ for (const u of file.unpriced) {
   console.log(`${warn('–')} ${u.product.padEnd(52)} ${dim(u.reason)}`)
 }
 
-const uncovered = products.filter((p) => p.active && !seen.has(p.id))
+/**
+ * Mercium products with no price. Stock held outside Mercium is not "uncovered".
+ *
+ * The China Stock Price File prices goods imported from China and held by Mercium. The
+ * other warehouse is outside its scope entirely, so listing its 34 products here would
+ * ask somebody to add them to ALIAS or UNPRICED in a file that will never have a row for
+ * them -- 34 lines of red telling a true thing in a way that implies a fix that does not
+ * exist. They have no supplier cost on record for a different reason, and that reason is
+ * not this file's to state.
+ */
+const uncovered = products.filter(
+  (p) => p.active && p.supply_route !== 'email' && !seen.has(p.id),
+)
 if (uncovered.length) {
   console.log(
-    `\n${bad(String(uncovered.length))} active product(s) are in the catalogue but not in the price file. `
+    `\n${bad(String(uncovered.length))} active Mercium product(s) are in the catalogue but not in the price file. `
     + 'They will have no row at all, and the report will not be able to say why:',
   )
   for (const p of uncovered) console.log(`    ${p.name}`)
   console.log(dim('  Add each one to ALIAS or UNPRICED in prices/build.py and rebuild the JSON.'))
+}
+
+const otherStore = products.filter((p) => p.active && p.supply_route === 'email')
+if (otherStore.length) {
+  console.log(dim(`\n${otherStore.length} active product(s) are held outside Mercium and are not `
+    + 'priced by this file. They need a cost of their own before a franchise can be '
+    + 'recharged for them.'))
 }
 
 if (!APPLY) {

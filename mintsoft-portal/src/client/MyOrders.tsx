@@ -33,10 +33,21 @@ interface Order {
   createdAt: string
   recharge: boolean
   rechargeTotal: number | null
+  /**
+   * Which warehouse the order is for.
+   *
+   * It was already on the wire and discarded here, which was worse than not having it:
+   * every sentence below said "Mercium" and an other-store order reaches exactly the
+   * same statuses, so a GM chasing a late delivery rang the wrong building about an
+   * order Mintsoft had never seen.
+   */
+  supplyRoute?: 'mercium' | 'email' | 'mixed'
 }
 
+type Plain = { label: string; detail: string; tone: string }
+
 /** Each status in words a GM would use, with what it actually means for them. */
-const PLAIN: Record<Order['status'], { label: string; detail: string; tone: string }> = {
+const PLAIN: Record<Order['status'], Plain> = {
   draft: { label: 'Not sent yet', detail: 'Still being put together.', tone: 'bg-gray-100 text-gray-900 border-gray-300' },
   submitted: { label: 'Waiting for sign-off', detail: 'Ross or Francheska will look at it.', tone: 'bg-amber-100 text-amber-900 border-amber-400' },
   approved: { label: 'Approved', detail: 'Signed off and about to go to the warehouse.', tone: 'bg-blue-100 text-blue-900 border-blue-300' },
@@ -50,8 +61,49 @@ const PLAIN: Record<Order['status'], { label: string; detail: string; tone: stri
   },
 }
 
+/**
+ * The same statuses, worded for stock the other warehouse holds.
+ *
+ * Only the sentences that name Mercium or promise a despatch are overridden; the rest
+ * fall through to PLAIN. "Sent to warehouse" is the end of the road on this route — the
+ * despatch and tracking reconcile selects on mintsoft_order_id IS NOT NULL
+ * (src/server/sync/jobs.ts) and an emailed order never has one, so nothing will ever
+ * move it to 'despatched'. Saying "On its way" next would be a promise the system cannot
+ * keep.
+ */
+const PLAIN_OTHER_STORE: Partial<Record<Order['status'], Plain>> = {
+  approved: {
+    label: 'Approved',
+    detail: 'Signed off and about to be sent to the team who hold this stock.',
+    tone: 'bg-blue-100 text-blue-900 border-blue-300',
+  },
+  posted: {
+    label: 'Sent to the other store',
+    detail: 'The pick list has gone to the team who hold this stock. There is no tracking '
+      + 'number for this one — they confirm the delivery directly.',
+    tone: 'bg-indigo-100 text-indigo-900 border-indigo-300',
+  },
+  post_failed: {
+    label: 'Stuck',
+    detail: 'It was approved but the pick list could not be sent. Someone is looking at it.',
+    tone: 'bg-red-100 text-red-900 border-red-300',
+  },
+}
+
+const wording = (order: Order): Plain =>
+  (order.supplyRoute === 'email' ? PLAIN_OTHER_STORE[order.status] : undefined) ?? PLAIN[order.status]
+
 /** The steps a healthy order goes through, so a GM can see where it has got to. */
 const JOURNEY: Order['status'][] = ['submitted', 'approved', 'posted', 'despatched']
+
+/**
+ * The other store's journey stops at 'posted', because nothing can advance it further.
+ *
+ * Shown as three steps rather than four with the last greyed out: a greyed "On its way"
+ * reads as a step still to come, and a GM who has learned that it is the step before a
+ * box arrives will report a delivered order as stuck, or re-order it.
+ */
+const JOURNEY_OTHER_STORE: Order['status'][] = ['submitted', 'approved', 'posted']
 
 /**
  * The statuses that mean Mercium have the order.
@@ -67,14 +119,16 @@ const CANCELLABLE: Order['status'][] = ['draft', 'submitted', 'approved']
 function Timeline({ order }: { order: Order }) {
   // Side exits do not belong on a progress line; they are the end of the story.
   if (['rejected', 'cancelled', 'post_failed', 'draft'].includes(order.status)) return null
-  const reached = JOURNEY.indexOf(order.status)
+  const steps = order.supplyRoute === 'email' ? JOURNEY_OTHER_STORE : JOURNEY
+  const reached = steps.indexOf(order.status)
 
   return (
     <ol className="mt-3 flex flex-wrap gap-x-2 gap-y-1 text-sm">
-      {JOURNEY.map((step, i) => (
+      {steps.map((step, i) => (
         <li key={step} className={i <= reached ? 'text-gray-900 font-medium' : 'text-gray-500'}>
-          {i <= reached ? '✓ ' : ''}{PLAIN[step].label}
-          {i < JOURNEY.length - 1 && <span className="text-gray-400" aria-hidden="true"> ›</span>}
+          {i <= reached ? '✓ ' : ''}
+          {(order.supplyRoute === 'email' ? PLAIN_OTHER_STORE[step] : undefined)?.label ?? PLAIN[step].label}
+          {i < steps.length - 1 && <span className="text-gray-400" aria-hidden="true"> ›</span>}
         </li>
       ))}
     </ol>
@@ -265,7 +319,7 @@ export function MyOrders({ justSent = null, onSeen, onGoToCatalogue, onOpenOrder
                 + 'so it comes in one delivery instead of two. Nothing was dropped.',
               tone: 'bg-cherry text-woodsmoke border-maki-orange',
             }
-          : PLAIN[order.status]
+          : wording(order)
         const highlight = justSent === order.orderNumber || message?.includes(order.orderNumber)
         return (
           <li key={order.id} className={`${card} ${highlight ? 'border-everglade ring-2 ring-everglade/30' : ''}`}>

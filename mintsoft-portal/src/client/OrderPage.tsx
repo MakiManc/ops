@@ -41,6 +41,8 @@ interface Detail {
     mintsoftStatusAt: string | null
     trackingNumber: string | null
     trackingUrl: string | null
+    /** Which warehouse. Already returned by the API; this page used to discard it. */
+    supplyRoute?: 'mercium' | 'email' | 'mixed'
   }
   lines: Line[]
 }
@@ -55,6 +57,20 @@ const WHERE: Record<string, string> = {
   rejected: 'Sent back — have a look at the reason and try again.',
   cancelled: 'Cancelled.',
   post_failed: 'It was signed off but could not reach the warehouse. Someone is looking at it.',
+}
+
+/**
+ * The same thing said truthfully for stock Mercium does not hold.
+ *
+ * This page is what gets pasted to somebody to settle where an order has got to, so a
+ * wrong warehouse here sends a real person to chase a real company about an order that
+ * does not exist in their system — an emailed order has no Mintsoft order id at all.
+ */
+const WHERE_OTHER_STORE: Record<string, string> = {
+  approved: 'Signed off, and about to be sent to the team who hold this stock.',
+  posted: 'The pick list has gone to the team who hold this stock. There is no tracking '
+    + 'number for this one — they confirm the delivery directly.',
+  post_failed: 'It was signed off but the pick list could not be sent. Someone is looking at it.',
 }
 
 export function OrderPage({ orderId, onBack }: { orderId: number; onBack: () => void }) {
@@ -119,7 +135,15 @@ export function OrderPage({ orderId, onBack }: { orderId: number; onBack: () => 
           {order.mintsoftOrderNumber && order.mintsoftOrderNumber !== order.orderNumber
             && ` · ours: ${order.orderNumber}`}
         </p>
-        <p className="mt-2 text-gray-900">{WHERE[order.status] ?? order.status}</p>
+        {order.supplyRoute === 'email' && (
+          <p className="mt-2 inline-block rounded border border-indigo-300 bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-900">
+            Other store — not held at Mercium
+          </p>
+        )}
+        <p className="mt-2 text-gray-900">
+          {(order.supplyRoute === 'email' ? WHERE_OTHER_STORE[order.status] : undefined)
+            ?? WHERE[order.status] ?? order.status}
+        </p>
         {order.requiredDate && (
           <p className="mt-1 text-sm text-gray-700">Needed by {shortDate(order.requiredDate)}.</p>
         )}
@@ -180,7 +204,8 @@ export function OrderPage({ orderId, onBack }: { orderId: number; onBack: () => 
                 <strong>Not coming:</strong>{' '}
                 {notComing.map((l) => `${l.productName} (asked for ${l.qtyRequested})`).join(', ')}.{' '}
                 {notComing.length === 1 ? 'It was' : 'They were'} signed off at nothing, so
-                Mercium are not picking {notComing.length === 1 ? 'it' : 'them'}.
+                {order.supplyRoute === 'email' ? ' the other store is' : ' Mercium are'} not
+                picking {notComing.length === 1 ? 'it' : 'them'}.
               </p>
             )}
 

@@ -252,31 +252,71 @@ export async function createProductFromLines(db: Database, input: NewProductInpu
     throw new MappingError(`These Mintsoft lines are not in the catalogue mirror: ${unknown.join(', ')}.`)
   }
 
-  // The mappings reference the product by name rather than by a captured id, so the
-  // insert and the mappings can travel in the same batch.
   const name = input.name.trim()
-  await db.batch([
-    db.prepare(
+
+  /**
+   * No two active products may share a name, and this is the path that would mint them.
+   *
+   * Products deliberately exist with CONFUSABLE names across the two warehouses -- the
+   * other store's "Cup" beside Mercium's "Blue Cups Round" -- because they are separate
+   * stock in separate buildings. An EXACT match is different: nothing downstream can tell
+   * the two apart. The par-level CSV import resolves products by lowercased name, the
+   * price loader keys on name, the remap script matches on name, and the mixed-warehouse
+   * refusal names the products it is refusing. Every one of those silently picks one row
+   * or reports an unactionable message when a name is shared.
+   *
+   * Compared case-insensitively, because "Tea Pot" and "tea pot" are the same name to
+   * every one of those callers.
+   */
+  const clash = await db
+    .prepare(`SELECT id, name FROM products WHERE active = 1 AND LOWER(name) = LOWER(?) LIMIT 1`)
+    .bind(name)
+    .first<{ id: number; name: string }>()
+  if (clash) {
+    throw new MappingError(
+      `There is already an active product called "${clash.name}" (#${clash.id}). Two products `
+      + 'with the same name cannot be told apart on an order, in the par-level import or on '
+      + 'the recharge report, so give this one a name of its own.',
+    )
+  }
+
+  /**
+   * The product is inserted on its own and its id captured, rather than referenced by
+   * `(SELECT MAX(id) FROM products)` from inside the same batch.
+   *
+   * MAX(id) is not a reference to the row just inserted, it is a reference to whatever
+   * row is newest when the statement runs. Two admins working the mapping queue at once
+   * would each insert a product and then each attach THEIR Mintsoft lines to whichever
+   * product committed last -- silently, and with no way to tell afterwards which lines
+   * were meant for which. The name readback that followed had the same flaw.
+   *
+   * The cost is that the insert and the mappings are no longer one batch, so a failure
+   * between them leaves a product with no lines mapped to it. That product says "not
+   * mapped to any Mintsoft line" on the stock screen and can be mapped by hand; lines
+   * attached to the wrong product say nothing at all.
+   */
+  const created = await db
+    .prepare(
       `INSERT INTO products (name, category, stock_type, pack_size, unit, recharge_unit_price)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).bind(
+       VALUES (?, ?, ?, ?, ?, ?)
+       RETURNING id`,
+    )
+    .bind(
       name, input.category ?? null, input.stockType,
       input.packSize ?? null, input.unit ?? null, input.rechargeUnitPrice ?? null,
-    ),
-    ...ids.map((id) =>
-      db.prepare(
-        `INSERT INTO product_mintsoft_map (product_id, mintsoft_product_id, sku, is_primary)
-         SELECT (SELECT MAX(id) FROM products), mintsoft_product_id, sku, ?
-           FROM mintsoft_products WHERE mintsoft_product_id = ?`,
-      ).bind(id === input.primaryMintsoftProductId ? 1 : 0, id),
-    ),
-  ])
-
-  const created = await db
-    .prepare(`SELECT id FROM products WHERE name = ? ORDER BY id DESC LIMIT 1`)
-    .bind(name)
+    )
     .first<{ id: number }>()
   if (!created) throw new MappingError('Could not create the product.')
+
+  await db.batch(
+    ids.map((id) =>
+      db.prepare(
+        `INSERT INTO product_mintsoft_map (product_id, mintsoft_product_id, sku, is_primary)
+         SELECT ?, mintsoft_product_id, sku, ?
+           FROM mintsoft_products WHERE mintsoft_product_id = ?`,
+      ).bind(created.id, id === input.primaryMintsoftProductId ? 1 : 0, id),
+    ),
+  )
 
   return {
     productId: created.id,
@@ -501,8 +541,30 @@ export async function addLinesToProduct(
   const ids = [...new Set(mintsoftProductIds)]
   if (ids.length === 0) throw new MappingError('Choose at least one Mintsoft line to add.')
 
-  const product = await db.prepare(`SELECT id FROM products WHERE id = ?`).bind(productId).first<{ id: number }>()
+  const product = await db
+    .prepare(`SELECT id, name, supply_route FROM products WHERE id = ?`)
+    .bind(productId)
+    .first<{ id: number; name: string; supply_route: 'mercium' | 'email' | null }>()
   if (!product) throw new MappingError('That product no longer exists.')
+
+  /**
+   * A Mintsoft line cannot belong to a product Mintsoft does not hold.
+   *
+   * Nothing refused this before, and doing it would have been quietly contradictory
+   * rather than loudly wrong: the product would acquire a stock figure that every guard
+   * then ignores, because allocateLine reads the route first and returns 'offline'. So
+   * the catalogue would still say "stock not tracked", orders would still go out by
+   * email, and real stock sitting on a mapped Mintsoft line would be invisible to the
+   * stock screen's alarms and to the mapping tool's gap report — mapped, counted
+   * nowhere, and ordered from the wrong building.
+   */
+  if (product.supply_route === 'email') {
+    throw new MappingError(
+      `"${product.name}" is held outside Mercium, so no Mintsoft line can belong to it. `
+      + 'If this stock really is at Mercium, change the product off the other-store route '
+      + 'first; if the line is a different product, map it to that one.',
+    )
+  }
 
   await db.batch(
     ids.map((id) =>

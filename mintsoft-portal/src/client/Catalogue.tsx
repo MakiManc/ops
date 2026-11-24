@@ -239,11 +239,29 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
   const [search, setSearch] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
   const [category, setCategory] = useState<string | null>(null)
+  /**
+   * Which warehouse to show. Null is both.
+   *
+   * It earns its place because an order cannot mix the two: a GM working on one
+   * warehouse's order wants that warehouse's list and nothing else, and eight of the
+   * other store's products are near-twins of Mercium ones by name ("Cup" beside "Blue
+   * Cups Round"). Filtering to one store makes a mis-tap impossible rather than merely
+   * recoverable.
+   */
+  const [route, setRoute] = useState<'mercium' | 'email' | null>(null)
   const [includeExpansion, setIncludeExpansion] = useState(false)
   const [reloads, setReloads] = useState(0)
   // How much is already in the open request. Without it, adding something gives no
   // sign it worked and no way to reach the basket from here.
   const [inRequest, setInRequest] = useState(0)
+  /**
+   * The products already on the open request, so the screen can say which warehouse the
+   * request has committed to before a GM adds something that cannot go on it.
+   *
+   * The server would refuse the mix, but only after the tap. Saying it up front is the
+   * difference between a rule and what looks like a bug.
+   */
+  const [requestProductIds, setRequestProductIds] = useState<number[]>([])
 
   const refreshRequest = useCallback(async () => {
     try {
@@ -252,6 +270,7 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
       const body = await res.json() as { lines?: { productId?: number; qtyRequested?: number }[] }
       const lines = body.lines ?? []
       setInRequest(lines.length)
+      setRequestProductIds(lines.map((l) => l.productId).filter((id): id is number => typeof id === 'number'))
       // Keep each card's "already in this request" honest without refetching 93 products.
       setData((d) => d && {
         ...d,
@@ -288,6 +307,7 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
       // which would quietly shrink the list without saying so.
       if (inStockOnly && p.status === 'out') return false
       if (category && (p.category ?? 'Everything else') !== category) return false
+      if (route && (p.supplyRoute ?? 'mercium') !== route) return false
       return true
     })
     const byCategory = new Map<string, CatalogueProduct[]>()
@@ -296,18 +316,54 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
       byCategory.set(key, [...(byCategory.get(key) ?? []), p])
     }
     return [...byCategory.entries()]
-  }, [data, search, inStockOnly, category])
+  }, [data, search, inStockOnly, category, route])
 
-  // Every category in the catalogue, unfiltered, so the chips do not vanish as you filter.
+  /**
+   * How many products sit in each warehouse, counted BEFORE any filter.
+   *
+   * Shown on the buttons so the filter is never a surprise. A count taken after
+   * filtering would read "Other store 0" the moment you searched for something, and a
+   * GM would conclude the other store had nothing.
+   */
+  const routeCounts = useMemo(() => {
+    const counts = { mercium: 0, email: 0 }
+    for (const p of data?.products ?? []) counts[p.supplyRoute === 'email' ? 'email' : 'mercium'] += 1
+    return counts
+  }, [data])
+
+  /** The warehouse the open request has committed to, or null if it is empty or mixed. */
+  const requestRoute = useMemo(() => {
+    if (!data || requestProductIds.length === 0) return null
+    const routes = new Set(
+      data.products
+        .filter((p) => requestProductIds.includes(p.productId))
+        .map((p) => (p.supplyRoute === 'email' ? 'email' : 'mercium')),
+    )
+    // ?? null rather than a non-null assertion: a Set of size 1 plainly has a first
+    // element, but saying so with ! is a claim the compiler cannot check and the next
+    // person has to re-derive.
+    return routes.size === 1 ? ([...routes][0] ?? null) : null
+  }, [data, requestProductIds])
+
+  /**
+   * Every category, counted within the chosen warehouse.
+   *
+   * Still unaffected by the search and the stock filter, so the chips do not vanish as
+   * you type. The warehouse is the exception, and deliberately: with "Other store"
+   * selected, a chip reading "Furniture 20" would be a count of products the filter has
+   * already excluded, and tapping it would show nothing. A chip has to count what it
+   * would actually give you.
+   */
   const categories = useMemo(() => {
     if (!data) return []
     const seen = new Map<string, number>()
     for (const p of data.products) {
+      if (route && (p.supplyRoute ?? 'mercium') !== route) continue
       const key = p.category ?? 'Everything else'
       seen.set(key, (seen.get(key) ?? 0) + 1)
     }
     return [...seen.entries()]
-  }, [data])
+  }, [data, route])
 
   if (error) {
     return (
@@ -321,7 +377,9 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
 
   const total = data.products.length
   const shown = groups.reduce((n, [, items]) => n + items.length, 0)
-  const clearFilters = () => { setSearch(''); setInStockOnly(false); setCategory(null) }
+  // The warehouse filter is cleared with the rest. Leaving it on would mean pressing
+  // "Show everything" and still being shown part of the catalogue.
+  const clearFilters = () => { setSearch(''); setInStockOnly(false); setCategory(null); setRoute(null) }
 
   return (
     <div className="space-y-4">
@@ -341,6 +399,42 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
             className={input}
           />
         </div>
+
+        {/* The warehouse comes before the categories, because it is the coarser cut and
+            because an order cannot span the two — picking a store first is the natural
+            way to build an order that can actually be sent. Only shown when there is
+            something in both, so a single-warehouse catalogue carries no dead control. */}
+        {routeCounts.email > 0 && routeCounts.mercium > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-1 -mb-1" role="group" aria-label="Filter by warehouse">
+            <button
+              type="button"
+              onClick={() => setRoute(null)}
+              aria-pressed={route === null}
+              className={`min-h-[40px] shrink-0 rounded-full border px-3 text-sm font-medium ${
+                route === null ? 'bg-everglade border-everglade text-paper' : 'bg-white border-gray-400 text-gray-900'}`}
+            >
+              Both stores
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoute(route === 'mercium' ? null : 'mercium')}
+              aria-pressed={route === 'mercium'}
+              className={`min-h-[40px] shrink-0 rounded-full border px-3 text-sm font-medium ${
+                route === 'mercium' ? 'bg-everglade border-everglade text-paper' : 'bg-white border-gray-400 text-gray-900'}`}
+            >
+              Mercium <span className="opacity-70">{routeCounts.mercium}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRoute(route === 'email' ? null : 'email')}
+              aria-pressed={route === 'email'}
+              className={`min-h-[40px] shrink-0 rounded-full border px-3 text-sm font-medium ${
+                route === 'email' ? 'bg-indigo-700 border-indigo-700 text-paper' : 'bg-white border-indigo-400 text-indigo-900'}`}
+            >
+              Other store <span className="opacity-70">{routeCounts.email}</span>
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-2 overflow-x-auto pb-1 -mb-1" role="group" aria-label="Filter by category">
           <button
@@ -395,6 +489,29 @@ export function Catalogue({ siteId, onGoToBasket, canOrderExpansion = false }: {
             {shown === total ? `${total} products` : `${shown} of ${total} products`}
           </p>
         </div>
+
+        {/* What this request has already committed to. The two warehouses ship separately
+            and cannot share an order, so a GM three items into a Mercium request needs to
+            know that before they tap a near-identically named item from the other store. */}
+        {requestRoute !== null && (
+          <p className={`rounded-xl border px-3 py-2 text-sm ${
+            requestRoute === 'email'
+              ? 'bg-indigo-50 border-indigo-300 text-indigo-900'
+              : 'bg-gray-100 border-gray-300 text-gray-800'}`}
+          >
+            {requestRoute === 'email'
+              ? 'This request is for other-store stock. Mercium items need a separate request.'
+              : 'This request is for Mercium stock. Other-store items need a separate request.'}
+            {' '}
+            <button
+              type="button"
+              onClick={() => setRoute(requestRoute)}
+              className="underline font-medium"
+            >
+              Show only that store
+            </button>
+          </p>
+        )}
 
         {inRequest > 0 && (
           <div className="rounded-xl bg-everglade text-paper pl-3 pr-1.5 py-1.5 flex items-center justify-between gap-3">

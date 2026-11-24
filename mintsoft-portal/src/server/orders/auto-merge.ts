@@ -39,16 +39,21 @@ export async function combinedStockRefusal(
 ): Promise<string | null> {
   const skus = await skusByProduct(db)
   const { results: names } = await db
-    .prepare(`SELECT id, name FROM products`)
-    .all<{ id: number; name: string }>()
-  const nameFor = new Map((names ?? []).map((r) => [r.id, r.name]))
+    .prepare(`SELECT id, name, supply_route FROM products`)
+    .all<{ id: number; name: string; supply_route: 'mercium' | 'email' | null }>()
+  const productFor = new Map((names ?? []).map((r) => [r.id, r]))
 
   const lines: LineToApprove[] = combined.map((l) => ({
     productId: l.productId,
-    productName: nameFor.get(l.productId) ?? `Product ${l.productId}`,
+    productName: productFor.get(l.productId)?.name ?? `Product ${l.productId}`,
     qtyApproved: l.qtyApproved,
     skus: skus.get(l.productId) ?? [],
     rechargeUnitPrice: null,   // not priced here; the fee and prices are handled above
+    // Carried for the same reason the approve endpoint carries it: allocateLine reads the
+    // route first, and without it other-store stock reads as unmapped Mercium stock. Here
+    // that would have refused a combine of two perfectly good other-store orders and
+    // blamed the product for not being mapped to a warehouse that does not hold it.
+    supplyRoute: productFor.get(l.productId)?.supply_route ?? null,
   }))
 
   const short = lines.map(allocateLine).filter((a) => a.kind === 'short')

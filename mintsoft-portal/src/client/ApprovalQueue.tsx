@@ -15,11 +15,27 @@ interface QueueLine {
   productId: number; productName: string; qtyRequested: number
   available: number | null; availableBasis: string
   otherSitesPending: number; rechargeUnitPrice: number | null
+  /**
+   * Which warehouse holds it. An approver is signing a quantity off against stock, and
+   * for this store there is no stock figure by design — so the line has to say that
+   * rather than show a dash an approver reads as a sync failure and waits on.
+   */
+  supplyRoute?: 'mercium' | 'email'
 }
 interface QueueOrder {
   id: number; orderNumber: string; siteCode: string; siteName: string
   requesterName: string | null; submittedAt: string | null; notes: string | null
   earlyOrderReason: string | null; recharge: boolean
+  /**
+   * Which warehouse the order as a whole is for, including 'mixed'.
+   *
+   * An approver needs it before they sign anything off: an other-store order will be
+   * emailed rather than sent to Mercium and will never get a tracking number, and a
+   * mixed one cannot be sent at all — which is worth knowing at sign-off rather than at
+   * the Send button, since a product can change warehouse while an order sits in the
+   * queue.
+   */
+  supplyRoute?: 'mercium' | 'email' | 'mixed'
 }
 interface QueueItem {
   order: QueueOrder
@@ -103,6 +119,16 @@ function RequestCard({ item, onChanged }: {
         <div>
           <h3 className="font-semibold text-gray-900">
             {item.order.siteCode} · {item.order.siteName}
+            {item.order.supplyRoute === 'email' && (
+              <span className="ml-2 align-middle rounded border border-indigo-300 bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-900">
+                Other store
+              </span>
+            )}
+            {item.order.supplyRoute === 'mixed' && (
+              <span className="ml-2 align-middle rounded border border-red-300 bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-900">
+                Two warehouses — cannot be sent
+              </span>
+            )}
           </h3>
           <p className="text-sm text-gray-600">
             {item.order.requesterName ?? 'Unknown'} · {timeAgo(item.order.submittedAt)} · {item.order.orderNumber}
@@ -141,7 +167,13 @@ function RequestCard({ item, onChanged }: {
           <li key={line.productId} className="border-t border-gray-200 pt-3">
             <div className="flex items-start justify-between gap-3">
               <p className="font-medium text-gray-900">{line.productName}</p>
-              <p className="text-sm text-gray-700 whitespace-nowrap">{qty(line.available)} available</p>
+              {line.supplyRoute === 'email' ? (
+                <span className="shrink-0 rounded border border-indigo-300 bg-indigo-100 px-2 py-1 text-xs font-semibold text-indigo-900">
+                  Other store
+                </span>
+              ) : (
+                <p className="text-sm text-gray-700 whitespace-nowrap">{qty(line.available)} available</p>
+              )}
             </div>
             <p className="text-xs text-gray-600">{line.availableBasis}</p>
 

@@ -110,9 +110,26 @@ const ORDERABLE: Candidate[] = [
   { name: 'Takeaway cutlery', category: 'Packaging', unit: 'Case' },
 
   // --- Tableware ------------------------------------------------------------
-  // Only the ones Mercium plainly does not stock. Everything else the count sheet lists
-  // under this heading is in AMBIGUOUS below.
+  //
+  // The eight near-twins below were held back for a decision and Ross confirmed, on
+  // 24 November 2026, that they are separate stock in the separate warehouse and sites
+  // should be able to order them from there. They carry the count sheet's own description
+  // where it adds something, because a pick list reading "6 x Plate" is not pickable and
+  // "White rectangular plate" was recorded right beside it.
   { name: 'Wooden fork', category: 'Tableware', unit: 'Case' },
+  { name: 'Cup', category: 'Tableware', unit: 'Case',
+    note: 'Mercium also stocks Blue Cups Round/Sphere, Miso Soup Cups, Ceramic teacups and Tea cups' },
+  { name: 'Glass (half pint)', category: 'Tableware', unit: 'Case', countedAs: 'Glass' },
+  { name: 'Plate (white, rectangular)', category: 'Tableware', unit: 'Case', countedAs: 'Plate' },
+  { name: 'Ramen bowl (ceramic)', category: 'Tableware', unit: 'Case', countedAs: 'Ramen bowl' },
+  { name: 'Sauce bowl', category: 'Tableware', unit: 'Case' },
+  { name: 'Serving plate', category: 'Tableware', unit: 'Case' },
+  { name: 'Tea pot', category: 'Tableware', unit: 'Case' },
+
+  // --- Uniform --------------------------------------------------------------
+  // Uniform, not a category of its own: Mercium's hoodies and tee shirts are all filed
+  // under Uniform, and a one-product "Merchandise" chip on the catalogue would be noise.
+  { name: 'Hoodie', category: 'Uniform', unit: 'Case' },
 
   // --- Smallwares -----------------------------------------------------------
   { name: 'Chopping board (white)', category: 'Smallwares', unit: 'Unit', countedAs: 'Chopping board' },
@@ -140,14 +157,10 @@ const ORDERABLE: Candidate[] = [
  * -- so nothing is added -- or giving it a name of its own and moving it to ORDERABLE.
  */
 const AMBIGUOUS: { name: string; looksLike: string }[] = [
-  { name: 'Cup', looksLike: 'Blue Cups Round / Blue Cups Sphere / Miso Soup Cups / Ceramic teacups / Tea cups' },
-  { name: 'Glass (half pint)', looksLike: 'MAKI BIRU HALF PINT GLASSES - MRK001' },
-  { name: 'Hoodie', looksLike: 'M&R Hoodie (Black) and (pink), L / XL / XXL' },
-  { name: 'Plate', looksLike: 'White side plate / Donburi Plates / Round plate with gold coating' },
-  { name: 'Ramen bowl', looksLike: 'Ramen Bowl Vegan / Ramen Bowl with logo orange line / TORIPAITAN BOWL CERAMIC' },
-  { name: 'Sauce bowl', looksLike: 'Fresh Seal Bowl - MRK005 / RAMEKIN - MRK002' },
-  { name: 'Serving plate', looksLike: 'SLATE SERVING PLATE - MRK011' },
-  { name: 'Tea pot', looksLike: 'CAST IRON TEA POT (900ML) / Cast iron Tea Pot (600ml)' },
+  // Empty by decision, not by oversight. These eight were held here until Ross confirmed
+  // on 24 November 2026 that the other store genuinely holds its own, and they moved into
+  // ORDERABLE above with names of their own. Anything else that looks like a Mercium line
+  // belongs here first, for the same conversation.
 ]
 
 /**
@@ -206,7 +219,20 @@ function main(): void {
   // Compared case-insensitively and without punctuation, because "Tea pot" and "Teapot"
   // are the same thing to everyone except a string comparison.
   const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
-  const byKey = new Map(existing.map((p) => [key(p.name), p]))
+  /**
+   * A list per key, not one row.
+   *
+   * Keyed to a single row, a second product sharing a normalised key silently replaced
+   * the first -- so the clash report named one of them and the "already there"
+   * short-circuit could skip a genuinely new product because some OTHER product happened
+   * to normalise the same way. Six names in the live catalogue already belong to two rows
+   * each.
+   */
+  const byKey = new Map<string, typeof existing>()
+  for (const p of existing) {
+    const k = key(p.name)
+    byKey.set(k, [...(byKey.get(k) ?? []), p])
+  }
 
   console.log('\nStock held outside Mercium, ordered by email rather than through Mintsoft.'
     + `${APPLY ? '' : dim('  (dry run — nothing will be written)')}\n`)
@@ -217,11 +243,16 @@ function main(): void {
   const notes: Candidate[] = []
 
   for (const c of ORDERABLE) {
-    const clash = byKey.get(key(c.name))
-    if (clash) {
-      // Already on this route from an earlier run: nothing to do and nothing to report.
-      if (clash.supply_route === 'email') { alreadyThere.push(c); continue }
-      collisions.push({ candidate: c, existing: clash })
+    const sharing = byKey.get(key(c.name)) ?? []
+    // Already on this route from an earlier run: nothing to do and nothing to report.
+    // Requires the EXACT name, not merely the same key -- key equality is grounds to
+    // report, never to skip.
+    if (sharing.some((p) => p.name === c.name && p.supply_route === 'email')) {
+      alreadyThere.push(c)
+      continue
+    }
+    if (sharing.length > 0) {
+      for (const e of sharing) collisions.push({ candidate: c, existing: e })
       continue
     }
     statements.push(
