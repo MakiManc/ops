@@ -271,13 +271,44 @@ export async function addToBasket(
   let orderId = draft?.id
   if (!orderId) {
     const site = await db
-      .prepare(`SELECT code, type, recharge FROM sites WHERE id = ? AND active = 1`)
+      .prepare(`SELECT code, order_code, type, recharge FROM sites WHERE id = ? AND active = 1`)
       .bind(siteId)
-      .first<{ code: string; type: string; recharge: number }>()
+      .first<{ code: string; order_code: string | null; type: string; recharge: number }>()
     if (!site) throw new OrderError('That site is not open for ordering.')
 
+    /**
+     * The code the order number is built from, which is not always the site code.
+     *
+     * Order numbers are the idempotency key against Mintsoft, so buildOrderNumber only
+     * accepts [A-Z0-9] — and four sites have codes it cannot take ("M1/2", "MAKI NORI",
+     * "MAKI PROPERTY", "AAHQ-GLASGOW"). order_code carries a usable one for those, set in
+     * migration 0014 rather than derived here, because deriving it would turn "M1/2" into
+     * "M12", which is a DIFFERENT trading site: the two would then share an order-number
+     * prefix, interleave their sequences, and an Order/Search lookup could match the
+     * wrong site's order.
+     */
+    const orderCode = site.order_code ?? site.code
+
     const now = new Date()
-    const orderNumber = buildOrderNumber(site.code, now, await nextSequence(db, site.code, now))
+    let orderNumber: string
+    try {
+      orderNumber = buildOrderNumber(orderCode, now, await nextSequence(db, orderCode, now))
+    } catch {
+      /**
+       * Raised as an OrderError so it reaches the GM as words.
+       *
+       * It used to escape as a plain Error, which the API turned into a bare
+       * "server_error" 500 under the Add button — so a site whose code the order number
+       * cannot take looked like a broken portal rather than a setting nobody had filled
+       * in, and four sites sat unable to order anything at all without a single report
+       * saying why.
+       */
+      throw new OrderError(
+        `This site's code ("${site.code}") cannot be used in an order number, which only `
+        + 'allows letters and digits. An administrator needs to set an order code for the '
+        + 'site before it can order. Nothing has been added.',
+      )
+    }
     const created = await db
       .prepare(
         // The recharge flag is copied from the site at creation rather than read live
