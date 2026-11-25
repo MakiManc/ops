@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generated_at": "2026-11-24T13:36:28Z",
+ "generated_at": "2026-11-25T12:46:09Z",
  "source": {
   "system": "Mintsoft",
   "operator": "Mercium",
@@ -21,8 +21,8 @@
   "products_partial": 3
  },
  "totals": {
-  "free_units": 24336,
-  "allocated_units": 544
+  "free_units": 24298,
+  "allocated_units": 346
  },
  "products": [
   {
@@ -395,14 +395,14 @@
    "item_code": "CBB",
    "name": "MRK011 - CHICKEN BROTH BLENDER",
    "free": 12,
-   "allocated": 1,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-CBB",
      "mintsoft_product_id": 1643,
      "free": 12,
-     "allocated": 1
+     "allocated": 0
     }
    ]
   },
@@ -707,14 +707,14 @@
    "item_code": "DONBURI - MRK",
    "name": "DONBURI PLATES WITH LOGO",
    "free": 436,
-   "allocated": 20,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "DONBURI - MRK",
      "mintsoft_product_id": 1800,
      "free": 436,
-     "allocated": 20
+     "allocated": 0
     }
    ]
   },
@@ -895,30 +895,30 @@
   {
    "item_code": "FOH KIMONO (M)NO APRON-MRK",
    "name": "FOH KIMONO (M)NO APRON",
-   "free": 8,
-   "allocated": 4,
+   "free": 2,
+   "allocated": 10,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "FOH KIMONO (M)NO APRON-MRK",
      "mintsoft_product_id": 1816,
-     "free": 8,
-     "allocated": 4
+     "free": 2,
+     "allocated": 10
     }
    ]
   },
   {
    "item_code": "FOH KIMONO (XL)NO APRON-MRK",
    "name": "FOH KIMONO (XL)NO APRON ",
-   "free": 45,
-   "allocated": 10,
+   "free": 39,
+   "allocated": 16,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "FOH KIMONO (XL)NO APRON-MRK",
      "mintsoft_product_id": 1817,
-     "free": 45,
-     "allocated": 10
+     "free": 39,
+     "allocated": 16
     }
    ]
   },
@@ -1043,14 +1043,14 @@
    "item_code": "GYOZA PLATE 1 - MRK",
    "name": "GYOZA PLATE 1",
    "free": 295,
-   "allocated": 45,
+   "allocated": 25,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "GYOZA PLATE 1 - MRK",
      "mintsoft_product_id": 1828,
      "free": 295,
-     "allocated": 45
+     "allocated": 25
     }
    ]
   },
@@ -1282,15 +1282,15 @@
   {
    "item_code": "M&R HOODIE (BLACK)- XXL",
    "name": "M&R Hoodie (Black)- XXL",
-   "free": 23,
-   "allocated": 0,
+   "free": 22,
+   "allocated": 1,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "M&R Hoodie (Black)- XXL",
      "mintsoft_product_id": 1814,
-     "free": 23,
-     "allocated": 0
+     "free": 22,
+     "allocated": 1
     }
    ]
   },
@@ -1459,15 +1459,15 @@
   {
    "item_code": "MISO SOUP CUPS - MRK",
    "name": "MISO SOUP CUPS",
-   "free": 226,
-   "allocated": 0,
+   "free": 216,
+   "allocated": 10,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MISO SOUP CUPS - MRK",
      "mintsoft_product_id": 1824,
-     "free": 226,
-     "allocated": 0
+     "free": 216,
+     "allocated": 10
     }
    ]
   },
@@ -1721,14 +1721,14 @@
    "item_code": "RAM-MRK",
    "name": "RAMEKIN",
    "free": 1407,
-   "allocated": 220,
+   "allocated": 200,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "RAM-MRK",
      "mintsoft_product_id": 1804,
      "free": 1407,
-     "allocated": 220
+     "allocated": 200
     }
    ]
   },
@@ -1736,14 +1736,14 @@
    "item_code": "RAMEN BOWL VEGAN - MRK",
    "name": "RAMEN BOWL VEGAN",
    "free": 122,
-   "allocated": 10,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "RAMEN BOWL VEGAN - MRK",
      "mintsoft_product_id": 1821,
      "free": 122,
-     "allocated": 10
+     "allocated": 0
     }
    ]
   },
@@ -1751,14 +1751,14 @@
    "item_code": "RAMEN BOWL WITH LOGO ORANGE LINE - MRK",
    "name": "RAMEN BOWL WITH LOGO ORANGE LINE",
    "free": 418,
-   "allocated": 10,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "RAMEN BOWL WITH LOGO ORANGE LINE - MRK",
      "mintsoft_product_id": 1820,
      "free": 418,
-     "allocated": 10
+     "allocated": 0
     }
    ]
   },
@@ -1970,7 +1970,7 @@
    "item_code": "RSR",
    "name": "RAMEN STRAINERS - MRK001",
    "free": 0,
-   "allocated": 4,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -1983,7 +1983,7 @@
      "sku": "MRK010-RSR",
      "mintsoft_product_id": 1586,
      "free": 0,
-     "allocated": 4
+     "allocated": 0
     }
    ]
   },
@@ -2606,14 +2606,14 @@
    "item_code": "SMS",
    "name": "STAINLESS STEEL MESH PASTA STRAINER 14CM - MRK011",
    "free": 96,
-   "allocated": 4,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "MRK011-SMS",
      "mintsoft_product_id": 1644,
      "free": 96,
-     "allocated": 4
+     "allocated": 0
     }
    ]
   },
@@ -2972,14 +2972,14 @@
    "item_code": "SUSHI PLATE WOODEN WITH LOGO (BOAT) - MRK",
    "name": "SUSHI PLATE WOODEN WITH LOGO (BOAT) - MRK",
    "free": 0,
-   "allocated": 16,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "SUSHI PLATE WOODEN WITH LOGO (BOAT) - MRK",
      "mintsoft_product_id": 1827,
      "free": 0,
-     "allocated": 16
+     "allocated": 0
     }
    ]
   },
@@ -3121,15 +3121,15 @@
   {
    "item_code": "TEA CUPS - MRK",
    "name": "TEA CUPS ",
-   "free": 919,
-   "allocated": 70,
+   "free": 904,
+   "allocated": 65,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "TEA CUPS - MRK",
      "mintsoft_product_id": 1819,
-     "free": 919,
-     "allocated": 70
+     "free": 904,
+     "allocated": 65
     }
    ]
   },
@@ -3350,14 +3350,14 @@
    "item_code": "WSPWL-MRK",
    "name": "WOODEN SIDE PLATE WITH LOGO",
    "free": 704,
-   "allocated": 110,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
      "sku": "WSPWL-MRK",
      "mintsoft_product_id": 1801,
      "free": 704,
-     "allocated": 110
+     "allocated": 0
     }
    ]
   },
@@ -3365,7 +3365,7 @@
    "item_code": "WSW",
    "name": "White side plate",
    "free": 0,
-   "allocated": 1,
+   "allocated": 0,
    "lines_unknown": 0,
    "lines": [
     {
@@ -3378,7 +3378,7 @@
      "sku": "MRK002-WSW",
      "mintsoft_product_id": 1281,
      "free": 0,
-     "allocated": 1
+     "allocated": 0
     },
     {
      "sku": "MRK004-WSW",
