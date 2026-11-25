@@ -6684,6 +6684,77 @@ def main():
           "paused":str(r[2]).lower() in ('true','1','yes'),"groups":r[3],"categories":r[4]}
           for r in cur.fetchall()]
     snap["sites"]={"headcount":hc,"directory":directory}
+
+    # ---- Slerp online orders (Phase 1, 20/11/2026) ---------------------------
+    # Feed "Slerp Order Events": one row per webhook event, four event types,
+    # pulled nightly with a 3-day lookback so consecutive pulls OVERLAP by
+    # design - read the last 8 pulls and dedupe on event_id. An order is an
+    # order.created event (one per reference); its money is total_discounted
+    # (a decimal string, in pounds) and its day is order_created_at's UTC date.
+    # The order's CURRENT state is the newest event for its reference, which is
+    # how REJECTED / REFUNDED are counted. Test references (CURLTEST and
+    # anything starting TEST) are the receiver's own self-test and are dropped.
+    # Store names are Slerp's, not site codes - mapping to sites.csv
+    # slerp_location comes once the names are confirmed stable.
+    SLERP_FEED="Slerp Order Events"
+    slerp=None
+    if has_feed(cur,SLERP_FEED):
+        cur.execute("SELECT max(pull_date)::text FROM etl_feed_rows WHERE feed=%s",(SLERP_FEED,))
+        sl_pull=(cur.fetchone() or [None])[0]
+        cur.execute(
+          "SELECT data->>'event_id', data->>'event_type', data->>'event_created_at', "
+          " data->>'reference', data->>'order_status', data->>'order_created_at', "
+          " data->>'store_name', data->>'fulfillment_type', data->>'total_discounted', "
+          " data->>'item_quantity', data->>'customer_type' "
+          "FROM etl_feed_rows WHERE feed=%s AND pull_date >= (("+L+")::date - 8)",
+          (SLERP_FEED,SLERP_FEED))
+        seen=set(); created={}; latest={}
+        for eid,et,ets,ref,st,octs,store,ful,tot,qty,ctype in cur.fetchall():
+            if not eid or eid in seen or not ref: continue
+            seen.add(eid)
+            if ref=="CURLTEST" or ref.upper().startswith("TEST"): continue
+            if et=="order.created" and ref not in created:
+                created[ref]={"store":store or "(no store)","day":(octs or "")[:10],
+                              "ful":ful or "?","total":fb_num(tot) or 0.0,
+                              "qty":int(fb_num(qty) or 0),"guest":ctype=="GUEST"}
+            if (ets or "")>(latest.get(ref) or ("",""))[0]:
+                latest[ref]=((ets or ""),st or "")
+        days=sorted({o["day"] for o in created.values() if o["day"]})
+        last7=days[-7:] if days else []
+        # every pull also carries events for orders created before the window,
+        # so the day range is capped to the dates that have a full day of events
+        win=set(last7)
+        by_store={}
+        for ref,o in created.items():
+            if o["day"] not in win: continue
+            s=by_store.setdefault(o["store"],{"store":o["store"],"orders":0,"sales":0.0,"items":0,
+              "delivery":0,"pickup":0,"table":0,"guest":0,"rejected":0,"refunded":0,"by_day":{}})
+            s["orders"]+=1; s["sales"]+=o["total"]; s["items"]+=o["qty"]
+            s["delivery" if o["ful"]=="DELIVERY" else "pickup" if o["ful"]=="PICKUP" else "table"]+=1
+            if o["guest"]: s["guest"]+=1
+            fin=(latest.get(ref) or ("",""))[1]
+            if fin=="REJECTED": s["rejected"]+=1
+            elif fin=="REFUNDED": s["refunded"]+=1
+            d=s["by_day"].setdefault(o["day"],{"orders":0,"sales":0.0})
+            d["orders"]+=1; d["sales"]+=o["total"]
+        stores=[]
+        for s in sorted(by_store.values(),key=lambda x:-x["sales"]):
+            s["sales"]=round(s["sales"],2)
+            s["by_day"]={k:{"orders":v["orders"],"sales":round(v["sales"],2)} for k,v in sorted(s["by_day"].items())}
+            stores.append(s)
+        tot_by_day={}
+        for s in stores:
+            for d,v in s["by_day"].items():
+                t=tot_by_day.setdefault(d,{"day":d,"orders":0,"sales":0.0})
+                t["orders"]+=v["orders"]; t["sales"]+=v["sales"]
+        day_rows=[{"day":d,"orders":t["orders"],"sales":round(t["sales"],2)} for d,t in sorted(tot_by_day.items())]
+        slerp={"source_feed":SLERP_FEED,"pull_date":sl_pull,"events_read":len(seen),
+               "orders_in_archive":len(created),"days":day_rows,"stores":stores,
+               "status_counts":dict(collections.Counter(v[1] for v in latest.values())),
+               "note":("Orders are order.created events; state is the newest event per reference. "
+                       "Days are UTC dates of order_created_at. Stores are Slerp's own names. "
+                       "The archive's first event is 16/11/2026, so trends start there.")}
+    snap["slerp"]=slerp
     # ---- summary + standing gaps ----
     cur.execute("SELECT count(DISTINCT data->>'id') FROM etl_feed_rows WHERE feed='Flow Trainees' AND pull_date="+L,("Flow Trainees",))
     employees=(cur.fetchone() or [None])[0]

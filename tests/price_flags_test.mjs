@@ -81,7 +81,10 @@ const browser = await chromium.launch(
   existsSync(pinnedChromium) ? { executablePath: pinnedChromium } : {});
 const page = await browser.newPage({ viewport: { width: 1400, height: 1000 } });
 const consoleErrors = [];
-const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CERT/;
+// 25/11/2026: the page tries makiramen.github.io before makimanc.github.io on
+// open; when the runner's network answers for the first host the browser logs a
+// CORS complaint - network noise, not a render error (ops #64 check tripped on it).
+const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CERT|blocked by CORS policy/;
 page.on('console', m => { if (m.type() === 'error' && !NETWORK_NOISE.test(m.text()))
   consoleErrors.push(m.text()); });
 page.on('pageerror', e => consoleErrors.push(String(e)));

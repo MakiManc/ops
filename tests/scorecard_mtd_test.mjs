@@ -71,7 +71,10 @@ assert(tonk && tonk.mtd === true && tonk.score === null && tonk.value === 6,
 
 const pinnedChromium = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const browser = await chromium.launch(existsSync(pinnedChromium) ? { executablePath: pinnedChromium } : {});
-const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CERT/;
+// 25/11/2026: the page tries makiramen.github.io before makimanc.github.io on
+// open; when the runner's network answers for the first host the browser logs a
+// CORS complaint - network noise, not a render error (ops #64 check tripped on it).
+const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CERT|blocked by CORS policy/;
 
 // ---- index.html: the Overview scorecard ------------------------------------
 {

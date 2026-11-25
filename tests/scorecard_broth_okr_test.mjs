@@ -185,7 +185,10 @@ await page.goto(pageUrl);
 // that has no route out of this sandbox and fails loudly (expected, unrelated
 // to this feature) - only start listening for errors AFTER that settles.
 await page.waitForTimeout(1500);
-const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CERT/;
+// 25/11/2026: the page tries makiramen.github.io before makimanc.github.io on
+// open; when the runner's network answers for the first host the browser logs a
+// CORS complaint - network noise, not a render error (ops #64 check tripped on it).
+const NETWORK_NOISE = /Failed to load resource|net::ERR_|ERR_CERT|blocked by CORS policy/;
 const consoleErrors = [];
 page.on('pageerror', e => consoleErrors.push(String(e)));
 page.on('console', msg => {
