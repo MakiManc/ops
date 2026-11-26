@@ -1,11 +1,11 @@
 {
  "verifier_version": 2,
- "generated_at": "2026-11-26T08:33:37Z",
+ "generated_at": "2026-11-26T21:13:54Z",
  "verified_date": "2026-11-26",
- "mode": "morning",
+ "mode": "recheck",
  "overall": "amber",
  "postgres_latest": "2026-11-26",
- "snapshot_latest": "2026-11-25",
+ "snapshot_latest": "2026-11-26",
  "sizes": {
   "maintenance_pulled_at": "2026-11-26T08:28:50Z",
   "maintenance_source_as_of": "2026-11-25",
@@ -19,8 +19,8 @@
   "known_broken": 10,
   "best_effort": 22,
   "criticals": 0,
-  "warnings": 10,
-  "deferred": 1
+  "warnings": 11,
+  "deferred": 0
  },
  "criticals": [],
  "warnings": [
@@ -80,9 +80,14 @@
    "detail": "newest Order Placed is 2026-08-17 (101d old, window 10d) - and the last pull was 2026-09-01"
   },
   {
-   "check": "aggregates",
+   "check": "4c-attribution",
    "level": "warning",
-   "detail": "no recomputed snapshot available - aggregates archive not updated this run"
+   "detail": "only 67.4% of price-report rows could be tied to a named supplier (floor 90.0%), so the per-supplier spike counts stay a drill-down rather than a scored row (OO3 KR2 counts estate-wide and is unaffected). 484 were proved from the pack-price export of 2026-09-07 and 1552 matched by ingredient and pack. A fresher export in Drive is what lifts it - the export is manual and the price report is weekly"
+  },
+  {
+   "check": "4d-okr",
+   "level": "warning",
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-26T08:28) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "4f-oo1-ma",
@@ -90,14 +95,7 @@
    "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-26 08:29 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
- "deferred": [
-  {
-   "check": "4a-snapshot",
-   "level": "deferred",
-   "class": "4a-snapshot",
-   "detail": "dashboard says latest data is 2026-11-25 but the pull archive says 2026-11-26 - the bake failed, baked stale, or the commit never landed  [deferred - rechecked at 12:00 UTC]"
-  }
- ],
+ "deferred": [],
  "known_broken": [
   {
    "name": "Mapal Equipment",
@@ -888,14 +886,8 @@
   },
   {
    "check": "4a-snapshot",
-   "level": "deferred",
-   "class": "4a-snapshot",
-   "detail": "dashboard says latest data is 2026-11-25 but the pull archive says 2026-11-26 - the bake failed, baked stale, or the commit never landed  [deferred - rechecked at 12:00 UTC]"
-  },
-  {
-   "check": "4a-snapshot",
-   "level": "info",
-   "detail": "Pages CDN still serving 2026-11-26 (propagation lag - normal for up to ~an hour)"
+   "level": "ok",
+   "detail": "dashboard snapshot 2026-11-26 matches the pull archive 2026-11-26"
   },
   {
    "check": "6-side",
@@ -915,13 +907,38 @@
   },
   {
    "check": "4b-consistency",
-   "level": "info",
-   "detail": "skipped - check 4a already failing, nothing meaningful to compare until the snapshot is fresh"
+   "level": "ok",
+   "detail": "recomputed aggregates match the live snapshot exactly: tasks_on_time=39039, tasks_missed=1564, week_spend_gbp=146936.78, broth_cells=4347, factory_broth_readings=2000, supplier_issues=276, training_outstanding=1999"
+  },
+  {
+   "check": "4c-attribution",
+   "level": "warning",
+   "detail": "only 67.4% of price-report rows could be tied to a named supplier (floor 90.0%), so the per-supplier spike counts stay a drill-down rather than a scored row (OO3 KR2 counts estate-wide and is unaffected). 484 were proved from the pack-price export of 2026-09-07 and 1552 matched by ingredient and pack. A fresher export in Drive is what lifts it - the export is manual and the price report is weekly"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "scorecard carries 30 KRs in 6 objectives, five each"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "every objective percentage equals the mean of its scored rows, in every month offered"
+  },
+  {
+   "check": "4d-okr",
+   "level": "ok",
+   "detail": "OO1 is scores only (5 row(s), none carrying a value or a display) and no Finance percentage column name appears anywhere in the snapshot"
+  },
+  {
+   "check": "4d-okr",
+   "level": "warning",
+   "detail": "okr_sheet.json is absent, so the KRs that are only typed into the 2026 Operations Input sheet stay grey. The latest pull (2026-11-26T08:28) failed: not_shared. Expected until Matthew shares the sheet with the service account - it is shared to the makiramen.com domain, which does not cover one"
   },
   {
    "check": "aggregates",
-   "level": "warning",
-   "detail": "no recomputed snapshot available - aggregates archive not updated this run"
+   "level": "ok",
+   "detail": "4822 per-site daily aggregate rows upserted into ops_daily_aggregates.jsonl (6818 total)"
   },
   {
    "check": "4e-oo1-public",
@@ -934,5 +951,5 @@
    "detail": "oo1_ma.json: Finance's management account has not been read since 2026-10-16 - the read due 2026-11-07 has not happened; the latest attempt (2026-11-26 08:29 UK) failed: Drive has no file at that ID that the service account can read (HTTP 404) - its sharing was tightened, or it was moved or deleted; share it with the service account as Viewer, and check MA_FILE_ID"
   }
  ],
- "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; morning run (morning defers timing-class failures to the 12:00 UTC recheck)"
+ "basis": "verify_ops_data.py v2 checks 0/1/2/3/4a/4b/5/6 against the committed pull archive and raw.githubusercontent.com; manifest v1 calibrated 2026-08-18; recheck run (morning defers timing-class failures to the 12:00 UTC recheck)"
 }
